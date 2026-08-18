@@ -6,10 +6,13 @@ import { store } from '../src/state/store';
 export default function RootLayout(): React.JSX.Element {
   return (
     <ReduxProvider store={store}>
-      <StatusBar style="auto" />
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="index" options={{ title: 'VAYA' }} />
+      <StatusBar style="dark" />
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="index" />
+        <Stack.Screen name="(auth)" />
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="search" />
+        <Stack.Screen name="bookings" />
       </Stack>
     </ReduxProvider>
   );

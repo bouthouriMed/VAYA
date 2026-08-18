@@ -1,68 +1,69 @@
 /**
- * ARC visual direction: sage-green brand, warm cream neutrals, dark-navy ink.
+ * ARC visual direction: restrained 3-tone palette — warm cream surface,
+ * dark slate-navy ink (also the solid CTA/header color), muted sage accent.
  * Derived from the product mockups (apps/mobile/assets/UI_UX Design *.jfif).
  */
 export const colors = {
-  // Brand — sage green
-  primary: '#4B6B4E',
-  primaryLight: '#7E9E7C',
-  primaryDark: '#2E4429',
+  // Brand — dark slate-navy (solid CTAs, headers, primary text)
+  primary: '#2E3B42',
+  primaryLight: '#4B5960',
+  primaryDark: '#1C2429',
 
-  // Accent — warm amber (pending states, secondary CTAs)
-  secondary: '#C99A4E',
-  secondaryLight: '#E0B876',
-  secondaryDark: '#8A6423',
+  // Accent — muted sage (route lines, dots, meter fill, stars)
+  secondary: '#7FA491',
+  secondaryLight: '#A8C4B6',
+  secondaryDark: '#587566',
 
-  // Neutrals — warm cream → dark navy-ink scale
+  // Neutrals — warm cream → dark ink scale
   white: '#FFFFFF',
   black: '#000000',
-  gray50: '#FAF8F3',
-  gray100: '#F5F1E6',
-  gray200: '#EBE6D6',
-  gray300: '#DCD5C2',
-  gray400: '#B8B29C',
-  gray500: '#8F8A76',
-  gray600: '#6C766A',
-  gray700: '#4A5348',
-  gray800: '#2C362E',
-  gray900: '#1B2721',
+  gray50: '#FAF8F2',
+  gray100: '#F3F1E9',
+  gray200: '#EAE7DC',
+  gray300: '#DDD9CA',
+  gray400: '#BDB9A9',
+  gray500: '#9B9788',
+  gray600: '#7A8288',
+  gray700: '#57616A',
+  gray800: '#3A444C',
+  gray900: '#26333A',
 
   // Semantic
-  success: '#5C8A5F',
-  successLight: '#A9C7A8',
-  successDark: '#3A5C3D',
+  success: '#587566',
+  successLight: '#A8C4B6',
+  successDark: '#3B5347',
 
-  warning: '#C99A4E',
-  warningLight: '#E0B876',
-  warningDark: '#8A6423',
+  warning: '#B08A4E',
+  warningLight: '#D6BC8C',
+  warningDark: '#7A5C30',
 
-  error: '#B5594A',
-  errorLight: '#D68A7D',
-  errorDark: '#7C3A2E',
+  error: '#A65C4E',
+  errorLight: '#CE9787',
+  errorDark: '#733D33',
 
-  info: '#4C8079',
-  infoLight: '#8FB5AF',
-  infoDark: '#2F5A52',
+  info: '#5B7D8A',
+  infoLight: '#9DBAC3',
+  infoDark: '#3B535D',
 
-  // Dark navy surfaces (splash, dark cards, status backgrounds)
-  navySurface: '#12201B',
-  navySurfaceElevated: '#1E3A2E',
-  navyText: '#F5F1E6',
-  navyTextMuted: '#93A696',
+  // Dark hero surfaces (arrival/settlement header block, splash)
+  navySurface: '#2E3B42',
+  navySurfaceElevated: '#3A4750',
+  navyText: '#F3F1E9',
+  navyTextMuted: '#AEB6B9',
 
   // Map tokens
-  mapRouteLine: '#4B6B4E',
-  mapRouteLineFaint: 'rgba(75, 107, 78, 0.3)',
-  mapUserMarker: '#7E9E7C',
-  mapDriverMarker: '#1B2721',
-  mapPickupMarker: '#C99A4E',
-  mapCorridorFill: 'rgba(75, 107, 78, 0.13)',
-  mapTileTint: '#EBE6D6',
+  mapRouteLine: '#7FA491',
+  mapRouteLineFaint: 'rgba(127, 164, 145, 0.3)',
+  mapUserMarker: '#7FA491',
+  mapDriverMarker: '#2E3B42',
+  mapPickupMarker: '#2E3B42',
+  mapCorridorFill: 'rgba(127, 164, 145, 0.14)',
+  mapTileTint: '#EDEBE1',
 
   // Trust / reliability tokens
-  trustBarFill: '#4B6B4E',
-  trustBarTrack: '#EBE6D6',
-  ratingStar: '#C99A4E',
+  trustBarFill: '#7FA491',
+  trustBarTrack: '#E2E8E4',
+  ratingStar: '#7FA491',
 } as const;
 
 export type ColorToken = keyof typeof colors;

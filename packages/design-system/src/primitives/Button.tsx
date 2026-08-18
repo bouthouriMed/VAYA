@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
   base: {
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: radii.md,
+    borderRadius: radii.full,
     flexDirection: 'row',
   },
   text: {
