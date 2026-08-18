@@ -1,0 +1,985 @@
+/* eslint-disable no-console -- CLI seed script; console output is the intended interface */
+import 'dotenv/config';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { Pool } from 'pg';
+import * as schema from './schema/index.js';
+
+const {
+  users,
+  routes,
+  driverProfiles,
+  vehicles,
+  verificationDocuments,
+  rides,
+  bookings,
+  trips,
+  ratings,
+  recurringPatterns,
+  relationshipSignals,
+  demandSignals,
+  notifications,
+} = schema;
+
+function hoursFromNow(h: number): Date {
+  return new Date(Date.now() + h * 3_600_000);
+}
+
+function daysAgo(d: number): Date {
+  return new Date(Date.now() - d * 86_400_000);
+}
+
+async function main(): Promise<void> {
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('Refusing to seed a production database');
+  }
+
+  const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+  const db = drizzle(pool, { schema });
+
+  console.log('Seeding VAYA canonical demo dataset...');
+
+  // ── Routes (corridors) ─────────────────────────────────────────────
+  const [
+    elMenzahDigitalCenter,
+    laMarsaCentreVille,
+    arianaLeBardo,
+    benArousTunis,
+    manoubaTunis,
+    sousseMonastir,
+    sfaxSakietEzzit,
+    tunisNabeul,
+  ] = await db
+    .insert(routes)
+    .values([
+      {
+        originLabel: 'El Menzah 5',
+        originLat: 36.8508,
+        originLng: 10.1658,
+        destinationLabel: 'Tunis Digital Center',
+        destinationLat: 36.8383,
+        destinationLng: 10.1518,
+        distanceKm: 5.4,
+        estimatedDurationMin: 15,
+        minContribution: 3,
+        recommendedContribution: 5,
+        maxContribution: 7,
+      },
+      {
+        originLabel: 'La Marsa',
+        originLat: 36.8785,
+        originLng: 10.3247,
+        destinationLabel: 'Tunis Centre Ville',
+        destinationLat: 36.7992,
+        destinationLng: 10.1811,
+        distanceKm: 12.3,
+        estimatedDurationMin: 25,
+        minContribution: 4,
+        recommendedContribution: 6,
+        maxContribution: 9,
+      },
+      {
+        originLabel: 'Ariana',
+        originLat: 36.8625,
+        originLng: 10.1956,
+        destinationLabel: 'Le Bardo',
+        destinationLat: 36.8092,
+        destinationLng: 10.1367,
+        distanceKm: 7.1,
+        estimatedDurationMin: 16,
+        minContribution: 3,
+        recommendedContribution: 4,
+        maxContribution: 6,
+      },
+      {
+        originLabel: 'Ben Arous',
+        originLat: 36.7531,
+        originLng: 10.2189,
+        destinationLabel: 'Tunis',
+        destinationLat: 36.8065,
+        destinationLng: 10.1815,
+        distanceKm: 9.8,
+        estimatedDurationMin: 20,
+        minContribution: 4,
+        recommendedContribution: 5,
+        maxContribution: 8,
+      },
+      {
+        originLabel: 'Manouba',
+        originLat: 36.8081,
+        originLng: 10.0972,
+        destinationLabel: 'Tunis',
+        destinationLat: 36.8065,
+        destinationLng: 10.1815,
+        distanceKm: 8.9,
+        estimatedDurationMin: 18,
+        minContribution: 3,
+        recommendedContribution: 5,
+        maxContribution: 7,
+      },
+      {
+        originLabel: 'Sousse',
+        originLat: 35.8256,
+        originLng: 10.6369,
+        destinationLabel: 'Monastir',
+        destinationLat: 35.7643,
+        destinationLng: 10.8113,
+        distanceKm: 19.6,
+        estimatedDurationMin: 25,
+        minContribution: 8,
+        recommendedContribution: 10,
+        maxContribution: 14,
+      },
+      {
+        originLabel: 'Sfax',
+        originLat: 34.7406,
+        originLng: 10.7603,
+        destinationLabel: 'Sakiet Ezzit',
+        destinationLat: 34.7822,
+        destinationLng: 10.7397,
+        distanceKm: 5.8,
+        estimatedDurationMin: 12,
+        minContribution: 2,
+        recommendedContribution: 4,
+        maxContribution: 6,
+      },
+      {
+        originLabel: 'Tunis',
+        originLat: 36.8065,
+        originLng: 10.1815,
+        destinationLabel: 'Nabeul',
+        destinationLat: 36.4561,
+        destinationLng: 10.7376,
+        distanceKm: 64.7,
+        estimatedDurationMin: 58,
+        minContribution: 15,
+        recommendedContribution: 20,
+        maxContribution: 28,
+      },
+    ])
+    .returning();
+
+  if (
+    !elMenzahDigitalCenter ||
+    !laMarsaCentreVille ||
+    !arianaLeBardo ||
+    !benArousTunis ||
+    !manoubaTunis ||
+    !sousseMonastir ||
+    !sfaxSakietEzzit ||
+    !tunisNabeul
+  ) {
+    throw new Error('Failed to insert routes');
+  }
+
+  // ── Users ──────────────────────────────────────────────────────────
+  const userSeeds = [
+    { fullName: 'Sarra Ben Ali', phone: '+21620111001' },
+    { fullName: 'Youssef Trabelsi', phone: '+21620111002' },
+    { fullName: 'Mehdi Gharbi', phone: '+21620111003' },
+    { fullName: 'Marwa Jendoubi', phone: '+21620111004' },
+    { fullName: 'Karim Fassi', phone: '+21620111005' },
+    { fullName: 'Rania Chaabane', phone: '+21620111006' },
+    { fullName: 'Hedi Sassi', phone: '+21620111007' },
+    { fullName: 'Nour Khedher', phone: '+21620111008' },
+    { fullName: 'Amine Bel Haj', phone: '+21620111009' },
+    { fullName: 'Ines Zouari', phone: '+21620111010' },
+    { fullName: 'Ahmed Rezgui', phone: '+21620111011' },
+    { fullName: 'Salma Guermazi', phone: '+21620111012' },
+    { fullName: 'Bilel Ayari', phone: '+21620111013' },
+    { fullName: 'Ola Mejri', phone: '+21620111014' },
+    { fullName: 'Fares Sahli', phone: '+21620111015' },
+    { fullName: 'Yasmine Chtioui', phone: '+21620111016' },
+    { fullName: 'Aymen Hammami', phone: '+21620111017' },
+    { fullName: 'Sonia Ferjani', phone: '+21620111018' },
+    { fullName: 'Wassim Bouazizi', phone: '+21620111019' },
+    { fullName: 'Leila Mansour', phone: '+21620111020' },
+  ];
+  const insertedUsers = await db.insert(users).values(userSeeds).returning();
+  const userByName = (name: string) => {
+    const u = insertedUsers.find((row) => row.fullName === name);
+    if (!u) throw new Error(`Seed user not found: ${name}`);
+    return u;
+  };
+
+  const sarra = userByName('Sarra Ben Ali');
+  const youssef = userByName('Youssef Trabelsi');
+  const mehdi = userByName('Mehdi Gharbi');
+  const marwa = userByName('Marwa Jendoubi');
+  const karim = userByName('Karim Fassi');
+  const hedi = userByName('Hedi Sassi');
+  const amine = userByName('Amine Bel Haj');
+  const ahmed = userByName('Ahmed Rezgui');
+  const bilel = userByName('Bilel Ayari');
+
+  // ── Driver profiles + vehicles + documents ────────────────────────
+  const driverSeeds = [
+    {
+      user: sarra,
+      ratingAvg: 4.9,
+      tripCount: 212,
+      punctualityScore: 0.95,
+      reliabilityScore: 0.97,
+      verificationStatus: 'approved' as const,
+      vehicle: {
+        make: 'Peugeot',
+        model: '208',
+        color: 'Grise',
+        plateNumber: '208TU1234',
+        seatCount: 3,
+      },
+    },
+    {
+      user: youssef,
+      ratingAvg: 4.8,
+      tripCount: 34,
+      punctualityScore: 0.9,
+      reliabilityScore: 0.92,
+      verificationStatus: 'approved' as const,
+      vehicle: {
+        make: 'Renault',
+        model: 'Clio',
+        color: 'Blanche',
+        plateNumber: '155TU5678',
+        seatCount: 3,
+      },
+    },
+    {
+      user: mehdi,
+      ratingAvg: 4.7,
+      tripCount: 88,
+      punctualityScore: 0.88,
+      reliabilityScore: 0.9,
+      verificationStatus: 'approved' as const,
+      vehicle: {
+        make: 'Dacia',
+        model: 'Logan',
+        color: 'Bleue',
+        plateNumber: '99TU4455',
+        seatCount: 4,
+      },
+    },
+    {
+      user: karim,
+      ratingAvg: 4.6,
+      tripCount: 61,
+      punctualityScore: 0.85,
+      reliabilityScore: 0.87,
+      verificationStatus: 'approved' as const,
+      vehicle: {
+        make: 'Kia',
+        model: 'Picanto',
+        color: 'Rouge',
+        plateNumber: '77TU2211',
+        seatCount: 3,
+      },
+    },
+    {
+      user: hedi,
+      ratingAvg: 4.5,
+      tripCount: 45,
+      punctualityScore: 0.82,
+      reliabilityScore: 0.85,
+      verificationStatus: 'approved' as const,
+      vehicle: {
+        make: 'Volkswagen',
+        model: 'Golf',
+        color: 'Grise',
+        plateNumber: '133TU9090',
+        seatCount: 4,
+      },
+    },
+    {
+      user: amine,
+      ratingAvg: 4.85,
+      tripCount: 130,
+      punctualityScore: 0.93,
+      reliabilityScore: 0.94,
+      verificationStatus: 'approved' as const,
+      vehicle: {
+        make: 'Peugeot',
+        model: '301',
+        color: 'Noire',
+        plateNumber: '210TU3344',
+        seatCount: 4,
+      },
+    },
+    {
+      user: ahmed,
+      ratingAvg: 4.4,
+      tripCount: 22,
+      punctualityScore: 0.8,
+      reliabilityScore: 0.83,
+      verificationStatus: 'approved' as const,
+      vehicle: {
+        make: 'Hyundai',
+        model: 'i10',
+        color: 'Blanche',
+        plateNumber: '61TU7788',
+        seatCount: 3,
+      },
+    },
+    {
+      user: bilel,
+      ratingAvg: 0,
+      tripCount: 0,
+      punctualityScore: 0,
+      reliabilityScore: 0,
+      verificationStatus: 'pending' as const,
+      vehicle: {
+        make: 'Seat',
+        model: 'Ibiza',
+        color: 'Grise',
+        plateNumber: '188TU6622',
+        seatCount: 3,
+      },
+    },
+  ];
+
+  const driverProfileByUserId = new Map<string, typeof driverProfiles.$inferSelect>();
+  const vehicleByUserId = new Map<string, typeof vehicles.$inferSelect>();
+
+  for (const seed of driverSeeds) {
+    const [profile] = await db
+      .insert(driverProfiles)
+      .values({
+        userId: seed.user.id,
+        verificationStatus: seed.verificationStatus,
+        ratingAvg: seed.ratingAvg,
+        tripCount: seed.tripCount,
+        punctualityScore: seed.punctualityScore,
+        reliabilityScore: seed.reliabilityScore,
+        approvedAt: seed.verificationStatus === 'approved' ? daysAgo(200) : null,
+      })
+      .returning();
+    if (!profile) throw new Error('Failed to insert driver profile');
+    driverProfileByUserId.set(seed.user.id, profile);
+
+    const [vehicle] = await db
+      .insert(vehicles)
+      .values({ driverProfileId: profile.id, ...seed.vehicle })
+      .returning();
+    if (!vehicle) throw new Error('Failed to insert vehicle');
+    vehicleByUserId.set(seed.user.id, vehicle);
+
+    const docStatus = seed.verificationStatus === 'pending' ? 'pending' : 'approved';
+    await db.insert(verificationDocuments).values([
+      {
+        driverProfileId: profile.id,
+        type: 'license',
+        fileUrl: '/uploads/seed-license.jpg',
+        status: docStatus,
+      },
+      {
+        driverProfileId: profile.id,
+        type: 'registration',
+        fileUrl: '/uploads/seed-registration.jpg',
+        status: docStatus,
+      },
+    ]);
+  }
+
+  const sarraProfile = driverProfileByUserId.get(sarra.id)!;
+  const sarraVehicle = vehicleByUserId.get(sarra.id)!;
+  const youssefProfile = driverProfileByUserId.get(youssef.id)!;
+  const youssefVehicle = vehicleByUserId.get(youssef.id)!;
+  const mehdiProfile = driverProfileByUserId.get(mehdi.id)!;
+  const mehdiVehicle = vehicleByUserId.get(mehdi.id)!;
+  const karimProfile = driverProfileByUserId.get(karim.id)!;
+  const karimVehicle = vehicleByUserId.get(karim.id)!;
+  const amineProfile = driverProfileByUserId.get(amine.id)!;
+  const amineVehicle = vehicleByUserId.get(amine.id)!;
+  const ahmedProfile = driverProfileByUserId.get(ahmed.id)!;
+  const ahmedVehicle = vehicleByUserId.get(ahmed.id)!;
+
+  // ── Recurring pattern: Youssef's weekday morning commute ──────────
+  const [morningCommutePattern] = await db
+    .insert(recurringPatterns)
+    .values({
+      userId: youssef.id,
+      role: 'rider',
+      routeId: elMenzahDigitalCenter.id,
+      originLabel: elMenzahDigitalCenter.originLabel,
+      originLat: elMenzahDigitalCenter.originLat,
+      originLng: elMenzahDigitalCenter.originLng,
+      destinationLabel: elMenzahDigitalCenter.destinationLabel,
+      destinationLat: elMenzahDigitalCenter.destinationLat,
+      destinationLng: elMenzahDigitalCenter.destinationLng,
+      daysOfWeekMask: 0b0011111,
+      timeWindowStart: '08:00',
+      timeWindowEnd: '08:30',
+      confidenceScore: 0.91,
+      status: 'enabled',
+      lastMatchedAt: hoursFromNow(-20),
+    })
+    .returning();
+  if (!morningCommutePattern) throw new Error('Failed to insert recurring pattern');
+
+  await db.insert(recurringPatterns).values([
+    {
+      userId: karim.id,
+      role: 'rider',
+      routeId: laMarsaCentreVille.id,
+      originLabel: laMarsaCentreVille.originLabel,
+      originLat: laMarsaCentreVille.originLat,
+      originLng: laMarsaCentreVille.originLng,
+      destinationLabel: laMarsaCentreVille.destinationLabel,
+      destinationLat: laMarsaCentreVille.destinationLat,
+      destinationLng: laMarsaCentreVille.destinationLng,
+      daysOfWeekMask: 0b0011111,
+      timeWindowStart: '07:45',
+      timeWindowEnd: '08:15',
+      confidenceScore: 0.62,
+      status: 'detected',
+    },
+    {
+      userId: amine.id,
+      role: 'driver',
+      routeId: elMenzahDigitalCenter.id,
+      originLabel: elMenzahDigitalCenter.originLabel,
+      originLat: elMenzahDigitalCenter.originLat,
+      originLng: elMenzahDigitalCenter.originLng,
+      destinationLabel: elMenzahDigitalCenter.destinationLabel,
+      destinationLat: elMenzahDigitalCenter.destinationLat,
+      destinationLng: elMenzahDigitalCenter.destinationLng,
+      daysOfWeekMask: 0b0011111,
+      timeWindowStart: '08:00',
+      timeWindowEnd: '08:30',
+      confidenceScore: 0.74,
+      status: 'suggested',
+    },
+  ]);
+
+  // ── Rides ──────────────────────────────────────────────────────────
+  const [rideInProgress] = await db
+    .insert(rides)
+    .values({
+      driverProfileId: sarraProfile.id,
+      vehicleId: sarraVehicle.id,
+      routeId: elMenzahDigitalCenter.id,
+      originLabel: elMenzahDigitalCenter.originLabel,
+      originLat: elMenzahDigitalCenter.originLat,
+      originLng: elMenzahDigitalCenter.originLng,
+      destinationLabel: elMenzahDigitalCenter.destinationLabel,
+      destinationLat: elMenzahDigitalCenter.destinationLat,
+      destinationLng: elMenzahDigitalCenter.destinationLng,
+      departureAt: hoursFromNow(-0.1),
+      seatsTotal: 3,
+      seatsAvailable: 1,
+      contributionPerSeat: 5,
+      status: 'in_progress',
+      routePolyline: 'kzwtF{qhTiAtAgAtAiAvAaAdAaAdA',
+      estimatedDurationSec: 900,
+      recurringPatternId: morningCommutePattern.id,
+    })
+    .returning();
+  if (!rideInProgress) throw new Error('Failed to insert in_progress ride');
+
+  const [ridePublished1, ridePublished2, ridePublished3, ridePublished4] = await db
+    .insert(rides)
+    .values([
+      {
+        driverProfileId: amineProfile.id,
+        vehicleId: amineVehicle.id,
+        routeId: elMenzahDigitalCenter.id,
+        originLabel: elMenzahDigitalCenter.originLabel,
+        originLat: elMenzahDigitalCenter.originLat,
+        originLng: elMenzahDigitalCenter.originLng,
+        destinationLabel: elMenzahDigitalCenter.destinationLabel,
+        destinationLat: elMenzahDigitalCenter.destinationLat,
+        destinationLng: elMenzahDigitalCenter.destinationLng,
+        departureAt: hoursFromNow(1),
+        seatsTotal: 4,
+        seatsAvailable: 3,
+        contributionPerSeat: 5,
+        status: 'published',
+      },
+      {
+        driverProfileId: mehdiProfile.id,
+        vehicleId: mehdiVehicle.id,
+        routeId: laMarsaCentreVille.id,
+        originLabel: laMarsaCentreVille.originLabel,
+        originLat: laMarsaCentreVille.originLat,
+        originLng: laMarsaCentreVille.originLng,
+        destinationLabel: laMarsaCentreVille.destinationLabel,
+        destinationLat: laMarsaCentreVille.destinationLat,
+        destinationLng: laMarsaCentreVille.destinationLng,
+        departureAt: hoursFromNow(2),
+        seatsTotal: 4,
+        seatsAvailable: 4,
+        contributionPerSeat: 6,
+        status: 'published',
+      },
+      {
+        driverProfileId: karimProfile.id,
+        vehicleId: karimVehicle.id,
+        routeId: arianaLeBardo.id,
+        originLabel: arianaLeBardo.originLabel,
+        originLat: arianaLeBardo.originLat,
+        originLng: arianaLeBardo.originLng,
+        destinationLabel: arianaLeBardo.destinationLabel,
+        destinationLat: arianaLeBardo.destinationLat,
+        destinationLng: arianaLeBardo.destinationLng,
+        departureAt: hoursFromNow(3),
+        seatsTotal: 3,
+        seatsAvailable: 2,
+        contributionPerSeat: 4,
+        status: 'published',
+      },
+      {
+        driverProfileId: ahmedProfile.id,
+        vehicleId: ahmedVehicle.id,
+        routeId: benArousTunis.id,
+        originLabel: benArousTunis.originLabel,
+        originLat: benArousTunis.originLat,
+        originLng: benArousTunis.originLng,
+        destinationLabel: benArousTunis.destinationLabel,
+        destinationLat: benArousTunis.destinationLat,
+        destinationLng: benArousTunis.destinationLng,
+        departureAt: hoursFromNow(4),
+        seatsTotal: 3,
+        seatsAvailable: 0,
+        contributionPerSeat: 5,
+        status: 'full',
+      },
+    ])
+    .returning();
+  if (!ridePublished1 || !ridePublished2 || !ridePublished3 || !ridePublished4) {
+    throw new Error('Failed to insert published/full rides');
+  }
+
+  await db.insert(rides).values({
+    driverProfileId: youssefProfile.id,
+    vehicleId: youssefVehicle.id,
+    routeId: manoubaTunis.id,
+    originLabel: manoubaTunis.originLabel,
+    originLat: manoubaTunis.originLat,
+    originLng: manoubaTunis.originLng,
+    destinationLabel: manoubaTunis.destinationLabel,
+    destinationLat: manoubaTunis.destinationLat,
+    destinationLng: manoubaTunis.destinationLng,
+    departureAt: hoursFromNow(30),
+    seatsTotal: 3,
+    seatsAvailable: 3,
+    contributionPerSeat: 5,
+    status: 'draft',
+  });
+
+  await db.insert(rides).values({
+    driverProfileId: hediProfileSafe(),
+    vehicleId: vehicleByUserId.get(hedi.id)!.id,
+    routeId: sousseMonastir.id,
+    originLabel: sousseMonastir.originLabel,
+    originLat: sousseMonastir.originLat,
+    originLng: sousseMonastir.originLng,
+    destinationLabel: sousseMonastir.destinationLabel,
+    destinationLat: sousseMonastir.destinationLat,
+    destinationLng: sousseMonastir.destinationLng,
+    departureAt: hoursFromNow(-5),
+    seatsTotal: 3,
+    seatsAvailable: 3,
+    contributionPerSeat: 10,
+    status: 'cancelled',
+  });
+
+  function hediProfileSafe(): string {
+    const p = driverProfileByUserId.get(hedi.id);
+    if (!p) throw new Error('Missing Hedi profile');
+    return p.id;
+  }
+
+  const completedRideSeeds = [
+    {
+      driver: sarraProfile,
+      vehicle: sarraVehicle,
+      route: elMenzahDigitalCenter,
+      daysBack: 1,
+      price: 5,
+    },
+    {
+      driver: sarraProfile,
+      vehicle: sarraVehicle,
+      route: elMenzahDigitalCenter,
+      daysBack: 2,
+      price: 5,
+    },
+    {
+      driver: amineProfile,
+      vehicle: amineVehicle,
+      route: elMenzahDigitalCenter,
+      daysBack: 3,
+      price: 5,
+    },
+    {
+      driver: mehdiProfile,
+      vehicle: mehdiVehicle,
+      route: laMarsaCentreVille,
+      daysBack: 4,
+      price: 6,
+    },
+    { driver: karimProfile, vehicle: karimVehicle, route: arianaLeBardo, daysBack: 5, price: 4 },
+  ];
+  const completedRides = await db
+    .insert(rides)
+    .values(
+      completedRideSeeds.map((s) => ({
+        driverProfileId: s.driver.id,
+        vehicleId: s.vehicle.id,
+        routeId: s.route.id,
+        originLabel: s.route.originLabel,
+        originLat: s.route.originLat,
+        originLng: s.route.originLng,
+        destinationLabel: s.route.destinationLabel,
+        destinationLat: s.route.destinationLat,
+        destinationLng: s.route.destinationLng,
+        departureAt: daysAgo(s.daysBack),
+        seatsTotal: 3,
+        seatsAvailable: 1,
+        contributionPerSeat: s.price,
+        status: 'completed' as const,
+      })),
+    )
+    .returning();
+
+  // ── Bookings + Trips + Ratings ─────────────────────────────────────
+  // Pending requests on published rides
+  await db.insert(bookings).values([
+    {
+      rideId: ridePublished1.id,
+      riderId: marwa.id,
+      seatsRequested: 1,
+      contributionTotal: 5,
+      status: 'pending',
+      pickupLabel: 'Angle Rue de Kairouan',
+      pickupLat: elMenzahDigitalCenter.originLat + 0.001,
+      pickupLng: elMenzahDigitalCenter.originLng + 0.001,
+    },
+    {
+      rideId: ridePublished2.id,
+      riderId: nourSafe(),
+      seatsRequested: 2,
+      contributionTotal: 12,
+      status: 'pending',
+      pickupLabel: 'Avenue Habib Bourguiba, La Marsa',
+      pickupLat: laMarsaCentreVille.originLat,
+      pickupLng: laMarsaCentreVille.originLng,
+    },
+  ]);
+  function nourSafe(): string {
+    return userByName('Nour Khedher').id;
+  }
+
+  // Accepted booking on the in-progress ride → active trip
+  const [acceptedBookingActive] = await db
+    .insert(bookings)
+    .values({
+      rideId: rideInProgress.id,
+      riderId: youssef.id,
+      seatsRequested: 1,
+      contributionTotal: 5,
+      status: 'accepted',
+      pickupLabel: 'Angle Rue de Kairouan',
+      pickupLat: elMenzahDigitalCenter.originLat + 0.001,
+      pickupLng: elMenzahDigitalCenter.originLng + 0.001,
+      respondedAt: hoursFromNow(-1),
+    })
+    .returning();
+  if (!acceptedBookingActive) throw new Error('Failed to insert accepted booking');
+
+  await db.insert(trips).values({
+    bookingId: acceptedBookingActive.id,
+    rideId: rideInProgress.id,
+    status: 'active',
+    simulationStartedAt: hoursFromNow(-0.08),
+  });
+
+  // Accepted booking on a published ride → scheduled trip
+  const [acceptedBookingScheduled] = await db
+    .insert(bookings)
+    .values({
+      rideId: ridePublished3.id,
+      riderId: salmaSafe(),
+      seatsRequested: 1,
+      contributionTotal: 4,
+      status: 'accepted',
+      pickupLabel: 'Rue de Palestine, Ariana',
+      pickupLat: arianaLeBardo.originLat,
+      pickupLng: arianaLeBardo.originLng,
+      respondedAt: hoursFromNow(-0.5),
+    })
+    .returning();
+  function salmaSafe(): string {
+    return userByName('Salma Guermazi').id;
+  }
+  if (!acceptedBookingScheduled) throw new Error('Failed to insert scheduled booking');
+  await db.insert(trips).values({
+    bookingId: acceptedBookingScheduled.id,
+    rideId: ridePublished3.id,
+    status: 'scheduled',
+  });
+
+  // Accepted booking on the full ride → driver_approaching trip
+  const [acceptedBookingApproaching] = await db
+    .insert(bookings)
+    .values({
+      rideId: ridePublished4.id,
+      riderId: olaSafe(),
+      seatsRequested: 1,
+      contributionTotal: 5,
+      status: 'accepted',
+      pickupLabel: 'Rue de la Republique, Ben Arous',
+      pickupLat: benArousTunis.originLat,
+      pickupLng: benArousTunis.originLng,
+      respondedAt: hoursFromNow(-2),
+    })
+    .returning();
+  function olaSafe(): string {
+    return userByName('Ola Mejri').id;
+  }
+  if (!acceptedBookingApproaching) throw new Error('Failed to insert approaching booking');
+  await db.insert(trips).values({
+    bookingId: acceptedBookingApproaching.id,
+    rideId: ridePublished4.id,
+    status: 'driver_approaching',
+  });
+
+  // Declined / cancelled / expired / no-show bookings for state coverage
+  await db.insert(bookings).values([
+    {
+      rideId: ridePublished1.id,
+      riderId: fares(),
+      seatsRequested: 1,
+      contributionTotal: 5,
+      status: 'declined',
+      pickupLabel: 'Cité Ennasr',
+      pickupLat: elMenzahDigitalCenter.originLat,
+      pickupLng: elMenzahDigitalCenter.originLng,
+      respondedAt: hoursFromNow(-3),
+    },
+    {
+      rideId: ridePublished2.id,
+      riderId: yasmine(),
+      seatsRequested: 1,
+      contributionTotal: 6,
+      status: 'cancelled_by_rider',
+      pickupLabel: 'Gammarth',
+      pickupLat: laMarsaCentreVille.originLat,
+      pickupLng: laMarsaCentreVille.originLng,
+      respondedAt: hoursFromNow(-4),
+    },
+    {
+      rideId: ridePublished3.id,
+      riderId: aymen(),
+      seatsRequested: 1,
+      contributionTotal: 4,
+      status: 'cancelled_by_driver',
+      pickupLabel: 'Le Bardo',
+      pickupLat: arianaLeBardo.destinationLat,
+      pickupLng: arianaLeBardo.destinationLng,
+      respondedAt: hoursFromNow(-6),
+    },
+    {
+      rideId: ridePublished1.id,
+      riderId: sonia(),
+      seatsRequested: 1,
+      contributionTotal: 5,
+      status: 'expired',
+      pickupLabel: 'El Menzah 6',
+      pickupLat: elMenzahDigitalCenter.originLat,
+      pickupLng: elMenzahDigitalCenter.originLng,
+    },
+  ]);
+  function fares(): string {
+    return userByName('Fares Sahli').id;
+  }
+  function yasmine(): string {
+    return userByName('Yasmine Chtioui').id;
+  }
+  function aymen(): string {
+    return userByName('Aymen Hammami').id;
+  }
+  function sonia(): string {
+    return userByName('Sonia Ferjani').id;
+  }
+
+  const noShowRide = completedRides[4];
+  if (!noShowRide) throw new Error('Missing ride for no-show booking');
+  const [noShowBooking] = await db
+    .insert(bookings)
+    .values({
+      rideId: noShowRide.id,
+      riderId: wassim(),
+      seatsRequested: 1,
+      contributionTotal: 4,
+      status: 'no_show',
+      pickupLabel: 'Le Bardo',
+      pickupLat: arianaLeBardo.destinationLat,
+      pickupLng: arianaLeBardo.destinationLng,
+      respondedAt: daysAgo(5),
+    })
+    .returning();
+  function wassim(): string {
+    return userByName('Wassim Bouazizi').id;
+  }
+  if (!noShowBooking) throw new Error('Failed to insert no-show booking');
+  await db
+    .insert(trips)
+    .values({ bookingId: noShowBooking.id, rideId: noShowRide.id, status: 'no_show' });
+
+  // Completed bookings + trips + ratings for each completed ride (rider = Youssef throughout, for a coherent relationship signal with Sarra)
+  const completedRiders = [youssef, karim, ahmed, marwa, bilel];
+  for (let i = 0; i < completedRides.length; i += 1) {
+    const ride = completedRides[i];
+    const rider = completedRiders[i];
+    const seed = completedRideSeeds[i];
+    if (!ride || !rider || !seed) continue;
+
+    const [booking] = await db
+      .insert(bookings)
+      .values({
+        rideId: ride.id,
+        riderId: rider.id,
+        seatsRequested: 1,
+        contributionTotal: seed.price,
+        status: 'completed',
+        pickupLabel: seed.route.originLabel,
+        pickupLat: seed.route.originLat,
+        pickupLng: seed.route.originLng,
+        respondedAt: daysAgo(seed.daysBack),
+      })
+      .returning();
+    if (!booking) continue;
+
+    const [trip] = await db
+      .insert(trips)
+      .values({
+        bookingId: booking.id,
+        rideId: ride.id,
+        status: 'completed',
+        simulationStartedAt: daysAgo(seed.daysBack),
+        pickupConfirmedAt: daysAgo(seed.daysBack),
+        dropoffAt: daysAgo(seed.daysBack),
+        riderSettlementConfirmedAt: daysAgo(seed.daysBack),
+        driverSettlementConfirmedAt: daysAgo(seed.daysBack),
+      })
+      .returning();
+    if (!trip) continue;
+
+    const driverUserId = [sarra, sarra, amine, mehdi, karim][i]!.id;
+    const starsRider = [5, 4, 5, 4, 3][i]!;
+    const starsDriver = [5, 5, 4, 5, 4][i]!;
+
+    await db.insert(ratings).values([
+      {
+        tripId: trip.id,
+        raterUserId: rider.id,
+        rateeUserId: driverUserId,
+        role: 'rider_rates_driver',
+        stars: starsRider,
+        punctualityFlag: starsRider >= 4,
+      },
+      {
+        tripId: trip.id,
+        raterUserId: driverUserId,
+        rateeUserId: rider.id,
+        role: 'driver_rates_rider',
+        stars: starsDriver,
+        punctualityFlag: starsDriver >= 4,
+      },
+    ]);
+  }
+
+  // ── Relationship signals ───────────────────────────────────────────
+  await db.insert(relationshipSignals).values([
+    { userAId: youssef.id, userBId: sarra.id, tripsTogetherCount: 4, lastTripAt: daysAgo(1) },
+    { userAId: karim.id, userBId: amine.id, tripsTogetherCount: 2, lastTripAt: daysAgo(3) },
+  ]);
+
+  // ── Liquidity / demand signals on an uncommon corridor ─────────────
+  await db.insert(demandSignals).values([
+    {
+      userId: nourSafe(),
+      originLabel: 'Tunis Lac 2',
+      originLat: 36.8419,
+      originLng: 10.2456,
+      destinationLabel: 'Sousse',
+      destinationLat: 35.8256,
+      destinationLng: 10.6369,
+      desiredWindowStart: hoursFromNow(5),
+      desiredWindowEnd: hoursFromNow(7),
+      status: 'open',
+    },
+    {
+      userId: sonia(),
+      originLabel: 'Tunis Lac 2',
+      originLat: 36.8419,
+      originLng: 10.2456,
+      destinationLabel: 'Sousse',
+      destinationLat: 35.8256,
+      destinationLng: 10.6369,
+      desiredWindowStart: hoursFromNow(5),
+      desiredWindowEnd: hoursFromNow(7.5),
+      status: 'open',
+    },
+    {
+      userId: fares(),
+      originLabel: 'Tunis Lac 2',
+      originLat: 36.8419,
+      originLng: 10.2456,
+      destinationLabel: 'Sousse',
+      destinationLat: 35.8256,
+      destinationLng: 10.6369,
+      desiredWindowStart: hoursFromNow(6),
+      desiredWindowEnd: hoursFromNow(8),
+      status: 'open',
+    },
+  ]);
+
+  // Nearby-corridor rides (Sousse–Monastir direction) so the fallback has something to surface
+  await db.insert(rides).values([
+    {
+      driverProfileId: sarraProfile.id,
+      vehicleId: sarraVehicle.id,
+      routeId: sousseMonastir.id,
+      originLabel: sousseMonastir.originLabel,
+      originLat: sousseMonastir.originLat,
+      originLng: sousseMonastir.originLng,
+      destinationLabel: sousseMonastir.destinationLabel,
+      destinationLat: sousseMonastir.destinationLat,
+      destinationLng: sousseMonastir.destinationLng,
+      departureAt: hoursFromNow(6),
+      seatsTotal: 4,
+      seatsAvailable: 4,
+      contributionPerSeat: 10,
+      status: 'published',
+    },
+  ]);
+
+  // ── Notifications ───────────────────────────────────────────────────
+  await db.insert(notifications).values([
+    {
+      userId: youssef.id,
+      type: 'recurring_proactive_match',
+      payload: { rideId: rideInProgress.id },
+      readAt: null,
+    },
+    {
+      userId: youssef.id,
+      type: 'booking_accepted',
+      payload: { bookingId: acceptedBookingActive.id },
+      readAt: daysAgo(1),
+    },
+    { userId: youssef.id, type: 'trip_completed', payload: {}, readAt: daysAgo(1) },
+    { userId: sarra.id, type: 'booking_requested', payload: {}, readAt: null },
+    { userId: nourSafe(), type: 'demand_signal_matched', payload: {}, readAt: null },
+  ]);
+
+  console.log('Seed complete.');
+  console.log(`Routes: ${8}, Users: ${insertedUsers.length}, Drivers: ${driverSeeds.length}`);
+
+  await pool.end();
+}
+
+main().catch((err) => {
+  console.error('Seed failed:', err);
+  process.exit(1);
+});
