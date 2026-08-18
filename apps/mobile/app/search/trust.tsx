@@ -179,7 +179,9 @@ export default function TrustScreen(): React.JSX.Element {
         <Button
           label={`Demander une place · ${driver.priceDt ?? 5} DT`}
           size="lg"
-          onPress={() => router.push({ pathname: '/bookings/confirmed', params: { driverId } })}
+          onPress={() =>
+            router.dismissTo({ pathname: '/bookings/confirmed', params: { driverId } })
+          }
           style={styles.cta}
         />
       </View>
