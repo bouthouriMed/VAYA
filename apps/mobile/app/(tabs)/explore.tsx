@@ -1,4 +1,5 @@
 import { View, StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Text,
   Button,
@@ -13,7 +14,7 @@ import { CURRENT_USER, HOME_TO_DIGITAL_CENTER } from '../../src/mocks/seed-data'
 
 export default function HomeSearchScreen(): React.JSX.Element {
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
         <Text variant="body" color={colors.gray600}>
           Bonjour, {CURRENT_USER.fullName}
@@ -44,7 +45,7 @@ export default function HomeSearchScreen(): React.JSX.Element {
         onPress={() => router.push('/search/results')}
         style={styles.cta}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
