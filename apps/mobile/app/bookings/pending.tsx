@@ -1,10 +1,11 @@
 import { View, StyleSheet } from 'react-native';
 import { Text, Button, Avatar, colors, spacing, radii } from '@vaya/design-system';
-import { router } from 'expo-router';
-import { DRIVERS, PICKUP_LABEL, CONTRIBUTION_DT } from '../../src/mocks/seed-data';
+import { router, useLocalSearchParams } from 'expo-router';
+import { getDriverByKey, PICKUP_LABEL } from '../../src/mocks/seed-data';
 
 export default function PendingScreen(): React.JSX.Element {
-  const driver = DRIVERS.sarra!;
+  const { driverId } = useLocalSearchParams<{ driverId?: string }>();
+  const driver = getDriverByKey(driverId);
 
   return (
     <View style={styles.container}>
@@ -18,7 +19,7 @@ export default function PendingScreen(): React.JSX.Element {
       <Button
         label={`Rejoindre ${driver.fullName.split(' ')[0]}`}
         size="lg"
-        onPress={() => router.push('/bookings/pickup')}
+        onPress={() => router.push({ pathname: '/bookings/pickup', params: { driverId } })}
         style={styles.cta}
       />
 
@@ -53,7 +54,7 @@ export default function PendingScreen(): React.JSX.Element {
             Contribution
           </Text>
           <Text variant="bodySmall" color={colors.gray900}>
-            {CONTRIBUTION_DT} DT
+            {driver.priceDt} DT
           </Text>
         </View>
       </View>

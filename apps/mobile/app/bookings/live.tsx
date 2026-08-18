@@ -1,13 +1,18 @@
 import { View, StyleSheet } from 'react-native';
 import { Text, MapPreview, colors, spacing, radii } from '@vaya/design-system';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect } from 'react';
 
 export default function LiveScreen(): React.JSX.Element {
+  const { driverId } = useLocalSearchParams<{ driverId?: string }>();
+
   useEffect(() => {
-    const timer = setTimeout(() => router.replace('/bookings/settlement'), 4000);
+    const timer = setTimeout(
+      () => router.replace({ pathname: '/bookings/settlement', params: { driverId } }),
+      4000,
+    );
     return () => clearTimeout(timer);
-  }, []);
+  }, [driverId]);
 
   return (
     <View style={styles.container}>

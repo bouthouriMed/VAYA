@@ -12,6 +12,10 @@ export interface MockDriver {
   punctualityScore: number;
   vehicle: { make: string; model: string; color: string; plate: string };
   mutualContext?: string;
+  /** Per-ride, set by the driver — this is why it lives per-driver, not per-route. */
+  priceDt: number;
+  etaMin: number;
+  status: string;
 }
 
 export const CURRENT_USER = { id: 'u-youssef', fullName: 'Youssef' };
@@ -26,6 +30,9 @@ export const DRIVERS: Record<string, MockDriver> = {
     punctualityScore: 0.95,
     vehicle: { make: 'Peugeot', model: '208', color: 'Grise', plate: '208 TU 1234' },
     mutualContext: 'Tunis Digital Center',
+    priceDt: 5,
+    etaMin: 3,
+    status: 'Se dirige vers vous',
   },
   amine: {
     id: 'd-amine',
@@ -35,6 +42,9 @@ export const DRIVERS: Record<string, MockDriver> = {
     reliabilityScore: 0.94,
     punctualityScore: 0.93,
     vehicle: { make: 'Peugeot', model: '301', color: 'Noire', plate: '210 TU 3344' },
+    priceDt: 5,
+    etaMin: 6,
+    status: 'En mouvement',
   },
   mehdi: {
     id: 'd-mehdi',
@@ -44,6 +54,9 @@ export const DRIVERS: Record<string, MockDriver> = {
     reliabilityScore: 0.9,
     punctualityScore: 0.88,
     vehicle: { make: 'Dacia', model: 'Logan', color: 'Bleue', plate: '99 TU 4455' },
+    priceDt: 4,
+    etaMin: 9,
+    status: 'Vient de partir',
   },
 };
 
@@ -68,4 +81,8 @@ export const CLUSTERS: MockCluster[] = [
 ];
 
 export const PICKUP_LABEL = 'Angle Rue de Kairouan';
-export const CONTRIBUTION_DT = 5;
+
+/** Looks up a driver by mock key, falling back to Sarra if unset/unknown. */
+export function getDriverByKey(key?: string | null): MockDriver {
+  return (key && DRIVERS[key]) || DRIVERS.sarra!;
+}

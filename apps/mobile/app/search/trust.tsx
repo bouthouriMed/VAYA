@@ -1,10 +1,11 @@
 import { View, StyleSheet } from 'react-native';
 import { Text, Button, Avatar, Chip, Meter, colors, spacing, radii } from '@vaya/design-system';
-import { router } from 'expo-router';
-import { DRIVERS, CONTRIBUTION_DT } from '../../src/mocks/seed-data';
+import { router, useLocalSearchParams } from 'expo-router';
+import { getDriverByKey } from '../../src/mocks/seed-data';
 
 export default function TrustScreen(): React.JSX.Element {
-  const driver = DRIVERS.sarra!;
+  const { driverId } = useLocalSearchParams<{ driverId?: string }>();
+  const driver = getDriverByKey(driverId);
 
   return (
     <View style={styles.container}>
@@ -24,7 +25,7 @@ export default function TrustScreen(): React.JSX.Element {
           El Menzah 5 → Tunis Digital Center
         </Text>
         <Text variant="bodySmall" color={colors.gray600}>
-          Connue pour sa ponctualité.
+          Réputation : grande ponctualité.
         </Text>
       </View>
 
@@ -41,9 +42,9 @@ export default function TrustScreen(): React.JSX.Element {
           La contribution se règle directement avec votre conducteur.
         </Text>
         <Button
-          label={`Demander une place · ${CONTRIBUTION_DT} DT`}
+          label={`Demander une place · ${driver.priceDt} DT`}
           size="lg"
-          onPress={() => router.push('/bookings/pending')}
+          onPress={() => router.push({ pathname: '/bookings/pending', params: { driverId } })}
           style={styles.cta}
         />
       </View>

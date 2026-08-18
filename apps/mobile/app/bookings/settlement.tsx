@@ -2,13 +2,14 @@ import { useState } from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text, Button, Chip, colors, spacing, radii } from '@vaya/design-system';
-import { router } from 'expo-router';
-import { DRIVERS, CONTRIBUTION_DT, HOME_TO_DIGITAL_CENTER } from '../../src/mocks/seed-data';
+import { router, useLocalSearchParams } from 'expo-router';
+import { getDriverByKey, HOME_TO_DIGITAL_CENTER } from '../../src/mocks/seed-data';
 
 const TAGS = ['Ponctuel', 'Agréable', 'Fiable'];
 
 export default function SettlementScreen(): React.JSX.Element {
-  const driver = DRIVERS.sarra!;
+  const { driverId } = useLocalSearchParams<{ driverId?: string }>();
+  const driver = getDriverByKey(driverId);
   const insets = useSafeAreaInsets();
   const [stars, setStars] = useState(4);
   const [selectedTags, setSelectedTags] = useState<string[]>(['Ponctuel']);
@@ -34,7 +35,7 @@ export default function SettlementScreen(): React.JSX.Element {
           <Text variant="bodySmall" color={colors.gray600}>
             Réglez directement
           </Text>
-          <Text variant="h3">{CONTRIBUTION_DT} DT</Text>
+          <Text variant="h3">{driver.priceDt} DT</Text>
         </View>
 
         <View style={styles.stars}>
