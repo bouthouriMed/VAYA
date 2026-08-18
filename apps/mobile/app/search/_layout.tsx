@@ -10,6 +10,7 @@ export default function SearchLayout(): React.JSX.Element {
         headerShadowVisible: false,
         headerTintColor: colors.gray900,
         headerTitleStyle: { fontWeight: '700' },
+        headerBackButtonDisplayMode: 'minimal',
       }}
     >
       <Stack.Screen name="results" options={{ title: '' }} />

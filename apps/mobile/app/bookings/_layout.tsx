@@ -10,6 +10,7 @@ export default function BookingsLayout(): React.JSX.Element {
         headerShadowVisible: false,
         headerTintColor: colors.gray900,
         headerTitleStyle: { fontWeight: '700' },
+        headerBackButtonDisplayMode: 'minimal',
       }}
     >
       <Stack.Screen name="pending" options={{ title: '', headerBackVisible: false }} />
