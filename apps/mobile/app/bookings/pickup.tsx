@@ -1,10 +1,11 @@
 import { View, StyleSheet } from 'react-native';
 import { Text, Button, Avatar, MapPreview, colors, spacing, radii } from '@vaya/design-system';
-import { router } from 'expo-router';
-import { DRIVERS, PICKUP_LABEL } from '../../src/mocks/seed-data';
+import { router, useLocalSearchParams } from 'expo-router';
+import { getDriverByKey, PICKUP_LABEL } from '../../src/mocks/seed-data';
 
 export default function PickupScreen(): React.JSX.Element {
-  const driver = DRIVERS.sarra!;
+  const { driverId } = useLocalSearchParams<{ driverId?: string }>();
+  const driver = getDriverByKey(driverId);
 
   return (
     <View style={styles.container}>
@@ -25,7 +26,7 @@ export default function PickupScreen(): React.JSX.Element {
             {driver.fullName.split(' ')[0]}
           </Text>
           <Text variant="bodySmall" color={colors.gray600}>
-            Arrive dans 3 min
+            Arrive dans {driver.etaMin} min
           </Text>
         </View>
       </View>
@@ -33,7 +34,7 @@ export default function PickupScreen(): React.JSX.Element {
       <Button
         label="Je suis arrivé"
         size="lg"
-        onPress={() => router.push('/bookings/live')}
+        onPress={() => router.push({ pathname: '/bookings/live', params: { driverId } })}
         style={styles.cta}
       />
     </View>

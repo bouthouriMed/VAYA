@@ -1,11 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useLayoutEffect, useMemo, useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, type LayoutChangeEvent } from 'react-native';
 import { Text, Avatar, colors, spacing, radii, typography } from '@vaya/design-system';
 import { router, useLocalSearchParams, useNavigation } from 'expo-router';
-import { useLayoutEffect } from 'react';
 import { CLUSTERS, DRIVERS, type MockDriver } from '../../src/mocks/seed-data';
-
-const STATUSES = ['Se dirige vers vous', 'En mouvement', 'Vient de partir', 'En approche'];
 
 // The route is defined once, as a fraction of the map container — everything
 // else (pill positions, road angle/length, the arrow) is derived from it plus
@@ -23,7 +20,6 @@ interface Size {
 
 interface PillLayout {
   driver: MockDriver;
-  status: string;
   anchorX: number;
   anchorY: number;
 }
@@ -47,12 +43,7 @@ function useRouteGeometry(size: Size, candidates: MockDriver[]) {
     // for the origin dot and the destination arrow.
     const pills: PillLayout[] = candidates.map((driver, i) => {
       const t = (i + 1) / (candidates.length + 1);
-      return {
-        driver,
-        status: STATUSES[i % STATUSES.length]!,
-        anchorX: lerp(startPx.x, endPx.x, t),
-        anchorY: lerp(startPx.y, endPx.y, t),
-      };
+      return { driver, anchorX: lerp(startPx.x, endPx.x, t), anchorY: lerp(startPx.y, endPx.y, t) };
     });
 
     return { startPx, endPx, roadLength, roadAngleDeg, pills };
@@ -65,6 +56,13 @@ export default function ClusterScreen(): React.JSX.Element {
   const cluster = CLUSTERS.find((c) => c.id === id) ?? CLUSTERS[0]!;
   const candidates = useMemo(() => cluster.driverIds.map((key) => DRIVERS[key]!), [cluster]);
 
+  // The bottom CTA is a shortcut to ONE specific driver, not a mystery
+  // action — soonest ETA wins, ties broken by rating. Always named.
+  const recommended = useMemo(
+    () => [...candidates].sort((a, b) => a.etaMin - b.etaMin || b.ratingAvg - a.ratingAvg)[0]!,
+    [candidates],
+  );
+
   const [mapSize, setMapSize] = useState<Size>({ width: 0, height: 0 });
   const geometry = useRouteGeometry(mapSize, candidates);
 
@@ -76,6 +74,12 @@ export default function ClusterScreen(): React.JSX.Element {
     const { width, height } = e.nativeEvent.layout;
     setMapSize({ width, height });
   }
+
+  function openDriver(driverKey: string): void {
+    router.push({ pathname: '/search/trust', params: { driverId: driverKey } });
+  }
+
+  const recommendedKey = Object.keys(DRIVERS).find((k) => DRIVERS[k] === recommended)!;
 
   return (
     <View style={styles.container}>
@@ -116,45 +120,51 @@ export default function ClusterScreen(): React.JSX.Element {
                 },
               ]}
             />
-            {geometry.pills.map(({ driver, status, anchorX, anchorY }, i) => (
-              <TouchableOpacity
-                key={driver.id}
-                style={[
-                  styles.pill,
-                  { left: anchorX - 4, top: anchorY - AVATAR_SIZE / 2 - 4 },
-                  i % 2 === 1 && styles.pillOffsetRight,
-                ]}
-                onPress={() => router.push('/search/trust')}
-                activeOpacity={0.85}
-              >
-                <Avatar name={driver.fullName} size="sm" />
-                <View>
-                  <Text style={styles.pillName}>{driver.fullName.split(' ')[0]}</Text>
-                  <Text style={styles.pillStatus}>{status}</Text>
-                </View>
-              </TouchableOpacity>
-            ))}
+            {geometry.pills.map(({ driver, anchorX, anchorY }, i) => {
+              const driverKey = cluster.driverIds[i]!;
+              const isRecommended = driverKey === recommendedKey;
+              return (
+                <TouchableOpacity
+                  key={driver.id}
+                  style={[
+                    styles.pill,
+                    isRecommended && styles.pillRecommended,
+                    { left: anchorX - 4, top: anchorY - AVATAR_SIZE / 2 - 4 },
+                    i % 2 === 1 && styles.pillOffsetRight,
+                  ]}
+                  onPress={() => openDriver(driverKey)}
+                  activeOpacity={0.85}
+                >
+                  <Avatar name={driver.fullName} size="sm" />
+                  <View>
+                    <Text style={styles.pillName}>
+                      {driver.fullName.split(' ')[0]} · {driver.priceDt} DT
+                    </Text>
+                    <Text style={styles.pillStatus}>
+                      {driver.status} · {driver.etaMin} min
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
           </>
         ) : null}
       </View>
 
-      <TouchableOpacity style={styles.infoRow} activeOpacity={0.7}>
-        <View>
-          <Text variant="label">{cluster.label}</Text>
-          <Text variant="bodySmall" color={colors.gray600}>
-            11 min d&apos;attente
-          </Text>
-        </View>
-        <Text style={styles.chevron}>›</Text>
-      </TouchableOpacity>
+      <Text variant="bodySmall" color={colors.gray600} style={styles.recommendCaption}>
+        {recommended.fullName.split(' ')[0]} est le plus proche — {recommended.etaMin} min
+        d&apos;attente.
+      </Text>
 
       <TouchableOpacity
         style={styles.cta}
-        onPress={() => router.push('/search/trust')}
+        onPress={() => openDriver(recommendedKey)}
         activeOpacity={0.85}
       >
-        <Text style={styles.ctaLabel}>{cluster.label}</Text>
-        <Text style={styles.ctaSub}>11 min d&apos;attente</Text>
+        <Text style={styles.ctaLabel}>
+          Voir {recommended.fullName.split(' ')[0]} · {recommended.priceDt} DT
+        </Text>
+        <Text style={styles.ctaSub}>{recommended.etaMin} min d&apos;attente</Text>
       </TouchableOpacity>
     </View>
   );
@@ -173,7 +183,7 @@ const styles = StyleSheet.create({
     borderRadius: radii.xl,
     position: 'relative',
     overflow: 'hidden',
-    minHeight: 360,
+    minHeight: 340,
   },
   streetGrid: {
     ...StyleSheet.absoluteFillObject,
@@ -227,6 +237,10 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 3,
   },
+  pillRecommended: {
+    borderWidth: 1.5,
+    borderColor: colors.secondary,
+  },
   pillOffsetRight: {
     flexDirection: 'row-reverse',
   },
@@ -239,22 +253,8 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: colors.gray600,
   },
-  infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: colors.white,
-    borderRadius: radii.xl,
-    padding: spacing.md,
-    shadowColor: colors.gray900,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 1,
-  },
-  chevron: {
-    fontSize: 22,
-    color: colors.gray500,
+  recommendCaption: {
+    textAlign: 'center',
   },
   cta: {
     backgroundColor: colors.primary,
