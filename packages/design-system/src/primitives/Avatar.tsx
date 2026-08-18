@@ -8,6 +8,8 @@ interface AvatarProps {
   uri?: string | null;
   name?: string;
   size?: AvatarSize;
+  /** Overrides the size preset with an exact pixel diameter (e.g. for map-zoom scaling). */
+  sizePx?: number;
   style?: ImageStyle;
 }
 
@@ -48,8 +50,15 @@ function stringToColor(str: string): string {
   return colorOptions[Math.abs(hash) % colorOptions.length]!;
 }
 
-export function Avatar({ uri, name = '', size = 'md', style }: AvatarProps): React.JSX.Element {
-  const dimension = sizeMap[size];
+export function Avatar({
+  uri,
+  name = '',
+  size = 'md',
+  sizePx,
+  style,
+}: AvatarProps): React.JSX.Element {
+  const dimension = sizePx ?? sizeMap[size];
+  const fontSize = sizePx ? Math.round(sizePx * 0.4) : fontSizeMap[size];
 
   if (uri) {
     return (
@@ -79,7 +88,7 @@ export function Avatar({ uri, name = '', size = 'md', style }: AvatarProps): Rea
         },
       ]}
     >
-      <Text style={[styles.initials, { fontSize: fontSizeMap[size] }]}>{getInitials(name)}</Text>
+      <Text style={[styles.initials, { fontSize }]}>{getInitials(name)}</Text>
     </View>
   );
 }

@@ -11,3 +11,7 @@ export { ClusterMarker } from './ClusterMarker';
 export { Meter } from './Meter';
 export { Chip } from './Chip';
 export { MapPreview } from './MapPreview';
+export { MapCanvas } from './MapCanvas';
+export { MapRoute } from './MapRoute';
+export { DriverMapPin } from './DriverMapPin';
+export type { DriverMapPinData, DriverMapPinVariant } from './DriverMapPin';
