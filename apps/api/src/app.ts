@@ -17,6 +17,12 @@ import { UnauthorizedError } from './lib/errors.js';
 import { errorHandler } from './middleware/error-handler.js';
 import { healthRoutes } from './modules/health/health.routes.js';
 import { authRoutes } from './modules/auth/auth.routes.js';
+import { usersRoutes } from './modules/users/users.routes.js';
+import { geocodingRoutes } from './modules/geocoding/geocoding.routes.js';
+import { corridorRoutes } from './modules/routes/routes.routes.js';
+import { matchingRoutes } from './modules/matching/matching.routes.js';
+import { bookingsRoutes } from './modules/bookings/bookings.routes.js';
+import { ratingsRoutes } from './modules/ratings/ratings.routes.js';
 
 declare module 'fastify' {
   interface FastifyInstance {
@@ -75,6 +81,12 @@ export async function buildApp() {
   // Routes
   await app.register(healthRoutes, { prefix: env.API_PREFIX });
   await app.register(authRoutes, { prefix: env.API_PREFIX });
+  await app.register(usersRoutes, { prefix: env.API_PREFIX });
+  await app.register(geocodingRoutes, { prefix: env.API_PREFIX });
+  await app.register(corridorRoutes, { prefix: env.API_PREFIX });
+  await app.register(matchingRoutes, { prefix: env.API_PREFIX });
+  await app.register(bookingsRoutes, { prefix: env.API_PREFIX });
+  await app.register(ratingsRoutes, { prefix: env.API_PREFIX });
 
   app.get(`${env.API_PREFIX}/openapi.json`, async () => app.swagger());
 

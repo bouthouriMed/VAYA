@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import {
   TouchableOpacity,
   Text,
@@ -7,7 +7,7 @@ import {
   type ViewStyle,
   type TextStyle,
 } from 'react-native';
-import { colors, spacing, radii } from '../tokens/index.js';
+import { colors, spacing, radii } from '../tokens/index';
 
 type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost';
 type ButtonSize = 'sm' | 'md' | 'lg';

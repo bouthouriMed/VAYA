@@ -1,0 +1,10 @@
+{
+  "back": "Retour",
+  "cancel": "Annuler",
+  "loading": "Chargement…",
+  "error_generic": "Une erreur est survenue. Réessayez.",
+  "retry": "Réessayer",
+  "seats_one": "{{count}} place",
+  "seats_other": "{{count}} places",
+  "minutes": "{{count}} min"
+}

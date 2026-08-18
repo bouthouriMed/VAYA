@@ -1,4 +1,4 @@
-import type { TimestampedEntity, UUID } from '../shared/base.types.js';
+﻿import type { TimestampedEntity, UUID } from '../shared/base.types';
 
 export const NOTIFICATION_EVENT_TYPES = [
   'booking_requested',

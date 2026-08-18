@@ -1,4 +1,4 @@
-import type { TimestampedEntity, UUID } from '../shared/base.types.js';
+﻿import type { TimestampedEntity, UUID } from '../shared/base.types';
 
 export const VERIFICATION_DOCUMENT_TYPES = ['license', 'registration'] as const;
 export type VerificationDocumentType = (typeof VERIFICATION_DOCUMENT_TYPES)[number];

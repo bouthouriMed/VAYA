@@ -1,6 +1,6 @@
-import React from 'react';
+﻿import React from 'react';
 import { View, ScrollView, StyleSheet, type ViewStyle } from 'react-native';
-import { spacing } from '../tokens/index.js';
+import { spacing } from '../tokens/index';
 
 type GapToken = keyof typeof spacing;
 

@@ -1,0 +1,16 @@
+{
+  "greeting": "Bonjour, {{name}}",
+  "search_prompt": "Où allons-nous aujourd'hui ?",
+  "field_from": "Départ",
+  "field_to": "Arrivée",
+  "field_when": "Quand",
+  "cta_search": "Rechercher",
+  "results_title": "{{count}} conducteurs trouvés",
+  "no_results_title": "Pas de trajet exact",
+  "best_match": "Meilleure correspondance",
+  "reason_walk": "{{minutes}} min à pied",
+  "seats_available": "{{count}} places",
+  "liquidity_nearby": "{{count}} trajets circulent à proximité",
+  "liquidity_demand": "{{count}} personnes cherchent un trajet dans cette direction",
+  "notify_me": "Me notifier quand un conducteur apparaît"
+}

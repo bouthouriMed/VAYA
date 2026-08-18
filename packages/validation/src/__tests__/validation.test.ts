@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { paginationSchema, idParamSchema } from '../index.js';
+﻿import { describe, it, expect } from 'vitest';
+import { paginationSchema, idParamSchema } from '../index';
 
 describe('Shared validation schemas', () => {
   describe('paginationSchema', () => {

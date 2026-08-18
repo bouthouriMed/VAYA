@@ -1,4 +1,4 @@
-import type { TimestampedEntity, UUID } from '../shared/base.types.js';
+﻿import type { TimestampedEntity, UUID } from '../shared/base.types';
 
 export const VERIFICATION_STATUSES = ['pending', 'approved', 'rejected'] as const;
 export type VerificationStatus = (typeof VERIFICATION_STATUSES)[number];

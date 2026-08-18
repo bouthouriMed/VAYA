@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { TextInput, View, Text as RNText, StyleSheet, type TextInputProps } from 'react-native';
-import { colors, spacing, radii, typography } from '../tokens/index.js';
+import { colors, spacing, radii, typography } from '../tokens/index';
 
 interface InputProps extends Omit<TextInputProps, 'style'> {
   label?: string;

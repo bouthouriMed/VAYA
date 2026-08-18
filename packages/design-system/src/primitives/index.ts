@@ -1,8 +1,8 @@
-export { Text } from './Text.js';
-export { Button } from './Button.js';
-export { Input } from './Input.js';
-export { Card } from './Card.js';
-export { Badge } from './Badge.js';
-export { Avatar } from './Avatar.js';
-export { Divider } from './Divider.js';
-export { Stack, Row, Screen, Container } from './Layout.js';
+﻿export { Text } from './Text';
+export { Button } from './Button';
+export { Input } from './Input';
+export { Card } from './Card';
+export { Badge } from './Badge';
+export { Avatar } from './Avatar';
+export { Divider } from './Divider';
+export { Stack, Row, Screen, Container } from './Layout';

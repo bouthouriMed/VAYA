@@ -1,6 +1,6 @@
-import React from 'react';
+﻿import React from 'react';
 import { I18nManager, Text as RNText, type TextProps, type TextStyle } from 'react-native';
-import { typography, colors } from '../tokens/index.js';
+import { typography, colors } from '../tokens/index';
 
 type TextVariant = 'h1' | 'h2' | 'h3' | 'body' | 'bodySmall' | 'caption' | 'label';
 

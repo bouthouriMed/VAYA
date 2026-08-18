@@ -1,7 +1,7 @@
-import { colors } from './colors.js';
-import { spacing } from './spacing.js';
-import { typography, textStyles } from './typography.js';
-import { radii } from './radii.js';
-import { elevation } from './elevation.js';
+﻿import { colors } from './colors';
+import { spacing } from './spacing';
+import { typography, textStyles } from './typography';
+import { radii } from './radii';
+import { elevation } from './elevation';
 
 export { colors, spacing, typography, textStyles, radii, elevation };

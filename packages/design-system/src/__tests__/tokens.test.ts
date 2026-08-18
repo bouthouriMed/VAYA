@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { colors, spacing, radii, typography } from '../tokens/index.js';
+﻿import { describe, it, expect } from 'vitest';
+import { colors, spacing, radii, typography } from '../tokens/index';
 
 describe('Design tokens', () => {
   describe('colors', () => {

@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { APP_NAME, SUPPORTED_LOCALES, DEFAULT_LOCALE, TUNISIA_TIMEZONE } from './index.js';
+﻿import { describe, it, expect } from 'vitest';
+import { APP_NAME, SUPPORTED_LOCALES, DEFAULT_LOCALE, TUNISIA_TIMEZONE } from './index';
 
 describe('Config constants', () => {
   it('has app name', () => {

@@ -1,4 +1,4 @@
-import type { TimestampedEntity } from '../shared/base.types.js';
+﻿import type { TimestampedEntity } from '../shared/base.types';
 import type { SupportedLocale } from '@vaya/config';
 
 export interface User extends TimestampedEntity {

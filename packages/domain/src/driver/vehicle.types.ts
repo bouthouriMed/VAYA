@@ -1,4 +1,4 @@
-import type { TimestampedEntity, UUID } from '../shared/base.types.js';
+﻿import type { TimestampedEntity, UUID } from '../shared/base.types';
 
 export interface Vehicle extends TimestampedEntity {
   driverProfileId: UUID;

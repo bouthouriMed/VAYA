@@ -1,5 +1,5 @@
-import type { TimestampedEntity, UUID } from '../shared/base.types.js';
-import type { TripStatus } from './trip-status.js';
+﻿import type { TimestampedEntity, UUID } from '../shared/base.types';
+import type { TripStatus } from './trip-status';
 
 export interface Trip extends TimestampedEntity {
   bookingId: UUID;

@@ -1,6 +1,6 @@
-import React from 'react';
+﻿import React from 'react';
 import { View, Text, Image, StyleSheet, type ImageStyle } from 'react-native';
-import { colors, typography } from '../tokens/index.js';
+import { colors, typography } from '../tokens/index';
 
 type AvatarSize = 'sm' | 'md' | 'lg';
 
