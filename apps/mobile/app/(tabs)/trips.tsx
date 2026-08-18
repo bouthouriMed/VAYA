@@ -1,4 +1,5 @@
 import { View, StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text, Avatar, Badge, colors, spacing, radii } from '@vaya/design-system';
 import { DRIVERS, HOME_TO_DIGITAL_CENTER } from '../../src/mocks/seed-data';
 
@@ -28,7 +29,7 @@ const MOCK_TRIPS = [
 
 export default function TripsScreen(): React.JSX.Element {
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <Text variant="h2" style={styles.title}>
         Mes trajets
       </Text>
@@ -47,7 +48,7 @@ export default function TripsScreen(): React.JSX.Element {
           <Badge label={trip.status} variant={trip.badge} />
         </View>
       ))}
-    </View>
+    </SafeAreaView>
   );
 }
 

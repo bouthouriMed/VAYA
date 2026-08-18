@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text, Button, Chip, colors, spacing, radii } from '@vaya/design-system';
 import { router } from 'expo-router';
 import { DRIVERS, CONTRIBUTION_DT, HOME_TO_DIGITAL_CENTER } from '../../src/mocks/seed-data';
@@ -8,6 +9,7 @@ const TAGS = ['Ponctuel', 'Agréable', 'Fiable'];
 
 export default function SettlementScreen(): React.JSX.Element {
   const driver = DRIVERS.sarra!;
+  const insets = useSafeAreaInsets();
   const [stars, setStars] = useState(4);
   const [selectedTags, setSelectedTags] = useState<string[]>(['Ponctuel']);
 
@@ -19,7 +21,7 @@ export default function SettlementScreen(): React.JSX.Element {
 
   return (
     <View style={styles.container}>
-      <View style={styles.hero}>
+      <View style={[styles.hero, { paddingTop: insets.top + spacing['3xl'] }]}>
         <Text variant="h1" color={colors.navyText} align="center">
           Bienvenue à {HOME_TO_DIGITAL_CENTER.destinationLabel}.
         </Text>
@@ -73,7 +75,6 @@ const styles = StyleSheet.create({
   hero: {
     backgroundColor: colors.navySurface,
     paddingHorizontal: spacing.xl,
-    paddingTop: spacing['4xl'],
     paddingBottom: spacing['4xl'],
   },
   sheet: {
