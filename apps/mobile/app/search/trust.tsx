@@ -170,7 +170,6 @@ export default function TrustScreen(): React.JSX.Element {
           <Avatar name={driver.fullName} size="sm" style={styles.stickyAvatar} />
           <Text style={styles.stickyName}>{firstName}</Text>
         </Animated.View>
-        <View style={styles.backBtn} />
       </Animated.View>
 
       <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.sm }]}>
@@ -196,6 +195,8 @@ const styles = StyleSheet.create({
   hero: {
     height: HERO_HEIGHT,
     backgroundColor: colors.secondary,
+    borderBottomLeftRadius: 40,
+    borderBottomRightRadius: 40,
   },
   stickyHeader: {
     position: 'absolute',
@@ -204,7 +205,8 @@ const styles = StyleSheet.create({
     right: 0,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
+    gap: spacing.xs,
     paddingHorizontal: spacing.sm,
     paddingBottom: spacing.sm,
   },
