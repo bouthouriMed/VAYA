@@ -1,36 +1,59 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# dependencies
-/node_modules
-/.pnp
+# Dependencies
+node_modules/
+.pnp
 .pnp.js
 
-# testing
-/coverage
+# Build outputs
+dist/
+build/
+out/
+*.tsbuildinfo
 
-# next.js
-/.next/
-/out/
+# Environment
+.env
+.env*.local
+.env.development
+.env.test
+.env.production
 
-# production
-/build
+# Testing
+coverage/
 
-# misc
+# Expo
+.expo/
+android/
+ios/
+web-build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
 .DS_Store
-*.pem
+Thumbs.db
 
-# debug
+# Debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
 
-# local env files
-.env*.local
-.env
+# Turbo
+.turbo/
 
-# vercel
+# Docker
+docker/data/
+
+# Generated code
+packages/api-client/src/generated/
+
+# Local file storage (dev)
+apps/api/uploads/
+
+# Misc
+*.pem
 .vercel
-
-# typescript
-*.tsbuildinfo
-next-env.d.ts
