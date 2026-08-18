@@ -6,3 +6,8 @@ export { Badge } from './Badge';
 export { Avatar } from './Avatar';
 export { Divider } from './Divider';
 export { Stack, Row, Screen, Container } from './Layout';
+export { FieldCard, FieldRow } from './FieldRow';
+export { ClusterMarker } from './ClusterMarker';
+export { Meter } from './Meter';
+export { Chip } from './Chip';
+export { MapPreview } from './MapPreview';

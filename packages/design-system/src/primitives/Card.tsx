@@ -15,8 +15,11 @@ export function Card({ children, padding = 'lg', style }: CardProps): React.JSX.
 const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.white,
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    borderColor: colors.gray200,
+    borderRadius: radii['2xl'],
+    shadowColor: colors.gray900,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.06,
+    shadowRadius: 14,
+    elevation: 2,
   },
 });
