@@ -1,4 +1,4 @@
-import type { TimestampedEntity, UUID } from '../shared/base.types.js';
+﻿import type { TimestampedEntity, UUID } from '../shared/base.types';
 
 export const RATING_ROLES = ['rider_rates_driver', 'driver_rates_rider'] as const;
 export type RatingRole = (typeof RATING_ROLES)[number];

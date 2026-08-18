@@ -1,4 +1,4 @@
-import type { TimestampedEntity, UUID } from '../shared/base.types.js';
+﻿import type { TimestampedEntity, UUID } from '../shared/base.types';
 
 export const DEMAND_SIGNAL_STATUSES = ['open', 'notified', 'expired'] as const;
 export type DemandSignalStatus = (typeof DEMAND_SIGNAL_STATUSES)[number];

@@ -1,0 +1,10 @@
+{
+  "back": "رجوع",
+  "cancel": "إلغاء",
+  "loading": "جارٍ التحميل…",
+  "error_generic": "حدث خطأ. حاول مرة أخرى.",
+  "retry": "إعادة المحاولة",
+  "seats_one": "مقعد واحد",
+  "seats_other": "{{count}} مقاعد",
+  "minutes": "{{count}} د"
+}

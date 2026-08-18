@@ -1,1 +1,1 @@
-export type { components, paths, operations } from './generated/api-types.js';
+﻿export type { components, paths, operations } from './generated/api-types';

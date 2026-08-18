@@ -1,4 +1,4 @@
-import type { TimestampedEntity, UUID } from '../shared/base.types.js';
+﻿import type { TimestampedEntity, UUID } from '../shared/base.types';
 
 export const RECURRING_PATTERN_ROLES = ['rider', 'driver'] as const;
 export type RecurringPatternRole = (typeof RECURRING_PATTERN_ROLES)[number];

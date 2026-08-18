@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import type { paths, components } from '../index.js';
+﻿import { describe, it, expect } from 'vitest';
+import type { paths, components } from '../index';
 
 describe('API client types', () => {
   it('exports path types', () => {

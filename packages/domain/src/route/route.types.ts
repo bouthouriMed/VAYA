@@ -1,4 +1,4 @@
-import type { TimestampedEntity } from '../shared/base.types.js';
+﻿import type { TimestampedEntity } from '../shared/base.types';
 
 export interface Route extends TimestampedEntity {
   originLabel: string;
