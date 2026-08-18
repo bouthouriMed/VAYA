@@ -13,6 +13,7 @@ export default function BookingsLayout(): React.JSX.Element {
         headerBackButtonDisplayMode: 'minimal',
       }}
     >
+      <Stack.Screen name="confirmed" options={{ headerShown: false, gestureEnabled: false }} />
       <Stack.Screen name="pending" options={{ title: '' }} />
       <Stack.Screen name="pickup" options={{ title: '' }} />
       <Stack.Screen name="live" options={{ title: 'En voiture' }} />

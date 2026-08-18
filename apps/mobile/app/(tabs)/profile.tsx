@@ -1,7 +1,17 @@
 import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { Text, Avatar, Chip, Meter, colors, spacing, radii, typography } from '@vaya/design-system';
+import {
+  Text,
+  Avatar,
+  Chip,
+  Meter,
+  StatTile,
+  colors,
+  spacing,
+  radii,
+  typography,
+} from '@vaya/design-system';
 import { router } from 'expo-router';
 import { CURRENT_USER, DRIVERS } from '../../src/mocks/seed-data';
 
@@ -39,24 +49,18 @@ export default function ProfileScreen(): React.JSX.Element {
         </View>
 
         <View style={styles.statsRow}>
-          <View style={styles.statCard}>
-            <Text variant="label" color={colors.gray600}>
-              Passager
-            </Text>
-            <Text variant="h3">★ {CURRENT_USER.riderRatingAvg.toFixed(1)}</Text>
-            <Text variant="bodySmall" color={colors.gray600}>
-              {CURRENT_USER.riderTripCount} trajets
-            </Text>
-          </View>
-          <View style={styles.statCard}>
-            <Text variant="label" color={colors.gray600}>
-              Conducteur
-            </Text>
-            <Text variant="h3">★ {driverProfile.ratingAvg.toFixed(1)}</Text>
-            <Text variant="bodySmall" color={colors.gray600}>
-              {driverProfile.tripCount} trajets
-            </Text>
-          </View>
+          <StatTile
+            value={`★ ${CURRENT_USER.riderRatingAvg.toFixed(1)}`}
+            label={`Passager · ${CURRENT_USER.riderTripCount} trajets`}
+          />
+          <StatTile
+            value={`★ ${driverProfile.ratingAvg.toFixed(1)}`}
+            label={`Conducteur · ${driverProfile.tripCount} trajets`}
+          />
+          <StatTile
+            value={`${Math.round(driverProfile.responseRate * 100)}%`}
+            label="Taux de réponse"
+          />
         </View>
 
         <View style={styles.card}>
@@ -162,19 +166,6 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     paddingHorizontal: spacing.lg,
     marginTop: spacing.lg,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: colors.white,
-    borderRadius: radii.xl,
-    padding: spacing.md,
-    alignItems: 'center',
-    gap: 2,
-    shadowColor: colors.gray900,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 1,
   },
   card: {
     backgroundColor: colors.white,
