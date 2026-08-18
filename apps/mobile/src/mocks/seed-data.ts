@@ -12,15 +12,38 @@ export interface MockDriver {
   punctualityScore: number;
   vehicle: { make: string; model: string; color: string; plate: string };
   mutualContext?: string;
-  /** Per-ride, set by the driver — this is why it lives per-driver, not per-route. */
-  priceDt: number;
-  etaMin: number;
-  status: string;
+  /** Per-ride, set by the driver — only present when this record represents
+   *  an active ride offer (e.g. a cluster candidate), not just a profile. */
+  priceDt?: number;
+  etaMin?: number;
+  status?: string;
 }
 
-export const CURRENT_USER = { id: 'u-youssef', fullName: 'Youssef' };
+/**
+ * Mirrors apps/api/src/db/seed.ts: Youssef is dual-role (rider primarily,
+ * but also has a driver profile), phone/locale match the `users` table shape.
+ */
+export const CURRENT_USER = {
+  id: 'u-youssef',
+  fullName: 'Youssef Trabelsi',
+  phone: '+216 20 111 002',
+  locale: 'fr' as const,
+  memberSince: 'Mars 2024',
+  phoneVerified: true,
+  riderRatingAvg: 4.8,
+  riderTripCount: 18,
+};
 
 export const DRIVERS: Record<string, MockDriver> = {
+  youssef: {
+    id: 'd-youssef',
+    fullName: 'Youssef Trabelsi',
+    ratingAvg: 4.8,
+    tripCount: 34,
+    reliabilityScore: 0.92,
+    punctualityScore: 0.9,
+    vehicle: { make: 'Renault', model: 'Clio', color: 'Blanche', plate: '155 TU 5678' },
+  },
   sarra: {
     id: 'd-sarra',
     fullName: 'Sarra Ben Ali',

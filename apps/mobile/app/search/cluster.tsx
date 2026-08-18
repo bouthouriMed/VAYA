@@ -25,15 +25,15 @@ const ROUTE_END = { x: 0.74, y: 0.8 };
 function toPinData(driver: MockDriver): {
   id: string;
   name: string;
-  priceLabel: string;
-  etaLabel: string;
-  statusLabel: string;
+  priceLabel?: string;
+  etaLabel?: string;
+  statusLabel?: string;
 } {
   return {
     id: driver.id,
     name: driver.fullName.split(' ')[0]!,
-    priceLabel: `${driver.priceDt} DT`,
-    etaLabel: `${driver.etaMin} min`,
+    priceLabel: driver.priceDt !== undefined ? `${driver.priceDt} DT` : undefined,
+    etaLabel: driver.etaMin !== undefined ? `${driver.etaMin} min` : undefined,
     statusLabel: driver.status,
   };
 }
@@ -47,7 +47,10 @@ export default function ClusterScreen(): React.JSX.Element {
   // The bottom CTA is a shortcut to ONE specific driver, not a mystery
   // action — soonest ETA wins, ties broken by rating. Always named.
   const recommended = useMemo(
-    () => [...candidates].sort((a, b) => a.etaMin - b.etaMin || b.ratingAvg - a.ratingAvg)[0]!,
+    () =>
+      [...candidates].sort(
+        (a, b) => (a.etaMin ?? 0) - (b.etaMin ?? 0) || b.ratingAvg - a.ratingAvg,
+      )[0]!,
     [candidates],
   );
   const recommendedKey = cluster.driverIds[candidates.indexOf(recommended)]!;
