@@ -1,0 +1,14 @@
+node_modules
+dist
+coverage
+.expo
+android
+ios
+*.tsbuildinfo
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+.turbo
+.next
+db/generated
+packages/api-client/src/generated

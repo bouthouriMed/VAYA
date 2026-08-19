@@ -1,0 +1,8 @@
+{
+  "title": "Profil du conducteur",
+  "trips_count": "{{count}} trajets",
+  "reliability": "Fiabilité",
+  "punctuality": "Ponctualité",
+  "request_seat": "Demander une place · {{price}} DT",
+  "settlement_note": "La contribution se règle directement avec votre conducteur."
+}

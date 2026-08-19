@@ -1,0 +1,49 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: vaya-postgres
+    restart: unless-stopped
+    ports:
+      - '5433:5432'
+    environment:
+      POSTGRES_USER: vaya
+      POSTGRES_PASSWORD: vaya_dev
+      POSTGRES_DB: vaya
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U vaya -d vaya']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: vaya-redis
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  osrm:
+    image: osrm/osrm-backend
+    container_name: vaya-osrm
+    restart: unless-stopped
+    command: osrm-routed --algorithm ch /data/tunisia-latest.osrm
+    ports:
+      - '5001:5000'
+    volumes:
+      - ./osrm/data:/data
+    # No healthcheck: the routing graph only exists after `docker/osrm/prepare.sh`
+    # has been run once (see docker/README.md). Until then this container exits
+    # immediately — that's expected, not a failure of the rest of the stack.
+
+volumes:
+  postgres_data:
+  redis_data:

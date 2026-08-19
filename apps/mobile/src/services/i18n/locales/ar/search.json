@@ -1,0 +1,16 @@
+{
+  "greeting": "أهلاً، {{name}}",
+  "search_prompt": "إلى أين نتوجه اليوم؟",
+  "field_from": "الانطلاق",
+  "field_to": "الوصول",
+  "field_when": "الوقت",
+  "cta_search": "البحث",
+  "results_title": "{{count}} سائقين موجودين",
+  "no_results_title": "لا توجد رحلة مطابقة",
+  "best_match": "أفضل تطابق",
+  "reason_walk": "{{minutes}} د مشياً",
+  "seats_available": "{{count}} مقاعد",
+  "liquidity_nearby": "{{count}} رحلات قريبة من هذا الاتجاه",
+  "liquidity_demand": "{{count}} أشخاص يبحثون عن رحلة في هذا الاتجاه",
+  "notify_me": "أعلمني عند ظهور سائق"
+}
