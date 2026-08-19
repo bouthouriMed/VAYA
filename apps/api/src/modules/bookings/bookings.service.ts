@@ -58,10 +58,24 @@ export async function createBooking(
 }
 
 export async function listMyBookings(db: Database, riderId: string) {
-  return db.query.bookings.findMany({
+  const results = await db.query.bookings.findMany({
     where: eq(bookings.riderId, riderId),
-    with: { ride: true },
+    with: { ride: { with: { driverProfile: { with: { user: true } } } } },
   });
+
+  // Flatten ride.driverProfile.user.fullName -> ride.driverFullName so it
+  // matches bookingResponseSchema's shape — Zod strips unknown keys but
+  // can't reach into nested paths for you.
+  return results.map(({ ride, ...booking }) => ({
+    ...booking,
+    ride: {
+      originLabel: ride.originLabel,
+      destinationLabel: ride.destinationLabel,
+      departureAt: ride.departureAt,
+      contributionPerSeat: ride.contributionPerSeat,
+      driverFullName: ride.driverProfile.user?.fullName ?? null,
+    },
+  }));
 }
 
 export async function listRequestsForRide(db: Database, rideId: string, requestingUserId: string) {
