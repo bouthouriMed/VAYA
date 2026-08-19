@@ -4,6 +4,7 @@ import { Chip } from '../primitives/Chip';
 import { Badge } from '../primitives/Badge';
 import { MessageBubble } from '../primitives/MessageBubble';
 import { StarRatingInput } from '../primitives/StarRatingInput';
+import { ScreenHeader } from '../primitives/ScreenHeader';
 
 // Function components are plain functions — calling them directly returns
 // the React element they'd render, without needing a renderer (none is
@@ -36,6 +37,18 @@ describe('accessibility baseline', () => {
   it('Button marks disabled/loading state for assistive tech', () => {
     const element = Button({ label: 'Envoyer', onPress: () => {}, loading: true });
     expect(element.props.accessibilityState).toEqual({ disabled: true, busy: true });
+  });
+
+  it('Button still exposes press-feedback style as a function on the Pressable', () => {
+    const element = Button({ label: 'Publier', onPress: () => {} });
+    expect(typeof element.props.style).toBe('function');
+  });
+
+  it("ScreenHeader's back control has a button role and a 'Retour' label", () => {
+    const element = ScreenHeader({ onBack: () => {}, title: 'Mon véhicule' });
+    const backButton = (element.props.children as { props: Record<string, unknown> }[])[0]!;
+    expect(backButton.props.accessibilityRole).toBe('button');
+    expect(backButton.props.accessibilityLabel).toBe('Retour');
   });
 
   it('Chip groups its icon and label into a single accessible node', () => {

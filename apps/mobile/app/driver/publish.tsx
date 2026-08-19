@@ -1,8 +1,15 @@
-import { useEffect, useMemo, useState } from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  View,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  ActivityIndicator,
+  Animated,
+  AccessibilityInfo,
+} from 'react-native';
 import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
 import {
   Text,
   Button,
@@ -15,10 +22,13 @@ import {
   EmptyState,
   SkeletonBlock,
   StepProgress,
+  ScreenHeader,
   PriceRangeStepper,
   colors,
   spacing,
   radii,
+  elevation,
+  typography,
   haptics,
   regionForPoints,
 } from '@vaya/design-system';
@@ -103,6 +113,34 @@ export default function PublishRideScreen(): React.JSX.Element {
     // shouldn't bleed into "where does my ride start/end".
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Cross-fade + slight rise between the three steps instead of an instant
+  // cut — the step body (everything below the persistent header/progress
+  // bar) re-plays this on every `step` change.
+  const stepFade = useRef(new Animated.Value(1)).current;
+  const stepRise = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    let cancelled = false;
+    void AccessibilityInfo.isReduceMotionEnabled().then((reduced) => {
+      if (cancelled) return;
+      if (reduced) {
+        stepFade.setValue(1);
+        stepRise.setValue(0);
+        return;
+      }
+      stepFade.setValue(0);
+      stepRise.setValue(10);
+      Animated.parallel([
+        Animated.timing(stepFade, { toValue: 1, duration: 260, useNativeDriver: true }),
+        Animated.timing(stepRise, { toValue: 0, duration: 260, useNativeDriver: true }),
+      ]).start();
+    });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step]);
+  const stepMotionStyle = { opacity: stepFade, transform: [{ translateY: stepRise }] };
 
   const vehicle = driverProfile?.vehicles[0];
   const canContinue = Boolean(origin && destination && vehicle) && !isCreating;
@@ -265,21 +303,14 @@ export default function PublishRideScreen(): React.JSX.Element {
 
   const header = (
     <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
-      <TouchableOpacity
-        onPress={() => {
+      <ScreenHeader
+        title={stepTitles[step]}
+        onBack={() => {
           if (step === 'stops') setStep('price');
           else if (step === 'price') setStep('form');
           else router.back();
         }}
-        hitSlop={12}
-        style={styles.backBtn}
-        accessibilityRole="button"
-        accessibilityLabel="Retour"
-      >
-        <Ionicons name="chevron-back" size={24} color={colors.gray900} />
-      </TouchableOpacity>
-      <Text variant="h3">{stepTitles[step]}</Text>
-      <View style={styles.backBtn} />
+      />
     </View>
   );
 
@@ -300,22 +331,27 @@ export default function PublishRideScreen(): React.JSX.Element {
         {header}
         <StepProgress currentStep={2} totalSteps={3} style={styles.stepProgress} />
 
-        <View style={styles.priceBody}>
-          {pricing ? (
-            <PriceRangeStepper
-              min={pricing.min}
-              max={pricing.max}
-              recommended={pricing.recommended}
-              value={price}
-              onChange={setPrice}
-              isEstimate={routeIsEstimate}
-            />
-          ) : null}
+        <Animated.View style={[styles.priceBody, stepMotionStyle]}>
+          <Text variant="caption" color={colors.secondaryDark} style={styles.eyebrow}>
+            PRIX SUGGÉRÉ
+          </Text>
+          <View style={styles.priceCard}>
+            {pricing ? (
+              <PriceRangeStepper
+                min={pricing.min}
+                max={pricing.max}
+                recommended={pricing.recommended}
+                value={price}
+                onChange={setPrice}
+                isEstimate={routeIsEstimate}
+              />
+            ) : null}
+          </View>
           <Text variant="bodySmall" color={colors.gray600} align="center" style={styles.hint}>
             Ce montant est calculé pour ce trajet — vous pouvez l&apos;ajuster dans la marge
             proposée.
           </Text>
-        </View>
+        </Animated.View>
 
         {errorMessage ? (
           <Text variant="bodySmall" color={colors.error} align="center">
@@ -343,7 +379,7 @@ export default function PublishRideScreen(): React.JSX.Element {
         {header}
         <StepProgress currentStep={3} totalSteps={3} style={styles.stepProgress} />
 
-        <View style={styles.stopsBody}>
+        <Animated.View style={[styles.stopsBody, stepMotionStyle]}>
           {isGeneratingStops ? (
             <View style={styles.stopsLoading}>
               <SkeletonBlock height={280} radius="xl" />
@@ -362,7 +398,8 @@ export default function PublishRideScreen(): React.JSX.Element {
             />
           ) : (
             <>
-              <View style={styles.mapWrap}>
+              <View style={styles.mapShadowWrap}>
+                <View style={styles.mapWrap}>
                 {mapRegion ? (
                   <MapView
                     provider={PROVIDER_DEFAULT}
@@ -404,6 +441,7 @@ export default function PublishRideScreen(): React.JSX.Element {
                     ))}
                   </MapView>
                 ) : null}
+                </View>
               </View>
               <Text variant="bodySmall" color={colors.gray600} align="center" style={styles.hint}>
                 Touchez un point pour l&apos;inclure ou le retirer de votre offre.
@@ -413,7 +451,7 @@ export default function PublishRideScreen(): React.JSX.Element {
               </Text>
             </>
           )}
-        </View>
+        </Animated.View>
 
         {errorMessage ? (
           <Text variant="bodySmall" color={colors.error} align="center">
@@ -469,90 +507,108 @@ export default function PublishRideScreen(): React.JSX.Element {
       {header}
       <StepProgress currentStep={1} totalSteps={3} style={styles.stepProgress} />
       <ScrollView contentContainerStyle={styles.content}>
-        <FieldCard>
-          <FieldRow
-            label="Départ"
-            value={origin?.label ?? 'Choisir un point de départ'}
-            dotColor={colors.secondary}
-            placeholder={!origin}
-            onPress={() =>
-              router.push({ pathname: '/search/location', params: { field: 'origin' } })
-            }
-          />
-          <FieldRow
-            label="Arrivée"
-            value={destination?.label ?? 'Où allez-vous ?'}
-            dotColor={colors.primary}
-            dotFilled={false}
-            placeholder={!destination}
-            last
-            onPress={() =>
-              router.push({ pathname: '/search/location', params: { field: 'destination' } })
-            }
-          />
-        </FieldCard>
-
-        <View style={styles.section}>
-          <Text variant="label" color={colors.gray700}>
-            Départ
+        <Animated.View style={[styles.formStack, stepMotionStyle]}>
+          <Text variant="caption" color={colors.secondaryDark} style={styles.eyebrow}>
+            ITINÉRAIRE
           </Text>
-          <View style={styles.chipRow}>
-            {DEPARTURE_PRESETS.map((preset) => (
-              <TouchableOpacity
-                key={preset.minutes}
-                onPress={() => setDepartureMinutes(preset.minutes)}
-              >
-                <Chip
-                  label={preset.label}
-                  tone={departureMinutes === preset.minutes ? 'default' : 'dim'}
-                />
-              </TouchableOpacity>
-            ))}
+          <FieldCard style={styles.fieldCardSpacing}>
+            <FieldRow
+              label="Départ"
+              value={origin?.label ?? 'Choisir un point de départ'}
+              dotColor={colors.secondary}
+              placeholder={!origin}
+              onPress={() =>
+                router.push({ pathname: '/search/location', params: { field: 'origin' } })
+              }
+            />
+            <FieldRow
+              label="Arrivée"
+              value={destination?.label ?? 'Où allez-vous ?'}
+              dotColor={colors.primary}
+              dotFilled={false}
+              placeholder={!destination}
+              last
+              onPress={() =>
+                router.push({ pathname: '/search/location', params: { field: 'destination' } })
+              }
+            />
+          </FieldCard>
+
+          <Text variant="caption" color={colors.secondaryDark} style={styles.eyebrow}>
+            DÉTAILS DU TRAJET
+          </Text>
+          <View style={styles.detailsCard}>
+            <View style={styles.section}>
+              <Text variant="label" color={colors.gray700}>
+                Départ
+              </Text>
+              <View style={styles.chipRow}>
+                {DEPARTURE_PRESETS.map((preset) => (
+                  <TouchableOpacity
+                    key={preset.minutes}
+                    onPress={() => setDepartureMinutes(preset.minutes)}
+                  >
+                    <Chip
+                      label={preset.label}
+                      tone={departureMinutes === preset.minutes ? 'default' : 'dim'}
+                    />
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+
+            <View style={[styles.section, styles.sectionDivider]}>
+              <Text variant="label" color={colors.gray700}>
+                Places disponibles
+              </Text>
+              <View style={styles.stepperRow}>
+                <TouchableOpacity
+                  style={styles.stepperBtn}
+                  onPress={() => setSeats((s) => Math.max(1, s - 1))}
+                  accessibilityRole="button"
+                  accessibilityLabel="Retirer une place"
+                >
+                  <Text variant="h3" color={colors.primary}>
+                    −
+                  </Text>
+                </TouchableOpacity>
+                <Text variant="h3" style={styles.stepperValue}>
+                  {seats}
+                </Text>
+                <TouchableOpacity
+                  style={styles.stepperBtn}
+                  onPress={() => setSeats((s) => Math.min(8, s + 1))}
+                  accessibilityRole="button"
+                  accessibilityLabel="Ajouter une place"
+                >
+                  <Text variant="h3" color={colors.primary}>
+                    +
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
           </View>
-        </View>
 
-        <View style={styles.section}>
-          <Text variant="label" color={colors.gray700}>
-            Places disponibles
-          </Text>
-          <View style={styles.stepperRow}>
-            <TouchableOpacity
-              style={styles.stepperBtn}
-              onPress={() => setSeats((s) => Math.max(1, s - 1))}
-            >
-              <Text variant="h3">−</Text>
-            </TouchableOpacity>
-            <Text variant="h3" style={styles.stepperValue}>
-              {seats}
+          {!vehicle ? (
+            <Text variant="bodySmall" color={colors.error} style={styles.formError}>
+              Aucun véhicule enregistré — complétez votre profil conducteur.
             </Text>
-            <TouchableOpacity
-              style={styles.stepperBtn}
-              onPress={() => setSeats((s) => Math.min(8, s + 1))}
-            >
-              <Text variant="h3">+</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+          ) : null}
+          {errorMessage ? (
+            <Text variant="bodySmall" color={colors.error} style={styles.formError}>
+              {errorMessage}
+            </Text>
+          ) : null}
 
-        {!vehicle ? (
-          <Text variant="bodySmall" color={colors.error}>
-            Aucun véhicule enregistré — complétez votre profil conducteur.
-          </Text>
-        ) : null}
-        {errorMessage ? (
-          <Text variant="bodySmall" color={colors.error}>
-            {errorMessage}
-          </Text>
-        ) : null}
-
-        <Button
-          label="Continuer"
-          size="lg"
-          loading={isCreating}
-          disabled={!canContinue}
-          onPress={() => void continueToPrice()}
-          style={styles.cta}
-        />
+          <Button
+            label="Continuer"
+            size="lg"
+            loading={isCreating}
+            disabled={!canContinue}
+            onPress={() => void continueToPrice()}
+            style={styles.cta}
+          />
+        </Animated.View>
       </ScrollView>
     </View>
   );
@@ -564,17 +620,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.gray100,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.sm,
-  },
-  backBtn: {
-    width: 36,
-    height: 36,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   loadingWrap: {
     flex: 1,
@@ -588,11 +635,39 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: spacing.lg,
-    gap: spacing.lg,
     paddingBottom: spacing['4xl'],
+  },
+  formStack: {
+    gap: spacing.sm,
+  },
+  eyebrow: {
+    fontWeight: typography.fontWeight.semibold,
+    letterSpacing: 1.5,
+    marginBottom: spacing.xs,
+    marginTop: spacing.sm,
+  },
+  fieldCardSpacing: {
+    marginBottom: spacing.md,
+  },
+  detailsCard: {
+    backgroundColor: colors.white,
+    borderRadius: radii['2xl'],
+    padding: spacing.lg,
+    marginBottom: spacing.md,
+    ...elevation?.lg,
+    shadowColor: colors.gray900,
   },
   section: {
     gap: spacing.sm,
+  },
+  sectionDivider: {
+    marginTop: spacing.md,
+    paddingTop: spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: colors.gray100,
+  },
+  formError: {
+    marginBottom: spacing.xs,
   },
   chipRow: {
     flexDirection: 'row',
@@ -620,12 +695,21 @@ const styles = StyleSheet.create({
   },
   cta: {
     width: '100%',
+    ...elevation?.lg,
+    shadowColor: colors.primary,
   },
   priceBody: {
     flex: 1,
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.xl,
     gap: spacing.md,
+  },
+  priceCard: {
+    backgroundColor: colors.white,
+    borderRadius: radii['2xl'],
+    padding: spacing.lg,
+    ...elevation?.lg,
+    shadowColor: colors.gray900,
   },
   stopsBody: {
     flex: 1,
@@ -637,9 +721,15 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     justifyContent: 'center',
   },
-  mapWrap: {
+  mapShadowWrap: {
     flex: 1,
     minHeight: 280,
+    borderRadius: radii.xl,
+    ...elevation?.lg,
+    shadowColor: colors.gray900,
+  },
+  mapWrap: {
+    flex: 1,
     borderRadius: radii.xl,
     overflow: 'hidden',
   },
