@@ -9,16 +9,23 @@ export default function PickupScreen(): React.JSX.Element {
     price?: string;
     vehicleLabel?: string;
     pickupLabel?: string;
+    pickupLat?: string;
+    pickupLng?: string;
   }>();
   const driverName = params.driverName ?? 'votre conducteur';
+  const pickupCoord =
+    params.pickupLat && params.pickupLng
+      ? { latitude: Number(params.pickupLat), longitude: Number(params.pickupLng) }
+      : undefined;
 
   return (
     <View style={styles.container}>
-      {/* No distance/ETA badge: nothing computes a real one yet (real map
-          rendering + live position are later roadmap phases) — showing a
-          fabricated "120 m · 2 min" was the exact anti-pattern this fix
-          removes. */}
-      <MapPreview height={220} />
+      {/* No distance/ETA badge: nothing computes a real one yet (live
+          position tracking is a later roadmap phase) — showing a
+          fabricated "120 m · 2 min" was the exact anti-pattern Phase 1
+          removed; Phase 3 makes the map itself real but doesn't add a fake
+          distance estimate back. */}
+      <MapPreview height={220} origin={pickupCoord} />
 
       <View style={styles.card}>
         <Text variant="label" color={colors.gray600}>

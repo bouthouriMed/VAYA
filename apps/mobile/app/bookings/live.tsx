@@ -11,7 +11,19 @@ export default function LiveScreen(): React.JSX.Element {
     vehicleLabel?: string;
     destinationLabel?: string;
     estimatedDurationMin?: string;
+    pickupLat?: string;
+    pickupLng?: string;
+    destinationLat?: string;
+    destinationLng?: string;
   }>();
+  const pickupCoord =
+    params.pickupLat && params.pickupLng
+      ? { latitude: Number(params.pickupLat), longitude: Number(params.pickupLng) }
+      : undefined;
+  const destinationCoord =
+    params.destinationLat && params.destinationLng
+      ? { latitude: Number(params.destinationLat), longitude: Number(params.destinationLng) }
+      : undefined;
 
   useEffect(() => {
     const timer = setTimeout(
@@ -24,7 +36,13 @@ export default function LiveScreen(): React.JSX.Element {
 
   return (
     <View style={styles.container}>
-      <MapPreview height={300} badge="● En route" style={styles.map} />
+      <MapPreview
+        height={300}
+        badge="● En route"
+        origin={pickupCoord}
+        destination={destinationCoord}
+        style={styles.map}
+      />
 
       <View style={styles.card}>
         <Text variant="h1">

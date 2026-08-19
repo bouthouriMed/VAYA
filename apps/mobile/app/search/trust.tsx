@@ -105,6 +105,12 @@ export default function TrustScreen(): React.JSX.Element {
           estimatedDurationMin: ride!.estimatedDurationSec
             ? String(Math.round(ride!.estimatedDurationSec / 60))
             : '',
+          // Real coordinates so the post-booking screens can render an
+          // actual MapPreview (Phase 3) instead of no map at all.
+          pickupLat: String(booking.pickupLat),
+          pickupLng: String(booking.pickupLng),
+          destinationLat: String(ride!.destinationLat),
+          destinationLng: String(ride!.destinationLng),
         },
       });
     } catch {
