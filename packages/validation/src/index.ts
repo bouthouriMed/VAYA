@@ -32,3 +32,4 @@ export * from './trips';
 export * from './ratings';
 export * from './recurring';
 export * from './notifications';
+export * from './conversations';

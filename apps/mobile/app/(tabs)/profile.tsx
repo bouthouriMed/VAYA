@@ -160,7 +160,13 @@ export default function ProfileScreen(): React.JSX.Element {
               key={row.label}
               style={[styles.settingsRow, i > 0 && styles.settingsRowDivider]}
               activeOpacity={0.6}
-              onPress={row.label === 'Langue' ? () => setPickingLocale(true) : undefined}
+              onPress={
+                row.label === 'Langue'
+                  ? () => setPickingLocale(true)
+                  : row.label === 'Notifications'
+                    ? () => router.push('/notifications')
+                    : undefined
+              }
             >
               <Ionicons name={row.icon} size={20} color={colors.gray700} />
               <Text variant="body" style={styles.settingsLabel}>

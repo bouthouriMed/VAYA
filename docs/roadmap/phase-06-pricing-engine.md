@@ -71,10 +71,10 @@ Migration adding `pricing_configs` (schema in `docs/domain/pricing.md`), seeded 
 
 ## Definition of Done
 
-- [ ] `pricing_configs` table exists, seeded with a deliberately chosen (documented, not arbitrary) `base_rate_per_km`.
-- [ ] Ride creation computes and returns suggested bounds; `driver/publish.tsx` uses them instead of an unbounded stepper.
-- [ ] Server rejects out-of-bounds prices independent of client behavior.
-- [ ] `pnpm test`, `pnpm typecheck`, `pnpm lint` pass.
+- [x] `pricing_configs` table exists, seeded with a deliberately chosen (documented, not arbitrary) `base_rate_per_km`. See `docs/domain/pricing.md`'s "Rate derivation (Phase 6, first-cut)" — explicitly flagged as a first-cut value pending business confirmation, not an arbitrary guess left undocumented.
+- [x] Ride creation computes and returns suggested bounds; `driver/publish.tsx` uses them instead of an unbounded stepper.
+- [x] Server rejects out-of-bounds prices independent of client behavior — verified by `apps/api/src/modules/rides/__tests__/rides-pricing.integration.test.ts` (real Postgres + real OSRM, exercised through the actual HTTP layer via `app.inject`, not a direct service-function call).
+- [x] `pnpm test`, `pnpm typecheck`, `pnpm lint` pass.
 
 ## Dependencies
 

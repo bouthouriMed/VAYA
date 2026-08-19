@@ -1,11 +1,18 @@
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
-import { createRideSchema, updateRideStopsSchema } from '@vaya/validation';
+import { createRideSchema, updateRideSchema, updateRideStopsSchema } from '@vaya/validation';
 import { RIDE_STATUSES } from '@vaya/domain';
 import { getDatabase } from '../../lib/database.js';
 import { getUserId } from '../../lib/auth-context.js';
-import { cancelRide, createRide, getRideById, listMyRides, publishRide } from './rides.service.js';
+import {
+  cancelRide,
+  createRide,
+  getRideById,
+  listMyRides,
+  publishRide,
+  updateRide,
+} from './rides.service.js';
 import {
   generateCandidateStopsForRide,
   updateDriverStopSelection,
@@ -31,6 +38,20 @@ const rideSchema = z.object({
   status: z.enum(RIDE_STATUSES),
   routePolyline: z.string().nullable(),
   estimatedDurationSec: z.number().nullable(),
+});
+
+// Phase 6 (docs/domain/pricing.md): the computed bounded price suggestion,
+// returned alongside the ride on create/update so the client never needs a
+// second round-trip to render the price step's bounds.
+const suggestedPriceSchema = z.object({
+  min: z.number(),
+  recommended: z.number(),
+  max: z.number(),
+});
+
+const rideWithPricingSchema = rideSchema.extend({
+  pricing: suggestedPriceSchema,
+  routeIsEstimate: z.boolean(),
 });
 
 const rideIdParamSchema = z.object({ rideId: z.string().uuid() });
@@ -72,10 +93,29 @@ export async function ridesRoutes(fastify: FastifyInstance): Promise<void> {
     '/rides',
     {
       onRequest: [fastify.authenticate],
-      schema: { body: createRideSchema, response: { 200: rideSchema } },
+      schema: { body: createRideSchema, response: { 200: rideWithPricingSchema } },
     },
     async (request, reply) => {
       const ride = await createRide(db, getUserId(request), request.body);
+      reply.send(ride);
+    },
+  );
+
+  // Phase 6: lets the driver adjust the price (within the server-recomputed
+  // bound) — or edit departure/seats — before publishing. See
+  // rides.service.ts's updateRide doc comment for why this is draft-only.
+  app.patch(
+    '/rides/:rideId',
+    {
+      onRequest: [fastify.authenticate],
+      schema: {
+        params: rideIdParamSchema,
+        body: updateRideSchema,
+        response: { 200: rideWithPricingSchema },
+      },
+    },
+    async (request, reply) => {
+      const ride = await updateRide(db, request.params.rideId, getUserId(request), request.body);
       reply.send(ride);
     },
   );

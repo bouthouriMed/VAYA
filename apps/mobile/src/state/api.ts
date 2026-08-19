@@ -8,8 +8,10 @@ import type {
   CreateDriverOnboardingInput,
   UpdateVehicleInput,
   CreateRideInput,
+  UpdateRideInput,
   CreateBookingInput,
   NotifyMeInput,
+  UpdateRecurringPatternInput,
 } from '@vaya/validation';
 import { setAccessToken, clearAuth } from './authSlice';
 import { clearTokens } from '../services/auth/tokenStorage';
@@ -149,6 +151,17 @@ export interface Ride {
   estimatedDurationSec: number | null;
 }
 
+/** Phase 6 (docs/domain/pricing.md): the server-computed bounded price
+ *  suggestion, returned alongside the ride by createRide/updateRide so the
+ *  client never needs a second round-trip to render the price step. */
+export interface SuggestedPrice {
+  min: number;
+  recommended: number;
+  max: number;
+}
+
+export type RideWithPricing = Ride & { pricing: SuggestedPrice; routeIsEstimate: boolean };
+
 export interface RouteStop {
   id: string;
   rideId: string;
@@ -170,6 +183,162 @@ export interface GenerateStopsResult {
    *  "unavailable right now" message, never fabricated candidates. */
   osrmUnavailable: boolean;
   regenerated: boolean;
+}
+
+export interface DeviceTokenRegistration {
+  id: string;
+  userId: string;
+  token: string;
+  platform: 'ios' | 'android';
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Mirrors the server's notification_event_type enum
+ *  (apps/api/src/db/schema/notifications.schema.ts) — only the first 3
+ *  ever get dispatched a push by this phase; the rest are scaffolding for
+ *  future phases (Recurring Rides, demand signals) that already populate
+ *  the same table shape. */
+export type NotificationEventType =
+  | 'booking_requested'
+  | 'booking_accepted'
+  | 'booking_declined'
+  | 'trip_driver_approaching'
+  | 'trip_completed'
+  | 'recurring_pattern_detected'
+  | 'recurring_proactive_match'
+  | 'demand_signal_matched'
+  | 'message_received'
+  | 'booking_cancelled'
+  | 'booking_no_show_reported';
+
+export interface AppNotification {
+  id: string;
+  userId: string;
+  type: NotificationEventType;
+  payload: Record<string, unknown>;
+  readAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Phase 8 (docs/roadmap/phase-08-messaging.md). `status` mirrors
+// packages/domain's ConversationStatus ('open' | 'closed') — closed once
+// the trip reaches a terminal state, permanently (never reopened).
+export interface Conversation {
+  id: string;
+  bookingId: string;
+  status: 'open' | 'closed';
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ConversationMessage {
+  id: string;
+  conversationId: string;
+  senderUserId: string;
+  body: string;
+  createdAt: string;
+}
+
+/** Mirrors packages/domain's TripStatus. */
+export type TripStatus =
+  | 'scheduled'
+  | 'driver_approaching'
+  | 'pickup'
+  | 'active'
+  | 'arriving'
+  | 'completed'
+  | 'no_show'
+  | 'cancelled';
+
+export interface Trip {
+  id: string;
+  bookingId: string;
+  rideId: string;
+  status: TripStatus;
+  simulationStartedAt: string | null;
+  pickupConfirmedAt: string | null;
+  dropoffAt: string | null;
+  completedAt: string | null;
+  riderSettlementConfirmedAt: string | null;
+  driverSettlementConfirmedAt: string | null;
+}
+
+// Phase 9 (docs/roadmap/phase-09-ratings-trust.md). Mirrors
+// packages/domain's RatingRole/TrustTier.
+export type RatingRole = 'rider_rates_driver' | 'driver_rates_rider';
+export type TrustTier = 'new' | 'trusted' | 'top_rated';
+
+export interface CreateRatingBody {
+  role: RatingRole;
+  stars: number;
+  punctualityFlag?: boolean;
+  comment?: string;
+}
+
+export interface TierAggregate {
+  tier: TrustTier;
+  ratingAvg: number;
+  tripCount: number;
+  punctualityScore: number;
+}
+
+export interface TrustSummary {
+  userId: string;
+  driver: TierAggregate | null;
+  rider: TierAggregate | null;
+}
+
+// Phase 11 (docs/roadmap/phase-11-recurring-rides.md). Mirrors
+// packages/domain's RecurringPatternRole/RecurringPatternStatus.
+export type RecurringPatternRole = 'rider' | 'driver';
+export type RecurringPatternStatus = 'detected' | 'suggested' | 'enabled' | 'dismissed';
+
+export interface RecurringPattern {
+  id: string;
+  userId: string;
+  role: RecurringPatternRole;
+  routeId: string | null;
+  originLabel: string;
+  originLat: number;
+  originLng: number;
+  destinationLabel: string;
+  destinationLat: number;
+  destinationLng: number;
+  /** Bitmask, Monday = bit 0 ... Sunday = bit 6. */
+  daysOfWeekMask: number;
+  timeWindowStart: string;
+  timeWindowEnd: string;
+  confidenceScore: number;
+  status: RecurringPatternStatus;
+  lastMatchedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  /** Only meaningful for an `enabled` driver pattern — see
+   *  recurring.service.ts's listMyRecurringPatterns doc comment. */
+  matchesToday: boolean;
+  todayRideId: string | null;
+}
+
+export interface PendingRating {
+  tripId: string;
+  role: RatingRole;
+  counterpartName: string | null;
+  completedAt: string;
+}
+
+// Phase 10 (docs/roadmap/phase-10-cancellation-no-show.md). Mirrors
+// packages/domain's CancellationTier/CancellationPolicyResult.
+export type CancellationTier = 'free' | 'moderate' | 'severe';
+
+export interface CancellationPolicy {
+  tier: CancellationTier;
+  /** Negative once departure has already passed. */
+  minutesBeforeDeparture: number;
+  penaltyPoints: number;
+  /** Server-authored, ready-to-display French copy — never re-derived client-side. */
+  consequence: string;
 }
 
 export interface Booking {
@@ -246,7 +415,19 @@ const baseQueryWithReauth: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQue
 export const api = createApi({
   reducerPath: 'api',
   baseQuery: baseQueryWithReauth,
-  tagTypes: ['Me', 'DriverProfile', 'MyRides', 'MyBookings', 'RideRequests'],
+  tagTypes: [
+    'Me',
+    'DriverProfile',
+    'MyRides',
+    'MyBookings',
+    'RideRequests',
+    'Notifications',
+    'ConversationMessages',
+    'Trip',
+    'TrustSummary',
+    'PendingRating',
+    'RecurringPatterns',
+  ],
   endpoints: (builder) => ({
     healthCheck: builder.query<{ status: string }, void>({
       query: () => '/health',
@@ -322,8 +503,16 @@ export const api = createApi({
       query: (formData) => ({ url: '/uploads', method: 'POST', body: formData }),
     }),
 
-    createRide: builder.mutation<Ride, CreateRideInput>({
+    createRide: builder.mutation<RideWithPricing, CreateRideInput>({
       query: (body) => ({ url: '/rides', method: 'POST', body }),
+      invalidatesTags: ['MyRides'],
+    }),
+    // Phase 6: lets the driver adjust the price (or departure/seats) after
+    // seeing the real computed bound createRide returned, before
+    // publishing — see driver/publish.tsx's price step. Server re-validates
+    // the bound independently (rides.service.ts's updateRide).
+    updateRide: builder.mutation<RideWithPricing, { rideId: string; input: UpdateRideInput }>({
+      query: ({ rideId, input }) => ({ url: `/rides/${rideId}`, method: 'PATCH', body: input }),
       invalidatesTags: ['MyRides'],
     }),
     listMyRides: builder.query<Ride[], void>({
@@ -379,9 +568,110 @@ export const api = createApi({
       query: (bookingId) => ({ url: `/bookings/${bookingId}/decline`, method: 'POST' }),
       invalidatesTags: ['RideRequests'],
     }),
-    cancelBooking: builder.mutation<Booking, string>({
+    // Phase 10 (docs/roadmap/phase-10-cancellation-no-show.md). Read-only —
+    // the cancellation sheet calls this to show the policy consequence
+    // *before* the destructive cancelBooking mutation below is ever fired.
+    getCancellationPreview: builder.query<CancellationPolicy, string>({
+      query: (bookingId) => `/bookings/${bookingId}/cancellation-preview`,
+    }),
+    cancelBooking: builder.mutation<Booking & { cancellationPolicy: CancellationPolicy }, string>({
       query: (bookingId) => ({ url: `/bookings/${bookingId}/cancel`, method: 'POST' }),
       invalidatesTags: ['MyBookings', 'RideRequests', 'MyRides'],
+    }),
+    reportNoShow: builder.mutation<Booking, string>({
+      query: (bookingId) => ({ url: `/bookings/${bookingId}/report-no-show`, method: 'POST' }),
+      invalidatesTags: ['MyBookings', 'RideRequests', 'MyRides', 'Trip'],
+    }),
+
+    // Phase 7 (docs/roadmap/phase-07-notifications.md).
+    registerPushToken: builder.mutation<
+      DeviceTokenRegistration,
+      { token: string; platform: 'ios' | 'android' }
+    >({
+      query: (body) => ({ url: '/users/me/push-token', method: 'POST', body }),
+    }),
+    listNotifications: builder.query<AppNotification[], void>({
+      query: () => '/notifications',
+      providesTags: ['Notifications'],
+    }),
+    markNotificationRead: builder.mutation<AppNotification, string>({
+      query: (notificationId) => ({ url: `/notifications/${notificationId}/read`, method: 'PATCH' }),
+      invalidatesTags: ['Notifications'],
+    }),
+
+    // Phase 8 (docs/roadmap/phase-08-messaging.md). Delivery is
+    // polling-based: the conversation screen calls listConversationMessages
+    // on an interval (RTK Query's `pollingInterval`), never a socket.
+    getConversationByBooking: builder.query<Conversation, string>({
+      query: (bookingId) => `/conversations/${bookingId}`,
+    }),
+    listConversationMessages: builder.query<
+      ConversationMessage[],
+      { conversationId: string; since?: string }
+    >({
+      query: ({ conversationId, since }) => ({
+        url: `/conversations/${conversationId}/messages`,
+        params: since ? { since } : undefined,
+      }),
+      providesTags: (_result, _error, { conversationId }) => [
+        { type: 'ConversationMessages', id: conversationId },
+      ],
+    }),
+    sendConversationMessage: builder.mutation<
+      ConversationMessage,
+      { conversationId: string; body: string }
+    >({
+      query: ({ conversationId, body }) => ({
+        url: `/conversations/${conversationId}/messages`,
+        method: 'POST',
+        body: { body },
+      }),
+      invalidatesTags: (_result, _error, { conversationId }) => [
+        { type: 'ConversationMessages', id: conversationId },
+      ],
+    }),
+
+    // Phase 9 (docs/roadmap/phase-09-ratings-trust.md).
+    getTripByBooking: builder.query<Trip, string>({
+      query: (bookingId) => `/bookings/${bookingId}/trip`,
+      providesTags: (_result, _error, bookingId) => [{ type: 'Trip', id: bookingId }],
+    }),
+    completeTrip: builder.mutation<Trip, string>({
+      query: (tripId) => ({ url: `/trips/${tripId}/complete`, method: 'POST' }),
+      invalidatesTags: ['Trip', 'PendingRating', 'MyBookings'],
+    }),
+    createTripRating: builder.mutation<{ id: string }, { tripId: string; input: CreateRatingBody }>({
+      query: ({ tripId, input }) => ({
+        url: `/trips/${tripId}/ratings`,
+        method: 'POST',
+        body: input,
+      }),
+      invalidatesTags: ['PendingRating', 'TrustSummary'],
+    }),
+    getUserTrustSummary: builder.query<TrustSummary, string>({
+      query: (userId) => `/users/${userId}/trust-summary`,
+      providesTags: (_result, _error, userId) => [{ type: 'TrustSummary', id: userId }],
+    }),
+    getPendingRating: builder.query<PendingRating | null, void>({
+      query: () => '/trips/pending-rating',
+      providesTags: ['PendingRating'],
+    }),
+
+    // Phase 11 (docs/roadmap/phase-11-recurring-rides.md).
+    listMyRecurringPatterns: builder.query<RecurringPattern[], void>({
+      query: () => '/recurring-patterns',
+      providesTags: ['RecurringPatterns'],
+    }),
+    updateRecurringPattern: builder.mutation<
+      RecurringPattern,
+      { patternId: string; input: UpdateRecurringPatternInput }
+    >({
+      query: ({ patternId, input }) => ({
+        url: `/recurring-patterns/${patternId}`,
+        method: 'PATCH',
+        body: input,
+      }),
+      invalidatesTags: ['RecurringPatterns'],
     }),
   }),
 });
@@ -406,6 +696,7 @@ export const {
   useUpdateVehicleMutation,
   useUploadFileMutation,
   useCreateRideMutation,
+  useUpdateRideMutation,
   useListMyRidesQuery,
   useGetRideQuery,
   useCancelRideMutation,
@@ -417,5 +708,20 @@ export const {
   useListRequestsForRideQuery,
   useAcceptBookingMutation,
   useDeclineBookingMutation,
+  useGetCancellationPreviewQuery,
   useCancelBookingMutation,
+  useReportNoShowMutation,
+  useRegisterPushTokenMutation,
+  useListNotificationsQuery,
+  useMarkNotificationReadMutation,
+  useGetConversationByBookingQuery,
+  useListConversationMessagesQuery,
+  useSendConversationMessageMutation,
+  useGetTripByBookingQuery,
+  useCompleteTripMutation,
+  useCreateTripRatingMutation,
+  useGetUserTrustSummaryQuery,
+  useGetPendingRatingQuery,
+  useListMyRecurringPatternsQuery,
+  useUpdateRecurringPatternMutation,
 } = api;

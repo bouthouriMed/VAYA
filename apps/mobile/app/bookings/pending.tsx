@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Text, Button, Avatar, colors, spacing, radii } from '@vaya/design-system';
 import { router, useLocalSearchParams } from 'expo-router';
+import { CancellationSheet } from '../../src/features/bookings/CancellationSheet';
 
 export default function PendingScreen(): React.JSX.Element {
   const params = useLocalSearchParams<{
@@ -12,6 +14,9 @@ export default function PendingScreen(): React.JSX.Element {
   }>();
   const driverName = params.driverName ?? 'votre conducteur';
   const firstName = driverName.split(' ')[0]!;
+  // Phase 10 (docs/roadmap/phase-10-cancellation-no-show.md): cancellation
+  // is reachable from every active booking screen, not just (tabs)/trips.tsx.
+  const [cancelling, setCancelling] = useState(false);
 
   return (
     <View style={styles.container}>
@@ -28,6 +33,29 @@ export default function PendingScreen(): React.JSX.Element {
         onPress={() => router.push({ pathname: '/bookings/pickup', params })}
         style={styles.cta}
       />
+
+      {params.bookingId ? (
+        <Button
+          label={`Message à ${firstName}`}
+          variant="outline"
+          onPress={() =>
+            router.push({
+              pathname: '/conversations/[bookingId]',
+              params: { bookingId: params.bookingId!, role: 'rider', otherPartyName: driverName },
+            })
+          }
+          style={styles.cta}
+        />
+      ) : null}
+
+      {params.bookingId ? (
+        <Button
+          label="Annuler la réservation"
+          variant="ghost"
+          onPress={() => setCancelling(true)}
+          style={styles.cta}
+        />
+      ) : null}
 
       <View style={styles.card}>
         <Text variant="label">Résumé</Text>
@@ -48,6 +76,16 @@ export default function PendingScreen(): React.JSX.Element {
           </Text>
         </View>
       </View>
+
+      {params.bookingId ? (
+        <CancellationSheet
+          visible={cancelling}
+          bookingId={params.bookingId}
+          role="rider"
+          onClose={() => setCancelling(false)}
+          onCancelled={() => router.replace('/(tabs)/trips')}
+        />
+      ) : null}
     </View>
   );
 }

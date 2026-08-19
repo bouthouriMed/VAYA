@@ -13,16 +13,34 @@ export * from './ride/ride-status';
 
 export * from './booking/booking.types';
 export * from './booking/booking-status';
+export * from './booking/cancellation-policy';
 
 export * from './trip/trip.types';
 export * from './trip/trip-status';
 
 export * from './rating/rating.types';
+export * from './rating/trust-tier';
+export * from './rating/rating-window';
+export * from './rating/rating-aggregate';
 
 export * from './recurring/recurring-pattern.types';
+export * from './recurring/recurring-detection-config.types';
+export * from './recurring/default-recurring-detection-config';
+export * from './recurring/trip-history.types';
+export * from './recurring/detect-recurring-patterns';
+export * from './recurring/recurring-pattern-status';
+export * from './recurring/should-resuggest-after-dismissal';
+export * from './recurring/day-of-week';
+export * from './recurring/next-occurrence';
 
 export * from './relationship/relationship-signal.types';
 
 export * from './demand/demand-signal.types';
 
 export * from './notification/notification-event.types';
+
+export * from './pricing/pricing.types';
+export * from './pricing/compute-suggested-price';
+export * from './pricing/default-pricing-config';
+
+export * from './conversation/conversation.types';

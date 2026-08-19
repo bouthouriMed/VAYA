@@ -4,6 +4,12 @@ import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
 import * as schema from './schema/index.js';
 import { getRoute } from '../lib/routing.js';
+import {
+  computeSuggestedPrice,
+  DEFAULT_PRICING_CONFIG,
+  DEFAULT_RECURRING_DETECTION_CONFIG,
+  type SuggestedPrice,
+} from '@vaya/domain';
 
 const {
   users,
@@ -19,6 +25,8 @@ const {
   relationshipSignals,
   demandSignals,
   notifications,
+  pricingConfigs,
+  recurringDetectionConfigs,
 } = schema;
 
 function hoursFromNow(h: number): Date {
@@ -39,7 +47,166 @@ async function main(): Promise<void> {
 
   console.log('Seeding VAYA canonical demo dataset...');
 
+  // ── Pricing config (Phase 6, docs/domain/pricing.md) ────────────────
+  // Seeded first: every corridor's min/recommended/max below is computed
+  // from *this* row via the same @vaya/domain computeSuggestedPrice
+  // rides.service.ts calls at real ride-creation time — not hand-typed
+  // separately. This is the Phase 6 "backfill" decision documented in
+  // docs/roadmap/phase-06-pricing-engine.md's Backend section: derive
+  // seeded routes' pricing from the formula rather than keep two sources
+  // of truth that can silently drift apart. `baseRatePerKm`'s derivation
+  // (first-cut, business-review-pending) is documented in
+  // packages/domain/src/pricing/default-pricing-config.ts and
+  // docs/domain/pricing.md.
+  const [nationalPricingConfig] = await db
+    .insert(pricingConfigs)
+    .values({
+      scope: 'national',
+      baseRatePerKm: DEFAULT_PRICING_CONFIG.baseRatePerKm,
+      timeComponentPerMin: DEFAULT_PRICING_CONFIG.timeComponentPerMin,
+      minMultiplier: DEFAULT_PRICING_CONFIG.minMultiplier,
+      maxMultiplier: DEFAULT_PRICING_CONFIG.maxMultiplier,
+      platformFeeRate: 0,
+      active: true,
+    })
+    .returning();
+  if (!nationalPricingConfig) throw new Error('Failed to insert national pricing config');
+  const pricingConfigInput = {
+    baseRatePerKm: nationalPricingConfig.baseRatePerKm,
+    timeComponentPerMin: nationalPricingConfig.timeComponentPerMin,
+    minMultiplier: nationalPricingConfig.minMultiplier,
+    maxMultiplier: nationalPricingConfig.maxMultiplier,
+  };
+
+  // ── Recurring-pattern detection config (Phase 11, docs/domain/model.md) ──
+  // Seeded the same way as the pricing config above: a single active
+  // `global`-scope row so the detection job/recurring.service.ts never
+  // silently falls back to @vaya/domain's DEFAULT_RECURRING_DETECTION_CONFIG
+  // in a seeded environment.
+  await db.insert(recurringDetectionConfigs).values({
+    scope: 'global',
+    minTripCount: DEFAULT_RECURRING_DETECTION_CONFIG.minTripCount,
+    fullConfidenceTripCount: DEFAULT_RECURRING_DETECTION_CONFIG.fullConfidenceTripCount,
+    lookbackDays: DEFAULT_RECURRING_DETECTION_CONFIG.lookbackDays,
+    corridorRadiusMeters: DEFAULT_RECURRING_DETECTION_CONFIG.corridorRadiusMeters,
+    timeWindowMinutes: DEFAULT_RECURRING_DETECTION_CONFIG.timeWindowMinutes,
+    suggestedConfidenceThreshold: DEFAULT_RECURRING_DETECTION_CONFIG.suggestedConfidenceThreshold,
+    dismissalRequiredConfidenceDelta:
+      DEFAULT_RECURRING_DETECTION_CONFIG.dismissalRequiredConfidenceDelta,
+    active: true,
+  });
+
   // ── Routes (corridors) ─────────────────────────────────────────────
+  // Corridor definitions carry only origin/destination — distance/duration
+  // (real OSRM, or its haversine fallback) and min/recommended/max
+  // contribution are all computed below, not hand-typed, per the "single
+  // source of truth" decision above.
+  const corridorDefs = [
+    {
+      key: 'elMenzahDigitalCenter',
+      originLabel: 'El Menzah 5',
+      originLat: 36.8508,
+      originLng: 10.1658,
+      destinationLabel: 'Tunis Digital Center',
+      destinationLat: 36.8383,
+      destinationLng: 10.1518,
+    },
+    {
+      key: 'laMarsaCentreVille',
+      originLabel: 'La Marsa',
+      originLat: 36.8785,
+      originLng: 10.3247,
+      destinationLabel: 'Tunis Centre Ville',
+      destinationLat: 36.7992,
+      destinationLng: 10.1811,
+    },
+    {
+      key: 'arianaLeBardo',
+      originLabel: 'Ariana',
+      originLat: 36.8625,
+      originLng: 10.1956,
+      destinationLabel: 'Le Bardo',
+      destinationLat: 36.8092,
+      destinationLng: 10.1367,
+    },
+    {
+      key: 'benArousTunis',
+      originLabel: 'Ben Arous',
+      originLat: 36.7531,
+      originLng: 10.2189,
+      destinationLabel: 'Tunis',
+      destinationLat: 36.8065,
+      destinationLng: 10.1815,
+    },
+    {
+      key: 'manoubaTunis',
+      originLabel: 'Manouba',
+      originLat: 36.8081,
+      originLng: 10.0972,
+      destinationLabel: 'Tunis',
+      destinationLat: 36.8065,
+      destinationLng: 10.1815,
+    },
+    {
+      key: 'sousseMonastir',
+      originLabel: 'Sousse',
+      originLat: 35.8256,
+      originLng: 10.6369,
+      destinationLabel: 'Monastir',
+      destinationLat: 35.7643,
+      destinationLng: 10.8113,
+    },
+    {
+      key: 'sfaxSakietEzzit',
+      originLabel: 'Sfax',
+      originLat: 34.7406,
+      originLng: 10.7603,
+      destinationLabel: 'Sakiet Ezzit',
+      destinationLat: 34.7822,
+      destinationLng: 10.7397,
+    },
+    {
+      key: 'tunisNabeul',
+      originLabel: 'Tunis',
+      originLat: 36.8065,
+      originLng: 10.1815,
+      destinationLabel: 'Nabeul',
+      destinationLat: 36.4561,
+      destinationLng: 10.7376,
+    },
+  ] as const;
+
+  interface CorridorGeometry {
+    routePolyline: string | null;
+    estimatedDurationSec: number;
+    distanceKm: number;
+    estimatedDurationMin: number;
+    pricing: SuggestedPrice;
+  }
+  const corridorGeometryByKey = new Map<string, CorridorGeometry>();
+  for (const c of corridorDefs) {
+    const geometry = await getRoute(
+      { lat: c.originLat, lng: c.originLng },
+      { lat: c.destinationLat, lng: c.destinationLng },
+    );
+    const distanceKm = geometry.distanceM / 1000;
+    const durationMin = geometry.durationSec / 60;
+    corridorGeometryByKey.set(c.key, {
+      routePolyline: geometry.polyline || null,
+      estimatedDurationSec: geometry.durationSec,
+      distanceKm,
+      estimatedDurationMin: Math.round(durationMin),
+      pricing: computeSuggestedPrice(distanceKm, durationMin, pricingConfigInput, {
+        isEstimate: geometry.isEstimate,
+      }),
+    });
+  }
+  function corridorGeometryFor(key: string): CorridorGeometry {
+    const g = corridorGeometryByKey.get(key);
+    if (!g) throw new Error(`No precomputed geometry for corridor ${key}`);
+    return g;
+  }
+
   const [
     elMenzahDigitalCenter,
     laMarsaCentreVille,
@@ -51,112 +218,24 @@ async function main(): Promise<void> {
     tunisNabeul,
   ] = await db
     .insert(routes)
-    .values([
-      {
-        originLabel: 'El Menzah 5',
-        originLat: 36.8508,
-        originLng: 10.1658,
-        destinationLabel: 'Tunis Digital Center',
-        destinationLat: 36.8383,
-        destinationLng: 10.1518,
-        distanceKm: 5.4,
-        estimatedDurationMin: 15,
-        minContribution: 3,
-        recommendedContribution: 5,
-        maxContribution: 7,
-      },
-      {
-        originLabel: 'La Marsa',
-        originLat: 36.8785,
-        originLng: 10.3247,
-        destinationLabel: 'Tunis Centre Ville',
-        destinationLat: 36.7992,
-        destinationLng: 10.1811,
-        distanceKm: 12.3,
-        estimatedDurationMin: 25,
-        minContribution: 4,
-        recommendedContribution: 6,
-        maxContribution: 9,
-      },
-      {
-        originLabel: 'Ariana',
-        originLat: 36.8625,
-        originLng: 10.1956,
-        destinationLabel: 'Le Bardo',
-        destinationLat: 36.8092,
-        destinationLng: 10.1367,
-        distanceKm: 7.1,
-        estimatedDurationMin: 16,
-        minContribution: 3,
-        recommendedContribution: 4,
-        maxContribution: 6,
-      },
-      {
-        originLabel: 'Ben Arous',
-        originLat: 36.7531,
-        originLng: 10.2189,
-        destinationLabel: 'Tunis',
-        destinationLat: 36.8065,
-        destinationLng: 10.1815,
-        distanceKm: 9.8,
-        estimatedDurationMin: 20,
-        minContribution: 4,
-        recommendedContribution: 5,
-        maxContribution: 8,
-      },
-      {
-        originLabel: 'Manouba',
-        originLat: 36.8081,
-        originLng: 10.0972,
-        destinationLabel: 'Tunis',
-        destinationLat: 36.8065,
-        destinationLng: 10.1815,
-        distanceKm: 8.9,
-        estimatedDurationMin: 18,
-        minContribution: 3,
-        recommendedContribution: 5,
-        maxContribution: 7,
-      },
-      {
-        originLabel: 'Sousse',
-        originLat: 35.8256,
-        originLng: 10.6369,
-        destinationLabel: 'Monastir',
-        destinationLat: 35.7643,
-        destinationLng: 10.8113,
-        distanceKm: 19.6,
-        estimatedDurationMin: 25,
-        minContribution: 8,
-        recommendedContribution: 10,
-        maxContribution: 14,
-      },
-      {
-        originLabel: 'Sfax',
-        originLat: 34.7406,
-        originLng: 10.7603,
-        destinationLabel: 'Sakiet Ezzit',
-        destinationLat: 34.7822,
-        destinationLng: 10.7397,
-        distanceKm: 5.8,
-        estimatedDurationMin: 12,
-        minContribution: 2,
-        recommendedContribution: 4,
-        maxContribution: 6,
-      },
-      {
-        originLabel: 'Tunis',
-        originLat: 36.8065,
-        originLng: 10.1815,
-        destinationLabel: 'Nabeul',
-        destinationLat: 36.4561,
-        destinationLng: 10.7376,
-        distanceKm: 64.7,
-        estimatedDurationMin: 58,
-        minContribution: 15,
-        recommendedContribution: 20,
-        maxContribution: 28,
-      },
-    ])
+    .values(
+      corridorDefs.map((c) => {
+        const g = corridorGeometryFor(c.key);
+        return {
+          originLabel: c.originLabel,
+          originLat: c.originLat,
+          originLng: c.originLng,
+          destinationLabel: c.destinationLabel,
+          destinationLat: c.destinationLat,
+          destinationLng: c.destinationLng,
+          distanceKm: g.distanceKm,
+          estimatedDurationMin: g.estimatedDurationMin,
+          minContribution: g.pricing.min,
+          recommendedContribution: g.pricing.recommended,
+          maxContribution: g.pricing.max,
+        };
+      }),
+    )
     .returning();
 
   if (
@@ -202,9 +281,9 @@ async function main(): Promise<void> {
     return u;
   };
 
-  // Real polylines/durations for each corridor, computed once via OSRM (or
-  // its haversine fallback if OSRM isn't prepared yet) and reused across
-  // every ride seeded on that corridor below.
+  // Reuses the geometry/pricing already computed once above (keyed by
+  // corridor key) rather than calling OSRM a second time per corridor —
+  // just re-keyed by the now-known route.id for the ride inserts below.
   const corridorRoutes = [
     elMenzahDigitalCenter,
     laMarsaCentreVille,
@@ -215,24 +294,24 @@ async function main(): Promise<void> {
     sfaxSakietEzzit,
     tunisNabeul,
   ];
-  const routeGeometry = new Map<
-    string,
-    { routePolyline: string | null; estimatedDurationSec: number }
-  >();
-  for (const route of corridorRoutes) {
-    const geometry = await getRoute(
-      { lat: route.originLat, lng: route.originLng },
-      { lat: route.destinationLat, lng: route.destinationLng },
-    );
-    routeGeometry.set(route.id, {
-      routePolyline: geometry.polyline || null,
-      estimatedDurationSec: geometry.durationSec,
-    });
+  const routeGeometry = new Map<string, CorridorGeometry>();
+  corridorDefs.forEach((c, i) => {
+    const routeRow = corridorRoutes[i];
+    if (!routeRow) throw new Error(`Missing inserted route row for corridor ${c.key}`);
+    routeGeometry.set(routeRow.id, corridorGeometryFor(c.key));
+  });
+  function geometryFor(routeId: string): { routePolyline: string | null; estimatedDurationSec: number } {
+    const g = routeGeometry.get(routeId);
+    if (!g) throw new Error(`No precomputed geometry for route ${routeId}`);
+    return { routePolyline: g.routePolyline, estimatedDurationSec: g.estimatedDurationSec };
   }
-  function geometryFor(routeId: string) {
-    const geometry = routeGeometry.get(routeId);
-    if (!geometry) throw new Error(`No precomputed geometry for route ${routeId}`);
-    return geometry;
+  // Phase 6: every seeded ride's contributionPerSeat is its corridor's
+  // formula-derived `recommended` value — see the "Pricing config" comment
+  // above for why this replaces the old hand-typed per-ride numbers.
+  function priceFor(routeId: string): number {
+    const g = routeGeometry.get(routeId);
+    if (!g) throw new Error(`No precomputed geometry for route ${routeId}`);
+    return g.pricing.recommended;
   }
 
   const sarra = userByName('Sarra Ben Ali');
@@ -499,7 +578,7 @@ async function main(): Promise<void> {
       departureAt: hoursFromNow(-0.1),
       seatsTotal: 3,
       seatsAvailable: 1,
-      contributionPerSeat: 5,
+      contributionPerSeat: priceFor(elMenzahDigitalCenter.id),
       status: 'in_progress',
       ...geometryFor(elMenzahDigitalCenter.id),
       recurringPatternId: morningCommutePattern.id,
@@ -523,7 +602,7 @@ async function main(): Promise<void> {
         departureAt: hoursFromNow(1),
         seatsTotal: 4,
         seatsAvailable: 3,
-        contributionPerSeat: 5,
+        contributionPerSeat: priceFor(elMenzahDigitalCenter.id),
         status: 'published',
         ...geometryFor(elMenzahDigitalCenter.id),
       },
@@ -540,7 +619,7 @@ async function main(): Promise<void> {
         departureAt: hoursFromNow(2),
         seatsTotal: 4,
         seatsAvailable: 4,
-        contributionPerSeat: 6,
+        contributionPerSeat: priceFor(laMarsaCentreVille.id),
         status: 'published',
         ...geometryFor(laMarsaCentreVille.id),
       },
@@ -557,7 +636,7 @@ async function main(): Promise<void> {
         departureAt: hoursFromNow(3),
         seatsTotal: 3,
         seatsAvailable: 2,
-        contributionPerSeat: 4,
+        contributionPerSeat: priceFor(arianaLeBardo.id),
         status: 'published',
         ...geometryFor(arianaLeBardo.id),
       },
@@ -574,7 +653,7 @@ async function main(): Promise<void> {
         departureAt: hoursFromNow(4),
         seatsTotal: 3,
         seatsAvailable: 0,
-        contributionPerSeat: 5,
+        contributionPerSeat: priceFor(benArousTunis.id),
         status: 'full',
         ...geometryFor(benArousTunis.id),
       },
@@ -597,7 +676,7 @@ async function main(): Promise<void> {
     departureAt: hoursFromNow(30),
     seatsTotal: 3,
     seatsAvailable: 3,
-    contributionPerSeat: 5,
+    contributionPerSeat: priceFor(manoubaTunis.id),
     status: 'draft',
     ...geometryFor(manoubaTunis.id),
   });
@@ -615,7 +694,7 @@ async function main(): Promise<void> {
     departureAt: hoursFromNow(-5),
     seatsTotal: 3,
     seatsAvailable: 3,
-    contributionPerSeat: 10,
+    contributionPerSeat: priceFor(sousseMonastir.id),
     status: 'cancelled',
     ...geometryFor(sousseMonastir.id),
   });
@@ -626,36 +705,15 @@ async function main(): Promise<void> {
     return p.id;
   }
 
+  // Phase 6: no per-seed `price` field any more — contributionPerSeat is
+  // always priceFor(route.id) below, so a completed ride's price can never
+  // silently disagree with the same corridor's other rides.
   const completedRideSeeds = [
-    {
-      driver: sarraProfile,
-      vehicle: sarraVehicle,
-      route: elMenzahDigitalCenter,
-      daysBack: 1,
-      price: 5,
-    },
-    {
-      driver: sarraProfile,
-      vehicle: sarraVehicle,
-      route: elMenzahDigitalCenter,
-      daysBack: 2,
-      price: 5,
-    },
-    {
-      driver: amineProfile,
-      vehicle: amineVehicle,
-      route: elMenzahDigitalCenter,
-      daysBack: 3,
-      price: 5,
-    },
-    {
-      driver: mehdiProfile,
-      vehicle: mehdiVehicle,
-      route: laMarsaCentreVille,
-      daysBack: 4,
-      price: 6,
-    },
-    { driver: karimProfile, vehicle: karimVehicle, route: arianaLeBardo, daysBack: 5, price: 4 },
+    { driver: sarraProfile, vehicle: sarraVehicle, route: elMenzahDigitalCenter, daysBack: 1 },
+    { driver: sarraProfile, vehicle: sarraVehicle, route: elMenzahDigitalCenter, daysBack: 2 },
+    { driver: amineProfile, vehicle: amineVehicle, route: elMenzahDigitalCenter, daysBack: 3 },
+    { driver: mehdiProfile, vehicle: mehdiVehicle, route: laMarsaCentreVille, daysBack: 4 },
+    { driver: karimProfile, vehicle: karimVehicle, route: arianaLeBardo, daysBack: 5 },
   ];
   const completedRides = await db
     .insert(rides)
@@ -673,7 +731,7 @@ async function main(): Promise<void> {
         departureAt: daysAgo(s.daysBack),
         seatsTotal: 3,
         seatsAvailable: 1,
-        contributionPerSeat: s.price,
+        contributionPerSeat: priceFor(s.route.id),
         status: 'completed' as const,
         ...geometryFor(s.route.id),
       })),
@@ -687,7 +745,7 @@ async function main(): Promise<void> {
       rideId: ridePublished1.id,
       riderId: marwa.id,
       seatsRequested: 1,
-      contributionTotal: 5,
+      contributionTotal: priceFor(elMenzahDigitalCenter.id) * 1,
       status: 'pending',
       pickupLabel: 'Angle Rue de Kairouan',
       pickupLat: elMenzahDigitalCenter.originLat + 0.001,
@@ -697,7 +755,7 @@ async function main(): Promise<void> {
       rideId: ridePublished2.id,
       riderId: nourSafe(),
       seatsRequested: 2,
-      contributionTotal: 12,
+      contributionTotal: priceFor(laMarsaCentreVille.id) * 2,
       status: 'pending',
       pickupLabel: 'Avenue Habib Bourguiba, La Marsa',
       pickupLat: laMarsaCentreVille.originLat,
@@ -715,7 +773,7 @@ async function main(): Promise<void> {
       rideId: rideInProgress.id,
       riderId: youssef.id,
       seatsRequested: 1,
-      contributionTotal: 5,
+      contributionTotal: priceFor(elMenzahDigitalCenter.id) * 1,
       status: 'accepted',
       pickupLabel: 'Angle Rue de Kairouan',
       pickupLat: elMenzahDigitalCenter.originLat + 0.001,
@@ -739,7 +797,7 @@ async function main(): Promise<void> {
       rideId: ridePublished3.id,
       riderId: salmaSafe(),
       seatsRequested: 1,
-      contributionTotal: 4,
+      contributionTotal: priceFor(arianaLeBardo.id) * 1,
       status: 'accepted',
       pickupLabel: 'Rue de Palestine, Ariana',
       pickupLat: arianaLeBardo.originLat,
@@ -764,7 +822,7 @@ async function main(): Promise<void> {
       rideId: ridePublished4.id,
       riderId: olaSafe(),
       seatsRequested: 1,
-      contributionTotal: 5,
+      contributionTotal: priceFor(benArousTunis.id) * 1,
       status: 'accepted',
       pickupLabel: 'Rue de la Republique, Ben Arous',
       pickupLat: benArousTunis.originLat,
@@ -788,7 +846,7 @@ async function main(): Promise<void> {
       rideId: ridePublished1.id,
       riderId: fares(),
       seatsRequested: 1,
-      contributionTotal: 5,
+      contributionTotal: priceFor(elMenzahDigitalCenter.id) * 1,
       status: 'declined',
       pickupLabel: 'Cité Ennasr',
       pickupLat: elMenzahDigitalCenter.originLat,
@@ -799,7 +857,7 @@ async function main(): Promise<void> {
       rideId: ridePublished2.id,
       riderId: yasmine(),
       seatsRequested: 1,
-      contributionTotal: 6,
+      contributionTotal: priceFor(laMarsaCentreVille.id) * 1,
       status: 'cancelled_by_rider',
       pickupLabel: 'Gammarth',
       pickupLat: laMarsaCentreVille.originLat,
@@ -810,7 +868,7 @@ async function main(): Promise<void> {
       rideId: ridePublished3.id,
       riderId: aymen(),
       seatsRequested: 1,
-      contributionTotal: 4,
+      contributionTotal: priceFor(arianaLeBardo.id) * 1,
       status: 'cancelled_by_driver',
       pickupLabel: 'Le Bardo',
       pickupLat: arianaLeBardo.destinationLat,
@@ -821,7 +879,7 @@ async function main(): Promise<void> {
       rideId: ridePublished1.id,
       riderId: sonia(),
       seatsRequested: 1,
-      contributionTotal: 5,
+      contributionTotal: priceFor(elMenzahDigitalCenter.id) * 1,
       status: 'expired',
       pickupLabel: 'El Menzah 6',
       pickupLat: elMenzahDigitalCenter.originLat,
@@ -849,7 +907,9 @@ async function main(): Promise<void> {
       rideId: noShowRide.id,
       riderId: wassim(),
       seatsRequested: 1,
-      contributionTotal: 4,
+      // noShowRide is completedRides[4] → arianaLeBardo corridor (see
+      // completedRideSeeds above).
+      contributionTotal: priceFor(arianaLeBardo.id) * 1,
       status: 'no_show',
       pickupLabel: 'Le Bardo',
       pickupLat: arianaLeBardo.destinationLat,
@@ -879,7 +939,7 @@ async function main(): Promise<void> {
         rideId: ride.id,
         riderId: rider.id,
         seatsRequested: 1,
-        contributionTotal: seed.price,
+        contributionTotal: priceFor(seed.route.id) * 1,
         status: 'completed',
         pickupLabel: seed.route.originLabel,
         pickupLat: seed.route.originLat,
@@ -989,7 +1049,7 @@ async function main(): Promise<void> {
       departureAt: hoursFromNow(6),
       seatsTotal: 4,
       seatsAvailable: 4,
-      contributionPerSeat: 10,
+      contributionPerSeat: priceFor(sousseMonastir.id),
       status: 'published',
       ...geometryFor(sousseMonastir.id),
     },

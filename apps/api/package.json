@@ -15,6 +15,8 @@
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
     "db:seed": "tsx src/db/seed.ts",
+    "worker": "tsx watch src/worker.ts",
+    "worker:start": "node dist/worker.js",
     "clean": "rm -rf dist node_modules"
   },
   "dependencies": {
@@ -29,6 +31,7 @@
     "@vaya/config": "workspace:*",
     "@vaya/domain": "workspace:*",
     "@vaya/validation": "workspace:*",
+    "bullmq": "^6.1.2",
     "dotenv": "^16.4.5",
     "drizzle-orm": "^0.33.0",
     "fastify": "^5.1.0",
