@@ -33,6 +33,15 @@ export default function TabLayout(): React.JSX.Element {
         }}
       />
       <Tabs.Screen
+        name="publish"
+        options={{
+          title: 'Publier',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="add-circle" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="profile"
         options={{
           title: 'Profil',
