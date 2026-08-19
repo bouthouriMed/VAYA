@@ -155,6 +155,13 @@ function bodyFor(type: NotificationEventType, payload: Record<string, unknown>):
       return typeof payload.senderName === 'string'
         ? `${payload.senderName} vous a envoyé un message.`
         : 'Vous avez reçu un nouveau message.';
+    // Phase 9 (docs/roadmap/phase-09-ratings-trust.md): trip_completed is
+    // reused as the rating-prompt trigger (trips.service.ts's completeTrip)
+    // rather than adding a distinct event type — this is the only body this
+    // event type has ever needed, since nothing dispatched it before this
+    // phase.
+    case 'trip_completed':
+      return 'Votre trajet est terminé — notez votre expérience avant demain.';
     default:
       return 'Vous avez une nouvelle notification.';
   }

@@ -238,6 +238,62 @@ export interface ConversationMessage {
   createdAt: string;
 }
 
+/** Mirrors packages/domain's TripStatus. */
+export type TripStatus =
+  | 'scheduled'
+  | 'driver_approaching'
+  | 'pickup'
+  | 'active'
+  | 'arriving'
+  | 'completed'
+  | 'no_show'
+  | 'cancelled';
+
+export interface Trip {
+  id: string;
+  bookingId: string;
+  rideId: string;
+  status: TripStatus;
+  simulationStartedAt: string | null;
+  pickupConfirmedAt: string | null;
+  dropoffAt: string | null;
+  completedAt: string | null;
+  riderSettlementConfirmedAt: string | null;
+  driverSettlementConfirmedAt: string | null;
+}
+
+// Phase 9 (docs/roadmap/phase-09-ratings-trust.md). Mirrors
+// packages/domain's RatingRole/TrustTier.
+export type RatingRole = 'rider_rates_driver' | 'driver_rates_rider';
+export type TrustTier = 'new' | 'trusted' | 'top_rated';
+
+export interface CreateRatingBody {
+  role: RatingRole;
+  stars: number;
+  punctualityFlag?: boolean;
+  comment?: string;
+}
+
+export interface TierAggregate {
+  tier: TrustTier;
+  ratingAvg: number;
+  tripCount: number;
+  punctualityScore: number;
+}
+
+export interface TrustSummary {
+  userId: string;
+  driver: TierAggregate | null;
+  rider: TierAggregate | null;
+}
+
+export interface PendingRating {
+  tripId: string;
+  role: RatingRole;
+  counterpartName: string | null;
+  completedAt: string;
+}
+
 export interface Booking {
   id: string;
   rideId: string;
@@ -320,6 +376,9 @@ export const api = createApi({
     'RideRequests',
     'Notifications',
     'ConversationMessages',
+    'Trip',
+    'TrustSummary',
+    'PendingRating',
   ],
   endpoints: (builder) => ({
     healthCheck: builder.query<{ status: string }, void>({
@@ -513,6 +572,32 @@ export const api = createApi({
         { type: 'ConversationMessages', id: conversationId },
       ],
     }),
+
+    // Phase 9 (docs/roadmap/phase-09-ratings-trust.md).
+    getTripByBooking: builder.query<Trip, string>({
+      query: (bookingId) => `/bookings/${bookingId}/trip`,
+      providesTags: (_result, _error, bookingId) => [{ type: 'Trip', id: bookingId }],
+    }),
+    completeTrip: builder.mutation<Trip, string>({
+      query: (tripId) => ({ url: `/trips/${tripId}/complete`, method: 'POST' }),
+      invalidatesTags: ['Trip', 'PendingRating', 'MyBookings'],
+    }),
+    createTripRating: builder.mutation<{ id: string }, { tripId: string; input: CreateRatingBody }>({
+      query: ({ tripId, input }) => ({
+        url: `/trips/${tripId}/ratings`,
+        method: 'POST',
+        body: input,
+      }),
+      invalidatesTags: ['PendingRating', 'TrustSummary'],
+    }),
+    getUserTrustSummary: builder.query<TrustSummary, string>({
+      query: (userId) => `/users/${userId}/trust-summary`,
+      providesTags: (_result, _error, userId) => [{ type: 'TrustSummary', id: userId }],
+    }),
+    getPendingRating: builder.query<PendingRating | null, void>({
+      query: () => '/trips/pending-rating',
+      providesTags: ['PendingRating'],
+    }),
   }),
 });
 
@@ -555,4 +640,9 @@ export const {
   useGetConversationByBookingQuery,
   useListConversationMessagesQuery,
   useSendConversationMessageMutation,
+  useGetTripByBookingQuery,
+  useCompleteTripMutation,
+  useCreateTripRatingMutation,
+  useGetUserTrustSummaryQuery,
+  useGetPendingRatingQuery,
 } = api;

@@ -18,12 +18,20 @@
  * specifically: its payload always carries the bookingId
  * (conversations.service.ts's sendMessage), so a tap opens that exact
  * conversation directly rather than the generic trips tab.
+ *
+ * trip_completed (Phase 9, docs/roadmap/phase-09-ratings-trust.md) also
+ * resolves to "Mes trajets": the actual rating *prompt* itself is surfaced
+ * by RatingPromptBridge (app/_layout.tsx), mounted globally and polling
+ * `GET /trips/pending-rating` on launch — a tap on this notification just
+ * needs to bring the app to the foreground into a screen where that bridge
+ * is already active, which every screen under the root stack is.
  */
 export type NotificationDeepLinkType =
   | 'booking_requested'
   | 'booking_accepted'
   | 'booking_declined'
   | 'message_received'
+  | 'trip_completed'
   | (string & {});
 
 export function resolveNotificationDeepLink(
@@ -34,6 +42,7 @@ export function resolveNotificationDeepLink(
     case 'booking_requested':
     case 'booking_accepted':
     case 'booking_declined':
+    case 'trip_completed':
       return '/(tabs)/trips';
     case 'message_received': {
       const bookingId = payload?.bookingId;

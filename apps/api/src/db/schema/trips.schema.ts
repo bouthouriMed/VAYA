@@ -28,6 +28,14 @@ export const trips = pgTable(
     simulationStartedAt: timestamp('simulation_started_at', { withTimezone: true }),
     pickupConfirmedAt: timestamp('pickup_confirmed_at', { withTimezone: true }),
     dropoffAt: timestamp('dropoff_at', { withTimezone: true }),
+    // Phase 9 (docs/roadmap/phase-09-ratings-trust.md): set the moment a
+    // trip reaches `completed` (apps/api/src/modules/trips's completeTrip)
+    // — the anchor for the 24h rating-submission window
+    // (packages/domain/src/rating/rating-window.ts). Nullable/additive per
+    // CLAUDE.md's "trips schema — additive changes only" rule; null for
+    // every trip that isn't completed (or completed before this column
+    // existed).
+    completedAt: timestamp('completed_at', { withTimezone: true }),
     riderSettlementConfirmedAt: timestamp('rider_settlement_confirmed_at', { withTimezone: true }),
     driverSettlementConfirmedAt: timestamp('driver_settlement_confirmed_at', {
       withTimezone: true,

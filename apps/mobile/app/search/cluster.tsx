@@ -4,6 +4,7 @@ import MapView, { Marker, Polyline, PROVIDER_DEFAULT } from 'react-native-maps';
 import { skipToken } from '@reduxjs/toolkit/query/react';
 import {
   Text,
+  Badge,
   DriverMapPin,
   EmptyState,
   colors,
@@ -15,9 +16,10 @@ import {
 import { router, useLocalSearchParams, useNavigation } from 'expo-router';
 import { useAppDispatch, useAppSelector } from '../../src/state/store';
 import { clearPickupStop } from '../../src/state/searchSlice';
-import { useMatchingSearchQuery, type MatchCandidate } from '../../src/state/api';
+import { useMatchingSearchQuery, useGetUserTrustSummaryQuery, type MatchCandidate } from '../../src/state/api';
 import { decodePolyline } from '../../src/utils/polyline';
 import { trackEvent } from '../../src/services/analytics/analytics';
+import { trustTierBadge } from '../../src/features/ratings/ratingHelpers';
 
 function toPinData(candidate: MatchCandidate): {
   id: string;
@@ -83,6 +85,25 @@ export default function ClusterScreen(): React.JSX.Element {
     () => [...candidates].sort((a, b) => b.score - a.score)[0],
     [candidates],
   );
+
+  // Phase 9 (docs/roadmap/phase-09-ratings-trust.md): this app's result
+  // "cards" before a booking decision are the map's driver pins + this
+  // recommended-driver CTA (results.tsx itself only ever shows anonymous
+  // cluster counts, no per-driver identity to attach a trust signal to) —
+  // so the trust-tier badge is wired in here, on the one driver actually
+  // named on screen, rather than on results.tsx as the phase doc's literal
+  // wording assumed. Fetches only for the single recommended candidate,
+  // not one call per pin, to avoid an N-request fan-out this phase's
+  // "largely a data-wiring task" scope doesn't call for.
+  const { data: recommendedTrust } = useGetUserTrustSummaryQuery(recommended?.driverUserId ?? '', {
+    skip: !recommended,
+  });
+
+  useEffect(() => {
+    if (recommendedTrust?.driver) {
+      trackEvent('trust_tier_shown', { screen: 'cluster', tier: recommendedTrust.driver.tier });
+    }
+  }, [recommendedTrust]);
 
   const region = useMemo(() => {
     const points = candidates.map((c) => ({ lat: c.originLat, lng: c.originLng }));
@@ -179,10 +200,18 @@ export default function ClusterScreen(): React.JSX.Element {
         ) : null}
       </View>
 
-      <Text variant="bodySmall" color={colors.gray600} style={styles.recommendCaption}>
-        {(recommended.driverFullName ?? 'Ce conducteur').split(' ')[0]} est le mieux noté —{' '}
-        {Math.round(recommended.pickupWalkMinutes)} min à pied.
-      </Text>
+      <View style={styles.recommendRow}>
+        <Text variant="bodySmall" color={colors.gray600} style={styles.recommendCaption}>
+          {(recommended.driverFullName ?? 'Ce conducteur').split(' ')[0]} est le mieux noté —{' '}
+          {Math.round(recommended.pickupWalkMinutes)} min à pied.
+        </Text>
+        {recommendedTrust?.driver ? (
+          <Badge
+            label={trustTierBadge(recommendedTrust.driver.tier).label}
+            variant={trustTierBadge(recommendedTrust.driver.tier).variant}
+          />
+        ) : null}
+      </View>
 
       <TouchableOpacity
         style={styles.cta}
@@ -230,6 +259,10 @@ const styles = StyleSheet.create({
     backgroundColor: colors.secondary,
     borderWidth: 2,
     borderColor: colors.white,
+  },
+  recommendRow: {
+    alignItems: 'center',
+    gap: spacing.xs,
   },
   recommendCaption: {
     textAlign: 'center',

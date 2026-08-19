@@ -28,3 +28,4 @@ export { Modal } from './Modal';
 export { ToastProvider, useToast } from './Toast';
 export { BottomSheet } from './BottomSheet';
 export { MessageBubble } from './MessageBubble';
+export { StarRatingInput } from './StarRatingInput';

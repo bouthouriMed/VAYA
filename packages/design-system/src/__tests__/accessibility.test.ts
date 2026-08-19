@@ -3,6 +3,7 @@ import { Button } from '../primitives/Button';
 import { Chip } from '../primitives/Chip';
 import { Badge } from '../primitives/Badge';
 import { MessageBubble } from '../primitives/MessageBubble';
+import { StarRatingInput } from '../primitives/StarRatingInput';
 
 // Function components are plain functions — calling them directly returns
 // the React element they'd render, without needing a renderer (none is
@@ -54,5 +55,24 @@ describe('accessibility baseline', () => {
     expect(element.props.accessible).toBe(true);
     expect(element.props.accessibilityRole).toBe('text');
     expect(element.props.accessibilityLabel).toBe('Vous, 10:00: Bonjour');
+  });
+
+  it('Chip becomes a labeled, stateful button when given onPress (Phase 9)', () => {
+    const element = Chip({ label: 'Ponctuel', onPress: () => {}, selected: true });
+    expect(element.props.accessibilityRole).toBe('button');
+    expect(element.props.accessibilityLabel).toBe('Ponctuel');
+    expect(element.props.accessibilityState).toEqual({ selected: true });
+  });
+
+  it('StarRatingInput exposes an adjustable role with the current value, and per-star buttons', () => {
+    const element = StarRatingInput({ value: 3, onChange: () => {} });
+    expect(element.props.accessibilityRole).toBe('adjustable');
+    expect(element.props.accessibilityValue).toEqual({ min: 1, max: 5, now: 3 });
+    const stars = element.props.children as { props: Record<string, unknown> }[];
+    expect(stars).toHaveLength(5);
+    expect(stars[2]!.props.accessibilityState).toEqual({ selected: true, disabled: false });
+    expect(stars[3]!.props.accessibilityState).toEqual({ selected: false, disabled: false });
+    expect(stars[0]!.props.accessibilityLabel).toBe('1 étoile');
+    expect(stars[4]!.props.accessibilityLabel).toBe('5 étoiles');
   });
 });

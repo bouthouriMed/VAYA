@@ -57,6 +57,13 @@
       "when": 1787148845239,
       "tag": "0007_wild_sunset_bain",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1787150153722,
+      "tag": "0008_yellow_shen",
+      "breakpoints": true
     }
   ]
 }

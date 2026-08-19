@@ -40,6 +40,11 @@ describe('Design system primitives', () => {
     expect(primitives.MessageBubble).toBeDefined();
   });
 
+  it('exports the Phase 9 star-rating input', async () => {
+    const primitives = await import('../primitives/index.js');
+    expect(primitives.StarRatingInput).toBeDefined();
+  });
+
   it('exports haptics from the package root', async () => {
     const index = await import('../index.js');
     expect(index.haptics).toBeDefined();
