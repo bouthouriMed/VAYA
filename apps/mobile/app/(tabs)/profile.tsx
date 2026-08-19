@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -7,12 +8,16 @@ import {
   Chip,
   Meter,
   StatTile,
+  Modal,
+  BottomSheet,
+  Icon,
   colors,
   spacing,
   radii,
   typography,
 } from '@vaya/design-system';
 import { router } from 'expo-router';
+import { SUPPORTED_LOCALES, type SupportedLocale } from '@vaya/config';
 import { CURRENT_USER, DRIVERS } from '../../src/mocks/seed-data';
 import { useAppDispatch, useAppSelector } from '../../src/state/store';
 import { clearAuth } from '../../src/state/authSlice';
@@ -20,11 +25,17 @@ import { clearTokens } from '../../src/services/auth/tokenStorage';
 import { useGetMyDriverProfileQuery, useLogoutMutation } from '../../src/state/api';
 
 const SETTINGS_ROWS: { icon: keyof typeof Ionicons.glyphMap; label: string; value?: string }[] = [
-  { icon: 'language-outline', label: 'Langue', value: 'Français' },
+  { icon: 'language-outline', label: 'Langue' },
   { icon: 'notifications-outline', label: 'Notifications' },
   { icon: 'shield-checkmark-outline', label: 'Confidentialité et sécurité' },
   { icon: 'help-circle-outline', label: 'Aide' },
 ];
+
+const LOCALE_LABELS: Record<SupportedLocale, string> = {
+  fr: 'Français',
+  ar: 'العربية',
+  en: 'English',
+};
 
 export default function ProfileScreen(): React.JSX.Element {
   const insets = useSafeAreaInsets();
@@ -33,6 +44,9 @@ export default function ProfileScreen(): React.JSX.Element {
   const refreshToken = useAppSelector((s) => s.auth.refreshToken);
   const { data: realDriverProfile } = useGetMyDriverProfileQuery();
   const [logout] = useLogoutMutation();
+  const [confirmingLogout, setConfirmingLogout] = useState(false);
+  const [locale, setLocale] = useState<SupportedLocale>('fr');
+  const [pickingLocale, setPickingLocale] = useState(false);
 
   async function handleLogout(): Promise<void> {
     if (refreshToken) {
@@ -146,12 +160,17 @@ export default function ProfileScreen(): React.JSX.Element {
               key={row.label}
               style={[styles.settingsRow, i > 0 && styles.settingsRowDivider]}
               activeOpacity={0.6}
+              onPress={row.label === 'Langue' ? () => setPickingLocale(true) : undefined}
             >
               <Ionicons name={row.icon} size={20} color={colors.gray700} />
               <Text variant="body" style={styles.settingsLabel}>
                 {row.label}
               </Text>
-              {row.value ? (
+              {row.label === 'Langue' ? (
+                <Text variant="bodySmall" color={colors.gray500}>
+                  {LOCALE_LABELS[locale]}
+                </Text>
+              ) : row.value ? (
                 <Text variant="bodySmall" color={colors.gray500}>
                   {row.value}
                 </Text>
@@ -163,7 +182,7 @@ export default function ProfileScreen(): React.JSX.Element {
 
         <TouchableOpacity
           style={styles.logout}
-          onPress={() => void handleLogout()}
+          onPress={() => setConfirmingLogout(true)}
           activeOpacity={0.7}
         >
           <Text variant="label" color={colors.error}>
@@ -171,6 +190,47 @@ export default function ProfileScreen(): React.JSX.Element {
           </Text>
         </TouchableOpacity>
       </ScrollView>
+
+      <Modal
+        visible={confirmingLogout}
+        onClose={() => setConfirmingLogout(false)}
+        title="Se déconnecter ?"
+        confirmLabel="Se déconnecter"
+        confirmDestructive
+        onConfirm={() => {
+          setConfirmingLogout(false);
+          void handleLogout();
+        }}
+      >
+        <Text variant="body" color={colors.gray600}>
+          Vous devrez vous reconnecter avec votre numéro de téléphone.
+        </Text>
+      </Modal>
+
+      <BottomSheet
+        visible={pickingLocale}
+        onClose={() => setPickingLocale(false)}
+        title="Langue"
+        heightRatio={0.35}
+      >
+        {SUPPORTED_LOCALES.map((option) => (
+          <TouchableOpacity
+            key={option}
+            style={styles.localeRow}
+            activeOpacity={0.6}
+            accessibilityRole="button"
+            accessibilityLabel={LOCALE_LABELS[option]}
+            accessibilityState={{ selected: option === locale }}
+            onPress={() => {
+              setLocale(option);
+              setPickingLocale(false);
+            }}
+          >
+            <Text variant="body">{LOCALE_LABELS[option]}</Text>
+            {option === locale ? <Icon name="checkmark" color={colors.secondary} /> : null}
+          </TouchableOpacity>
+        ))}
+      </BottomSheet>
     </View>
   );
 }
@@ -181,6 +241,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.gray100,
+  },
+  localeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.gray200,
   },
   hero: {
     backgroundColor: colors.secondary,

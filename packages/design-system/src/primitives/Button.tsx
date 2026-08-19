@@ -21,6 +21,8 @@ interface ButtonProps {
   disabled?: boolean;
   loading?: boolean;
   style?: StyleProp<ViewStyle>;
+  /** Overrides the announced label — defaults to `label`. */
+  accessibilityLabel?: string;
 }
 
 const sizeStyles: Record<ButtonSize, ViewStyle> = {
@@ -90,6 +92,7 @@ export function Button({
   disabled = false,
   loading = false,
   style,
+  accessibilityLabel,
 }: ButtonProps): React.JSX.Element {
   const variantStyle = getVariantStyles(variant, disabled);
 
@@ -99,6 +102,9 @@ export function Button({
       disabled={disabled || loading}
       style={[styles.base, sizeStyles[size], variantStyle.container, style]}
       activeOpacity={0.7}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel ?? label}
+      accessibilityState={{ disabled: disabled || loading, busy: loading }}
     >
       {loading ? (
         <ActivityIndicator color={variantStyle.text.color} size="small" />

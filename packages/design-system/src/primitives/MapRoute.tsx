@@ -18,7 +18,12 @@ export function MapRoute({
   showArrow = true,
 }: MapRouteProps): React.JSX.Element {
   return (
-    <>
+    <View
+      style={StyleSheet.absoluteFillObject}
+      pointerEvents="none"
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
+    >
       <View
         style={[
           styles.road,
@@ -46,7 +51,7 @@ export function MapRoute({
           ]}
         />
       ) : null}
-    </>
+    </View>
   );
 }
 
