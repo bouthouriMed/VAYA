@@ -12,7 +12,8 @@ pnpm workspaces + Turborepo · Expo + React Native + Expo Router (TS strict) · 
 apps/{mobile,api,admin}
 packages/{design-system,api-client,config,validation,domain,eslint-config}
 tests/e2e
-docker/            # compose for local Postgres + Redis
+docker/            # compose for local Postgres + Redis + self-hosted OSRM (Tunisia routing)
+docs/              # product/ux/design-system/domain/architecture/roadmap — see docs/product/README.md
 ```
 
 ## Commands
@@ -37,3 +38,82 @@ Mobile/API need `.env` (copy from `.env.example`). For Expo Go over LAN, set mob
 - Mobile: feature dirs under `src/features/`; routes compose screens, logic lives in features
 - API: Fastify HTTP layer, Zod validation, Drizzle for DB, errors via `AppError` hierarchy
 - Reuse `@vaya/design-system` primitives instead of raw RN components
+
+## Product vision
+
+VAYA brings a structured, trustworthy, spatially-intelligent carpooling marketplace to Tunisia — a market with no incumbent international carpooling platform, dominated today by louages and informal social carpooling. VAYA's edge is two things it already does unusually well for its stage: a real driver-verification pipeline (live-camera KYC) and a real road-routing foundation (self-hosted OSRM over a Tunisia extract). The product's job is to build the two systems that are the actual hard part of a carpooling marketplace — route-aware stop selection and bounded pricing — on top of that foundation. Full detail: `docs/product/README.md`.
+
+## Product principles
+
+1. The marketplace's two hardest mechanics — where to stop, what to pay — must never be free-form entry. Always a small, validated, ranked set of choices.
+2. Trust must be visible before commitment, not discovered after (ratings/tenure shown pre-booking, not post).
+3. Build on what's real, don't rebuild what works — the matching algorithm (`matching.service.ts`), the OSRM routing foundation, the domain state machines (`packages/domain`), and the core design-system primitives are genuine assets.
+4. Never let a screen show fabricated success — every field rendered after a mutation must come from that mutation's real response, or show an honest loading/error state.
+5. Complexity is added when evidence justifies it, not preemptively (see NOW/NEXT/SCALE in `docs/architecture/overview.md`).
+
+## UX principles
+
+Full detail and anti-patterns: `docs/ux/principles.md`. Summary: spatial/map-first over administrative forms; progressive disclosure over dense screens; every loading/empty/error state is a designed product surface, not a default; before proposing a new screen ask whether the interaction can be simplified, combined, progressively disclosed, or made more contextual instead.
+
+## Design-system rules
+
+Full spec (actual token values, component inventory, gaps): `docs/design-system/README.md`. Hard rules:
+- No raw React Native primitives (`View`/`Text`/`TextInput`/`TouchableOpacity`/`StyleSheet.create` with hardcoded values) in screens — use `@vaya/design-system`.
+- If a screen needs a pattern the system doesn't have, build the primitive in `packages/design-system` first — don't improvise local styling that should have graduated into a reusable component.
+- Consume tokens (`colors`, `spacing`, `radii`, `elevation`, `typography`) — never hand-roll equivalent values.
+- VAYA's brand character is warm/muted/soft-edged (navy `#2E3B42`, sage `#7FA491`, warm cream neutrals, generous radii) — never dilute with generic Material/iOS defaults or saturated "alert" colors.
+- Every new primitive needs a smoke test and accessibility props (`accessibilityRole`/`accessibilityLabel`) from the start, not retrofitted later.
+
+## Engineering standards
+
+Beyond the base Rules above: pricing and ride-engine business logic belongs in `packages/domain`, never computed client-side or duplicated between mobile and API — the client only ever displays and enforces bounds the server returned. Background job/queue work (notifications, recurring-pattern detection) should stay scoped to one minimal queue, not a general-purpose framework, until a second genuinely distinct use case justifies more. Any endpoint accepting a client-adjustable value that affects marketplace integrity (price, seats, pickup location) must enforce bounds server-side independent of client-side UI constraints.
+
+## Architecture principles
+
+NOW/NEXT/SCALE horizons are explicit and load-bearing — see `docs/architecture/overview.md`. Do not start SCALE-phase work (PostGIS, read replicas, idempotency enforcement, formal abuse prevention) without a measured trigger (real latency numbers, real concurrent load, real observed abuse) — premature optimization here is itself the risk the SCALE phase exists to avoid. Application-level haversine scanning over a time-windowed row fetch (the current matching approach) is intentionally KEEP, not a stopgap to feel guilty about, through the NOW/NEXT range.
+
+## Domain rules
+
+Full model: `docs/domain/model.md`. Source-of-truth table lives there — check it before assuming where a piece of state belongs. Authoritative state machines (`ride status`, `booking status`) live in `packages/domain` and must never be duplicated in `apps/api` controllers or `apps/mobile`. `route_stops` (ride engine, `docs/domain/ride-engine.md`) and `pricing_configs` (pricing, `docs/domain/pricing.md`) are the two new entities the roadmap introduces — read those documents before touching ride creation, matching, or booking-price logic.
+
+## Documentation conventions
+
+- `docs/product/` — vision, audit, benchmark research.
+- `docs/ux/` — principles and target journeys.
+- `docs/design-system/` — the formal design-system spec (token values, component inventory, rules).
+- `docs/domain/` — domain model, ride-engine design, pricing design.
+- `docs/architecture/` — system architecture, scalability strategy.
+- `docs/roadmap/` — phased roadmap, status tracker, open decisions, blockers (`docs/roadmap/README.md` is the index — read it first).
+- `docs/decisions/` — ADRs for major technical choices.
+- When a roadmap phase changes what's true in an audit/design doc, update that doc in the same change — these documents describe current reality, not a frozen snapshot.
+
+## Phase execution rules
+
+The roadmap (`docs/roadmap/README.md`) is structured so a session can be told "Implement Phase N" and act on that phase's file alone. Before starting a phase: read its Prerequisites section and confirm they're actually met (check the status table, don't assume). During: follow its Exact scope — resist adding scope not listed there, even if adjacent and tempting (each phase file calls out its own scope-creep risks explicitly). After: update `docs/roadmap/README.md`'s status table and this file's Current implementation status section in the same change that completes the phase.
+
+## Testing requirements
+
+Every phase's Definition of Done includes: unit tests for new business logic (especially anything touching money, seats, or state transitions — the audit found the current biggest gap is exactly here, e.g. the booking-acceptance race condition), an integration test for the phase's primary flow, and for any change touching the core search→match→book loop, an addition to `tests/e2e` (which today has only a health-check test). `pnpm test`, `pnpm typecheck`, and `pnpm lint` must pass before a phase is considered done.
+
+## Definition of Done (general)
+
+A phase is done when: its own file's Definition of Done checklist is fully checked, tests pass, no screen renders fabricated data after a real mutation, no new free-form entry exists for price or pickup location, and the roadmap status tracker reflects the change. "Looks done" (UI renders, no visible error) is explicitly not the bar — the audit's single worst finding was exactly a screen that looked done while showing fabricated data.
+
+## Current implementation status
+
+Full audit: `docs/product/audit.md`. As of 2026-08-19: comprehensive audit and roadmap complete (12 phases, `docs/roadmap/README.md`), no implementation phase started yet. The codebase is materially more mature than a typical MVP — real OSRM routing, a genuinely sophisticated matching algorithm, a rich 14-table domain schema, and a production-grade driver-onboarding flow already exist. The two confirmed highest-priority gaps are unconstrained pricing and a fake (explicitly non-geospatial) passenger pickup-point picker, both addressed in Phases 4-6. A confirmed booking-acceptance race condition and missing DB indexes are addressed in Phase 1.
+
+**Completed phases:** none.
+**Current phase:** none in progress.
+**Recommended next phase:** Phase 1 — Foundation Hardening (`docs/roadmap/phase-01-foundation-hardening.md`).
+
+## Important decisions
+
+See `docs/roadmap/README.md`'s Open Decisions section for the full list requiring a human call (pricing formula inputs, platform fee activation, cancellation policy without a payment system, dark mode scope, messaging moderation). One flagged during the audit and not yet resolved: the mobile app's landing screen renders the product name as "arc.", not "VAYA" — confirm which is correct before it propagates further.
+
+## Things that must NOT be changed casually
+
+- The authoritative state-machine location (`packages/domain` for ride/booking status transitions) — do not reimplement transition logic elsewhere even "just for one screen."
+- The OSRM-based routing foundation and its haversine fallback pattern (`lib/routing.ts`) — this is real, working infrastructure; don't replace it with a different routing approach without a documented reason.
+- The 3-tone brand color palette (`packages/design-system/src/tokens/colors.ts`) — this is the strongest, most distinctive asset in the current product; don't dilute it toward generic defaults.
+- `bookings`/`rides`/`trips` schema's existing columns, once the ride-engine/pricing migrations land — additive changes only (new nullable FKs, new tables), per the explicit backward-compatibility rollout notes in `docs/domain/ride-engine.md` and `docs/domain/pricing.md`. Do not force a hard cutover that breaks rides published before a phase ships.
