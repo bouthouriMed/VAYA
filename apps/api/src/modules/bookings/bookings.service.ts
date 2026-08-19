@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { and, eq, gte, sql } from 'drizzle-orm';
 import type { getDatabase } from '../../lib/database.js';
 import { bookings, rides, trips } from '../../db/schema/index.js';
 import { ConflictError, ForbiddenError, NotFoundError } from '../../lib/errors.js';
@@ -94,8 +94,29 @@ export async function acceptBooking(db: Database, bookingId: string, requestingU
   if (!canTransitionBookingStatus(booking.status, 'accepted')) {
     throw new ConflictError(`Cannot accept a booking in status "${booking.status}"`);
   }
-  if (booking.ride.seatsAvailable < booking.seatsRequested) {
+
+  // Atomic, database-level check-and-decrement: the WHERE clause is
+  // evaluated against the row's current value at UPDATE time under
+  // Postgres's row-level locking, not against the stale `booking.ride`
+  // read above. Two concurrent accepts against the same ride can no
+  // longer both pass a check based on the same stale seat count and
+  // silently oversell — the loser here gets zero rows back instead.
+  const [updatedRide] = await db
+    .update(rides)
+    .set({
+      seatsAvailable: sql`${rides.seatsAvailable} - ${booking.seatsRequested}`,
+      updatedAt: new Date(),
+    })
+    .where(and(eq(rides.id, booking.rideId), gte(rides.seatsAvailable, booking.seatsRequested)))
+    .returning();
+  if (!updatedRide) {
     throw new ConflictError('Not enough seats remaining to accept this request');
+  }
+  if (updatedRide.seatsAvailable === 0 && updatedRide.status === 'published') {
+    await db
+      .update(rides)
+      .set({ status: 'full', updatedAt: new Date() })
+      .where(eq(rides.id, booking.rideId));
   }
 
   const [updated] = await db
@@ -104,13 +125,6 @@ export async function acceptBooking(db: Database, bookingId: string, requestingU
     .where(eq(bookings.id, bookingId))
     .returning();
   if (!updated) throw new Error('Failed to accept booking');
-
-  const remainingSeats = booking.ride.seatsAvailable - booking.seatsRequested;
-  const nextRideStatus = remainingSeats === 0 ? 'full' : booking.ride.status;
-  await db
-    .update(rides)
-    .set({ seatsAvailable: remainingSeats, status: nextRideStatus, updatedAt: new Date() })
-    .where(eq(rides.id, booking.rideId));
 
   await db
     .insert(trips)
@@ -158,13 +172,20 @@ export async function cancelBooking(db: Database, bookingId: string, requestingU
   if (!updated) throw new Error('Failed to cancel booking');
 
   if (booking.status === 'accepted') {
-    const restoredSeats = booking.ride.seatsAvailable + booking.seatsRequested;
     const nextRideStatus = canTransitionRideStatus(booking.ride.status, 'published')
       ? 'published'
       : booking.ride.status;
+    // Same atomic-update discipline as acceptBooking: restore against the
+    // row's current value, capped at seatsTotal so a race between this and
+    // another concurrent cancel/accept can't push seatsAvailable past the
+    // vehicle's actual capacity.
     await db
       .update(rides)
-      .set({ seatsAvailable: restoredSeats, status: nextRideStatus, updatedAt: new Date() })
+      .set({
+        seatsAvailable: sql`LEAST(${rides.seatsAvailable} + ${booking.seatsRequested}, ${rides.seatsTotal})`,
+        status: nextRideStatus,
+        updatedAt: new Date(),
+      })
       .where(eq(rides.id, booking.rideId));
 
     await db

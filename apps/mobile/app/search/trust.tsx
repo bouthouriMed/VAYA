@@ -89,9 +89,19 @@ export default function TrustScreen(): React.JSX.Element {
         params: {
           bookingId: booking.id,
           driverName: profile!.fullName,
-          price: String(ride!.contributionPerSeat),
+          price: String(booking.contributionTotal),
           vehicleLabel: driverStats?.vehicle
             ? `${driverStats.vehicle.make} ${driverStats.vehicle.model} ${driverStats.vehicle.color}`
+            : '',
+          // Real fields from the booking we just created and the ride we
+          // already fetched — every downstream screen in this flow forwards
+          // `params` wholesale, so this is the single place that needs to
+          // supply them (see docs/product/audit.md §4 on why these screens
+          // used to show fabricated data instead).
+          pickupLabel: booking.pickupLabel,
+          destinationLabel: ride!.destinationLabel,
+          estimatedDurationMin: ride!.estimatedDurationSec
+            ? String(Math.round(ride!.estimatedDurationSec / 60))
             : '',
         },
       });

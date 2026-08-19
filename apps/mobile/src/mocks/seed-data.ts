@@ -187,11 +187,6 @@ export const DRIVERS: Record<string, MockDriver> = {
   },
 };
 
-export const HOME_TO_DIGITAL_CENTER = {
-  originLabel: 'El Menzah 5',
-  destinationLabel: 'Tunis Digital Center',
-};
-
 export interface MockPlace {
   id: string;
   label: string;
@@ -251,8 +246,6 @@ export const CLUSTERS: MockCluster[] = [
   { id: '+25a', label: '+25 Mins', driverIds: ['sarra'] },
   { id: '+25b', label: '+25 Mins', driverIds: ['mehdi'] },
 ];
-
-export const PICKUP_LABEL = 'Angle Rue de Kairouan';
 
 /** Looks up a driver by mock key, falling back to Sarra if unset/unknown. */
 export function getDriverByKey(key?: string | null): MockDriver {
