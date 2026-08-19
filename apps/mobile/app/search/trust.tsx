@@ -12,6 +12,7 @@ import {
   spacing,
   radii,
   typography,
+  haptics,
 } from '@vaya/design-system';
 import { router, useLocalSearchParams } from 'expo-router';
 import {
@@ -84,6 +85,7 @@ export default function TrustScreen(): React.JSX.Element {
           pickup: { label: origin.label, lat: origin.lat, lng: origin.lng },
         },
       }).unwrap();
+      haptics.success();
       router.dismissTo({
         pathname: '/bookings/confirmed',
         params: {
@@ -106,6 +108,7 @@ export default function TrustScreen(): React.JSX.Element {
         },
       });
     } catch {
+      haptics.error();
       setBookingError('Cette place vient peut-être d’être prise. Réessayez.');
     }
   }

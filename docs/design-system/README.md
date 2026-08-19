@@ -48,29 +48,25 @@ System font via `Platform.select` (iOS System / Android Roboto) — **no custom 
 
 ### Elevation (`tokens/elevation.ts`)
 
-Platform-branched (iOS shadow props vs. Android `elevation`), 5 levels none→xl. **Rule going forward: components must consume this token, not hand-roll shadow values** (existing violation: `Card` uses inline `shadowOpacity: 0.06, shadowRadius: 14` — fix opportunistically, don't block on it).
+Platform-branched (iOS shadow props vs. Android `elevation`), 5 levels none→xl. Calibrated (Phase 2) to match `Card`'s original hand-tuned soft shadow (`md` is deliberately identical to Card's pre-token values) rather than Material-default opacity/radius — the scale is the brand's restrained aesthetic, not a generic default. `Card`, `FieldCard`, `ReviewCard`, `StatTile` (all `sm`/`md`), `Modal` (via `Card`), `BottomSheet` (`xl`, upward-facing), and `Toast` (`lg`) all consume it. `DriverMapPin`'s tighter, punchier shadow (opacity 0.12, small radius) is a deliberate exception — map pins need more contrast against varied map backgrounds than the token scale provides; don't force it onto the scale.
 
 ## Component inventory
 
-### Exist today (19 primitives, `primitives/index.ts`)
+### Exist today (26 primitives, `primitives/index.ts`)
 
-**Core**: `Text` (variant-based h1/h2/h3/body/bodySmall/caption/label, RTL-aware), `Button` (variant primary/secondary/outline/ghost × size sm/md/lg, pill radius, built-in loading spinner), `Input` (label/error/helperText, focus border color — no icon slot yet), `Card`, `Badge` (5 semantic variants), `Avatar` (initials fallback, deterministic color-hash), `Chip`, `Divider`.
+**Core**: `Text` (variant-based h1/h2/h3/body/bodySmall/caption/label, RTL-aware), `Button` (variant primary/secondary/outline/ghost × size sm/md/lg, pill radius, built-in loading spinner), `Input` (label/error/helperText, focus border color — no icon slot yet), `Card`, `Badge` (5 semantic variants), `Avatar` (initials fallback, deterministic color-hash), `Chip`, `Divider`, `Icon` (thin wrapper over `@expo/vector-icons` Ionicons, fixed size scale + color tokens).
 
 **Layout**: `Stack`/`Row`/`Screen`/`Container` — real flex-based layout primitives, not ad hoc per-screen flexbox.
 
-**Domain-specific** (this is what makes VAYA not feel like a generic CRUD kit — keep extending in this direction): `FieldRow`/`FieldCard` (pickup/dropoff dot+label pill), `Meter` (reliability/punctuality bar), `StatTile`, `StepProgress` (onboarding stepper), `ReviewCard`, `ClusterMarker` (concentric "radar ping" for journey clustering), `DriverMapPin` (compact/full variants with zoom-scale), `MapCanvas`/`MapPreview`/`MapRoute` (currently stylized **placeholders** — see below).
+**Interaction layer** (Phase 2 — `docs/roadmap/phase-02-design-system-interaction-layer.md`): `BottomSheet` (snap-to-open modal sheet, swipe-down + backdrop dismiss, keyboard-avoiding — built on core RN `Animated`/`PanResponder`, not Reanimated/gesture-handler, to avoid a second animation-library surface for one primitive), `Modal` (centered confirm/cancel dialog composing `Card`), `ToastProvider`/`useToast` (queued, max-2-visible, auto-dismiss for success/info, manual-dismiss for errors), `SkeletonBlock`/`SkeletonCircle`/`SkeletonText` (opacity-pulse loading placeholders), `EmptyState` (icon/title/description/action/children composition, generalized from `results.tsx`'s original bespoke pattern).
 
-### Missing — build once, as shared primitives, before screens improvise them locally
+**Domain-specific** (this is what makes VAYA not feel like a generic CRUD kit — keep extending in this direction): `FieldRow`/`FieldCard` (pickup/dropoff dot+label pill), `Meter` (reliability/punctuality bar, now a real `progressbar` for assistive tech), `StatTile`, `StepProgress` (onboarding stepper, now a real `progressbar`), `ReviewCard`, `ClusterMarker` (concentric "radar ping" for journey clustering), `DriverMapPin` (compact/full variants with zoom-scale), `MapCanvas`/`MapPreview`/`MapRoute` (currently stylized **placeholders** — see below).
 
-| Primitive | Why it's needed now |
+### Still missing — build when a phase actually needs them
+
+| Primitive | Why it's deferred |
 |---|---|
-| `BottomSheet` | Every future selection UI (stop picker, filters, ride details) will want this |
-| `Modal` / `Dialog` | Confirmations (cancel booking, etc.) |
-| `Toast` / `Snackbar` | Non-blocking feedback (booking accepted, network error) — today errors are inline red text only |
-| `Skeleton` | Loading states are `ActivityIndicator` everywhere; no shimmer/skeleton exists |
-| `EmptyState` | `results.tsx` has a genuinely good bespoke empty state (fallback search + "notify me" CTA) — generalize it into a primitive instead of leaving it one-off |
-| `Icon` (wraps `@expo/vector-icons`) | Icons are imported raw per-screen today; centralize size/color/registry |
-| `SegmentedControl`, `Switch`/`Checkbox`/`Radio`, continuous `ProgressBar`, `Tooltip`, `Accordion` | Standard needs that will otherwise be improvised ad hoc |
+| `SegmentedControl`, `Switch`/`Checkbox`/`Radio`, continuous `ProgressBar`, `Tooltip`, `Accordion` | No screen has needed one yet — building ahead of a real use case is exactly the premature-abstraction this system's rules warn against. |
 
 ### Map system — replace, don't extend
 
@@ -78,11 +74,13 @@ Platform-branched (iOS shadow props vs. Android `elevation`), 5 levels none→xl
 
 ## Motion & haptics
 
-**Missing entirely.** `expo-haptics` is a zero-usage dependency-not-even-installed gap — no tactile feedback exists anywhere (booking confirm, OTP verify, publish, errors). When built, wrap it in a thin `haptics.ts` utility with semantic calls (`success`, `selection`, `warning`) tied to key moments, not raw `Haptics.impactAsync()` calls scattered through screens. `react-native-reanimated` v4 and `react-native-gesture-handler` are already dependencies — no motion primitives currently exist in the design system, but the underlying capability is present.
+`haptics` (`utils/haptics.ts`, exported from the package root) wraps `expo-haptics` with four semantic calls — `haptics.success()`, `.selection()`, `.warning()`, `.error()` — each fire-and-forget (haptic hardware absence is not an error). Wired into OTP verification, booking requests, and ride publishing (both their success and error paths) as of Phase 2; extend to new mutation flows as they're built rather than calling `expo-haptics` directly. `react-native-reanimated`/`react-native-gesture-handler` remain unused by the design system — `BottomSheet`, `Modal`, `Toast`, and `Skeleton`'s animations all use core RN `Animated`/`PanResponder` instead (see Component inventory above for why).
 
 ## Accessibility
 
-**Missing entirely.** No `accessibilityLabel`/`accessibilityRole`/`accessibilityHint` on any primitive, no dynamic-type/font-scaling consideration, contrast not formally verified against WCAG AA (visually likely fine given the muted palette, but unverified). This needs a baseline pass on all 19 existing primitives before the primitive count grows much further — retrofitting accessibility across 40+ primitives later is much more expensive than building it into the next 10.
+Baseline pass complete (Phase 2) across all 19 pre-Phase-2 primitives plus the 6 new ones. Pattern: interactive primitives (`Button`, `ClusterMarker`, `DriverMapPin`, `FieldRow` when pressable) get `accessibilityRole="button"` and a label defaulting to their visible text, overridable via an `accessibilityLabel` prop; informational primitives (`Chip`, `Badge`, `StatTile`, `ReviewCard`) group their content into one accessible node instead of letting screen readers read fragments separately (this matters most for `ReviewCard`'s star rating, previously five separate "★" glyphs); progress-like primitives (`Meter`, `StepProgress`) use `accessibilityRole="progressbar"` with a real `accessibilityValue`; purely decorative visuals (`Divider`, the map primitives' route lines/markers/street-grid) are hidden from the accessibility tree via `accessibilityElementsHidden`/`importantForAccessibility="no-hide-descendants"` rather than being silently read as unlabeled elements. `Card` and the `Stack`/`Row`/`Screen`/`Container` layout primitives intentionally carry no accessibility props of their own — they're content-agnostic containers; their children carry the real semantics. `Text` needed no baseline change — RN's `Text` already exposes its content to screen readers, and `TextComponentProps extends TextProps` already lets callers pass `accessibilityLabel` through.
+
+Not yet done: dynamic-type/font-scaling consideration, and contrast has not been formally verified against WCAG AA (visually likely fine given the muted palette, but unverified).
 
 ## Responsive behavior
 

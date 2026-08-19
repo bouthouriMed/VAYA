@@ -36,6 +36,8 @@ export function ClusterMarker({
       onPress={onPress}
       disabled={!onPress}
       activeOpacity={0.7}
+      accessibilityRole={onPress ? 'button' : undefined}
+      accessibilityLabel={label}
     >
       <View style={[styles.halo, emphasized && styles.haloEmphasized]}>
         <View style={[styles.ring, emphasized && styles.ringEmphasized]}>

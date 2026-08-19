@@ -57,6 +57,8 @@ export function DriverMapPin({
         onPress={onPress}
         disabled={!onPress}
         activeOpacity={0.8}
+        accessibilityRole={onPress ? 'button' : undefined}
+        accessibilityLabel={data.name}
         style={[
           styles.compactWrap,
           { width: size + 6, height: size + 6, borderRadius: (size + 6) / 2 },
@@ -71,12 +73,15 @@ export function DriverMapPin({
 
   const avatarPx = Math.round(BASE_AVATAR_PX * scale);
   const metaLine = [data.statusLabel, data.etaLabel].filter(Boolean).join(' · ');
+  const fullLabel = [data.name, data.priceLabel, metaLine].filter(Boolean).join(', ');
 
   return (
     <TouchableOpacity
       onPress={onPress}
       disabled={!onPress}
       activeOpacity={0.85}
+      accessibilityRole={onPress ? 'button' : undefined}
+      accessibilityLabel={fullLabel}
       style={[
         styles.pill,
         labelSide === 'start' && styles.pillReversed,

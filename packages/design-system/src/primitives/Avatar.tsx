@@ -64,6 +64,8 @@ export function Avatar({
     return (
       <Image
         source={{ uri }}
+        accessibilityRole="image"
+        accessibilityLabel={name ? `Photo de ${name}` : undefined}
         style={[
           {
             width: dimension,
@@ -78,6 +80,9 @@ export function Avatar({
 
   return (
     <View
+      accessible
+      accessibilityRole="image"
+      accessibilityLabel={name ? `Photo de ${name}` : undefined}
       style={[
         styles.fallback,
         {

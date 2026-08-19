@@ -12,12 +12,16 @@
     "test:watch": "vitest"
   },
   "peerDependencies": {
+    "@expo/vector-icons": "^15.1.1",
+    "expo-haptics": "*",
     "react": "^19.1.0",
     "react-native": "^0.81.5"
   },
   "devDependencies": {
+    "@expo/vector-icons": "^15.1.1",
     "@types/react": "~19.1.0",
     "eslint": "^9.11.1",
+    "expo-haptics": "~15.0.8",
     "react": "19.1.0",
     "react-native": "0.81.5",
     "typescript": "^5.5.4",

@@ -16,7 +16,13 @@ export function StepProgress({
   style,
 }: StepProgressProps): React.JSX.Element {
   return (
-    <View style={[styles.row, style]}>
+    <View
+      style={[styles.row, style]}
+      accessible
+      accessibilityRole="progressbar"
+      accessibilityLabel={`Étape ${currentStep} sur ${totalSteps}`}
+      accessibilityValue={{ min: 1, max: totalSteps, now: currentStep }}
+    >
       {Array.from({ length: totalSteps }).map((_, i) => (
         <View key={i} style={[styles.segment, i < currentStep && styles.segmentFilled]} />
       ))}

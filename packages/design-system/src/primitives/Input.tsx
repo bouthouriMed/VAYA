@@ -33,6 +33,8 @@ export function Input({
           onBlur?.(e);
         }}
         {...props}
+        accessibilityLabel={props.accessibilityLabel ?? label}
+        accessibilityHint={props.accessibilityHint ?? error ?? helperText}
       />
       {error && <RNText style={styles.error}>{error}</RNText>}
       {helperText && !error && <RNText style={styles.helper}>{helperText}</RNText>}

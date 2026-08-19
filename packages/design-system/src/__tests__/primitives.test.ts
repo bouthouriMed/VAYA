@@ -16,6 +16,28 @@ describe('Design system primitives', () => {
     expect(primitives.Container).toBeDefined();
   });
 
+  it('exports the Phase 2 interaction-layer primitives', async () => {
+    const primitives = await import('../primitives/index.js');
+    expect(primitives.BottomSheet).toBeDefined();
+    expect(primitives.Modal).toBeDefined();
+    expect(primitives.ToastProvider).toBeDefined();
+    expect(primitives.useToast).toBeDefined();
+    expect(primitives.SkeletonBlock).toBeDefined();
+    expect(primitives.SkeletonCircle).toBeDefined();
+    expect(primitives.SkeletonText).toBeDefined();
+    expect(primitives.EmptyState).toBeDefined();
+    expect(primitives.Icon).toBeDefined();
+  });
+
+  it('exports haptics from the package root', async () => {
+    const index = await import('../index.js');
+    expect(index.haptics).toBeDefined();
+    expect(typeof index.haptics.success).toBe('function');
+    expect(typeof index.haptics.selection).toBe('function');
+    expect(typeof index.haptics.warning).toBe('function');
+    expect(typeof index.haptics.error).toBe('function');
+  });
+
   it('exports main index with all tokens', async () => {
     const index = await import('../index.js');
     expect(index.colors).toBeDefined();
