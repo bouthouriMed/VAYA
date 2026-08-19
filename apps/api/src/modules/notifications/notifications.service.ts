@@ -76,6 +76,27 @@ export async function createNotification(
   return notification;
 }
 
+/**
+ * Best-effort wrapper around createNotification, shared by every call site
+ * that must never let a notification-side failure fail its primary action
+ * (bookings.service.ts's create/accept/decline, conversations.service.ts's
+ * sendMessage). createNotification already isolates push-*send* failures
+ * (they never leave the enqueue call); this extra layer covers the
+ * notification *row insert* itself failing too.
+ */
+export async function notifyBestEffort(
+  db: Database,
+  userId: string,
+  type: NotificationEventType,
+  payload: Record<string, unknown>,
+): Promise<void> {
+  try {
+    await createNotification(db, userId, type, payload);
+  } catch (err) {
+    getLogger().error({ err, userId, type }, 'Failed to create notification row');
+  }
+}
+
 export async function listNotifications(db: Database, userId: string) {
   return db.query.notifications.findMany({
     where: eq(notifications.userId, userId),
@@ -111,6 +132,7 @@ const TITLES: Partial<Record<NotificationEventType, string>> = {
   recurring_pattern_detected: 'Trajet récurrent détecté',
   recurring_proactive_match: 'Nouveau trajet correspondant',
   demand_signal_matched: 'Un trajet correspond à votre demande',
+  message_received: 'Nouveau message',
 };
 
 function titleFor(type: NotificationEventType): string {
@@ -129,6 +151,10 @@ function bodyFor(type: NotificationEventType, payload: Record<string, unknown>):
         : 'Votre demande de réservation a été acceptée.';
     case 'booking_declined':
       return 'Votre demande de réservation a été refusée.';
+    case 'message_received':
+      return typeof payload.senderName === 'string'
+        ? `${payload.senderName} vous a envoyé un message.`
+        : 'Vous avez reçu un nouveau message.';
     default:
       return 'Vous avez une nouvelle notification.';
   }

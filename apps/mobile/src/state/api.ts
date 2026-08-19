@@ -206,7 +206,8 @@ export type NotificationEventType =
   | 'trip_completed'
   | 'recurring_pattern_detected'
   | 'recurring_proactive_match'
-  | 'demand_signal_matched';
+  | 'demand_signal_matched'
+  | 'message_received';
 
 export interface AppNotification {
   id: string;
@@ -216,6 +217,25 @@ export interface AppNotification {
   readAt: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+// Phase 8 (docs/roadmap/phase-08-messaging.md). `status` mirrors
+// packages/domain's ConversationStatus ('open' | 'closed') — closed once
+// the trip reaches a terminal state, permanently (never reopened).
+export interface Conversation {
+  id: string;
+  bookingId: string;
+  status: 'open' | 'closed';
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ConversationMessage {
+  id: string;
+  conversationId: string;
+  senderUserId: string;
+  body: string;
+  createdAt: string;
 }
 
 export interface Booking {
@@ -292,7 +312,15 @@ const baseQueryWithReauth: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQue
 export const api = createApi({
   reducerPath: 'api',
   baseQuery: baseQueryWithReauth,
-  tagTypes: ['Me', 'DriverProfile', 'MyRides', 'MyBookings', 'RideRequests', 'Notifications'],
+  tagTypes: [
+    'Me',
+    'DriverProfile',
+    'MyRides',
+    'MyBookings',
+    'RideRequests',
+    'Notifications',
+    'ConversationMessages',
+  ],
   endpoints: (builder) => ({
     healthCheck: builder.query<{ status: string }, void>({
       query: () => '/health',
@@ -453,6 +481,38 @@ export const api = createApi({
       query: (notificationId) => ({ url: `/notifications/${notificationId}/read`, method: 'PATCH' }),
       invalidatesTags: ['Notifications'],
     }),
+
+    // Phase 8 (docs/roadmap/phase-08-messaging.md). Delivery is
+    // polling-based: the conversation screen calls listConversationMessages
+    // on an interval (RTK Query's `pollingInterval`), never a socket.
+    getConversationByBooking: builder.query<Conversation, string>({
+      query: (bookingId) => `/conversations/${bookingId}`,
+    }),
+    listConversationMessages: builder.query<
+      ConversationMessage[],
+      { conversationId: string; since?: string }
+    >({
+      query: ({ conversationId, since }) => ({
+        url: `/conversations/${conversationId}/messages`,
+        params: since ? { since } : undefined,
+      }),
+      providesTags: (_result, _error, { conversationId }) => [
+        { type: 'ConversationMessages', id: conversationId },
+      ],
+    }),
+    sendConversationMessage: builder.mutation<
+      ConversationMessage,
+      { conversationId: string; body: string }
+    >({
+      query: ({ conversationId, body }) => ({
+        url: `/conversations/${conversationId}/messages`,
+        method: 'POST',
+        body: { body },
+      }),
+      invalidatesTags: (_result, _error, { conversationId }) => [
+        { type: 'ConversationMessages', id: conversationId },
+      ],
+    }),
   }),
 });
 
@@ -492,4 +552,7 @@ export const {
   useRegisterPushTokenMutation,
   useListNotificationsQuery,
   useMarkNotificationReadMutation,
+  useGetConversationByBookingQuery,
+  useListConversationMessagesQuery,
+  useSendConversationMessageMutation,
 } = api;

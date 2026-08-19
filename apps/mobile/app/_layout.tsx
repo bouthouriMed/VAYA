@@ -75,6 +75,7 @@ export default function RootLayout(): React.JSX.Element {
               <Stack.Screen name="bookings" />
               <Stack.Screen name="driver" />
               <Stack.Screen name="notifications" />
+              <Stack.Screen name="conversations" />
             </Stack>
           </AuthHydrator>
         </ToastProvider>

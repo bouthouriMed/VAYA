@@ -17,4 +17,15 @@ describe('resolveNotificationDeepLink', () => {
   it('returns null for an unknown type rather than throwing', () => {
     expect(resolveNotificationDeepLink('something_unexpected')).toBeNull();
   });
+
+  it('resolves message_received to the exact conversation when bookingId is present', () => {
+    expect(resolveNotificationDeepLink('message_received', { bookingId: 'b1' })).toBe(
+      '/conversations/b1',
+    );
+  });
+
+  it('falls back to the trips tab for message_received without a bookingId', () => {
+    expect(resolveNotificationDeepLink('message_received')).toBe('/(tabs)/trips');
+    expect(resolveNotificationDeepLink('message_received', {})).toBe('/(tabs)/trips');
+  });
 });

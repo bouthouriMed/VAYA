@@ -41,9 +41,12 @@ export function useNotificationSetup(): void {
     });
 
     const responseSubscription = Notifications.addNotificationResponseReceivedListener((response) => {
-      const type = readNotificationType(response.notification.request.content.data);
+      const data = response.notification.request.content.data;
+      const type = readNotificationType(data);
       trackEvent('notification_tapped', { type: type ?? 'unknown' });
-      const destination = type ? resolveNotificationDeepLink(type) : null;
+      const destination = type
+        ? resolveNotificationDeepLink(type, data as Record<string, unknown>)
+        : null;
       if (destination) {
         router.push(destination as Parameters<typeof router.push>[0]);
       }

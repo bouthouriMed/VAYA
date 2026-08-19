@@ -44,7 +44,7 @@ export default function NotificationsScreen(): React.JSX.Element {
       void markRead(notification.id);
     }
     trackEvent('notification_tapped', { type: notification.type, source: 'inbox' });
-    const destination = resolveNotificationDeepLink(notification.type);
+    const destination = resolveNotificationDeepLink(notification.type, notification.payload);
     if (destination) {
       router.push(destination as Parameters<typeof router.push>[0]);
     }

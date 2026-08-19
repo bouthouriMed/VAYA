@@ -10,6 +10,7 @@ export const notificationEventTypeEnum = pgEnum('notification_event_type', [
   'recurring_pattern_detected',
   'recurring_proactive_match',
   'demand_signal_matched',
+  'message_received',
 ]);
 
 export const notifications = pgTable('notifications', {

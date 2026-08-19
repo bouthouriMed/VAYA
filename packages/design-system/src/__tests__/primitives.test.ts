@@ -35,6 +35,11 @@ describe('Design system primitives', () => {
     expect(primitives.clampPrice).toBeDefined();
   });
 
+  it('exports the Phase 8 chat bubble', async () => {
+    const primitives = await import('../primitives/index.js');
+    expect(primitives.MessageBubble).toBeDefined();
+  });
+
   it('exports haptics from the package root', async () => {
     const index = await import('../index.js');
     expect(index.haptics).toBeDefined();

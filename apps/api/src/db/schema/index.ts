@@ -14,6 +14,8 @@ import { relationshipSignals } from './relationship-signals.schema';
 import { demandSignals } from './demand-signals.schema';
 import { notifications } from './notifications.schema';
 import { deviceTokens } from './device-tokens.schema';
+import { conversations } from './conversations.schema';
+import { messages } from './messages.schema';
 
 export * from './users.schema';
 export * from './driver-profiles.schema';
@@ -31,6 +33,8 @@ export * from './demand-signals.schema';
 export * from './notifications.schema';
 export * from './pricing-configs.schema';
 export * from './device-tokens.schema';
+export * from './conversations.schema';
+export * from './messages.schema';
 
 export const usersRelations = relations(users, ({ one, many }) => ({
   driverProfile: one(driverProfiles, {
@@ -93,6 +97,10 @@ export const bookingsRelations = relations(bookings, ({ one }) => ({
   rider: one(users, { fields: [bookings.riderId], references: [users.id] }),
   trip: one(trips, { fields: [bookings.id], references: [trips.bookingId] }),
   pickupStop: one(routeStops, { fields: [bookings.pickupStopId], references: [routeStops.id] }),
+  conversation: one(conversations, {
+    fields: [bookings.id],
+    references: [conversations.bookingId],
+  }),
 }));
 
 export const tripsRelations = relations(trips, ({ one, many }) => ({
@@ -127,4 +135,14 @@ export const notificationsRelations = relations(notifications, ({ one }) => ({
 
 export const deviceTokensRelations = relations(deviceTokens, ({ one }) => ({
   user: one(users, { fields: [deviceTokens.userId], references: [users.id] }),
+}));
+
+export const conversationsRelations = relations(conversations, ({ one, many }) => ({
+  booking: one(bookings, { fields: [conversations.bookingId], references: [bookings.id] }),
+  messages: many(messages),
+}));
+
+export const messagesRelations = relations(messages, ({ one }) => ({
+  conversation: one(conversations, { fields: [messages.conversationId], references: [conversations.id] }),
+  sender: one(users, { fields: [messages.senderUserId], references: [users.id] }),
 }));

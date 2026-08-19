@@ -30,3 +30,5 @@ export * from './notification/notification-event.types';
 export * from './pricing/pricing.types';
 export * from './pricing/compute-suggested-price';
 export * from './pricing/default-pricing-config';
+
+export * from './conversation/conversation.types';
