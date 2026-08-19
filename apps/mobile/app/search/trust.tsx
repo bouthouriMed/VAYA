@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Animated, View, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -6,6 +6,7 @@ import {
   Text,
   Button,
   Avatar,
+  Badge,
   Meter,
   StatTile,
   colors,
@@ -18,12 +19,15 @@ import { router, useLocalSearchParams } from 'expo-router';
 import {
   useGetUserPublicProfileQuery,
   useGetRideQuery,
+  useGetUserTrustSummaryQuery,
   useCreateBookingMutation,
   useRegisterPushTokenMutation,
 } from '../../src/state/api';
 import { useAppDispatch, useAppSelector } from '../../src/state/store';
 import { clearPickupStop } from '../../src/state/searchSlice';
 import { requestPushPermissionAndRegister } from '../../src/services/notifications/registerForPushNotifications';
+import { trustTierBadge } from '../../src/features/ratings/ratingHelpers';
+import { trackEvent } from '../../src/services/analytics/analytics';
 
 const HERO_HEIGHT = 200;
 const HERO_AVATAR_PX = 108;
@@ -44,8 +48,19 @@ export default function TrustScreen(): React.JSX.Element {
 
   const { data: profile, isLoading: isProfileLoading } = useGetUserPublicProfileQuery(driverUserId);
   const { data: ride, isLoading: isRideLoading } = useGetRideQuery(rideId);
+  // Phase 9 (docs/roadmap/phase-09-ratings-trust.md): the trust signal a
+  // passenger needs *before* committing to book — UX principle #7 ("trust
+  // is visible before commitment, not after"), the exact reason this
+  // phase exists.
+  const { data: trustSummary } = useGetUserTrustSummaryQuery(driverUserId);
   const [createBooking, { isLoading: isBooking }] = useCreateBookingMutation();
   const [registerPushToken] = useRegisterPushTokenMutation();
+
+  useEffect(() => {
+    if (trustSummary?.driver) {
+      trackEvent('trust_tier_shown', { screen: 'trust', tier: trustSummary.driver.tier });
+    }
+  }, [trustSummary]);
 
   const stickyBg = scrollY.interpolate({
     inputRange: [0, STICKY_THRESHOLD],
@@ -163,6 +178,13 @@ export default function TrustScreen(): React.JSX.Element {
             <Text variant="body" color={colors.gray600}>
               ★ {driverStats.ratingAvg.toFixed(1)} · {driverStats.tripCount} trajets
             </Text>
+          ) : null}
+          {trustSummary?.driver ? (
+            <Badge
+              label={trustTierBadge(trustSummary.driver.tier).label}
+              variant={trustTierBadge(trustSummary.driver.tier).variant}
+              style={styles.trustBadge}
+            />
           ) : null}
         </View>
 
@@ -323,6 +345,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
+  },
+  trustBadge: {
+    marginTop: spacing.xs,
   },
   statsRow: {
     flexDirection: 'row',

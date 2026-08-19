@@ -16,9 +16,11 @@ import { notifications } from './notifications.schema';
 import { deviceTokens } from './device-tokens.schema';
 import { conversations } from './conversations.schema';
 import { messages } from './messages.schema';
+import { riderProfiles } from './rider-profiles.schema';
 
 export * from './users.schema';
 export * from './driver-profiles.schema';
+export * from './rider-profiles.schema';
 export * from './vehicles.schema';
 export * from './verification-documents.schema';
 export * from './routes.schema';
@@ -41,9 +43,17 @@ export const usersRelations = relations(users, ({ one, many }) => ({
     fields: [users.id],
     references: [driverProfiles.userId],
   }),
+  riderProfile: one(riderProfiles, {
+    fields: [users.id],
+    references: [riderProfiles.userId],
+  }),
   bookings: many(bookings),
   refreshTokens: many(refreshTokens),
   deviceTokens: many(deviceTokens),
+}));
+
+export const riderProfilesRelations = relations(riderProfiles, ({ one }) => ({
+  user: one(users, { fields: [riderProfiles.userId], references: [users.id] }),
 }));
 
 export const driverProfilesRelations = relations(driverProfiles, ({ one, many }) => ({

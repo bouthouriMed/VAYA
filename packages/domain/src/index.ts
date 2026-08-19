@@ -18,6 +18,9 @@ export * from './trip/trip.types';
 export * from './trip/trip-status';
 
 export * from './rating/rating.types';
+export * from './rating/trust-tier';
+export * from './rating/rating-window';
+export * from './rating/rating-aggregate';
 
 export * from './recurring/recurring-pattern.types';
 

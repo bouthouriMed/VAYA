@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { resolveNotificationDeepLink } from '../deepLink';
 
 describe('resolveNotificationDeepLink', () => {
-  it.each(['booking_requested', 'booking_accepted', 'booking_declined'])(
+  it.each(['booking_requested', 'booking_accepted', 'booking_declined', 'trip_completed'])(
     'resolves %s to the trips tab',
     (type) => {
       expect(resolveNotificationDeepLink(type)).toBe('/(tabs)/trips');

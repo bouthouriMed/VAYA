@@ -9,6 +9,7 @@ import { hydrateAuth } from '../src/state/authSlice';
 import { loadTokens } from '../src/services/auth/tokenStorage';
 import { ErrorBoundary } from '../src/components/ErrorBoundary';
 import { useNotificationSetup } from '../src/services/notifications/useNotificationSetup';
+import { RatingPromptBridge } from '../src/features/ratings/RatingPromptBridge';
 
 function BrandedLoadingScreen(): React.JSX.Element {
   return (
@@ -65,6 +66,7 @@ export default function RootLayout(): React.JSX.Element {
       <ReduxProvider store={store}>
         <ToastProvider>
           <NotificationBridge />
+          <RatingPromptBridge />
           <AuthHydrator>
             <StatusBar style="dark" />
             <Stack screenOptions={{ headerShown: false }}>
