@@ -5,20 +5,46 @@ import { getLogger } from '../config/logger.js';
 
 /**
  * First (and, per docs/roadmap/phase-07-notifications.md's explicit scope,
- * only) background job queue in this codebase — one queue, one job type,
- * dispatched by one worker process (src/worker.ts). Resist growing this
- * into a general multi-queue job framework until a second, genuinely
- * distinct use case actually justifies it (CLAUDE.md engineering
- * standards).
+ * only) background job queue in this codebase — one queue, dispatched by
+ * one worker process (src/worker.ts). Resist growing this into a general
+ * multi-queue job framework until a second, genuinely distinct use case
+ * actually justifies it (CLAUDE.md engineering standards).
+ *
+ * Phase 11 (docs/roadmap/phase-11-recurring-rides.md) adds a second *job
+ * type* on this exact same queue/worker/connection — the periodic
+ * recurring-pattern detection scan — rather than standing up a second
+ * queue. Job names (`'dispatch'` vs `'recurring-pattern-scan'`) distinguish
+ * the two within the one queue; worker.ts routes by `job.name`.
  */
 export const NOTIFICATION_DISPATCH_QUEUE = 'notification-dispatch';
+
+export const DISPATCH_JOB_NAME = 'dispatch';
+export const RECURRING_PATTERN_SCAN_JOB_NAME = 'recurring-pattern-scan';
+
+// Stable id for the repeatable recurring-pattern-scan job — BullMQ
+// deduplicates repeatable jobs registered with the same id/options, so
+// re-registering it on every worker process start (worker.ts) is an
+// idempotent no-op rather than accumulating duplicate schedules.
+export const RECURRING_PATTERN_SCAN_REPEATABLE_JOB_ID = 'recurring-pattern-scan-schedule';
+
+// How often the recurring-pattern scan runs — an operational cadence
+// constant, not a business threshold (those live in
+// recurring_detection_configs, per this phase's externalized-tunable
+// requirement), so it's fine as a plain constant here.
+export const RECURRING_PATTERN_SCAN_INTERVAL_MS = 24 * 60 * 60 * 1000;
 
 export interface NotificationDispatchJobData {
   notificationId: string;
 }
 
+// No payload: the scan always operates over every user's current history,
+// not a specific target passed at enqueue time.
+export type RecurringPatternScanJobData = Record<string, never>;
+
+export type QueueJobData = NotificationDispatchJobData | RecurringPatternScanJobData;
+
 let _connection: IORedis | null = null;
-let _queue: Queue<NotificationDispatchJobData> | null = null;
+let _queue: Queue<QueueJobData> | null = null;
 
 /**
  * BullMQ requires its own Redis connection to be configured with
@@ -42,11 +68,11 @@ export function getQueueConnection(): IORedis | null {
   return _connection;
 }
 
-export function getNotificationDispatchQueue(): Queue<NotificationDispatchJobData> | null {
+export function getNotificationDispatchQueue(): Queue<QueueJobData> | null {
   const connection = getQueueConnection();
   if (!connection) return null;
   if (!_queue) {
-    _queue = new Queue<NotificationDispatchJobData>(NOTIFICATION_DISPATCH_QUEUE, { connection });
+    _queue = new Queue<QueueJobData>(NOTIFICATION_DISPATCH_QUEUE, { connection });
   }
   return _queue;
 }
@@ -68,7 +94,7 @@ export async function enqueueNotificationDispatch(notificationId: string): Promi
   }
   try {
     await queue.add(
-      'dispatch',
+      DISPATCH_JOB_NAME,
       { notificationId },
       {
         attempts: 3,
@@ -79,6 +105,40 @@ export async function enqueueNotificationDispatch(notificationId: string): Promi
     );
   } catch (err) {
     getLogger().error({ err, notificationId }, 'Failed to enqueue notification dispatch job');
+  }
+}
+
+/**
+ * Registers the periodic recurring-pattern-scan job as a BullMQ repeatable
+ * job (Phase 11), via `upsertJobScheduler` — this installed BullMQ version
+ * (6.x) moved repeatable-job registration off `Queue.add`'s `repeat` option
+ * (removed entirely from `JobsOptions`) onto this dedicated scheduler API.
+ * Called once from worker.ts at process start — idempotent (same scheduler
+ * id), so running multiple worker instances/restarts never accumulates
+ * duplicate schedules. Never throws, mirroring
+ * enqueueNotificationDispatch's "queue unavailable is a warning, not a
+ * failure" contract.
+ */
+export async function scheduleRecurringPatternScanJob(): Promise<void> {
+  const queue = getNotificationDispatchQueue();
+  if (!queue) {
+    getLogger().warn(
+      'Notification queue unavailable (no REDIS_URL) — skipping recurring-pattern-scan schedule',
+    );
+    return;
+  }
+  try {
+    await queue.upsertJobScheduler(
+      RECURRING_PATTERN_SCAN_REPEATABLE_JOB_ID,
+      { every: RECURRING_PATTERN_SCAN_INTERVAL_MS },
+      {
+        name: RECURRING_PATTERN_SCAN_JOB_NAME,
+        data: {},
+        opts: { removeOnComplete: { count: 20 }, removeOnFail: { count: 20 } },
+      },
+    );
+  } catch (err) {
+    getLogger().error({ err }, 'Failed to schedule recurring-pattern-scan job');
   }
 }
 

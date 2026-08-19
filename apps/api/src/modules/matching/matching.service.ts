@@ -301,6 +301,30 @@ export async function corridorFallback(
   return { nearbyRides, demandSignalCount };
 }
 
+/**
+ * Phase 11 (docs/roadmap/phase-11-recurring-rides.md): proactive rider-match
+ * check for an `enabled` recurring pattern — reuses `searchRides` (the same
+ * tight-radius `scoreCandidates` ranking/viability logic a live rider
+ * search already uses) rather than forking a parallel matching
+ * implementation. Returns the best viable candidate (a real ride with a
+ * seat free and, if the ride has stops, at least one within walking
+ * distance), or null when nothing currently matches.
+ */
+export async function findBestMatchForRecurringPattern(
+  db: Database,
+  pattern: { originLat: number; originLng: number; destinationLat: number; destinationLng: number },
+  when: Date,
+): Promise<MatchCandidate | null> {
+  const candidates = await searchRides(db, {
+    originLat: pattern.originLat,
+    originLng: pattern.originLng,
+    destinationLat: pattern.destinationLat,
+    destinationLng: pattern.destinationLng,
+    when,
+  });
+  return candidates.find((c) => c.pickupViable && c.seatsAvailable > 0) ?? null;
+}
+
 export async function createDemandSignal(db: Database, userId: string, input: NotifyMeInput) {
   const [signal] = await db
     .insert(demandSignals)

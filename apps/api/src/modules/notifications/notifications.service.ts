@@ -173,6 +173,16 @@ function bodyFor(type: NotificationEventType, payload: Record<string, unknown>):
       return 'Votre réservation a été annulée par l’autre partie.';
     case 'booking_no_show_reported':
       return 'Une absence a été signalée pour ce trajet.';
+    // Phase 11 (docs/roadmap/phase-11-recurring-rides.md): the first,
+    // previously-schema-only event types Phase 7 anticipated but never
+    // dispatched — see recurring.service.ts's upsertDetectedPattern
+    // (detected pattern crosses the suggested threshold) and
+    // checkProactiveMatchesForEnabledRiderPatterns (a real published ride
+    // now matches an enabled rider pattern).
+    case 'recurring_pattern_detected':
+      return 'Vous avez pris cet itinéraire plusieurs fois récemment — voulez-vous en faire un trajet régulier ?';
+    case 'recurring_proactive_match':
+      return 'Un trajet correspondant à votre itinéraire régulier vient d’être publié.';
     default:
       return 'Vous avez une nouvelle notification.';
   }

@@ -11,6 +11,7 @@ import type {
   UpdateRideInput,
   CreateBookingInput,
   NotifyMeInput,
+  UpdateRecurringPatternInput,
 } from '@vaya/validation';
 import { setAccessToken, clearAuth } from './authSlice';
 import { clearTokens } from '../services/auth/tokenStorage';
@@ -289,6 +290,37 @@ export interface TrustSummary {
   rider: TierAggregate | null;
 }
 
+// Phase 11 (docs/roadmap/phase-11-recurring-rides.md). Mirrors
+// packages/domain's RecurringPatternRole/RecurringPatternStatus.
+export type RecurringPatternRole = 'rider' | 'driver';
+export type RecurringPatternStatus = 'detected' | 'suggested' | 'enabled' | 'dismissed';
+
+export interface RecurringPattern {
+  id: string;
+  userId: string;
+  role: RecurringPatternRole;
+  routeId: string | null;
+  originLabel: string;
+  originLat: number;
+  originLng: number;
+  destinationLabel: string;
+  destinationLat: number;
+  destinationLng: number;
+  /** Bitmask, Monday = bit 0 ... Sunday = bit 6. */
+  daysOfWeekMask: number;
+  timeWindowStart: string;
+  timeWindowEnd: string;
+  confidenceScore: number;
+  status: RecurringPatternStatus;
+  lastMatchedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  /** Only meaningful for an `enabled` driver pattern — see
+   *  recurring.service.ts's listMyRecurringPatterns doc comment. */
+  matchesToday: boolean;
+  todayRideId: string | null;
+}
+
 export interface PendingRating {
   tripId: string;
   role: RatingRole;
@@ -394,6 +426,7 @@ export const api = createApi({
     'Trip',
     'TrustSummary',
     'PendingRating',
+    'RecurringPatterns',
   ],
   endpoints: (builder) => ({
     healthCheck: builder.query<{ status: string }, void>({
@@ -623,6 +656,23 @@ export const api = createApi({
       query: () => '/trips/pending-rating',
       providesTags: ['PendingRating'],
     }),
+
+    // Phase 11 (docs/roadmap/phase-11-recurring-rides.md).
+    listMyRecurringPatterns: builder.query<RecurringPattern[], void>({
+      query: () => '/recurring-patterns',
+      providesTags: ['RecurringPatterns'],
+    }),
+    updateRecurringPattern: builder.mutation<
+      RecurringPattern,
+      { patternId: string; input: UpdateRecurringPatternInput }
+    >({
+      query: ({ patternId, input }) => ({
+        url: `/recurring-patterns/${patternId}`,
+        method: 'PATCH',
+        body: input,
+      }),
+      invalidatesTags: ['RecurringPatterns'],
+    }),
   }),
 });
 
@@ -672,4 +722,6 @@ export const {
   useCreateTripRatingMutation,
   useGetUserTrustSummaryQuery,
   useGetPendingRatingQuery,
+  useListMyRecurringPatternsQuery,
+  useUpdateRecurringPatternMutation,
 } = api;

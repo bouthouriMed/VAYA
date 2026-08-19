@@ -10,6 +10,7 @@ import { loadTokens } from '../src/services/auth/tokenStorage';
 import { ErrorBoundary } from '../src/components/ErrorBoundary';
 import { useNotificationSetup } from '../src/services/notifications/useNotificationSetup';
 import { RatingPromptBridge } from '../src/features/ratings/RatingPromptBridge';
+import { RecurringPatternPromptBridge } from '../src/features/recurring/RecurringPatternPromptBridge';
 
 function BrandedLoadingScreen(): React.JSX.Element {
   return (
@@ -67,6 +68,7 @@ export default function RootLayout(): React.JSX.Element {
         <ToastProvider>
           <NotificationBridge />
           <RatingPromptBridge />
+          <RecurringPatternPromptBridge />
           <AuthHydrator>
             <StatusBar style="dark" />
             <Stack screenOptions={{ headerShown: false }}>
@@ -78,6 +80,7 @@ export default function RootLayout(): React.JSX.Element {
               <Stack.Screen name="driver" />
               <Stack.Screen name="notifications" />
               <Stack.Screen name="conversations" />
+              <Stack.Screen name="recurring" />
             </Stack>
           </AuthHydrator>
         </ToastProvider>
