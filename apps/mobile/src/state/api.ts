@@ -153,6 +153,14 @@ export interface Booking {
   pickupLng: number;
   requestedAt: string;
   respondedAt: string | null;
+  /** Only present on results from listMyBookings. */
+  ride?: {
+    originLabel: string;
+    destinationLabel: string;
+    departureAt: string;
+    contributionPerSeat: number;
+    driverFullName: string | null;
+  };
 }
 
 const rawBaseQuery = fetchBaseQuery({

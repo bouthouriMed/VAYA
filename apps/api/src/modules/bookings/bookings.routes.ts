@@ -26,6 +26,17 @@ const bookingResponseSchema = z.object({
   pickupLng: z.number(),
   requestedAt: z.date(),
   respondedAt: z.date().nullable(),
+  // Only populated by GET /bookings/mine, which fetches the ride for
+  // display purposes — other endpoints return the bare booking row.
+  ride: z
+    .object({
+      originLabel: z.string(),
+      destinationLabel: z.string(),
+      departureAt: z.date(),
+      contributionPerSeat: z.number(),
+      driverFullName: z.string().nullable(),
+    })
+    .optional(),
 });
 
 const rideIdParamSchema = z.object({ rideId: z.string().uuid() });
