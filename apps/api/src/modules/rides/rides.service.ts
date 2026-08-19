@@ -47,7 +47,13 @@ export async function createRide(db: Database, userId: string, input: CreateRide
       seatsTotal: input.seatsTotal,
       seatsAvailable: input.seatsTotal,
       contributionPerSeat: input.contributionPerSeat,
-      status: 'published',
+      // Created as a draft, not immediately published: the ride-engine flow
+      // (docs/domain/ride-engine.md) generates candidate stops against this
+      // ride's now-computed routePolyline before the driver actually
+      // publishes — see stop-candidates.service.ts and the new
+      // POST /rides/:id/publish route. Mobile's publish.tsx drives both
+      // steps in one flow, but the API models them as two distinct calls.
+      status: 'draft',
       routePolyline: route.polyline || null,
       estimatedDurationSec: route.durationSec,
     })
@@ -71,6 +77,33 @@ export async function getRideById(db: Database, rideId: string) {
   });
   if (!ride) throw new NotFoundError('Ride');
   return ride;
+}
+
+/** Transitions a ride from `draft` to `published` — the second half of the
+ *  ride-creation flow now that candidate-stop generation/selection
+ *  (stop-candidates.service.ts) happens between the two. Reuses the
+ *  existing authoritative state machine (`canTransitionRideStatus` from
+ *  `@vaya/domain`) rather than duplicating transition logic here. */
+export async function publishRide(db: Database, rideId: string, userId: string) {
+  const ride = await db.query.rides.findFirst({
+    where: eq(rides.id, rideId),
+    with: { driverProfile: true },
+  });
+  if (!ride) throw new NotFoundError('Ride');
+  if (ride.driverProfile.userId !== userId) {
+    throw new ForbiddenError('Only the driver who created this ride can publish it');
+  }
+  if (!canTransitionRideStatus(ride.status, 'published')) {
+    throw new ConflictError(`Cannot publish a ride in status "${ride.status}"`);
+  }
+
+  const [updated] = await db
+    .update(rides)
+    .set({ status: 'published', updatedAt: new Date() })
+    .where(eq(rides.id, rideId))
+    .returning();
+  if (!updated) throw new Error('Failed to publish ride');
+  return updated;
 }
 
 export async function cancelRide(db: Database, rideId: string, userId: string) {

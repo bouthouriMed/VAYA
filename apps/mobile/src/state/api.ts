@@ -133,6 +133,29 @@ export interface Ride {
   estimatedDurationSec: number | null;
 }
 
+export interface RouteStop {
+  id: string;
+  rideId: string;
+  sequence: number;
+  label: string;
+  lat: number;
+  lng: number;
+  roadSnapped: boolean;
+  deviationMeters: number;
+  deviationSeconds: number;
+  suitabilityScore: number;
+  roadClass: string | null;
+  isDriverSelected: boolean;
+}
+
+export interface GenerateStopsResult {
+  stops: RouteStop[];
+  /** True when OSRM was unreachable for this attempt — show an honest
+   *  "unavailable right now" message, never fabricated candidates. */
+  osrmUnavailable: boolean;
+  regenerated: boolean;
+}
+
 export interface Booking {
   id: string;
   rideId: string;
@@ -297,6 +320,23 @@ export const api = createApi({
       query: (rideId) => ({ url: `/rides/${rideId}/cancel`, method: 'POST' }),
       invalidatesTags: ['MyRides'],
     }),
+    publishRide: builder.mutation<Ride, string>({
+      query: (rideId) => ({ url: `/rides/${rideId}/publish`, method: 'POST' }),
+      invalidatesTags: ['MyRides'],
+    }),
+    generateCandidateStops: builder.mutation<GenerateStopsResult, string>({
+      query: (rideId) => ({ url: `/rides/${rideId}/candidate-stops`, method: 'POST' }),
+    }),
+    updateRideStops: builder.mutation<
+      RouteStop[],
+      { rideId: string; selections: { stopId: string; isDriverSelected: boolean }[] }
+    >({
+      query: ({ rideId, selections }) => ({
+        url: `/rides/${rideId}/stops`,
+        method: 'PATCH',
+        body: selections,
+      }),
+    }),
 
     createBooking: builder.mutation<Booking, { rideId: string; input: CreateBookingInput }>({
       query: ({ rideId, input }) => ({
@@ -352,6 +392,9 @@ export const {
   useListMyRidesQuery,
   useGetRideQuery,
   useCancelRideMutation,
+  usePublishRideMutation,
+  useGenerateCandidateStopsMutation,
+  useUpdateRideStopsMutation,
   useCreateBookingMutation,
   useListMyBookingsQuery,
   useListRequestsForRideQuery,
