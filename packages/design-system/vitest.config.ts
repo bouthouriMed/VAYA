@@ -12,6 +12,7 @@ export default defineConfig({
       'expo-haptics': path.resolve(__dirname, './src/__mocks__/expo-haptics.ts'),
       '@expo/vector-icons': path.resolve(__dirname, './src/__mocks__/expo-vector-icons.ts'),
       'react-native-maps': path.resolve(__dirname, './src/__mocks__/react-native-maps.ts'),
+      'react-native-svg': path.resolve(__dirname, './src/__mocks__/react-native-svg.ts'),
     },
     coverage: {
       provider: 'v8',

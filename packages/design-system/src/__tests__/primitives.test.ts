@@ -45,6 +45,12 @@ describe('Design system primitives', () => {
     expect(primitives.StarRatingInput).toBeDefined();
   });
 
+  it('exports the driver-flow visual-refresh primitives', async () => {
+    const primitives = await import('../primitives/index.js');
+    expect(primitives.ScreenHeader).toBeDefined();
+    expect(primitives.RoutePulseBadge).toBeDefined();
+  });
+
   it('exports haptics from the package root', async () => {
     const index = await import('../index.js');
     expect(index.haptics).toBeDefined();

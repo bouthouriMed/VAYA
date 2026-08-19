@@ -29,3 +29,6 @@ export { ToastProvider, useToast } from './Toast';
 export { BottomSheet } from './BottomSheet';
 export { MessageBubble } from './MessageBubble';
 export { StarRatingInput } from './StarRatingInput';
+export { ScreenHeader } from './ScreenHeader';
+export { RoutePulseBadge } from './RoutePulseBadge';
+export type { RoutePulseBadgeSize, RoutePulseBadgeTone } from './RoutePulseBadge';

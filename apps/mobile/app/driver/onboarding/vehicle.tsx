@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   View,
   StyleSheet,
@@ -6,10 +6,23 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
+  Animated,
+  AccessibilityInfo,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { Text, Button, Input, StepProgress, colors, spacing, radii } from '@vaya/design-system';
+import {
+  Text,
+  Button,
+  Input,
+  StepProgress,
+  ScreenHeader,
+  RoutePulseBadge,
+  colors,
+  spacing,
+  radii,
+  elevation,
+  typography,
+} from '@vaya/design-system';
 import { router } from 'expo-router';
 import { useAppDispatch, useAppSelector } from '../../../src/state/store';
 import { setVehicleDraft } from '../../../src/state/driverOnboardingSlice';
@@ -28,6 +41,23 @@ export default function VehicleStepScreen(): React.JSX.Element {
   const [seatCount, setSeatCount] = useState(draft?.seatCount ?? 4);
 
   const canContinue = make.trim() && model.trim() && color.trim() && plateNumber.trim();
+
+  const fade = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    let cancelled = false;
+    void AccessibilityInfo.isReduceMotionEnabled().then((reduced) => {
+      if (cancelled) return;
+      if (reduced) {
+        fade.setValue(1);
+        return;
+      }
+      Animated.timing(fade, { toValue: 1, duration: 360, useNativeDriver: true }).start();
+    });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function next(): void {
     if (!canContinue) return;
@@ -49,76 +79,82 @@ export default function VehicleStepScreen(): React.JSX.Element {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
-        <View style={styles.headerRow}>
-          <TouchableOpacity onPress={() => router.back()} hitSlop={12} style={styles.backBtn}>
-            <Ionicons name="chevron-back" size={24} color={colors.gray900} />
-          </TouchableOpacity>
-          <Text variant="label" color={colors.gray600}>
-            Étape 1 sur {TOTAL_STEPS}
-          </Text>
-          <View style={styles.backBtn} />
-        </View>
+        <ScreenHeader onBack={() => router.back()} title={`Étape 1 sur ${TOTAL_STEPS}`} />
         <StepProgress currentStep={1} totalSteps={TOTAL_STEPS} style={styles.stepProgress} />
       </View>
 
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-        <View style={styles.heroIcon}>
-          <Ionicons name="car-sport" size={30} color={colors.white} />
-        </View>
-        <Text variant="h2" style={styles.title}>
-          Votre véhicule
-        </Text>
-        <Text variant="body" color={colors.gray600} style={styles.subtitle}>
-          Ces informations apparaissent sur votre profil conducteur pour rassurer vos passagers.
-        </Text>
+        <Animated.View style={{ opacity: fade }}>
+          <RoutePulseBadge icon="car-sport" size="md" tone="onCream" />
+          <Text variant="caption" color={colors.secondaryDark} style={styles.eyebrow}>
+            PROFIL CONDUCTEUR
+          </Text>
+          <Text variant="h2" style={styles.title}>
+            Votre véhicule
+          </Text>
+          <Text variant="body" color={colors.gray600} style={styles.subtitle}>
+            Ces informations apparaissent sur votre profil conducteur pour rassurer vos passagers.
+          </Text>
 
-        <View style={styles.card}>
-          <View style={styles.fieldRow}>
-            <View style={styles.fieldHalf}>
-              <Input label="Marque" value={make} onChangeText={setMake} placeholder="Peugeot" />
-            </View>
-            <View style={styles.fieldHalf}>
-              <Input label="Modèle" value={model} onChangeText={setModel} placeholder="208" />
-            </View>
-          </View>
-          <View style={styles.fieldRow}>
-            <View style={styles.fieldHalf}>
-              <Input label="Couleur" value={color} onChangeText={setColor} placeholder="Grise" />
-            </View>
-            <View style={styles.fieldHalf}>
-              <Input
-                label="Plaque"
-                value={plateNumber}
-                onChangeText={setPlateNumber}
-                placeholder="208TU1234"
-                autoCapitalize="characters"
-              />
-            </View>
-          </View>
-
-          <View style={styles.seatsSection}>
-            <Text variant="label" color={colors.gray700}>
-              Nombre de places passagers
+          <View style={styles.card}>
+            <Text variant="label" color={colors.gray500} style={styles.cardEyebrow}>
+              DÉTAILS DU VÉHICULE
             </Text>
-            <View style={styles.stepperRow}>
-              <TouchableOpacity
-                style={styles.stepperBtn}
-                onPress={() => setSeatCount((s) => Math.max(1, s - 1))}
-              >
-                <Text variant="h3">−</Text>
-              </TouchableOpacity>
-              <Text variant="h3" style={styles.stepperValue}>
-                {seatCount}
+            <View style={styles.fieldRow}>
+              <View style={styles.fieldHalf}>
+                <Input label="Marque" value={make} onChangeText={setMake} placeholder="Peugeot" />
+              </View>
+              <View style={styles.fieldHalf}>
+                <Input label="Modèle" value={model} onChangeText={setModel} placeholder="208" />
+              </View>
+            </View>
+            <View style={styles.fieldRow}>
+              <View style={styles.fieldHalf}>
+                <Input label="Couleur" value={color} onChangeText={setColor} placeholder="Grise" />
+              </View>
+              <View style={styles.fieldHalf}>
+                <Input
+                  label="Plaque"
+                  value={plateNumber}
+                  onChangeText={setPlateNumber}
+                  placeholder="208TU1234"
+                  autoCapitalize="characters"
+                />
+              </View>
+            </View>
+
+            <View style={styles.seatsSection}>
+              <Text variant="label" color={colors.gray700}>
+                Nombre de places passagers
               </Text>
-              <TouchableOpacity
-                style={styles.stepperBtn}
-                onPress={() => setSeatCount((s) => Math.min(8, s + 1))}
-              >
-                <Text variant="h3">+</Text>
-              </TouchableOpacity>
+              <View style={styles.stepperRow}>
+                <TouchableOpacity
+                  style={styles.stepperBtn}
+                  onPress={() => setSeatCount((s) => Math.max(1, s - 1))}
+                  accessibilityRole="button"
+                  accessibilityLabel="Retirer une place"
+                >
+                  <Text variant="h3" color={colors.primary}>
+                    −
+                  </Text>
+                </TouchableOpacity>
+                <Text variant="h3" style={styles.stepperValue}>
+                  {seatCount}
+                </Text>
+                <TouchableOpacity
+                  style={styles.stepperBtn}
+                  onPress={() => setSeatCount((s) => Math.min(8, s + 1))}
+                  accessibilityRole="button"
+                  accessibilityLabel="Ajouter une place"
+                >
+                  <Text variant="h3" color={colors.primary}>
+                    +
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
-        </View>
+        </Animated.View>
       </ScrollView>
 
       <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.lg }]}>
@@ -143,17 +179,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     gap: spacing.md,
   },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  backBtn: {
-    width: 36,
-    height: 36,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   stepProgress: {
     marginBottom: spacing.sm,
   },
@@ -161,21 +186,18 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     paddingBottom: spacing['4xl'],
   },
-  heroIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: spacing.md,
+  eyebrow: {
+    marginTop: spacing.lg,
+    fontWeight: typography.fontWeight.semibold,
+    letterSpacing: 1.5,
   },
   title: {
-    fontWeight: '800',
+    marginTop: spacing.xs,
+    fontWeight: typography.fontWeight.bold,
   },
   subtitle: {
-    marginTop: spacing.xs,
-    marginBottom: spacing.xl,
+    marginTop: spacing.sm,
+    marginBottom: spacing['2xl'],
     maxWidth: 320,
   },
   card: {
@@ -183,11 +205,13 @@ const styles = StyleSheet.create({
     borderRadius: radii['2xl'],
     padding: spacing.lg,
     gap: spacing.md,
+    ...elevation?.lg,
     shadowColor: colors.gray900,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 1,
+  },
+  cardEyebrow: {
+    color: colors.gray400,
+    letterSpacing: 1,
+    marginBottom: spacing.xs,
   },
   fieldRow: {
     flexDirection: 'row',
@@ -198,7 +222,10 @@ const styles = StyleSheet.create({
   },
   seatsSection: {
     gap: spacing.sm,
-    marginTop: spacing.xs,
+    marginTop: spacing.sm,
+    paddingTop: spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: colors.gray100,
   },
   stepperRow: {
     flexDirection: 'row',

@@ -1,14 +1,17 @@
-import { useState } from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { View, StyleSheet, ScrollView, Image, Animated, AccessibilityInfo } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import {
   Text,
   Button,
   StepProgress,
+  ScreenHeader,
+  RoutePulseBadge,
   colors,
   spacing,
   radii,
+  elevation,
   typography,
 } from '@vaya/design-system';
 import { router } from 'expo-router';
@@ -48,6 +51,29 @@ export default function SelfieCaptureScreen(): React.JSX.Element {
 
   const [uploadFile] = useUploadFileMutation();
   const [createOnboarding, { isLoading: isSubmitting }] = useCreateDriverOnboardingMutation();
+
+  const fade = useRef(new Animated.Value(0)).current;
+  const scale = useRef(new Animated.Value(0.9)).current;
+  useEffect(() => {
+    if (phase !== 'review') return;
+    let cancelled = false;
+    void AccessibilityInfo.isReduceMotionEnabled().then((reduced) => {
+      if (cancelled) return;
+      if (reduced) {
+        fade.setValue(1);
+        scale.setValue(1);
+        return;
+      }
+      Animated.parallel([
+        Animated.timing(fade, { toValue: 1, duration: 380, useNativeDriver: true }),
+        Animated.spring(scale, { toValue: 1, friction: 6, useNativeDriver: true }),
+      ]).start();
+    });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase]);
 
   if (phase === 'capture') {
     return (
@@ -100,64 +126,59 @@ export default function SelfieCaptureScreen(): React.JSX.Element {
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
-        <View style={styles.headerRow}>
-          <TouchableOpacity onPress={() => setPhase('capture')} hitSlop={12} style={styles.backBtn}>
-            <Ionicons name="chevron-back" size={24} color={colors.gray900} />
-          </TouchableOpacity>
-          <Text variant="label" color={colors.gray600}>
-            Vérifier et confirmer
-          </Text>
-          <View style={styles.backBtn} />
-        </View>
+        <ScreenHeader onBack={() => setPhase('capture')} title="Vérifier et confirmer" />
         <StepProgress currentStep={4} totalSteps={4} style={styles.stepProgress} />
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.successIcon}>
-          <Ionicons name="shield-checkmark" size={28} color={colors.white} />
-        </View>
-        <Text variant="h2" style={styles.title}>
-          Tout est prêt
-        </Text>
-        <Text variant="body" color={colors.gray600} style={styles.subtitle}>
-          Vérifiez vos informations avant d&apos;activer votre profil conducteur.
-        </Text>
-
-        <View style={styles.card}>
-          <Text variant="label" style={styles.cardTitle}>
-            Véhicule
+        <Animated.View style={{ opacity: fade, transform: [{ scale }] }}>
+          <RoutePulseBadge icon="shield-checkmark" size="md" tone="onCream" />
+          <Text variant="caption" color={colors.secondaryDark} style={styles.eyebrow}>
+            DERNIÈRE ÉTAPE
           </Text>
-          <View style={styles.vehicleRow}>
-            <View style={styles.vehicleIcon}>
-              <Ionicons name="car-sport-outline" size={20} color={colors.gray900} />
-            </View>
-            <View>
-              <Text variant="label">
-                {vehicle.make} {vehicle.model} · {vehicle.color}
-              </Text>
-              <Text variant="bodySmall" color={colors.gray600}>
-                {vehicle.plateNumber} · {vehicle.seatCount} places
-              </Text>
+          <Text variant="h2" style={styles.title}>
+            Tout est prêt
+          </Text>
+          <Text variant="body" color={colors.gray600} style={styles.subtitle}>
+            Vérifiez vos informations avant d&apos;activer votre profil conducteur.
+          </Text>
+
+          <View style={styles.card}>
+            <Text variant="label" color={colors.gray400} style={styles.cardEyebrow}>
+              VÉHICULE
+            </Text>
+            <View style={styles.vehicleRow}>
+              <View style={styles.vehicleIcon}>
+                <Ionicons name="car-sport-outline" size={20} color={colors.gray900} />
+              </View>
+              <View>
+                <Text variant="label">
+                  {vehicle.make} {vehicle.model} · {vehicle.color}
+                </Text>
+                <Text variant="bodySmall" color={colors.gray600}>
+                  {vehicle.plateNumber} · {vehicle.seatCount} places
+                </Text>
+              </View>
             </View>
           </View>
-        </View>
 
-        <View style={styles.card}>
-          <Text variant="label" style={styles.cardTitle}>
-            Documents vérifiés en direct
-          </Text>
-          <View style={styles.thumbRow}>
-            <ThumbCard uri={licenseUri} label="Permis" />
-            <ThumbCard uri={insuranceUri} label="Assurance" />
-            <ThumbCard uri={selfieUri} label="Identité" />
+          <View style={styles.card}>
+            <Text variant="label" color={colors.gray400} style={styles.cardEyebrow}>
+              DOCUMENTS VÉRIFIÉS EN DIRECT
+            </Text>
+            <View style={styles.thumbRow}>
+              <ThumbCard uri={licenseUri} label="Permis" />
+              <ThumbCard uri={insuranceUri} label="Assurance" />
+              <ThumbCard uri={selfieUri} label="Identité" />
+            </View>
           </View>
-        </View>
 
-        {errorMessage ? (
-          <Text variant="bodySmall" color={colors.error} align="center" style={styles.error}>
-            {errorMessage}
-          </Text>
-        ) : null}
+          {errorMessage ? (
+            <Text variant="bodySmall" color={colors.error} align="center" style={styles.error}>
+              {errorMessage}
+            </Text>
+          ) : null}
+        </Animated.View>
       </ScrollView>
 
       <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.lg }]}>
@@ -182,17 +203,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     gap: spacing.md,
   },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  backBtn: {
-    width: 36,
-    height: 36,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   stepProgress: {
     marginBottom: spacing.sm,
   },
@@ -200,21 +210,18 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     paddingBottom: spacing['4xl'],
   },
-  successIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: colors.secondary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: spacing.md,
+  eyebrow: {
+    marginTop: spacing.lg,
+    fontWeight: typography.fontWeight.semibold,
+    letterSpacing: 1.5,
   },
   title: {
-    fontWeight: '800',
+    marginTop: spacing.xs,
+    fontWeight: typography.fontWeight.bold,
   },
   subtitle: {
-    marginTop: spacing.xs,
-    marginBottom: spacing.xl,
+    marginTop: spacing.sm,
+    marginBottom: spacing['2xl'],
     maxWidth: 320,
   },
   card: {
@@ -223,13 +230,11 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     gap: spacing.sm,
     marginBottom: spacing.md,
+    ...elevation?.md,
     shadowColor: colors.gray900,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 1,
   },
-  cardTitle: {
+  cardEyebrow: {
+    letterSpacing: 1,
     marginBottom: 2,
   },
   vehicleRow: {
@@ -259,6 +264,8 @@ const styles = StyleSheet.create({
     aspectRatio: 1,
     borderRadius: radii.lg,
     backgroundColor: colors.gray200,
+    ...elevation?.sm,
+    shadowColor: colors.gray900,
   },
   thumbBadge: {
     position: 'absolute',
@@ -286,5 +293,7 @@ const styles = StyleSheet.create({
   },
   cta: {
     width: '100%',
+    ...elevation?.lg,
+    shadowColor: colors.primary,
   },
 });
