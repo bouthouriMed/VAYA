@@ -1,33 +1,62 @@
 import { useState } from 'react';
-import { View, StyleSheet, TextInput } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
+import {
+  View,
+  StyleSheet,
+  TextInput,
+  KeyboardAvoidingView,
+  TouchableWithoutFeedback,
+  Keyboard,
+  Platform,
+} from 'react-native';
+import Svg, { Defs, LinearGradient as SvgGradient, Stop, Circle } from 'react-native-svg';
 import { Text, Button, colors, spacing, radii, typography } from '@vaya/design-system';
 import { router } from 'expo-router';
+import { BlurView } from 'expo-blur';
+
+const ARC_SIZE = 200;
+const STROKE_WIDTH = 34;
+const RADIUS = (ARC_SIZE - STROKE_WIDTH) / 2;
+const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+// Leaves a 60° gap centered at the bottom, so the shape reads as an open
+// arc/arch rather than a closed ring.
+const GAP_DEG = 60;
+const SOLID_DEG = 360 - GAP_DEG;
+const DASH = `${(SOLID_DEG / 360) * CIRCUMFERENCE} ${(GAP_DEG / 360) * CIRCUMFERENCE}`;
+const ROTATION = 90 + GAP_DEG / 2;
 
 /**
- * Stylized stand-in for the reference's photoreal 3D glass "arc" render —
- * no 3D asset pipeline here, so this approximates the same idea (a glassy,
- * sage-tinted ring catching light, floating with a soft shadow) with layered
- * gradients instead of claiming photographic accuracy.
+ * Stylized stand-in for the reference's photoreal 3D glass arc render — no 3D
+ * asset pipeline here, so this approximates the same idea (a glassy,
+ * sage-tinted open arc catching light, floating with a soft shadow) as a real
+ * open arc rather than a closed ring.
  */
 function GlassArcHero(): React.JSX.Element {
   return (
     <View style={styles.heroWrap}>
       <View style={styles.heroShadow} />
-      <LinearGradient
-        colors={['#EAF0EA', colors.secondaryLight, colors.secondary, '#3E5A41']}
-        start={{ x: 0.15, y: 0 }}
-        end={{ x: 0.9, y: 1 }}
-        style={styles.heroRing}
-      />
-      <View style={styles.heroHole} />
-      <LinearGradient
-        colors={['rgba(255,255,255,0.55)', 'rgba(255,255,255,0)']}
-        start={{ x: 0.2, y: 0.1 }}
-        end={{ x: 0.6, y: 0.5 }}
-        style={styles.heroHighlight}
-      />
+      <Svg width={ARC_SIZE} height={ARC_SIZE} viewBox={`0 0 ${ARC_SIZE} ${ARC_SIZE}`}>
+        <Defs>
+          <SvgGradient id="arcGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <Stop offset="0%" stopColor="#EAF0EA" />
+            <Stop offset="45%" stopColor={colors.secondaryLight} />
+            <Stop offset="75%" stopColor={colors.secondary} />
+            <Stop offset="100%" stopColor="#3E5A41" />
+          </SvgGradient>
+        </Defs>
+        <Circle
+          cx={ARC_SIZE / 2}
+          cy={ARC_SIZE / 2}
+          r={RADIUS}
+          fill="none"
+          stroke="url(#arcGrad)"
+          strokeWidth={STROKE_WIDTH}
+          strokeLinecap="round"
+          strokeDasharray={DASH}
+          rotation={ROTATION}
+          origin={`${ARC_SIZE / 2}, ${ARC_SIZE / 2}`}
+        />
+      </Svg>
+      <View style={styles.heroHighlight} />
     </View>
   );
 }
@@ -36,115 +65,115 @@ export default function LandingScreen(): React.JSX.Element {
   const [phone, setPhone] = useState('');
   const canContinue = phone.replace(/\s/g, '').length >= 8;
 
+  function submit(): void {
+    if (!canContinue) return;
+    Keyboard.dismiss();
+    router.push({ pathname: '/(auth)/otp', params: { phone: `+216 ${phone}` } });
+  }
+
   return (
-    <View style={styles.container}>
-      <GlassArcHero />
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      >
+        <View style={styles.content}>
+          <GlassArcHero />
 
-      <View style={styles.copy}>
-        <Text variant="h1" style={styles.wordmark}>
-          arc.
-        </Text>
-        <Text variant="body" color={colors.gray600}>
-          Your path, naturally.
-        </Text>
-      </View>
+          <View style={styles.copy}>
+            <Text style={styles.wordmark}>arc.</Text>
+            <Text variant="body" color={colors.gray600}>
+              Your path, naturally.
+            </Text>
+          </View>
 
-      <View style={styles.formSection}>
-        <Text variant="label" color={colors.gray600} style={styles.fieldLabel}>
-          Phone number
-        </Text>
-        <BlurView intensity={40} tint="light" style={styles.glassInput}>
-          <View style={styles.glassInputOverlay}>
-            <View style={styles.countryPill}>
-              <Text style={styles.flag}>🇹🇳</Text>
-              <Text style={styles.countryCode}>+216</Text>
-            </View>
-            <TextInput
-              value={phone}
-              onChangeText={setPhone}
-              placeholder="98 123 456"
-              placeholderTextColor={colors.gray500}
-              keyboardType="phone-pad"
-              style={styles.input}
+          <View style={styles.formSection}>
+            <Text variant="label" color={colors.gray600} style={styles.fieldLabel}>
+              Phone number
+            </Text>
+            <BlurView intensity={40} tint="light" style={styles.glassInput}>
+              <View style={styles.glassInputOverlay}>
+                <View style={styles.countryPill}>
+                  <Text style={styles.flag}>🇹🇳</Text>
+                  <Text style={styles.countryCode}>+216</Text>
+                </View>
+                <TextInput
+                  value={phone}
+                  onChangeText={setPhone}
+                  placeholder="98 123 456"
+                  placeholderTextColor={colors.gray500}
+                  keyboardType="phone-pad"
+                  returnKeyType="done"
+                  onSubmitEditing={submit}
+                  style={styles.input}
+                />
+              </View>
+            </BlurView>
+
+            <Button
+              label="Get Started"
+              size="lg"
+              disabled={!canContinue}
+              onPress={submit}
+              style={styles.cta}
             />
           </View>
-        </BlurView>
-
-        <Button
-          label="Get Started"
-          size="lg"
-          disabled={!canContinue}
-          onPress={() =>
-            router.push({ pathname: '/(auth)/otp', params: { phone: `+216 ${phone}` } })
-          }
-          style={styles.cta}
-        />
-      </View>
-    </View>
+        </View>
+      </KeyboardAvoidingView>
+    </TouchableWithoutFeedback>
   );
 }
 
-const RING_SIZE = 172;
-const HOLE_SIZE = 96;
+const RING_WRAP = ARC_SIZE + 40;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.gray100,
+  },
+  content: {
+    flex: 1,
     justifyContent: 'center',
     paddingHorizontal: spacing.xl,
   },
   heroWrap: {
     alignSelf: 'center',
-    width: RING_SIZE + 40,
-    height: RING_SIZE + 40,
+    width: RING_WRAP,
+    height: RING_WRAP,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: spacing.xl,
+    marginBottom: spacing.lg,
   },
   heroShadow: {
     position: 'absolute',
     bottom: 6,
-    width: RING_SIZE * 0.75,
-    height: 22,
+    width: ARC_SIZE * 0.7,
+    height: 20,
     borderRadius: 999,
     backgroundColor: colors.gray900,
     opacity: 0.12,
   },
-  heroRing: {
-    width: RING_SIZE,
-    height: RING_SIZE,
-    borderRadius: RING_SIZE / 2,
-    shadowColor: colors.secondaryDark,
-    shadowOffset: { width: 0, height: 14 },
-    shadowOpacity: 0.25,
-    shadowRadius: 22,
-    elevation: 10,
-  },
-  heroHole: {
-    position: 'absolute',
-    width: HOLE_SIZE,
-    height: HOLE_SIZE,
-    borderRadius: HOLE_SIZE / 2,
-    backgroundColor: colors.gray100,
-    top: (RING_SIZE + 40 - HOLE_SIZE) / 2 + 10,
-  },
   heroHighlight: {
     position: 'absolute',
-    top: 14,
-    left: 14,
-    width: RING_SIZE * 0.55,
-    height: RING_SIZE * 0.4,
-    borderRadius: RING_SIZE / 2,
+    top: ARC_SIZE * 0.22,
+    left: ARC_SIZE * 0.16,
+    width: ARC_SIZE * 0.32,
+    height: ARC_SIZE * 0.22,
+    borderRadius: 999,
+    backgroundColor: 'rgba(255,255,255,0.5)',
+    transform: [{ rotate: '-25deg' }],
   },
   copy: {
     alignItems: 'center',
-    gap: 4,
+    gap: 6,
     marginBottom: spacing['3xl'],
   },
   wordmark: {
     color: colors.gray900,
     fontWeight: '800',
+    fontSize: 56,
+    letterSpacing: -1.5,
   },
   formSection: {
     gap: spacing.sm,
