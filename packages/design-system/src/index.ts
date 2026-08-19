@@ -2,3 +2,4 @@
 export * from './primitives/index';
 export * from './utils/mapGeometry';
 export * from './utils/haptics';
+export * from './utils/scheduling';
