@@ -16,7 +16,18 @@
     "web": {
       "bundler": "metro"
     },
-    "plugins": ["expo-router", "expo-font", "expo-localization", "expo-secure-store"],
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      "expo-localization",
+      "expo-secure-store",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "VAYA utilise votre position pour proposer un point de rendez-vous précis avec votre conducteur."
+        }
+      ]
+    ],
     "experiments": {
       "typedRoutes": true
     }

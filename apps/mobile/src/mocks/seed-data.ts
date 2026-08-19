@@ -192,6 +192,51 @@ export const HOME_TO_DIGITAL_CENTER = {
   destinationLabel: 'Tunis Digital Center',
 };
 
+export interface MockPlace {
+  id: string;
+  label: string;
+  subLabel: string;
+  lat: number;
+  lng: number;
+}
+
+/** Real-world-plausible Tunis-area coordinates, used both as search
+ *  suggestions and as the "known places" a pickup-point pin can snap to. */
+export const PLACES: MockPlace[] = [
+  { id: 'p-el-menzah', label: 'El Menzah 5', subLabel: 'Ariana', lat: 36.8508, lng: 10.1658 },
+  {
+    id: 'p-digital-center',
+    label: 'Tunis Digital Center',
+    subLabel: 'Lac 2, Tunis',
+    lat: 36.8419,
+    lng: 10.2413,
+  },
+  {
+    id: 'p-centre-ville',
+    label: 'Avenue Habib Bourguiba',
+    subLabel: 'Centre-ville, Tunis',
+    lat: 36.7992,
+    lng: 10.1811,
+  },
+  { id: 'p-marsa', label: 'La Marsa', subLabel: 'La Marsa, Tunis', lat: 36.8782, lng: 10.3247 },
+  {
+    id: 'p-lac1',
+    label: 'Les Berges du Lac 1',
+    subLabel: 'Lac 1, Tunis',
+    lat: 36.8324,
+    lng: 10.2334,
+  },
+  { id: 'p-manar', label: 'El Manar', subLabel: 'Tunis', lat: 36.8389, lng: 10.1467 },
+  {
+    id: 'p-aeroport',
+    label: 'Aéroport Tunis-Carthage',
+    subLabel: 'Terminal 1',
+    lat: 36.851,
+    lng: 10.2272,
+  },
+  { id: 'p-ariana', label: 'Ariana Centre', subLabel: 'Ariana', lat: 36.8625, lng: 10.1956 },
+];
+
 export interface MockCluster {
   id: string;
   label: string;
