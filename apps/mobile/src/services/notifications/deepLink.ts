@@ -25,6 +25,15 @@
  * `GET /trips/pending-rating` on launch — a tap on this notification just
  * needs to bring the app to the foreground into a screen where that bridge
  * is already active, which every screen under the root stack is.
+ *
+ * recurring_pattern_detected/recurring_proactive_match (Phase 11,
+ * docs/roadmap/phase-11-recurring-rides.md) resolve to the new
+ * `/recurring` pattern-management screen — the detection-prompt bottom
+ * sheet itself is surfaced proactively by RecurringPatternPromptBridge
+ * (app/_layout.tsx, the same "global bridge polling on launch" pattern
+ * RatingPromptBridge established), so a tap here just needs to land
+ * somewhere that shows the pattern (its list of patterns), not open the
+ * sheet directly — there's no dedicated single-pattern detail screen.
  */
 export type NotificationDeepLinkType =
   | 'booking_requested'
@@ -32,6 +41,8 @@ export type NotificationDeepLinkType =
   | 'booking_declined'
   | 'message_received'
   | 'trip_completed'
+  | 'recurring_pattern_detected'
+  | 'recurring_proactive_match'
   | (string & {});
 
 export function resolveNotificationDeepLink(
@@ -48,6 +59,9 @@ export function resolveNotificationDeepLink(
       const bookingId = payload?.bookingId;
       return typeof bookingId === 'string' ? `/conversations/${bookingId}` : '/(tabs)/trips';
     }
+    case 'recurring_pattern_detected':
+    case 'recurring_proactive_match':
+      return '/recurring';
     default:
       return null;
   }

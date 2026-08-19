@@ -30,6 +30,7 @@ import { ridesRoutes } from './modules/rides/rides.routes.js';
 import { notificationsRoutes } from './modules/notifications/notifications.routes.js';
 import { conversationsRoutes } from './modules/conversations/conversations.routes.js';
 import { tripsRoutes } from './modules/trips/trips.routes.js';
+import { recurringRoutes } from './modules/recurring/recurring.routes.js';
 
 declare module 'fastify' {
   interface FastifyInstance {
@@ -107,6 +108,7 @@ export async function buildApp() {
   await app.register(notificationsRoutes, { prefix: env.API_PREFIX });
   await app.register(conversationsRoutes, { prefix: env.API_PREFIX });
   await app.register(tripsRoutes, { prefix: env.API_PREFIX });
+  await app.register(recurringRoutes, { prefix: env.API_PREFIX });
 
   app.get(`${env.API_PREFIX}/openapi.json`, async () => app.swagger());
 

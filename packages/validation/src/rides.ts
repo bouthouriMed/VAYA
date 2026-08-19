@@ -20,6 +20,13 @@ export const createRideSchema = z.object({
   // number, if the driver already supplied one." Omitted entirely, the
   // server defaults it to the freshly-computed `recommended` suggestion.
   contributionPerSeat: z.coerce.number().positive().optional(),
+  // Phase 11 (docs/roadmap/phase-11-recurring-rides.md): set only by the
+  // driver auto-draft confirmation flow, tagging the created ride as
+  // originating from an `enabled` recurring pattern (rides.recurringPatternId,
+  // already schema-modeled — see docs/domain/model.md). Reuses this same
+  // ride-creation endpoint with a pre-filled body rather than a bespoke
+  // "confirm auto-draft" endpoint, per the phase doc's explicit scope.
+  recurringPatternId: z.string().uuid().optional(),
 });
 export type CreateRideInput = z.infer<typeof createRideSchema>;
 

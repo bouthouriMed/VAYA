@@ -24,6 +24,14 @@ export * from './rating/rating-window';
 export * from './rating/rating-aggregate';
 
 export * from './recurring/recurring-pattern.types';
+export * from './recurring/recurring-detection-config.types';
+export * from './recurring/default-recurring-detection-config';
+export * from './recurring/trip-history.types';
+export * from './recurring/detect-recurring-patterns';
+export * from './recurring/recurring-pattern-status';
+export * from './recurring/should-resuggest-after-dismissal';
+export * from './recurring/day-of-week';
+export * from './recurring/next-occurrence';
 
 export * from './relationship/relationship-signal.types';
 

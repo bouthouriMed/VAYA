@@ -4,7 +4,12 @@ import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
 import * as schema from './schema/index.js';
 import { getRoute } from '../lib/routing.js';
-import { computeSuggestedPrice, DEFAULT_PRICING_CONFIG, type SuggestedPrice } from '@vaya/domain';
+import {
+  computeSuggestedPrice,
+  DEFAULT_PRICING_CONFIG,
+  DEFAULT_RECURRING_DETECTION_CONFIG,
+  type SuggestedPrice,
+} from '@vaya/domain';
 
 const {
   users,
@@ -21,6 +26,7 @@ const {
   demandSignals,
   notifications,
   pricingConfigs,
+  recurringDetectionConfigs,
 } = schema;
 
 function hoursFromNow(h: number): Date {
@@ -71,6 +77,24 @@ async function main(): Promise<void> {
     minMultiplier: nationalPricingConfig.minMultiplier,
     maxMultiplier: nationalPricingConfig.maxMultiplier,
   };
+
+  // ── Recurring-pattern detection config (Phase 11, docs/domain/model.md) ──
+  // Seeded the same way as the pricing config above: a single active
+  // `global`-scope row so the detection job/recurring.service.ts never
+  // silently falls back to @vaya/domain's DEFAULT_RECURRING_DETECTION_CONFIG
+  // in a seeded environment.
+  await db.insert(recurringDetectionConfigs).values({
+    scope: 'global',
+    minTripCount: DEFAULT_RECURRING_DETECTION_CONFIG.minTripCount,
+    fullConfidenceTripCount: DEFAULT_RECURRING_DETECTION_CONFIG.fullConfidenceTripCount,
+    lookbackDays: DEFAULT_RECURRING_DETECTION_CONFIG.lookbackDays,
+    corridorRadiusMeters: DEFAULT_RECURRING_DETECTION_CONFIG.corridorRadiusMeters,
+    timeWindowMinutes: DEFAULT_RECURRING_DETECTION_CONFIG.timeWindowMinutes,
+    suggestedConfidenceThreshold: DEFAULT_RECURRING_DETECTION_CONFIG.suggestedConfidenceThreshold,
+    dismissalRequiredConfidenceDelta:
+      DEFAULT_RECURRING_DETECTION_CONFIG.dismissalRequiredConfidenceDelta,
+    active: true,
+  });
 
   // ── Routes (corridors) ─────────────────────────────────────────────
   // Corridor definitions carry only origin/destination — distance/duration

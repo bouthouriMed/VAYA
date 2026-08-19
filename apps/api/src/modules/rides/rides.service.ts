@@ -1,6 +1,6 @@
 import { and, desc, eq } from 'drizzle-orm';
 import type { getDatabase } from '../../lib/database.js';
-import { driverProfiles, rides, vehicles } from '../../db/schema/index.js';
+import { driverProfiles, recurringPatterns, rides, vehicles } from '../../db/schema/index.js';
 import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from '../../lib/errors.js';
 import { canTransitionRideStatus, computeSuggestedPrice, type SuggestedPrice } from '@vaya/domain';
 import { getRoute, type RouteResult } from '../../lib/routing.js';
@@ -71,6 +71,25 @@ export async function createRide(
   });
   if (!vehicle) throw new ForbiddenError('This vehicle does not belong to you');
 
+  // Phase 11 (docs/roadmap/phase-11-recurring-rides.md): the driver
+  // auto-draft flow tags the created ride with the `enabled` driver pattern
+  // it originated from. Never trust the client's word alone that this
+  // pattern belongs to them and is actually enabled — the same
+  // server-authoritative discipline as the vehicle-ownership check above.
+  if (input.recurringPatternId) {
+    const pattern = await db.query.recurringPatterns.findFirst({
+      where: eq(recurringPatterns.id, input.recurringPatternId),
+    });
+    if (
+      !pattern ||
+      pattern.userId !== userId ||
+      pattern.role !== 'driver' ||
+      pattern.status !== 'enabled'
+    ) {
+      throw new ForbiddenError('This recurring pattern cannot be used to draft a ride');
+    }
+  }
+
   const route = await getRoute(
     { lat: input.origin.lat, lng: input.origin.lng },
     { lat: input.destination.lat, lng: input.destination.lng },
@@ -119,6 +138,7 @@ export async function createRide(
       status: 'draft',
       routePolyline: route.polyline || null,
       estimatedDurationSec: route.durationSec,
+      recurringPatternId: input.recurringPatternId ?? null,
     })
     .returning();
   if (!ride) throw new Error('Failed to create ride');
