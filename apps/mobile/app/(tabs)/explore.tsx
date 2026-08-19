@@ -1,19 +1,61 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { Text, Button, MapPreview, FieldCard, FieldRow, colors, spacing } from '@vaya/design-system';
+import {
+  Text,
+  Button,
+  MapPreview,
+  FieldCard,
+  FieldRow,
+  Chip,
+  DepartureTimeSheet,
+  formatDepartureLabel,
+  colors,
+  spacing,
+} from '@vaya/design-system';
 import { router } from 'expo-router';
 import { CURRENT_USER } from '../../src/mocks/seed-data';
 import { useAppDispatch, useAppSelector } from '../../src/state/store';
-import { setOrigin, swapOriginDestination, startSearch } from '../../src/state/searchSlice';
+import {
+  setOrigin,
+  swapOriginDestination,
+  setDesiredDepartureAt,
+  startSearch,
+} from '../../src/state/searchSlice';
 import { useCurrentPosition } from '../../src/services/location/useCurrentPosition';
+
+/** Next occurrence of 14:00 — today if it hasn't passed yet, tomorrow
+ *  otherwise. Never offers an already-past time (same rule the full
+ *  DepartureTimeSheet grid enforces). */
+function thisAfternoon(): Date {
+  const d = new Date();
+  d.setHours(14, 0, 0, 0);
+  if (d.getTime() <= Date.now()) d.setDate(d.getDate() + 1);
+  return d;
+}
+
+function tomorrowMorning(): Date {
+  const d = new Date();
+  d.setDate(d.getDate() + 1);
+  d.setHours(8, 0, 0, 0);
+  return d;
+}
+
+const WHEN_PRESETS: { label: string; getValue: () => Date | null }[] = [
+  { label: 'Maintenant', getValue: () => null },
+  { label: 'Dans 1h', getValue: () => new Date(Date.now() + 60 * 60_000) },
+  { label: 'Cet après-midi', getValue: () => thisAfternoon() },
+  { label: 'Demain matin', getValue: () => tomorrowMorning() },
+];
 
 export default function HomeSearchScreen(): React.JSX.Element {
   const dispatch = useAppDispatch();
   const origin = useAppSelector((s) => s.search.origin);
   const destination = useAppSelector((s) => s.search.destination);
+  const desiredDepartureAt = useAppSelector((s) => s.search.desiredDepartureAt);
   const { status, position } = useCurrentPosition();
+  const [isWhenSheetOpen, setIsWhenSheetOpen] = useState(false);
 
   // Silently adopt the device's GPS fix as the default departure point the
   // moment it resolves — mirrors Uber/BlaBlaCar's "we already know where you
@@ -83,6 +125,39 @@ export default function HomeSearchScreen(): React.JSX.Element {
         ) : null}
       </View>
 
+      <View style={styles.whenSection}>
+        <Text variant="label" color={colors.gray700}>
+          Quand ?
+        </Text>
+        <View style={styles.whenChipRow}>
+          {WHEN_PRESETS.map((preset) => {
+            const value = preset.getValue();
+            const selected =
+              value === null
+                ? desiredDepartureAt === null
+                : desiredDepartureAt === value.toISOString();
+            return (
+              <TouchableOpacity
+                key={preset.label}
+                onPress={() => dispatch(setDesiredDepartureAt(value ? value.toISOString() : null))}
+              >
+                <Chip label={preset.label} tone={selected ? 'default' : 'dim'} />
+              </TouchableOpacity>
+            );
+          })}
+          <TouchableOpacity onPress={() => setIsWhenSheetOpen(true)}>
+            <Chip label="Choisir une date" tone="dim" />
+          </TouchableOpacity>
+        </View>
+        {desiredDepartureAt ? (
+          <TouchableOpacity onPress={() => setIsWhenSheetOpen(true)}>
+            <Text variant="bodySmall" color={colors.gray600} style={styles.whenValue}>
+              Départ : {formatDepartureLabel(new Date(desiredDepartureAt))}
+            </Text>
+          </TouchableOpacity>
+        ) : null}
+      </View>
+
       <View style={styles.spacer} />
 
       <Button
@@ -94,6 +169,14 @@ export default function HomeSearchScreen(): React.JSX.Element {
           router.push('/search/results');
         }}
         style={styles.cta}
+      />
+
+      <DepartureTimeSheet
+        visible={isWhenSheetOpen}
+        onClose={() => setIsWhenSheetOpen(false)}
+        value={desiredDepartureAt ? new Date(desiredDepartureAt) : new Date()}
+        onChange={(date) => dispatch(setDesiredDepartureAt(date.toISOString()))}
+        title="Quand partez-vous ?"
       />
     </SafeAreaView>
   );
@@ -111,6 +194,17 @@ const styles = StyleSheet.create({
   },
   fieldWrap: {
     position: 'relative',
+  },
+  whenSection: {
+    gap: spacing.sm,
+  },
+  whenChipRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  whenValue: {
+    marginTop: spacing.xs,
   },
   swapBtn: {
     position: 'absolute',

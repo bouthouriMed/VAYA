@@ -28,6 +28,13 @@ interface SearchState {
    *  useMatchingSearchQuery calls share one RTK Query cache entry instead
    *  of each computing `new Date()` independently and missing the cache. */
   searchAt: string | null;
+  /** The rider's chosen departure window, set on explore.tsx's "Quand ?"
+   *  field — null means "now" (the long-standing default: search departs
+   *  the instant "Rechercher" is pressed). Kept separate from `searchAt`
+   *  (which is always a concrete instant, captured once search starts)
+   *  since this can be a still-open-ended user choice right up until
+   *  that moment. */
+  desiredDepartureAt: string | null;
   /** The pickup stop chosen on search/pickup-point.tsx for whichever ride
    *  is currently being booked. Cleared whenever a new ride is selected
    *  (cluster.tsx) so a stale stop from a previous ride can never leak
@@ -39,6 +46,7 @@ const initialState: SearchState = {
   origin: null,
   destination: null,
   searchAt: null,
+  desiredDepartureAt: null,
   selectedStop: null,
 };
 
@@ -57,8 +65,11 @@ const searchSlice = createSlice({
       state.origin = destination;
       state.destination = origin;
     },
+    setDesiredDepartureAt(state, action: PayloadAction<string | null>) {
+      state.desiredDepartureAt = action.payload;
+    },
     startSearch(state) {
-      state.searchAt = new Date().toISOString();
+      state.searchAt = state.desiredDepartureAt ?? new Date().toISOString();
     },
     selectPickupStop(state, action: PayloadAction<SelectedPickupStop>) {
       state.selectedStop = action.payload;
@@ -76,6 +87,7 @@ export const {
   setOrigin,
   setDestination,
   swapOriginDestination,
+  setDesiredDepartureAt,
   startSearch,
   selectPickupStop,
   clearPickupStop,
