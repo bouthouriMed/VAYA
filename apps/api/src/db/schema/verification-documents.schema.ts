@@ -4,6 +4,8 @@ import { driverProfiles } from './driver-profiles.schema';
 export const verificationDocumentTypeEnum = pgEnum('verification_document_type', [
   'license',
   'registration',
+  'insurance',
+  'selfie',
 ]);
 
 export const verificationDocumentStatusEnum = pgEnum('verification_document_status', [

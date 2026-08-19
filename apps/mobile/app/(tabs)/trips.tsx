@@ -55,7 +55,7 @@ export default function TripsScreen(): React.JSX.Element {
   const [cancelRide] = useCancelRideMutation();
 
   function goToDriverFlow(): void {
-    router.push(driverProfile ? '/driver/publish' : '/driver/onboarding');
+    router.push(driverProfile ? '/driver/publish' : '/driver/onboarding/vehicle');
   }
 
   return (

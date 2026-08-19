@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { createDriverOnboardingSchema, updateVehicleSchema } from '@vaya/validation';
+import { VERIFICATION_DOCUMENT_TYPES } from '@vaya/domain';
 import { getDatabase } from '../../lib/database.js';
 import { getUserId } from '../../lib/auth-context.js';
 import { createOnboarding, getMyDriverProfile, updateVehicle } from './drivers.service.js';
@@ -20,7 +21,7 @@ const vehicleSchema = z.object({
 const documentSchema = z.object({
   id: z.string().uuid(),
   driverProfileId: z.string().uuid(),
-  type: z.enum(['license', 'registration']),
+  type: z.enum(VERIFICATION_DOCUMENT_TYPES),
   fileUrl: z.string(),
   status: z.enum(['pending', 'approved', 'rejected']),
 });

@@ -39,6 +39,13 @@ module.exports = {
             "VAYA a besoin d'accéder à vos photos pour la photo du véhicule et les documents justificatifs.",
         },
       ],
+      [
+        'expo-camera',
+        {
+          cameraPermission:
+            'VAYA utilise la caméra pour vérifier votre permis, votre assurance et votre identité en direct.',
+        },
+      ],
     ],
     experiments: {
       typedRoutes: true,

@@ -49,7 +49,7 @@ export default function ProfileScreen(): React.JSX.Element {
   }
 
   function goToDriverFlow(): void {
-    router.push(realDriverProfile ? '/driver/publish' : '/driver/onboarding');
+    router.push(realDriverProfile ? '/driver/publish' : '/driver/onboarding/vehicle');
   }
 
   return (
