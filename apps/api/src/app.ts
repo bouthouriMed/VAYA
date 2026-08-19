@@ -4,6 +4,7 @@ import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import jwt from '@fastify/jwt';
 import multipart from '@fastify/multipart';
+import rateLimit from '@fastify/rate-limit';
 import staticPlugin from '@fastify/static';
 import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
@@ -54,6 +55,13 @@ export async function buildApp() {
   // Plugins
   await app.register(cors, { origin: env.CORS_ORIGIN });
   await app.register(helmet);
+  // Conservative global default; per-route overrides (e.g. OTP request,
+  // which has an SMS-cost/spam-abuse surface) use the `config.rateLimit`
+  // route option — see auth.routes.ts.
+  await app.register(rateLimit, {
+    max: 100,
+    timeWindow: '1 minute',
+  });
   await app.register(jwt, { secret: env.JWT_SECRET });
   await app.register(multipart);
   await app.register(staticPlugin, {
