@@ -16,7 +16,12 @@ import {
 import { router, useLocalSearchParams, useNavigation } from 'expo-router';
 import { useAppDispatch, useAppSelector } from '../../src/state/store';
 import { clearPickupStop } from '../../src/state/searchSlice';
-import { useMatchingSearchQuery, useGetUserTrustSummaryQuery, type MatchCandidate } from '../../src/state/api';
+import {
+  useMatchingSearchQuery,
+  useCorridorFallbackQuery,
+  useGetUserTrustSummaryQuery,
+  type MatchCandidate,
+} from '../../src/state/api';
 import { decodePolyline } from '../../src/utils/polyline';
 import { trackEvent } from '../../src/services/analytics/analytics';
 import { trustTierBadge } from '../../src/features/ratings/ratingHelpers';
@@ -58,11 +63,28 @@ export default function ClusterScreen(): React.JSX.Element {
       : undefined;
 
   // Same args as results.tsx → served from RTK Query's cache, no extra fetch.
-  const { data: allCandidates, isLoading } = useMatchingSearchQuery(searchArgs ?? skipToken);
-  const clusterCandidates = useMemo(
+  const { data: allCandidates, isLoading: isLoadingExact } = useMatchingSearchQuery(
+    searchArgs ?? skipToken,
+  );
+  const exactMatches = useMemo(
     () => (allCandidates ?? []).filter((c) => c.clusterLabel === label),
     [allCandidates, label],
   );
+  // A cluster tapped from results.tsx's fallback ("Rien d'exact, mais N
+  // trajet(s) à proximité") list only exists in useCorridorFallbackQuery's
+  // data, not in the exact-match list above — without this, tapping one
+  // filtered an empty array and fell straight into the "no longer
+  // available" empty state. Same cache-args as results.tsx, so this is
+  // served from cache (no extra fetch) whenever results.tsx already ran it.
+  const needsFallback = !isLoadingExact && exactMatches.length === 0;
+  const { data: fallback, isFetching: isLoadingFallback } = useCorridorFallbackQuery(
+    !searchArgs || !needsFallback ? skipToken : searchArgs,
+  );
+  const isLoading = isLoadingExact || (needsFallback && isLoadingFallback);
+  const clusterCandidates = useMemo(() => {
+    if (exactMatches.length > 0) return exactMatches;
+    return (fallback?.nearbyRides ?? []).filter((c) => c.clusterLabel === label);
+  }, [exactMatches, fallback, label]);
   // Never present a ride the passenger can't actually book (product
   // principle #1/#4): a ride whose route_stops exist but none are
   // walkable for this passenger (`pickupViable: false`,
