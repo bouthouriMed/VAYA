@@ -11,6 +11,7 @@ import {
   colors,
   spacing,
   radii,
+  formatDepartureLabel,
 } from '@vaya/design-system';
 import { router } from 'expo-router';
 import { useAppSelector } from '../../src/state/store';
@@ -96,13 +97,18 @@ export default function ResultsScreen(): React.JSX.Element {
 
   async function handleNotifyMe(): Promise<void> {
     if (!origin || !destination) return;
-    const now = new Date();
+    // Centered on the time the rider actually searched for (which may be a
+    // future date/time chosen on explore.tsx), not always "right now" — a
+    // notify-me signal for a search set to "Demain matin" should watch that
+    // window, not the next 3 hours from whenever the button happened to be
+    // tapped.
+    const target = new Date(searchAt ?? Date.now());
     try {
       await notifyMe({
         origin: { label: origin.label, lat: origin.lat, lng: origin.lng },
         destination: { label: destination.label, lat: destination.lat, lng: destination.lng },
-        desiredWindowStart: now,
-        desiredWindowEnd: new Date(now.getTime() + 3 * 3_600_000),
+        desiredWindowStart: new Date(target.getTime() - 1.5 * 3_600_000),
+        desiredWindowEnd: new Date(target.getTime() + 1.5 * 3_600_000),
       }).unwrap();
       showToast({ message: 'Nous vous préviendrons dès qu’un trajet apparaît.', tone: 'success' });
     } catch {
@@ -116,6 +122,7 @@ export default function ResultsScreen(): React.JSX.Element {
         {origin && destination ? (
           <Text variant="bodySmall" color={colors.gray500} numberOfLines={1}>
             {origin.label} → {destination.label}
+            {searchAt ? ` · ${formatDepartureLabel(new Date(searchAt))}` : ''}
           </Text>
         ) : null}
         <Text variant="h2" style={styles.headline}>
