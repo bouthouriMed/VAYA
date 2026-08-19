@@ -4,6 +4,13 @@ import { bookings, rides, routeStops, trips } from '../../db/schema/index.js';
 import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from '../../lib/errors.js';
 import { canTransitionBookingStatus, canTransitionRideStatus } from '@vaya/domain';
 import type { CreateBookingInput } from '@vaya/validation';
+import { getLogger } from '../../config/logger.js';
+// Phase 7 (docs/roadmap/phase-07-notifications.md): notification-row
+// creation hooked in around the existing accept/decline/request flows
+// below — Phase 1's atomic seat-accounting logic in acceptBooking/
+// cancelBooking is untouched, this only adds a best-effort side effect
+// after each transition already succeeded.
+import { createNotification } from '../notifications/notifications.service.js';
 
 type Database = ReturnType<typeof getDatabase>;
 
@@ -14,6 +21,26 @@ async function getRideOrThrow(db: Database, rideId: string) {
   });
   if (!ride) throw new NotFoundError('Ride');
   return ride;
+}
+
+/**
+ * Best-effort wrapper around createNotification for the three call sites
+ * below. createNotification already isolates push-*send* failures (they
+ * never leave the enqueue call); this extra layer covers the notification
+ * *row insert* itself failing too — either way, the booking action that
+ * triggered it must succeed regardless (this phase's business rule).
+ */
+async function notifyBestEffort(
+  db: Database,
+  userId: string,
+  type: Parameters<typeof createNotification>[2],
+  payload: Record<string, unknown>,
+): Promise<void> {
+  try {
+    await createNotification(db, userId, type, payload);
+  } catch (err) {
+    getLogger().error({ err, userId, type }, 'Failed to create notification row for booking event');
+  }
 }
 
 async function getBookingOrThrow(db: Database, bookingId: string) {
@@ -98,6 +125,14 @@ export async function createBooking(
     })
     .returning();
   if (!booking) throw new Error('Failed to create booking');
+
+  await notifyBestEffort(db, ride.driverProfile.userId, 'booking_requested', {
+    bookingId: booking.id,
+    rideId,
+    riderId,
+    seatsRequested: booking.seatsRequested,
+  });
+
   return booking;
 }
 
@@ -174,6 +209,11 @@ export async function acceptBooking(db: Database, bookingId: string, requestingU
     .insert(trips)
     .values({ bookingId: booking.id, rideId: booking.rideId, status: 'scheduled' });
 
+  await notifyBestEffort(db, booking.riderId, 'booking_accepted', {
+    bookingId: booking.id,
+    rideId: booking.rideId,
+  });
+
   return updated;
 }
 
@@ -192,6 +232,12 @@ export async function declineBooking(db: Database, bookingId: string, requesting
     .where(eq(bookings.id, bookingId))
     .returning();
   if (!updated) throw new Error('Failed to decline booking');
+
+  await notifyBestEffort(db, booking.riderId, 'booking_declined', {
+    bookingId: booking.id,
+    rideId: booking.rideId,
+  });
+
   return updated;
 }
 

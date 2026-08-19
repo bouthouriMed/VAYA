@@ -32,7 +32,10 @@ Driver KYC documents (license, insurance, selfie match) backing `driverProfiles.
 `id, tripId (FK), raterUserId, rateeUserId, role (rider_rates_driver|driver_rates_rider), stars, punctualityFlag, comment`. Feeds back into `driverProfiles.ratingAvg`/`punctualityScore` (aggregation mechanism not located in this pass — verify during the Ratings & Trust phase). Symmetric rider↔driver rating, matching the benchmark's mutual-rating model.
 
 ### `notifications`
-`id, userId, type (booking_requested|booking_accepted|booking_declined|trip_driver_approaching|trip_completed|recurring_pattern_detected|recurring_proactive_match|demand_signal_matched), payload (jsonb), readAt`. **The event taxonomy already anticipates recurring-ride and demand-signal notifications** — the schema was designed ahead of the features that would populate it. No dispatch mechanism (push/SMS) exists yet — this table only represents in-app notification records.
+`id, userId, type (booking_requested|booking_accepted|booking_declined|trip_driver_approaching|trip_completed|recurring_pattern_detected|recurring_proactive_match|demand_signal_matched), payload (jsonb), readAt`. **The event taxonomy already anticipates recurring-ride and demand-signal notifications** — the schema was designed ahead of the features that would populate it. Columns unchanged since the original audit. **As of Phase 7 (`docs/roadmap/phase-07-notifications.md`), a real dispatch mechanism exists**: a row created for `booking_requested`/`booking_accepted`/`booking_declined` (the only 3 types wired up so far) enqueues a BullMQ job that pushes to the user's registered `device_tokens` via Expo's push API. The other 5 event types remain schema-only, populated by nothing yet — future phases (Recurring Rides, demand signals) wire those.
+
+### `device_tokens` (new — Phase 7)
+`id, userId (FK→users, cascade), token (globally unique), platform (ios|android), createdAt, updatedAt`. One row per (user, device) — a device's Expo push token. A re-registration (reinstall, refreshed token, or the same device logging into a different account) updates the existing row in place rather than accumulating duplicates, since `token` uniquely identifies one current installation. Written via `POST /users/me/push-token`; read by the notification-dispatch worker (`apps/api/src/modules/notifications`) to know where to push.
 
 ### `demand_signals`
 `id, userId, originLabel/Lat/Lng, destinationLabel/Lat/Lng, desiredWindowStart/End, status (open|notified|expired)`. Backs the "notify me" fallback in `results.tsx` — created via `createDemandSignal`, read by `corridorFallback` in `matching.service.ts` to count unmet demand near a searched corridor. **Source of truth for unmatched passenger intent** — valuable signal for where to seed driver supply (see `docs/product/benchmark.md` §6 cold-start).
@@ -83,3 +86,4 @@ Per-trip (scoped to a `booking` or `trip`) conversation between driver and rider
 | Familiarity between two users | `relationship_signals` |
 | Candidate stops on a route (new) | `route_stops` |
 | Price bounds (new) | `pricing_configs` |
+| A device's push token (new, Phase 7) | `device_tokens` |

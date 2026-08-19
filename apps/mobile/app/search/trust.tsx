@@ -19,9 +19,11 @@ import {
   useGetUserPublicProfileQuery,
   useGetRideQuery,
   useCreateBookingMutation,
+  useRegisterPushTokenMutation,
 } from '../../src/state/api';
 import { useAppDispatch, useAppSelector } from '../../src/state/store';
 import { clearPickupStop } from '../../src/state/searchSlice';
+import { requestPushPermissionAndRegister } from '../../src/services/notifications/registerForPushNotifications';
 
 const HERO_HEIGHT = 200;
 const HERO_AVATAR_PX = 108;
@@ -43,6 +45,7 @@ export default function TrustScreen(): React.JSX.Element {
   const { data: profile, isLoading: isProfileLoading } = useGetUserPublicProfileQuery(driverUserId);
   const { data: ride, isLoading: isRideLoading } = useGetRideQuery(rideId);
   const [createBooking, { isLoading: isBooking }] = useCreateBookingMutation();
+  const [registerPushToken] = useRegisterPushTokenMutation();
 
   const stickyBg = scrollY.interpolate({
     inputRange: [0, STICKY_THRESHOLD],
@@ -99,6 +102,10 @@ export default function TrustScreen(): React.JSX.Element {
         },
       }).unwrap();
       haptics.success();
+      // Contextual push-permission prompt (docs/roadmap/phase-07-notifications.md):
+      // a passenger's first booking request is a real reason to ask — never
+      // blocks navigation, and is a silent no-op after the first prompt.
+      void requestPushPermissionAndRegister((args) => registerPushToken(args).unwrap());
       dispatch(clearPickupStop());
       router.dismissTo({
         pathname: '/bookings/confirmed',
