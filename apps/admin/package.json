@@ -1,0 +1,15 @@
+{
+  "name": "@vaya/admin",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "echo 'Admin dashboard - not yet implemented'",
+    "build": "echo 'Admin dashboard - not yet implemented'",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src/"
+  },
+  "devDependencies": {
+    "eslint": "^9.11.1",
+    "typescript": "^5.5.4"
+  }
+}

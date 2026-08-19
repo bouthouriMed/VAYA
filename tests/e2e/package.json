@@ -1,0 +1,15 @@
+{
+  "name": "@vaya/e2e",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "test:api": "playwright test --project=api",
+    "test:web": "playwright test --project=web",
+    "test:all": "playwright test",
+    "test:ui": "playwright test --ui",
+    "report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.47.2"
+  }
+}
