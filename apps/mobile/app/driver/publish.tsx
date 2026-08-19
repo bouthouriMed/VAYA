@@ -19,6 +19,7 @@ import {
   DriverMapPin,
   MapRoute,
   BottomSheet,
+  DepartureTimeSheet,
   EmptyState,
   SkeletonBlock,
   StepProgress,
@@ -31,6 +32,7 @@ import {
   typography,
   haptics,
   regionForPoints,
+  formatDepartureLabel,
 } from '@vaya/design-system';
 import { router } from 'expo-router';
 import { useAppDispatch, useAppSelector } from '../../src/state/store';
@@ -49,7 +51,10 @@ import {
 import { decodePolyline } from '../../src/utils/polyline';
 import { trackEvent } from '../../src/services/analytics/analytics';
 import { requestPushPermissionAndRegister } from '../../src/services/notifications/registerForPushNotifications';
-import { toggleStopSelection, buildStopSelectionPayload } from '../../src/features/driver-publish/stopSelection';
+import {
+  toggleStopSelection,
+  buildStopSelectionPayload,
+} from '../../src/features/driver-publish/stopSelection';
 import { resolveInitialPrice } from '../../src/features/driver-publish/priceSelection';
 
 const DEPARTURE_PRESETS = [
@@ -74,7 +79,14 @@ export default function PublishRideScreen(): React.JSX.Element {
   const dispatch = useAppDispatch();
   const origin = useAppSelector((s) => s.search.origin);
   const destination = useAppSelector((s) => s.search.destination);
-  const [departureMinutes, setDepartureMinutes] = useState(30);
+  // Departure is a real date/time (any day, any half-hour slot), not just a
+  // relative-minutes offset — DEPARTURE_PRESETS below stay as fast one-tap
+  // shortcuts for the common "leaving soon" case, but a driver publishing a
+  // ride for tomorrow or next week needs `departureAt` to hold an arbitrary
+  // instant, which `selectedPresetMinutes` (highlighting only) can't express.
+  const [departureAt, setDepartureAt] = useState(() => new Date(Date.now() + 30 * 60_000));
+  const [selectedPresetMinutes, setSelectedPresetMinutes] = useState<number | null>(30);
+  const [isDepartureSheetOpen, setIsDepartureSheetOpen] = useState(false);
   const [seats, setSeats] = useState(3);
   const [errorMessage, setErrorMessage] = useState<string | undefined>();
 
@@ -143,7 +155,8 @@ export default function PublishRideScreen(): React.JSX.Element {
   const stepMotionStyle = { opacity: stepFade, transform: [{ translateY: stepRise }] };
 
   const vehicle = driverProfile?.vehicles[0];
-  const canContinue = Boolean(origin && destination && vehicle) && !isCreating;
+  const canContinue =
+    Boolean(origin && destination && vehicle) && departureAt.getTime() > Date.now() && !isCreating;
   const isPublishing = isSavingStops || isPublishingRide;
 
   const routeCoordinates = useMemo(
@@ -197,7 +210,7 @@ export default function PublishRideScreen(): React.JSX.Element {
         vehicleId: vehicle.id,
         origin: { label: origin.label, lat: origin.lat, lng: origin.lng },
         destination: { label: destination.label, lat: destination.lat, lng: destination.lng },
-        departureAt: new Date(Date.now() + departureMinutes * 60_000),
+        departureAt,
         seatsTotal: seats,
         // Phase 6 (docs/domain/pricing.md): price is deliberately omitted
         // here — the driver hasn't seen a route-derived bound yet, so
@@ -392,7 +405,7 @@ export default function PublishRideScreen(): React.JSX.Element {
               title={
                 osrmUnavailable
                   ? "Suggestions d'arrêts indisponibles pour le moment."
-                  : "Aucun arrêt suggéré pour ce trajet."
+                  : 'Aucun arrêt suggéré pour ce trajet.'
               }
               description="Vous pouvez publier avec uniquement le point de départ et d'arrivée — c'est un trajet valide."
             />
@@ -400,47 +413,47 @@ export default function PublishRideScreen(): React.JSX.Element {
             <>
               <View style={styles.mapShadowWrap}>
                 <View style={styles.mapWrap}>
-                {mapRegion ? (
-                  <MapView
-                    provider={PROVIDER_DEFAULT}
-                    style={styles.map}
-                    initialRegion={mapRegion}
-                  >
-                    {origin ? (
-                      <Marker
-                        coordinate={{ latitude: origin.lat, longitude: origin.lng }}
-                        anchor={{ x: 0.5, y: 0.5 }}
-                      >
-                        <View style={styles.originDot} />
-                      </Marker>
-                    ) : null}
-                    {destination ? (
-                      <Marker
-                        coordinate={{ latitude: destination.lat, longitude: destination.lng }}
-                        anchor={{ x: 0.5, y: 0.5 }}
-                      >
-                        <View style={styles.destinationDot} />
-                      </Marker>
-                    ) : null}
-                    {routeCoordinates.length > 1 ? (
-                      <MapRoute coordinates={routeCoordinates} showCorridor />
-                    ) : null}
-                    {candidates.map((stop) => (
-                      <Marker
-                        key={stop.id}
-                        coordinate={{ latitude: stop.lat, longitude: stop.lng }}
-                        onPress={() => setActiveStop(stop)}
-                      >
-                        <DriverMapPin
-                          variant="compact"
-                          data={{ id: stop.id, name: stop.label }}
-                          recommended={selectedIds.has(stop.id)}
-                          accentColor={colors.secondary}
-                        />
-                      </Marker>
-                    ))}
-                  </MapView>
-                ) : null}
+                  {mapRegion ? (
+                    <MapView
+                      provider={PROVIDER_DEFAULT}
+                      style={styles.map}
+                      initialRegion={mapRegion}
+                    >
+                      {origin ? (
+                        <Marker
+                          coordinate={{ latitude: origin.lat, longitude: origin.lng }}
+                          anchor={{ x: 0.5, y: 0.5 }}
+                        >
+                          <View style={styles.originDot} />
+                        </Marker>
+                      ) : null}
+                      {destination ? (
+                        <Marker
+                          coordinate={{ latitude: destination.lat, longitude: destination.lng }}
+                          anchor={{ x: 0.5, y: 0.5 }}
+                        >
+                          <View style={styles.destinationDot} />
+                        </Marker>
+                      ) : null}
+                      {routeCoordinates.length > 1 ? (
+                        <MapRoute coordinates={routeCoordinates} showCorridor />
+                      ) : null}
+                      {candidates.map((stop) => (
+                        <Marker
+                          key={stop.id}
+                          coordinate={{ latitude: stop.lat, longitude: stop.lng }}
+                          onPress={() => setActiveStop(stop)}
+                        >
+                          <DriverMapPin
+                            variant="compact"
+                            data={{ id: stop.id, name: stop.label }}
+                            recommended={selectedIds.has(stop.id)}
+                            accentColor={colors.secondary}
+                          />
+                        </Marker>
+                      ))}
+                    </MapView>
+                  ) : null}
                 </View>
               </View>
               <Text variant="bodySmall" color={colors.gray600} align="center" style={styles.hint}>
@@ -546,15 +559,33 @@ export default function PublishRideScreen(): React.JSX.Element {
                 {DEPARTURE_PRESETS.map((preset) => (
                   <TouchableOpacity
                     key={preset.minutes}
-                    onPress={() => setDepartureMinutes(preset.minutes)}
+                    onPress={() => {
+                      setDepartureAt(new Date(Date.now() + preset.minutes * 60_000));
+                      setSelectedPresetMinutes(preset.minutes);
+                    }}
                   >
                     <Chip
                       label={preset.label}
-                      tone={departureMinutes === preset.minutes ? 'default' : 'dim'}
+                      tone={selectedPresetMinutes === preset.minutes ? 'default' : 'dim'}
                     />
                   </TouchableOpacity>
                 ))}
+                <TouchableOpacity onPress={() => setIsDepartureSheetOpen(true)}>
+                  <Chip
+                    label="Choisir une date"
+                    tone={selectedPresetMinutes === null ? 'default' : 'dim'}
+                  />
+                </TouchableOpacity>
               </View>
+              <TouchableOpacity
+                onPress={() => setIsDepartureSheetOpen(true)}
+                accessibilityRole="button"
+                accessibilityLabel={`Départ prévu, ${formatDepartureLabel(departureAt)}`}
+              >
+                <Text variant="body" color={colors.gray900} style={styles.departureValue}>
+                  {formatDepartureLabel(departureAt)}
+                </Text>
+              </TouchableOpacity>
             </View>
 
             <View style={[styles.section, styles.sectionDivider]}>
@@ -610,6 +641,17 @@ export default function PublishRideScreen(): React.JSX.Element {
           />
         </Animated.View>
       </ScrollView>
+
+      <DepartureTimeSheet
+        visible={isDepartureSheetOpen}
+        onClose={() => setIsDepartureSheetOpen(false)}
+        value={departureAt}
+        onChange={(date) => {
+          setDepartureAt(date);
+          setSelectedPresetMinutes(null);
+        }}
+        title="Départ prévu"
+      />
     </View>
   );
 }
@@ -673,6 +715,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: spacing.sm,
+  },
+  departureValue: {
+    marginTop: spacing.sm,
+    fontWeight: typography.fontWeight.semibold,
   },
   stepperRow: {
     flexDirection: 'row',

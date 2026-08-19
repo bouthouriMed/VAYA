@@ -51,6 +51,11 @@ describe('Design system primitives', () => {
     expect(primitives.RoutePulseBadge).toBeDefined();
   });
 
+  it('exports the departure date/time picker sheet', async () => {
+    const primitives = await import('../primitives/index.js');
+    expect(primitives.DepartureTimeSheet).toBeDefined();
+  });
+
   it('exports haptics from the package root', async () => {
     const index = await import('../index.js');
     expect(index.haptics).toBeDefined();
