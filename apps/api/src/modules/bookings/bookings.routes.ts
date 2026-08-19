@@ -21,6 +21,7 @@ const bookingResponseSchema = z.object({
   seatsRequested: z.number(),
   contributionTotal: z.number(),
   status: z.enum(BOOKING_STATUSES),
+  pickupStopId: z.string().uuid().nullable(),
   pickupLabel: z.string(),
   pickupLat: z.number(),
   pickupLng: z.number(),

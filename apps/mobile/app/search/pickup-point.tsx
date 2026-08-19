@@ -1,189 +1,269 @@
-import { useMemo, useRef, useState, useEffect } from 'react';
-import { View, StyleSheet, TouchableOpacity, PanResponder, Animated } from 'react-native';
+import { useEffect, useMemo, useState } from 'react';
+import { View, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { Marker, Polyline } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { Text, Button, colors, spacing, radii, typography } from '@vaya/design-system';
-import { router } from 'expo-router';
+import { skipToken } from '@reduxjs/toolkit/query/react';
+import {
+  Text,
+  Button,
+  MapCanvas,
+  BottomSheet,
+  EmptyState,
+  colors,
+  spacing,
+  radii,
+  typography,
+  regionForPoints,
+  haptics,
+} from '@vaya/design-system';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useAppDispatch, useAppSelector } from '../../src/state/store';
-import { confirmPickupPoint } from '../../src/state/searchSlice';
-import { PLACES } from '../../src/mocks/seed-data';
+import { selectPickupStop } from '../../src/state/searchSlice';
+import { useMatchingSearchQuery, type MatchCandidate, type RankedStop } from '../../src/state/api';
+import { decodePolyline } from '../../src/utils/polyline';
+import { trackEvent } from '../../src/services/analytics/analytics';
+import { defaultStopId, rankedPosition } from '../../src/features/pickup-selection/pickupSelection';
 
-// Arbitrary demo projection: not geographically accurate, just consistent
-// enough that "drag toward a known place" and "the map snaps to it" agree.
-const PX_PER_DEGREE = 9000;
-const SNAP_THRESHOLD_PX = 46;
-const GRID_STEP = 70;
-const GRID_EXTENT = 700;
-
-interface Poi {
-  id: string;
-  label: string;
-  subLabel: string;
-  dx: number;
-  dy: number;
-}
-
-function buildGridLines(): number[] {
-  const lines: number[] = [];
-  for (let v = -GRID_EXTENT; v <= GRID_EXTENT; v += GRID_STEP) lines.push(v);
-  return lines;
-}
-const GRID_LINES = buildGridLines();
-
+/**
+ * Real ride-engine stop selection (docs/domain/ride-engine.md), replacing
+ * the previous fixed-degrees-per-pixel projection fake — an arbitrary demo
+ * mapping with no real geocoordinates behind it at all (docs/product/
+ * audit.md §4, the single worst finding of the audit). Every point
+ * rendered here is a real `route_stops` row the driver actually selected —
+ * no free pin placement (CLAUDE.md product principle #1).
+ */
 export default function PickupPointScreen(): React.JSX.Element {
+  const { rideId, driverUserId } = useLocalSearchParams<{ rideId: string; driverUserId: string }>();
   const insets = useSafeAreaInsets();
   const dispatch = useAppDispatch();
-  const origin = useAppSelector((s) => s.search.origin);
-  const fallbackOrigin = PLACES[0]!;
-  const originLat = origin?.lat ?? fallbackOrigin.lat;
-  const originLng = origin?.lng ?? fallbackOrigin.lng;
 
-  const pan = useRef(new Animated.ValueXY({ x: 0, y: 0 })).current;
-  const offsetRef = useRef({ x: 0, y: 0 });
-  const [liveOffset, setLiveOffset] = useState({ x: 0, y: 0 });
+  const origin = useAppSelector((s) => s.search.origin);
+  const destination = useAppSelector((s) => s.search.destination);
+  const searchAt = useAppSelector((s) => s.search.searchAt);
+
+  const searchArgs =
+    origin && destination
+      ? {
+          originLat: origin.lat,
+          originLng: origin.lng,
+          destinationLat: destination.lat,
+          destinationLng: destination.lng,
+          when: searchAt ?? new Date().toISOString(),
+        }
+      : undefined;
+
+  // Same args as results.tsx/cluster.tsx → served from RTK Query's cache,
+  // no extra network round-trip for a ride the passenger already matched.
+  const { data: allCandidates, isLoading } = useMatchingSearchQuery(searchArgs ?? skipToken);
+  const candidate = useMemo<MatchCandidate | undefined>(
+    () => allCandidates?.find((c) => c.rideId === rideId),
+    [allCandidates, rideId],
+  );
+  const rankedStops = useMemo(() => candidate?.rankedStops ?? [], [candidate]);
+
+  const [selectedStopId, setSelectedStopId] = useState<string | null>(null);
+  const [detailStop, setDetailStop] = useState<RankedStop | null>(null);
+
+  // Closest/best stop pre-selected by default — map-first hybrid per
+  // docs/ux/principles.md #1, so the passenger doesn't have to scan a list
+  // before anything is chosen.
+  useEffect(() => {
+    if (!selectedStopId && rankedStops.length > 0) {
+      setSelectedStopId(defaultStopId(rankedStops));
+    }
+  }, [rankedStops, selectedStopId]);
 
   useEffect(() => {
-    const id = pan.addListener(setLiveOffset);
-    return () => pan.removeListener(id);
-  }, [pan]);
+    if (!isLoading && candidate && rankedStops.length === 0) {
+      trackEvent('pickup_no_viable_stop', { rideId });
+    }
+    // Fire once per resolved (candidate, rankedStops) pair, not on every
+    // unrelated re-render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoading, candidate, rankedStops.length]);
 
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: (_, g) => Math.abs(g.dx) > 2 || Math.abs(g.dy) > 2,
-      onPanResponderGrant: () => {
-        pan.setOffset(offsetRef.current);
-        pan.setValue({ x: 0, y: 0 });
-      },
-      onPanResponderMove: Animated.event([null, { dx: pan.x, dy: pan.y }], {
-        useNativeDriver: false,
-      }),
-      onPanResponderRelease: (_, gesture) => {
-        offsetRef.current = {
-          x: offsetRef.current.x + gesture.dx,
-          y: offsetRef.current.y + gesture.dy,
-        };
-        pan.flattenOffset();
-      },
-    }),
-  ).current;
+  const region = useMemo(() => {
+    const points = rankedStops.map((s) => ({ lat: s.lat, lng: s.lng }));
+    if (origin) points.push({ lat: origin.lat, lng: origin.lng });
+    return regionForPoints(points) ?? undefined;
+  }, [rankedStops, origin]);
 
-  const pois = useMemo<Poi[]>(
-    () =>
-      PLACES.map((p) => ({
-        id: p.id,
-        label: p.label,
-        subLabel: p.subLabel,
-        dx: (p.lng - originLng) * PX_PER_DEGREE,
-        dy: (originLat - p.lat) * PX_PER_DEGREE,
-      })),
-    [originLat, originLng],
+  const routeCoordinates = useMemo(
+    () => (candidate?.routePolyline ? decodePolyline(candidate.routePolyline) : []),
+    [candidate],
   );
 
-  const nearest = useMemo(() => {
-    let best: Poi | null = null;
-    let bestDist = Infinity;
-    for (const poi of pois) {
-      const sx = poi.dx + liveOffset.x;
-      const sy = poi.dy + liveOffset.y;
-      const dist = Math.hypot(sx, sy);
-      if (dist < bestDist) {
-        best = poi;
-        bestDist = dist;
-      }
-    }
-    return { poi: best, dist: bestDist };
-  }, [pois, liveOffset]);
+  const selectedStop = rankedStops.find((s) => s.stopId === selectedStopId) ?? null;
 
-  const snapped = nearest.dist < SNAP_THRESHOLD_PX;
-  const label = snapped && nearest.poi ? nearest.poi.label : 'Point personnalisé';
-  const subLabel =
-    snapped && nearest.poi ? nearest.poi.subLabel : 'Faites glisser la carte pour ajuster';
+  function pickStop(stop: RankedStop): void {
+    haptics.selection();
+    setSelectedStopId(stop.stopId);
+  }
 
   function confirm(): void {
-    const finalLng = originLng - liveOffset.x / PX_PER_DEGREE;
-    const finalLat = originLat + liveOffset.y / PX_PER_DEGREE;
+    if (!selectedStop) return;
+    trackEvent('pickup_stop_selected', {
+      rideId,
+      stopId: selectedStop.stopId,
+      rankedPosition: rankedPosition(rankedStops, selectedStop.stopId),
+      totalStops: rankedStops.length,
+    });
     dispatch(
-      confirmPickupPoint({
-        label,
-        subLabel: snapped && nearest.poi ? nearest.poi.subLabel : undefined,
-        lat: finalLat,
-        lng: finalLng,
-        isCurrentPosition: !snapped && origin?.isCurrentPosition,
+      selectPickupStop({
+        stopId: selectedStop.stopId,
+        label: selectedStop.label,
+        lat: selectedStop.lat,
+        lng: selectedStop.lng,
       }),
     );
-    router.back();
+    router.push({ pathname: '/search/trust', params: { rideId, driverUserId } });
+  }
+
+  if (isLoading) {
+    return (
+      <View style={styles.loadingWrap}>
+        <ActivityIndicator size="large" color={colors.secondary} />
+      </View>
+    );
+  }
+
+  if (!candidate || rankedStops.length === 0) {
+    return (
+      <View style={[styles.container, { paddingTop: insets.top }]}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          hitSlop={12}
+          style={[styles.backBtn, styles.backBtnStandalone]}
+          accessibilityRole="button"
+          accessibilityLabel="Retour"
+        >
+          <Ionicons name="chevron-back" size={24} color={colors.gray900} />
+        </TouchableOpacity>
+        <View style={styles.emptyWrap}>
+          <EmptyState
+            icon={<Ionicons name="location-outline" size={40} color={colors.gray400} />}
+            title="Aucun point de rendez-vous accessible"
+            description="Aucun arrêt de ce trajet n'est assez proche de votre position pour être rejoint à pied. Essayez un autre trajet ou ajustez votre recherche."
+            actionLabel="Retour à la recherche"
+            onAction={() => router.back()}
+          />
+        </View>
+      </View>
+    );
   }
 
   return (
     <View style={styles.container}>
-      <View style={styles.mapWrap} {...panResponder.panHandlers}>
-        <Animated.View
-          style={[
-            styles.world,
-            {
-              transform: [{ translateX: pan.x }, { translateY: pan.y }],
-            },
-          ]}
-        >
-          <View style={styles.blockA} />
-          <View style={styles.blockB} />
-          {GRID_LINES.map((v) => (
-            <View key={`h${v}`} style={[styles.gridLineH, { top: GRID_EXTENT + v }]} />
-          ))}
-          {GRID_LINES.map((v) => (
-            <View key={`v${v}`} style={[styles.gridLineV, { left: GRID_EXTENT + v }]} />
-          ))}
-          {pois.map((poi) => (
-            <View
-              key={poi.id}
-              style={[
-                styles.poiDot,
-                { left: GRID_EXTENT + poi.dx - 5, top: GRID_EXTENT + poi.dy - 5 },
-              ]}
-            />
-          ))}
-        </Animated.View>
+      <MapCanvas region={region} style={styles.map}>
+        {origin ? (
+          <Marker
+            coordinate={{ latitude: origin.lat, longitude: origin.lng }}
+            anchor={{ x: 0.5, y: 0.5 }}
+          >
+            <View style={styles.originDot} />
+          </Marker>
+        ) : null}
+        {routeCoordinates.length > 1 ? (
+          <Polyline coordinates={routeCoordinates} strokeColor={colors.mapRouteLine} strokeWidth={4} />
+        ) : null}
+        {rankedStops.map((stop, index) => {
+          const isSelected = stop.stopId === selectedStopId;
+          return (
+            <Marker
+              key={stop.stopId}
+              coordinate={{ latitude: stop.lat, longitude: stop.lng }}
+              onPress={() => pickStop(stop)}
+              accessibilityLabel={`${stop.label}, ${Math.round(stop.walkMinutes)} min à pied`}
+            >
+              <View style={[styles.stopPin, isSelected && styles.stopPinSelected]}>
+                <Text style={[styles.stopPinLabel, isSelected && styles.stopPinLabelSelected]}>
+                  {index + 1}
+                </Text>
+              </View>
+            </Marker>
+          );
+        })}
+      </MapCanvas>
 
-        <View style={styles.centerPinWrap} pointerEvents="none">
-          <Ionicons name="location" size={40} color={colors.primary} />
-          <View style={styles.pinShadow} />
-        </View>
-
-        <View
-          style={[styles.topBar, { paddingTop: insets.top + spacing.sm }]}
-          pointerEvents="box-none"
+      <View style={[styles.topBar, { paddingTop: insets.top + spacing.sm }]} pointerEvents="box-none">
+        <TouchableOpacity
+          onPress={() => router.back()}
+          hitSlop={12}
+          style={styles.backBtn}
+          accessibilityRole="button"
+          accessibilityLabel="Retour"
         >
-          <TouchableOpacity onPress={() => router.back()} hitSlop={12} style={styles.backBtn}>
-            <Ionicons name="chevron-back" size={24} color={colors.gray900} />
-          </TouchableOpacity>
-          <View style={styles.hint}>
-            <Text variant="bodySmall" color={colors.gray700}>
-              Faites glisser pour ajuster
-            </Text>
-          </View>
+          <Ionicons name="chevron-back" size={24} color={colors.gray900} />
+        </TouchableOpacity>
+        <View style={styles.hint}>
+          <Text variant="bodySmall" color={colors.gray700}>
+            {rankedStops.length} point{rankedStops.length > 1 ? 's' : ''} sur ce trajet
+          </Text>
         </View>
       </View>
 
       <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.md }]}>
-        <View style={styles.footerRow}>
-          <View style={styles.footerIcon}>
-            <Ionicons name="pin" size={16} color={colors.white} />
-          </View>
-          <View style={styles.footerTextCol}>
-            <Text style={styles.footerLabel}>{label}</Text>
-            <Text variant="bodySmall" color={colors.gray500} numberOfLines={1}>
-              {subLabel}
-            </Text>
-          </View>
-        </View>
+        {selectedStop ? (
+          <TouchableOpacity
+            style={styles.footerRow}
+            onPress={() => setDetailStop(selectedStop)}
+            activeOpacity={0.75}
+            accessibilityRole="button"
+            accessibilityLabel={`Détails du point ${selectedStop.label}`}
+          >
+            <View style={styles.footerIcon}>
+              <Ionicons name="pin" size={16} color={colors.white} />
+            </View>
+            <View style={styles.footerTextCol}>
+              <Text style={styles.footerLabel}>{selectedStop.label}</Text>
+              <Text variant="bodySmall" color={colors.gray500} numberOfLines={1}>
+                {Math.round(selectedStop.walkMinutes)} min à pied
+              </Text>
+            </View>
+            <Ionicons name="information-circle-outline" size={22} color={colors.gray400} />
+          </TouchableOpacity>
+        ) : null}
         <Button
           label="Confirmer ce point de rendez-vous"
           size="lg"
           onPress={confirm}
+          disabled={!selectedStop}
           style={styles.cta}
         />
       </View>
+
+      <BottomSheet
+        visible={detailStop !== null}
+        onClose={() => setDetailStop(null)}
+        title={detailStop?.label}
+      >
+        {detailStop ? (
+          <View style={styles.sheetContent}>
+            <Text variant="body" color={colors.gray700}>
+              {Math.round(detailStop.walkMinutes)} min à pied depuis votre position de départ.
+            </Text>
+            <Text variant="bodySmall" color={colors.gray500}>
+              Ce point a été validé par le conducteur comme arrêt sur son trajet.
+            </Text>
+            <Button
+              label={
+                detailStop.stopId === selectedStopId
+                  ? 'Point sélectionné'
+                  : 'Choisir ce point'
+              }
+              variant={detailStop.stopId === selectedStopId ? 'outline' : 'primary'}
+              size="lg"
+              disabled={detailStop.stopId === selectedStopId}
+              onPress={() => {
+                pickStop(detailStop);
+                setDetailStop(null);
+              }}
+              style={styles.cta}
+            />
+          </View>
+        ) : null}
+      </BottomSheet>
     </View>
   );
 }
@@ -193,78 +273,53 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.gray100,
   },
-  mapWrap: {
+  loadingWrap: {
     flex: 1,
-    overflow: 'hidden',
-    backgroundColor: colors.mapTileTint,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.gray100,
   },
-  world: {
-    position: 'absolute',
-    width: GRID_EXTENT * 2,
-    height: GRID_EXTENT * 2,
-    left: '50%',
-    top: '50%',
-    marginLeft: -GRID_EXTENT,
-    marginTop: -GRID_EXTENT,
+  emptyWrap: {
+    flex: 1,
+    justifyContent: 'center',
   },
-  blockA: {
-    position: 'absolute',
-    left: GRID_EXTENT - 260,
-    top: GRID_EXTENT - 180,
-    width: 150,
-    height: 110,
-    borderRadius: radii.xl,
-    backgroundColor: colors.mapCorridorFill,
+  map: {
+    flex: 1,
   },
-  blockB: {
-    position: 'absolute',
-    left: GRID_EXTENT + 90,
-    top: GRID_EXTENT + 140,
-    width: 190,
-    height: 130,
-    borderRadius: radii.xl,
-    backgroundColor: colors.mapCorridorFill,
+  originDot: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: colors.secondary,
+    borderWidth: 2,
+    borderColor: colors.white,
   },
-  gridLineH: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    height: 1,
-    backgroundColor: colors.gray300,
-    opacity: 0.5,
-  },
-  gridLineV: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    width: 1,
-    backgroundColor: colors.gray300,
-    opacity: 0.5,
-  },
-  poiDot: {
-    position: 'absolute',
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+  stopPin: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     backgroundColor: colors.white,
     borderWidth: 2,
-    borderColor: colors.gray400,
-  },
-  centerPinWrap: {
-    position: 'absolute',
-    left: '50%',
-    top: '50%',
-    marginLeft: -20,
-    marginTop: -40,
+    borderColor: colors.gray300,
     alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: colors.gray900,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  pinShadow: {
-    width: 14,
-    height: 6,
-    borderRadius: 7,
-    backgroundColor: colors.gray900,
-    opacity: 0.18,
-    marginTop: -2,
+  stopPinSelected: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  stopPinLabel: {
+    fontSize: typography.fontSize.xs,
+    fontWeight: typography.fontWeight.bold,
+    color: colors.gray700,
+  },
+  stopPinLabelSelected: {
+    color: colors.white,
   },
   topBar: {
     position: 'absolute',
@@ -288,6 +343,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 6,
     elevation: 2,
+  },
+  backBtnStandalone: {
+    margin: spacing.md,
   },
   hint: {
     backgroundColor: colors.white,
@@ -335,5 +393,9 @@ const styles = StyleSheet.create({
   },
   cta: {
     width: '100%',
+  },
+  sheetContent: {
+    gap: spacing.md,
+    paddingBottom: spacing.lg,
   },
 });

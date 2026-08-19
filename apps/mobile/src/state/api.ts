@@ -31,6 +31,14 @@ export interface GeocodeResult {
   lng: number;
 }
 
+export interface RankedStop {
+  stopId: string;
+  label: string;
+  lat: number;
+  lng: number;
+  walkMinutes: number;
+}
+
 export interface MatchCandidate {
   rideId: string;
   driverUserId: string;
@@ -50,6 +58,14 @@ export interface MatchCandidate {
   destinationLat: number;
   destinationLng: number;
   routePolyline: string | null;
+  /** This ride's driver-selected route_stops, ranked by walk-distance from
+   *  the passenger's requested origin, closest first. Empty for a legacy
+   *  ride with zero route_stops (free-form pickup flow still applies). */
+  rankedStops: RankedStop[];
+  /** False only when this ride has route_stops but none are within a
+   *  walkable radius for this passenger — a legitimate "doesn't reach you
+   *  conveniently" result. Always true for legacy (stop-less) rides. */
+  pickupViable: boolean;
 }
 
 export interface CorridorFallbackResult {
@@ -133,6 +149,29 @@ export interface Ride {
   estimatedDurationSec: number | null;
 }
 
+export interface RouteStop {
+  id: string;
+  rideId: string;
+  sequence: number;
+  label: string;
+  lat: number;
+  lng: number;
+  roadSnapped: boolean;
+  deviationMeters: number;
+  deviationSeconds: number;
+  suitabilityScore: number;
+  roadClass: string | null;
+  isDriverSelected: boolean;
+}
+
+export interface GenerateStopsResult {
+  stops: RouteStop[];
+  /** True when OSRM was unreachable for this attempt — show an honest
+   *  "unavailable right now" message, never fabricated candidates. */
+  osrmUnavailable: boolean;
+  regenerated: boolean;
+}
+
 export interface Booking {
   id: string;
   rideId: string;
@@ -148,6 +187,7 @@ export interface Booking {
     | 'expired'
     | 'completed'
     | 'no_show';
+  pickupStopId: string | null;
   pickupLabel: string;
   pickupLat: number;
   pickupLng: number;
@@ -297,6 +337,23 @@ export const api = createApi({
       query: (rideId) => ({ url: `/rides/${rideId}/cancel`, method: 'POST' }),
       invalidatesTags: ['MyRides'],
     }),
+    publishRide: builder.mutation<Ride, string>({
+      query: (rideId) => ({ url: `/rides/${rideId}/publish`, method: 'POST' }),
+      invalidatesTags: ['MyRides'],
+    }),
+    generateCandidateStops: builder.mutation<GenerateStopsResult, string>({
+      query: (rideId) => ({ url: `/rides/${rideId}/candidate-stops`, method: 'POST' }),
+    }),
+    updateRideStops: builder.mutation<
+      RouteStop[],
+      { rideId: string; selections: { stopId: string; isDriverSelected: boolean }[] }
+    >({
+      query: ({ rideId, selections }) => ({
+        url: `/rides/${rideId}/stops`,
+        method: 'PATCH',
+        body: selections,
+      }),
+    }),
 
     createBooking: builder.mutation<Booking, { rideId: string; input: CreateBookingInput }>({
       query: ({ rideId, input }) => ({
@@ -352,6 +409,9 @@ export const {
   useListMyRidesQuery,
   useGetRideQuery,
   useCancelRideMutation,
+  usePublishRideMutation,
+  useGenerateCandidateStopsMutation,
+  useUpdateRideStopsMutation,
   useCreateBookingMutation,
   useListMyBookingsQuery,
   useListRequestsForRideQuery,

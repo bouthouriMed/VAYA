@@ -20,7 +20,8 @@ import {
   useGetRideQuery,
   useCreateBookingMutation,
 } from '../../src/state/api';
-import { useAppSelector } from '../../src/state/store';
+import { useAppDispatch, useAppSelector } from '../../src/state/store';
+import { clearPickupStop } from '../../src/state/searchSlice';
 
 const HERO_HEIGHT = 200;
 const HERO_AVATAR_PX = 108;
@@ -31,6 +32,12 @@ export default function TrustScreen(): React.JSX.Element {
   const insets = useSafeAreaInsets();
   const scrollY = useRef(new Animated.Value(0)).current;
   const origin = useAppSelector((s) => s.search.origin);
+  // Set by search/pickup-point.tsx when the matched ride has real,
+  // driver-selected route_stops (docs/domain/ride-engine.md). Absent for a
+  // legacy ride with zero route_stops, which keeps the free-form
+  // `origin`-based pickup flow below working unchanged.
+  const selectedStop = useAppSelector((s) => s.search.selectedStop);
+  const dispatch = useAppDispatch();
   const [bookingError, setBookingError] = useState<string | undefined>();
 
   const { data: profile, isLoading: isProfileLoading } = useGetUserPublicProfileQuery(driverUserId);
@@ -75,17 +82,24 @@ export default function TrustScreen(): React.JSX.Element {
   const driverStats = profile.driver;
 
   async function requestSeat(): Promise<void> {
-    if (!origin) return;
+    // A selected stop (search/pickup-point.tsx) takes precedence — it's
+    // the real, driver-validated point for rides that have route_stops.
+    // Falls back to the free-form origin only for legacy (stop-less)
+    // rides, where pickup-point.tsx is never shown in the first place.
+    if (!selectedStop && !origin) return;
     setBookingError(undefined);
     try {
       const booking = await createBooking({
         rideId,
         input: {
           seatsRequested: 1,
-          pickup: { label: origin.label, lat: origin.lat, lng: origin.lng },
+          ...(selectedStop
+            ? { pickupStopId: selectedStop.stopId }
+            : { pickup: { label: origin!.label, lat: origin!.lat, lng: origin!.lng } }),
         },
       }).unwrap();
       haptics.success();
+      dispatch(clearPickupStop());
       router.dismissTo({
         pathname: '/bookings/confirmed',
         params: {
@@ -105,6 +119,12 @@ export default function TrustScreen(): React.JSX.Element {
           estimatedDurationMin: ride!.estimatedDurationSec
             ? String(Math.round(ride!.estimatedDurationSec / 60))
             : '',
+          // Real coordinates so the post-booking screens can render an
+          // actual MapPreview (Phase 3) instead of no map at all.
+          pickupLat: String(booking.pickupLat),
+          pickupLng: String(booking.pickupLng),
+          destinationLat: String(ride!.destinationLat),
+          destinationLng: String(ride!.destinationLng),
         },
       });
     } catch {
@@ -223,7 +243,7 @@ export default function TrustScreen(): React.JSX.Element {
           label={`Demander une place · ${ride.contributionPerSeat} DT`}
           size="lg"
           loading={isBooking}
-          disabled={!origin || ride.seatsAvailable < 1}
+          disabled={(!selectedStop && !origin) || ride.seatsAvailable < 1}
           onPress={() => void requestSeat()}
           style={styles.cta}
         />
