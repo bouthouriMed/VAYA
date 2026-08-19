@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   View,
   StyleSheet,
@@ -15,6 +15,32 @@ import { useAppDispatch } from '../../src/state/store';
 import { setOrigin, setDestination, type SearchLocation } from '../../src/state/searchSlice';
 import { PLACES, type MockPlace } from '../../src/mocks/seed-data';
 import { useCurrentPosition } from '../../src/services/location/useCurrentPosition';
+import { useLazyGeocodeSearchQuery } from '../../src/state/api';
+
+const SEARCH_DEBOUNCE_MS = 400;
+
+interface ResultRow {
+  key: string;
+  label: string;
+  subLabel: string;
+  lat: number;
+  lng: number;
+}
+
+function splitLabel(fullLabel: string): { label: string; subLabel: string } {
+  const [first, ...rest] = fullLabel.split(',');
+  return { label: (first ?? fullLabel).trim(), subLabel: rest.join(',').trim() };
+}
+
+function placeToRow(place: MockPlace): ResultRow {
+  return {
+    key: place.id,
+    label: place.label,
+    subLabel: place.subLabel,
+    lat: place.lat,
+    lng: place.lng,
+  };
+}
 
 export default function LocationSearchScreen(): React.JSX.Element {
   const { field } = useLocalSearchParams<{ field?: 'origin' | 'destination' }>();
@@ -24,13 +50,28 @@ export default function LocationSearchScreen(): React.JSX.Element {
   const [query, setQuery] = useState('');
   const { status, position } = useCurrentPosition();
 
-  const results = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return PLACES;
-    return PLACES.filter(
-      (p) => p.label.toLowerCase().includes(q) || p.subLabel.toLowerCase().includes(q),
-    );
-  }, [query]);
+  const [triggerSearch, { data: searchResults, isFetching }] = useLazyGeocodeSearchQuery();
+
+  useEffect(() => {
+    const trimmed = query.trim();
+    if (trimmed.length < 2) return;
+    const timer = setTimeout(() => {
+      void triggerSearch(trimmed);
+    }, SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+  }, [query, triggerSearch]);
+
+  const rows: ResultRow[] = useMemo(() => {
+    const trimmed = query.trim();
+    if (trimmed.length < 2) return PLACES.map(placeToRow);
+    if (!searchResults) return [];
+    return searchResults.map((r) => {
+      const { label, subLabel } = splitLabel(r.label);
+      return { key: `${r.lat},${r.lng}`, label, subLabel, lat: r.lat, lng: r.lng };
+    });
+  }, [query, searchResults]);
+
+  const isSearching = query.trim().length >= 2;
 
   function choose(place: SearchLocation): void {
     if (isOrigin) dispatch(setOrigin(place));
@@ -38,8 +79,8 @@ export default function LocationSearchScreen(): React.JSX.Element {
     router.back();
   }
 
-  function chooseSeed(place: MockPlace): void {
-    choose({ label: place.label, subLabel: place.subLabel, lat: place.lat, lng: place.lng });
+  function chooseRow(row: ResultRow): void {
+    choose({ label: row.label, subLabel: row.subLabel || undefined, lat: row.lat, lng: row.lng });
   }
 
   function useMyPosition(): void {
@@ -69,6 +110,9 @@ export default function LocationSearchScreen(): React.JSX.Element {
             autoFocus
             returnKeyType="search"
           />
+          {isSearching && isFetching ? (
+            <ActivityIndicator size="small" color={colors.gray500} />
+          ) : null}
         </View>
       </View>
 
@@ -105,32 +149,36 @@ export default function LocationSearchScreen(): React.JSX.Element {
       ) : null}
 
       <Text variant="label" color={colors.gray500} style={styles.sectionLabel}>
-        {query ? 'Résultats' : 'Suggestions'}
+        {isSearching ? 'Résultats' : 'Suggestions'}
       </Text>
 
       <FlatList
-        data={results}
-        keyExtractor={(p) => p.id}
+        data={rows}
+        keyExtractor={(row) => row.key}
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={styles.listContent}
         renderItem={({ item }) => (
-          <TouchableOpacity style={styles.placeRow} onPress={() => chooseSeed(item)}>
+          <TouchableOpacity style={styles.placeRow} onPress={() => chooseRow(item)}>
             <View style={styles.placeIcon}>
               <Ionicons name="location" size={16} color={colors.gray600} />
             </View>
             <View style={styles.placeTextCol}>
               <Text style={styles.placeLabel}>{item.label}</Text>
-              <Text variant="bodySmall" color={colors.gray500}>
-                {item.subLabel}
-              </Text>
+              {item.subLabel ? (
+                <Text variant="bodySmall" color={colors.gray500} numberOfLines={1}>
+                  {item.subLabel}
+                </Text>
+              ) : null}
             </View>
           </TouchableOpacity>
         )}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
         ListEmptyComponent={
-          <Text variant="body" color={colors.gray500} style={styles.empty}>
-            Aucun résultat
-          </Text>
+          isSearching && !isFetching ? (
+            <Text variant="body" color={colors.gray500} style={styles.empty}>
+              Aucun résultat
+            </Text>
+          ) : null
         }
       />
     </View>

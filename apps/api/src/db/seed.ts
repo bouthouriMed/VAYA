@@ -3,6 +3,7 @@ import 'dotenv/config';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
 import * as schema from './schema/index.js';
+import { getRoute } from '../lib/routing.js';
 
 const {
   users,
@@ -200,6 +201,39 @@ async function main(): Promise<void> {
     if (!u) throw new Error(`Seed user not found: ${name}`);
     return u;
   };
+
+  // Real polylines/durations for each corridor, computed once via OSRM (or
+  // its haversine fallback if OSRM isn't prepared yet) and reused across
+  // every ride seeded on that corridor below.
+  const corridorRoutes = [
+    elMenzahDigitalCenter,
+    laMarsaCentreVille,
+    arianaLeBardo,
+    benArousTunis,
+    manoubaTunis,
+    sousseMonastir,
+    sfaxSakietEzzit,
+    tunisNabeul,
+  ];
+  const routeGeometry = new Map<
+    string,
+    { routePolyline: string | null; estimatedDurationSec: number }
+  >();
+  for (const route of corridorRoutes) {
+    const geometry = await getRoute(
+      { lat: route.originLat, lng: route.originLng },
+      { lat: route.destinationLat, lng: route.destinationLng },
+    );
+    routeGeometry.set(route.id, {
+      routePolyline: geometry.polyline || null,
+      estimatedDurationSec: geometry.durationSec,
+    });
+  }
+  function geometryFor(routeId: string) {
+    const geometry = routeGeometry.get(routeId);
+    if (!geometry) throw new Error(`No precomputed geometry for route ${routeId}`);
+    return geometry;
+  }
 
   const sarra = userByName('Sarra Ben Ali');
   const youssef = userByName('Youssef Trabelsi');
@@ -467,8 +501,7 @@ async function main(): Promise<void> {
       seatsAvailable: 1,
       contributionPerSeat: 5,
       status: 'in_progress',
-      routePolyline: 'kzwtF{qhTiAtAgAtAiAvAaAdAaAdA',
-      estimatedDurationSec: 900,
+      ...geometryFor(elMenzahDigitalCenter.id),
       recurringPatternId: morningCommutePattern.id,
     })
     .returning();
@@ -492,6 +525,7 @@ async function main(): Promise<void> {
         seatsAvailable: 3,
         contributionPerSeat: 5,
         status: 'published',
+        ...geometryFor(elMenzahDigitalCenter.id),
       },
       {
         driverProfileId: mehdiProfile.id,
@@ -508,6 +542,7 @@ async function main(): Promise<void> {
         seatsAvailable: 4,
         contributionPerSeat: 6,
         status: 'published',
+        ...geometryFor(laMarsaCentreVille.id),
       },
       {
         driverProfileId: karimProfile.id,
@@ -524,6 +559,7 @@ async function main(): Promise<void> {
         seatsAvailable: 2,
         contributionPerSeat: 4,
         status: 'published',
+        ...geometryFor(arianaLeBardo.id),
       },
       {
         driverProfileId: ahmedProfile.id,
@@ -540,6 +576,7 @@ async function main(): Promise<void> {
         seatsAvailable: 0,
         contributionPerSeat: 5,
         status: 'full',
+        ...geometryFor(benArousTunis.id),
       },
     ])
     .returning();
@@ -562,6 +599,7 @@ async function main(): Promise<void> {
     seatsAvailable: 3,
     contributionPerSeat: 5,
     status: 'draft',
+    ...geometryFor(manoubaTunis.id),
   });
 
   await db.insert(rides).values({
@@ -579,6 +617,7 @@ async function main(): Promise<void> {
     seatsAvailable: 3,
     contributionPerSeat: 10,
     status: 'cancelled',
+    ...geometryFor(sousseMonastir.id),
   });
 
   function hediProfileSafe(): string {
@@ -636,6 +675,7 @@ async function main(): Promise<void> {
         seatsAvailable: 1,
         contributionPerSeat: s.price,
         status: 'completed' as const,
+        ...geometryFor(s.route.id),
       })),
     )
     .returning();
@@ -951,6 +991,7 @@ async function main(): Promise<void> {
       seatsAvailable: 4,
       contributionPerSeat: 10,
       status: 'published',
+      ...geometryFor(sousseMonastir.id),
     },
   ]);
 

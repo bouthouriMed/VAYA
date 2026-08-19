@@ -14,6 +14,10 @@ import {
 } from '@vaya/design-system';
 import { router } from 'expo-router';
 import { CURRENT_USER, DRIVERS } from '../../src/mocks/seed-data';
+import { useAppDispatch, useAppSelector } from '../../src/state/store';
+import { clearAuth } from '../../src/state/authSlice';
+import { clearTokens } from '../../src/services/auth/tokenStorage';
+import { useGetMyDriverProfileQuery, useLogoutMutation } from '../../src/state/api';
 
 const SETTINGS_ROWS: { icon: keyof typeof Ionicons.glyphMap; label: string; value?: string }[] = [
   { icon: 'language-outline', label: 'Langue', value: 'Français' },
@@ -25,6 +29,28 @@ const SETTINGS_ROWS: { icon: keyof typeof Ionicons.glyphMap; label: string; valu
 export default function ProfileScreen(): React.JSX.Element {
   const insets = useSafeAreaInsets();
   const driverProfile = DRIVERS.youssef!;
+  const dispatch = useAppDispatch();
+  const refreshToken = useAppSelector((s) => s.auth.refreshToken);
+  const { data: realDriverProfile } = useGetMyDriverProfileQuery();
+  const [logout] = useLogoutMutation();
+
+  async function handleLogout(): Promise<void> {
+    if (refreshToken) {
+      try {
+        await logout({ refreshToken }).unwrap();
+      } catch {
+        // Best-effort server-side revocation — clearing local state below is
+        // what actually signs the device out either way.
+      }
+    }
+    await clearTokens();
+    dispatch(clearAuth());
+    router.replace('/');
+  }
+
+  function goToDriverFlow(): void {
+    router.push(realDriverProfile ? '/driver/publish' : '/driver/onboarding');
+  }
 
   return (
     <View style={styles.container}>
@@ -95,6 +121,25 @@ export default function ProfileScreen(): React.JSX.Element {
           </View>
         </View>
 
+        <TouchableOpacity style={styles.card} onPress={goToDriverFlow} activeOpacity={0.7}>
+          <View style={styles.vehicleRow}>
+            <View style={styles.vehicleIcon}>
+              <Ionicons name="car-outline" size={20} color={colors.gray900} />
+            </View>
+            <View style={styles.driverFlowTextCol}>
+              <Text variant="label">
+                {realDriverProfile ? 'Publier un trajet' : 'Devenir conducteur'}
+              </Text>
+              <Text variant="bodySmall" color={colors.gray600}>
+                {realDriverProfile
+                  ? 'Proposez des places sur votre trajet'
+                  : 'Ajoutez votre véhicule pour commencer'}
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={colors.gray400} />
+          </View>
+        </TouchableOpacity>
+
         <View style={styles.card}>
           {SETTINGS_ROWS.map((row, i) => (
             <TouchableOpacity
@@ -118,7 +163,7 @@ export default function ProfileScreen(): React.JSX.Element {
 
         <TouchableOpacity
           style={styles.logout}
-          onPress={() => router.replace('/')}
+          onPress={() => void handleLogout()}
           activeOpacity={0.7}
         >
           <Text variant="label" color={colors.error}>
@@ -195,6 +240,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.gray100,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  driverFlowTextCol: {
+    flex: 1,
   },
   chipRow: {
     flexDirection: 'row',

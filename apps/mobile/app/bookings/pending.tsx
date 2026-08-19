@@ -1,25 +1,31 @@
 import { View, StyleSheet } from 'react-native';
 import { Text, Button, Avatar, colors, spacing, radii } from '@vaya/design-system';
 import { router, useLocalSearchParams } from 'expo-router';
-import { getDriverByKey, PICKUP_LABEL } from '../../src/mocks/seed-data';
+import { PICKUP_LABEL } from '../../src/mocks/seed-data';
 
 export default function PendingScreen(): React.JSX.Element {
-  const { driverId } = useLocalSearchParams<{ driverId?: string }>();
-  const driver = getDriverByKey(driverId);
+  const params = useLocalSearchParams<{
+    bookingId?: string;
+    driverName?: string;
+    price?: string;
+    vehicleLabel?: string;
+  }>();
+  const driverName = params.driverName ?? 'votre conducteur';
+  const firstName = driverName.split(' ')[0]!;
 
   return (
     <View style={styles.container}>
       <View style={styles.hero}>
-        <Avatar name={driver.fullName} size="lg" />
+        <Avatar name={driverName} size="lg" />
         <Text variant="h2" style={styles.joinLabel}>
-          Rejoindre {driver.fullName.split(' ')[0]}
+          Rejoindre {firstName}
         </Text>
       </View>
 
       <Button
-        label={`Rejoindre ${driver.fullName.split(' ')[0]}`}
+        label={`Rejoindre ${firstName}`}
         size="lg"
-        onPress={() => router.push({ pathname: '/bookings/pickup', params: { driverId } })}
+        onPress={() => router.push({ pathname: '/bookings/pickup', params })}
         style={styles.cta}
       />
 
@@ -35,7 +41,7 @@ export default function PendingScreen(): React.JSX.Element {
         </View>
         <View style={styles.row}>
           <Text variant="bodySmall" color={colors.gray600}>
-            Confiance de {driver.fullName.split(' ')[0]}
+            Confiance de {firstName}
           </Text>
           <Text variant="bodySmall" color={colors.gray900}>
             Élevée
@@ -54,7 +60,7 @@ export default function PendingScreen(): React.JSX.Element {
             Contribution
           </Text>
           <Text variant="bodySmall" color={colors.gray900}>
-            {driver.priceDt} DT
+            {params.price ?? '—'} DT
           </Text>
         </View>
       </View>

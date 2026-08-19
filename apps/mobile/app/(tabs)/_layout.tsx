@@ -1,8 +1,14 @@
-import { Tabs } from 'expo-router';
+import { Tabs, Redirect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@vaya/design-system';
+import { useAppSelector } from '../../src/state/store';
 
 export default function TabLayout(): React.JSX.Element {
+  const accessToken = useAppSelector((s) => s.auth.accessToken);
+  if (!accessToken) {
+    return <Redirect href="/" />;
+  }
+
   return (
     <Tabs
       screenOptions={{

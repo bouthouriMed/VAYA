@@ -23,6 +23,9 @@ import { corridorRoutes } from './modules/routes/routes.routes.js';
 import { matchingRoutes } from './modules/matching/matching.routes.js';
 import { bookingsRoutes } from './modules/bookings/bookings.routes.js';
 import { ratingsRoutes } from './modules/ratings/ratings.routes.js';
+import { driversRoutes } from './modules/drivers/drivers.routes.js';
+import { uploadsRoutes } from './modules/uploads/uploads.routes.js';
+import { ridesRoutes } from './modules/rides/rides.routes.js';
 
 declare module 'fastify' {
   interface FastifyInstance {
@@ -87,6 +90,9 @@ export async function buildApp() {
   await app.register(matchingRoutes, { prefix: env.API_PREFIX });
   await app.register(bookingsRoutes, { prefix: env.API_PREFIX });
   await app.register(ratingsRoutes, { prefix: env.API_PREFIX });
+  await app.register(driversRoutes, { prefix: env.API_PREFIX });
+  await app.register(uploadsRoutes, { prefix: env.API_PREFIX });
+  await app.register(ridesRoutes, { prefix: env.API_PREFIX });
 
   app.get(`${env.API_PREFIX}/openapi.json`, async () => app.swagger());
 

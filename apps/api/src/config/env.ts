@@ -15,6 +15,7 @@ const envSchema = z.object({
   JWT_SECRET: z.string().default('dev-insecure-jwt-secret-change-in-production'),
   JWT_ACCESS_TTL_SEC: z.coerce.number().default(900),
   JWT_REFRESH_TTL_DAYS: z.coerce.number().default(30),
+  OSRM_URL: z.string().url().default('http://localhost:5001'),
 });
 
 export type Env = z.infer<typeof envSchema>;

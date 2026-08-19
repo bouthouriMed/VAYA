@@ -1,11 +1,16 @@
 import { View, StyleSheet } from 'react-native';
 import { Text, Button, Avatar, MapPreview, colors, spacing, radii } from '@vaya/design-system';
 import { router, useLocalSearchParams } from 'expo-router';
-import { getDriverByKey, PICKUP_LABEL } from '../../src/mocks/seed-data';
+import { PICKUP_LABEL } from '../../src/mocks/seed-data';
 
 export default function PickupScreen(): React.JSX.Element {
-  const { driverId } = useLocalSearchParams<{ driverId?: string }>();
-  const driver = getDriverByKey(driverId);
+  const params = useLocalSearchParams<{
+    bookingId?: string;
+    driverName?: string;
+    price?: string;
+    vehicleLabel?: string;
+  }>();
+  const driverName = params.driverName ?? 'votre conducteur';
 
   return (
     <View style={styles.container}>
@@ -19,14 +24,14 @@ export default function PickupScreen(): React.JSX.Element {
       </View>
 
       <View style={styles.driverRow}>
-        <Avatar name={driver.fullName} size="md" />
+        <Avatar name={driverName} size="md" />
         <View style={styles.driverText}>
           <Text variant="label">
-            {driver.vehicle.make} {driver.vehicle.model} {driver.vehicle.color} ·{' '}
-            {driver.fullName.split(' ')[0]}
+            {params.vehicleLabel ? `${params.vehicleLabel} · ` : ''}
+            {driverName.split(' ')[0]}
           </Text>
           <Text variant="bodySmall" color={colors.gray600}>
-            Arrive dans {driver.etaMin} min
+            En approche
           </Text>
         </View>
       </View>
@@ -34,7 +39,7 @@ export default function PickupScreen(): React.JSX.Element {
       <Button
         label="Je suis arrivé"
         size="lg"
-        onPress={() => router.push({ pathname: '/bookings/live', params: { driverId } })}
+        onPress={() => router.push({ pathname: '/bookings/live', params })}
         style={styles.cta}
       />
     </View>
