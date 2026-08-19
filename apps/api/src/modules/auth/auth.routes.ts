@@ -28,6 +28,9 @@ export async function authRoutes(fastify: FastifyInstance): Promise<void> {
   app.post(
     '/auth/otp/request',
     {
+      // Tighter than the global default: this endpoint sends an SMS per
+      // call, so it's both a cost and an abuse (OTP-spam) surface.
+      config: { rateLimit: { max: 5, timeWindow: '1 minute' } },
       schema: {
         body: requestOtpSchema,
         response: { 200: z.object({ sent: z.boolean(), devCode: z.string().optional() }) },

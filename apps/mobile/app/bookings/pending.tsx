@@ -1,7 +1,6 @@
 import { View, StyleSheet } from 'react-native';
 import { Text, Button, Avatar, colors, spacing, radii } from '@vaya/design-system';
 import { router, useLocalSearchParams } from 'expo-router';
-import { PICKUP_LABEL } from '../../src/mocks/seed-data';
 
 export default function PendingScreen(): React.JSX.Element {
   const params = useLocalSearchParams<{
@@ -9,6 +8,7 @@ export default function PendingScreen(): React.JSX.Element {
     driverName?: string;
     price?: string;
     vehicleLabel?: string;
+    pickupLabel?: string;
   }>();
   const driverName = params.driverName ?? 'votre conducteur';
   const firstName = driverName.split(' ')[0]!;
@@ -30,29 +30,13 @@ export default function PendingScreen(): React.JSX.Element {
       />
 
       <View style={styles.card}>
-        <Text variant="label">Modèle d&apos;incertitude</Text>
-        <View style={styles.row}>
-          <Text variant="bodySmall" color={colors.gray600}>
-            Fenêtre de prise en charge
-          </Text>
-          <Text variant="bodySmall" color={colors.gray900}>
-            18:05 – 18:15
-          </Text>
-        </View>
-        <View style={styles.row}>
-          <Text variant="bodySmall" color={colors.gray600}>
-            Confiance de {firstName}
-          </Text>
-          <Text variant="bodySmall" color={colors.gray900}>
-            Élevée
-          </Text>
-        </View>
+        <Text variant="label">Résumé</Text>
         <View style={styles.row}>
           <Text variant="bodySmall" color={colors.gray600}>
             Point de rendez-vous
           </Text>
           <Text variant="bodySmall" color={colors.gray900}>
-            {PICKUP_LABEL}
+            {params.pickupLabel ?? 'En attente de confirmation'}
           </Text>
         </View>
         <View style={styles.row}>

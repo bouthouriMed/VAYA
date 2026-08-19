@@ -3,12 +3,15 @@ import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text, Button, Chip, colors, spacing, radii } from '@vaya/design-system';
 import { router, useLocalSearchParams } from 'expo-router';
-import { HOME_TO_DIGITAL_CENTER } from '../../src/mocks/seed-data';
 
 const TAGS = ['Ponctuel', 'Agréable', 'Fiable'];
 
 export default function SettlementScreen(): React.JSX.Element {
-  const { driverName, price } = useLocalSearchParams<{ driverName?: string; price?: string }>();
+  const { driverName, price, destinationLabel } = useLocalSearchParams<{
+    driverName?: string;
+    price?: string;
+    destinationLabel?: string;
+  }>();
   const firstName = (driverName ?? 'votre conducteur').split(' ')[0]!;
   const insets = useSafeAreaInsets();
   const [stars, setStars] = useState(4);
@@ -24,7 +27,7 @@ export default function SettlementScreen(): React.JSX.Element {
     <View style={styles.container}>
       <View style={[styles.hero, { paddingTop: insets.top + spacing['3xl'] }]}>
         <Text variant="h1" color={colors.navyText} align="center">
-          Bienvenue à {HOME_TO_DIGITAL_CENTER.destinationLabel}.
+          Bienvenue{destinationLabel ? ` à ${destinationLabel}` : ''}.
         </Text>
       </View>
 
