@@ -2,7 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { createBookingSchema } from '@vaya/validation';
-import { BOOKING_STATUSES } from '@vaya/domain';
+import { BOOKING_STATUSES, CANCELLATION_TIERS } from '@vaya/domain';
 import { getDatabase } from '../../lib/database.js';
 import { getUserId } from '../../lib/auth-context.js';
 import {
@@ -12,6 +12,8 @@ import {
   declineBooking,
   listMyBookings,
   listRequestsForRide,
+  previewBookingCancellation,
+  reportNoShow,
 } from './bookings.service.js';
 
 const bookingResponseSchema = z.object({
@@ -42,6 +44,18 @@ const bookingResponseSchema = z.object({
 
 const rideIdParamSchema = z.object({ rideId: z.string().uuid() });
 const bookingIdParamSchema = z.object({ bookingId: z.string().uuid() });
+
+// Phase 10 (docs/roadmap/phase-10-cancellation-no-show.md).
+const cancellationPolicySchema = z.object({
+  tier: z.enum(CANCELLATION_TIERS),
+  minutesBeforeDeparture: z.number(),
+  penaltyPoints: z.number(),
+  consequence: z.string(),
+});
+
+const cancelBookingResponseSchema = bookingResponseSchema.extend({
+  cancellationPolicy: cancellationPolicySchema,
+});
 
 export async function bookingsRoutes(fastify: FastifyInstance): Promise<void> {
   const app = fastify.withTypeProvider<ZodTypeProvider>();
@@ -116,14 +130,48 @@ export async function bookingsRoutes(fastify: FastifyInstance): Promise<void> {
     },
   );
 
+  // Phase 10: a read-only preview of the policy tier/consequence that would
+  // apply *right now* — the mobile cancellation sheet calls this before the
+  // user confirms, so the consequence is shown before the destructive POST
+  // below, never discovered only after it (see bookings.service.ts's
+  // previewBookingCancellation doc comment for why a separate GET, not a
+  // dry-run flag on the POST).
+  app.get(
+    '/bookings/:bookingId/cancellation-preview',
+    {
+      onRequest: [fastify.authenticate],
+      schema: { params: bookingIdParamSchema, response: { 200: cancellationPolicySchema } },
+    },
+    async (request, reply) => {
+      const policy = await previewBookingCancellation(db, request.params.bookingId, getUserId(request));
+      reply.send(policy);
+    },
+  );
+
   app.post(
     '/bookings/:bookingId/cancel',
+    {
+      onRequest: [fastify.authenticate],
+      schema: { params: bookingIdParamSchema, response: { 200: cancelBookingResponseSchema } },
+    },
+    async (request, reply) => {
+      const { booking, cancellationPolicy } = await cancelBooking(
+        db,
+        request.params.bookingId,
+        getUserId(request),
+      );
+      reply.send({ ...booking, cancellationPolicy });
+    },
+  );
+
+  app.post(
+    '/bookings/:bookingId/report-no-show',
     {
       onRequest: [fastify.authenticate],
       schema: { params: bookingIdParamSchema, response: { 200: bookingResponseSchema } },
     },
     async (request, reply) => {
-      const booking = await cancelBooking(db, request.params.bookingId, getUserId(request));
+      const booking = await reportNoShow(db, request.params.bookingId, getUserId(request));
       reply.send(booking);
     },
   );

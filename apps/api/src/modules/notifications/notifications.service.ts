@@ -133,6 +133,8 @@ const TITLES: Partial<Record<NotificationEventType, string>> = {
   recurring_proactive_match: 'Nouveau trajet correspondant',
   demand_signal_matched: 'Un trajet correspond à votre demande',
   message_received: 'Nouveau message',
+  booking_cancelled: 'Réservation annulée',
+  booking_no_show_reported: 'Absence signalée',
 };
 
 function titleFor(type: NotificationEventType): string {
@@ -162,6 +164,15 @@ function bodyFor(type: NotificationEventType, payload: Record<string, unknown>):
     // phase.
     case 'trip_completed':
       return 'Votre trajet est terminé — notez votre expérience avant demain.';
+    // Phase 10 (docs/roadmap/phase-10-cancellation-no-show.md): dispatched
+    // to the *other* party only — the actor already sees the outcome of
+    // their own action on-screen (the cancellation sheet, the no-show
+    // confirmation), so this is genuinely new information for the
+    // recipient, not a redundant echo.
+    case 'booking_cancelled':
+      return 'Votre réservation a été annulée par l’autre partie.';
+    case 'booking_no_show_reported':
+      return 'Une absence a été signalée pour ce trajet.';
     default:
       return 'Vous avez une nouvelle notification.';
   }

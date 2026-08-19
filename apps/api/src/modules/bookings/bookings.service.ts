@@ -2,7 +2,16 @@ import { and, eq, gte, sql } from 'drizzle-orm';
 import type { getDatabase } from '../../lib/database.js';
 import { bookings, rides, routeStops, trips } from '../../db/schema/index.js';
 import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from '../../lib/errors.js';
-import { canTransitionBookingStatus, canTransitionRideStatus } from '@vaya/domain';
+import {
+  canReportNoShow,
+  canTransitionBookingStatus,
+  canTransitionRideStatus,
+  canTransitionTripStatus,
+  computeCancellationPolicy,
+  NO_SHOW_PENALTY_POINTS,
+  type CancellationPolicyResult,
+  type RatingRole,
+} from '@vaya/domain';
 import type { CreateBookingInput } from '@vaya/validation';
 // Phase 7 (docs/roadmap/phase-07-notifications.md): notification-row
 // creation hooked in around the existing accept/decline/request flows
@@ -19,6 +28,14 @@ import {
   createConversationBestEffort,
   closeConversationBestEffort,
 } from '../conversations/conversations.service.js';
+// Phase 10 (docs/roadmap/phase-10-cancellation-no-show.md): the reputation
+// consequence (weighted penalty points, and — for a reported no-show — an
+// automatic low rating) is applied via Phase 9's rating/reliability
+// mechanism, not a second, parallel one.
+import {
+  applyCancellationPenalty,
+  recordAutomaticNoShowRating,
+} from '../ratings/ratings.service.js';
 
 type Database = ReturnType<typeof getDatabase>;
 
@@ -234,6 +251,38 @@ export async function declineBooking(db: Database, bookingId: string, requesting
   return updated;
 }
 
+/**
+ * Phase 10 (docs/roadmap/phase-10-cancellation-no-show.md): a read-only
+ * preview of the policy tier/consequence that would apply *right now* —
+ * backs `GET /bookings/:bookingId/cancellation-preview`, called by the
+ * mobile cancellation sheet before the user commits, so the consequence is
+ * shown *before* confirming (the phase doc's explicit UX requirement), not
+ * discovered only after the destructive POST. `cancelBooking` below
+ * independently recomputes the same policy at the moment it actually
+ * mutates anything — this preview is advisory only and never itself
+ * changes any state, so a stale preview (the user waited a while before
+ * confirming) can never desync from what actually gets applied.
+ */
+export async function previewBookingCancellation(
+  db: Database,
+  bookingId: string,
+  requestingUserId: string,
+): Promise<CancellationPolicyResult> {
+  const booking = await getBookingOrThrow(db, bookingId);
+  const isRider = booking.riderId === requestingUserId;
+  const isDriver = booking.ride.driverProfile.userId === requestingUserId;
+  if (!isRider && !isDriver) {
+    throw new ForbiddenError('Not authorized to view this booking');
+  }
+
+  const nextStatus = isRider ? 'cancelled_by_rider' : 'cancelled_by_driver';
+  if (!canTransitionBookingStatus(booking.status, nextStatus)) {
+    throw new ConflictError(`Cannot cancel a booking in status "${booking.status}"`);
+  }
+
+  return computeCancellationPolicy(booking.ride.departureAt, new Date());
+}
+
 export async function cancelBooking(db: Database, bookingId: string, requestingUserId: string) {
   const booking = await getBookingOrThrow(db, bookingId);
   const isRider = booking.riderId === requestingUserId;
@@ -247,12 +296,35 @@ export async function cancelBooking(db: Database, bookingId: string, requestingU
     throw new ConflictError(`Cannot cancel a booking in status "${booking.status}"`);
   }
 
+  // Phase 10: the policy tier is computed once, at the instant this
+  // cancellation actually happens, and reused for both the reputation
+  // consequence applied below and the response the client renders — never
+  // recomputed a second time against a possibly-later clock read.
+  const cancelledAt = new Date();
+  const cancellationPolicy = computeCancellationPolicy(booking.ride.departureAt, cancelledAt);
+
+  // Phase 10: atomic, database-level check-and-transition — mirrors
+  // acceptBooking's discipline above. The original cancelBooking (Phase 1
+  // through Phase 9) guarded this transition only with the
+  // canTransitionBookingStatus check against the *stale* `booking` read a
+  // few lines up, then updated unconditionally by id alone. Two concurrent
+  // cancel calls on the same booking (e.g. rider and driver racing to
+  // cancel at once) could both pass that stale check and both "succeed",
+  // and — worse — both then take the `booking.status === 'accepted'`
+  // branch below and each restore a seat, double-crediting
+  // `seatsAvailable` for a single freed seat. Re-validating `status` in the
+  // WHERE clause closes that window exactly the way acceptBooking's
+  // conditional seat decrement does: only the first writer to commit can
+  // match; the loser's WHERE matches zero rows and gets a clean
+  // ConflictError instead of silently corrupting seat counts.
   const [updated] = await db
     .update(bookings)
-    .set({ status: nextStatus, respondedAt: new Date(), updatedAt: new Date() })
-    .where(eq(bookings.id, bookingId))
+    .set({ status: nextStatus, respondedAt: cancelledAt, updatedAt: cancelledAt })
+    .where(and(eq(bookings.id, bookingId), eq(bookings.status, booking.status)))
     .returning();
-  if (!updated) throw new Error('Failed to cancel booking');
+  if (!updated) {
+    throw new ConflictError(`Cannot cancel a booking in status "${booking.status}"`);
+  }
 
   if (booking.status === 'accepted') {
     const nextRideStatus = canTransitionRideStatus(booking.ride.status, 'published')
@@ -284,5 +356,107 @@ export async function cancelBooking(db: Database, bookingId: string, requestingU
     await closeConversationBestEffort(db, booking.id);
   }
 
-  return updated;
+  // Phase 10: reputation-only consequence for the *cancelling* party (no
+  // payment system exists to refund against — docs/domain/cancellation-policy.md).
+  // A no-op for the free tier (0 points).
+  await applyCancellationPenalty(db, requestingUserId, isDriver, cancellationPolicy.penaltyPoints);
+
+  const otherPartyUserId = isRider ? booking.ride.driverProfile.userId : booking.riderId;
+  await notifyBestEffort(db, otherPartyUserId, 'booking_cancelled', {
+    bookingId: booking.id,
+    rideId: booking.rideId,
+    cancelledBy: isRider ? 'rider' : 'driver',
+    tier: cancellationPolicy.tier,
+  });
+
+  return { booking: updated, cancellationPolicy };
+}
+
+/**
+ * `POST /bookings/:bookingId/report-no-show` (Phase 10 —
+ * docs/roadmap/phase-10-cancellation-no-show.md). Distinct from
+ * `cancelBooking`: either party declares the *other* never showed up, not
+ * that they themselves are withdrawing. Only ever valid from `accepted`
+ * (mirrors the booking-status state machine's existing `no_show` edge,
+ * packages/domain/src/booking/booking-status.ts — unchanged by this
+ * phase), and only once `canReportNoShow` (packages/domain's business
+ * rule) confirms enough real time has passed since `departureAt` —
+ * enforced here, server-side, independent of the mobile UI's own guidance
+ * text nudging a contact attempt first.
+ */
+export async function reportNoShow(db: Database, bookingId: string, requestingUserId: string) {
+  const booking = await getBookingOrThrow(db, bookingId);
+  const isRider = booking.riderId === requestingUserId;
+  const isDriver = booking.ride.driverProfile.userId === requestingUserId;
+  if (!isRider && !isDriver) {
+    throw new ForbiddenError('Not authorized to report this booking');
+  }
+
+  if (!canTransitionBookingStatus(booking.status, 'no_show')) {
+    throw new ConflictError(`Cannot report a no-show for a booking in status "${booking.status}"`);
+  }
+
+  const reportedAt = new Date();
+  if (!canReportNoShow(booking.ride.departureAt, reportedAt)) {
+    throw new ConflictError('No-show can only be reported after the scheduled departure time');
+  }
+
+  // Same atomic status-guard discipline as cancelBooking's fix above — only
+  // the first writer to commit against this booking's current status can
+  // win; a concurrent second report (or a race against a concurrent
+  // cancelBooking on the same booking) gets a clean ConflictError instead
+  // of both proceeding to double-release the seat below.
+  const [updatedBooking] = await db
+    .update(bookings)
+    .set({ status: 'no_show', respondedAt: reportedAt, updatedAt: reportedAt })
+    .where(and(eq(bookings.id, bookingId), eq(bookings.status, booking.status)))
+    .returning();
+  if (!updatedBooking) {
+    throw new ConflictError(`Cannot report a no-show for a booking in status "${booking.status}"`);
+  }
+
+  // Same atomic seat-release discipline as cancelBooking above — a
+  // no-show still frees the seat back to the ride's pool. Only `accepted`
+  // bookings can reach `no_show` (the transition guard above), so the seat
+  // was always actually held.
+  const nextRideStatus = canTransitionRideStatus(booking.ride.status, 'published')
+    ? 'published'
+    : booking.ride.status;
+  await db
+    .update(rides)
+    .set({
+      seatsAvailable: sql`LEAST(${rides.seatsAvailable} + ${booking.seatsRequested}, ${rides.seatsTotal})`,
+      status: nextRideStatus,
+      updatedAt: new Date(),
+    })
+    .where(eq(rides.id, booking.rideId));
+
+  const trip = await db.query.trips.findFirst({ where: eq(trips.bookingId, booking.id) });
+  if (!trip) throw new NotFoundError('Trip');
+  if (canTransitionTripStatus(trip.status, 'no_show')) {
+    await db.update(trips).set({ status: 'no_show', updatedAt: new Date() }).where(eq(trips.id, trip.id));
+  }
+
+  await closeConversationBestEffort(db, booking.id);
+
+  // The party being *reported* — never the reporter — takes the automatic
+  // low rating (packages/domain's NO_SHOW_AUTOMATIC_RATING_STARS) and the
+  // heavier no-show penalty (NO_SHOW_PENALTY_POINTS), applied via Phase 9's
+  // rating/reliability mechanism (ratings.service.ts), not a second,
+  // parallel one.
+  const driverUserId = booking.ride.driverProfile.userId;
+  const reportedIsDriver = isRider; // the rider is reporting -> the driver is the no-show party
+  const reportedUserId = reportedIsDriver ? driverUserId : booking.riderId;
+  const role: RatingRole = reportedIsDriver ? 'rider_rates_driver' : 'driver_rates_rider';
+
+  await recordAutomaticNoShowRating(db, trip.id, requestingUserId, reportedUserId, role);
+  await applyCancellationPenalty(db, reportedUserId, reportedIsDriver, NO_SHOW_PENALTY_POINTS);
+
+  await notifyBestEffort(db, reportedUserId, 'booking_no_show_reported', {
+    bookingId: booking.id,
+    rideId: booking.rideId,
+    reportedBy: isRider ? 'rider' : 'driver',
+  });
+
+  return updatedBooking;
 }

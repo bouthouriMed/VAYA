@@ -11,6 +11,9 @@ export const notificationEventTypeEnum = pgEnum('notification_event_type', [
   'recurring_proactive_match',
   'demand_signal_matched',
   'message_received',
+  // Phase 10 (docs/roadmap/phase-10-cancellation-no-show.md).
+  'booking_cancelled',
+  'booking_no_show_reported',
 ]);
 
 export const notifications = pgTable('notifications', {

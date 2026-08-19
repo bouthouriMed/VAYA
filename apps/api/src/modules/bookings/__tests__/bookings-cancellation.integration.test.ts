@@ -1,0 +1,290 @@
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { and, desc, eq } from 'drizzle-orm';
+import { getDatabase, closeDatabase } from '../../../lib/database.js';
+import {
+  users,
+  driverProfiles,
+  riderProfiles,
+  vehicles,
+  rides,
+  bookings,
+  trips,
+  ratings,
+  notifications,
+} from '../../../db/schema/index.js';
+import {
+  createBooking,
+  acceptBooking,
+  cancelBooking,
+  previewBookingCancellation,
+  reportNoShow,
+} from '../bookings.service.js';
+import { ConflictError } from '../../../lib/errors.js';
+
+/**
+ * Phase 10 (docs/roadmap/phase-10-cancellation-no-show.md) — real Postgres,
+ * same discipline as Phase 1's bookings.service.test.ts (the
+ * seat-accounting race-condition suite this phase's own cancellation path
+ * must be equally safe against) and Phase 7's bookings-notifications
+ * integration test. Covers: the full cancel flow end-to-end (status,
+ * notification, reputation penalty, atomic seat release), a concurrent
+ * double-cancel race proving the new status-guard fix actually holds, and
+ * the no-show minimum-time-past-departure business rule.
+ */
+describe('bookings.service — cancellation & no-show (Phase 10)', () => {
+  const db = getDatabase();
+  let driverUserId: string;
+  let driverProfileId: string;
+  let vehicleId: string;
+  const riderIds: string[] = [];
+
+  async function makeRide(departureAt: Date, seatsTotal = 2) {
+    const [ride] = await db
+      .insert(rides)
+      .values({
+        driverProfileId,
+        vehicleId,
+        originLabel: 'Test Origin',
+        originLat: 36.8,
+        originLng: 10.18,
+        destinationLabel: 'Test Destination',
+        destinationLat: 36.85,
+        destinationLng: 10.2,
+        departureAt,
+        seatsTotal,
+        seatsAvailable: seatsTotal,
+        contributionPerSeat: 5,
+        status: 'published',
+      })
+      .returning();
+    return ride!;
+  }
+
+  async function makeRider(suffix: string) {
+    const [rider] = await db
+      .insert(users)
+      .values({ phone: `+216${Date.now() % 10_000_000}${suffix}`, fullName: `Rider ${suffix}` })
+      .returning();
+    riderIds.push(rider!.id);
+    return rider!;
+  }
+
+  beforeAll(async () => {
+    const base = Date.now() % 10_000_000;
+
+    const [driverUser] = await db
+      .insert(users)
+      .values({ phone: `+216${base}9`, fullName: 'Cancel Test Driver' })
+      .returning();
+    driverUserId = driverUser!.id;
+
+    const [driverProfile] = await db.insert(driverProfiles).values({ userId: driverUserId }).returning();
+    driverProfileId = driverProfile!.id;
+
+    const [vehicle] = await db
+      .insert(vehicles)
+      .values({
+        driverProfileId,
+        make: 'Test',
+        model: 'Car',
+        color: 'Black',
+        plateNumber: `CANCEL-${base}`,
+        seatCount: 4,
+      })
+      .returning();
+    vehicleId = vehicle!.id;
+  }, 30_000);
+
+  afterAll(async () => {
+    // rides -> bookings/trips -> ratings all cascade-delete (same pattern
+    // as the other integration suites in this module); rider users must be
+    // deleted only after that cascade clears their bookings.riderId
+    // references (that FK has no onDelete cascade of its own).
+    await db.delete(rides).where(eq(rides.driverProfileId, driverProfileId));
+    for (const riderId of riderIds) {
+      await db.delete(users).where(eq(users.id, riderId));
+    }
+    await db.delete(vehicles).where(eq(vehicles.id, vehicleId));
+    await db.delete(driverProfiles).where(eq(driverProfiles.id, driverProfileId));
+    await db.delete(users).where(eq(users.id, driverUserId));
+    await closeDatabase();
+  });
+
+  it('previews a "free" tier well before departure and a "severe" tier just before it', async () => {
+    const rider = await makeRider('1');
+    const farRide = await makeRide(new Date(Date.now() + 3 * 24 * 60 * 60_000));
+    const nearRide = await makeRide(new Date(Date.now() + 5 * 60_000));
+
+    const farBooking = await createBooking(db, farRide.id, rider.id, {
+      seatsRequested: 1,
+      pickup: { label: 'Pickup', lat: 36.8, lng: 10.18 },
+    });
+    const nearBooking = await createBooking(db, nearRide.id, rider.id, {
+      seatsRequested: 1,
+      pickup: { label: 'Pickup', lat: 36.8, lng: 10.18 },
+    });
+
+    const farPreview = await previewBookingCancellation(db, farBooking.id, rider.id);
+    expect(farPreview.tier).toBe('free');
+    expect(farPreview.penaltyPoints).toBe(0);
+
+    const nearPreview = await previewBookingCancellation(db, nearBooking.id, rider.id);
+    expect(nearPreview.tier).toBe('severe');
+    expect(nearPreview.penaltyPoints).toBeGreaterThan(0);
+  });
+
+  it('full cancel flow: status updates, other party notified, reputation penalty applied, seat released atomically', async () => {
+    const rider = await makeRider('2');
+    // <24h but >30min out -> moderate tier.
+    const ride = await makeRide(new Date(Date.now() + 6 * 60 * 60_000), 2);
+
+    const booking = await createBooking(db, ride.id, rider.id, {
+      seatsRequested: 1,
+      pickup: { label: 'Pickup', lat: 36.8, lng: 10.18 },
+    });
+    await acceptBooking(db, booking.id, driverUserId);
+
+    const [rideAfterAccept] = await db.select().from(rides).where(eq(rides.id, ride.id));
+    expect(rideAfterAccept!.seatsAvailable).toBe(1);
+
+    const [driverBefore] = await db
+      .select()
+      .from(driverProfiles)
+      .where(eq(driverProfiles.id, driverProfileId));
+
+    const result = await cancelBooking(db, booking.id, rider.id);
+
+    expect(result.booking.status).toBe('cancelled_by_rider');
+    expect(result.cancellationPolicy.tier).toBe('moderate');
+    expect(result.cancellationPolicy.penaltyPoints).toBeGreaterThan(0);
+
+    // Seat released atomically back to the ride.
+    const [rideAfterCancel] = await db.select().from(rides).where(eq(rides.id, ride.id));
+    expect(rideAfterCancel!.seatsAvailable).toBe(2);
+    expect(rideAfterCancel!.status).toBe('published');
+
+    // Trip is terminal.
+    const trip = await db.query.trips.findFirst({ where: eq(trips.bookingId, booking.id) });
+    expect(trip!.status).toBe('cancelled');
+
+    // The *other* party (the driver — the rider cancelled) was notified.
+    const notification = await db.query.notifications.findFirst({
+      where: and(eq(notifications.userId, driverUserId), eq(notifications.type, 'booking_cancelled')),
+      orderBy: desc(notifications.createdAt),
+    });
+    expect(notification).toBeDefined();
+    expect((notification!.payload as Record<string, unknown>).cancelledBy).toBe('rider');
+
+    // Reputation penalty landed on the *cancelling* party (the rider), not the driver.
+    const riderProfile = await db.query.riderProfiles.findFirst({
+      where: eq(riderProfiles.userId, rider.id),
+    });
+    expect(riderProfile).toBeDefined();
+    expect(riderProfile!.reliabilityPenaltyPoints).toBe(result.cancellationPolicy.penaltyPoints);
+
+    const [driverAfter] = await db
+      .select()
+      .from(driverProfiles)
+      .where(eq(driverProfiles.id, driverProfileId));
+    expect(driverAfter!.reliabilityPenaltyPoints).toBe(driverBefore!.reliabilityPenaltyPoints);
+
+    // A second cancel attempt on the now-terminal booking is rejected.
+    await expect(cancelBooking(db, booking.id, rider.id)).rejects.toBeInstanceOf(ConflictError);
+  });
+
+  it('only lets one of two concurrent cancel attempts on the same booking win, without double-crediting the seat', async () => {
+    const rider = await makeRider('3');
+    const ride = await makeRide(new Date(Date.now() + 6 * 60 * 60_000), 3);
+
+    const booking = await createBooking(db, ride.id, rider.id, {
+      seatsRequested: 1,
+      pickup: { label: 'Pickup', lat: 36.8, lng: 10.18 },
+    });
+    await acceptBooking(db, booking.id, driverUserId);
+
+    const [rideAfterAccept] = await db.select().from(rides).where(eq(rides.id, ride.id));
+    expect(rideAfterAccept!.seatsAvailable).toBe(2);
+
+    // Both the rider and the driver race to cancel the same booking at once.
+    const results = await Promise.allSettled([
+      cancelBooking(db, booking.id, rider.id),
+      cancelBooking(db, booking.id, driverUserId),
+    ]);
+
+    const fulfilled = results.filter((r) => r.status === 'fulfilled');
+    const rejected = results.filter((r) => r.status === 'rejected');
+    expect(fulfilled).toHaveLength(1);
+    expect(rejected).toHaveLength(1);
+    expect((rejected[0] as PromiseRejectedResult).reason).toBeInstanceOf(ConflictError);
+
+    // Exactly one seat was released — not two. This is the exact bug class
+    // the status-guard fix (bookings.service.ts's cancelBooking) closes: an
+    // unguarded UPDATE ... WHERE id = :id would let both concurrent calls
+    // pass their stale canTransitionBookingStatus check and each restore a
+    // seat, double-crediting seatsAvailable.
+    const [rideAfterCancel] = await db.select().from(rides).where(eq(rides.id, ride.id));
+    expect(rideAfterCancel!.seatsAvailable).toBe(3);
+    expect(rideAfterCancel!.seatsAvailable).toBeLessThanOrEqual(rideAfterCancel!.seatsTotal);
+  });
+
+  it('rejects reporting a no-show before the scheduled departure time', async () => {
+    const rider = await makeRider('4');
+    const ride = await makeRide(new Date(Date.now() + 60 * 60_000));
+
+    const booking = await createBooking(db, ride.id, rider.id, {
+      seatsRequested: 1,
+      pickup: { label: 'Pickup', lat: 36.8, lng: 10.18 },
+    });
+    await acceptBooking(db, booking.id, driverUserId);
+
+    await expect(reportNoShow(db, booking.id, rider.id)).rejects.toBeInstanceOf(ConflictError);
+
+    const stillAccepted = await db.query.bookings.findFirst({ where: eq(bookings.id, booking.id) });
+    expect(stillAccepted!.status).toBe('accepted');
+  });
+
+  it('reporting a no-show after departure updates status, releases the seat, applies the automatic low rating, and notifies the reported party', async () => {
+    const rider = await makeRider('5');
+    // Departure already passed, well past the minimum grace buffer.
+    const ride = await makeRide(new Date(Date.now() - 60 * 60_000), 1);
+
+    const booking = await createBooking(db, ride.id, rider.id, {
+      seatsRequested: 1,
+      pickup: { label: 'Pickup', lat: 36.8, lng: 10.18 },
+    });
+    await acceptBooking(db, booking.id, driverUserId);
+
+    const updated = await reportNoShow(db, booking.id, rider.id);
+    expect(updated.status).toBe('no_show');
+
+    const [rideAfter] = await db.select().from(rides).where(eq(rides.id, ride.id));
+    expect(rideAfter!.seatsAvailable).toBe(1);
+
+    const trip = await db.query.trips.findFirst({ where: eq(trips.bookingId, booking.id) });
+    expect(trip!.status).toBe('no_show');
+
+    // The rider reported the driver -> the driver is the no-show party and
+    // gets both the automatic low rating and the reliability penalty.
+    const autoRating = await db.query.ratings.findFirst({
+      where: and(eq(ratings.tripId, trip!.id), eq(ratings.raterUserId, rider.id)),
+    });
+    expect(autoRating).toBeDefined();
+    expect(autoRating!.rateeUserId).toBe(driverUserId);
+    expect(autoRating!.stars).toBe(1);
+
+    const [driverAfter] = await db
+      .select()
+      .from(driverProfiles)
+      .where(eq(driverProfiles.id, driverProfileId));
+    expect(driverAfter!.reliabilityPenaltyPoints).toBeGreaterThanOrEqual(5);
+
+    const notification = await db.query.notifications.findFirst({
+      where: and(
+        eq(notifications.userId, driverUserId),
+        eq(notifications.type, 'booking_no_show_reported'),
+      ),
+      orderBy: desc(notifications.createdAt),
+    });
+    expect(notification).toBeDefined();
+  });
+});

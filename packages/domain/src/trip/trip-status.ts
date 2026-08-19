@@ -28,12 +28,20 @@ export type TripStatus = (typeof TRIP_STATUSES)[number];
 // from wherever it currently stands — hence `completed` reachable from
 // every non-terminal state, not gated behind first passing through
 // `driver_approaching`/`pickup`/`active`/`arriving`.
+//
+// Phase 10 (docs/roadmap/phase-10-cancellation-no-show.md) applies the same
+// reasoning to `no_show`: previously only reachable from `pickup`, which
+// assumed the trip had already progressed there through a real simulation.
+// Since that simulation still doesn't exist, a no-show reported near
+// `departureAt` almost always finds the trip still `scheduled` — so
+// `no_show`, like `completed`, is now reachable from every non-terminal
+// status, not just `pickup`.
 export const TRIP_STATUS_TRANSITIONS: Record<TripStatus, readonly TripStatus[]> = {
-  scheduled: ['driver_approaching', 'completed', 'cancelled'],
-  driver_approaching: ['pickup', 'completed', 'cancelled'],
+  scheduled: ['driver_approaching', 'completed', 'no_show', 'cancelled'],
+  driver_approaching: ['pickup', 'completed', 'no_show', 'cancelled'],
   pickup: ['active', 'no_show', 'completed', 'cancelled'],
-  active: ['arriving', 'completed', 'cancelled'],
-  arriving: ['completed'],
+  active: ['arriving', 'completed', 'no_show', 'cancelled'],
+  arriving: ['completed', 'no_show'],
   completed: [],
   no_show: [],
   cancelled: [],
