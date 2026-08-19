@@ -32,11 +32,13 @@ import {
   useGenerateCandidateStopsMutation,
   useUpdateRideStopsMutation,
   usePublishRideMutation,
+  useRegisterPushTokenMutation,
   type RouteStop,
   type SuggestedPrice,
 } from '../../src/state/api';
 import { decodePolyline } from '../../src/utils/polyline';
 import { trackEvent } from '../../src/services/analytics/analytics';
+import { requestPushPermissionAndRegister } from '../../src/services/notifications/registerForPushNotifications';
 import { toggleStopSelection, buildStopSelectionPayload } from '../../src/features/driver-publish/stopSelection';
 import { resolveInitialPrice } from '../../src/features/driver-publish/priceSelection';
 
@@ -93,6 +95,7 @@ export default function PublishRideScreen(): React.JSX.Element {
   const [generateCandidateStops] = useGenerateCandidateStopsMutation();
   const [updateRideStops, { isLoading: isSavingStops }] = useUpdateRideStopsMutation();
   const [publishRide, { isLoading: isPublishingRide }] = usePublishRideMutation();
+  const [registerPushToken] = useRegisterPushTokenMutation();
 
   useEffect(() => {
     dispatch(resetSearch());
@@ -243,6 +246,10 @@ export default function PublishRideScreen(): React.JSX.Element {
       }
       await publishRide(rideId).unwrap();
       haptics.success();
+      // Contextual push-permission prompt (docs/roadmap/phase-07-notifications.md):
+      // a driver's first published ride is a real reason to ask — never
+      // blocks navigation, and is a silent no-op after the first prompt.
+      void requestPushPermissionAndRegister((args) => registerPushToken(args).unwrap());
       router.replace('/(tabs)/trips');
     } catch {
       haptics.error();

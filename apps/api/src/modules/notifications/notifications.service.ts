@@ -1,0 +1,170 @@
+import { desc, eq } from 'drizzle-orm';
+import type { NotificationEventType } from '@vaya/domain';
+import type { RegisterPushTokenInput } from '@vaya/validation';
+import type { getDatabase } from '../../lib/database.js';
+import { deviceTokens, notifications } from '../../db/schema/index.js';
+import { ForbiddenError, NotFoundError } from '../../lib/errors.js';
+import { getLogger } from '../../config/logger.js';
+import { enqueueNotificationDispatch } from '../../lib/queue.js';
+import { sendExpoPushMessages } from './expo-push.js';
+
+type Database = ReturnType<typeof getDatabase>;
+
+const NOTIFICATION_LIST_LIMIT = 50;
+
+/** Register/update this device's Expo push token for the current user.
+ *  `token` is globally unique (device-tokens.schema.ts) — a re-registration
+ *  (reinstall, refreshed token, or the same physical device logging into a
+ *  different account) reassigns the existing row rather than accumulating
+ *  duplicates. */
+export async function registerPushToken(
+  db: Database,
+  userId: string,
+  input: RegisterPushTokenInput,
+) {
+  const existing = await db.query.deviceTokens.findFirst({
+    where: eq(deviceTokens.token, input.token),
+  });
+
+  if (existing) {
+    const [updated] = await db
+      .update(deviceTokens)
+      .set({ userId, platform: input.platform, updatedAt: new Date() })
+      .where(eq(deviceTokens.id, existing.id))
+      .returning();
+    if (!updated) throw new Error('Failed to update device token');
+    return updated;
+  }
+
+  const [created] = await db
+    .insert(deviceTokens)
+    .values({ userId, token: input.token, platform: input.platform })
+    .returning();
+  if (!created) throw new Error('Failed to register device token');
+  return created;
+}
+
+/**
+ * Creates the in-app `notifications` row (the source of truth for the
+ * inbox — always created regardless of push outcome, per this phase's
+ * business rule) and best-effort enqueues a dispatch job. This is the one
+ * hook point booking flows call into — see bookings.service.ts's
+ * create/accept/decline paths — and it deliberately never throws past the
+ * row insert itself failing: an enqueue failure is logged and swallowed so
+ * it can never fail the caller's primary action.
+ */
+export async function createNotification(
+  db: Database,
+  userId: string,
+  type: NotificationEventType,
+  payload: Record<string, unknown> = {},
+) {
+  const [notification] = await db.insert(notifications).values({ userId, type, payload }).returning();
+  if (!notification) throw new Error('Failed to create notification');
+
+  try {
+    await enqueueNotificationDispatch(notification.id);
+  } catch (err) {
+    // enqueueNotificationDispatch already swallows its own errors — this
+    // catch is a second line of defense in case that contract ever slips.
+    getLogger().error(
+      { err, notificationId: notification.id },
+      'Failed to enqueue notification dispatch job',
+    );
+  }
+
+  return notification;
+}
+
+export async function listNotifications(db: Database, userId: string) {
+  return db.query.notifications.findMany({
+    where: eq(notifications.userId, userId),
+    orderBy: desc(notifications.createdAt),
+    limit: NOTIFICATION_LIST_LIMIT,
+  });
+}
+
+export async function markNotificationRead(db: Database, notificationId: string, userId: string) {
+  const notification = await db.query.notifications.findFirst({
+    where: eq(notifications.id, notificationId),
+  });
+  if (!notification) throw new NotFoundError('Notification');
+  if (notification.userId !== userId) {
+    throw new ForbiddenError('Not authorized to modify this notification');
+  }
+
+  const [updated] = await db
+    .update(notifications)
+    .set({ readAt: new Date(), updatedAt: new Date() })
+    .where(eq(notifications.id, notificationId))
+    .returning();
+  if (!updated) throw new Error('Failed to mark notification as read');
+  return updated;
+}
+
+const TITLES: Partial<Record<NotificationEventType, string>> = {
+  booking_requested: 'Nouvelle demande de réservation',
+  booking_accepted: 'Réservation acceptée',
+  booking_declined: 'Réservation refusée',
+  trip_driver_approaching: 'Votre conducteur approche',
+  trip_completed: 'Trajet terminé',
+  recurring_pattern_detected: 'Trajet récurrent détecté',
+  recurring_proactive_match: 'Nouveau trajet correspondant',
+  demand_signal_matched: 'Un trajet correspond à votre demande',
+};
+
+function titleFor(type: NotificationEventType): string {
+  return TITLES[type] ?? 'VAYA';
+}
+
+function bodyFor(type: NotificationEventType, payload: Record<string, unknown>): string {
+  switch (type) {
+    case 'booking_requested':
+      return typeof payload.riderName === 'string'
+        ? `${payload.riderName} souhaite réserver une place.`
+        : 'Une nouvelle demande de réservation attend votre réponse.';
+    case 'booking_accepted':
+      return typeof payload.driverName === 'string'
+        ? `${payload.driverName} a accepté votre demande.`
+        : 'Votre demande de réservation a été acceptée.';
+    case 'booking_declined':
+      return 'Votre demande de réservation a été refusée.';
+    default:
+      return 'Vous avez une nouvelle notification.';
+  }
+}
+
+/**
+ * Worker-side dispatch: given a `notifications` row id, sends a push to
+ * every device token registered for that user. Only called from
+ * notification-dispatch.worker.ts (never from the request/response cycle)
+ * — any failure here throws so BullMQ's native retry picks it up.
+ *
+ * Zero registered tokens is a legitimate no-op, not a failure: per this
+ * phase's business rule, a user with no device token simply gets no push —
+ * the in-app row (created above, before this ever runs) already exists.
+ */
+export async function dispatchPushForNotification(db: Database, notificationId: string): Promise<void> {
+  const notification = await db.query.notifications.findFirst({
+    where: eq(notifications.id, notificationId),
+  });
+  if (!notification) {
+    getLogger().warn({ notificationId }, 'Notification row not found for dispatch — skipping');
+    return;
+  }
+
+  const tokens = await db.query.deviceTokens.findMany({
+    where: eq(deviceTokens.userId, notification.userId),
+  });
+  if (tokens.length === 0) return;
+
+  const payload = (notification.payload ?? {}) as Record<string, unknown>;
+  const messages = tokens.map((t) => ({
+    to: t.token,
+    title: titleFor(notification.type),
+    body: bodyFor(notification.type, payload),
+    data: { notificationId: notification.id, type: notification.type, ...payload },
+  }));
+
+  await sendExpoPushMessages(messages);
+}

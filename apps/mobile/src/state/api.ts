@@ -184,6 +184,40 @@ export interface GenerateStopsResult {
   regenerated: boolean;
 }
 
+export interface DeviceTokenRegistration {
+  id: string;
+  userId: string;
+  token: string;
+  platform: 'ios' | 'android';
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Mirrors the server's notification_event_type enum
+ *  (apps/api/src/db/schema/notifications.schema.ts) — only the first 3
+ *  ever get dispatched a push by this phase; the rest are scaffolding for
+ *  future phases (Recurring Rides, demand signals) that already populate
+ *  the same table shape. */
+export type NotificationEventType =
+  | 'booking_requested'
+  | 'booking_accepted'
+  | 'booking_declined'
+  | 'trip_driver_approaching'
+  | 'trip_completed'
+  | 'recurring_pattern_detected'
+  | 'recurring_proactive_match'
+  | 'demand_signal_matched';
+
+export interface AppNotification {
+  id: string;
+  userId: string;
+  type: NotificationEventType;
+  payload: Record<string, unknown>;
+  readAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Booking {
   id: string;
   rideId: string;
@@ -258,7 +292,7 @@ const baseQueryWithReauth: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQue
 export const api = createApi({
   reducerPath: 'api',
   baseQuery: baseQueryWithReauth,
-  tagTypes: ['Me', 'DriverProfile', 'MyRides', 'MyBookings', 'RideRequests'],
+  tagTypes: ['Me', 'DriverProfile', 'MyRides', 'MyBookings', 'RideRequests', 'Notifications'],
   endpoints: (builder) => ({
     healthCheck: builder.query<{ status: string }, void>({
       query: () => '/health',
@@ -403,6 +437,22 @@ export const api = createApi({
       query: (bookingId) => ({ url: `/bookings/${bookingId}/cancel`, method: 'POST' }),
       invalidatesTags: ['MyBookings', 'RideRequests', 'MyRides'],
     }),
+
+    // Phase 7 (docs/roadmap/phase-07-notifications.md).
+    registerPushToken: builder.mutation<
+      DeviceTokenRegistration,
+      { token: string; platform: 'ios' | 'android' }
+    >({
+      query: (body) => ({ url: '/users/me/push-token', method: 'POST', body }),
+    }),
+    listNotifications: builder.query<AppNotification[], void>({
+      query: () => '/notifications',
+      providesTags: ['Notifications'],
+    }),
+    markNotificationRead: builder.mutation<AppNotification, string>({
+      query: (notificationId) => ({ url: `/notifications/${notificationId}/read`, method: 'PATCH' }),
+      invalidatesTags: ['Notifications'],
+    }),
   }),
 });
 
@@ -439,4 +489,7 @@ export const {
   useAcceptBookingMutation,
   useDeclineBookingMutation,
   useCancelBookingMutation,
+  useRegisterPushTokenMutation,
+  useListNotificationsQuery,
+  useMarkNotificationReadMutation,
 } = api;
