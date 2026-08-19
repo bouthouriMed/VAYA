@@ -28,6 +28,7 @@ export * from './recurring-patterns.schema';
 export * from './relationship-signals.schema';
 export * from './demand-signals.schema';
 export * from './notifications.schema';
+export * from './pricing-configs.schema';
 
 export const usersRelations = relations(users, ({ one, many }) => ({
   driverProfile: one(driverProfiles, {

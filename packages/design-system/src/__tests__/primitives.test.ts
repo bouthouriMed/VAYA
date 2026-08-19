@@ -29,6 +29,12 @@ describe('Design system primitives', () => {
     expect(primitives.Icon).toBeDefined();
   });
 
+  it('exports the Phase 6 bounded price control', async () => {
+    const primitives = await import('../primitives/index.js');
+    expect(primitives.PriceRangeStepper).toBeDefined();
+    expect(primitives.clampPrice).toBeDefined();
+  });
+
   it('exports haptics from the package root', async () => {
     const index = await import('../index.js');
     expect(index.haptics).toBeDefined();

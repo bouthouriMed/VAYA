@@ -8,6 +8,7 @@ import type {
   CreateDriverOnboardingInput,
   UpdateVehicleInput,
   CreateRideInput,
+  UpdateRideInput,
   CreateBookingInput,
   NotifyMeInput,
 } from '@vaya/validation';
@@ -148,6 +149,17 @@ export interface Ride {
   routePolyline: string | null;
   estimatedDurationSec: number | null;
 }
+
+/** Phase 6 (docs/domain/pricing.md): the server-computed bounded price
+ *  suggestion, returned alongside the ride by createRide/updateRide so the
+ *  client never needs a second round-trip to render the price step. */
+export interface SuggestedPrice {
+  min: number;
+  recommended: number;
+  max: number;
+}
+
+export type RideWithPricing = Ride & { pricing: SuggestedPrice; routeIsEstimate: boolean };
 
 export interface RouteStop {
   id: string;
@@ -322,8 +334,16 @@ export const api = createApi({
       query: (formData) => ({ url: '/uploads', method: 'POST', body: formData }),
     }),
 
-    createRide: builder.mutation<Ride, CreateRideInput>({
+    createRide: builder.mutation<RideWithPricing, CreateRideInput>({
       query: (body) => ({ url: '/rides', method: 'POST', body }),
+      invalidatesTags: ['MyRides'],
+    }),
+    // Phase 6: lets the driver adjust the price (or departure/seats) after
+    // seeing the real computed bound createRide returned, before
+    // publishing — see driver/publish.tsx's price step. Server re-validates
+    // the bound independently (rides.service.ts's updateRide).
+    updateRide: builder.mutation<RideWithPricing, { rideId: string; input: UpdateRideInput }>({
+      query: ({ rideId, input }) => ({ url: `/rides/${rideId}`, method: 'PATCH', body: input }),
       invalidatesTags: ['MyRides'],
     }),
     listMyRides: builder.query<Ride[], void>({
@@ -406,6 +426,7 @@ export const {
   useUpdateVehicleMutation,
   useUploadFileMutation,
   useCreateRideMutation,
+  useUpdateRideMutation,
   useListMyRidesQuery,
   useGetRideQuery,
   useCancelRideMutation,
