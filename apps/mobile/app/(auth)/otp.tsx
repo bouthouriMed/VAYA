@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   View,
   StyleSheet,
@@ -54,6 +54,7 @@ export default function OtpScreen(): React.JSX.Element {
   const dispatch = useAppDispatch();
   const [code, setCode] = useState('');
   const [secondsLeft, setSecondsLeft] = useState(RESEND_SECONDS);
+  const inputRef = useRef<TextInput>(null);
   const [devCode, setDevCode] = useState<string | undefined>();
   const [errorMessage, setErrorMessage] = useState<string | undefined>();
 
@@ -131,14 +132,21 @@ export default function OtpScreen(): React.JSX.Element {
               Sent via SMS to {maskPhone(phone ?? '+216 98 *** ***')}
             </Text>
 
-            <BlurView intensity={35} tint="light" style={styles.otpPill}>
-              <View style={styles.otpOverlay}>
-                {Array.from({ length: CODE_LENGTH }).map((_, i) => (
-                  <OtpCell key={i} digit={code[i]} active={i === code.length} />
-                ))}
-              </View>
-            </BlurView>
+            <TouchableOpacity
+              activeOpacity={1}
+              onPress={() => inputRef.current?.focus()}
+              style={styles.otpPillTouchable}
+            >
+              <BlurView intensity={35} tint="light" style={styles.otpPill}>
+                <View style={styles.otpOverlay}>
+                  {Array.from({ length: CODE_LENGTH }).map((_, i) => (
+                    <OtpCell key={i} digit={code[i]} active={i === code.length} />
+                  ))}
+                </View>
+              </BlurView>
+            </TouchableOpacity>
             <TextInput
+              ref={inputRef}
               value={code}
               onChangeText={(v) => setCode(v.replace(/[^0-9]/g, '').slice(0, CODE_LENGTH))}
               keyboardType="number-pad"
@@ -220,11 +228,13 @@ const styles = StyleSheet.create({
   subtitle: {
     marginTop: spacing.md,
   },
+  otpPillTouchable: {
+    alignSelf: 'flex-start',
+    marginTop: spacing['4xl'],
+  },
   otpPill: {
     borderRadius: radii['2xl'],
     overflow: 'hidden',
-    marginTop: spacing['4xl'],
-    alignSelf: 'flex-start',
   },
   otpOverlay: {
     flexDirection: 'row',
