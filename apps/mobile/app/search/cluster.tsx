@@ -5,6 +5,7 @@ import { skipToken } from '@reduxjs/toolkit/query/react';
 import {
   Text,
   DriverMapPin,
+  EmptyState,
   colors,
   spacing,
   radii,
@@ -96,9 +97,7 @@ export default function ClusterScreen(): React.JSX.Element {
   if (!recommended) {
     return (
       <View style={styles.loadingWrap}>
-        <Text variant="body" color={colors.gray500}>
-          Ce groupe n&apos;est plus disponible.
-        </Text>
+        <EmptyState title="Ce groupe n'est plus disponible." />
       </View>
     );
   }

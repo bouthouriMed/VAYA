@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, type ViewStyle } from 'react-native';
-import { colors, spacing, radii, typography } from '../tokens/index';
+import { colors, spacing, radii, typography, elevation } from '../tokens/index';
 
 interface FieldRowProps {
   label: string;
@@ -19,7 +19,7 @@ interface FieldCardProps {
 
 /** Groups FieldRow entries into the pill-card input pattern (dot + label/value stack). */
 export function FieldCard({ children, style }: FieldCardProps): React.JSX.Element {
-  return <View style={[styles.card, style]}>{children}</View>;
+  return <View style={[styles.card, elevation?.sm, style]}>{children}</View>;
 }
 
 export function FieldRow({
@@ -53,7 +53,12 @@ export function FieldRow({
   if (!onPress) return content;
 
   return (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.6}>
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={0.6}
+      accessibilityRole="button"
+      accessibilityLabel={`${label}, ${value}`}
+    >
       {content}
     </TouchableOpacity>
   );
@@ -65,10 +70,6 @@ const styles = StyleSheet.create({
     borderRadius: radii.xl,
     paddingHorizontal: spacing.md,
     shadowColor: colors.gray900,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 1,
   },
   row: {
     flexDirection: 'row',

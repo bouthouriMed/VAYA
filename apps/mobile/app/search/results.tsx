@@ -1,7 +1,17 @@
 import { useMemo } from 'react';
 import { View, StyleSheet, ActivityIndicator, type DimensionValue } from 'react-native';
 import { skipToken } from '@reduxjs/toolkit/query/react';
-import { Text, Button, ClusterMarker, colors, spacing, radii } from '@vaya/design-system';
+import {
+  Text,
+  Button,
+  ClusterMarker,
+  EmptyState,
+  SkeletonCircle,
+  useToast,
+  colors,
+  spacing,
+  radii,
+} from '@vaya/design-system';
 import { router } from 'expo-router';
 import { useAppSelector } from '../../src/state/store';
 import {
@@ -73,6 +83,7 @@ export default function ResultsScreen(): React.JSX.Element {
     !searchArgs || !noExactMatches ? skipToken : searchArgs,
   );
   const [notifyMe, { isLoading: isNotifying, isSuccess: notified }] = useNotifyMeMutation();
+  const showToast = useToast();
 
   const groups = useMemo(() => groupByCluster(candidates ?? []), [candidates]);
   const fallbackGroups = useMemo(() => groupByCluster(fallback?.nearbyRides ?? []), [fallback]);
@@ -83,15 +94,20 @@ export default function ResultsScreen(): React.JSX.Element {
     router.push({ pathname: '/search/cluster', params: { label } });
   }
 
-  function handleNotifyMe(): void {
+  async function handleNotifyMe(): Promise<void> {
     if (!origin || !destination) return;
     const now = new Date();
-    void notifyMe({
-      origin: { label: origin.label, lat: origin.lat, lng: origin.lng },
-      destination: { label: destination.label, lat: destination.lat, lng: destination.lng },
-      desiredWindowStart: now,
-      desiredWindowEnd: new Date(now.getTime() + 3 * 3_600_000),
-    });
+    try {
+      await notifyMe({
+        origin: { label: origin.label, lat: origin.lat, lng: origin.lng },
+        destination: { label: destination.label, lat: destination.lat, lng: destination.lng },
+        desiredWindowStart: now,
+        desiredWindowEnd: new Date(now.getTime() + 3 * 3_600_000),
+      }).unwrap();
+      showToast({ message: 'Nous vous préviendrons dès qu’un trajet apparaît.', tone: 'success' });
+    } catch {
+      showToast({ message: 'Impossible de vous inscrire pour le moment.', tone: 'error' });
+    }
   }
 
   return (
@@ -119,8 +135,10 @@ export default function ResultsScreen(): React.JSX.Element {
       </View>
 
       {isLoading ? (
-        <View style={styles.loadingWrap}>
-          <ActivityIndicator size="large" color={colors.secondary} />
+        <View style={styles.scatterField}>
+          {POSITION_POOL.map((position, i) => (
+            <SkeletonCircle key={i} size={i === 0 ? 64 : 46} style={[styles.scattered, position]} />
+          ))}
         </View>
       ) : groups.length > 0 ? (
         <View style={styles.scatterField}>
@@ -135,38 +153,31 @@ export default function ResultsScreen(): React.JSX.Element {
           ))}
         </View>
       ) : (
-        <View style={styles.emptyState}>
+        <EmptyState
+          title={
+            fallbackGroups.length > 0
+              ? `Rien d'exact, mais ${fallback?.nearbyRides.length} trajet(s) à proximité :`
+              : 'Personne sur ce trajet pour le moment.'
+          }
+          actionLabel={notified ? 'Nous vous préviendrons ✓' : 'Me notifier si un trajet apparaît'}
+          actionDisabled={isNotifying || notified}
+          onAction={() => void handleNotifyMe()}
+        >
           {isFallbackLoading ? (
             <ActivityIndicator size="large" color={colors.secondary} />
           ) : fallbackGroups.length > 0 ? (
-            <>
-              <Text variant="body" color={colors.gray700} align="center" style={styles.emptyText}>
-                Rien d&apos;exact, mais {fallback?.nearbyRides.length} trajet(s) à proximité :
-              </Text>
-              <View style={styles.scatterField}>
-                {fallbackGroups.map((group, i) => (
-                  <ClusterMarker
-                    key={group.label}
-                    label={group.label}
-                    onPress={() => openCluster(group.label)}
-                    style={[styles.scattered, POSITION_POOL[i % POSITION_POOL.length]]}
-                  />
-                ))}
-              </View>
-            </>
-          ) : (
-            <Text variant="body" color={colors.gray500} align="center" style={styles.emptyText}>
-              Personne sur ce trajet pour le moment.
-            </Text>
-          )}
-          <Button
-            label={notified ? 'Nous vous préviendrons ✓' : 'Me notifier si un trajet apparaît'}
-            variant="outline"
-            disabled={isNotifying || notified}
-            onPress={handleNotifyMe}
-            style={styles.notifyCta}
-          />
-        </View>
+            <View style={styles.scatterField}>
+              {fallbackGroups.map((group, i) => (
+                <ClusterMarker
+                  key={group.label}
+                  label={group.label}
+                  onPress={() => openCluster(group.label)}
+                  style={[styles.scattered, POSITION_POOL[i % POSITION_POOL.length]]}
+                />
+              ))}
+            </View>
+          ) : null}
+        </EmptyState>
       )}
 
       {groups.length > 0 ? (
@@ -201,11 +212,6 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     lineHeight: 30,
   },
-  loadingWrap: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   scatterField: {
     flex: 1,
     position: 'relative',
@@ -213,16 +219,6 @@ const styles = StyleSheet.create({
   },
   scattered: {
     position: 'absolute',
-  },
-  emptyState: {
-    flex: 1,
-    gap: spacing.lg,
-  },
-  emptyText: {
-    marginTop: spacing.xl,
-  },
-  notifyCta: {
-    width: '100%',
   },
   footer: {
     backgroundColor: colors.white,

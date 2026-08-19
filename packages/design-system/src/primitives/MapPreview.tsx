@@ -21,9 +21,16 @@ export function MapPreview({
 }: MapPreviewProps): React.JSX.Element {
   return (
     <View style={[styles.wrap, { height }, style]}>
-      <View style={styles.routeLine} />
-      <View style={[styles.marker, styles.markerStart]} />
-      <View style={[styles.marker, styles.markerEnd]} />
+      <View
+        style={StyleSheet.absoluteFillObject}
+        pointerEvents="none"
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+      >
+        <View style={styles.routeLine} />
+        <View style={[styles.marker, styles.markerStart]} />
+        <View style={[styles.marker, styles.markerEnd]} />
+      </View>
       {badge ? (
         <View style={styles.badge}>
           <Text style={styles.badgeText}>{badge}</Text>

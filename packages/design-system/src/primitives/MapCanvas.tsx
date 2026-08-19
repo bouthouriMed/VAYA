@@ -45,7 +45,12 @@ export function MapCanvas({
       onLayout={handleLayout}
     >
       {showStreetGrid ? (
-        <View style={StyleSheet.absoluteFillObject} pointerEvents="none">
+        <View
+          style={StyleSheet.absoluteFillObject}
+          pointerEvents="none"
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+        >
           {H_LINES.map((f) => (
             <View key={`h${f}`} style={[styles.streetLine, { top: `${f * 100}%` }]} />
           ))}

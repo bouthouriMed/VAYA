@@ -101,11 +101,14 @@ A phase is done when: its own file's Definition of Done checklist is fully check
 
 ## Current implementation status
 
-Full audit: `docs/product/audit.md`. As of 2026-08-19: comprehensive audit and roadmap complete (12 phases, `docs/roadmap/README.md`), no implementation phase started yet. The codebase is materially more mature than a typical MVP — real OSRM routing, a genuinely sophisticated matching algorithm, a rich 14-table domain schema, and a production-grade driver-onboarding flow already exist. The two confirmed highest-priority gaps are unconstrained pricing and a fake (explicitly non-geospatial) passenger pickup-point picker, both addressed in Phases 4-6. A confirmed booking-acceptance race condition and missing DB indexes are addressed in Phase 1.
+Full audit: `docs/product/audit.md`. As of 2026-08-19: comprehensive audit and roadmap complete (12 phases, `docs/roadmap/README.md`); Phases 1 and 2 implemented. The codebase is materially more mature than a typical MVP — real OSRM routing, a genuinely sophisticated matching algorithm, a rich 14-table domain schema, and a production-grade driver-onboarding flow already exist. The two confirmed highest-priority gaps are unconstrained pricing and a fake (explicitly non-geospatial) passenger pickup-point picker, both addressed in Phases 4-6.
 
-**Completed phases:** none.
+**Completed phases:**
+- **Phase 1 — Foundation Hardening**: fixed the confirmed booking-acceptance race condition (atomic DB-level seat accounting in `acceptBooking`/`cancelBooking`), added missing DB indexes, registered rate limiting, added a root `ErrorBoundary` + branded loading state, and wired the post-booking screens (`pending`/`pickup`/`live`/`settlement`) to real booking/ride data instead of fabricated mock values. Also fixed a real, separate bug found along the way: `AppError`'s constructor was silently breaking `instanceof` narrowing for every subclass.
+- **Phase 2 — Design System: Interaction Layer**: added `BottomSheet`, `Modal`, `Toast`/`ToastProvider`, `Skeleton{Block,Circle,Text}`, `EmptyState`, and `Icon` to `@vaya/design-system`; recalibrated the `elevation` token scale to the brand's actual soft-shadow character and migrated `Card`/`FieldCard`/`ReviewCard`/`StatTile`/`Modal`/`BottomSheet`/`Toast` onto it; added a `haptics` utility wired into OTP verify, booking request, and ride publish (success + error paths); completed an accessibility baseline pass (roles/labels/grouping) across all 19 pre-existing primitives plus the 6 new ones. Each new primitive is proven in a real screen (EmptyState/Skeleton/Toast in `search/results.tsx`, Modal/BottomSheet/Icon in `(tabs)/profile.tsx`'s new logout-confirmation and language-picker interactions — the latter previously a dead tap with no handler at all).
+
 **Current phase:** none in progress.
-**Recommended next phase:** Phase 1 — Foundation Hardening (`docs/roadmap/phase-01-foundation-hardening.md`).
+**Recommended next phase:** Phase 3 — Real Map Rendering Foundation (`docs/roadmap/phase-03-real-map-rendering.md`) — hard prerequisite for Phase 4/5's ride-engine stop-selection UI.
 
 ## Important decisions
 
