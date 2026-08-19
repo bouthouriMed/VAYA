@@ -1,5 +1,14 @@
 import { useEffect, useState } from 'react';
-import { View, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  KeyboardAvoidingView,
+  TouchableWithoutFeedback,
+  Keyboard,
+  Platform,
+} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -17,6 +26,23 @@ function maskPhone(phone: string): string {
   return [...parts.slice(0, 2), ...parts.slice(2).map((p) => '*'.repeat(p.length))].join(' ');
 }
 
+function OtpCell({ digit, active }: { digit?: string; active: boolean }): React.JSX.Element {
+  const filled = digit !== undefined;
+  return (
+    <View style={[styles.otpCell, filled ? styles.otpCellFilled : null]}>
+      {filled ? (
+        <Text style={styles.otpDigit}>{digit}</Text>
+      ) : (
+        <View style={styles.otpGlowWrap}>
+          <View style={styles.otpGlowHalo} />
+          <View style={styles.otpGlowCore} />
+        </View>
+      )}
+      <View style={[styles.otpUnderline, active ? styles.otpUnderlineActive : null]} />
+    </View>
+  );
+}
+
 export default function OtpScreen(): React.JSX.Element {
   const { phone } = useLocalSearchParams<{ phone?: string }>();
   const insets = useSafeAreaInsets();
@@ -31,78 +57,96 @@ export default function OtpScreen(): React.JSX.Element {
 
   const mm = String(Math.floor(secondsLeft / 60)).padStart(2, '0');
   const ss = String(secondsLeft % 60).padStart(2, '0');
+  const canVerify = code.length === CODE_LENGTH;
+
+  function verify(): void {
+    if (!canVerify) return;
+    Keyboard.dismiss();
+    router.replace('/(tabs)/explore');
+  }
 
   return (
     <LinearGradient
-      colors={[colors.gray100, colors.secondaryLight + '33', colors.gray100]}
-      start={{ x: 0.1, y: 0 }}
-      end={{ x: 0.9, y: 1 }}
-      style={styles.container}
+      colors={[colors.gray100, colors.secondaryLight + '40', colors.gray100]}
+      locations={[0, 0.55, 1]}
+      start={{ x: 0.15, y: 0 }}
+      end={{ x: 0.85, y: 1 }}
+      style={styles.gradient}
     >
-      <View style={{ paddingTop: insets.top + spacing.sm }}>
-        <TouchableOpacity onPress={() => router.back()} hitSlop={12} style={styles.backBtn}>
-          <Ionicons name="chevron-back" size={26} color={colors.gray900} />
-        </TouchableOpacity>
-      </View>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+        <KeyboardAvoidingView
+          style={styles.container}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+        >
+          <View style={{ paddingTop: insets.top + spacing.md }}>
+            <TouchableOpacity onPress={() => router.back()} hitSlop={12} style={styles.backBtn}>
+              <Ionicons name="chevron-back" size={26} color={colors.gray900} />
+            </TouchableOpacity>
+          </View>
 
-      <View style={styles.body}>
-        <Text variant="h1" style={styles.title}>
-          Enter Verification Code
-        </Text>
-        <Text variant="body" color={colors.gray600}>
-          Sent via SMS to {maskPhone(phone ?? '+216 98 *** ***')}
-        </Text>
+          <View style={styles.body}>
+            <Text style={styles.title}>Enter Verification Code</Text>
+            <Text variant="body" color={colors.gray600} style={styles.subtitle}>
+              Sent via SMS to {maskPhone(phone ?? '+216 98 *** ***')}
+            </Text>
 
-        <BlurView intensity={35} tint="light" style={styles.otpPill}>
-          <View style={styles.otpOverlay}>
-            {Array.from({ length: CODE_LENGTH }).map((_, i) =>
-              i < code.length ? (
-                <View key={i} style={styles.otpCell}>
-                  <Text style={styles.otpDigit}>{code[i]}</Text>
-                </View>
-              ) : (
-                <View key={i} style={styles.otpDot} />
-              ),
+            <BlurView intensity={35} tint="light" style={styles.otpPill}>
+              <View style={styles.otpOverlay}>
+                {Array.from({ length: CODE_LENGTH }).map((_, i) => (
+                  <OtpCell key={i} digit={code[i]} active={i === code.length} />
+                ))}
+              </View>
+            </BlurView>
+            <TextInput
+              value={code}
+              onChangeText={(v) => setCode(v.replace(/[^0-9]/g, '').slice(0, CODE_LENGTH))}
+              keyboardType="number-pad"
+              style={styles.hiddenInput}
+              autoFocus
+              maxLength={CODE_LENGTH}
+              returnKeyType="done"
+              onSubmitEditing={verify}
+            />
+
+            {secondsLeft > 0 ? (
+              <Text variant="bodySmall" color={colors.gray500} align="center" style={styles.resend}>
+                Resend code in {mm}:{ss}
+              </Text>
+            ) : (
+              <TouchableOpacity
+                onPress={() => setSecondsLeft(RESEND_SECONDS)}
+                style={styles.resend}
+              >
+                <Text variant="bodySmall" color={colors.secondaryDark} align="center">
+                  Resend code
+                </Text>
+              </TouchableOpacity>
             )}
           </View>
-        </BlurView>
-        <TextInput
-          value={code}
-          onChangeText={(v) => setCode(v.replace(/[^0-9]/g, '').slice(0, CODE_LENGTH))}
-          keyboardType="number-pad"
-          style={styles.hiddenInput}
-          autoFocus
-          maxLength={CODE_LENGTH}
-        />
 
-        {secondsLeft > 0 ? (
-          <Text variant="bodySmall" color={colors.gray500} align="center">
-            Resend code in {mm}:{ss}
-          </Text>
-        ) : (
-          <TouchableOpacity onPress={() => setSecondsLeft(RESEND_SECONDS)}>
-            <Text variant="bodySmall" color={colors.secondaryDark} align="center">
-              Resend code
-            </Text>
-          </TouchableOpacity>
-        )}
-      </View>
-
-      <Button
-        label="Verify & Continue"
-        size="lg"
-        disabled={code.length < CODE_LENGTH}
-        onPress={() => router.replace('/(tabs)/explore')}
-        style={[styles.cta, { marginBottom: insets.bottom + spacing.lg }]}
-      />
+          <Button
+            label="Verify & Continue"
+            size="lg"
+            disabled={!canVerify}
+            onPress={verify}
+            style={[styles.cta, { marginBottom: insets.bottom + spacing.lg }]}
+          />
+        </KeyboardAvoidingView>
+      </TouchableWithoutFeedback>
     </LinearGradient>
   );
 }
 
+const CELL_SIZE = 46;
+
 const styles = StyleSheet.create({
+  gradient: {
+    flex: 1,
+  },
   container: {
     flex: 1,
-    paddingHorizontal: spacing.xl,
+    paddingHorizontal: spacing['2xl'],
     justifyContent: 'space-between',
   },
   backBtn: {
@@ -112,47 +156,85 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   body: {
-    gap: spacing.md,
-    marginTop: spacing.xl,
+    marginTop: spacing['2xl'],
   },
   title: {
     color: colors.gray900,
     fontWeight: '800',
-    lineHeight: 38,
+    fontSize: 34,
+    lineHeight: 40,
+    letterSpacing: -0.5,
+  },
+  subtitle: {
+    marginTop: spacing.md,
   },
   otpPill: {
-    borderRadius: radii.full,
+    borderRadius: radii['2xl'],
     overflow: 'hidden',
-    marginTop: spacing.md,
+    marginTop: spacing['4xl'],
+    alignSelf: 'flex-start',
   },
   otpOverlay: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: 'rgba(255,255,255,0.5)',
+    backgroundColor: 'rgba(255,255,255,0.4)',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.md,
+    gap: spacing.sm,
   },
   otpCell: {
-    width: 34,
-    height: 44,
-    borderRadius: radii.md,
-    backgroundColor: colors.white,
-    borderWidth: 1.5,
-    borderColor: colors.gray300,
+    width: CELL_SIZE,
+    height: CELL_SIZE + 8,
+    borderRadius: radii.lg,
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 4,
+  },
+  otpCellFilled: {
+    backgroundColor: colors.white,
+    shadowColor: colors.gray900,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 1,
   },
   otpDigit: {
-    fontSize: typography.fontSize.lg,
+    fontSize: typography.fontSize['2xl'],
     fontWeight: typography.fontWeight.bold,
     color: colors.gray900,
   },
-  otpDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: colors.secondary,
+  otpGlowWrap: {
+    width: 22,
+    height: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  otpGlowHalo: {
+    position: 'absolute',
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: colors.secondaryLight,
+    opacity: 0.55,
+  },
+  otpGlowCore: {
+    width: 9,
+    height: 9,
+    borderRadius: 4.5,
+    backgroundColor: colors.white,
+  },
+  otpUnderline: {
+    width: 18,
+    height: 2,
+    borderRadius: 1,
+    backgroundColor: colors.gray300,
+  },
+  otpUnderlineActive: {
+    backgroundColor: colors.gray900,
+  },
+  resend: {
+    marginTop: spacing.lg,
+    alignSelf: 'center',
   },
   hiddenInput: {
     position: 'absolute',
