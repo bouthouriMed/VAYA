@@ -15,6 +15,7 @@ import {
   EmptyState,
   SkeletonBlock,
   StepProgress,
+  PriceRangeStepper,
   colors,
   spacing,
   radii,
@@ -27,14 +28,19 @@ import { resetSearch } from '../../src/state/searchSlice';
 import {
   useGetMyDriverProfileQuery,
   useCreateRideMutation,
+  useUpdateRideMutation,
   useGenerateCandidateStopsMutation,
   useUpdateRideStopsMutation,
   usePublishRideMutation,
+  useRegisterPushTokenMutation,
   type RouteStop,
+  type SuggestedPrice,
 } from '../../src/state/api';
 import { decodePolyline } from '../../src/utils/polyline';
 import { trackEvent } from '../../src/services/analytics/analytics';
+import { requestPushPermissionAndRegister } from '../../src/services/notifications/registerForPushNotifications';
 import { toggleStopSelection, buildStopSelectionPayload } from '../../src/features/driver-publish/stopSelection';
+import { resolveInitialPrice } from '../../src/features/driver-publish/priceSelection';
 
 const DEPARTURE_PRESETS = [
   { label: 'Dans 15 min', minutes: 15 },
@@ -51,7 +57,7 @@ const ROAD_CLASS_LABELS: Record<string, string> = {
   unknown: 'Route',
 };
 
-type Step = 'form' | 'stops';
+type Step = 'form' | 'price' | 'stops';
 
 export default function PublishRideScreen(): React.JSX.Element {
   const insets = useSafeAreaInsets();
@@ -60,16 +66,23 @@ export default function PublishRideScreen(): React.JSX.Element {
   const destination = useAppSelector((s) => s.search.destination);
   const [departureMinutes, setDepartureMinutes] = useState(30);
   const [seats, setSeats] = useState(3);
-  const [price, setPrice] = useState(5);
   const [errorMessage, setErrorMessage] = useState<string | undefined>();
 
-  // Step 2 (candidate stop selection) state — kept local to this screen
-  // rather than a new Redux slice: the whole flow lives on one route and
-  // never needs to survive navigation away/back, so global state would
-  // just be a God-slice-adjacent place to put screen-local UI state.
+  // Step 2 (price) and step 3 (candidate stop selection) state — kept local
+  // to this screen rather than a new Redux slice: the whole flow lives on
+  // one route and never needs to survive navigation away/back, so global
+  // state would just be a God-slice-adjacent place to put screen-local UI
+  // state.
   const [step, setStep] = useState<Step>('form');
   const [rideId, setRideId] = useState<string | null>(null);
   const [ridePolyline, setRidePolyline] = useState<string | null>(null);
+  // Phase 6 (docs/domain/pricing.md): the server-computed bound, known only
+  // once the ride (and thus its route) exists — `price` is the driver's
+  // current (possibly adjusted) value within that bound, pre-filled with
+  // `pricing.recommended`.
+  const [pricing, setPricing] = useState<SuggestedPrice | null>(null);
+  const [routeIsEstimate, setRouteIsEstimate] = useState(false);
+  const [price, setPrice] = useState(0);
   const [candidates, setCandidates] = useState<RouteStop[]>([]);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [activeStop, setActiveStop] = useState<RouteStop | null>(null);
@@ -78,9 +91,11 @@ export default function PublishRideScreen(): React.JSX.Element {
 
   const { data: driverProfile, isLoading: isProfileLoading } = useGetMyDriverProfileQuery();
   const [createRide, { isLoading: isCreating }] = useCreateRideMutation();
+  const [updateRide, { isLoading: isUpdatingPrice }] = useUpdateRideMutation();
   const [generateCandidateStops] = useGenerateCandidateStopsMutation();
   const [updateRideStops, { isLoading: isSavingStops }] = useUpdateRideStopsMutation();
   const [publishRide, { isLoading: isPublishingRide }] = usePublishRideMutation();
+  const [registerPushToken] = useRegisterPushTokenMutation();
 
   useEffect(() => {
     dispatch(resetSearch());
@@ -104,38 +119,19 @@ export default function PublishRideScreen(): React.JSX.Element {
     return regionForPoints(points);
   }, [candidates, origin, destination]);
 
-  async function continueToStops(): Promise<void> {
-    if (!origin || !destination || !vehicle) return;
-    setErrorMessage(undefined);
-
-    let ride: { id: string; routePolyline: string | null };
-    try {
-      ride = await createRide({
-        vehicleId: vehicle.id,
-        origin: { label: origin.label, lat: origin.lat, lng: origin.lng },
-        destination: { label: destination.label, lat: destination.lat, lng: destination.lng },
-        departureAt: new Date(Date.now() + departureMinutes * 60_000),
-        seatsTotal: seats,
-        contributionPerSeat: price,
-      }).unwrap();
-    } catch {
-      haptics.error();
-      setErrorMessage('Impossible de créer ce trajet. Réessayez.');
-      return;
-    }
-
-    setRideId(ride.id);
-    setRidePolyline(ride.routePolyline);
-    setStep('stops');
+  // Runs candidate-stop generation without blocking the caller — kicked off
+  // as soon as the ride exists (right after continueToPrice) so it's ready,
+  // or well underway, by the time the driver finishes the price step
+  // instead of making them wait twice in sequence.
+  async function generateStopsInBackground(newRideId: string): Promise<void> {
     setIsGeneratingStops(true);
-
     const startedAt = Date.now();
     try {
-      const result = await generateCandidateStops(ride.id).unwrap();
+      const result = await generateCandidateStops(newRideId).unwrap();
       setCandidates(result.stops);
       setOsrmUnavailable(result.osrmUnavailable);
       trackEvent('ride_stop_candidates_generated', {
-        rideId: ride.id,
+        rideId: newRideId,
         count: result.stops.length,
         latencyMs: Date.now() - startedAt,
         osrmUnavailable: result.osrmUnavailable,
@@ -146,6 +142,83 @@ export default function PublishRideScreen(): React.JSX.Element {
     } finally {
       setIsGeneratingStops(false);
     }
+  }
+
+  async function continueToPrice(): Promise<void> {
+    if (!origin || !destination || !vehicle) return;
+    setErrorMessage(undefined);
+
+    let ride: {
+      id: string;
+      routePolyline: string | null;
+      pricing: SuggestedPrice;
+      routeIsEstimate: boolean;
+    };
+    try {
+      ride = await createRide({
+        vehicleId: vehicle.id,
+        origin: { label: origin.label, lat: origin.lat, lng: origin.lng },
+        destination: { label: destination.label, lat: destination.lat, lng: destination.lng },
+        departureAt: new Date(Date.now() + departureMinutes * 60_000),
+        seatsTotal: seats,
+        // Phase 6 (docs/domain/pricing.md): price is deliberately omitted
+        // here — the driver hasn't seen a route-derived bound yet, so
+        // there's nothing meaningful to submit. The server computes the
+        // route, derives {min, recommended, max}, and defaults
+        // contributionPerSeat to `recommended`; the driver adjusts it on
+        // the next step, once real bounds exist.
+      }).unwrap();
+    } catch {
+      haptics.error();
+      setErrorMessage('Impossible de créer ce trajet. Réessayez.');
+      return;
+    }
+
+    setRideId(ride.id);
+    setRidePolyline(ride.routePolyline);
+    setPricing(ride.pricing);
+    setRouteIsEstimate(ride.routeIsEstimate);
+    setPrice(resolveInitialPrice(ride.pricing.min, ride.pricing.recommended, ride.pricing.max));
+    setStep('price');
+    trackEvent('ride_price_suggested', {
+      rideId: ride.id,
+      min: ride.pricing.min,
+      recommended: ride.pricing.recommended,
+      max: ride.pricing.max,
+      routeIsEstimate: ride.routeIsEstimate,
+    });
+
+    void generateStopsInBackground(ride.id);
+  }
+
+  async function continueToStopsFromPrice(): Promise<void> {
+    if (!rideId || !pricing) return;
+    setErrorMessage(undefined);
+
+    if (price !== pricing.recommended) {
+      try {
+        const updated = await updateRide({
+          rideId,
+          input: { contributionPerSeat: price },
+        }).unwrap();
+        // Bounds can't realistically change between create and this call
+        // (same route), but stay consistent with whatever the server just
+        // independently re-validated against, not the stale local copy.
+        setPricing(updated.pricing);
+        trackEvent('ride_price_adjusted_from_suggestion', {
+          rideId,
+          recommended: pricing.recommended,
+          adjustedTo: price,
+          delta: Math.round((price - pricing.recommended) * 100) / 100,
+        });
+      } catch {
+        haptics.error();
+        setErrorMessage('Impossible de mettre à jour le prix. Réessayez.');
+        return;
+      }
+    }
+
+    setStep('stops');
   }
 
   function toggleStop(stop: RouteStop): void {
@@ -173,6 +246,10 @@ export default function PublishRideScreen(): React.JSX.Element {
       }
       await publishRide(rideId).unwrap();
       haptics.success();
+      // Contextual push-permission prompt (docs/roadmap/phase-07-notifications.md):
+      // a driver's first published ride is a real reason to ask — never
+      // blocks navigation, and is a silent no-op after the first prompt.
+      void requestPushPermissionAndRegister((args) => registerPushToken(args).unwrap());
       router.replace('/(tabs)/trips');
     } catch {
       haptics.error();
@@ -180,10 +257,20 @@ export default function PublishRideScreen(): React.JSX.Element {
     }
   }
 
+  const stepTitles: Record<Step, string> = {
+    form: 'Publier un trajet',
+    price: 'Prix suggéré',
+    stops: 'Arrêts suggérés',
+  };
+
   const header = (
     <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
       <TouchableOpacity
-        onPress={() => (step === 'stops' ? setStep('form') : router.back())}
+        onPress={() => {
+          if (step === 'stops') setStep('price');
+          else if (step === 'price') setStep('form');
+          else router.back();
+        }}
         hitSlop={12}
         style={styles.backBtn}
         accessibilityRole="button"
@@ -191,7 +278,7 @@ export default function PublishRideScreen(): React.JSX.Element {
       >
         <Ionicons name="chevron-back" size={24} color={colors.gray900} />
       </TouchableOpacity>
-      <Text variant="h3">{step === 'form' ? 'Publier un trajet' : 'Arrêts suggérés'}</Text>
+      <Text variant="h3">{stepTitles[step]}</Text>
       <View style={styles.backBtn} />
     </View>
   );
@@ -207,11 +294,54 @@ export default function PublishRideScreen(): React.JSX.Element {
     );
   }
 
+  if (step === 'price') {
+    return (
+      <View style={styles.container}>
+        {header}
+        <StepProgress currentStep={2} totalSteps={3} style={styles.stepProgress} />
+
+        <View style={styles.priceBody}>
+          {pricing ? (
+            <PriceRangeStepper
+              min={pricing.min}
+              max={pricing.max}
+              recommended={pricing.recommended}
+              value={price}
+              onChange={setPrice}
+              isEstimate={routeIsEstimate}
+            />
+          ) : null}
+          <Text variant="bodySmall" color={colors.gray600} align="center" style={styles.hint}>
+            Ce montant est calculé pour ce trajet — vous pouvez l&apos;ajuster dans la marge
+            proposée.
+          </Text>
+        </View>
+
+        {errorMessage ? (
+          <Text variant="bodySmall" color={colors.error} align="center">
+            {errorMessage}
+          </Text>
+        ) : null}
+
+        <View style={[styles.stopsFooter, { paddingBottom: insets.bottom + spacing.md }]}>
+          <Button
+            label="Continuer"
+            size="lg"
+            loading={isUpdatingPrice}
+            disabled={!pricing}
+            onPress={() => void continueToStopsFromPrice()}
+            style={styles.cta}
+          />
+        </View>
+      </View>
+    );
+  }
+
   if (step === 'stops') {
     return (
       <View style={styles.container}>
         {header}
-        <StepProgress currentStep={2} totalSteps={2} style={styles.stepProgress} />
+        <StepProgress currentStep={3} totalSteps={3} style={styles.stepProgress} />
 
         <View style={styles.stopsBody}>
           {isGeneratingStops ? (
@@ -337,7 +467,7 @@ export default function PublishRideScreen(): React.JSX.Element {
   return (
     <View style={styles.container}>
       {header}
-      <StepProgress currentStep={1} totalSteps={2} style={styles.stepProgress} />
+      <StepProgress currentStep={1} totalSteps={3} style={styles.stepProgress} />
       <ScrollView contentContainerStyle={styles.content}>
         <FieldCard>
           <FieldRow
@@ -404,26 +534,6 @@ export default function PublishRideScreen(): React.JSX.Element {
           </View>
         </View>
 
-        <View style={styles.section}>
-          <Text variant="label" color={colors.gray700}>
-            Contribution par place (DT)
-          </Text>
-          <View style={styles.stepperRow}>
-            <TouchableOpacity
-              style={styles.stepperBtn}
-              onPress={() => setPrice((p) => Math.max(1, p - 1))}
-            >
-              <Text variant="h3">−</Text>
-            </TouchableOpacity>
-            <Text variant="h3" style={styles.stepperValue}>
-              {price} DT
-            </Text>
-            <TouchableOpacity style={styles.stepperBtn} onPress={() => setPrice((p) => p + 1)}>
-              <Text variant="h3">+</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
         {!vehicle ? (
           <Text variant="bodySmall" color={colors.error}>
             Aucun véhicule enregistré — complétez votre profil conducteur.
@@ -440,7 +550,7 @@ export default function PublishRideScreen(): React.JSX.Element {
           size="lg"
           loading={isCreating}
           disabled={!canContinue}
-          onPress={() => void continueToStops()}
+          onPress={() => void continueToPrice()}
           style={styles.cta}
         />
       </ScrollView>
@@ -510,6 +620,12 @@ const styles = StyleSheet.create({
   },
   cta: {
     width: '100%',
+  },
+  priceBody: {
+    flex: 1,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.xl,
+    gap: spacing.md,
   },
   stopsBody: {
     flex: 1,

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, type ViewStyle } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, type ViewStyle } from 'react-native';
 import { colors, spacing, radii, typography } from '../tokens/index';
 
 interface ChipProps {
@@ -7,9 +7,50 @@ interface ChipProps {
   tone?: 'default' | 'dim';
   icon?: React.ReactNode;
   style?: ViewStyle;
+  /**
+   * Phase 9 (docs/roadmap/phase-09-ratings-trust.md): makes the chip
+   * tappable (e.g. a toggle-able tag on the rating-submission sheet)
+   * without every screen that needs a tappable chip having to wrap it in
+   * its own raw TouchableOpacity — the exact pattern the old
+   * bookings/settlement.tsx improvised locally, which this generalizes
+   * into the primitive instead (CLAUDE.md's design-system rule).
+   */
+  onPress?: () => void;
+  /** Only meaningful together with `onPress` — announced as a toggle state. */
+  selected?: boolean;
 }
 
-export function Chip({ label, tone = 'default', icon, style }: ChipProps): React.JSX.Element {
+export function Chip({
+  label,
+  tone = 'default',
+  icon,
+  style,
+  onPress,
+  selected,
+}: ChipProps): React.JSX.Element {
+  const content = (
+    <>
+      {icon}
+      <Text style={[styles.text, tone === 'dim' ? styles.textDim : styles.textDefault]}>
+        {label}
+      </Text>
+    </>
+  );
+
+  if (onPress) {
+    return (
+      <TouchableOpacity
+        onPress={onPress}
+        style={[styles.chip, tone === 'dim' ? styles.chipDim : styles.chipDefault, style]}
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        accessibilityState={{ selected: selected ?? tone === 'default' }}
+      >
+        {content}
+      </TouchableOpacity>
+    );
+  }
+
   return (
     <View
       style={[styles.chip, tone === 'dim' ? styles.chipDim : styles.chipDefault, style]}
@@ -17,10 +58,7 @@ export function Chip({ label, tone = 'default', icon, style }: ChipProps): React
       accessibilityRole="text"
       accessibilityLabel={label}
     >
-      {icon}
-      <Text style={[styles.text, tone === 'dim' ? styles.textDim : styles.textDefault]}>
-        {label}
-      </Text>
+      {content}
     </View>
   );
 }

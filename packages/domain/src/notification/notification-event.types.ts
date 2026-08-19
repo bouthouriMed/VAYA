@@ -9,6 +9,12 @@ export const NOTIFICATION_EVENT_TYPES = [
   'recurring_pattern_detected',
   'recurring_proactive_match',
   'demand_signal_matched',
+  'message_received',
+  // Phase 10 (docs/roadmap/phase-10-cancellation-no-show.md): dispatched to
+  // the *other* party (never the actor) when a booking is cancelled, or
+  // when either party reports the other as a no-show.
+  'booking_cancelled',
+  'booking_no_show_reported',
 ] as const;
 export type NotificationEventType = (typeof NOTIFICATION_EVENT_TYPES)[number];
 

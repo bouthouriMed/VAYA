@@ -1,10 +1,15 @@
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
-import { idParamSchema, updateMeSchema } from '@vaya/validation';
+import { idParamSchema, registerPushTokenSchema, updateMeSchema } from '@vaya/validation';
 import { getDatabase } from '../../lib/database.js';
 import { getUserId } from '../../lib/auth-context.js';
 import { getPublicProfile, getUserById, updateUser } from './users.service.js';
+// Phase 7 (docs/roadmap/phase-07-notifications.md): device-token storage is
+// notification-domain data (device_tokens table), so the write logic lives
+// in the notifications module; this endpoint is exposed under /users/me per
+// the phase doc's explicit API shape.
+import { registerPushToken } from '../notifications/notifications.service.js';
 
 const meResponseSchema = z.object({
   id: z.string().uuid(),
@@ -38,6 +43,15 @@ const publicProfileResponseSchema = z.object({
     .nullable(),
 });
 
+const pushTokenResponseSchema = z.object({
+  id: z.string().uuid(),
+  userId: z.string().uuid(),
+  token: z.string(),
+  platform: z.enum(['ios', 'android']),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
+
 export async function usersRoutes(fastify: FastifyInstance): Promise<void> {
   const app = fastify.withTypeProvider<ZodTypeProvider>();
   const db = getDatabase();
@@ -60,6 +74,18 @@ export async function usersRoutes(fastify: FastifyInstance): Promise<void> {
     async (request, reply) => {
       const user = await updateUser(db, getUserId(request), request.body);
       reply.send(user);
+    },
+  );
+
+  app.post(
+    '/users/me/push-token',
+    {
+      onRequest: [fastify.authenticate],
+      schema: { body: registerPushTokenSchema, response: { 200: pushTokenResponseSchema } },
+    },
+    async (request, reply) => {
+      const deviceToken = await registerPushToken(db, getUserId(request), request.body);
+      reply.send(deviceToken);
     },
   );
 
