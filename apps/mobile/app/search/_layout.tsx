@@ -16,6 +16,8 @@ export default function SearchLayout(): React.JSX.Element {
       <Stack.Screen name="results" options={{ title: '' }} />
       <Stack.Screen name="cluster" options={{ title: '' }} />
       <Stack.Screen name="trust" options={{ headerShown: false, presentation: 'modal' }} />
+      <Stack.Screen name="location" options={{ headerShown: false, presentation: 'modal' }} />
+      <Stack.Screen name="pickup-point" options={{ headerShown: false, presentation: 'modal' }} />
     </Stack>
   );
 }

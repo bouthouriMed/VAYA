@@ -1,9 +1,12 @@
 import { configureStore } from '@reduxjs/toolkit';
 import type { TypedUseSelectorHook } from 'react-redux';
 import { useDispatch, useSelector } from 'react-redux';
+import searchReducer from './searchSlice';
 
 export const store = configureStore({
-  reducer: {},
+  reducer: {
+    search: searchReducer,
+  },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: false,

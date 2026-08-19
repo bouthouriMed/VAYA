@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, type ViewStyle } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, type ViewStyle } from 'react-native';
 import { colors, spacing, radii, typography } from '../tokens/index';
 
 interface FieldRowProps {
@@ -8,6 +8,8 @@ interface FieldRowProps {
   dotColor?: string;
   dotFilled?: boolean;
   last?: boolean;
+  placeholder?: boolean;
+  onPress?: () => void;
 }
 
 interface FieldCardProps {
@@ -26,8 +28,10 @@ export function FieldRow({
   dotColor = colors.secondary,
   dotFilled = true,
   last = false,
+  placeholder = false,
+  onPress,
 }: FieldRowProps): React.JSX.Element {
-  return (
+  const content = (
     <View style={[styles.row, !last && styles.rowDivider]}>
       <View
         style={[
@@ -39,11 +43,19 @@ export function FieldRow({
       />
       <View style={styles.textCol}>
         <Text style={styles.label}>{label}</Text>
-        <Text style={styles.value} numberOfLines={1}>
+        <Text style={[styles.value, placeholder && styles.valuePlaceholder]} numberOfLines={1}>
           {value}
         </Text>
       </View>
     </View>
+  );
+
+  if (!onPress) return content;
+
+  return (
+    <TouchableOpacity onPress={onPress} activeOpacity={0.6}>
+      {content}
+    </TouchableOpacity>
   );
 }
 
@@ -85,5 +97,9 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.md,
     fontWeight: typography.fontWeight.semibold,
     color: colors.gray900,
+  },
+  valuePlaceholder: {
+    color: colors.gray500,
+    fontWeight: typography.fontWeight.regular,
   },
 });

@@ -2,6 +2,7 @@ import { View, StyleSheet, type DimensionValue } from 'react-native';
 import { Text, Button, ClusterMarker, colors, spacing, radii } from '@vaya/design-system';
 import { router } from 'expo-router';
 import { CLUSTERS, DRIVERS } from '../../src/mocks/seed-data';
+import { useAppSelector } from '../../src/state/store';
 
 const totalPeople = CLUSTERS.reduce((sum, c) => sum + c.driverIds.length, 0) + 7;
 
@@ -16,9 +17,17 @@ const POSITIONS: Record<string, { top: DimensionValue; left: DimensionValue }> =
 };
 
 export default function ResultsScreen(): React.JSX.Element {
+  const origin = useAppSelector((s) => s.search.origin);
+  const destination = useAppSelector((s) => s.search.destination);
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
+        {origin && destination ? (
+          <Text variant="bodySmall" color={colors.gray500} numberOfLines={1}>
+            {origin.label} → {destination.label}
+          </Text>
+        ) : null}
         <Text variant="h2" style={styles.headline}>
           {totalPeople} personnes se dirigent dans votre direction.
         </Text>
