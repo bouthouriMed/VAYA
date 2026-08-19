@@ -15,7 +15,7 @@ This is the status tracker and index for the phased roadmap produced by the 2026
 | 1 | [Foundation Hardening](phase-01-foundation-hardening.md) | NOW | Low–Medium | Done |
 | 2 | [Design System: Interaction Layer](phase-02-design-system-interaction-layer.md) | NOW | Medium | Done |
 | 3 | [Real Map Rendering Foundation](phase-03-real-map-rendering.md) | NOW | Medium | Done |
-| 4 | [Ride Engine I: Driver Stops](phase-04-ride-engine-driver-stops.md) | NOW | High | Not started |
+| 4 | [Ride Engine I: Driver Stops](phase-04-ride-engine-driver-stops.md) | NOW | High | Done — see notes |
 | 5 | [Ride Engine II: Passenger Selection](phase-05-ride-engine-passenger-selection.md) | NOW | High | Not started |
 | 6 | [Pricing Engine](phase-06-pricing-engine.md) | NOW | Medium | Not started |
 | 7 | [Notifications Foundation](phase-07-notifications.md) | NOW/NEXT | Medium | Not started |
@@ -26,7 +26,9 @@ This is the status tracker and index for the phased roadmap produced by the 2026
 | 12 | [Scale Hardening](phase-12-scale-hardening.md) | SCALE | High | Not started — trigger-based, see phase file |
 
 **Current phase:** none in progress.
-**Recommended next phase:** **Phase 4 — Ride Engine I: Driver Stops.** Phases 1-3 are done: booking-seat race condition/indexes/rate-limiting/fabricated-UI fixed, the design system has its full interaction layer (BottomSheet/Modal/Toast/Skeleton/EmptyState/Icon + accessibility + haptics), and `MapCanvas`/`MapPreview`/`MapRoute` are real `react-native-maps` primitives. Phase 4 is next because Phase 3 was its hard prerequisite and nothing else blocks it — note `search/pickup-point.tsx` is still the fake pixel-projection screen (explicitly deferred to Phase 5, not touched by Phase 3).
+**Recommended next phase:** **Phase 5 — Ride Engine II: Passenger Stop Selection & Matching Integration.** Phase 4 shipped the driver-side half of the ride engine (`route_stops` table, candidate generation/scoring/clustering, driver selection UI); Phase 5 is next because it's the direct payoff of that investment and the hard blocker note in Phase 4's own file ("nothing later strictly depends on this phase, but it's the direct payoff of Phase 4's investment") — `search/pickup-point.tsx` is still the fake pixel-projection screen (`PX_PER_DEGREE = 9000`), untouched by Phase 4 by design, and is Phase 5's actual target.
+
+**Phase 4 notes:** the design doc (`docs/domain/ride-engine.md`) called for road class straight from OSRM's `nearest` response; verified against the live docker-composed OSRM instance that this deployment's `/nearest` and `/route` responses carry no way-class tag at all (neither service returns a `classes` field). Implemented instead: a local-speed classifier fed by `/route`'s `annotations=true` output (genuinely real per-segment data, not a heuristic on names) — see `stop-candidates.service.ts`'s `classifyRoadSpeed` doc comment and the corresponding note added to `docs/domain/ride-engine.md`. Verified end-to-end against real OSRM + real Postgres (integration test, plus a manual run against 3 real Tunisian routes spanning urban/suburban/intercity — the intercity Tunis→Hammamet run, which crosses the A1, correctly rejected 2 of 68 sampled points as motorway-class). Ride creation now starts as `draft` and a new `POST /rides/:id/publish` transitions to `published` (reusing the existing, previously-unused `draft` state and `canTransitionRideStatus` — not a new state machine), since candidate-stop generation needs a ride id and a computed `routePolyline` to exist before the driver's final publish action; mobile's `publish.tsx` drives both steps in one continuous flow so this is invisible to the driver.
 
 ## Sequencing logic
 

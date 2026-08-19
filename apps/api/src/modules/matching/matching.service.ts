@@ -19,8 +19,11 @@ const WIDE_TIME_WINDOW_MIN = 240;
 const WALK_SPEED_M_PER_MIN = 80;
 // How close the rider's own route needs to run to a candidate ride's actual
 // road path to count as "overlapping" — wide enough to tolerate minor
-// street-level detours, tight enough to mean something.
-const OVERLAP_CORRIDOR_WIDTH_M = 150;
+// street-level detours, tight enough to mean something. Exported: reused by
+// stop-candidates.service.ts as the same corridor-distance concept for
+// merging nearby candidate stops (docs/domain/ride-engine.md) rather than
+// introducing a second magic number for it.
+export const OVERLAP_CORRIDOR_WIDTH_M = 150;
 
 function clamp01(n: number): number {
   return Math.max(0, Math.min(1, n));
