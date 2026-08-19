@@ -29,6 +29,20 @@ export default function PendingScreen(): React.JSX.Element {
         style={styles.cta}
       />
 
+      {params.bookingId ? (
+        <Button
+          label={`Message à ${firstName}`}
+          variant="outline"
+          onPress={() =>
+            router.push({
+              pathname: '/conversations/[bookingId]',
+              params: { bookingId: params.bookingId!, role: 'rider', otherPartyName: driverName },
+            })
+          }
+          style={styles.cta}
+        />
+      ) : null}
+
       <View style={styles.card}>
         <Text variant="label">Résumé</Text>
         <View style={styles.row}>

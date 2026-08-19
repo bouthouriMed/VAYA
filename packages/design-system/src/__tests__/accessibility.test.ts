@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { Button } from '../primitives/Button';
 import { Chip } from '../primitives/Chip';
 import { Badge } from '../primitives/Badge';
+import { MessageBubble } from '../primitives/MessageBubble';
 
 // Function components are plain functions — calling them directly returns
 // the React element they'd render, without needing a renderer (none is
@@ -46,5 +47,12 @@ describe('accessibility baseline', () => {
     const element = Badge({ label: 'Vérifié' });
     expect(element.props.accessible).toBe(true);
     expect(element.props.accessibilityLabel).toBe('Vérifié');
+  });
+
+  it('MessageBubble exposes sender/timestamp/body as one accessible node', () => {
+    const element = MessageBubble({ body: 'Bonjour', isOwn: true, timestamp: '10:00' });
+    expect(element.props.accessible).toBe(true);
+    expect(element.props.accessibilityRole).toBe('text');
+    expect(element.props.accessibilityLabel).toBe('Vous, 10:00: Bonjour');
   });
 });

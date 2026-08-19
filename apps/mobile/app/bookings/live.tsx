@@ -1,5 +1,5 @@
 import { View, StyleSheet } from 'react-native';
-import { Text, MapPreview, colors, spacing, radii } from '@vaya/design-system';
+import { Text, Button, MapPreview, colors, spacing, radii } from '@vaya/design-system';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect } from 'react';
 
@@ -16,6 +16,7 @@ export default function LiveScreen(): React.JSX.Element {
     destinationLat?: string;
     destinationLng?: string;
   }>();
+  const driverName = params.driverName ?? 'votre conducteur';
   const pickupCoord =
     params.pickupLat && params.pickupLng
       ? { latitude: Number(params.pickupLat), longitude: Number(params.pickupLng) }
@@ -45,9 +46,29 @@ export default function LiveScreen(): React.JSX.Element {
       />
 
       <View style={styles.card}>
-        <Text variant="h1">
-          {params.estimatedDurationMin ? `≈ ${params.estimatedDurationMin} min` : 'En route'}
-        </Text>
+        <View style={styles.headerRow}>
+          <Text variant="h1">
+            {params.estimatedDurationMin ? `≈ ${params.estimatedDurationMin} min` : 'En route'}
+          </Text>
+          {params.bookingId ? (
+            <Button
+              label="Message"
+              variant="outline"
+              size="sm"
+              accessibilityLabel={`Envoyer un message à ${driverName.split(' ')[0]}`}
+              onPress={() =>
+                router.push({
+                  pathname: '/conversations/[bookingId]',
+                  params: {
+                    bookingId: params.bookingId!,
+                    role: 'rider',
+                    otherPartyName: driverName,
+                  },
+                })
+              }
+            />
+          ) : null}
+        </View>
         <Text variant="body" color={colors.gray600}>
           {/* Trip duration is the real, OSRM-computed route estimate — this
               is intentionally not a live countdown/arrival clock, since
@@ -78,6 +99,12 @@ const styles = StyleSheet.create({
     borderTopRightRadius: radii['2xl'],
     padding: spacing.xl,
     gap: spacing.xs,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.sm,
   },
   track: {
     height: 6,

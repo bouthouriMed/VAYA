@@ -45,6 +45,24 @@ export default function PickupScreen(): React.JSX.Element {
             En approche
           </Text>
         </View>
+        {params.bookingId ? (
+          <Button
+            label="Message"
+            variant="ghost"
+            size="sm"
+            accessibilityLabel={`Envoyer un message à ${driverName.split(' ')[0]}`}
+            onPress={() =>
+              router.push({
+                pathname: '/conversations/[bookingId]',
+                params: {
+                  bookingId: params.bookingId!,
+                  role: 'rider',
+                  otherPartyName: driverName,
+                },
+              })
+            }
+          />
+        ) : null}
       </View>
 
       <Button

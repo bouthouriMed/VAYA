@@ -54,8 +54,8 @@ Candidate pickup/drop-off points along a ride's actual road route. One ride has 
 ### `pricing_configs` (new — for `docs/domain/pricing.md`)
 Per-region or per-route-class configuration for the price-per-km formula and bound multipliers, replacing the current hardcoded values in `seed.ts`. See `docs/domain/pricing.md`.
 
-### `conversations` / `messages` (new — for roadmap Phase: Messaging)
-Per-trip (scoped to a `booking` or `trip`) conversation between driver and rider. Not general social chat — created on booking confirmation, closed on trip completion. Exact schema to be finalized in that phase; do not build ahead of it.
+### `conversations` / `messages` (Phase 8 — `docs/roadmap/phase-08-messaging.md`)
+`conversations`: `id, bookingId (unique FK→bookings), status (open|closed), createdAt, updatedAt`. `messages`: `id, conversationId (FK→conversations), senderUserId (FK→users), body (varchar 1000), createdAt`, indexed on `(conversationId, createdAt)` for the polling read. One conversation per booking — not per ride, not general social chat — auto-created the moment a booking reaches `accepted` (`conversations.service.ts`'s `createConversationBestEffort`, hooked into `bookings.service.ts`'s `acceptBooking`). Becomes permanently read-only once the booking's `trip` reaches a terminal status (`completed`/`no_show`/`cancelled`, per the Trip status machine below) — enforced live against `trips.status` on every read/write, not from the cached `conversations.status` column alone, since this codebase has no trip-completion endpoint yet and the column would otherwise go stale. Only the booking's two parties (driver, rider) may read or write, checked on every request.
 
 ## Modifications to existing tables
 
@@ -87,3 +87,4 @@ Per-trip (scoped to a `booking` or `trip`) conversation between driver and rider
 | Candidate stops on a route (new) | `route_stops` |
 | Price bounds (new) | `pricing_configs` |
 | A device's push token (new, Phase 7) | `device_tokens` |
+| A booking's driver↔rider conversation (new, Phase 8) | `conversations` / `messages` |

@@ -9,6 +9,7 @@ export const NOTIFICATION_EVENT_TYPES = [
   'recurring_pattern_detected',
   'recurring_proactive_match',
   'demand_signal_matched',
+  'message_received',
 ] as const;
 export type NotificationEventType = (typeof NOTIFICATION_EVENT_TYPES)[number];
 

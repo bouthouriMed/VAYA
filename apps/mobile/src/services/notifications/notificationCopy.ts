@@ -24,6 +24,7 @@ const NOTIFICATION_TYPE_META: Record<NotificationEventType, NotificationTypeMeta
   recurring_pattern_detected: { title: 'Trajet récurrent détecté', icon: 'repeat-outline' },
   recurring_proactive_match: { title: 'Nouveau trajet correspondant', icon: 'sparkles-outline' },
   demand_signal_matched: { title: 'Un trajet correspond à votre demande', icon: 'notifications-outline' },
+  message_received: { title: 'Nouveau message', icon: 'chatbubble-outline' },
 };
 
 const FALLBACK_META: NotificationTypeMeta = { title: 'Notification', icon: 'notifications-outline' };
