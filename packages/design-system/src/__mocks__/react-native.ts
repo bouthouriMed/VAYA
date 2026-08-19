@@ -14,7 +14,18 @@ const Text = 'Text';
 const View = 'View';
 const Image = 'Image';
 const TouchableOpacity = 'TouchableOpacity';
+const Pressable = 'Pressable';
 const ScrollView = 'ScrollView';
 const ActivityIndicator = 'ActivityIndicator';
 
-export { Platform, StyleSheet, Text, View, Image, TouchableOpacity, ScrollView, ActivityIndicator };
+export {
+  Platform,
+  StyleSheet,
+  Text,
+  View,
+  Image,
+  TouchableOpacity,
+  Pressable,
+  ScrollView,
+  ActivityIndicator,
+};

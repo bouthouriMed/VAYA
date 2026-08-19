@@ -14,7 +14,9 @@ import {
   colors,
   spacing,
   radii,
+  elevation,
   typography,
+  haptics,
 } from '@vaya/design-system';
 import { router } from 'expo-router';
 import { SUPPORTED_LOCALES, type SupportedLocale } from '@vaya/config';
@@ -63,7 +65,8 @@ export default function ProfileScreen(): React.JSX.Element {
   }
 
   function goToDriverFlow(): void {
-    router.push(realDriverProfile ? '/driver/publish' : '/driver/onboarding/vehicle');
+    haptics.selection();
+    router.push(realDriverProfile ? '/driver/publish' : '/driver/onboarding');
   }
 
   return (
@@ -135,22 +138,29 @@ export default function ProfileScreen(): React.JSX.Element {
           </View>
         </View>
 
-        <TouchableOpacity style={styles.card} onPress={goToDriverFlow} activeOpacity={0.7}>
+        <TouchableOpacity
+          style={styles.driverFlowCard}
+          onPress={goToDriverFlow}
+          activeOpacity={0.85}
+          accessibilityRole="button"
+          accessibilityLabel={realDriverProfile ? 'Publier un trajet' : 'Devenir conducteur'}
+        >
+          <View style={styles.driverFlowAccent} />
           <View style={styles.vehicleRow}>
-            <View style={styles.vehicleIcon}>
-              <Ionicons name="car-outline" size={20} color={colors.gray900} />
+            <View style={styles.driverFlowIcon}>
+              <Ionicons name="car-sport" size={22} color={colors.white} />
             </View>
             <View style={styles.driverFlowTextCol}>
-              <Text variant="label">
+              <Text variant="label" color={colors.white}>
                 {realDriverProfile ? 'Publier un trajet' : 'Devenir conducteur'}
               </Text>
-              <Text variant="bodySmall" color={colors.gray600}>
+              <Text variant="bodySmall" color={colors.navyTextMuted}>
                 {realDriverProfile
                   ? 'Proposez des places sur votre trajet'
                   : 'Ajoutez votre véhicule pour commencer'}
               </Text>
             </View>
-            <Ionicons name="chevron-forward" size={18} color={colors.gray400} />
+            <Ionicons name="chevron-forward" size={18} color={colors.navyTextMuted} />
           </View>
         </TouchableOpacity>
 
@@ -317,6 +327,32 @@ const styles = StyleSheet.create({
   },
   driverFlowTextCol: {
     flex: 1,
+  },
+  driverFlowCard: {
+    backgroundColor: colors.navySurface,
+    borderRadius: radii['2xl'],
+    padding: spacing.lg,
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.md,
+    overflow: 'hidden',
+    ...elevation?.lg,
+    shadowColor: colors.primary,
+  },
+  driverFlowAccent: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    bottom: 0,
+    width: 4,
+    backgroundColor: colors.secondary,
+  },
+  driverFlowIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: radii.lg,
+    backgroundColor: colors.secondary,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   chipRow: {
     flexDirection: 'row',

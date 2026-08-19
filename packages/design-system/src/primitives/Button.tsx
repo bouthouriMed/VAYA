@@ -1,6 +1,6 @@
 ﻿import React from 'react';
 import {
-  TouchableOpacity,
+  Pressable,
   Text,
   StyleSheet,
   ActivityIndicator,
@@ -8,7 +8,7 @@ import {
   type ViewStyle,
   type TextStyle,
 } from 'react-native';
-import { colors, spacing, radii } from '../tokens/index';
+import { colors, spacing, radii, elevation } from '../tokens/index';
 
 type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost';
 type ButtonSize = 'sm' | 'md' | 'lg';
@@ -95,13 +95,20 @@ export function Button({
   accessibilityLabel,
 }: ButtonProps): React.JSX.Element {
   const variantStyle = getVariantStyles(variant, disabled);
+  const pressedStyle: ViewStyle = { transform: [{ scale: 0.97 }], opacity: 0.92 };
 
   return (
-    <TouchableOpacity
+    <Pressable
       onPress={onPress}
       disabled={disabled || loading}
-      style={[styles.base, sizeStyles[size], variantStyle.container, style]}
-      activeOpacity={0.7}
+      style={({ pressed }) => [
+        styles.base,
+        sizeStyles[size],
+        variant === 'primary' || variant === 'secondary' ? elevation?.sm : null,
+        variantStyle.container,
+        pressed && pressedStyle,
+        style,
+      ]}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel ?? label}
       accessibilityState={{ disabled: disabled || loading, busy: loading }}
@@ -111,7 +118,7 @@ export function Button({
       ) : (
         <Text style={[styles.text, sizeTextStyles[size], variantStyle.text]}>{label}</Text>
       )}
-    </TouchableOpacity>
+    </Pressable>
   );
 }
 
@@ -121,6 +128,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: radii.full,
     flexDirection: 'row',
+    shadowColor: colors.gray900,
   },
   text: {
     fontWeight: '600',
