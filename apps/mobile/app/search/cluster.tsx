@@ -1,118 +1,161 @@
-import { useLayoutEffect, useMemo, useState } from 'react';
-import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { useLayoutEffect, useMemo } from 'react';
+import { View, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import MapView, { Marker, Polyline, PROVIDER_DEFAULT } from 'react-native-maps';
+import { skipToken } from '@reduxjs/toolkit/query/react';
 import {
   Text,
-  MapCanvas,
-  MapRoute,
   DriverMapPin,
   colors,
   spacing,
   radii,
   typography,
-  computeRouteGeometry,
-  evenlySpacedPointsAlong,
-  type Size,
+  regionForPoints,
 } from '@vaya/design-system';
 import { router, useLocalSearchParams, useNavigation } from 'expo-router';
-import { CLUSTERS, DRIVERS, type MockDriver } from '../../src/mocks/seed-data';
+import { useAppSelector } from '../../src/state/store';
+import { useMatchingSearchQuery, type MatchCandidate } from '../../src/state/api';
+import { decodePolyline } from '../../src/utils/polyline';
 
-// The route is defined once, as a fraction of the map container — everything
-// else (pin positions, road angle/length, the arrow) is derived from it plus
-// however many candidates the cluster actually has.
-const ROUTE_START = { x: 0.16, y: 0.08 };
-const ROUTE_END = { x: 0.74, y: 0.8 };
-
-function toPinData(driver: MockDriver): {
+function toPinData(candidate: MatchCandidate): {
   id: string;
   name: string;
-  priceLabel?: string;
-  etaLabel?: string;
-  statusLabel?: string;
+  priceLabel: string;
+  etaLabel: string;
+  statusLabel: string;
 } {
+  const firstName = (candidate.driverFullName ?? 'Conducteur').split(' ')[0]!;
   return {
-    id: driver.id,
-    name: driver.fullName.split(' ')[0]!,
-    priceLabel: driver.priceDt !== undefined ? `${driver.priceDt} DT` : undefined,
-    etaLabel: driver.etaMin !== undefined ? `${driver.etaMin} min` : undefined,
-    statusLabel: driver.status,
+    id: candidate.rideId,
+    name: firstName,
+    priceLabel: `${candidate.contributionPerSeat} DT`,
+    etaLabel: `${Math.round(candidate.pickupWalkMinutes)} min à pied`,
+    statusLabel: `${Math.round(candidate.routeOverlapPercent)}% trajet commun`,
   };
 }
 
 export default function ClusterScreen(): React.JSX.Element {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { label } = useLocalSearchParams<{ label: string }>();
   const navigation = useNavigation();
-  const cluster = CLUSTERS.find((c) => c.id === id) ?? CLUSTERS[0]!;
-  const candidates = useMemo(() => cluster.driverIds.map((key) => DRIVERS[key]!), [cluster]);
+  const origin = useAppSelector((s) => s.search.origin);
+  const destination = useAppSelector((s) => s.search.destination);
+  const searchAt = useAppSelector((s) => s.search.searchAt);
 
-  // The bottom CTA is a shortcut to ONE specific driver, not a mystery
-  // action — soonest ETA wins, ties broken by rating. Always named.
+  const searchArgs =
+    origin && destination
+      ? {
+          originLat: origin.lat,
+          originLng: origin.lng,
+          destinationLat: destination.lat,
+          destinationLng: destination.lng,
+          when: searchAt ?? new Date().toISOString(),
+        }
+      : undefined;
+
+  // Same args as results.tsx → served from RTK Query's cache, no extra fetch.
+  const { data: allCandidates, isLoading } = useMatchingSearchQuery(searchArgs ?? skipToken);
+  const candidates = useMemo(
+    () => (allCandidates ?? []).filter((c) => c.clusterLabel === label),
+    [allCandidates, label],
+  );
+
   const recommended = useMemo(
-    () =>
-      [...candidates].sort(
-        (a, b) => (a.etaMin ?? 0) - (b.etaMin ?? 0) || b.ratingAvg - a.ratingAvg,
-      )[0]!,
+    () => [...candidates].sort((a, b) => b.score - a.score)[0],
     [candidates],
   );
-  const recommendedKey = cluster.driverIds[candidates.indexOf(recommended)]!;
 
-  const [mapSize, setMapSize] = useState<Size>({ width: 0, height: 0 });
-  const geometry = useMemo(() => computeRouteGeometry(mapSize, ROUTE_START, ROUTE_END), [mapSize]);
-  const points = useMemo(
-    () => (geometry ? evenlySpacedPointsAlong(geometry, candidates.length) : []),
-    [geometry, candidates.length],
+  const region = useMemo(() => {
+    const points = candidates.map((c) => ({ lat: c.originLat, lng: c.originLng }));
+    if (origin) points.push({ lat: origin.lat, lng: origin.lng });
+    return regionForPoints(points);
+  }, [candidates, origin]);
+
+  const recommendedRoute = useMemo(
+    () => (recommended?.routePolyline ? decodePolyline(recommended.routePolyline) : []),
+    [recommended],
   );
 
   useLayoutEffect(() => {
-    navigation.setOptions({ title: cluster.label.toUpperCase() });
-  }, [navigation, cluster.label]);
+    navigation.setOptions({ title: (label ?? '').toUpperCase() });
+  }, [navigation, label]);
 
-  function openDriver(driverKey: string): void {
-    router.push({ pathname: '/search/trust', params: { driverId: driverKey } });
+  function openDriver(candidate: MatchCandidate): void {
+    router.push({
+      pathname: '/search/trust',
+      params: { rideId: candidate.rideId, driverUserId: candidate.driverUserId },
+    });
+  }
+
+  if (isLoading) {
+    return (
+      <View style={styles.loadingWrap}>
+        <ActivityIndicator size="large" color={colors.secondary} />
+      </View>
+    );
+  }
+
+  if (!recommended) {
+    return (
+      <View style={styles.loadingWrap}>
+        <Text variant="body" color={colors.gray500}>
+          Ce groupe n&apos;est plus disponible.
+        </Text>
+      </View>
+    );
   }
 
   return (
     <View style={styles.container}>
-      <MapCanvas onSizeChange={setMapSize} style={styles.map}>
-        {geometry ? (
-          <>
-            <MapRoute geometry={geometry} />
-            {candidates.map((driver, i) => {
-              const driverKey = cluster.driverIds[i]!;
-              const point = points[i]!;
-              const avatarHalf = 18; // half of DriverMapPin's base avatar size
-              return (
+      <View style={styles.mapWrap}>
+        {region ? (
+          <MapView provider={PROVIDER_DEFAULT} style={styles.map} initialRegion={region}>
+            {origin ? (
+              <Marker
+                coordinate={{ latitude: origin.lat, longitude: origin.lng }}
+                anchor={{ x: 0.5, y: 0.5 }}
+              >
+                <View style={styles.originDot} />
+              </Marker>
+            ) : null}
+            {recommendedRoute.length > 1 ? (
+              <Polyline
+                coordinates={recommendedRoute}
+                strokeColor={colors.mapRouteLine}
+                strokeWidth={4}
+              />
+            ) : null}
+            {candidates.map((candidate) => (
+              <Marker
+                key={candidate.rideId}
+                coordinate={{ latitude: candidate.originLat, longitude: candidate.originLng }}
+                onPress={() => openDriver(candidate)}
+              >
                 <DriverMapPin
-                  key={driver.id}
-                  data={toPinData(driver)}
-                  recommended={driverKey === recommendedKey}
-                  labelSide={i % 2 === 1 ? 'start' : 'end'}
-                  onPress={() => openDriver(driverKey)}
-                  style={{
-                    position: 'absolute',
-                    left: point.x - 4,
-                    top: point.y - avatarHalf - 4,
-                  }}
+                  data={toPinData(candidate)}
+                  recommended={candidate.rideId === recommended.rideId}
                 />
-              );
-            })}
-          </>
+              </Marker>
+            ))}
+          </MapView>
         ) : null}
-      </MapCanvas>
+      </View>
 
       <Text variant="bodySmall" color={colors.gray600} style={styles.recommendCaption}>
-        {recommended.fullName.split(' ')[0]} est le plus proche — {recommended.etaMin} min
-        d&apos;attente.
+        {(recommended.driverFullName ?? 'Ce conducteur').split(' ')[0]} est le mieux noté —{' '}
+        {Math.round(recommended.pickupWalkMinutes)} min à pied.
       </Text>
 
       <TouchableOpacity
         style={styles.cta}
-        onPress={() => openDriver(recommendedKey)}
+        onPress={() => openDriver(recommended)}
         activeOpacity={0.85}
       >
         <Text style={styles.ctaLabel}>
-          Voir {recommended.fullName.split(' ')[0]} · {recommended.priceDt} DT
+          Voir {(recommended.driverFullName ?? 'ce conducteur').split(' ')[0]} ·{' '}
+          {recommended.contributionPerSeat} DT
         </Text>
-        <Text style={styles.ctaSub}>{recommended.etaMin} min d&apos;attente</Text>
+        <Text style={styles.ctaSub}>
+          {Math.round(recommended.pickupWalkMinutes)} min à pied jusqu&apos;au départ
+        </Text>
       </TouchableOpacity>
     </View>
   );
@@ -125,9 +168,28 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     gap: spacing.md,
   },
-  map: {
+  loadingWrap: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.gray100,
+  },
+  mapWrap: {
     flex: 1,
     minHeight: 340,
+    borderRadius: radii.xl,
+    overflow: 'hidden',
+  },
+  map: {
+    flex: 1,
+  },
+  originDot: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: colors.secondary,
+    borderWidth: 2,
+    borderColor: colors.white,
   },
   recommendCaption: {
     textAlign: 'center',

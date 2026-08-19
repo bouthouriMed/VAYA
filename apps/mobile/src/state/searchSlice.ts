@@ -14,12 +14,18 @@ interface SearchState {
   /** True once the rider has explicitly confirmed an exact pickup pin on the
    *  map (vs. just having a raw GPS/geocoded origin). */
   pickupConfirmed: boolean;
+  /** ISO timestamp captured once when "Rechercher" is pressed — reused as
+   *  the `when` param by both results.tsx and cluster.tsx so their
+   *  useMatchingSearchQuery calls share one RTK Query cache entry instead
+   *  of each computing `new Date()` independently and missing the cache. */
+  searchAt: string | null;
 }
 
 const initialState: SearchState = {
   origin: null,
   destination: null,
   pickupConfirmed: false,
+  searchAt: null,
 };
 
 const searchSlice = createSlice({
@@ -43,12 +49,21 @@ const searchSlice = createSlice({
       state.destination = origin;
       state.pickupConfirmed = false;
     },
+    startSearch(state) {
+      state.searchAt = new Date().toISOString();
+    },
     resetSearch() {
       return initialState;
     },
   },
 });
 
-export const { setOrigin, setDestination, confirmPickupPoint, swapOriginDestination, resetSearch } =
-  searchSlice.actions;
+export const {
+  setOrigin,
+  setDestination,
+  confirmPickupPoint,
+  swapOriginDestination,
+  startSearch,
+  resetSearch,
+} = searchSlice.actions;
 export default searchSlice.reducer;

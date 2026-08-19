@@ -10,8 +10,9 @@ import {
 } from 'react-native';
 import Svg, { Defs, LinearGradient as SvgGradient, Stop, Circle } from 'react-native-svg';
 import { Text, Button, colors, spacing, radii, typography } from '@vaya/design-system';
-import { router } from 'expo-router';
+import { router, Redirect } from 'expo-router';
 import { BlurView } from 'expo-blur';
+import { useAppSelector } from '../src/state/store';
 
 const ARC_SIZE = 200;
 const STROKE_WIDTH = 34;
@@ -62,8 +63,13 @@ function GlassArcHero(): React.JSX.Element {
 }
 
 export default function LandingScreen(): React.JSX.Element {
+  const accessToken = useAppSelector((s) => s.auth.accessToken);
   const [phone, setPhone] = useState('');
   const canContinue = phone.replace(/\s/g, '').length >= 8;
+
+  if (accessToken) {
+    return <Redirect href="/(tabs)/explore" />;
+  }
 
   function submit(): void {
     if (!canContinue) return;

@@ -2,6 +2,8 @@ import { and, eq, gte, lte } from 'drizzle-orm';
 import type { getDatabase } from '../../lib/database.js';
 import { demandSignals, rides } from '../../db/schema/index.js';
 import { haversineDistanceMeters } from '../../lib/geo.js';
+import { getRoute } from '../../lib/routing.js';
+import { computeRouteOverlapFraction, decodePolyline } from '../../lib/polyline.js';
 import type { MatchingSearchInput, NotifyMeInput } from '@vaya/validation';
 
 type Database = ReturnType<typeof getDatabase>;
@@ -15,6 +17,10 @@ const WIDE_DROPOFF_RADIUS_M = 10000;
 const WIDE_TIME_WINDOW_MIN = 240;
 
 const WALK_SPEED_M_PER_MIN = 80;
+// How close the rider's own route needs to run to a candidate ride's actual
+// road path to count as "overlapping" — wide enough to tolerate minor
+// street-level detours, tight enough to mean something.
+const OVERLAP_CORRIDOR_WIDTH_M = 150;
 
 function clamp01(n: number): number {
   return Math.max(0, Math.min(1, n));
@@ -34,6 +40,11 @@ export interface MatchCandidate {
   score: number;
   reasons: string[];
   clusterLabel: string;
+  originLat: number;
+  originLng: number;
+  destinationLat: number;
+  destinationLng: number;
+  routePolyline: string | null;
 }
 
 function buildClusterLabel(timeDeltaMin: number): string {
@@ -80,6 +91,11 @@ async function scoreCandidates(
   const origin = { lat: input.originLat, lng: input.originLng };
   const destination = { lat: input.destinationLat, lng: input.destinationLng };
 
+  // One OSRM call for the rider's own requested route (cached — cheap even
+  // when called again from corridorFallback's tight+wide pair).
+  const riderRoute = await getRoute(origin, destination);
+  const riderRoutePoints = riderRoute.polyline ? decodePolyline(riderRoute.polyline) : [];
+
   const scored: MatchCandidate[] = [];
   for (const ride of candidates) {
     if (ride.seatsAvailable < 1) continue;
@@ -96,10 +112,20 @@ async function scoreCandidates(
 
     const timeDeltaMin = Math.abs(ride.departureAt.getTime() - input.when.getTime()) / 60_000;
     const pickupWalkMinutes = pickupDistanceM / WALK_SPEED_M_PER_MIN;
+
+    // Real road-geometry overlap when both routes have a polyline (rides
+    // created before OSRM was wired, or seeded before a backfill, won't —
+    // fall back to the old distance-ratio proxy so those still get a
+    // reasonable estimate instead of a hard 0%).
+    const rideRoutePoints = ride.routePolyline ? decodePolyline(ride.routePolyline) : [];
     const routeOverlapPercent =
-      100 *
-      (1 -
-        (pickupDistanceM / TIGHT_PICKUP_RADIUS_M + dropoffDistanceM / TIGHT_DROPOFF_RADIUS_M) / 2);
+      riderRoutePoints.length > 0 && rideRoutePoints.length > 0
+        ? 100 *
+          computeRouteOverlapFraction(riderRoutePoints, rideRoutePoints, OVERLAP_CORRIDOR_WIDTH_M)
+        : 100 *
+          (1 -
+            (pickupDistanceM / TIGHT_PICKUP_RADIUS_M + dropoffDistanceM / TIGHT_DROPOFF_RADIUS_M) /
+              2);
 
     const score =
       clamp01(1 - pickupDistanceM / TIGHT_PICKUP_RADIUS_M) * 0.4 +
@@ -118,6 +144,11 @@ async function scoreCandidates(
       pickupWalkMinutes,
       routeOverlapPercent: clamp01(routeOverlapPercent / 100) * 100,
       score,
+      originLat: ride.originLat,
+      originLng: ride.originLng,
+      destinationLat: ride.destinationLat,
+      destinationLng: ride.destinationLng,
+      routePolyline: ride.routePolyline,
       reasons: buildReasons({
         pickupWalkMinutes,
         timeDeltaMin,

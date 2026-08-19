@@ -1,14 +1,12 @@
-import { useRef } from 'react';
-import { Animated, View, StyleSheet, TouchableOpacity } from 'react-native';
+import { useRef, useState } from 'react';
+import { Animated, View, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import {
   Text,
   Button,
   Avatar,
-  Chip,
   Meter,
-  ReviewCard,
   StatTile,
   colors,
   spacing,
@@ -16,22 +14,28 @@ import {
   typography,
 } from '@vaya/design-system';
 import { router, useLocalSearchParams } from 'expo-router';
-import { getDriverByKey, HOME_TO_DIGITAL_CENTER } from '../../src/mocks/seed-data';
+import {
+  useGetUserPublicProfileQuery,
+  useGetRideQuery,
+  useCreateBookingMutation,
+} from '../../src/state/api';
+import { useAppSelector } from '../../src/state/store';
 
 const HERO_HEIGHT = 200;
 const HERO_AVATAR_PX = 108;
 const STICKY_THRESHOLD = 120;
 
 export default function TrustScreen(): React.JSX.Element {
-  const { driverId } = useLocalSearchParams<{ driverId?: string }>();
-  const driver = getDriverByKey(driverId);
+  const { rideId, driverUserId } = useLocalSearchParams<{ rideId: string; driverUserId: string }>();
   const insets = useSafeAreaInsets();
   const scrollY = useRef(new Animated.Value(0)).current;
+  const origin = useAppSelector((s) => s.search.origin);
+  const [bookingError, setBookingError] = useState<string | undefined>();
 
-  // The hero cover starts transparent so the sticky bar reads as a plain nav
-  // button at the top; scrolling past the identity block reveals the same
-  // sage cover color behind a compact avatar+name, giving a persistent
-  // "who am I looking at" context without needing a real cover photo asset.
+  const { data: profile, isLoading: isProfileLoading } = useGetUserPublicProfileQuery(driverUserId);
+  const { data: ride, isLoading: isRideLoading } = useGetRideQuery(rideId);
+  const [createBooking, { isLoading: isBooking }] = useCreateBookingMutation();
+
   const stickyBg = scrollY.interpolate({
     inputRange: [0, STICKY_THRESHOLD],
     outputRange: ['rgba(127,164,145,0)', 'rgba(127,164,145,1)'],
@@ -48,7 +52,53 @@ export default function TrustScreen(): React.JSX.Element {
     extrapolate: 'clamp',
   });
 
-  const firstName = driver.fullName.split(' ')[0]!;
+  if (isProfileLoading || isRideLoading) {
+    return (
+      <View style={styles.loadingWrap}>
+        <ActivityIndicator size="large" color={colors.secondary} />
+      </View>
+    );
+  }
+
+  if (!profile || !ride) {
+    return (
+      <View style={styles.loadingWrap}>
+        <Text variant="body" color={colors.gray500}>
+          Profil introuvable.
+        </Text>
+      </View>
+    );
+  }
+
+  const firstName = profile.fullName.split(' ')[0]!;
+  const driverStats = profile.driver;
+
+  async function requestSeat(): Promise<void> {
+    if (!origin) return;
+    setBookingError(undefined);
+    try {
+      const booking = await createBooking({
+        rideId,
+        input: {
+          seatsRequested: 1,
+          pickup: { label: origin.label, lat: origin.lat, lng: origin.lng },
+        },
+      }).unwrap();
+      router.dismissTo({
+        pathname: '/bookings/confirmed',
+        params: {
+          bookingId: booking.id,
+          driverName: profile!.fullName,
+          price: String(ride!.contributionPerSeat),
+          vehicleLabel: driverStats?.vehicle
+            ? `${driverStats.vehicle.make} ${driverStats.vehicle.model} ${driverStats.vehicle.color}`
+            : '',
+        },
+      });
+    } catch {
+      setBookingError('Cette place vient peut-être d’être prise. Réessayez.');
+    }
+  }
 
   return (
     <View style={styles.container}>
@@ -62,98 +112,72 @@ export default function TrustScreen(): React.JSX.Element {
         <Animated.View style={[styles.hero, { transform: [{ scale: heroScale }] }]} />
 
         <View style={styles.identity}>
-          <Avatar name={driver.fullName} sizePx={HERO_AVATAR_PX} style={styles.heroAvatar} />
+          <Avatar name={profile.fullName} sizePx={HERO_AVATAR_PX} style={styles.heroAvatar} />
           <View style={styles.nameRow}>
             <Text variant="h2">{firstName}</Text>
-            {driver.idVerified ? (
+            {driverStats ? (
               <Ionicons name="checkmark-circle" size={20} color={colors.secondary} />
             ) : null}
           </View>
-          <Text variant="body" color={colors.gray600}>
-            ★ {driver.ratingAvg.toFixed(1)} · {driver.ratingsCount} avis · {driver.tripCount}{' '}
-            trajets
-          </Text>
+          {driverStats ? (
+            <Text variant="body" color={colors.gray600}>
+              ★ {driverStats.ratingAvg.toFixed(1)} · {driverStats.tripCount} trajets
+            </Text>
+          ) : null}
         </View>
 
-        <View style={styles.statsRow}>
-          <StatTile
-            icon={<Ionicons name="flash-outline" size={16} color={colors.gray600} />}
-            value={`${Math.round(driver.responseRate * 100)}%`}
-            label="Réponse"
-          />
-          <StatTile
-            icon={<Ionicons name="close-circle-outline" size={16} color={colors.gray600} />}
-            value={`${Math.round(driver.cancellationRate * 100)}%`}
-            label="Annulation"
-          />
-          <StatTile
-            icon={<Ionicons name="calendar-outline" size={16} color={colors.gray600} />}
-            value={driver.memberSince.split(' ')[1] ?? driver.memberSince}
-            label="Membre depuis"
-          />
-        </View>
-
-        {driver.badges.length > 0 ? (
-          <View style={styles.chipRow}>
-            {driver.badges.map((b) => (
-              <Chip key={b} label={b} />
-            ))}
+        {driverStats ? (
+          <View style={styles.statsRow}>
+            <StatTile
+              icon={<Ionicons name="checkmark-done-outline" size={16} color={colors.gray600} />}
+              value={`${Math.round(driverStats.punctualityScore * 100)}%`}
+              label="Ponctualité"
+            />
+            <StatTile
+              icon={<Ionicons name="shield-checkmark-outline" size={16} color={colors.gray600} />}
+              value={`${Math.round(driverStats.reliabilityScore * 100)}%`}
+              label="Fiabilité"
+            />
+            <StatTile
+              icon={<Ionicons name="car-sport-outline" size={16} color={colors.gray600} />}
+              value={`${ride.seatsAvailable}`}
+              label="Places dispo"
+            />
           </View>
         ) : null}
 
         <View style={styles.card}>
-          <Text variant="label">Trajet habituel</Text>
+          <Text variant="label">Trajet</Text>
           <Text variant="bodySmall" color={colors.gray600}>
-            {HOME_TO_DIGITAL_CENTER.originLabel} → {HOME_TO_DIGITAL_CENTER.destinationLabel}
+            {ride.originLabel} → {ride.destinationLabel}
           </Text>
-          {driver.mutualContext ? (
-            <Chip label={`Contexte partagé : ${driver.mutualContext}`} style={styles.mutualChip} />
-          ) : null}
+          <Text variant="bodySmall" color={colors.gray500}>
+            Départ{' '}
+            {new Date(ride.departureAt).toLocaleTimeString('fr-FR', {
+              hour: '2-digit',
+              minute: '2-digit',
+            })}
+          </Text>
         </View>
 
-        <View style={styles.card}>
-          <Meter label="Fiabilité" valueRatio={driver.reliabilityScore} />
-          <Meter label="Ponctualité" valueRatio={driver.punctualityScore} />
-        </View>
+        {driverStats ? (
+          <View style={styles.card}>
+            <Meter label="Fiabilité" valueRatio={driverStats.reliabilityScore} />
+            <Meter label="Ponctualité" valueRatio={driverStats.punctualityScore} />
+          </View>
+        ) : null}
 
-        {driver.preferences.length > 0 ? (
+        {driverStats?.vehicle ? (
           <View style={styles.card}>
             <Text variant="label" style={styles.cardTitle}>
-              Préférences de trajet
+              Véhicule
             </Text>
-            <View style={styles.chipRow}>
-              {driver.preferences.map((p) => (
-                <Chip key={p} label={p} tone="dim" />
-              ))}
+            <View style={styles.vehicleRow}>
+              <Ionicons name="car-sport-outline" size={20} color={colors.gray900} />
+              <Text variant="bodySmall" color={colors.gray700}>
+                {driverStats.vehicle.make} {driverStats.vehicle.model} · {driverStats.vehicle.color}
+              </Text>
             </View>
-          </View>
-        ) : null}
-
-        <View style={styles.card}>
-          <Text variant="label" style={styles.cardTitle}>
-            Véhicule
-          </Text>
-          <View style={styles.vehicleRow}>
-            <Ionicons name="car-sport-outline" size={20} color={colors.gray900} />
-            <Text variant="bodySmall" color={colors.gray700}>
-              {driver.vehicle.make} {driver.vehicle.model} · {driver.vehicle.color}
-            </Text>
-          </View>
-          {driver.languages.length > 0 ? (
-            <Text variant="bodySmall" color={colors.gray500} style={styles.languages}>
-              Parle {driver.languages.join(', ')}
-            </Text>
-          ) : null}
-        </View>
-
-        {driver.reviews.length > 0 ? (
-          <View style={styles.reviewsSection}>
-            <Text variant="label" style={styles.cardTitle}>
-              Avis récents
-            </Text>
-            {driver.reviews.map((review, i) => (
-              <ReviewCard key={i} review={review} />
-            ))}
           </View>
         ) : null}
 
@@ -167,21 +191,27 @@ export default function TrustScreen(): React.JSX.Element {
           <Ionicons name="chevron-back" size={24} color={colors.white} />
         </TouchableOpacity>
         <Animated.View style={[styles.stickyIdentity, { opacity: identityOpacity }]}>
-          <Avatar name={driver.fullName} size="sm" style={styles.stickyAvatar} />
+          <Avatar name={profile.fullName} size="sm" style={styles.stickyAvatar} />
           <Text style={styles.stickyName}>{firstName}</Text>
         </Animated.View>
       </Animated.View>
 
       <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.sm }]}>
-        <Text variant="bodySmall" color={colors.gray600} align="center">
-          La contribution se règle directement avec votre conducteur.
-        </Text>
+        {bookingError ? (
+          <Text variant="bodySmall" color={colors.error} align="center">
+            {bookingError}
+          </Text>
+        ) : (
+          <Text variant="bodySmall" color={colors.gray600} align="center">
+            La contribution se règle directement avec votre conducteur.
+          </Text>
+        )}
         <Button
-          label={`Demander une place · ${driver.priceDt ?? 5} DT`}
+          label={`Demander une place · ${ride.contributionPerSeat} DT`}
           size="lg"
-          onPress={() =>
-            router.dismissTo({ pathname: '/bookings/confirmed', params: { driverId } })
-          }
+          loading={isBooking}
+          disabled={!origin || ride.seatsAvailable < 1}
+          onPress={() => void requestSeat()}
           style={styles.cta}
         />
       </View>
@@ -192,6 +222,12 @@ export default function TrustScreen(): React.JSX.Element {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: colors.gray100,
+  },
+  loadingWrap: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: colors.gray100,
   },
   hero: {
@@ -254,13 +290,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     marginTop: spacing.lg,
   },
-  chipRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.xs,
-    paddingHorizontal: spacing.lg,
-    marginTop: spacing.md,
-  },
   card: {
     backgroundColor: colors.white,
     borderRadius: radii['2xl'],
@@ -277,20 +306,9 @@ const styles = StyleSheet.create({
   cardTitle: {
     marginBottom: 2,
   },
-  mutualChip: {
-    marginTop: spacing.xs,
-  },
   vehicleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm,
-  },
-  languages: {
-    marginTop: 2,
-  },
-  reviewsSection: {
-    paddingHorizontal: spacing.lg,
-    marginTop: spacing.md,
     gap: spacing.sm,
   },
   scrollSpacer: {

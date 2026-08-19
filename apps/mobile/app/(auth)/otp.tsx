@@ -15,6 +15,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Text, Button, colors, spacing, radii, typography } from '@vaya/design-system';
 import { router, useLocalSearchParams } from 'expo-router';
+import { useRequestOtpMutation, useVerifyOtpMutation } from '../../src/state/api';
+import { useAppDispatch } from '../../src/state/store';
+import { setTokens } from '../../src/state/authSlice';
+import { saveTokens } from '../../src/services/auth/tokenStorage';
 
 const CODE_LENGTH = 6;
 const RESEND_SECONDS = 28;
@@ -45,9 +49,34 @@ function OtpCell({ digit, active }: { digit?: string; active: boolean }): React.
 
 export default function OtpScreen(): React.JSX.Element {
   const { phone } = useLocalSearchParams<{ phone?: string }>();
+  const normalizedPhone = (phone ?? '').replace(/\s/g, '');
   const insets = useSafeAreaInsets();
+  const dispatch = useAppDispatch();
   const [code, setCode] = useState('');
   const [secondsLeft, setSecondsLeft] = useState(RESEND_SECONDS);
+  const [devCode, setDevCode] = useState<string | undefined>();
+  const [errorMessage, setErrorMessage] = useState<string | undefined>();
+
+  const [requestOtp, { isLoading: isRequesting }] = useRequestOtpMutation();
+  const [verifyOtp, { isLoading: isVerifying }] = useVerifyOtpMutation();
+
+  async function sendCode(): Promise<void> {
+    if (!normalizedPhone) return;
+    setErrorMessage(undefined);
+    try {
+      const result = await requestOtp({ phone: normalizedPhone }).unwrap();
+      setDevCode(result.devCode);
+      setSecondsLeft(RESEND_SECONDS);
+    } catch {
+      setErrorMessage("Impossible d'envoyer le code. Vérifiez votre connexion.");
+    }
+  }
+
+  useEffect(() => {
+    void sendCode();
+    // Only on mount — resend is a distinct user-triggered action below.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (secondsLeft <= 0) return;
@@ -57,12 +86,21 @@ export default function OtpScreen(): React.JSX.Element {
 
   const mm = String(Math.floor(secondsLeft / 60)).padStart(2, '0');
   const ss = String(secondsLeft % 60).padStart(2, '0');
-  const canVerify = code.length === CODE_LENGTH;
+  const canVerify = code.length === CODE_LENGTH && !isVerifying;
 
-  function verify(): void {
-    if (!canVerify) return;
+  async function verify(): Promise<void> {
+    if (code.length !== CODE_LENGTH || isVerifying) return;
     Keyboard.dismiss();
-    router.replace('/(tabs)/explore');
+    setErrorMessage(undefined);
+    try {
+      const tokens = await verifyOtp({ phone: normalizedPhone, code }).unwrap();
+      dispatch(setTokens(tokens));
+      await saveTokens(tokens);
+      router.replace('/(tabs)/explore');
+    } catch {
+      setErrorMessage('Code invalide ou expiré. Réessayez.');
+      setCode('');
+    }
   }
 
   return (
@@ -109,13 +147,24 @@ export default function OtpScreen(): React.JSX.Element {
               onSubmitEditing={verify}
             />
 
+            {errorMessage ? (
+              <Text variant="bodySmall" color={colors.error} align="center" style={styles.resend}>
+                {errorMessage}
+              </Text>
+            ) : devCode ? (
+              <Text variant="bodySmall" color={colors.gray500} align="center" style={styles.resend}>
+                Code de test : {devCode}
+              </Text>
+            ) : null}
+
             {secondsLeft > 0 ? (
               <Text variant="bodySmall" color={colors.gray500} align="center" style={styles.resend}>
                 Resend code in {mm}:{ss}
               </Text>
             ) : (
               <TouchableOpacity
-                onPress={() => setSecondsLeft(RESEND_SECONDS)}
+                onPress={() => void sendCode()}
+                disabled={isRequesting}
                 style={styles.resend}
               >
                 <Text variant="bodySmall" color={colors.secondaryDark} align="center">
@@ -129,7 +178,8 @@ export default function OtpScreen(): React.JSX.Element {
             label="Verify & Continue"
             size="lg"
             disabled={!canVerify}
-            onPress={verify}
+            loading={isVerifying}
+            onPress={() => void verify()}
             style={[styles.cta, { marginBottom: insets.bottom + spacing.lg }]}
           />
         </KeyboardAvoidingView>

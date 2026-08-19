@@ -3,13 +3,13 @@ import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text, Button, Chip, colors, spacing, radii } from '@vaya/design-system';
 import { router, useLocalSearchParams } from 'expo-router';
-import { getDriverByKey, HOME_TO_DIGITAL_CENTER } from '../../src/mocks/seed-data';
+import { HOME_TO_DIGITAL_CENTER } from '../../src/mocks/seed-data';
 
 const TAGS = ['Ponctuel', 'Agréable', 'Fiable'];
 
 export default function SettlementScreen(): React.JSX.Element {
-  const { driverId } = useLocalSearchParams<{ driverId?: string }>();
-  const driver = getDriverByKey(driverId);
+  const { driverName, price } = useLocalSearchParams<{ driverName?: string; price?: string }>();
+  const firstName = (driverName ?? 'votre conducteur').split(' ')[0]!;
   const insets = useSafeAreaInsets();
   const [stars, setStars] = useState(4);
   const [selectedTags, setSelectedTags] = useState<string[]>(['Ponctuel']);
@@ -29,13 +29,13 @@ export default function SettlementScreen(): React.JSX.Element {
       </View>
 
       <View style={styles.sheet}>
-        <Text variant="h3">Réflechissez à ce trajet avec {driver.fullName.split(' ')[0]}.</Text>
+        <Text variant="h3">Réflechissez à ce trajet avec {firstName}.</Text>
 
         <View style={styles.settleRow}>
           <Text variant="bodySmall" color={colors.gray600}>
             Réglez directement
           </Text>
-          <Text variant="h3">{driver.priceDt} DT</Text>
+          <Text variant="h3">{price ?? '—'} DT</Text>
         </View>
 
         <View style={styles.stars}>

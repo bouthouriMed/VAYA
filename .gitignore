@@ -47,6 +47,7 @@ pnpm-debug.log*
 
 # Docker
 docker/data/
+docker/osrm/data/
 
 # Generated code
 packages/api-client/src/generated/

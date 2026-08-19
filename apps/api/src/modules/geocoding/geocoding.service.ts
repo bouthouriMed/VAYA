@@ -1,4 +1,4 @@
-import { getRedis } from '../../lib/redis.js';
+import { cached } from '../../lib/cache.js';
 
 const NOMINATIM_BASE_URL = 'https://nominatim.openstreetmap.org';
 // Nominatim's usage policy requires a descriptive User-Agent identifying the app.
@@ -19,19 +19,8 @@ interface NominatimSearchResult {
   lon: string;
 }
 
-async function cached<T>(key: string, fetcher: () => Promise<T>): Promise<T> {
-  const redis = getRedis();
-  if (redis) {
-    const hit = await redis.get(key);
-    if (hit) return JSON.parse(hit) as T;
-  }
-  const value = await fetcher();
-  if (redis) await redis.set(key, JSON.stringify(value), 'EX', CACHE_TTL_SEC);
-  return value;
-}
-
 export async function searchAddress(query: string): Promise<GeocodeResult[]> {
-  return cached(`geocode:search:${query.toLowerCase()}`, async () => {
+  return cached(`geocode:search:${query.toLowerCase()}`, CACHE_TTL_SEC, async () => {
     const url = new URL(`${NOMINATIM_BASE_URL}/search`);
     url.searchParams.set('q', query);
     url.searchParams.set('format', 'json');
@@ -54,7 +43,7 @@ export async function searchAddress(query: string): Promise<GeocodeResult[]> {
 export async function reverseGeocode(lat: number, lng: number): Promise<GeocodeResult> {
   const roundedLat = lat.toFixed(4);
   const roundedLng = lng.toFixed(4);
-  return cached(`geocode:reverse:${roundedLat}:${roundedLng}`, async () => {
+  return cached(`geocode:reverse:${roundedLat}:${roundedLng}`, CACHE_TTL_SEC, async () => {
     const url = new URL(`${NOMINATIM_BASE_URL}/reverse`);
     url.searchParams.set('lat', roundedLat);
     url.searchParams.set('lon', roundedLng);

@@ -20,6 +20,11 @@ const matchCandidateSchema = z.object({
   score: z.number(),
   reasons: z.array(z.string()),
   clusterLabel: z.string(),
+  originLat: z.number(),
+  originLng: z.number(),
+  destinationLat: z.number(),
+  destinationLng: z.number(),
+  routePolyline: z.string().nullable(),
 });
 
 export async function matchingRoutes(fastify: FastifyInstance): Promise<void> {

@@ -18,12 +18,13 @@ function hashToken(token: string): string {
   return createHash('sha256').update(token).digest('hex');
 }
 
-export async function requestOtp(db: Database, phone: string): Promise<void> {
+export async function requestOtp(db: Database, phone: string): Promise<{ code: string }> {
   const code = generateOtpCode();
   const expiresAt = new Date(Date.now() + OTP_TTL_MINUTES * 60_000);
 
   await db.insert(otpCodes).values({ phone, code, expiresAt });
   await getSmsProvider().sendOtp(phone, code);
+  return { code };
 }
 
 async function findOrCreateUser(db: Database, phone: string) {

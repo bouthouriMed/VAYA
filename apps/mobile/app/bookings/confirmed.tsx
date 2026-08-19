@@ -3,13 +3,17 @@ import { Animated, View, StyleSheet, Easing } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Text, colors, spacing } from '@vaya/design-system';
 import { router, useLocalSearchParams } from 'expo-router';
-import { getDriverByKey } from '../../src/mocks/seed-data';
 
 const ADVANCE_AFTER_MS = 1600;
 
 export default function ConfirmedScreen(): React.JSX.Element {
-  const { driverId } = useLocalSearchParams<{ driverId?: string }>();
-  const driver = getDriverByKey(driverId);
+  const params = useLocalSearchParams<{
+    bookingId?: string;
+    driverName?: string;
+    price?: string;
+    vehicleLabel?: string;
+  }>();
+  const driverFirstName = (params.driverName ?? 'votre conducteur').split(' ')[0]!;
 
   const badgeScale = useRef(new Animated.Value(0)).current;
   const ringScale = useRef(new Animated.Value(0.6)).current;
@@ -40,12 +44,12 @@ export default function ConfirmedScreen(): React.JSX.Element {
     ).start();
 
     const timer = setTimeout(
-      () => router.replace({ pathname: '/bookings/pending', params: { driverId } }),
+      () => router.replace({ pathname: '/bookings/pending', params }),
       ADVANCE_AFTER_MS,
     );
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [driverId]);
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -63,7 +67,7 @@ export default function ConfirmedScreen(): React.JSX.Element {
           Demande envoyée !
         </Text>
         <Text variant="body" color={colors.gray600} align="center" style={styles.subtitle}>
-          {driver.fullName.split(' ')[0]} recevra une notification instantanée.
+          {driverFirstName} recevra une notification instantanée.
         </Text>
         <Text variant="bodySmall" color={colors.gray500} align="center">
           Vous serez averti dès qu&apos;elle répond.

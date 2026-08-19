@@ -31,6 +31,19 @@ services:
       timeout: 5s
       retries: 5
 
+  osrm:
+    image: osrm/osrm-backend
+    container_name: vaya-osrm
+    restart: unless-stopped
+    command: osrm-routed --algorithm ch /data/tunisia-latest.osrm
+    ports:
+      - '5001:5000'
+    volumes:
+      - ./osrm/data:/data
+    # No healthcheck: the routing graph only exists after `docker/osrm/prepare.sh`
+    # has been run once (see docker/README.md). Until then this container exits
+    # immediately — that's expected, not a failure of the rest of the stack.
+
 volumes:
   postgres_data:
   redis_data:

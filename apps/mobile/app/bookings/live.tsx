@@ -4,15 +4,21 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect } from 'react';
 
 export default function LiveScreen(): React.JSX.Element {
-  const { driverId } = useLocalSearchParams<{ driverId?: string }>();
+  const params = useLocalSearchParams<{
+    bookingId?: string;
+    driverName?: string;
+    price?: string;
+    vehicleLabel?: string;
+  }>();
 
   useEffect(() => {
     const timer = setTimeout(
-      () => router.replace({ pathname: '/bookings/settlement', params: { driverId } }),
+      () => router.replace({ pathname: '/bookings/settlement', params }),
       4000,
     );
     return () => clearTimeout(timer);
-  }, [driverId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <View style={styles.container}>

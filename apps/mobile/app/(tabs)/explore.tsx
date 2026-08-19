@@ -16,7 +16,7 @@ import {
 import { router } from 'expo-router';
 import { CURRENT_USER } from '../../src/mocks/seed-data';
 import { useAppDispatch, useAppSelector } from '../../src/state/store';
-import { setOrigin, swapOriginDestination } from '../../src/state/searchSlice';
+import { setOrigin, swapOriginDestination, startSearch } from '../../src/state/searchSlice';
 import { useCurrentPosition } from '../../src/services/location/useCurrentPosition';
 
 export default function HomeSearchScreen(): React.JSX.Element {
@@ -119,7 +119,10 @@ export default function HomeSearchScreen(): React.JSX.Element {
         label="Rechercher"
         size="lg"
         disabled={!canSearch}
-        onPress={() => router.push('/search/results')}
+        onPress={() => {
+          dispatch(startSearch());
+          router.push('/search/results');
+        }}
         style={styles.cta}
       />
     </SafeAreaView>

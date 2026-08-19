@@ -27,10 +27,19 @@ export async function authRoutes(fastify: FastifyInstance): Promise<void> {
 
   app.post(
     '/auth/otp/request',
-    { schema: { body: requestOtpSchema, response: { 200: z.object({ sent: z.boolean() }) } } },
+    {
+      schema: {
+        body: requestOtpSchema,
+        response: { 200: z.object({ sent: z.boolean(), devCode: z.string().optional() }) },
+      },
+    },
     async (request, reply) => {
-      await requestOtp(db, request.body.phone);
-      reply.send({ sent: true });
+      const { code } = await requestOtp(db, request.body.phone);
+      // Dev convenience only: no SMS provider is wired up, so surface the
+      // code in the response instead of requiring a server-log tail. Never
+      // present outside development.
+      const devCode = getEnv().NODE_ENV === 'development' ? code : undefined;
+      reply.send({ sent: true, devCode });
     },
   );
 
