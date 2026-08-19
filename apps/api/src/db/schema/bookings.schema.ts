@@ -9,6 +9,7 @@
   varchar,
 } from 'drizzle-orm/pg-core';
 import { rides } from './rides.schema';
+import { routeStops } from './route-stops.schema';
 import { users } from './users.schema';
 
 export const bookingStatusEnum = pgEnum('booking_status', [
@@ -35,6 +36,16 @@ export const bookings = pgTable(
     seatsRequested: integer('seats_requested').notNull(),
     contributionTotal: doublePrecision('contribution_total').notNull(),
     status: bookingStatusEnum('status').notNull().default('pending'),
+    // Ride-engine passenger selection (docs/domain/ride-engine.md): the
+    // driver-selected route_stop this booking's pickup was chosen from,
+    // when the ride has any. Nullable and additive — `set null` on delete
+    // rather than cascade, since stop-candidates.service.ts's
+    // regeneration path deletes and reinserts route_stops when a route
+    // changes, and a booking must never be destroyed by that. pickupLabel/
+    // Lat/Lng below are still populated (copied from the stop at booking
+    // time) so existing consumers never need to branch on whether this is
+    // set — see the Rollout note in docs/domain/ride-engine.md.
+    pickupStopId: uuid('pickup_stop_id').references(() => routeStops.id, { onDelete: 'set null' }),
     pickupLabel: varchar('pickup_label', { length: 140 }).notNull(),
     pickupLat: doublePrecision('pickup_lat').notNull(),
     pickupLng: doublePrecision('pickup_lng').notNull(),
@@ -46,5 +57,6 @@ export const bookings = pgTable(
   (table) => ({
     rideIdIdx: index('bookings_ride_id_idx').on(table.rideId),
     riderIdIdx: index('bookings_rider_id_idx').on(table.riderId),
+    pickupStopIdIdx: index('bookings_pickup_stop_id_idx').on(table.pickupStopId),
   }),
 );

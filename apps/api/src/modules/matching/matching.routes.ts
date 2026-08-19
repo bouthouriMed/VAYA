@@ -6,6 +6,14 @@ import { getDatabase } from '../../lib/database.js';
 import { getUserId } from '../../lib/auth-context.js';
 import { corridorFallback, createDemandSignal, searchRides } from './matching.service.js';
 
+const rankedStopSchema = z.object({
+  stopId: z.string().uuid(),
+  label: z.string(),
+  lat: z.number(),
+  lng: z.number(),
+  walkMinutes: z.number(),
+});
+
 const matchCandidateSchema = z.object({
   rideId: z.string().uuid(),
   driverUserId: z.string().uuid(),
@@ -25,6 +33,8 @@ const matchCandidateSchema = z.object({
   destinationLat: z.number(),
   destinationLng: z.number(),
   routePolyline: z.string().nullable(),
+  rankedStops: z.array(rankedStopSchema),
+  pickupViable: z.boolean(),
 });
 
 export async function matchingRoutes(fastify: FastifyInstance): Promise<void> {
