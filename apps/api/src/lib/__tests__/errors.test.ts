@@ -5,6 +5,7 @@ import {
   ValidationError,
   UnauthorizedError,
   ForbiddenError,
+  ConflictError,
 } from '../errors.js';
 
 describe('AppError', () => {
@@ -21,6 +22,17 @@ describe('AppError', () => {
     expect(error.statusCode).toBe(418);
     expect(error.code).toBe('TEAPOT');
     expect(error.isOperational).toBe(false);
+  });
+
+  it('preserves each subclass prototype so instanceof narrows correctly', () => {
+    // Regression guard: the base constructor used to force-reset the
+    // prototype to AppError.prototype, which made `instanceof ConflictError`
+    // (etc.) silently always false for every subclass.
+    const conflict = new ConflictError('nope');
+    expect(conflict).toBeInstanceOf(ConflictError);
+    expect(conflict).toBeInstanceOf(AppError);
+    expect(new NotFoundError()).toBeInstanceOf(NotFoundError);
+    expect(new ForbiddenError()).toBeInstanceOf(ForbiddenError);
   });
 });
 

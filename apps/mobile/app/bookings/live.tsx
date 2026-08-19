@@ -9,6 +9,8 @@ export default function LiveScreen(): React.JSX.Element {
     driverName?: string;
     price?: string;
     vehicleLabel?: string;
+    destinationLabel?: string;
+    estimatedDurationMin?: string;
   }>();
 
   useEffect(() => {
@@ -25,16 +27,19 @@ export default function LiveScreen(): React.JSX.Element {
       <MapPreview height={300} badge="● En route" style={styles.map} />
 
       <View style={styles.card}>
-        <Text variant="h1">24 min</Text>
+        <Text variant="h1">
+          {params.estimatedDurationMin ? `≈ ${params.estimatedDurationMin} min` : 'En route'}
+        </Text>
         <Text variant="body" color={colors.gray600}>
-          Arrivée à 08:52 · Tunis Digital Center
+          {/* Trip duration is the real, OSRM-computed route estimate — this
+              is intentionally not a live countdown/arrival clock, since
+              there's no real-time position feed to compute one from yet. */}
+          {params.estimatedDurationMin ? 'Durée estimée du trajet' : 'Suivi en direct'}
+          {params.destinationLabel ? ` · ${params.destinationLabel}` : ''}
         </Text>
         <View style={styles.track}>
           <View style={styles.trackFill} />
         </View>
-        <Text variant="bodySmall" color={colors.gray600} style={styles.footnote}>
-          3 personnes voyagent ensemble sur ce trajet.
-        </Text>
       </View>
     </View>
   );

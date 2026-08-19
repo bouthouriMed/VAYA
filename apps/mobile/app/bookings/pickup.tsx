@@ -1,7 +1,6 @@
 import { View, StyleSheet } from 'react-native';
 import { Text, Button, Avatar, MapPreview, colors, spacing, radii } from '@vaya/design-system';
 import { router, useLocalSearchParams } from 'expo-router';
-import { PICKUP_LABEL } from '../../src/mocks/seed-data';
 
 export default function PickupScreen(): React.JSX.Element {
   const params = useLocalSearchParams<{
@@ -9,18 +8,23 @@ export default function PickupScreen(): React.JSX.Element {
     driverName?: string;
     price?: string;
     vehicleLabel?: string;
+    pickupLabel?: string;
   }>();
   const driverName = params.driverName ?? 'votre conducteur';
 
   return (
     <View style={styles.container}>
-      <MapPreview height={220} badge="120 m · 2 min à pied" />
+      {/* No distance/ETA badge: nothing computes a real one yet (real map
+          rendering + live position are later roadmap phases) — showing a
+          fabricated "120 m · 2 min" was the exact anti-pattern this fix
+          removes. */}
+      <MapPreview height={220} />
 
       <View style={styles.card}>
         <Text variant="label" color={colors.gray600}>
           Rendez-vous
         </Text>
-        <Text variant="h3">{PICKUP_LABEL}</Text>
+        <Text variant="h3">{params.pickupLabel ?? 'En attente de confirmation'}</Text>
       </View>
 
       <View style={styles.driverRow}>
