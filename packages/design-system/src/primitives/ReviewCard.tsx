@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { colors, spacing, radii, typography } from '../tokens/index';
+import { colors, spacing, radii, typography, elevation } from '../tokens/index';
 import { Avatar } from './Avatar';
 
 export interface ReviewCardData {
@@ -16,14 +16,22 @@ interface ReviewCardProps {
 
 export function ReviewCard({ review }: ReviewCardProps): React.JSX.Element {
   return (
-    <View style={styles.card}>
+    <View
+      style={[styles.card, elevation?.sm]}
+      accessible
+      accessibilityLabel={`${review.raterName}, ${review.stars} sur 5 étoiles, ${review.when}. ${review.comment}`}
+    >
       <View style={styles.header}>
         <Avatar name={review.raterName} size="sm" />
         <View style={styles.headerText}>
           <Text style={styles.name}>{review.raterName}</Text>
           <Text style={styles.when}>{review.when}</Text>
         </View>
-        <View style={styles.stars}>
+        <View
+          style={styles.stars}
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+        >
           {Array.from({ length: 5 }, (_, i) => (
             <Text key={i} style={[styles.star, i < review.stars && styles.starFilled]}>
               ★
@@ -43,10 +51,6 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     gap: spacing.xs,
     shadowColor: colors.gray900,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 1,
   },
   header: {
     flexDirection: 'row',

@@ -11,7 +11,12 @@ interface ChipProps {
 
 export function Chip({ label, tone = 'default', icon, style }: ChipProps): React.JSX.Element {
   return (
-    <View style={[styles.chip, tone === 'dim' ? styles.chipDim : styles.chipDefault, style]}>
+    <View
+      style={[styles.chip, tone === 'dim' ? styles.chipDim : styles.chipDefault, style]}
+      accessible
+      accessibilityRole="text"
+      accessibilityLabel={label}
+    >
       {icon}
       <Text style={[styles.text, tone === 'dim' ? styles.textDim : styles.textDefault]}>
         {label}

@@ -13,7 +13,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { Text, Button, colors, spacing, radii, typography } from '@vaya/design-system';
+import { Text, Button, colors, spacing, radii, typography, haptics } from '@vaya/design-system';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useRequestOtpMutation, useVerifyOtpMutation } from '../../src/state/api';
 import { useAppDispatch } from '../../src/state/store';
@@ -94,10 +94,12 @@ export default function OtpScreen(): React.JSX.Element {
     setErrorMessage(undefined);
     try {
       const tokens = await verifyOtp({ phone: normalizedPhone, code }).unwrap();
+      haptics.success();
       dispatch(setTokens(tokens));
       await saveTokens(tokens);
       router.replace('/(tabs)/explore');
     } catch {
+      haptics.error();
       setErrorMessage('Code invalide ou expiré. Réessayez.');
       setCode('');
     }

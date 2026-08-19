@@ -12,8 +12,8 @@ This is the status tracker and index for the phased roadmap produced by the 2026
 
 | # | Phase | Horizon | Complexity | Status |
 |---|---|---|---|---|
-| 1 | [Foundation Hardening](phase-01-foundation-hardening.md) | NOW | Low–Medium | Not started |
-| 2 | [Design System: Interaction Layer](phase-02-design-system-interaction-layer.md) | NOW | Medium | Not started |
+| 1 | [Foundation Hardening](phase-01-foundation-hardening.md) | NOW | Low–Medium | Done |
+| 2 | [Design System: Interaction Layer](phase-02-design-system-interaction-layer.md) | NOW | Medium | Done |
 | 3 | [Real Map Rendering Foundation](phase-03-real-map-rendering.md) | NOW | Medium | Not started |
 | 4 | [Ride Engine I: Driver Stops](phase-04-ride-engine-driver-stops.md) | NOW | High | Not started |
 | 5 | [Ride Engine II: Passenger Selection](phase-05-ride-engine-passenger-selection.md) | NOW | High | Not started |
@@ -26,7 +26,7 @@ This is the status tracker and index for the phased roadmap produced by the 2026
 | 12 | [Scale Hardening](phase-12-scale-hardening.md) | SCALE | High | Not started — trigger-based, see phase file |
 
 **Current phase:** none in progress.
-**Recommended next phase:** **Phase 1 — Foundation Hardening.** It fixes real, confirmed bugs (booking overbooking race, missing indexes, fabricated post-booking UI data) with no new product surface, has no prerequisites, and de-risks every phase built on top of it. See the session-summary in root `CLAUDE.md` for the full rationale.
+**Recommended next phase:** **Phase 3 — Real Map Rendering Foundation.** Phases 1 and 2 are done: the booking-seat race condition, missing indexes, rate limiting, and fabricated post-booking UI data are fixed, and the design system now has BottomSheet/Modal/Toast/Skeleton/EmptyState/Icon plus a baseline accessibility pass and haptics. Phase 3 is next because it's a hard prerequisite for Phase 4/5 (the ride engine can't build stop-selection UI on the current placeholder map canvas).
 
 ## Sequencing logic
 

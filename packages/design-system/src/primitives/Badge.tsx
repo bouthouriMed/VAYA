@@ -22,7 +22,12 @@ export function Badge({ label, variant = 'default', style }: BadgeProps): React.
   const palette = variantColors[variant];
 
   return (
-    <View style={[styles.badge, { backgroundColor: palette.bg }, style]}>
+    <View
+      style={[styles.badge, { backgroundColor: palette.bg }, style]}
+      accessible
+      accessibilityRole="text"
+      accessibilityLabel={label}
+    >
       <Text style={[styles.text, { color: palette.text }]}>{label}</Text>
     </View>
   );

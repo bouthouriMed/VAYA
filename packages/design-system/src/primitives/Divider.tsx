@@ -17,6 +17,8 @@ export function Divider({
 }: DividerProps): React.JSX.Element {
   return (
     <View
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
       style={[
         styles.divider,
         {

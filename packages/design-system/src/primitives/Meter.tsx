@@ -21,7 +21,13 @@ export function Meter({
   return (
     <View style={styles.wrap}>
       <Text style={styles.label}>{label}</Text>
-      <View style={styles.track}>
+      <View
+        style={styles.track}
+        accessible
+        accessibilityRole="progressbar"
+        accessibilityLabel={label}
+        accessibilityValue={{ min: 0, max: 100, now: pct }}
+      >
         <View style={[styles.fill, { width: `${pct}%` }]} />
       </View>
       <View style={styles.captionRow}>

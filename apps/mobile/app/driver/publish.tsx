@@ -2,7 +2,16 @@ import { useEffect, useState } from 'react';
 import { View, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { Text, Button, FieldCard, FieldRow, Chip, colors, spacing } from '@vaya/design-system';
+import {
+  Text,
+  Button,
+  FieldCard,
+  FieldRow,
+  Chip,
+  colors,
+  spacing,
+  haptics,
+} from '@vaya/design-system';
 import { router } from 'expo-router';
 import { useAppDispatch, useAppSelector } from '../../src/state/store';
 import { resetSearch } from '../../src/state/searchSlice';
@@ -50,8 +59,10 @@ export default function PublishRideScreen(): React.JSX.Element {
         seatsTotal: seats,
         contributionPerSeat: price,
       }).unwrap();
+      haptics.success();
       router.replace('/(tabs)/trips');
     } catch {
+      haptics.error();
       setErrorMessage('Impossible de publier ce trajet. Réessayez.');
     }
   }
