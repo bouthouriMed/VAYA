@@ -1,20 +1,14 @@
 import { Stack } from 'expo-router';
-import { colors } from '@vaya/design-system';
 
 export default function DriverLayout(): React.JSX.Element {
+  // headerShown: false everywhere — the onboarding wizard and publish screen
+  // each build their own on-brand header (back arrow + step progress),
+  // consistent with the rest of the app (otp.tsx, trust.tsx, etc.) rather
+  // than the plain native stack header.
   return (
-    <Stack
-      screenOptions={{
-        headerShown: true,
-        headerStyle: { backgroundColor: colors.gray100 },
-        headerShadowVisible: false,
-        headerTintColor: colors.gray900,
-        headerTitleStyle: { fontWeight: '700' },
-        headerBackButtonDisplayMode: 'minimal',
-      }}
-    >
-      <Stack.Screen name="onboarding" options={{ title: 'Devenir conducteur' }} />
-      <Stack.Screen name="publish" options={{ title: 'Publier un trajet' }} />
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="onboarding" />
+      <Stack.Screen name="publish" />
     </Stack>
   );
 }

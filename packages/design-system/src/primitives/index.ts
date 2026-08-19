@@ -18,3 +18,4 @@ export type { DriverMapPinData, DriverMapPinVariant } from './DriverMapPin';
 export { ReviewCard } from './ReviewCard';
 export type { ReviewCardData } from './ReviewCard';
 export { StatTile } from './StatTile';
+export { StepProgress } from './StepProgress';
