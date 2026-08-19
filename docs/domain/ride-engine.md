@@ -64,9 +64,15 @@ Road-class metadata from OSRM's base extract does not encode real-world "is ther
 
 Reuses `matching.service.ts`'s existing scoring shape rather than inventing a parallel system:
 
-- For a candidate ride, rank its `route_stops` by walk-distance from the passenger's actual requested origin (same `haversineDistanceMeters` + `WALK_SPEED_M_PER_MIN` pattern already used for `pickupWalkMinutes`).
-- Only surface stops within a walkable radius (reuse `TIGHT_PICKUP_RADIUS_M`/`WIDE_PICKUP_RADIUS_M` tiers).
+- For a candidate ride, rank its `route_stops` (`is_driver_selected = true`) by walk-distance from the passenger's actual requested origin (same `haversineDistanceMeters` + `WALK_SPEED_M_PER_MIN` pattern already used for `pickupWalkMinutes`) — the pure function is `rankStopsByWalkDistance` in `matching.service.ts`.
+- Only surface stops within a walkable radius: filtered against `WIDE_PICKUP_RADIUS_M` (the wider of the two existing tiers — a further, stop-specific cutoff on top of whichever ride-level tight/wide search found the ride in the first place), not new radius numbers.
 - If no stop on a matched ride is close enough, that's a legitimate "doesn't reach you conveniently" result — surface it honestly (`docs/ux/passenger-journey.md` §4), don't force a bad match.
+
+### Implementation note (Phase 5): the "zero viable stops" decision
+
+The design above leaves "surface it honestly" underspecified — the actual choice is between excluding a non-viable ride from `matching.service.ts`'s results outright, or including it flagged as non-bookable. **Implemented: include, flagged.** Every `MatchCandidate` carries a `pickupViable: boolean` alongside its `rankedStops` array — `false` only when the ride has at least one driver-selected `route_stop` but none rank within `WIDE_PICKUP_RADIUS_M` of the passenger's origin (`isPickupViable` in `matching.service.ts`); always `true` for a legacy ride with zero `route_stops` at all, which keeps using the free-form pickup flow.
+
+Why include-and-flag over silent exclusion: excluding server-side would make the `pickup_no_viable_stop` analytics event (this phase's own signal for whether Phase 4's candidate density needs tuning — see that phase's Risks section) unobservable from the client without standing up a second, server-side analytics path, which CLAUDE.md's architecture principles explicitly discourage until a second real use case justifies it. Keeping the flag in the API response lets the existing thin mobile `trackEvent` hook (`apps/mobile/src/services/analytics/analytics.ts`) fire the event with real data, while the mobile client (`search/cluster.tsx`) still never renders or lets a passenger tap into a `pickupViable: false` result — so the "never offer a fabricated/impossible pickup option" guarantee (product principle #1/#4) holds at the UI layer even though the ride isn't dropped from the wire response.
 
 ## Database model — `route_stops`
 
@@ -90,13 +96,15 @@ Indexes: `(ride_id)`, `(ride_id, is_driver_selected)` for the passenger-facing q
 
 `bookings` gains a nullable `pickup_stop_id FK → route_stops`. Keep `pickupLabel/Lat/Lng` columns for rides published before this system ships (backward compatibility, not a design endorsement — see rollout note below) and populate them by copying from the selected stop at booking time, so existing consumers (trip-day screens, notifications payloads) don't need to branch on schema version.
 
+**Implementation note (Phase 5):** shipped as migration `0004_common_bill_hollister.sql`, additive only. `pickup_stop_id` uses `ON DELETE SET NULL` rather than cascade — `generateCandidateStopsForRide`'s regeneration path (above) deletes and reinserts `route_stops` rows when a ride's route changes, and a booking must never be destroyed by that; `pickupLabel/Lat/Lng` were already copied at booking time, so losing the FK link loses no data. Enforcement lives in `bookings.service.ts`'s `createBooking`: for any ride with at least one `is_driver_selected = true` stop, `pickupStopId` is required and must reference one of that ride's own selected stops (400 otherwise); free-form `pickupLat/Lng` is rejected outright for such rides (400); a ride with zero `route_stops` at all keeps accepting the legacy free-form `pickup` object unchanged.
+
 ## API surface (new)
 
 - `POST /rides/:id/candidate-stops` — triggers generation (called after route is computed during ride creation, before publish). Returns the ranked candidate list. Idempotent given the same route.
 - `PATCH /rides/:id/stops` — driver's final selection of which candidates to actually offer (`is_driver_selected`).
 - `GET /rides/:id/stops` — used by the passenger-matching path to fetch a ride's active stops (`is_driver_selected = true` only); an authenticated `?all=true` variant returns every generated candidate for the owning driver's own editing view.
 - `POST /rides/:id/publish` — **implementation note (Phase 4):** ride creation now inserts as `draft` rather than immediately `published` (the `draft` status already existed in `packages/domain`'s ride state machine but was previously unused — `createRide` skipped straight to `published`), specifically so a ride id and computed `routePolyline` exist for candidate-stop generation before the driver's final publish action. This new endpoint reuses the existing `canTransitionRideStatus` transition check to move `draft → published`; mobile's `driver/publish.tsx` calls create → generate-stops → (select) → this endpoint as one continuous flow, so the two-step nature is invisible to the driver.
-- `matching.service.ts`'s response shape gains a `rankedStops` array per candidate ride instead of (or alongside) the current single `pickupWalkMinutes` field.
+- `matching.service.ts`'s response shape gains a `rankedStops` array (and a `pickupViable` flag — see the Phase 5 implementation note above) per candidate ride, alongside the existing `pickupWalkMinutes` field (kept for legacy/ride-level relevance, not replaced).
 
 ## Validation & edge cases
 
@@ -108,4 +116,4 @@ Indexes: `(ride_id)`, `(ride_id, is_driver_selected)` for the passenger-facing q
 
 ## Rollout
 
-This is additive to the existing `rides`/`bookings` tables, not a breaking migration. Ship in two phases (see `docs/roadmap`): first the driver-side candidate generation + selection (Phase: Ride Engine I), then the passenger-side ranked selection replacing the fake `pickup-point.tsx` (Phase: Ride Engine II). Rides published between the two phases should still work with the old single-pickup flow — don't force a hard cutover.
+This is additive to the existing `rides`/`bookings` tables, not a breaking migration. Shipped in two phases (see `docs/roadmap`): first the driver-side candidate generation + selection (Phase 4: Ride Engine I), then the passenger-side ranked selection replacing the fake `pickup-point.tsx` (Phase 5: Ride Engine II, shipped). Rides published between the two phases still work with the old single-pickup flow — no hard cutover was forced: `search/cluster.tsx` routes a passenger through the new stop-selection screen only when the matched ride actually has `rankedStops`, and falls straight through to the booking screen (free-form pickup, as before) for any ride with zero `route_stops`.

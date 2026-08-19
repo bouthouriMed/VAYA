@@ -16,9 +16,7 @@ This is the experience the roadmap builds toward. Current-state gaps are noted i
 
 ## 4. Select pickup point
 
-**Today:** `search/pickup-point.tsx` is a confirmed fake, non-geospatial demo (`PX_PER_DEGREE = 9000`). **REPLACE.** (`docs/product/audit.md` §4)
-
-**Target flow:** instead of a free pin-drop, the passenger is shown the **ranked candidate stops** the driver already made available for that ride (`docs/domain/ride-engine.md`), pre-filtered to those reasonably close to the passenger's actual origin. Passenger picks one. No arbitrary coordinates enter the system from either side. If no candidate stop is close enough, show an honest "this ride doesn't reach you conveniently" state rather than forcing a bad match — this is a real product decision, not just an edge case, and should point back to search with adjusted filters.
+**Shipped (Phase 5):** `search/pickup-point.tsx` was a confirmed fake, non-geospatial demo (`PX_PER_DEGREE = 9000`, `docs/product/audit.md` §4) — now fully rebuilt. Instead of a free pin-drop, the passenger is shown the **ranked candidate stops** the driver already made available for that ride (`docs/domain/ride-engine.md`), pre-filtered to those reasonably close to the passenger's actual origin (closest pre-selected by default). Passenger picks one; the choice is enforced server-side (`bookings.pickup_stop_id`) — no arbitrary coordinates enter the system from either side for a ride that has stops. If no candidate stop is close enough, the ride is surfaced flagged non-bookable (`pickupViable: false`) rather than forced into a bad match, and the passenger-facing screens never present it as selectable — a real product decision, not just an edge case (see `docs/domain/ride-engine.md`'s "Zero viable stops" note). Legacy rides published before route_stops existed skip this step entirely and keep the prior free-form flow.
 
 ## 5. Price & book
 

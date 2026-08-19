@@ -88,6 +88,7 @@ export const bookingsRelations = relations(bookings, ({ one }) => ({
   ride: one(rides, { fields: [bookings.rideId], references: [rides.id] }),
   rider: one(users, { fields: [bookings.riderId], references: [users.id] }),
   trip: one(trips, { fields: [bookings.id], references: [trips.bookingId] }),
+  pickupStop: one(routeStops, { fields: [bookings.pickupStopId], references: [routeStops.id] }),
 }));
 
 export const tripsRelations = relations(trips, ({ one, many }) => ({
