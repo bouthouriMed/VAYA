@@ -2,17 +2,7 @@ import { useEffect } from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import {
-  Text,
-  Button,
-  MapPreview,
-  FieldCard,
-  FieldRow,
-  colors,
-  spacing,
-  radii,
-  typography,
-} from '@vaya/design-system';
+import { Text, Button, MapPreview, FieldCard, FieldRow, colors, spacing } from '@vaya/design-system';
 import { router } from 'expo-router';
 import { CURRENT_USER } from '../../src/mocks/seed-data';
 import { useAppDispatch, useAppSelector } from '../../src/state/store';
@@ -23,7 +13,6 @@ export default function HomeSearchScreen(): React.JSX.Element {
   const dispatch = useAppDispatch();
   const origin = useAppSelector((s) => s.search.origin);
   const destination = useAppSelector((s) => s.search.destination);
-  const pickupConfirmed = useAppSelector((s) => s.search.pickupConfirmed);
   const { status, position } = useCurrentPosition();
 
   // Silently adopt the device's GPS fix as the default departure point the
@@ -94,25 +83,6 @@ export default function HomeSearchScreen(): React.JSX.Element {
         ) : null}
       </View>
 
-      {origin ? (
-        <TouchableOpacity
-          style={styles.pickupCard}
-          onPress={() => router.push('/search/pickup-point')}
-          activeOpacity={0.7}
-        >
-          <View style={styles.pickupIcon}>
-            <Ionicons name="locate" size={16} color={colors.white} />
-          </View>
-          <View style={styles.pickupTextCol}>
-            <Text style={styles.pickupTitle}>Point de rendez-vous</Text>
-            <Text variant="bodySmall" color={colors.gray600} numberOfLines={1}>
-              {pickupConfirmed ? origin.label : 'Ajuster sur la carte'}
-            </Text>
-          </View>
-          <Ionicons name="chevron-forward" size={18} color={colors.gray400} />
-        </TouchableOpacity>
-      ) : null}
-
       <View style={styles.spacer} />
 
       <Button
@@ -160,35 +130,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 4,
     elevation: 2,
-  },
-  pickupCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    backgroundColor: colors.white,
-    borderRadius: radii.xl,
-    padding: spacing.md,
-    shadowColor: colors.gray900,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 1,
-  },
-  pickupIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: colors.secondary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  pickupTextCol: {
-    flex: 1,
-  },
-  pickupTitle: {
-    fontSize: typography.fontSize.sm,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.gray900,
   },
   spacer: {
     flex: 1,

@@ -76,11 +76,11 @@ Migration adding `route_stops` (full schema in `docs/domain/ride-engine.md`), wi
 
 ## Definition of Done
 
-- [ ] `route_stops` table exists via migration.
-- [ ] Candidate generation produces sane, real-road-snapped results for at least 3 manually verified real Tunisian routes (spanning urban and intercity).
-- [ ] Driver can select/deselect candidates in the mobile app and publish successfully with a non-empty stop set.
-- [ ] All rejection rules (deviation threshold, motorway exclusion) verified by unit test.
-- [ ] `pnpm test`, `pnpm typecheck`, `pnpm lint` pass.
+- [x] `route_stops` table exists via migration (`apps/api/drizzle/0003_wide_squadron_supreme.sql`, applied against the real local Postgres).
+- [x] Candidate generation produces sane, real-road-snapped results for at least 3 manually verified real Tunisian routes (spanning urban and intercity) — verified live against the docker-composed OSRM instance (urban Tunis, suburban La Marsa, intercity Tunis→Hammamet crossing the A1; the latter correctly rejected 2/68 sampled points as motorway-class). See the implementation note in `docs/domain/ride-engine.md` re: road-class signal source.
+- [x] Driver can select/deselect candidates in the mobile app and publish successfully with a non-empty stop set (also verified: publishing with zero additional stops, and toggling selection, via the mobile unit test and the API integration test's selection round-trip).
+- [x] All rejection rules (deviation threshold, motorway exclusion) verified by unit test (`apps/api/src/modules/rides/__tests__/stop-candidates.service.test.ts`) and confirmed against real OSRM data.
+- [x] `pnpm test`, `pnpm typecheck`, `pnpm lint` pass.
 
 ## Dependencies
 

@@ -5,6 +5,7 @@ import { vehicles } from './vehicles.schema';
 import { verificationDocuments } from './verification-documents.schema';
 import { routes } from './routes.schema';
 import { rides } from './rides.schema';
+import { routeStops } from './route-stops.schema';
 import { bookings } from './bookings.schema';
 import { trips } from './trips.schema';
 import { ratings } from './ratings.schema';
@@ -19,6 +20,7 @@ export * from './vehicles.schema';
 export * from './verification-documents.schema';
 export * from './routes.schema';
 export * from './rides.schema';
+export * from './route-stops.schema';
 export * from './bookings.schema';
 export * from './trips.schema';
 export * from './ratings.schema';
@@ -75,12 +77,18 @@ export const ridesRelations = relations(rides, ({ one, many }) => ({
     references: [recurringPatterns.id],
   }),
   bookings: many(bookings),
+  stops: many(routeStops),
+}));
+
+export const routeStopsRelations = relations(routeStops, ({ one }) => ({
+  ride: one(rides, { fields: [routeStops.rideId], references: [rides.id] }),
 }));
 
 export const bookingsRelations = relations(bookings, ({ one }) => ({
   ride: one(rides, { fields: [bookings.rideId], references: [rides.id] }),
   rider: one(users, { fields: [bookings.riderId], references: [users.id] }),
   trip: one(trips, { fields: [bookings.id], references: [trips.bookingId] }),
+  pickupStop: one(routeStops, { fields: [bookings.pickupStopId], references: [routeStops.id] }),
 }));
 
 export const tripsRelations = relations(trips, ({ one, many }) => ({

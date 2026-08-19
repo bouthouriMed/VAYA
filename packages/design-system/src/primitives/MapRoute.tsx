@@ -1,73 +1,42 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { Polyline } from 'react-native-maps';
+import type { LatLng } from 'react-native-maps';
 import { colors } from '../tokens/index';
-import type { RouteGeometry } from '../utils/mapGeometry';
 
 interface MapRouteProps {
-  geometry: RouteGeometry;
-  roadWidth?: number;
+  /** Real route geometry — decode an OSRM/Google polyline string upstream
+   *  (apps/mobile/src/utils/polyline.ts's decodePolyline already returns
+   *  this exact shape) and pass the points in. Must be rendered as a child
+   *  of MapCanvas's MapView, matching react-native-maps' own constraint. */
+  coordinates: LatLng[];
   color?: string;
-  showArrow?: boolean;
+  width?: number;
+  /** Renders a soft, wide underlay beneath the route line — a cheap visual
+   *  approximation of the route-overlap corridor concept from
+   *  apps/api/src/lib/polyline.ts's computeRouteOverlapFraction, not precise
+   *  offset-polygon geometry (that's real geometric work belonging to
+   *  whichever ride-engine phase actually needs an exact corridor shape). */
+  showCorridor?: boolean;
 }
 
-/** Draws a rounded route corridor between two points, plus a direction arrow at the end. */
+/** Draws real route geometry as a MapView Polyline (and optional corridor glow). */
 export function MapRoute({
-  geometry,
-  roadWidth = 34,
-  color = colors.mapRouteLine + 'A0',
-  showArrow = true,
+  coordinates,
+  color = colors.mapRouteLine,
+  width = 4,
+  showCorridor = false,
 }: MapRouteProps): React.JSX.Element {
   return (
-    <View
-      style={StyleSheet.absoluteFillObject}
-      pointerEvents="none"
-      accessibilityElementsHidden
-      importantForAccessibility="no-hide-descendants"
-    >
-      <View
-        style={[
-          styles.road,
-          {
-            width: geometry.lengthPx,
-            height: roadWidth,
-            borderRadius: roadWidth / 2,
-            left: geometry.startPx.x,
-            top: geometry.startPx.y - roadWidth / 2,
-            backgroundColor: color,
-            transform: [{ rotate: `${geometry.angleDeg}deg` }],
-            transformOrigin: 'left center',
-          },
-        ]}
-      />
-      {showArrow ? (
-        <View
-          style={[
-            styles.arrow,
-            {
-              left: geometry.endPx.x - 8,
-              top: geometry.endPx.y - 6,
-              transform: [{ rotate: `${geometry.angleDeg + 90}deg` }],
-            },
-          ]}
+    <>
+      {showCorridor ? (
+        <Polyline
+          coordinates={coordinates}
+          strokeColor={colors.mapCorridorFill}
+          strokeWidth={width * 6}
+          lineCap="round"
         />
       ) : null}
-    </View>
+      <Polyline coordinates={coordinates} strokeColor={color} strokeWidth={width} lineCap="round" />
+    </>
   );
 }
-
-const styles = StyleSheet.create({
-  road: {
-    position: 'absolute',
-  },
-  arrow: {
-    position: 'absolute',
-    width: 0,
-    height: 0,
-    borderLeftWidth: 7,
-    borderRightWidth: 7,
-    borderBottomWidth: 11,
-    borderLeftColor: 'transparent',
-    borderRightColor: 'transparent',
-    borderBottomColor: colors.primary,
-  },
-});

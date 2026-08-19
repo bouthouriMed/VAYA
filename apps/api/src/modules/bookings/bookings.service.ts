@@ -1,7 +1,7 @@
 import { and, eq, gte, sql } from 'drizzle-orm';
 import type { getDatabase } from '../../lib/database.js';
-import { bookings, rides, trips } from '../../db/schema/index.js';
-import { ConflictError, ForbiddenError, NotFoundError } from '../../lib/errors.js';
+import { bookings, rides, routeStops, trips } from '../../db/schema/index.js';
+import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from '../../lib/errors.js';
 import { canTransitionBookingStatus, canTransitionRideStatus } from '@vaya/domain';
 import type { CreateBookingInput } from '@vaya/validation';
 
@@ -40,6 +40,49 @@ export async function createBooking(
     throw new ConflictError('Not enough seats available on this ride');
   }
 
+  // A ride with at least one driver-selected route_stop must be booked via
+  // pickupStopId — free-form coordinates are rejected outright for these
+  // rides. This is the actual server-side enforcement of "never offer an
+  // arbitrary/impossible pickup point" (CLAUDE.md product principle #1,
+  // docs/domain/ride-engine.md), not just a UI nudge. Rides published
+  // before Phase 4 (zero route_stops) keep the legacy free-form flow
+  // working unchanged.
+  const selectedStops = await db.query.routeStops.findMany({
+    where: and(eq(routeStops.rideId, rideId), eq(routeStops.isDriverSelected, true)),
+  });
+
+  let pickupStopId: string | null = null;
+  let pickupLabel: string;
+  let pickupLat: number;
+  let pickupLng: number;
+
+  if (selectedStops.length > 0) {
+    if (!input.pickupStopId) {
+      throw new ValidationError('This ride requires selecting a pickup stop');
+    }
+    // Must belong to this exact ride and still be one of the driver's
+    // actually-offered stops — `selectedStops` is already scoped to both,
+    // so membership here is the whole check.
+    const stop = selectedStops.find((s) => s.id === input.pickupStopId);
+    if (!stop) {
+      throw new ValidationError('Selected pickup stop is not offered on this ride');
+    }
+    pickupStopId = stop.id;
+    pickupLabel = stop.label;
+    pickupLat = stop.lat;
+    pickupLng = stop.lng;
+  } else {
+    if (input.pickupStopId) {
+      throw new ValidationError('This ride has no selectable pickup stops');
+    }
+    if (!input.pickup) {
+      throw new ValidationError('Pickup location is required');
+    }
+    pickupLabel = input.pickup.label;
+    pickupLat = input.pickup.lat;
+    pickupLng = input.pickup.lng;
+  }
+
   const [booking] = await db
     .insert(bookings)
     .values({
@@ -48,9 +91,10 @@ export async function createBooking(
       seatsRequested: input.seatsRequested,
       contributionTotal: ride.contributionPerSeat * input.seatsRequested,
       status: 'pending',
-      pickupLabel: input.pickup.label,
-      pickupLat: input.pickup.lat,
-      pickupLng: input.pickup.lng,
+      pickupStopId,
+      pickupLabel,
+      pickupLat,
+      pickupLng,
     })
     .returning();
   if (!booking) throw new Error('Failed to create booking');
