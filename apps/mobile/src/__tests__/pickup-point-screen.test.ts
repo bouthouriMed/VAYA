@@ -67,6 +67,23 @@ describe('search/cluster.tsx routes through pickup-point.tsx for rides with stop
   });
 });
 
+describe('search/cluster.tsx falls back to corridor-fallback data for a fallback cluster', () => {
+  const source = readScreen('search/cluster.tsx');
+
+  // Regression guard: a cluster tapped from results.tsx's fallback list
+  // (useCorridorFallbackQuery's nearbyRides) only exists in that query's
+  // cache, not in useMatchingSearchQuery's. Filtering only the latter left
+  // clusterCandidates empty and rendered "Ce groupe n'est plus disponible"
+  // for every fallback cluster tap — this guards against that regressing.
+  it('queries the corridor-fallback endpoint, not only the exact-match endpoint', () => {
+    expect(source).toContain('useCorridorFallbackQuery');
+  });
+
+  it('falls back to nearbyRides when the exact-match list has no candidates for this label', () => {
+    expect(source).toContain('fallback?.nearbyRides');
+  });
+});
+
 describe('search/trust.tsx prefers the selected stop over free-form coordinates', () => {
   const source = readScreen('search/trust.tsx');
 
