@@ -207,7 +207,9 @@ export type NotificationEventType =
   | 'recurring_pattern_detected'
   | 'recurring_proactive_match'
   | 'demand_signal_matched'
-  | 'message_received';
+  | 'message_received'
+  | 'booking_cancelled'
+  | 'booking_no_show_reported';
 
 export interface AppNotification {
   id: string;
@@ -292,6 +294,19 @@ export interface PendingRating {
   role: RatingRole;
   counterpartName: string | null;
   completedAt: string;
+}
+
+// Phase 10 (docs/roadmap/phase-10-cancellation-no-show.md). Mirrors
+// packages/domain's CancellationTier/CancellationPolicyResult.
+export type CancellationTier = 'free' | 'moderate' | 'severe';
+
+export interface CancellationPolicy {
+  tier: CancellationTier;
+  /** Negative once departure has already passed. */
+  minutesBeforeDeparture: number;
+  penaltyPoints: number;
+  /** Server-authored, ready-to-display French copy — never re-derived client-side. */
+  consequence: string;
 }
 
 export interface Booking {
@@ -520,9 +535,19 @@ export const api = createApi({
       query: (bookingId) => ({ url: `/bookings/${bookingId}/decline`, method: 'POST' }),
       invalidatesTags: ['RideRequests'],
     }),
-    cancelBooking: builder.mutation<Booking, string>({
+    // Phase 10 (docs/roadmap/phase-10-cancellation-no-show.md). Read-only —
+    // the cancellation sheet calls this to show the policy consequence
+    // *before* the destructive cancelBooking mutation below is ever fired.
+    getCancellationPreview: builder.query<CancellationPolicy, string>({
+      query: (bookingId) => `/bookings/${bookingId}/cancellation-preview`,
+    }),
+    cancelBooking: builder.mutation<Booking & { cancellationPolicy: CancellationPolicy }, string>({
       query: (bookingId) => ({ url: `/bookings/${bookingId}/cancel`, method: 'POST' }),
       invalidatesTags: ['MyBookings', 'RideRequests', 'MyRides'],
+    }),
+    reportNoShow: builder.mutation<Booking, string>({
+      query: (bookingId) => ({ url: `/bookings/${bookingId}/report-no-show`, method: 'POST' }),
+      invalidatesTags: ['MyBookings', 'RideRequests', 'MyRides', 'Trip'],
     }),
 
     // Phase 7 (docs/roadmap/phase-07-notifications.md).
@@ -633,7 +658,9 @@ export const {
   useListRequestsForRideQuery,
   useAcceptBookingMutation,
   useDeclineBookingMutation,
+  useGetCancellationPreviewQuery,
   useCancelBookingMutation,
+  useReportNoShowMutation,
   useRegisterPushTokenMutation,
   useListNotificationsQuery,
   useMarkNotificationReadMutation,

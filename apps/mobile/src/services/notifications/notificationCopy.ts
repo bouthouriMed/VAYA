@@ -25,6 +25,9 @@ const NOTIFICATION_TYPE_META: Record<NotificationEventType, NotificationTypeMeta
   recurring_proactive_match: { title: 'Nouveau trajet correspondant', icon: 'sparkles-outline' },
   demand_signal_matched: { title: 'Un trajet correspond à votre demande', icon: 'notifications-outline' },
   message_received: { title: 'Nouveau message', icon: 'chatbubble-outline' },
+  // Phase 10 (docs/roadmap/phase-10-cancellation-no-show.md).
+  booking_cancelled: { title: 'Réservation annulée', icon: 'close-circle-outline' },
+  booking_no_show_reported: { title: 'Absence signalée', icon: 'alert-circle-outline' },
 };
 
 const FALLBACK_META: NotificationTypeMeta = { title: 'Notification', icon: 'notifications-outline' };

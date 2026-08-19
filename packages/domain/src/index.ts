@@ -13,6 +13,7 @@ export * from './ride/ride-status';
 
 export * from './booking/booking.types';
 export * from './booking/booking-status';
+export * from './booking/cancellation-policy';
 
 export * from './trip/trip.types';
 export * from './trip/trip-status';

@@ -1,4 +1,4 @@
-import { and, eq } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 import type { getDatabase } from '../../lib/database.js';
 import { driverProfiles, ratings, relationshipSignals, riderProfiles, trips } from '../../db/schema/index.js';
 import { ConflictError, ForbiddenError, NotFoundError } from '../../lib/errors.js';
@@ -7,6 +7,8 @@ import {
   computeRatingAggregate,
   computeTrustTier,
   isWithinRatingWindow,
+  NO_SHOW_AUTOMATIC_RATING_STARS,
+  type RatingRole,
   type TrustTier,
 } from '@vaya/domain';
 import { getUserById } from '../users/users.service.js';
@@ -91,6 +93,99 @@ async function recomputeRiderAggregates(db: Database, riderId: string) {
       .where(eq(riderProfiles.id, existing.id));
   } else {
     await db.insert(riderProfiles).values({ userId: riderId, ratingAvg, punctualityScore });
+  }
+}
+
+/**
+ * Phase 10 (docs/roadmap/phase-10-cancellation-no-show.md): applies a
+ * late/severe cancellation's reputation-only consequence — weighted
+ * penalty points (packages/domain/src/booking/cancellation-policy.ts) added
+ * to whichever profile belongs to the *cancelling* party. Deliberately a
+ * separate column from `ratingAvg`/`reliabilityScore` (which are entirely
+ * rating-derived and recomputed-from-scratch on every new rating by
+ * recomputeDriverAggregates/recomputeRiderAggregates above — reusing either
+ * column here would mean the next rating submission silently erases this
+ * consequence). A no-op for the free tier (0 points) and for a user with no
+ * driver profile row (an update matching zero rows is not an error).
+ */
+export async function applyCancellationPenalty(
+  db: Database,
+  userId: string,
+  isDriver: boolean,
+  points: number,
+): Promise<void> {
+  if (points <= 0) return;
+
+  if (isDriver) {
+    await db
+      .update(driverProfiles)
+      .set({
+        reliabilityPenaltyPoints: sql`${driverProfiles.reliabilityPenaltyPoints} + ${points}`,
+        updatedAt: new Date(),
+      })
+      .where(eq(driverProfiles.userId, userId));
+    return;
+  }
+
+  // Rider side needs the same lazy-upsert pattern recomputeRiderAggregates
+  // uses below — not every rider has a rider_profiles row yet.
+  const existing = await db.query.riderProfiles.findFirst({
+    where: eq(riderProfiles.userId, userId),
+  });
+  if (existing) {
+    await db
+      .update(riderProfiles)
+      .set({
+        reliabilityPenaltyPoints: sql`${riderProfiles.reliabilityPenaltyPoints} + ${points}`,
+        updatedAt: new Date(),
+      })
+      .where(eq(riderProfiles.id, existing.id));
+  } else {
+    await db.insert(riderProfiles).values({ userId, reliabilityPenaltyPoints: points });
+  }
+}
+
+/**
+ * Phase 10's "automatic low rating for the no-show party" — a fixed
+ * `NO_SHOW_AUTOMATIC_RATING_STARS` rating inserted on the no-show party's
+ * behalf, attributed to the reporting party, the moment a no-show is
+ * reported (bookings.service.ts's reportNoShow). Distinct from a genuine
+ * subjective rating submitted via `createRating` above: this trip never
+ * reaches `completed` (it becomes `no_show`, a separate terminal status —
+ * packages/domain/src/trip/trip-status.ts), so the normal
+ * `POST /trips/:id/ratings` flow (gated on `trip.status === 'completed'`)
+ * never applies here and can't double-count. Idempotent: if this exact
+ * (tripId, raterUserId) pair somehow already has a rating (e.g. a retried
+ * request), this is a silent no-op rather than a second penalty — mirrors
+ * createRating's own one-rating-per-(tripId, rater) rule instead of
+ * duplicating it as a DB constraint violation.
+ */
+export async function recordAutomaticNoShowRating(
+  db: Database,
+  tripId: string,
+  raterUserId: string,
+  rateeUserId: string,
+  role: RatingRole,
+): Promise<void> {
+  const existing = await db.query.ratings.findFirst({
+    where: and(eq(ratings.tripId, tripId), eq(ratings.raterUserId, raterUserId)),
+  });
+  if (existing) return;
+
+  await db.insert(ratings).values({
+    tripId,
+    raterUserId,
+    rateeUserId,
+    role,
+    stars: NO_SHOW_AUTOMATIC_RATING_STARS,
+    punctualityFlag: false,
+    comment: null,
+  });
+
+  if (role === 'rider_rates_driver') {
+    await recomputeDriverAggregates(db, rateeUserId);
+  } else {
+    await recomputeRiderAggregates(db, rateeUserId);
   }
 }
 

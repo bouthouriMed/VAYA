@@ -64,6 +64,13 @@
       "when": 1787150153722,
       "tag": "0008_yellow_shen",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1787151890355,
+      "tag": "0009_nasty_boomerang",
+      "breakpoints": true
     }
   ]
 }

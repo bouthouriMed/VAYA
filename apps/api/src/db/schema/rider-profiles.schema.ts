@@ -41,6 +41,11 @@ export const riderProfiles = pgTable('rider_profiles', {
   ratingAvg: doublePrecision('rating_avg').notNull().default(0),
   tripCount: integer('trip_count').notNull().default(0),
   punctualityScore: doublePrecision('punctuality_score').notNull().default(0),
+  // Phase 10 (docs/roadmap/phase-10-cancellation-no-show.md): rider-side
+  // mirror of driver_profiles.reliabilityPenaltyPoints — see that column's
+  // doc comment and docs/domain/cancellation-policy.md for the full
+  // reasoning (a raw weighted-points count, not a rating-derived score).
+  reliabilityPenaltyPoints: integer('reliability_penalty_points').notNull().default(0),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });

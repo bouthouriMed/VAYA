@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { View, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -7,11 +8,11 @@ import {
   useListMyBookingsQuery,
   useListMyRidesQuery,
   useGetMyDriverProfileQuery,
-  useCancelBookingMutation,
   useCancelRideMutation,
   type Booking,
   type Ride,
 } from '../../src/state/api';
+import { CancellationSheet } from '../../src/features/bookings/CancellationSheet';
 
 type BadgeVariant = 'default' | 'success' | 'warning' | 'error' | 'info';
 
@@ -51,8 +52,11 @@ export default function TripsScreen(): React.JSX.Element {
   const { data: bookings, isLoading: isBookingsLoading } = useListMyBookingsQuery();
   const { data: driverProfile } = useGetMyDriverProfileQuery();
   const { data: myRides } = useListMyRidesQuery(undefined, { skip: !driverProfile });
-  const [cancelBooking] = useCancelBookingMutation();
   const [cancelRide] = useCancelRideMutation();
+  // Phase 10 (docs/roadmap/phase-10-cancellation-no-show.md): cancelling a
+  // booking now goes through CancellationSheet (policy consequence shown
+  // before confirming) instead of firing the mutation instantly on tap.
+  const [cancellingBookingId, setCancellingBookingId] = useState<string | null>(null);
 
   function goToDriverFlow(): void {
     router.push(driverProfile ? '/driver/publish' : '/driver/onboarding/vehicle');
@@ -139,7 +143,7 @@ export default function TripsScreen(): React.JSX.Element {
                   <View style={styles.rowActions}>
                     <Badge label={meta.label} variant={meta.variant} />
                     {CANCELLABLE_BOOKING_STATUSES.includes(booking.status) ? (
-                      <TouchableOpacity onPress={() => void cancelBooking(booking.id)} hitSlop={8}>
+                      <TouchableOpacity onPress={() => setCancellingBookingId(booking.id)} hitSlop={8}>
                         <Text variant="bodySmall" color={colors.error}>
                           Annuler
                         </Text>
@@ -156,6 +160,13 @@ export default function TripsScreen(): React.JSX.Element {
           )}
         </View>
       </ScrollView>
+
+      <CancellationSheet
+        visible={!!cancellingBookingId}
+        bookingId={cancellingBookingId ?? ''}
+        role="rider"
+        onClose={() => setCancellingBookingId(null)}
+      />
     </SafeAreaView>
   );
 }

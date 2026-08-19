@@ -11,6 +11,15 @@ describe('canTransitionTripStatus', () => {
     }
   });
 
+  it('allows no_show directly from every non-terminal status (Phase 10 addition)', () => {
+    const nonTerminal = TRIP_STATUSES.filter(
+      (s) => !['completed', 'no_show', 'cancelled'].includes(s),
+    );
+    for (const status of nonTerminal) {
+      expect(canTransitionTripStatus(status, 'no_show')).toBe(true);
+    }
+  });
+
   it('still allows the original step-by-step progression', () => {
     expect(canTransitionTripStatus('scheduled', 'driver_approaching')).toBe(true);
     expect(canTransitionTripStatus('driver_approaching', 'pickup')).toBe(true);
