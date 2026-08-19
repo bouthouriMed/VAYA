@@ -14,7 +14,7 @@ This is the status tracker and index for the phased roadmap produced by the 2026
 |---|---|---|---|---|
 | 1 | [Foundation Hardening](phase-01-foundation-hardening.md) | NOW | Low–Medium | Done |
 | 2 | [Design System: Interaction Layer](phase-02-design-system-interaction-layer.md) | NOW | Medium | Done |
-| 3 | [Real Map Rendering Foundation](phase-03-real-map-rendering.md) | NOW | Medium | Not started |
+| 3 | [Real Map Rendering Foundation](phase-03-real-map-rendering.md) | NOW | Medium | Done |
 | 4 | [Ride Engine I: Driver Stops](phase-04-ride-engine-driver-stops.md) | NOW | High | Not started |
 | 5 | [Ride Engine II: Passenger Selection](phase-05-ride-engine-passenger-selection.md) | NOW | High | Not started |
 | 6 | [Pricing Engine](phase-06-pricing-engine.md) | NOW | Medium | Not started |
@@ -26,7 +26,7 @@ This is the status tracker and index for the phased roadmap produced by the 2026
 | 12 | [Scale Hardening](phase-12-scale-hardening.md) | SCALE | High | Not started — trigger-based, see phase file |
 
 **Current phase:** none in progress.
-**Recommended next phase:** **Phase 3 — Real Map Rendering Foundation.** Phases 1 and 2 are done: the booking-seat race condition, missing indexes, rate limiting, and fabricated post-booking UI data are fixed, and the design system now has BottomSheet/Modal/Toast/Skeleton/EmptyState/Icon plus a baseline accessibility pass and haptics. Phase 3 is next because it's a hard prerequisite for Phase 4/5 (the ride engine can't build stop-selection UI on the current placeholder map canvas).
+**Recommended next phase:** **Phase 4 — Ride Engine I: Driver Stops.** Phases 1-3 are done: booking-seat race condition/indexes/rate-limiting/fabricated-UI fixed, the design system has its full interaction layer (BottomSheet/Modal/Toast/Skeleton/EmptyState/Icon + accessibility + haptics), and `MapCanvas`/`MapPreview`/`MapRoute` are real `react-native-maps` primitives. Phase 4 is next because Phase 3 was its hard prerequisite and nothing else blocks it — note `search/pickup-point.tsx` is still the fake pixel-projection screen (explicitly deferred to Phase 5, not touched by Phase 3).
 
 ## Sequencing logic
 

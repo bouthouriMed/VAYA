@@ -1,36 +1,77 @@
-import React from 'react';
-import { View, Text, StyleSheet, type ViewStyle } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
+import MapView, { Marker, Polyline, PROVIDER_DEFAULT, type LatLng } from 'react-native-maps';
 import { colors, radii, spacing, typography } from '../tokens/index';
+import { regionForPoints, type LatLngPoint, type MapRegion } from '../utils/mapGeometry';
+import { SkeletonBlock } from './Skeleton';
+
+const DEFAULT_REGION: MapRegion = {
+  latitude: 36.8,
+  longitude: 10.18,
+  latitudeDelta: 0.5,
+  longitudeDelta: 0.5,
+};
 
 interface MapPreviewProps {
   height?: number;
   badge?: string;
-  style?: ViewStyle;
+  origin?: LatLng;
+  destination?: LatLng;
+  /** Decoded route geometry (see MapRoute's coordinates prop). */
+  routeCoordinates?: LatLng[];
+  style?: StyleProp<ViewStyle>;
   children?: React.ReactNode;
 }
 
 /**
- * Stylized map placeholder (no live tiles yet — Phase 9 wires react-native-maps).
- * Draws an angled route line between a start and end marker to suggest a corridor.
+ * Small, non-interactive MapView snapshot for list/card contexts (a ride
+ * card thumbnail, a trip-day pickup preview). Real tiles + real geometry —
+ * Phase 3 replaced the previous angled-line-on-a-tinted-box placeholder.
  */
 export function MapPreview({
   height = 160,
   badge,
+  origin,
+  destination,
+  routeCoordinates,
   style,
   children,
 }: MapPreviewProps): React.JSX.Element {
+  const [isReady, setIsReady] = useState(false);
+  const points: LatLngPoint[] = [origin, destination]
+    .filter((p): p is LatLng => Boolean(p))
+    .map((p) => ({ lat: p.latitude, lng: p.longitude }));
+  const region = regionForPoints(points) ?? DEFAULT_REGION;
+
   return (
     <View style={[styles.wrap, { height }, style]}>
-      <View
+      <MapView
+        provider={PROVIDER_DEFAULT}
         style={StyleSheet.absoluteFillObject}
+        initialRegion={region}
+        scrollEnabled={false}
+        zoomEnabled={false}
+        pitchEnabled={false}
+        rotateEnabled={false}
         pointerEvents="none"
-        accessibilityElementsHidden
-        importantForAccessibility="no-hide-descendants"
+        onMapReady={() => setIsReady(true)}
       >
-        <View style={styles.routeLine} />
-        <View style={[styles.marker, styles.markerStart]} />
-        <View style={[styles.marker, styles.markerEnd]} />
-      </View>
+        {routeCoordinates && routeCoordinates.length > 1 ? (
+          <Polyline coordinates={routeCoordinates} strokeColor={colors.mapRouteLine} strokeWidth={3} />
+        ) : null}
+        {origin ? (
+          <Marker coordinate={origin} anchor={{ x: 0.5, y: 0.5 }}>
+            <View style={[styles.markerDot, { backgroundColor: colors.mapUserMarker }]} />
+          </Marker>
+        ) : null}
+        {destination ? (
+          <Marker coordinate={destination} anchor={{ x: 0.5, y: 0.5 }}>
+            <View style={[styles.markerDot, { backgroundColor: colors.mapDriverMarker }]} />
+          </Marker>
+        ) : null}
+      </MapView>
+      <View style={styles.tint} pointerEvents="none" />
+      {!isReady ? <SkeletonBlock radius="none" style={StyleSheet.absoluteFillObject} /> : null}
       {badge ? (
         <View style={styles.badge}>
           <Text style={styles.badgeText}>{badge}</Text>
@@ -48,33 +89,17 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     position: 'relative',
   },
-  routeLine: {
-    position: 'absolute',
-    left: '20%',
-    top: '65%',
-    width: '65%',
-    height: 3,
-    backgroundColor: colors.mapRouteLine,
-    borderRadius: 2,
-    transform: [{ rotate: '-28deg' }],
+  tint: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: colors.mapTileTint,
+    opacity: 0.18,
   },
-  marker: {
-    position: 'absolute',
+  markerDot: {
     width: 12,
     height: 12,
     borderRadius: 6,
     borderWidth: 2,
     borderColor: colors.white,
-  },
-  markerStart: {
-    left: '18%',
-    top: '68%',
-    backgroundColor: colors.mapUserMarker,
-  },
-  markerEnd: {
-    right: '18%',
-    top: '22%',
-    backgroundColor: colors.mapDriverMarker,
   },
   badge: {
     position: 'absolute',

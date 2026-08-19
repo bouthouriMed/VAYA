@@ -60,7 +60,7 @@ Platform-branched (iOS shadow props vs. Android `elevation`), 5 levels none→xl
 
 **Interaction layer** (Phase 2 — `docs/roadmap/phase-02-design-system-interaction-layer.md`): `BottomSheet` (snap-to-open modal sheet, swipe-down + backdrop dismiss, keyboard-avoiding — built on core RN `Animated`/`PanResponder`, not Reanimated/gesture-handler, to avoid a second animation-library surface for one primitive), `Modal` (centered confirm/cancel dialog composing `Card`), `ToastProvider`/`useToast` (queued, max-2-visible, auto-dismiss for success/info, manual-dismiss for errors), `SkeletonBlock`/`SkeletonCircle`/`SkeletonText` (opacity-pulse loading placeholders), `EmptyState` (icon/title/description/action/children composition, generalized from `results.tsx`'s original bespoke pattern).
 
-**Domain-specific** (this is what makes VAYA not feel like a generic CRUD kit — keep extending in this direction): `FieldRow`/`FieldCard` (pickup/dropoff dot+label pill), `Meter` (reliability/punctuality bar, now a real `progressbar` for assistive tech), `StatTile`, `StepProgress` (onboarding stepper, now a real `progressbar`), `ReviewCard`, `ClusterMarker` (concentric "radar ping" for journey clustering), `DriverMapPin` (compact/full variants with zoom-scale), `MapCanvas`/`MapPreview`/`MapRoute` (currently stylized **placeholders** — see below).
+**Domain-specific** (this is what makes VAYA not feel like a generic CRUD kit — keep extending in this direction): `FieldRow`/`FieldCard` (pickup/dropoff dot+label pill), `Meter` (reliability/punctuality bar, now a real `progressbar` for assistive tech), `StatTile`, `StepProgress` (onboarding stepper, now a real `progressbar`), `ReviewCard`, `ClusterMarker` (concentric "radar ping" for journey clustering), `DriverMapPin` (compact/full variants with zoom-scale), `MapCanvas`/`MapPreview`/`MapRoute` (real `react-native-maps` primitives as of Phase 3 — see below).
 
 ### Still missing — build when a phase actually needs them
 
@@ -68,9 +68,17 @@ Platform-branched (iOS shadow props vs. Android `elevation`), 5 levels none→xl
 |---|---|
 | `SegmentedControl`, `Switch`/`Checkbox`/`Radio`, continuous `ProgressBar`, `Tooltip`, `Accordion` | No screen has needed one yet — building ahead of a real use case is exactly the premature-abstraction this system's rules warn against. |
 
-### Map system — replace, don't extend
+### Map system — real as of Phase 3
 
-`MapCanvas`/`MapPreview`/`MapRoute` are explicitly commented in-source as placeholders (`MapCanvas.tsx:29`) pending a swap to `react-native-maps`, which is already a mobile dependency. The passenger pickup-point screen (`search/pickup-point.tsx`) goes further — it's a fake, non-geospatial pixel-projection canvas (`PX_PER_DEGREE = 9000`, explicitly commented "not geographically accurate"). Real map rendering is a prerequisite for the ride-engine work (`docs/domain/ride-engine.md`) and should land as its own roadmap phase before stop-selection UX is built on top of it. When rebuilt, the new map primitives must consume the existing map color tokens (`mapRouteLine`, `mapCorridorFill`, etc.) rather than introducing new ones.
+`MapCanvas`, `MapPreview`, and `MapRoute` are now real `react-native-maps` wrappers, not the CSS-art placeholder they were through Phase 2:
+
+- `MapCanvas` — a real `MapView` (children must be `Marker`/`Polyline`/etc., matching react-native-maps' own constraint — no more arbitrarily-positioned overlay `View`s), with a low-opacity `mapTileTint` wash on top and a `SkeletonBlock` shown until `onMapReady` fires. Falls back to a wide Tunis-centered region if no `region` prop is given.
+- `MapPreview` — a small, non-interactive `MapView` snapshot (`scrollEnabled`/`zoomEnabled`/`pitchEnabled`/`rotateEnabled` all `false`) for list/card contexts, taking `origin`/`destination`/`routeCoordinates` (react-native-maps' native `{latitude, longitude}` shape — decode a polyline string with `apps/mobile/src/utils/polyline.ts`'s `decodePolyline` upstream, MapPreview doesn't do that decoding itself) and rendering real `Marker`/`Polyline` children, with custom circular dot markers (`mapUserMarker`/`mapDriverMarker` colors) instead of react-native-maps' default teardrop pins.
+- `MapRoute` — a thin `Polyline` wrapper (`mapRouteLine` stroke), with an optional wider, lower-opacity underlay (`mapCorridorFill`) as a cheap visual approximation of the route-overlap corridor concept from `matching.service.ts` — not precise offset-polygon geometry, just a glow; build the exact geometry only if a future phase actually needs it rendered precisely.
+- `packages/design-system/src/utils/mapGeometry.ts` dropped its old fraction/pixel-space geometry functions (`computeRouteGeometry`, `evenlySpacedPointsAlong`) — they had no real-map equivalent use and no consumer outside the placeholder primitives themselves. `regionForPoints` (a real react-native-maps region-fitting utility) stays.
+- **`search/pickup-point.tsx` is explicitly NOT touched by Phase 3** — it's still the fake, non-geospatial pixel-projection canvas (`PX_PER_DEGREE = 9000`) it always was. Its *interaction model* (candidate-stop selection) depends on the ride-engine work and is Phase 5's job; Phase 3 only made the map *rendering* primitives real elsewhere. Don't assume this screen is fixed until Phase 5 lands.
+- `search/cluster.tsx` already used real `react-native-maps` directly (bypassing these primitives entirely) before Phase 3 — unchanged.
+- Android needs a real Google Maps API key (`GOOGLE_MAPS_API_KEY` in `apps/mobile/.env`, see `.env.example`) to render tiles on a real device/build; this is a genuine external setup step, not something this session can generate a working key for. iOS uses Apple Maps by default, no key needed.
 
 ## Motion & haptics
 

@@ -16,6 +16,17 @@ module.exports = {
     },
     android: {
       package: 'com.vaya.app',
+      // react-native-maps needs its own Google Maps API key on Android
+      // (iOS uses Apple Maps by default, no key needed). Real key required
+      // for the map to render on a real Android build/device — set
+      // GOOGLE_MAPS_API_KEY in apps/mobile/.env, never commit the value
+      // itself. Without it, react-native-maps renders a blank gray tile
+      // area on Android but the app doesn't crash.
+      config: {
+        googleMaps: {
+          apiKey: process.env.GOOGLE_MAPS_API_KEY,
+        },
+      },
     },
     web: {
       bundler: 'metro',
