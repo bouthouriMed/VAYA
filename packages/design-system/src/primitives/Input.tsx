@@ -15,12 +15,12 @@ interface InputProps extends Omit<TextInputProps, 'style'> {
   label?: string;
   error?: string;
   helperText?: string;
-  /** Optional extra styling applied directly to the TextInput (e.g. the
-   *  chat composer's full-pill radius) — composes after theme/base styles. */
-  style?: StyleProp<TextStyle>;
-  /** Optional `useAppTheme()` override (Stitch migration) — field renders
-   *  ink-on-surface with an outlineVariant border and accent focus ring
-   *  instead of the legacy static palette. Omit for prior behavior. */
+  /** Optional `useAppTheme()` override (Stitch migration) — when given, the
+   *  field follows the live theme (a bordered, faintly-tinted recessed
+   *  field, matching GlassSurface/BottomSheet/Chip's own treatment) instead
+   *  of the legacy static `colors` tokens, which render as a flat white box
+   *  regardless of the surrounding screen's theme. Unused (and defaulting
+   *  to the legacy look) anywhere this primitive hasn't been migrated yet. */
   theme?: AppPalette;
 }
 
@@ -32,35 +32,36 @@ export function Input({
   theme,
   onFocus,
   onBlur,
+  theme,
   ...props
 }: InputProps): React.JSX.Element {
   const [isFocused, setIsFocused] = useState(false);
 
-  const themedField = theme
+  const labelColor = theme ? theme.inkMuted : colors.gray700;
+  const placeholderColor = theme ? theme.inkFaint : colors.gray400;
+  const helperColor = theme ? theme.inkFaint : colors.gray500;
+  const errorColor = theme ? theme.error : colors.error;
+
+  const inputThemedStyle = theme
     ? {
-        borderColor: isFocused ? theme.accent : error ? theme.error : theme.outlineVariant,
-        color: theme.ink,
         backgroundColor: theme.surfaceMuted,
+        borderColor: isFocused ? theme.ink : theme.outlineVariant,
+        color: theme.ink,
       }
-    : {
-        borderColor: error ? colors.error : isFocused ? colors.primary : colors.gray300,
-        // Legacy static palette keeps its stylesheet values.
-      };
+    : null;
 
   return (
     <View style={styles.container}>
-      {label && (
-        <RNText style={[styles.label, theme ? { color: theme.inkMuted } : null]}>{label}</RNText>
-      )}
+      {label && <RNText style={[styles.label, { color: labelColor }]}>{label}</RNText>}
       <TextInput
         style={[
           styles.input,
+          inputThemedStyle,
           !theme && isFocused && styles.inputFocused,
           !theme && error ? styles.inputError : null,
-          theme ? themedField : null,
-          style,
+          theme && error ? { borderColor: errorColor } : null,
         ]}
-        placeholderTextColor={theme ? theme.inkFaint : colors.gray400}
+        placeholderTextColor={placeholderColor}
         onFocus={(e) => {
           setIsFocused(true);
           onFocus?.(e);
@@ -73,11 +74,9 @@ export function Input({
         accessibilityLabel={props.accessibilityLabel ?? label}
         accessibilityHint={props.accessibilityHint ?? error ?? helperText}
       />
-      {error && (
-        <RNText style={[styles.error, theme ? { color: theme.error } : null]}>{error}</RNText>
-      )}
+      {error && <RNText style={[styles.error, { color: errorColor }]}>{error}</RNText>}
       {helperText && !error && (
-        <RNText style={[styles.helper, theme ? { color: theme.inkFaint } : null]}>{helperText}</RNText>
+        <RNText style={[styles.helper, { color: helperColor }]}>{helperText}</RNText>
       )}
     </View>
   );

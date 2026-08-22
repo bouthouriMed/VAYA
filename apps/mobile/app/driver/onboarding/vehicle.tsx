@@ -113,18 +113,19 @@ export default function VehicleStepScreen(): React.JSX.Element {
             </Text>
             <View style={styles.fieldRow}>
               <View style={styles.fieldHalf}>
-                <Input label="Marque" value={make} onChangeText={setMake} placeholder="Peugeot" />
+                <Input theme={theme} label="Marque" value={make} onChangeText={setMake} placeholder="Peugeot" />
               </View>
               <View style={styles.fieldHalf}>
-                <Input label="Modèle" value={model} onChangeText={setModel} placeholder="208" />
+                <Input theme={theme} label="Modèle" value={model} onChangeText={setModel} placeholder="208" />
               </View>
             </View>
             <View style={styles.fieldRow}>
               <View style={styles.fieldHalf}>
-                <Input label="Couleur" value={color} onChangeText={setColor} placeholder="Grise" />
+                <Input theme={theme} label="Couleur" value={color} onChangeText={setColor} placeholder="Grise" />
               </View>
               <View style={styles.fieldHalf}>
                 <Input
+                  theme={theme}
                   label="Plaque"
                   value={plateNumber}
                   onChangeText={setPlateNumber}
