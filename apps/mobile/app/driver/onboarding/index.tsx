@@ -3,14 +3,14 @@ import { View, StyleSheet, Animated, AccessibilityInfo, TouchableOpacity } from 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Text,
-  Button,
   ScreenHeader,
   RoutePulseBadge,
   Icon,
+  GlassSurface,
+  useAppTheme,
   colors,
   spacing,
   radii,
-  elevation,
   typography,
   type IconName,
 } from '@vaya/design-system';
@@ -36,6 +36,7 @@ const BENEFITS: { icon: IconName; title: string; body: string }[] = [
 
 export default function BecomeDriverScreen(): React.JSX.Element {
   const insets = useSafeAreaInsets();
+  const { colors: theme } = useAppTheme();
   const [reduceMotion, setReduceMotion] = useState(false);
   const fade = useRef(new Animated.Value(0)).current;
   const rise = useRef(new Animated.Value(16)).current;
@@ -85,32 +86,37 @@ export default function BecomeDriverScreen(): React.JSX.Element {
         </Animated.View>
       </View>
 
-      <View style={styles.sheet}>
+      <View style={[styles.sheet, { backgroundColor: theme.background }]}>
         <View style={styles.benefits}>
           {BENEFITS.map((benefit) => (
-            <View key={benefit.title} style={styles.benefitRow}>
-              <View style={styles.benefitIcon}>
-                <Icon name={benefit.icon} size="sm" color={colors.primary} />
+            <GlassSurface key={benefit.title} theme={theme} radius="xl" style={styles.benefitRow}>
+              <View style={[styles.benefitIcon, { backgroundColor: theme.surfaceMuted }]}>
+                <Icon name={benefit.icon} size="sm" color={theme.ink} />
               </View>
               <View style={styles.benefitTextCol}>
-                <Text variant="label" color={colors.gray900}>
+                <Text variant="label" color={theme.ink}>
                   {benefit.title}
                 </Text>
-                <Text variant="bodySmall" color={colors.gray600} style={styles.benefitBody}>
+                <Text variant="bodySmall" color={theme.inkMuted} style={styles.benefitBody}>
                   {benefit.body}
                 </Text>
               </View>
-            </View>
+            </GlassSurface>
           ))}
         </View>
 
         <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.lg }]}>
-          <Button
-            label="Commencer"
-            size="lg"
+          <TouchableOpacity
+            style={[styles.cta, { backgroundColor: theme.ink }]}
             onPress={() => router.push('/driver/onboarding/vehicle')}
-            style={styles.cta}
-          />
+            activeOpacity={0.85}
+            accessibilityRole="button"
+            accessibilityLabel="Commencer"
+          >
+            <Text variant="label" color={theme.onInk}>
+              Commencer
+            </Text>
+          </TouchableOpacity>
           <TouchableOpacity
             onPress={() => router.back()}
             hitSlop={12}
@@ -118,7 +124,7 @@ export default function BecomeDriverScreen(): React.JSX.Element {
             accessibilityRole="button"
             accessibilityLabel="Retour"
           >
-            <Text variant="bodySmall" color={colors.gray500}>
+            <Text variant="bodySmall" color={theme.inkFaint}>
               Pas maintenant
             </Text>
           </TouchableOpacity>
@@ -158,7 +164,6 @@ const styles = StyleSheet.create({
   },
   sheet: {
     flex: 1,
-    backgroundColor: colors.gray100,
     borderTopLeftRadius: radii['2xl'],
     borderTopRightRadius: radii['2xl'],
     marginTop: -spacing['2xl'],
@@ -173,17 +178,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: spacing.md,
-    backgroundColor: colors.white,
-    borderRadius: radii.xl,
     padding: spacing.lg,
-    ...elevation?.sm,
-    shadowColor: colors.gray900,
   },
   benefitIcon: {
     width: 40,
     height: 40,
     borderRadius: radii.lg,
-    backgroundColor: colors.secondaryLight,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -202,8 +202,10 @@ const styles = StyleSheet.create({
   },
   cta: {
     width: '100%',
-    ...elevation?.lg,
-    shadowColor: colors.primary,
+    minHeight: 52,
+    borderRadius: radii.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   secondaryBack: {
     padding: spacing.sm,
