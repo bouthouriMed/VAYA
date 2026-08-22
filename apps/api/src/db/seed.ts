@@ -4,6 +4,7 @@ import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
 import * as schema from './schema/index.js';
 import { getRoute } from '../lib/routing.js';
+import { generateCandidateStopsForRide, updateDriverStopSelection } from '../modules/rides/stop-candidates.service.js';
 import {
   computeSuggestedPrice,
   DEFAULT_PRICING_CONFIG,
@@ -285,6 +286,29 @@ async function main(): Promise<void> {
     { fullName: 'Sonia Ferjani', phone: '+21620111018' },
     { fullName: 'Wassim Bouazizi', phone: '+21620111019' },
     { fullName: 'Leila Mansour', phone: '+21620111020' },
+    // 20 more drivers (below) so the platform has 30 total, per the
+    // 2026-08-22 "seed the platform with coherent data" request — a
+    // realistic marketplace needs real driver-density, not a 10-driver demo.
+    { fullName: 'Slim Bouzid', phone: '+21620111021' },
+    { fullName: 'Emna Sahraoui', phone: '+21620111022' },
+    { fullName: 'Walid Kacem', phone: '+21620111023' },
+    { fullName: 'Rim Abidi', phone: '+21620111024' },
+    { fullName: 'Anis Jaballah', phone: '+21620111025' },
+    { fullName: 'Dorra Cherif', phone: '+21620111026' },
+    { fullName: 'Mounir Boukadida', phone: '+21620111027' },
+    { fullName: 'Chaima Rezig', phone: '+21620111028' },
+    { fullName: 'Skander Naceur', phone: '+21620111029' },
+    { fullName: 'Amira Ben Youssef', phone: '+21620111030' },
+    { fullName: 'Tarek Slimani', phone: '+21620111031' },
+    { fullName: 'Rihab Mzoughi', phone: '+21620111032' },
+    { fullName: 'Nizar Hachicha', phone: '+21620111033' },
+    { fullName: 'Lobna Souissi', phone: '+21620111034' },
+    { fullName: 'Zied Ouertani', phone: '+21620111035' },
+    { fullName: 'Nesrine Baccouche', phone: '+21620111036' },
+    { fullName: 'Ghassen Mabrouk', phone: '+21620111037' },
+    { fullName: 'Sabrine Zaghdoudi', phone: '+21620111038' },
+    { fullName: 'Chokri Larbi', phone: '+21620111039' },
+    { fullName: 'Meriem Toumi', phone: '+21620111040' },
   ];
   const insertedUsers = await db.insert(users).values(userSeeds).returning();
   const userByName = (name: string) => {
@@ -507,6 +531,229 @@ async function main(): Promise<void> {
         plateNumber: '69TU8823',
         seatCount: 4,
       },
+    },
+    // 20 more drivers, a realistic tenure spread (5 veterans, 8 established,
+    // 5 newcomers, 2 freshly-onboarded and still pending review) — not a
+    // flat wall of near-identical profiles.
+    {
+      user: userByName('Slim Bouzid'),
+      ratingAvg: 4.92,
+      tripCount: 284,
+      punctualityScore: 0.96,
+      reliabilityScore: 0.97,
+      verificationStatus: 'approved' as const,
+      bio: 'Chauffeur Vaya depuis le lancement. Trajets Tunis-Nabeul réguliers, voiture climatisée et coffre spacieux.',
+      languages: ['Français', 'Arabe', 'Anglais'],
+      vehicle: { make: 'Peugeot', model: '308', color: 'Grise', plateNumber: '301TU1021', seatCount: 4 },
+    },
+    {
+      user: userByName('Emna Sahraoui'),
+      ratingAvg: 4.88,
+      tripCount: 198,
+      punctualityScore: 0.94,
+      reliabilityScore: 0.96,
+      verificationStatus: 'approved' as const,
+      bio: "Plus de 190 trajets, jamais d'annulation de dernière minute. J'aime la musique tunisienne en fond.",
+      languages: ['Français', 'Arabe'],
+      vehicle: { make: 'Renault', model: 'Symbol', color: 'Blanche', plateNumber: '302TU1022', seatCount: 4 },
+    },
+    {
+      user: userByName('Walid Kacem'),
+      ratingAvg: 4.85,
+      tripCount: 176,
+      punctualityScore: 0.93,
+      reliabilityScore: 0.95,
+      verificationStatus: 'approved' as const,
+      bio: "Conducteur expérimenté, trajets intercité réguliers. Je m'arrête où c'est convenu, sans surprise.",
+      languages: ['Français', 'Arabe'],
+      vehicle: { make: 'Citroën', model: 'C-Elysée', color: 'Noire', plateNumber: '303TU1023', seatCount: 4 },
+    },
+    {
+      user: userByName('Rim Abidi'),
+      ratingAvg: 4.81,
+      tripCount: 152,
+      punctualityScore: 0.92,
+      reliabilityScore: 0.94,
+      verificationStatus: 'approved' as const,
+      bio: 'Trajets réguliers vers le Grand Tunis, ambiance calme et respectueuse garantie.',
+      languages: ['Français', 'Arabe', 'Anglais'],
+      vehicle: { make: 'Volkswagen', model: 'Polo', color: 'Bleue', plateNumber: '304TU1024', seatCount: 3 },
+    },
+    {
+      user: userByName('Anis Jaballah'),
+      ratingAvg: 4.8,
+      tripCount: 163,
+      punctualityScore: 0.91,
+      reliabilityScore: 0.93,
+      verificationStatus: 'approved' as const,
+      bio: "Sur Vaya depuis longtemps, je privilégie les trajets du matin. Voiture propre, climatisation toujours en marche l'été.",
+      languages: ['Français', 'Arabe'],
+      vehicle: { make: 'Fiat', model: 'Tipo', color: 'Grise', plateNumber: '305TU1025', seatCount: 4 },
+    },
+    {
+      user: userByName('Dorra Cherif'),
+      ratingAvg: 4.72,
+      tripCount: 84,
+      punctualityScore: 0.89,
+      reliabilityScore: 0.91,
+      verificationStatus: 'approved' as const,
+      bio: 'Trajets réguliers Ariana-Bardo. Musique douce et discussion bienvenue si vous en avez envie.',
+      languages: ['Français', 'Arabe'],
+      vehicle: { make: 'Škoda', model: 'Fabia', color: 'Rouge', plateNumber: '306TU1026', seatCount: 3 },
+    },
+    {
+      user: userByName('Mounir Boukadida'),
+      ratingAvg: 4.68,
+      tripCount: 71,
+      punctualityScore: 0.88,
+      reliabilityScore: 0.9,
+      verificationStatus: 'approved' as const,
+      bio: 'Conducteur ponctuel, trajets vers Ben Arous chaque semaine. Coffre disponible pour bagages.',
+      languages: ['Arabe', 'Français'],
+      vehicle: { make: 'Seat', model: 'Ibiza', color: 'Blanche', plateNumber: '307TU1027', seatCount: 3 },
+    },
+    {
+      user: userByName('Chaima Rezig'),
+      ratingAvg: 4.63,
+      tripCount: 58,
+      punctualityScore: 0.86,
+      reliabilityScore: 0.88,
+      verificationStatus: 'approved' as const,
+      bio: "Trajets réguliers vers Manouba, toujours à l'heure. J'aime un trajet calme.",
+      languages: ['Français', 'Arabe'],
+      vehicle: { make: 'Suzuki', model: 'Swift', color: 'Bleue', plateNumber: '308TU1028', seatCount: 3 },
+    },
+    {
+      user: userByName('Skander Naceur'),
+      ratingAvg: 4.58,
+      tripCount: 49,
+      punctualityScore: 0.85,
+      reliabilityScore: 0.87,
+      verificationStatus: 'approved' as const,
+      bio: 'Sur Vaya depuis quelques mois, déjà de bons retours. Voiture spacieuse et confortable.',
+      languages: ['Français', 'Arabe'],
+      vehicle: { make: 'Kia', model: 'Rio', color: 'Noire', plateNumber: '309TU1029', seatCount: 4 },
+    },
+    {
+      user: userByName('Amira Ben Youssef'),
+      ratingAvg: 4.55,
+      tripCount: 44,
+      punctualityScore: 0.84,
+      reliabilityScore: 0.86,
+      verificationStatus: 'approved' as const,
+      bio: 'Trajets Sousse-Monastir réguliers. Je préviens toujours en cas de léger retard.',
+      languages: ['Français', 'Arabe', 'Anglais'],
+      vehicle: { make: 'Hyundai', model: 'i20', color: 'Grise', plateNumber: '310TU1030', seatCount: 4 },
+    },
+    {
+      user: userByName('Tarek Slimani'),
+      ratingAvg: 4.5,
+      tripCount: 37,
+      punctualityScore: 0.83,
+      reliabilityScore: 0.85,
+      verificationStatus: 'approved' as const,
+      bio: "Conducteur discret et ponctuel. J'apprécie un trajet tranquille sans détour.",
+      languages: ['Arabe', 'Français'],
+      vehicle: { make: 'Dacia', model: 'Sandero', color: 'Blanche', plateNumber: '311TU1031', seatCount: 4 },
+    },
+    {
+      user: userByName('Rihab Mzoughi'),
+      ratingAvg: 4.46,
+      tripCount: 33,
+      punctualityScore: 0.82,
+      reliabilityScore: 0.84,
+      verificationStatus: 'approved' as const,
+      bio: 'Trajets réguliers vers Sfax. Voiture climatisée, chargeur USB à bord.',
+      languages: ['Français', 'Arabe'],
+      vehicle: { make: 'Opel', model: 'Corsa', color: 'Rouge', plateNumber: '312TU1032', seatCount: 3 },
+    },
+    {
+      user: userByName('Nizar Hachicha'),
+      ratingAvg: 4.42,
+      tripCount: 27,
+      punctualityScore: 0.81,
+      reliabilityScore: 0.83,
+      verificationStatus: 'approved' as const,
+      bio: "Nouveau conducteur régulier, déjà d'excellents retours des passagers.",
+      languages: ['Français', 'Arabe'],
+      vehicle: { make: 'Nissan', model: 'Micra', color: 'Bleue', plateNumber: '313TU1033', seatCount: 3 },
+    },
+    {
+      user: userByName('Lobna Souissi'),
+      ratingAvg: 4.35,
+      tripCount: 19,
+      punctualityScore: 0.79,
+      reliabilityScore: 0.81,
+      verificationStatus: 'approved' as const,
+      bio: 'Quelques trajets réalisés jusque-là, tous très bien passés. Voiture spacieuse.',
+      languages: ['Français', 'Arabe'],
+      vehicle: { make: 'Toyota', model: 'Corolla', color: 'Grise', plateNumber: '314TU1034', seatCount: 4 },
+    },
+    {
+      user: userByName('Zied Ouertani'),
+      ratingAvg: 4.28,
+      tripCount: 15,
+      punctualityScore: 0.78,
+      reliabilityScore: 0.8,
+      verificationStatus: 'approved' as const,
+      bio: 'Récemment rejoint Vaya, trajets réguliers vers El Menzah.',
+      languages: ['Arabe', 'Français'],
+      vehicle: { make: 'Chevrolet', model: 'Aveo', color: 'Blanche', plateNumber: '315TU1035', seatCount: 4 },
+    },
+    {
+      user: userByName('Nesrine Baccouche'),
+      ratingAvg: 4.2,
+      tripCount: 11,
+      punctualityScore: 0.77,
+      reliabilityScore: 0.79,
+      verificationStatus: 'approved' as const,
+      bio: 'Encore peu de trajets mais toujours à l’heure. Voiture propre et confortable.',
+      languages: ['Français', 'Arabe'],
+      vehicle: { make: 'Honda', model: 'Civic', color: 'Noire', plateNumber: '316TU1036', seatCount: 4 },
+    },
+    {
+      user: userByName('Ghassen Mabrouk'),
+      ratingAvg: 4.1,
+      tripCount: 8,
+      punctualityScore: 0.76,
+      reliabilityScore: 0.78,
+      verificationStatus: 'approved' as const,
+      bio: 'Débute sur Vaya, quelques trajets déjà bien notés.',
+      languages: ['Arabe', 'Français'],
+      vehicle: { make: 'Ford', model: 'Fiesta', color: 'Rouge', plateNumber: '317TU1037', seatCount: 3 },
+    },
+    {
+      user: userByName('Sabrine Zaghdoudi'),
+      ratingAvg: 4.05,
+      tripCount: 6,
+      punctualityScore: 0.75,
+      reliabilityScore: 0.77,
+      verificationStatus: 'approved' as const,
+      bio: "Toute nouvelle sur la route, j'apprends vite et je soigne le contact avec les passagers.",
+      languages: ['Français', 'Arabe'],
+      vehicle: { make: 'Mazda', model: '2', color: 'Bleue', plateNumber: '318TU1038', seatCount: 3 },
+    },
+    {
+      user: userByName('Chokri Larbi'),
+      ratingAvg: 0,
+      tripCount: 0,
+      punctualityScore: 0,
+      reliabilityScore: 0,
+      verificationStatus: 'pending' as const,
+      bio: null,
+      languages: null,
+      vehicle: { make: 'Mitsubishi', model: 'Lancer', color: 'Grise', plateNumber: '319TU1039', seatCount: 4 },
+    },
+    {
+      user: userByName('Meriem Toumi'),
+      ratingAvg: 0,
+      tripCount: 0,
+      punctualityScore: 0,
+      reliabilityScore: 0,
+      verificationStatus: 'pending' as const,
+      bio: null,
+      languages: null,
+      vehicle: { make: 'Chery', model: 'Tiggo', color: 'Blanche', plateNumber: '320TU1040', seatCount: 4 },
     },
   ];
 
@@ -1214,6 +1461,156 @@ async function main(): Promise<void> {
     }),
   );
 
+  // ── 2-week ride calendar: all 30 drivers × 8 corridors × next 14 days ──
+  // 2026-08-22 request: "seed the platform with a good amount of coherent
+  // data, at least 30 drivers and at least 50 rides through the entire
+  // next 2 weeks" — the today/tomorrow block above stays as its own
+  // focused search-flow fixture; this is the platform-wide density on top
+  // of it. Deterministic (no Math.random(), matching this file's existing
+  // discipline everywhere else): each corridor is active on 7 of the next
+  // 14 days (every other day, offset by corridor index so different
+  // corridors don't all go quiet on the same days), 8 corridors × 7 active
+  // days = 56 rides — comfortably over the 50-ride floor, and every
+  // driver/vehicle/time-slot/fill-level below is picked by a fixed
+  // formula, not hand-typed per ride, so the whole grid stays coherent
+  // (correct seatsTotal for the actual vehicle, price always the
+  // corridor's formula-derived `recommended`) without 56 lines of
+  // near-duplicate literals.
+  const allDrivers = driverSeeds.map((s) => ({
+    profile: driverProfileByUserId.get(s.user.id)!,
+    vehicle: vehicleByUserId.get(s.user.id)!,
+  }));
+  const calendarCorridors = [
+    elMenzahDigitalCenter,
+    laMarsaCentreVille,
+    arianaLeBardo,
+    benArousTunis,
+    manoubaTunis,
+    sousseMonastir,
+    sfaxSakietEzzit,
+    tunisNabeul,
+  ];
+  // Real timetable-style slots spanning morning/midday/evening commute
+  // patterns, not a flat "every ride at the same hour" grid.
+  const CALENDAR_TIME_SLOTS: [number, number][] = [
+    [7, 0],
+    [7, 30],
+    [8, 0],
+    [8, 30],
+    [9, 0],
+    [12, 0],
+    [12, 30],
+    [13, 0],
+    [17, 0],
+    [17, 30],
+    [18, 0],
+    [18, 30],
+    [19, 0],
+    [19, 30],
+  ];
+  const CALENDAR_LOOKAHEAD_DAYS = 14;
+  const calendarRides: (typeof rides.$inferInsert)[] = [];
+  for (let day = 0; day < CALENDAR_LOOKAHEAD_DAYS; day++) {
+    for (let c = 0; c < calendarCorridors.length; c++) {
+      // Each corridor is active every other day, offset by its own index —
+      // a corridor doesn't run every single day (realistic, and leaves
+      // real gaps for the search engine's closest_departure tier to
+      // legitimately have something to do), but the 14-day window still
+      // guarantees at least 7 departures per corridor.
+      if ((day + c) % 2 !== 0) continue;
+
+      const corridor = calendarCorridors[c]!;
+      const driverIndex = (day * 3 + c * 5) % allDrivers.length;
+      const { profile: driver, vehicle } = allDrivers[driverIndex]!;
+      const slot = CALENDAR_TIME_SLOTS[(day + c) % CALENDAR_TIME_SLOTS.length]!;
+      const departureAt = atTime(day, slot[0], slot[1]);
+      const seatsTotal = vehicle.seatCount;
+      // A repeating "how booked-up is this one" pattern (0 = empty, up to
+      // fully booked) rather than every ride sitting wide open.
+      const bookedSeats = [0, 1, 1, 2, 0, 2, seatsTotal][(day + c) % 7]!;
+      const seatsAvailable = Math.max(0, seatsTotal - bookedSeats);
+
+      calendarRides.push({
+        driverProfileId: driver.id,
+        vehicleId: vehicle.id,
+        routeId: corridor.id,
+        originLabel: corridor.originLabel,
+        originLat: corridor.originLat,
+        originLng: corridor.originLng,
+        destinationLabel: corridor.destinationLabel,
+        destinationLat: corridor.destinationLat,
+        destinationLng: corridor.destinationLng,
+        departureAt,
+        seatsTotal,
+        seatsAvailable,
+        contributionPerSeat: priceFor(corridor.id),
+        status: seatsAvailable === 0 ? 'full' : 'published',
+        ...geometryFor(corridor.id),
+      });
+    }
+  }
+  await db.insert(rides).values(calendarRides);
+
+  // ── Route-passthrough demo data (Phase 13, docs/roadmap/
+  // phase-13-search-engine.md) ────────────────────────────────────────
+  // Two real long-haul Tunis→Nabeul rides (the route runs right past
+  // Hammamet) with genuinely OSRM-generated + driver-selected route_stops
+  // — not hand-placed coordinates — so a search for a Hammamet-area
+  // sub-trip has real data to actually surface via the route_passthrough
+  // tier, the same mechanic this file's own e2e/integration tests exercise
+  // synthetically. Calls the real stop-candidate service functions
+  // directly (pure DB + OSRM, no HTTP layer needed here) exactly like
+  // stop-candidates.integration.test.ts does.
+  const passThroughDriverSeeds = [
+    { name: 'Anis Jaballah', day: 3, hour: 8 },
+    { name: 'Rim Abidi', day: 9, hour: 16 },
+  ];
+  for (const seed of passThroughDriverSeeds) {
+    const driverUser = userByName(seed.name);
+    const profile = driverProfileByUserId.get(driverUser.id)!;
+    const vehicle = vehicleByUserId.get(driverUser.id)!;
+
+    const [ride] = await db
+      .insert(rides)
+      .values({
+        driverProfileId: profile.id,
+        vehicleId: vehicle.id,
+        routeId: tunisNabeul.id,
+        originLabel: tunisNabeul.originLabel,
+        originLat: tunisNabeul.originLat,
+        originLng: tunisNabeul.originLng,
+        destinationLabel: tunisNabeul.destinationLabel,
+        destinationLat: tunisNabeul.destinationLat,
+        destinationLng: tunisNabeul.destinationLng,
+        departureAt: atTime(seed.day, seed.hour, 0),
+        seatsTotal: vehicle.seatCount,
+        seatsAvailable: vehicle.seatCount,
+        contributionPerSeat: priceFor(tunisNabeul.id),
+        status: 'published' as const,
+        ...geometryFor(tunisNabeul.id),
+      })
+      .returning();
+    if (!ride) throw new Error('Failed to insert route-passthrough demo ride');
+
+    try {
+      const generated = await generateCandidateStopsForRide(db, ride.id, driverUser.id);
+      if (generated.stops.length > 0) {
+        await updateDriverStopSelection(
+          db,
+          ride.id,
+          driverUser.id,
+          generated.stops.map((s) => ({ stopId: s.id, isDriverSelected: true })),
+        );
+      }
+    } catch (err) {
+      // Honest degradation, same posture as the rest of this codebase's
+      // OSRM-dependent paths: a stop-generation failure here means this
+      // one ride just has zero stops (still a perfectly valid, bookable
+      // ride via the legacy free-form pickup flow), not a failed seed run.
+      console.warn(`Route-passthrough demo stop generation skipped for ${seed.name}:`, err);
+    }
+  }
+
   // ── Notifications ───────────────────────────────────────────────────
   await db.insert(notifications).values([
     {
@@ -1235,7 +1632,9 @@ async function main(): Promise<void> {
 
   console.log('Seed complete.');
   console.log(
-    `Routes: 8, Users: ${insertedUsers.length}, Drivers: ${driverSeeds.length}, Search-flow demo rides: ${demoDrivers.length}`,
+    `Routes: 8, Users: ${insertedUsers.length}, Drivers: ${driverSeeds.length}, ` +
+      `Search-flow demo rides: ${demoDrivers.length}, 2-week calendar rides: ${calendarRides.length}, ` +
+      `Route-passthrough demo rides: ${passThroughDriverSeeds.length}`,
   );
 
   await pool.end();
