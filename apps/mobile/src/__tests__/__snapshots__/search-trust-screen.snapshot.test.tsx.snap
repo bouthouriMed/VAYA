@@ -778,6 +778,167 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
       >
         <Ionicons
           accessibilityElementsHidden={true}
+          color="#2E9E6C"
+          importantForAccessibility="no-hide-descendants"
+          name="shield-checkmark-outline"
+          size={20}
+        />
+        <Text
+          style={
+            [
+              {
+                "fontSize": 14,
+                "fontWeight": "500",
+                "lineHeight": 21,
+              },
+              {
+                "color": "#14201B",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              undefined,
+            ]
+          }
+        >
+          Vérifications VAYA
+        </Text>
+      </View>
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "gap": 8,
+          }
+        }
+      >
+        <Ionicons
+          accessibilityElementsHidden={true}
+          color="#2E9E6C"
+          importantForAccessibility="no-hide-descendants"
+          name="person-circle-outline"
+          size={20}
+        />
+        <Text
+          style={
+            [
+              {
+                "fontSize": 14,
+                "fontWeight": "400",
+                "lineHeight": 21,
+              },
+              {
+                "color": "#5C5748",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              undefined,
+            ]
+          }
+        >
+          Identité confirmée par selfie
+        </Text>
+      </View>
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "gap": 8,
+          }
+        }
+      >
+        <Ionicons
+          accessibilityElementsHidden={true}
+          color="#2E9E6C"
+          importantForAccessibility="no-hide-descendants"
+          name="document-text-outline"
+          size={20}
+        />
+        <Text
+          style={
+            [
+              {
+                "fontSize": 14,
+                "fontWeight": "400",
+                "lineHeight": 21,
+              },
+              {
+                "color": "#5C5748",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              undefined,
+            ]
+          }
+        >
+          Documents de conduite contrôlés
+        </Text>
+      </View>
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "gap": 8,
+          }
+        }
+      >
+        <Ionicons
+          accessibilityElementsHidden={true}
+          color="#2E9E6C"
+          importantForAccessibility="no-hide-descendants"
+          name="car-sport-outline"
+          size={20}
+        />
+        <Text
+          style={
+            [
+              {
+                "fontSize": 14,
+                "fontWeight": "400",
+                "lineHeight": 21,
+              },
+              {
+                "color": "#5C5748",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              undefined,
+            ]
+          }
+        >
+          Véhicule enregistré — plaque visible ci-dessous
+        </Text>
+      </View>
+    </View>
+    <View
+      style={
+        [
+          {
+            "borderRadius": 16,
+            "borderWidth": 1,
+            "gap": 8,
+            "padding": 12,
+          },
+          {
+            "backgroundColor": "#FFFFFF",
+            "borderColor": "#EDE6D4",
+          },
+        ]
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "gap": 4,
+          }
+        }
+      >
+        <Ionicons
+          accessibilityElementsHidden={true}
           color="#8C8674"
           importantForAccessibility="no-hide-descendants"
           name="information-circle-outline"

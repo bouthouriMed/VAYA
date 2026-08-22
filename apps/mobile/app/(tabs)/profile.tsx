@@ -113,7 +113,8 @@ export default function ProfileScreen(): React.JSX.Element {
       skip: !me,
     },
   );
-  const { data: realDriverProfile } = useGetMyDriverProfileQuery();
+  const { data: realDriverProfile, isLoading: isDriverProfileLoading } =
+    useGetMyDriverProfileQuery();
 
   const [logout] = useLogoutMutation();
   const [updateMe] = useUpdateMeMutation();
@@ -160,9 +161,24 @@ export default function ProfileScreen(): React.JSX.Element {
     router.replace('/');
   }
 
+  /** The hub's driver block mirrors the real verification lifecycle —
+   *  recruitment pitch before onboarding, an in-progress/refused status
+   *  while not approved, and the verified-driver card (with the actual
+   *  vehicle) once approved. Never shows the recruitment pitch to someone
+   *  who already drives. */
+  const driverStatus: 'loading' | 'none' | 'pending' | 'approved' | 'rejected' =
+    isDriverProfileLoading
+      ? 'loading'
+      : ((realDriverProfile?.verificationStatus ?? 'none') as 'none' | 'pending' | 'approved' | 'rejected');
+  const primaryVehicle = realDriverProfile?.vehicles[0];
+
   function goToDriverFlow(): void {
     haptics.selection();
-    router.push(realDriverProfile ? '/(tabs)/publish' : '/driver/onboarding');
+    // Only a genuinely approved profile skips onboarding — any other state
+    // (including rejected) belongs back in the wizard.
+    router.push(
+      driverStatus === 'approved' ? '/(tabs)/publish' : '/driver/onboarding',
+    );
   }
 
   async function handleChangePhoto(): Promise<void> {
@@ -433,34 +449,131 @@ export default function ProfileScreen(): React.JSX.Element {
           </View>
         </View>
 
-        {/* Driver invitation CTA */}
-        <TouchableOpacity
-          style={[
-            styles.driverCard,
-            { backgroundColor: theme.surfaceMuted, borderColor: theme.outlineVariant },
-          ]}
-          onPress={goToDriverFlow}
-          activeOpacity={0.85}
-          accessibilityRole="button"
-          accessibilityLabel={
-            realDriverProfile
-              ? 'Publier un trajet'
-              : 'Rejoignez la communauté Vaya en tant que conducteur'
-          }
-        >
-          <View style={[styles.driverIconCircle, { backgroundColor: theme.surface }]}>
-            <Icon name="car-sport-outline" size="sm" color={theme.ink} />
+        {/* Driver block — reactive to verification status */}
+        {driverStatus === 'loading' ? (
+          <View
+            style={[
+              styles.driverCard,
+              { backgroundColor: theme.surfaceMuted, borderColor: theme.outlineVariant },
+            ]}
+          >
+            <SkeletonCircle size={40} />
+            <View style={styles.driverTextCol}>
+              <SkeletonText variant="body" width="60%" />
+              <SkeletonText variant="bodySmall" width="80%" />
+            </View>
           </View>
-          <View style={styles.driverTextCol}>
-            <Text variant="body" color={theme.ink} style={styles.driverTitle}>
-              Partagez vos trajets
-            </Text>
-            <Text variant="bodySmall" color={theme.inkMuted}>
-              Rejoignez la communauté Vaya.
-            </Text>
+        ) : driverStatus === 'approved' ? (
+          <TouchableOpacity
+            style={[
+              styles.driverCard,
+              styles.driverCardVerified,
+              { backgroundColor: theme.surfaceMuted, borderColor: theme.accent },
+            ]}
+            onPress={() => {
+              haptics.selection();
+              router.push('/(tabs)/publish');
+            }}
+            activeOpacity={0.85}
+            accessibilityRole="button"
+            accessibilityLabel={
+              primaryVehicle
+                ? `Conducteur vérifié, ${primaryVehicle.make} ${primaryVehicle.model}, publier un trajet`
+                : 'Conducteur vérifié, publier un trajet'
+            }
+          >
+            <View style={[styles.driverIconCircle, { backgroundColor: theme.accent }]}>
+              <Icon name="checkmark" size="sm" color={theme.onAccent} />
+            </View>
+            <View style={styles.driverTextCol}>
+              <Text variant="body" color={theme.ink} style={styles.driverTitle}>
+                Conducteur vérifié
+              </Text>
+              {primaryVehicle ? (
+                <Text variant="bodySmall" color={theme.inkMuted} numberOfLines={1}>
+                  {`${primaryVehicle.make} ${primaryVehicle.model} · ${primaryVehicle.plateNumber}`}
+                </Text>
+              ) : null}
+              {/* Real aggregate from the driver profile — hidden until there
+               *  is something true to show (no fabricated zeros). */}
+              {(realDriverProfile?.tripCount ?? 0) > 0 ? (
+                <Text variant="caption" color={theme.inkFaint}>
+                  {`★ ${realDriverProfile?.ratingAvg} · ${realDriverProfile?.tripCount} trajets`}
+                </Text>
+              ) : null}
+            </View>
+            <Icon name="arrow-forward" size="sm" color={theme.outline} />
+          </TouchableOpacity>
+        ) : driverStatus === 'pending' ? (
+          <View
+            style={[
+              styles.driverCard,
+              { backgroundColor: theme.surfaceMuted, borderColor: theme.outlineVariant },
+            ]}
+            accessibilityRole="text"
+            accessibilityLabel="Vérification du profil conducteur en cours"
+          >
+            <View style={[styles.driverIconCircle, { backgroundColor: theme.surface }]}>
+              <Icon name="time-outline" size="sm" color={theme.inkMuted} />
+            </View>
+            <View style={styles.driverTextCol}>
+              <Text variant="body" color={theme.ink} style={styles.driverTitle}>
+                Vérification en cours
+              </Text>
+              <Text variant="bodySmall" color={theme.inkMuted}>
+                Nous vérifions vos documents. Vous pourrez publier dès qu&apos;ils sont validés.
+              </Text>
+            </View>
           </View>
-          <Icon name="arrow-forward" size="sm" color={theme.outline} />
-        </TouchableOpacity>
+        ) : driverStatus === 'rejected' ? (
+          <TouchableOpacity
+            style={[
+              styles.driverCard,
+              { backgroundColor: theme.surfaceMuted, borderColor: theme.error },
+            ]}
+            onPress={goToDriverFlow}
+            activeOpacity={0.85}
+            accessibilityRole="button"
+            accessibilityLabel="Vérification refusée, reprendre la vérification"
+          >
+            <View style={[styles.driverIconCircle, { backgroundColor: theme.surface }]}>
+              <Icon name="alert-circle-outline" size="sm" color={theme.error} />
+            </View>
+            <View style={styles.driverTextCol}>
+              <Text variant="body" color={theme.ink} style={styles.driverTitle}>
+                Vérification refusée
+              </Text>
+              <Text variant="bodySmall" color={theme.inkMuted}>
+                Reprenez la vérification pour publier vos trajets.
+              </Text>
+            </View>
+            <Icon name="chevron-forward" size="sm" color={theme.error} />
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            style={[
+              styles.driverCard,
+              { backgroundColor: theme.surfaceMuted, borderColor: theme.outlineVariant },
+            ]}
+            onPress={goToDriverFlow}
+            activeOpacity={0.85}
+            accessibilityRole="button"
+            accessibilityLabel="Rejoignez la communauté Vaya en tant que conducteur"
+          >
+            <View style={[styles.driverIconCircle, { backgroundColor: theme.surface }]}>
+              <Icon name="car-sport-outline" size="sm" color={theme.ink} />
+            </View>
+            <View style={styles.driverTextCol}>
+              <Text variant="body" color={theme.ink} style={styles.driverTitle}>
+                Partagez vos trajets
+              </Text>
+              <Text variant="bodySmall" color={theme.inkMuted}>
+                Rejoignez la communauté Vaya.
+              </Text>
+            </View>
+            <Icon name="arrow-forward" size="sm" color={theme.outline} />
+          </TouchableOpacity>
+        )}
 
         {/* Grouped navigation sections */}
         <View style={styles.sectionsWrap}>
@@ -532,9 +645,7 @@ export default function ProfileScreen(): React.JSX.Element {
           {/* Logout */}
           <TouchableOpacity
             style={[
-              styles.groupCard,
               styles.logoutCard,
-              { backgroundColor: theme.surface, borderColor: theme.outlineVariant },
               elevation?.sm,
             ]}
             onPress={() => setConfirmingLogout(true)}
@@ -885,6 +996,9 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     marginHorizontal: spacing.xl,
     marginBottom: spacing.lg,
+  },
+  driverCardVerified: {
+    borderWidth: 1.5,
   },
   driverIconCircle: {
     width: 40,

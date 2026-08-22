@@ -18,7 +18,18 @@ const RELIABLE_THRESHOLD = 0.85;
  *  screen, from results.tsx); this screen is reached by tapping the driver
  *  row there, and its own footer action is "Message Driver" — rendered
  *  disabled since messaging is booking-scoped (Phase 8) and no conversation
- *  can exist before a booking is even requested. */
+ *  can exist before a booking is even requested.
+ *
+ *  New-driver experience: a driver with zero completed trips would
+ *  otherwise render as "0.0 ★ / 0 trajets" stat tiles and a reviews link
+ *  into fabricated content — reading as a red flag when it's really just a
+ *  beginning. Instead, everything shown stays real (public profile +
+ *  trust-summary keyed by the tapped ride's driverUserId) and the empty
+ *  history is reframed honestly: a warm welcome panel naming what IS
+ *  verified, a checklist of the actual VAYA vetting steps, and review-copy
+ *  that asks the passenger to be the first to share their experience after
+ *  the trip — encouraging both the booking and the review, never
+ *  fabricating either. */
 export default function TrustScreen(): React.JSX.Element {
   const { driverUserId } = useLocalSearchParams<{ rideId: string; driverUserId: string }>();
   const insets = useSafeAreaInsets();
@@ -55,6 +66,14 @@ export default function TrustScreen(): React.JSX.Element {
   const driverStats = profile.driver;
   const isTopRated = trustSummary?.driver?.tier === 'top_rated';
   const isReliable = (driverStats?.reliabilityScore ?? 0) >= RELIABLE_THRESHOLD;
+  // tripCount === 0 alone determines the brand-new experience — it implies
+  // tier 'new' (≤4 trips), and comes straight from the public profile so the
+  // layout doesn't flash the stat-tile version while trust-summary loads.
+  const tripCount = driverStats?.tripCount ?? 0;
+  const isBrandNew = driverStats != null && tripCount === 0;
+  const isNewTier = trustSummary?.driver?.tier === 'new';
+  const ratingLabel =
+    driverStats && (driverStats.ratingAvg ?? 0) > 0 ? driverStats.ratingAvg.toFixed(1) : '—';
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -103,12 +122,12 @@ export default function TrustScreen(): React.JSX.Element {
           ) : null}
         </View>
 
-        {driverStats ? (
+        {driverStats && !isBrandNew ? (
           <View style={styles.statsRow}>
             <View style={[styles.statTile, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
               <View style={styles.statValueRow}>
                 <Text variant="h3" color={theme.ink}>
-                  {driverStats.ratingAvg.toFixed(1)}
+                  {ratingLabel}
                 </Text>
                 <Icon name="star" size="xs" color={theme.accent} />
               </View>
@@ -118,7 +137,7 @@ export default function TrustScreen(): React.JSX.Element {
             </View>
             <View style={[styles.statTile, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
               <Text variant="h3" color={theme.ink}>
-                {driverStats.tripCount}
+                {tripCount}
               </Text>
               <Text variant="caption" color={theme.inkFaint}>
                 Trajets
@@ -127,8 +146,43 @@ export default function TrustScreen(): React.JSX.Element {
           </View>
         ) : null}
 
-        {driverStats && (isReliable || isTopRated) ? (
+        {isBrandNew ? (
+          <View
+            style={[
+              styles.welcomeCard,
+              { backgroundColor: theme.accent + '12', borderColor: theme.accent + '38' },
+            ]}
+          >
+            <View style={styles.welcomeTitleRow}>
+              <View style={[styles.welcomeIconWrap, { backgroundColor: theme.accent }]}>
+                <Icon name="sparkles" size="sm" color={theme.onAccent} />
+              </View>
+              <Text variant="label" color={theme.ink}>
+                {`${firstName} débute sur VAYA`}
+              </Text>
+            </View>
+            <Text variant="bodySmall" color={theme.inkMuted}>
+              {`Profil entièrement vérifié, encore sans trajets ni avis — tout le monde débute un jour. Ce que VAYA garantit déjà se trouve ci-dessous.`}
+            </Text>
+            <View style={styles.encourageRow}>
+              <Icon name="heart" size="xs" color={theme.accent} />
+              <Text variant="bodySmall" color={theme.ink}>
+                {`Soyez parmi les premiers passagers de ${firstName} : votre avis après le trajet l’aidera à démarrer en confiance.`}
+              </Text>
+            </View>
+          </View>
+        ) : null}
+
+        {driverStats ? (
           <View style={styles.pillsRow}>
+            {isNewTier ? (
+              <View style={[styles.pill, { backgroundColor: theme.surfaceMuted }]}>
+                <Icon name="sparkles" size="xs" color={theme.accent} />
+                <Text variant="bodySmall" color={theme.ink}>
+                  Nouveau
+                </Text>
+              </View>
+            ) : null}
             {isReliable ? (
               <View style={[styles.pill, { backgroundColor: theme.surfaceMuted }]}>
                 <Icon name="thumbs-up" size="xs" color={theme.accent} />
@@ -142,6 +196,37 @@ export default function TrustScreen(): React.JSX.Element {
                 <Icon name="ribbon-outline" size="xs" color={theme.accent} />
                 <Text variant="bodySmall" color={theme.ink}>
                   Top VAYA
+                </Text>
+              </View>
+            ) : null}
+          </View>
+        ) : null}
+
+        {driverStats ? (
+          <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
+            <View style={styles.cardTitleRow}>
+              <Icon name="shield-checkmark-outline" size="sm" color={theme.accent} />
+              <Text variant="label" color={theme.ink}>
+                Vérifications VAYA
+              </Text>
+            </View>
+            <View style={styles.verifyRow}>
+              <Icon name="person-circle-outline" size="sm" color={theme.accent} />
+              <Text variant="bodySmall" color={theme.inkMuted}>
+                Identité confirmée par selfie
+              </Text>
+            </View>
+            <View style={styles.verifyRow}>
+              <Icon name="document-text-outline" size="sm" color={theme.accent} />
+              <Text variant="bodySmall" color={theme.inkMuted}>
+                Documents de conduite contrôlés
+              </Text>
+            </View>
+            {driverStats.vehicle ? (
+              <View style={styles.verifyRow}>
+                <Icon name="car-sport-outline" size="sm" color={theme.accent} />
+                <Text variant="bodySmall" color={theme.inkMuted}>
+                  Véhicule enregistré — plaque visible ci-dessous
                 </Text>
               </View>
             ) : null}
@@ -189,22 +274,39 @@ export default function TrustScreen(): React.JSX.Element {
         ) : null}
 
         {driverStats ? (
-          <TouchableOpacity
-            style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}
-            onPress={() => router.push({ pathname: '/search/reviews', params: { driverUserId, driverName: profile.fullName } })}
-            activeOpacity={0.8}
-          >
-            <View style={styles.cardTitleRow}>
-              <Icon name="chatbubble-ellipses-outline" size="sm" color={theme.inkFaint} />
-              <Text variant="label" color={theme.ink} style={styles.reviewsTitle}>
-                Avis
+          tripCount > 0 ? (
+            <TouchableOpacity
+              style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}
+              onPress={() => router.push({ pathname: '/search/reviews', params: { driverUserId, driverName: profile.fullName } })}
+              activeOpacity={0.8}
+            >
+              <View style={styles.cardTitleRow}>
+                <Icon name="chatbubble-ellipses-outline" size="sm" color={theme.inkFaint} />
+                <Text variant="label" color={theme.ink} style={styles.reviewsTitle}>
+                  Avis
+                </Text>
+                <Icon name="chevron-forward" size="sm" color={theme.inkFaint} />
+              </View>
+              <Text variant="bodySmall" color={theme.inkFaint}>
+                Voir tous les avis sur {firstName}
               </Text>
-              <Icon name="chevron-forward" size="sm" color={theme.inkFaint} />
+            </TouchableOpacity>
+          ) : (
+            <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
+              <View style={styles.cardTitleRow}>
+                <Icon name="chatbubble-ellipses-outline" size="sm" color={theme.inkFaint} />
+                <Text variant="label" color={theme.ink} style={styles.reviewsTitle}>
+                  Avis
+                </Text>
+              </View>
+              <Text variant="bodySmall" color={theme.inkMuted}>
+                {`${firstName} n’a pas encore reçu d’avis.`}
+              </Text>
+              <Text variant="bodySmall" color={theme.accent} style={styles.firstReviewLine}>
+                {`Après votre trajet, partagez le vôtre — le premier avis est celui qui compte le plus.`}
+              </Text>
             </View>
-            <Text variant="bodySmall" color={theme.inkFaint}>
-              Voir tous les avis sur {firstName}
-            </Text>
-          </TouchableOpacity>
+          )
         ) : null}
 
         <View style={styles.scrollSpacer} />
@@ -286,6 +388,30 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: spacing.sm,
   },
+  welcomeCard: {
+    borderRadius: radii.xl,
+    borderWidth: 1,
+    padding: spacing.lg,
+    gap: spacing.sm,
+  },
+  welcomeTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  welcomeIconWrap: {
+    width: 32,
+    height: 32,
+    borderRadius: radii.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  encourageRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.xs,
+    marginTop: spacing.xs,
+  },
   statTile: {
     flex: 1,
     alignItems: 'center',
@@ -325,6 +451,14 @@ const styles = StyleSheet.create({
   },
   reviewsTitle: {
     flex: 1,
+  },
+  firstReviewLine: {
+    fontWeight: '600',
+  },
+  verifyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
   },
   vehicleRow: {
     flexDirection: 'row',

@@ -130,18 +130,20 @@ export default function BecomeDriverScreen(): React.JSX.Element {
               theme={theme}
               scheme={scheme}
               radius="xl"
-              style={[styles.benefitRow, { borderColor: theme.outlineVariant }]}
+              style={[styles.benefitCard, { borderColor: theme.outlineVariant }]}
             >
-              <View style={[styles.benefitIcon, { backgroundColor: theme.surfaceMuted }]}>
-                <Icon name={benefit.icon} size="sm" color={theme.accent} />
-              </View>
-              <View style={styles.benefitTextCol}>
-                <Text variant="label" color={theme.ink}>
-                  {benefit.title}
-                </Text>
-                <Text variant="bodySmall" color={theme.inkMuted} style={styles.benefitBody}>
-                  {benefit.body}
-                </Text>
+              <View style={styles.benefitRow}>
+                <View style={[styles.benefitIcon, { backgroundColor: theme.surfaceMuted }]}>
+                  <Icon name={benefit.icon} size="sm" color={theme.accent} />
+                </View>
+                <View style={styles.benefitTextCol}>
+                  <Text variant="label" color={theme.ink}>
+                    {benefit.title}
+                  </Text>
+                  <Text variant="bodySmall" color={theme.inkMuted} style={styles.benefitBody}>
+                    {benefit.body}
+                  </Text>
+                </View>
               </View>
             </GlassSurface>
           ))}
@@ -251,9 +253,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     gap: spacing.md,
   },
+  benefitCard: {
+    borderWidth: 1,
+  },
   benefitRow: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     gap: spacing.md,
     padding: spacing.lg,
     borderWidth: 1,
