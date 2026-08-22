@@ -132,10 +132,13 @@ export async function ridesRoutes(fastify: FastifyInstance): Promise<void> {
     },
   );
 
+  // Public — mirrors GET /rides/:rideId/stops and /fellow-passengers' guest-
+  // reachable default: a browsing (not yet signed-in) rider needs to see
+  // ride details before Demander une place, which is where the real
+  // contextual-auth gate lives. No identity-scoped data returned here.
   app.get(
     '/rides/:rideId',
     {
-      onRequest: [fastify.authenticate],
       schema: { params: rideIdParamSchema, response: { 200: rideSchema } },
     },
     async (request, reply) => {

@@ -65,6 +65,7 @@ function makeDriverProfile(
 
 vi.mock('expo-router', () => ({
   router: { push: vi.fn(), replace: vi.fn(), back: vi.fn(), canGoBack: vi.fn(() => false) },
+  Redirect: () => null,
 }));
 
 vi.mock('expo-image-picker', () => ({
@@ -97,7 +98,15 @@ function mockApi({
 }): void {
   vi.doMock('../state/api', () => ({
     // store.ts imports the RTK Query api singleton for reducer/middleware.
-    api: { reducerPath: 'api', reducer: () => ({}), middleware: () => () => undefined },
+    // middleware must be a real 3-level-curried Redux middleware
+    // (storeApi => next => action => ...), not a 2-level stub — a shorter
+    // shape silently corrupts the whole chain the moment anything actually
+    // dispatches through it (harmless while nothing did; this test now does).
+    api: {
+      reducerPath: 'api',
+      reducer: () => ({}),
+      middleware: () => (next: (action: unknown) => unknown) => (action: unknown) => next(action),
+    },
     useGetMeQuery: () => ({ data: me, isLoading: false }),
     useGetUserTrustSummaryQuery: () => ({ data: trustSummary, isLoading: false }),
     useGetMyDriverProfileQuery: () => ({
@@ -119,11 +128,16 @@ async function renderProfile(): Promise<ReturnType<typeof renderJSON>> {
   vi.resetModules();
   // The hub reads Redux directly (appearance preference, auth token), so
   // render inside the real store — built against the same mocked api module.
-  const [{ default: ProfileScreen }, { store }, { ToastProvider }] = await Promise.all([
+  const [{ default: ProfileScreen }, { store }, { ToastProvider }, { setTokens }] = await Promise.all([
     import('../../app/(tabs)/profile'),
     import('../state/store'),
     import('@vaya/design-system'),
+    import('../state/authSlice'),
   ]);
+  // profile.tsx guards itself behind accessToken (nothing here is
+  // meaningful for a guest) — these snapshots exercise the signed-in
+  // experience, so the store needs a real token to get past the guard.
+  store.dispatch(setTokens({ accessToken: 'test-token', refreshToken: 'test-refresh' }));
   return renderJSON(
     <Provider store={store}>
       <ToastProvider>

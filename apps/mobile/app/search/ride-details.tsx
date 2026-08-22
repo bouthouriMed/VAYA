@@ -31,6 +31,8 @@ import { useAppDispatch, useAppSelector } from '../../src/state/store';
 import { clearPickupStop } from '../../src/state/searchSlice';
 import { requestPushPermissionAndRegister } from '../../src/services/notifications/registerForPushNotifications';
 import { decodePolyline, polylineDistanceKm } from '../../src/utils/polyline';
+import { useContextualAuth } from '../../src/features/auth/useContextualAuth';
+import { ContextualAuthSheet } from '../../src/features/auth/ContextualAuthSheet';
 
 function dayLabel(date: Date, now: Date): string {
   if (isSameDay(date, now)) return "Aujourd'hui";
@@ -79,6 +81,8 @@ export default function RideDetailsScreen(): React.JSX.Element {
   const { data: passengers } = useListFellowPassengersQuery(rideId);
   const [createBooking, { isLoading: isBooking }] = useCreateBookingMutation();
   const [registerPushToken] = useRegisterPushTokenMutation();
+  const { requireAuth, isAuthSheetVisible, authTrigger, handleAuthenticated, cancelAuth } =
+    useContextualAuth();
 
   // Same cache entry results.tsx/pickup-point.tsx already populated — gives
   // us the real per-passenger pickup-walk minutes without a second fetch.
@@ -426,7 +430,7 @@ export default function RideDetailsScreen(): React.JSX.Element {
           ]}
           disabled={isBooking || (!selectedStop && !origin) || ride.seatsAvailable < 1}
           activeOpacity={0.85}
-          onPress={() => void requestSeat()}
+          onPress={() => requireAuth(() => void requestSeat(), 'booking')}
           accessibilityRole="button"
           accessibilityLabel={`Demander une place, ${ride.contributionPerSeat} DT`}
         >
@@ -468,6 +472,13 @@ export default function RideDetailsScreen(): React.JSX.Element {
           </TouchableOpacity>
         </View>
       </Modal>
+
+      <ContextualAuthSheet
+        visible={isAuthSheetVisible}
+        trigger={authTrigger}
+        onClose={cancelAuth}
+        onAuthenticated={handleAuthenticated}
+      />
     </View>
   );
 }

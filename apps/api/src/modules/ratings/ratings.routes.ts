@@ -44,10 +44,11 @@ export async function ratingsRoutes(fastify: FastifyInstance): Promise<void> {
     },
   );
 
+  // Public — same reasoning as GET /users/:id: trust must be visible before
+  // a browsing (not yet signed-in) rider commits to Demander une place.
   app.get(
     '/users/:id/trust-summary',
     {
-      onRequest: [fastify.authenticate],
       schema: { params: idParamSchema, response: { 200: trustSummaryResponseSchema } },
     },
     async (request, reply) => {

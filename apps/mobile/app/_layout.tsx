@@ -150,6 +150,7 @@ export default function RootLayout(): React.JSX.Element {
               <AuthHydrator>
                 <Stack screenOptions={{ headerShown: false }}>
                   <Stack.Screen name="index" />
+                  <Stack.Screen name="sign-in" />
                   <Stack.Screen name="(auth)" />
                   {/* gestureEnabled: false — (tabs) sits after index/(auth) in
                    *  this stack, so it has a real screen underneath to pop

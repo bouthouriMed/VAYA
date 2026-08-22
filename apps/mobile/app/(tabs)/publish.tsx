@@ -37,6 +37,8 @@ import { router } from 'expo-router';
 import { useAppDispatch, useAppSelector } from '../../src/state/store';
 import { resetSearch } from '../../src/state/searchSlice';
 import { setPendingRide, setPendingRideDraft } from '../../src/state/driverOnboardingSlice';
+import { useContextualAuth } from '../../src/features/auth/useContextualAuth';
+import { ContextualAuthSheet } from '../../src/features/auth/ContextualAuthSheet';
 import {
   useGetMyDriverProfileQuery,
   useCreateRideMutation,
@@ -231,13 +233,20 @@ export default function PublishTabScreen(): React.JSX.Element {
   // ride is already saved as a draft by this point (createRide below).
   const [isVerificationPromptVisible, setIsVerificationPromptVisible] = useState(false);
 
-  const { data: driverProfile, isLoading: isProfileLoading } = useGetMyDriverProfileQuery();
+  const accessToken = useAppSelector((s) => s.auth.accessToken);
+  const {
+    data: driverProfile,
+    isLoading: isProfileLoading,
+    refetch: refetchDriverProfile,
+  } = useGetMyDriverProfileQuery(undefined, { skip: !accessToken });
   const [createRide, { isLoading: isCreating }] = useCreateRideMutation();
   const [updateRide, { isLoading: isUpdatingPrice }] = useUpdateRideMutation();
   const [generateCandidateStops] = useGenerateCandidateStopsMutation();
   const [updateRideStops, { isLoading: isSavingStops }] = useUpdateRideStopsMutation();
   const [publishRide, { isLoading: isPublishingRide }] = usePublishRideMutation();
   const [registerPushToken] = useRegisterPushTokenMutation();
+  const { requireAuth, isAuthSheetVisible, authTrigger, handleAuthenticated, cancelAuth } =
+    useContextualAuth();
 
   useEffect(() => {
     dispatch(resetSearch());
@@ -344,8 +353,8 @@ export default function PublishTabScreen(): React.JSX.Element {
     }
   }
 
-  async function continueToPrice(): Promise<void> {
-    if (!origin || !destination || !vehicle) return;
+  async function continueToPrice(vehicleId: string): Promise<void> {
+    if (!origin || !destination) return;
     setErrorMessage(undefined);
 
     let ride: {
@@ -357,7 +366,7 @@ export default function PublishTabScreen(): React.JSX.Element {
     };
     try {
       ride = await createRide({
-        vehicleId: vehicle.id,
+        vehicleId,
         origin: { label: origin.label, lat: origin.lat, lng: origin.lng },
         destination: { label: destination.label, lat: destination.lat, lng: destination.lng },
         departureAt,
@@ -391,6 +400,24 @@ export default function PublishTabScreen(): React.JSX.Element {
     });
 
     void generateStopsInBackground(ride.id);
+  }
+
+  /** The form step's "Continuer" — gated by requireAuth (a guest fills the
+   *  form freely; sign-in only interrupts the tap itself). Always re-fetches
+   *  the driver profile fresh rather than trusting `vehicle` from this
+   *  render's closure: for a guest who just signed in via the contextual
+   *  sheet, `driverProfile` was skip-gated (no token yet) at the time this
+   *  render happened, so the stale closure would incorrectly read "no
+   *  vehicle" even for an existing driver's account. */
+  async function proceedFromForm(): Promise<void> {
+    if (!origin || !destination) return;
+    const { data: freshProfile } = await refetchDriverProfile();
+    const freshVehicle = freshProfile?.vehicles[0];
+    if (freshVehicle) {
+      await continueToPrice(freshVehicle.id);
+    } else {
+      setStep('review');
+    }
   }
 
   async function continueToStopsFromPrice(): Promise<void> {
@@ -1199,7 +1226,7 @@ export default function PublishTabScreen(): React.JSX.Element {
             label="Continuer"
             loading={isCreating}
             disabled={!canContinue}
-            onPress={() => (vehicle ? void continueToPrice() : setStep('review'))}
+            onPress={() => requireAuth(() => void proceedFromForm(), 'publishing')}
           />
         </Animated.View>
       </ScrollView>
@@ -1223,6 +1250,13 @@ export default function PublishTabScreen(): React.JSX.Element {
           setSelectedPresetMinutes(null);
         }}
         title="Heure de départ"
+      />
+
+      <ContextualAuthSheet
+        visible={isAuthSheetVisible}
+        trigger={authTrigger}
+        onClose={cancelAuth}
+        onAuthenticated={handleAuthenticated}
       />
     </View>
   );

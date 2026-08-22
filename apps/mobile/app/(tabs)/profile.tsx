@@ -20,7 +20,7 @@ import {
   type IconName,
 } from '@vaya/design-system';
 import { TRUST_TIER_LABELS, type TrustTier } from '@vaya/domain';
-import { router } from 'expo-router';
+import { router, Redirect } from 'expo-router';
 import { SUPPORTED_LOCALES, type SupportedLocale } from '@vaya/config';
 import { useAppDispatch, useAppSelector } from '../../src/state/store';
 import { clearAuth } from '../../src/state/authSlice';
@@ -101,11 +101,12 @@ function fileFromUri(uri: string): FormData {
 export default function ProfileScreen(): React.JSX.Element {
   const insets = useSafeAreaInsets();
   const dispatch = useAppDispatch();
+  const accessToken = useAppSelector((s) => s.auth.accessToken);
   const refreshToken = useAppSelector((s) => s.auth.refreshToken);
   const {colors: theme, scheme} = useAppTheme();
   const toast = useToast();
 
-  const { data: me, isLoading: isMeLoading } = useGetMeQuery();
+  const { data: me, isLoading: isMeLoading } = useGetMeQuery(undefined, { skip: !accessToken });
   // Skip until me.id exists — trust summary is keyed by user id.
   const { data: trustSummary, isLoading: isTrustLoading } = useGetUserTrustSummaryQuery(
     me?.id ?? '',
@@ -113,8 +114,10 @@ export default function ProfileScreen(): React.JSX.Element {
       skip: !me,
     },
   );
-  const { data: realDriverProfile, isLoading: isDriverProfileLoading } =
-    useGetMyDriverProfileQuery();
+  const { data: realDriverProfile, isLoading: isDriverProfileLoading } = useGetMyDriverProfileQuery(
+    undefined,
+    { skip: !accessToken },
+  );
 
   const [logout] = useLogoutMutation();
   const [updateMe] = useUpdateMeMutation();
@@ -146,6 +149,13 @@ export default function ProfileScreen(): React.JSX.Element {
     [trustSummary.driver, trustSummary.rider]
       .filter((a): a is NonNullable<typeof a> => Boolean(a))
       .sort((a, b) => TIER_RANK[b.tier] - TIER_RANK[a.tier])[0];
+
+  // Every row here is identity-scoped (real name, real stats, real
+  // settings) — nothing honest to show a guest. Sent to sign-in.tsx
+  // explicitly rather than rendering skeletons that never resolve.
+  if (!accessToken) {
+    return <Redirect href="/sign-in" />;
+  }
 
   async function handleLogout(): Promise<void> {
     if (refreshToken) {

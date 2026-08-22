@@ -21,6 +21,16 @@ const FUTURE_DEPARTURE = '2026-08-23T08:30:00';
 
 vi.mock('expo-router', () => ({
   router: { push: vi.fn(), navigate: vi.fn(), canGoBack: vi.fn(() => false) },
+  Redirect: () => null,
+}));
+
+// trips.tsx guards itself behind accessToken (guest browsing landed on
+// explore/publish, not this identity-scoped tab) — these snapshots exercise
+// the signed-in experience, so the store needs a token to get past the
+// guard at all.
+vi.mock('../state/store', () => ({
+  useAppSelector: (selector: (s: { auth: { accessToken: string } }) => unknown) =>
+    selector({ auth: { accessToken: 'test-token' } }),
 }));
 
 const DRIVER_PROFILE: DriverProfile = {

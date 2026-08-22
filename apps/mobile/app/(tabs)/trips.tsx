@@ -18,7 +18,8 @@ import {
   spacing,
   radii,
 } from '@vaya/design-system';
-import { router } from 'expo-router';
+import { router, Redirect } from 'expo-router';
+import { useAppSelector } from '../../src/state/store';
 import {
   useListMyBookingsQuery,
   useListMyRidesQuery,
@@ -87,8 +88,11 @@ type Segment = 'rider' | 'driver';
  * "Gérer" opens ride management (facts + two-step cancel). */
 export default function TripsScreen(): React.JSX.Element {
   const theme = useAppTheme().colors;
-  const { data: bookings, isLoading: isBookingsLoading } = useListMyBookingsQuery();
-  const { data: driverProfile } = useGetMyDriverProfileQuery();
+  const accessToken = useAppSelector((s) => s.auth.accessToken);
+  const { data: bookings, isLoading: isBookingsLoading } = useListMyBookingsQuery(undefined, {
+    skip: !accessToken,
+  });
+  const { data: driverProfile } = useGetMyDriverProfileQuery(undefined, { skip: !accessToken });
   const { data: myRides } = useListMyRidesQuery(undefined, { skip: !driverProfile });
   // Defaults to rider; flips to driver once we know there IS a driver
   // profile — never shows an empty driving list to someone who can't drive.
@@ -101,7 +105,10 @@ export default function TripsScreen(): React.JSX.Element {
   // Same query/poll the explore tab's header bell and the notifications
   // inbox itself already use — no new endpoint, just a second reader of the
   // same cache entry.
-  const { data: notifications } = useListNotificationsQuery(undefined, { pollingInterval: 30_000 });
+  const { data: notifications } = useListNotificationsQuery(undefined, {
+    pollingInterval: 30_000,
+    skip: !accessToken,
+  });
   const hasUnreadNotifications = notifications?.some((n) => !n.readAt) ?? false;
 
   useEffect(() => {
@@ -120,6 +127,13 @@ export default function TripsScreen(): React.JSX.Element {
   const heroArrivalLabel = heroRide
     ? estimateArrivalLabel(heroRide.departureAt, heroRide.estimatedDurationSec)
     : null;
+
+  // "Mes trajets" genuinely has nothing to show a guest — every list here is
+  // identity-scoped. Sent to sign-in.tsx explicitly rather than left to
+  // render on 401s from the skipped queries above.
+  if (!accessToken) {
+    return <Redirect href="/sign-in" />;
+  }
 
   function goToDriverFlow(): void {
     router.push(driverProfile ? '/(tabs)/publish' : '/driver/onboarding/vehicle');

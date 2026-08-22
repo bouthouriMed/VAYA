@@ -1,5 +1,6 @@
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
-import { router } from 'expo-router';
+import { router, Redirect } from 'expo-router';
+import { useAppSelector } from '../../src/state/store';
 import {
   Text,
   Row,
@@ -36,8 +37,18 @@ function formatWhen(iso: string): string {
  * primitive, per the phase doc's design-system-work note.
  */
 export default function NotificationsScreen(): React.JSX.Element {
-  const { data: notifications, isLoading } = useListNotificationsQuery();
+  const accessToken = useAppSelector((s) => s.auth.accessToken);
+  const { data: notifications, isLoading } = useListNotificationsQuery(undefined, {
+    skip: !accessToken,
+  });
   const [markRead] = useMarkNotificationReadMutation();
+
+  // Defensive: only reachable today via the explore/trips bell (both already
+  // gate this behind accessToken), but a deep link or a stale push tap could
+  // land here directly for a guest — identity-scoped end to end.
+  if (!accessToken) {
+    return <Redirect href="/sign-in" />;
+  }
 
   function handlePress(notification: AppNotification): void {
     if (!notification.readAt) {

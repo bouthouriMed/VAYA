@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
 import { SectionList, View, StyleSheet, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
+import { router, Redirect } from 'expo-router';
+import { useAppSelector } from '../../src/state/store';
 import {
   Text,
   Avatar,
@@ -36,8 +37,11 @@ const FILTERS: { key: InboxFilter; label: string }[] = [
  *  read state or message counts that don't exist yet. */
 export default function MessagesScreen(): React.JSX.Element {
   const theme = useAppTheme().colors;
+  const accessToken = useAppSelector((s) => s.auth.accessToken);
   const [filter, setFilter] = useState<InboxFilter>('all');
-  const { data: conversations, isLoading, isError, refetch } = useListConversationsQuery();
+  const { data: conversations, isLoading, isError, refetch } = useListConversationsQuery(undefined, {
+    skip: !accessToken,
+  });
 
   const sections = useMemo(() => {
     const filtered = filterConversations(conversations ?? [], filter);
@@ -49,6 +53,12 @@ export default function MessagesScreen(): React.JSX.Element {
 
   function openConversation(conversation: InboxConversation): void {
     void router.push(`/conversations/${conversation.bookingId}`);
+  }
+
+  // Messaging is booking-scoped and identity-scoped end to end — nothing
+  // here exists for a guest. Sent to sign-in.tsx explicitly.
+  if (!accessToken) {
+    return <Redirect href="/sign-in" />;
   }
 
   if (isLoading) {
