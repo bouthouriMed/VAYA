@@ -9,6 +9,7 @@ import {
   type TextStyle,
 } from 'react-native';
 import { colors, spacing, radii, elevation } from '../tokens/index';
+import type { AppPalette } from '../theme/palette';
 
 type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost';
 type ButtonSize = 'sm' | 'md' | 'lg';
@@ -23,6 +24,11 @@ interface ButtonProps {
   style?: StyleProp<ViewStyle>;
   /** Overrides the announced label — defaults to `label`. */
   accessibilityLabel?: string;
+  /** Optional `useAppTheme()` override (Stitch migration) — `primary`
+   *  renders solid-accent/onAccent, `secondary` a muted surface fill,
+   *  outline/ghost use ink instead of the legacy static palette. Omit for
+   *  prior behavior on unmigrated screens. */
+  theme?: AppPalette;
 }
 
 const sizeStyles: Record<ButtonSize, ViewStyle> = {
