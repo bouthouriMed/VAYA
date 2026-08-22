@@ -66,7 +66,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
             },
             {
               "backgroundColor": "#FFFFFF",
-              "shadowColor": "#000000",
+              "shadowColor": "#14201B",
             },
             {
               "height": 506.4,
@@ -101,7 +101,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                   "width": 40,
                 },
                 {
-                  "backgroundColor": "#DAE2FD",
+                  "backgroundColor": "#EDE6D4",
                 },
               ]
             }
@@ -133,7 +133,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                     "lineHeight": 28.799999999999997,
                   },
                   {
-                    "color": "#000000",
+                    "color": "#14201B",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -162,7 +162,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
             >
               <Ionicons
                 accessibilityElementsHidden={true}
-                color="#000000"
+                color="#14201B"
                 importantForAccessibility="no-hide-descendants"
                 name="close"
                 size={20}
@@ -198,7 +198,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                     "lineHeight": 36,
                   },
                   {
-                    "color": "#000000",
+                    "color": "#14201B",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -232,7 +232,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "width": 36,
                     },
                     {
-                      "borderColor": "#DAE2FD",
+                      "borderColor": "#EDE6D4",
                     },
                     false,
                   ]
@@ -240,7 +240,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
               >
                 <Ionicons
                   accessibilityElementsHidden={true}
-                  color="#45464D"
+                  color="#5C5748"
                   importantForAccessibility="no-hide-descendants"
                   name="chevron-back"
                   size={20}
@@ -261,14 +261,14 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "width": 36,
                     },
                     {
-                      "borderColor": "#DAE2FD",
+                      "borderColor": "#EDE6D4",
                     },
                   ]
                 }
               >
                 <Ionicons
                   accessibilityElementsHidden={true}
-                  color="#000000"
+                  color="#14201B"
                   importantForAccessibility="no-hide-descendants"
                   name="chevron-forward"
                   size={20}
@@ -292,7 +292,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                     "lineHeight": 18,
                   },
                   {
-                    "color": "#76777D",
+                    "color": "#8C8674",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -317,7 +317,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                     "lineHeight": 18,
                   },
                   {
-                    "color": "#76777D",
+                    "color": "#8C8674",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -342,7 +342,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                     "lineHeight": 18,
                   },
                   {
-                    "color": "#76777D",
+                    "color": "#8C8674",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -367,7 +367,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                     "lineHeight": 18,
                   },
                   {
-                    "color": "#76777D",
+                    "color": "#8C8674",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -392,7 +392,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                     "lineHeight": 18,
                   },
                   {
-                    "color": "#76777D",
+                    "color": "#8C8674",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -417,7 +417,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                     "lineHeight": 18,
                   },
                   {
-                    "color": "#76777D",
+                    "color": "#8C8674",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -444,7 +444,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                     "lineHeight": 18,
                   },
                   {
-                    "color": "#76777D",
+                    "color": "#8C8674",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -573,7 +573,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "lineHeight": 24,
                     },
                     {
-                      "color": "#000000",
+                      "color": "#14201B",
                       "textAlign": undefined,
                       "writingDirection": "ltr",
                     },
@@ -616,7 +616,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "lineHeight": 24,
                     },
                     {
-                      "color": "#000000",
+                      "color": "#14201B",
                       "textAlign": undefined,
                       "writingDirection": "ltr",
                     },
@@ -659,7 +659,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "lineHeight": 24,
                     },
                     {
-                      "color": "#000000",
+                      "color": "#14201B",
                       "textAlign": undefined,
                       "writingDirection": "ltr",
                     },
@@ -702,7 +702,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "lineHeight": 24,
                     },
                     {
-                      "color": "#000000",
+                      "color": "#14201B",
                       "textAlign": undefined,
                       "writingDirection": "ltr",
                     },
@@ -745,7 +745,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "lineHeight": 24,
                     },
                     {
-                      "color": "#000000",
+                      "color": "#14201B",
                       "textAlign": undefined,
                       "writingDirection": "ltr",
                     },
@@ -788,7 +788,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "lineHeight": 24,
                     },
                     {
-                      "color": "#000000",
+                      "color": "#14201B",
                       "textAlign": undefined,
                       "writingDirection": "ltr",
                     },
@@ -831,7 +831,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "lineHeight": 24,
                     },
                     {
-                      "color": "#000000",
+                      "color": "#14201B",
                       "textAlign": undefined,
                       "writingDirection": "ltr",
                     },
@@ -874,7 +874,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "lineHeight": 24,
                     },
                     {
-                      "color": "#000000",
+                      "color": "#14201B",
                       "textAlign": undefined,
                       "writingDirection": "ltr",
                     },
@@ -905,7 +905,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                     "width": "14.285714285714286%",
                   },
                   {
-                    "backgroundColor": "#000000",
+                    "backgroundColor": "#14201B",
                   },
                 ]
               }
@@ -919,7 +919,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "lineHeight": 24,
                     },
                     {
-                      "color": "#FFFFFF",
+                      "color": "#F7F3E8",
                       "textAlign": undefined,
                       "writingDirection": "ltr",
                     },
@@ -964,7 +964,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "lineHeight": 24,
                     },
                     {
-                      "color": "#000000",
+                      "color": "#14201B",
                       "textAlign": undefined,
                       "writingDirection": "ltr",
                     },
@@ -1007,7 +1007,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "lineHeight": 24,
                     },
                     {
-                      "color": "#000000",
+                      "color": "#14201B",
                       "textAlign": undefined,
                       "writingDirection": "ltr",
                     },
@@ -1050,7 +1050,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "lineHeight": 24,
                     },
                     {
-                      "color": "#000000",
+                      "color": "#14201B",
                       "textAlign": undefined,
                       "writingDirection": "ltr",
                     },
@@ -1093,7 +1093,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "lineHeight": 24,
                     },
                     {
-                      "color": "#000000",
+                      "color": "#14201B",
                       "textAlign": undefined,
                       "writingDirection": "ltr",
                     },
@@ -1136,7 +1136,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "lineHeight": 24,
                     },
                     {
-                      "color": "#000000",
+                      "color": "#14201B",
                       "textAlign": undefined,
                       "writingDirection": "ltr",
                     },
@@ -1179,7 +1179,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "lineHeight": 24,
                     },
                     {
-                      "color": "#000000",
+                      "color": "#14201B",
                       "textAlign": undefined,
                       "writingDirection": "ltr",
                     },
@@ -1222,7 +1222,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "lineHeight": 24,
                     },
                     {
-                      "color": "#000000",
+                      "color": "#14201B",
                       "textAlign": undefined,
                       "writingDirection": "ltr",
                     },
@@ -1265,7 +1265,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "lineHeight": 24,
                     },
                     {
-                      "color": "#000000",
+                      "color": "#14201B",
                       "textAlign": undefined,
                       "writingDirection": "ltr",
                     },
@@ -1308,7 +1308,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "lineHeight": 24,
                     },
                     {
-                      "color": "#000000",
+                      "color": "#14201B",
                       "textAlign": undefined,
                       "writingDirection": "ltr",
                     },
@@ -1351,7 +1351,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "lineHeight": 24,
                     },
                     {
-                      "color": "#000000",
+                      "color": "#14201B",
                       "textAlign": undefined,
                       "writingDirection": "ltr",
                     },
@@ -1394,7 +1394,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "lineHeight": 24,
                     },
                     {
-                      "color": "#000000",
+                      "color": "#14201B",
                       "textAlign": undefined,
                       "writingDirection": "ltr",
                     },
@@ -1437,7 +1437,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "lineHeight": 24,
                     },
                     {
-                      "color": "#000000",
+                      "color": "#14201B",
                       "textAlign": undefined,
                       "writingDirection": "ltr",
                     },
@@ -1480,7 +1480,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "lineHeight": 24,
                     },
                     {
-                      "color": "#000000",
+                      "color": "#14201B",
                       "textAlign": undefined,
                       "writingDirection": "ltr",
                     },
@@ -1523,7 +1523,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "lineHeight": 24,
                     },
                     {
-                      "color": "#000000",
+                      "color": "#14201B",
                       "textAlign": undefined,
                       "writingDirection": "ltr",
                     },
@@ -1566,7 +1566,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "lineHeight": 24,
                     },
                     {
-                      "color": "#000000",
+                      "color": "#14201B",
                       "textAlign": undefined,
                       "writingDirection": "ltr",
                     },
@@ -1609,7 +1609,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "lineHeight": 24,
                     },
                     {
-                      "color": "#000000",
+                      "color": "#14201B",
                       "textAlign": undefined,
                       "writingDirection": "ltr",
                     },
@@ -1652,7 +1652,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "lineHeight": 24,
                     },
                     {
-                      "color": "#000000",
+                      "color": "#14201B",
                       "textAlign": undefined,
                       "writingDirection": "ltr",
                     },
@@ -1695,7 +1695,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "lineHeight": 24,
                     },
                     {
-                      "color": "#000000",
+                      "color": "#14201B",
                       "textAlign": undefined,
                       "writingDirection": "ltr",
                     },
@@ -1738,7 +1738,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "lineHeight": 24,
                     },
                     {
-                      "color": "#000000",
+                      "color": "#14201B",
                       "textAlign": undefined,
                       "writingDirection": "ltr",
                     },
@@ -1781,7 +1781,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "lineHeight": 24,
                     },
                     {
-                      "color": "#000000",
+                      "color": "#14201B",
                       "textAlign": undefined,
                       "writingDirection": "ltr",
                     },
@@ -1824,7 +1824,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "lineHeight": 24,
                     },
                     {
-                      "color": "#000000",
+                      "color": "#14201B",
                       "textAlign": undefined,
                       "writingDirection": "ltr",
                     },
@@ -1916,7 +1916,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                     "justifyContent": "center",
                   },
                   {
-                    "backgroundColor": "#000000",
+                    "backgroundColor": "#14201B",
                   },
                 ]
               }
@@ -1930,7 +1930,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "lineHeight": 21,
                     },
                     {
-                      "color": "#FFFFFF",
+                      "color": "#F7F3E8",
                       "textAlign": undefined,
                       "writingDirection": "ltr",
                     },
@@ -2015,7 +2015,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
             },
             {
               "backgroundColor": "#FFFFFF",
-              "shadowColor": "#000000",
+              "shadowColor": "#14201B",
             },
             {
               "height": 506.4,
@@ -2050,7 +2050,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                   "width": 40,
                 },
                 {
-                  "backgroundColor": "#DAE2FD",
+                  "backgroundColor": "#EDE6D4",
                 },
               ]
             }
@@ -2082,7 +2082,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                     "lineHeight": 28.799999999999997,
                   },
                   {
-                    "color": "#000000",
+                    "color": "#14201B",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -2111,7 +2111,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
             >
               <Ionicons
                 accessibilityElementsHidden={true}
-                color="#000000"
+                color="#14201B"
                 importantForAccessibility="no-hide-descendants"
                 name="close"
                 size={20}
@@ -2146,7 +2146,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                     "lineHeight": 21,
                   },
                   {
-                    "color": "#45464D",
+                    "color": "#5C5748",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -2165,7 +2165,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                     "lineHeight": 36,
                   },
                   {
-                    "color": "#000000",
+                    "color": "#14201B",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -2208,8 +2208,8 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                     "width": 300,
                   },
                   {
-                    "backgroundColor": "#E5EEFF",
-                    "borderColor": "#DAE2FD",
+                    "backgroundColor": "#EDE6D4",
+                    "borderColor": "#EDE6D4",
                   },
                 ]
               }
@@ -2256,7 +2256,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "lineHeight": 24,
                       },
                       {
-                        "color": "#DAE2FD",
+                        "color": "#EDE6D4",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -2289,7 +2289,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "lineHeight": 24,
                       },
                       {
-                        "color": "#DAE2FD",
+                        "color": "#EDE6D4",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -2322,7 +2322,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "lineHeight": 24,
                       },
                       {
-                        "color": "#DAE2FD",
+                        "color": "#EDE6D4",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -2355,7 +2355,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "lineHeight": 24,
                       },
                       {
-                        "color": "#DAE2FD",
+                        "color": "#EDE6D4",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -2388,7 +2388,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "lineHeight": 24,
                       },
                       {
-                        "color": "#DAE2FD",
+                        "color": "#EDE6D4",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -2421,7 +2421,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "lineHeight": 24,
                       },
                       {
-                        "color": "#DAE2FD",
+                        "color": "#EDE6D4",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -2454,7 +2454,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "lineHeight": 24,
                       },
                       {
-                        "color": "#DAE2FD",
+                        "color": "#EDE6D4",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -2487,7 +2487,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "lineHeight": 24,
                       },
                       {
-                        "color": "#DAE2FD",
+                        "color": "#EDE6D4",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -2520,7 +2520,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "lineHeight": 24,
                       },
                       {
-                        "color": "#DAE2FD",
+                        "color": "#EDE6D4",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -2553,7 +2553,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "lineHeight": 24,
                       },
                       {
-                        "color": "#DAE2FD",
+                        "color": "#EDE6D4",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -2586,7 +2586,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "lineHeight": 24,
                       },
                       {
-                        "color": "#DAE2FD",
+                        "color": "#EDE6D4",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -2619,7 +2619,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "lineHeight": 24,
                       },
                       {
-                        "color": "#DAE2FD",
+                        "color": "#EDE6D4",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -2652,7 +2652,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "lineHeight": 24,
                       },
                       {
-                        "color": "#DAE2FD",
+                        "color": "#EDE6D4",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -2685,7 +2685,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "lineHeight": 24,
                       },
                       {
-                        "color": "#DAE2FD",
+                        "color": "#EDE6D4",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -2718,7 +2718,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "lineHeight": 24,
                       },
                       {
-                        "color": "#DAE2FD",
+                        "color": "#EDE6D4",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -2751,7 +2751,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "lineHeight": 24,
                       },
                       {
-                        "color": "#DAE2FD",
+                        "color": "#EDE6D4",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -2784,7 +2784,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "lineHeight": 24,
                       },
                       {
-                        "color": "#DAE2FD",
+                        "color": "#EDE6D4",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -2817,7 +2817,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "lineHeight": 24,
                       },
                       {
-                        "color": "#DAE2FD",
+                        "color": "#EDE6D4",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -2850,7 +2850,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "lineHeight": 24,
                       },
                       {
-                        "color": "#000000",
+                        "color": "#14201B",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -2884,7 +2884,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "lineHeight": 24,
                       },
                       {
-                        "color": "#DAE2FD",
+                        "color": "#EDE6D4",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -2917,7 +2917,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "lineHeight": 24,
                       },
                       {
-                        "color": "#DAE2FD",
+                        "color": "#EDE6D4",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -2950,7 +2950,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "lineHeight": 24,
                       },
                       {
-                        "color": "#DAE2FD",
+                        "color": "#EDE6D4",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -2983,7 +2983,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "lineHeight": 24,
                       },
                       {
-                        "color": "#DAE2FD",
+                        "color": "#EDE6D4",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -3016,7 +3016,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "lineHeight": 24,
                       },
                       {
-                        "color": "#DAE2FD",
+                        "color": "#EDE6D4",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -3041,7 +3041,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                     "lineHeight": 36,
                   },
                   {
-                    "color": "#000000",
+                    "color": "#14201B",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -3096,7 +3096,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "lineHeight": 24,
                       },
                       {
-                        "color": "#DAE2FD",
+                        "color": "#EDE6D4",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -3129,7 +3129,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "lineHeight": 24,
                       },
                       {
-                        "color": "#DAE2FD",
+                        "color": "#EDE6D4",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -3162,7 +3162,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "lineHeight": 24,
                       },
                       {
-                        "color": "#DAE2FD",
+                        "color": "#EDE6D4",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -3195,7 +3195,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "lineHeight": 24,
                       },
                       {
-                        "color": "#DAE2FD",
+                        "color": "#EDE6D4",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -3228,7 +3228,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "lineHeight": 24,
                       },
                       {
-                        "color": "#DAE2FD",
+                        "color": "#EDE6D4",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -3261,7 +3261,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "lineHeight": 24,
                       },
                       {
-                        "color": "#DAE2FD",
+                        "color": "#EDE6D4",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -3294,7 +3294,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "lineHeight": 24,
                       },
                       {
-                        "color": "#000000",
+                        "color": "#14201B",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -3328,7 +3328,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "lineHeight": 24,
                       },
                       {
-                        "color": "#DAE2FD",
+                        "color": "#EDE6D4",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -3361,7 +3361,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "lineHeight": 24,
                       },
                       {
-                        "color": "#DAE2FD",
+                        "color": "#EDE6D4",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -3394,7 +3394,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "lineHeight": 24,
                       },
                       {
-                        "color": "#DAE2FD",
+                        "color": "#EDE6D4",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -3427,7 +3427,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "lineHeight": 24,
                       },
                       {
-                        "color": "#DAE2FD",
+                        "color": "#EDE6D4",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -3460,7 +3460,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "lineHeight": 24,
                       },
                       {
-                        "color": "#DAE2FD",
+                        "color": "#EDE6D4",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -3497,7 +3497,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                     "justifyContent": "center",
                   },
                   {
-                    "backgroundColor": "#000000",
+                    "backgroundColor": "#14201B",
                   },
                 ]
               }
@@ -3511,7 +3511,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                       "lineHeight": 21,
                     },
                     {
-                      "color": "#FFFFFF",
+                      "color": "#F7F3E8",
                       "textAlign": undefined,
                       "writingDirection": "ltr",
                     },

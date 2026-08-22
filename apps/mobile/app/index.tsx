@@ -95,9 +95,7 @@ export default function LandingScreen(): React.JSX.Element {
         <View pointerEvents="none" style={styles.glowTop} />
         <View pointerEvents="none" style={styles.glowBottom} />
 
-        <View style={styles.header}>
-          <Text style={styles.wordmark}>VAYA</Text>
-        </View>
+        <View style={styles.header}/>
 
         <View style={styles.spacer} />
 

@@ -50,6 +50,12 @@ const DISMISS_VELOCITY = 800;
  * intent was horizontal. Thresholds alone closed the whole sheet on that
  * swipe; requiring |ty|>|tx| (and |vy|>|vx| for flicks) makes dismissal
  * impossible unless the gesture was really vertical.
+ *
+ * The 'worklet' directive is LOAD-BEARING: onEnd runs on the UI thread, and
+ * calling a non-worklet function from there throws where no redbox can catch
+ * it — on iOS/Fabric the process dies outright (app bounces to home screen).
+ * Extracting this math into a helper without the directive is exactly how
+ * the swipe-down-to-dismiss path was broken once already.
  */
 export function isDismissalDrag(e: {
   translationX: number;
@@ -57,6 +63,7 @@ export function isDismissalDrag(e: {
   velocityX: number;
   velocityY: number;
 }): boolean {
+  'worklet';
   const verticalDrag =
     e.translationY > DISMISS_DRAG_PX && Math.abs(e.translationY) > Math.abs(e.translationX);
   const verticalFlick =
