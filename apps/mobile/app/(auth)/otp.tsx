@@ -4,16 +4,25 @@ import {
   StyleSheet,
   TextInput,
   TouchableOpacity,
-  KeyboardAvoidingView,
   TouchableWithoutFeedback,
   Keyboard,
   Platform,
+  Animated,
+  Easing,
+  ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { Text, Button, colors, spacing, radii, typography, haptics } from '@vaya/design-system';
+import {
+  Text,
+  GlassSurface,
+  darkPalette,
+  spacing,
+  radii,
+  typography,
+  haptics,
+} from '@vaya/design-system';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useRequestOtpMutation, useVerifyOtpMutation } from '../../src/state/api';
 import { useAppDispatch } from '../../src/state/store';
@@ -47,6 +56,22 @@ function OtpCell({ digit, active }: { digit?: string; active: boolean }): React.
   );
 }
 
+/**
+ * Matched to the same fixed-dark, jewel-emerald `darkPalette` treatment
+ * `app/index.tsx` (the landing screen right before this one) now uses —
+ * this screen previously stayed on the legacy static `colors` tokens with a
+ * light cream gradient and a plain white `Button`, a visible seam right
+ * after the new landing screen hands off into it. Same building blocks as
+ * landing: a `backgroundGradient` wash + ambient glow blobs, a `GlassSurface`
+ * card (here holding the OTP cell pill instead of a phone field), and a
+ * hand-rolled `inkGradient` + `glimmer`-sheen primary CTA instead of the
+ * legacy static `Button` primitive (no `theme` prop exists on `Button` yet —
+ * same hand-rolled-per-screen precedent the rest of this pass established).
+ * Also carries over the same custom keyboard-avoidance fix from the landing
+ * screen: `KeyboardAvoidingView` only animates on iOS, so the CTA is lifted
+ * via a `translateY` driven off the real keyboard event's own `duration`
+ * instead, smooth on both platforms.
+ */
 export default function OtpScreen(): React.JSX.Element {
   const { phone } = useLocalSearchParams<{ phone?: string }>();
   const normalizedPhone = (phone ?? '').replace(/\s/g, '');
@@ -85,6 +110,38 @@ export default function OtpScreen(): React.JSX.Element {
     return () => clearTimeout(timer);
   }, [secondsLeft]);
 
+  // Same hand-rolled approach as app/index.tsx: KeyboardAvoidingView's own
+  // Android path is an instant `setValue` snap regardless of `behavior`, so
+  // the CTA is lifted via a translateY synced to the real keyboard event's
+  // duration instead, smooth on both platforms.
+  const keyboardOffset = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+
+    const showSub = Keyboard.addListener(showEvent, (e) => {
+      const lift = Math.max(0, e.endCoordinates.height - insets.bottom - spacing.sm);
+      Animated.timing(keyboardOffset, {
+        toValue: -lift,
+        duration: e.duration && e.duration > 0 ? e.duration : 250,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }).start();
+    });
+    const hideSub = Keyboard.addListener(hideEvent, (e) => {
+      Animated.timing(keyboardOffset, {
+        toValue: 0,
+        duration: e.duration && e.duration > 0 ? e.duration : 250,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }).start();
+    });
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, [keyboardOffset, insets.bottom]);
+
   const mm = String(Math.floor(secondsLeft / 60)).padStart(2, '0');
   const ss = String(secondsLeft % 60).padStart(2, '0');
   const canVerify = code.length === CODE_LENGTH && !isVerifying;
@@ -107,29 +164,30 @@ export default function OtpScreen(): React.JSX.Element {
   }
 
   return (
-    <LinearGradient
-      colors={[colors.gray100, colors.secondaryLight + '40', colors.gray100]}
-      locations={[0, 0.55, 1]}
-      start={{ x: 0.15, y: 0 }}
-      end={{ x: 0.85, y: 1 }}
-      style={styles.gradient}
-    >
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-        <KeyboardAvoidingView
-          style={styles.container}
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      <View style={styles.container}>
+        <LinearGradient
+          colors={darkPalette.backgroundGradient}
+          start={{ x: 0.5, y: 0 }}
+          end={{ x: 0.5, y: 1 }}
+          style={StyleSheet.absoluteFillObject}
+        />
+        <View pointerEvents="none" style={styles.glowTop} />
+        <View pointerEvents="none" style={styles.glowBottom} />
+
+        <Animated.View
+          style={[styles.content, { transform: [{ translateY: keyboardOffset }] }]}
         >
           <View style={{ paddingTop: insets.top + spacing.md }}>
             <TouchableOpacity onPress={() => router.back()} hitSlop={12} style={styles.backBtn}>
-              <Ionicons name="chevron-back" size={26} color={colors.gray900} />
+              <Ionicons name="chevron-back" size={26} color={darkPalette.ink} />
             </TouchableOpacity>
           </View>
 
           <View style={styles.body}>
-            <Text style={styles.title}>Enter Verification Code</Text>
-            <Text variant="body" color={colors.gray600} style={styles.subtitle}>
-              Sent via SMS to {maskPhone(phone ?? '+216 98 *** ***')}
+            <Text style={styles.title}>Entrez le code de vérification</Text>
+            <Text variant="body" color={darkPalette.inkMuted} style={styles.subtitle}>
+              Envoyé par SMS au {maskPhone(phone ?? '+216 98 *** ***')}
             </Text>
 
             <TouchableOpacity
@@ -137,13 +195,13 @@ export default function OtpScreen(): React.JSX.Element {
               onPress={() => inputRef.current?.focus()}
               style={styles.otpPillTouchable}
             >
-              <BlurView intensity={35} tint="light" style={styles.otpPill}>
+              <GlassSurface theme={darkPalette} scheme="dark" radius="2xl">
                 <View style={styles.otpOverlay}>
                   {Array.from({ length: CODE_LENGTH }).map((_, i) => (
                     <OtpCell key={i} digit={code[i]} active={i === code.length} />
                   ))}
                 </View>
-              </BlurView>
+              </GlassSurface>
             </TouchableOpacity>
             <TextInput
               ref={inputRef}
@@ -158,18 +216,28 @@ export default function OtpScreen(): React.JSX.Element {
             />
 
             {errorMessage ? (
-              <Text variant="bodySmall" color={colors.error} align="center" style={styles.resend}>
+              <Text variant="bodySmall" color={darkPalette.error} align="center" style={styles.resend}>
                 {errorMessage}
               </Text>
             ) : devCode ? (
-              <Text variant="bodySmall" color={colors.gray500} align="center" style={styles.resend}>
+              <Text
+                variant="bodySmall"
+                color={darkPalette.inkFaint}
+                align="center"
+                style={styles.resend}
+              >
                 Code de test : {devCode}
               </Text>
             ) : null}
 
             {secondsLeft > 0 ? (
-              <Text variant="bodySmall" color={colors.gray500} align="center" style={styles.resend}>
-                Resend code in {mm}:{ss}
+              <Text
+                variant="bodySmall"
+                color={darkPalette.inkFaint}
+                align="center"
+                style={styles.resend}
+              >
+                Renvoyer le code dans {mm}:{ss}
               </Text>
             ) : (
               <TouchableOpacity
@@ -177,34 +245,84 @@ export default function OtpScreen(): React.JSX.Element {
                 disabled={isRequesting}
                 style={styles.resend}
               >
-                <Text variant="bodySmall" color={colors.secondaryDark} align="center">
-                  Resend code
+                <Text variant="bodySmall" color={darkPalette.accent} align="center">
+                  Renvoyer le code
                 </Text>
               </TouchableOpacity>
             )}
           </View>
 
-          <Button
-            label="Verify & Continue"
-            size="lg"
-            disabled={!canVerify}
-            loading={isVerifying}
+          <TouchableOpacity
             onPress={() => void verify()}
-            style={[styles.cta, { marginBottom: insets.bottom + spacing.lg }]}
-          />
-        </KeyboardAvoidingView>
-      </TouchableWithoutFeedback>
-    </LinearGradient>
+            disabled={!canVerify}
+            activeOpacity={0.85}
+            accessibilityRole="button"
+            accessibilityLabel="Vérifier et continuer"
+            accessibilityState={{ disabled: !canVerify, busy: isVerifying }}
+            style={[
+              styles.ctaWrap,
+              { marginBottom: insets.bottom + spacing.lg },
+              !canVerify && styles.ctaDisabled,
+            ]}
+          >
+            <LinearGradient
+              colors={darkPalette.inkGradient}
+              start={{ x: 0.1, y: 0 }}
+              end={{ x: 0.9, y: 1 }}
+              style={styles.cta}
+            >
+              <View pointerEvents="none" style={styles.ctaSheenClip}>
+                <LinearGradient
+                  colors={['transparent', darkPalette.glimmer, 'transparent']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.ctaSheen}
+                />
+              </View>
+              {isVerifying ? (
+                <ActivityIndicator color={darkPalette.onInk} size="small" />
+              ) : (
+                <Text variant="label" color={darkPalette.onInk}>
+                  Vérifier et continuer
+                </Text>
+              )}
+            </LinearGradient>
+          </TouchableOpacity>
+        </Animated.View>
+      </View>
+    </TouchableWithoutFeedback>
   );
 }
 
 const CELL_SIZE = 46;
 
 const styles = StyleSheet.create({
-  gradient: {
-    flex: 1,
-  },
   container: {
+    flex: 1,
+    backgroundColor: darkPalette.background,
+    overflow: 'hidden',
+  },
+  glowTop: {
+    position: 'absolute',
+    top: -140,
+    left: -80,
+    width: 320,
+    height: 320,
+    borderRadius: 160,
+    backgroundColor: darkPalette.accentGlow,
+    opacity: 0.3,
+  },
+  glowBottom: {
+    position: 'absolute',
+    bottom: -160,
+    right: -100,
+    width: 360,
+    height: 360,
+    borderRadius: 180,
+    backgroundColor: darkPalette.accent,
+    opacity: 0.18,
+  },
+  content: {
     flex: 1,
     paddingHorizontal: spacing['2xl'],
     justifyContent: 'space-between',
@@ -219,7 +337,7 @@ const styles = StyleSheet.create({
     marginTop: spacing['2xl'],
   },
   title: {
-    color: colors.gray900,
+    color: darkPalette.ink,
     fontWeight: '800',
     fontSize: 34,
     lineHeight: 40,
@@ -232,14 +350,9 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     marginTop: spacing['4xl'],
   },
-  otpPill: {
-    borderRadius: radii['2xl'],
-    overflow: 'hidden',
-  },
   otpOverlay: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.4)',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.md,
     gap: spacing.sm,
@@ -253,17 +366,12 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   otpCellFilled: {
-    backgroundColor: colors.white,
-    shadowColor: colors.gray900,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 1,
+    backgroundColor: darkPalette.surface,
   },
   otpDigit: {
     fontSize: typography.fontSize['2xl'],
     fontWeight: typography.fontWeight.bold,
-    color: colors.gray900,
+    color: darkPalette.ink,
   },
   otpGlowWrap: {
     width: 22,
@@ -276,23 +384,23 @@ const styles = StyleSheet.create({
     width: 22,
     height: 22,
     borderRadius: 11,
-    backgroundColor: colors.secondaryLight,
-    opacity: 0.55,
+    backgroundColor: darkPalette.accentGlow,
+    opacity: 0.7,
   },
   otpGlowCore: {
     width: 9,
     height: 9,
     borderRadius: 4.5,
-    backgroundColor: colors.white,
+    backgroundColor: darkPalette.accent,
   },
   otpUnderline: {
     width: 18,
     height: 2,
     borderRadius: 1,
-    backgroundColor: colors.gray300,
+    backgroundColor: darkPalette.outline,
   },
   otpUnderlineActive: {
-    backgroundColor: colors.gray900,
+    backgroundColor: darkPalette.accent,
   },
   resend: {
     marginTop: spacing.lg,
@@ -304,7 +412,29 @@ const styles = StyleSheet.create({
     height: 1,
     width: 1,
   },
-  cta: {
+  ctaWrap: {
     width: '100%',
+    borderRadius: radii.lg,
+    overflow: 'hidden',
+  },
+  ctaDisabled: {
+    opacity: 0.5,
+  },
+  cta: {
+    minHeight: 52,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  ctaSheenClip: {
+    ...StyleSheet.absoluteFillObject,
+    overflow: 'hidden',
+  },
+  ctaSheen: {
+    position: 'absolute',
+    top: -20,
+    left: -40,
+    width: '70%',
+    height: '260%',
+    transform: [{ rotate: '20deg' }],
   },
 });

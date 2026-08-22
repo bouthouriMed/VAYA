@@ -5,10 +5,10 @@ import {
   TextInput,
   TouchableOpacity,
   TouchableWithoutFeedback,
-  KeyboardAvoidingView,
   Keyboard,
   Platform,
   Animated,
+  Easing,
   AccessibilityInfo,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -71,6 +71,40 @@ export default function LandingScreen(): React.JSX.Element {
     };
   }, [fade, rise]);
 
+  // Hand-rolled instead of KeyboardAvoidingView: RN's own implementation only
+  // animates the padding/height shift on iOS (`_onKeyboardChange` calls
+  // `setValue` directly on Android, a hard instant snap by design, regardless
+  // of the `behavior` prop). Driving a translateY off the real keyboard
+  // show/hide event's own `duration` keeps both platforms smooth and in sync
+  // with the native keyboard animation instead of jumping.
+  const keyboardOffset = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+
+    const showSub = Keyboard.addListener(showEvent, (e) => {
+      const lift = Math.max(0, e.endCoordinates.height - spacing['2xl']);
+      Animated.timing(keyboardOffset, {
+        toValue: -lift,
+        duration: e.duration && e.duration > 0 ? e.duration : 250,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }).start();
+    });
+    const hideSub = Keyboard.addListener(hideEvent, (e) => {
+      Animated.timing(keyboardOffset, {
+        toValue: 0,
+        duration: e.duration && e.duration > 0 ? e.duration : 250,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }).start();
+    });
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, [keyboardOffset]);
+
   if (accessToken) {
     return <Redirect href="/(tabs)/explore" />;
   }
@@ -82,10 +116,7 @@ export default function LandingScreen(): React.JSX.Element {
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-      <KeyboardAvoidingView
-        style={styles.container}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
+      <View style={styles.container}>
         <LinearGradient
           colors={darkPalette.backgroundGradient}
           start={{ x: 0.5, y: 0 }}
@@ -101,7 +132,12 @@ export default function LandingScreen(): React.JSX.Element {
 
         <View style={styles.spacer} />
 
-        <Animated.View style={[styles.main, { opacity: fade, transform: [{ translateY: rise }] }]}>
+        <Animated.View
+          style={[
+            styles.main,
+            { opacity: fade, transform: [{ translateY: Animated.add(rise, keyboardOffset) }] },
+          ]}
+        >
           <RoutePulseBadge icon="navigate" size="hero" tone="onNavy" />
           <Text variant="h3" color={darkPalette.ink} align="center" style={styles.headline}>
             Voyagez, en toute confiance.
@@ -186,7 +222,7 @@ export default function LandingScreen(): React.JSX.Element {
             En continuant, vous acceptez nos conditions d&apos;utilisation.
           </Text>
         </Animated.View>
-      </KeyboardAvoidingView>
+      </View>
     </TouchableWithoutFeedback>
   );
 }
