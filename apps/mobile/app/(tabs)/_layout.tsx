@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Tabs, Redirect, useNavigation } from 'expo-router';
+import { Tabs, useNavigation } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppTheme } from '@vaya/design-system';
 import { useAppSelector } from '../../src/state/store';
@@ -25,10 +25,10 @@ export default function TabLayout(): React.JSX.Element {
     });
   }, [accessToken, navigation]);
 
-  if (!accessToken) {
-    return <Redirect href="/" />;
-  }
-
+  // Not a hard gate anymore: a guest reaches explore/publish freely (guest
+  // browsing — see index.tsx's doc comment). trips.tsx/messages.tsx guard
+  // themselves individually instead, since only those two specifically
+  // require an account.
   return (
     <Tabs
       screenOptions={{

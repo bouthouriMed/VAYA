@@ -66,6 +66,7 @@ export default function HomeSearchScreen(): React.JSX.Element {
   const desiredDepartureAt = useAppSelector((s) => s.search.desiredDepartureAt);
   const passengers = useAppSelector((s) => s.search.passengers);
   const { status, position } = useCurrentPosition();
+  const accessToken = useAppSelector((s) => s.auth.accessToken);
   const [isDateSheetOpen, setIsDateSheetOpen] = useState(false);
   const [isTimeSheetOpen, setIsTimeSheetOpen] = useState(false);
   const [isPassengerSheetOpen, setIsPassengerSheetOpen] = useState(false);
@@ -74,8 +75,12 @@ export default function HomeSearchScreen(): React.JSX.Element {
   // (Phase 7) — no separate unread-count endpoint, just derived from the
   // real list. 30s is a light poll, matching the inbox screen's own cadence
   // expectations without hammering the API from the tab a rider lands on
-  // most.
-  const { data: notifications } = useListNotificationsQuery(undefined, { pollingInterval: 30_000 });
+  // most. Skipped for a guest — explore is now this app's guest-browsable
+  // landing tab, and /notifications is identity-scoped.
+  const { data: notifications } = useListNotificationsQuery(undefined, {
+    pollingInterval: 30_000,
+    skip: !accessToken,
+  });
   const hasUnreadNotifications = notifications?.some((n) => !n.readAt) ?? false;
 
   // Silently adopt the device's GPS fix as the default departure point the
@@ -215,7 +220,7 @@ export default function HomeSearchScreen(): React.JSX.Element {
         </LinearGradient>
 
         <TouchableOpacity
-          onPress={() => router.push('/notifications')}
+          onPress={() => router.push(accessToken ? '/notifications' : '/sign-in')}
           accessibilityRole="button"
           accessibilityLabel={hasUnreadNotifications ? 'Notifications (non lues)' : 'Notifications'}
           style={[

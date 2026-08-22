@@ -137,10 +137,12 @@ export async function usersRoutes(fastify: FastifyInstance): Promise<void> {
     },
   );
 
+  // Public — a browsing (not yet signed-in) rider needs to see the driver's
+  // trust card before Demander une place. getPublicProfile already never
+  // exposes phone/contacts, per its own doc comment.
   app.get(
     '/users/:id',
     {
-      onRequest: [fastify.authenticate],
       schema: { params: idParamSchema, response: { 200: publicProfileResponseSchema } },
     },
     async (request, reply) => {

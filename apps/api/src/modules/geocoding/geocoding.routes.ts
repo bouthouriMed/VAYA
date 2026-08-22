@@ -9,10 +9,12 @@ const resultSchema = z.object({ label: z.string(), lat: z.number(), lng: z.numbe
 export async function geocodingRoutes(fastify: FastifyInstance): Promise<void> {
   const app = fastify.withTypeProvider<ZodTypeProvider>();
 
+  // Public — a browsing (not yet signed-in) rider/driver needs to type an
+  // origin/destination before ever hitting a contextual-auth gate. No
+  // identity-scoped data involved.
   app.get(
     '/geocoding/search',
     {
-      onRequest: [fastify.authenticate],
       schema: { querystring: geocodeSearchSchema, response: { 200: z.array(resultSchema) } },
     },
     async (request, reply) => {
@@ -24,7 +26,6 @@ export async function geocodingRoutes(fastify: FastifyInstance): Promise<void> {
   app.get(
     '/geocoding/reverse',
     {
-      onRequest: [fastify.authenticate],
       schema: { querystring: geocodeReverseSchema, response: { 200: resultSchema } },
     },
     async (request, reply) => {

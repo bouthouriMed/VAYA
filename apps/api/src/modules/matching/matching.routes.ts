@@ -41,10 +41,12 @@ export async function matchingRoutes(fastify: FastifyInstance): Promise<void> {
   const app = fastify.withTypeProvider<ZodTypeProvider>();
   const db = getDatabase();
 
+  // Public — a browsing (not yet signed-in) rider needs real search results
+  // before Demander une place, which is where the real contextual-auth gate
+  // lives. Neither handler reads getUserId(request) at all.
   app.get(
     '/matching/search',
     {
-      onRequest: [fastify.authenticate],
       schema: {
         querystring: matchingSearchSchema,
         response: { 200: z.array(matchCandidateSchema) },
@@ -59,7 +61,6 @@ export async function matchingRoutes(fastify: FastifyInstance): Promise<void> {
   app.get(
     '/matching/corridor-fallback',
     {
-      onRequest: [fastify.authenticate],
       schema: {
         querystring: matchingSearchSchema,
         response: {

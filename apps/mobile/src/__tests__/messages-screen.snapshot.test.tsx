@@ -21,6 +21,15 @@ const FIXED_NOW = new Date('2026-08-22T10:00:00');
 
 vi.mock('expo-router', () => ({
   router: { push: vi.fn(), navigate: vi.fn() },
+  Redirect: () => null,
+}));
+
+// messages.tsx guards itself behind accessToken (messaging is
+// identity-scoped end to end) — these snapshots exercise the signed-in
+// experience, so the store needs a token to get past the guard at all.
+vi.mock('../state/store', () => ({
+  useAppSelector: (selector: (s: { auth: { accessToken: string } }) => unknown) =>
+    selector({ auth: { accessToken: 'test-token' } }),
 }));
 
 const OPEN_TODAY: InboxConversation = {
