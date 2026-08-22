@@ -55,8 +55,8 @@ describe('notification foreground display and permission-prompt timing', () => {
     expect(source).toContain('NotificationBridge');
   });
 
-  it('driver/publish.tsx requests push permission only after a successful publish, not before', () => {
-    const source = read(appDir, 'driver/publish.tsx');
+  it('(tabs)/publish.tsx requests push permission only after a successful publish, not before', () => {
+    const source = read(appDir, '(tabs)/publish.tsx');
     const publishCallIndex = source.indexOf('await publishRide(rideId).unwrap();');
     const promptCallIndex = source.indexOf('requestPushPermissionAndRegister(');
     expect(publishCallIndex).toBeGreaterThan(-1);
