@@ -99,7 +99,7 @@ export default function VerificationConfirmationScreen(): React.JSX.Element {
           </Animated.View>
         </View>
 
-        <Text variant="h2" color={theme.ink} align="center" style={styles.title}>
+        <Text variant="headlineDisplay" color={theme.ink} align="center" style={styles.title}>
           {failed ? 'Profil vérifié' : "C'est presque prêt !"}
         </Text>
         <Text variant="body" color={theme.inkMuted} align="center" style={styles.subtitle}>

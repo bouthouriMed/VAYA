@@ -187,7 +187,9 @@ export default function OtpScreen(): React.JSX.Element {
 
         <Animated.View style={[styles.lowerSection, { paddingBottom: keyboardPad }]}>
           <View style={styles.body}>
-            <Text style={styles.title}>Entrez le code de vérification</Text>
+            <Text variant="headlineDisplay" color={darkPalette.ink}>
+              Entrez le code de vérification
+            </Text>
             <Text variant="body" color={darkPalette.inkMuted} style={styles.subtitle}>
               Envoyé par SMS au {maskPhone(phone ?? '+216 98 *** ***')}
             </Text>
@@ -346,13 +348,6 @@ const styles = StyleSheet.create({
   body: {
     flex: 1,
     justifyContent: 'center',
-  },
-  title: {
-    color: darkPalette.ink,
-    fontWeight: '800',
-    fontSize: 34,
-    lineHeight: 40,
-    letterSpacing: -0.5,
   },
   subtitle: {
     marginTop: spacing.md,
