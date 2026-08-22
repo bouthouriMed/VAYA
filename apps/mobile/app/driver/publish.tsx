@@ -12,35 +12,30 @@ import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Text,
-  Button,
-  FieldCard,
-  FieldRow,
-  Chip,
   DriverMapPin,
   MapRoute,
   BottomSheet,
   DepartureTimeSheet,
+  GlassSurface,
   EmptyState,
   SkeletonBlock,
-  StepProgress,
-  ScreenHeader,
   PriceRangeStepper,
   Icon,
-  RoutePulseBadge,
-  colors,
+  useAppTheme,
   spacing,
   radii,
-  elevation,
   typography,
+  colors,
   haptics,
   regionForPoints,
   formatDepartureLabel,
   formatTime,
+  type AppPalette,
 } from '@vaya/design-system';
 import { router } from 'expo-router';
 import { useAppDispatch, useAppSelector } from '../../src/state/store';
 import { resetSearch } from '../../src/state/searchSlice';
-import { setPendingRide } from '../../src/state/driverOnboardingSlice';
+import { setPendingRide, setPendingRideDraft } from '../../src/state/driverOnboardingSlice';
 import {
   useGetMyDriverProfileQuery,
   useCreateRideMutation,
@@ -79,8 +74,128 @@ const ROAD_CLASS_LABELS: Record<string, string> = {
 
 type Step = 'form' | 'price' | 'stops' | 'review';
 
+// --- Local, theme-aware building blocks -----------------------------------
+// Mirrors the pattern the rider search flow's Stitch rebuild established
+// (search/composer.tsx, bookings/confirmed.tsx): hand-rolled header/CTA
+// chrome driven by `useAppTheme()`, rather than the old static-token
+// ScreenHeader/StepProgress/Button primitives, which haven't been migrated.
+// Kept local to this file (not promoted to @vaya/design-system) since
+// nothing outside this wizard needs them yet.
+
+function StepHeader({
+  theme,
+  title,
+  onBack,
+}: {
+  theme: AppPalette;
+  title: string;
+  onBack: () => void;
+}): React.JSX.Element {
+  return (
+    <View style={styles.headerRow}>
+      <TouchableOpacity
+        onPress={onBack}
+        hitSlop={12}
+        accessibilityRole="button"
+        accessibilityLabel="Retour"
+      >
+        <Icon name="arrow-back" size="sm" color={theme.ink} />
+      </TouchableOpacity>
+      <Text variant="h3" color={theme.ink} numberOfLines={1} style={styles.headerTitle}>
+        {title}
+      </Text>
+      <View style={styles.headerSpacer} />
+    </View>
+  );
+}
+
+function StepProgressBar({
+  theme,
+  current,
+  total,
+}: {
+  theme: AppPalette;
+  current: number;
+  total: number;
+}): React.JSX.Element {
+  const pct = Math.max(0, Math.min(1, current / total)) * 100;
+  return (
+    <View style={[styles.progressTrack, { backgroundColor: theme.outlineVariant }]}>
+      <View style={[styles.progressFill, { backgroundColor: theme.ink, width: `${pct}%` }]} />
+    </View>
+  );
+}
+
+function PrimaryButton({
+  theme,
+  label,
+  onPress,
+  disabled,
+  loading,
+  icon,
+}: {
+  theme: AppPalette;
+  label: string;
+  onPress: () => void;
+  disabled?: boolean;
+  loading?: boolean;
+  icon?: React.ComponentProps<typeof Icon>['name'];
+}): React.JSX.Element {
+  return (
+    <TouchableOpacity
+      style={[
+        styles.primaryBtn,
+        { backgroundColor: theme.ink },
+        (disabled || loading) && styles.btnDisabled,
+      ]}
+      onPress={onPress}
+      disabled={disabled || loading}
+      activeOpacity={0.85}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ disabled: disabled || loading, busy: loading }}
+    >
+      {loading ? (
+        <ActivityIndicator color={theme.onInk} />
+      ) : (
+        <>
+          <Text variant="label" color={theme.onInk}>
+            {label}
+          </Text>
+          {icon ? <Icon name={icon} size="sm" color={theme.onInk} /> : null}
+        </>
+      )}
+    </TouchableOpacity>
+  );
+}
+
+function GhostButton({
+  theme,
+  label,
+  onPress,
+}: {
+  theme: AppPalette;
+  label: string;
+  onPress: () => void;
+}): React.JSX.Element {
+  return (
+    <TouchableOpacity
+      style={styles.ghostBtn}
+      onPress={onPress}
+      activeOpacity={0.7}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+    >
+      <Text variant="label" color={theme.ink}>
+        {label}
+      </Text>
+    </TouchableOpacity>
+  );
+}
+
 export default function PublishRideScreen(): React.JSX.Element {
   const insets = useSafeAreaInsets();
+  const { colors: theme, scheme } = useAppTheme();
   const dispatch = useAppDispatch();
   const origin = useAppSelector((s) => s.search.origin);
   const destination = useAppSelector((s) => s.search.destination);
@@ -165,9 +280,22 @@ export default function PublishRideScreen(): React.JSX.Element {
   const stepMotionStyle = { opacity: stepFade, transform: [{ translateY: stepRise }] };
 
   const vehicle = driverProfile?.vehicles[0];
+  // No driver profile at all is now a fully supported path through this
+  // wizard, not a dead end — the publish tab opens this screen regardless
+  // (see (tabs)/publish.tsx). A vehicle is only ever required by the
+  // backend to actually create a ride (rides.vehicle_id is NOT NULL), so a
+  // driver without one skips straight from the form to a review screen
+  // with honest "available after verification" placeholders instead of
+  // real price/stop data, and the verification gate fires the moment they
+  // try to publish.
   const canContinue =
-    Boolean(origin && destination && vehicle) && departureAt.getTime() > Date.now() && !isCreating;
+    Boolean(origin && destination) && departureAt.getTime() > Date.now() && !isCreating;
   const isPublishing = isSavingStops || isPublishingRide;
+  // Only true once a real server-side ride exists (requires `vehicle`) —
+  // false for a not-yet-onboarded driver, who reaches `review` directly
+  // from `form`.
+  const hasRideData = Boolean(rideId);
+  const totalWizardSteps = vehicle ? 4 : 2;
 
   const routeCoordinates = useMemo(
     () => (ridePolyline ? decodePolyline(ridePolyline) : []),
@@ -191,7 +319,10 @@ export default function PublishRideScreen(): React.JSX.Element {
   // real data; inventing per-stop times would violate the "never fabricate"
   // rule (CLAUDE.md).
   const estimatedArrivalAt = useMemo(
-    () => (estimatedDurationSec != null ? new Date(departureAt.getTime() + estimatedDurationSec * 1000) : null),
+    () =>
+      estimatedDurationSec != null
+        ? new Date(departureAt.getTime() + estimatedDurationSec * 1000)
+        : null,
     [departureAt, estimatedDurationSec],
   );
 
@@ -351,9 +482,17 @@ export default function PublishRideScreen(): React.JSX.Element {
   // saves the stop selection either way, then either publishes immediately
   // (verified driver) or hands off to the verification-requirement prompt
   // (stitch/verification/publish-verification-requirement-prompt.html) —
-  // the ride stays a saved draft either way.
+  // the ride stays a saved draft either way. A driver with no vehicle yet
+  // never had a server-side ride to save in the first place — this is the
+  // first and only point that case needs verification at all.
   async function finalizePublish(): Promise<void> {
     setErrorMessage(undefined);
+
+    if (!hasRideData) {
+      setIsVerificationPromptVisible(true);
+      return;
+    }
+
     const saved = await saveStopSelection();
     if (!saved) return;
 
@@ -365,9 +504,32 @@ export default function PublishRideScreen(): React.JSX.Element {
   }
 
   function startVerification(): void {
-    if (!rideId || !origin || !destination) return;
+    if (!origin || !destination) return;
     setIsVerificationPromptVisible(false);
-    dispatch(setPendingRide({ rideId, originLabel: origin.label, destinationLabel: destination.label }));
+    if (rideId) {
+      // A real ride already exists (draft) — only reachable today for a
+      // profile whose verificationStatus isn't 'approved', which this
+      // codebase's backend never actually produces (see verificationGate.ts).
+      dispatch(
+        setPendingRide({ rideId, originLabel: origin.label, destinationLabel: destination.label }),
+      );
+    } else {
+      // No vehicle yet — nothing was ever created server-side. Carry the
+      // form's raw values through onboarding; selfie.tsx creates (and
+      // publishes) the real ride once a real vehicle exists.
+      dispatch(
+        setPendingRideDraft({
+          originLabel: origin.label,
+          originLat: origin.lat,
+          originLng: origin.lng,
+          destinationLabel: destination.label,
+          destinationLat: destination.lat,
+          destinationLng: destination.lng,
+          departureAt: departureAt.toISOString(),
+          seatsTotal: seats,
+        }),
+      );
+    }
     router.push('/driver/onboarding/vehicle');
   }
 
@@ -378,26 +540,25 @@ export default function PublishRideScreen(): React.JSX.Element {
     review: 'Vérifier et publier',
   };
 
+  function handleBack(): void {
+    if (step === 'review') setStep(vehicle ? 'stops' : 'form');
+    else if (step === 'stops') setStep('price');
+    else if (step === 'price') setStep('form');
+    else router.back();
+  }
+
   const header = (
-    <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
-      <ScreenHeader
-        title={stepTitles[step]}
-        onBack={() => {
-          if (step === 'review') setStep('stops');
-          else if (step === 'stops') setStep('price');
-          else if (step === 'price') setStep('form');
-          else router.back();
-        }}
-      />
+    <View style={[styles.header, { backgroundColor: theme.background, paddingTop: insets.top + spacing.sm }]}>
+      <StepHeader theme={theme} title={stepTitles[step]} onBack={handleBack} />
     </View>
   );
 
   if (isProfileLoading) {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: theme.background }]}>
         {header}
         <View style={styles.loadingWrap}>
-          <ActivityIndicator size="large" color={colors.secondary} />
+          <ActivityIndicator size="large" color={theme.accent} />
         </View>
       </View>
     );
@@ -405,15 +566,15 @@ export default function PublishRideScreen(): React.JSX.Element {
 
   if (step === 'price') {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: theme.background }]}>
         {header}
-        <StepProgress currentStep={2} totalSteps={4} style={styles.stepProgress} />
+        <StepProgressBar theme={theme} current={2} total={4} />
 
         <Animated.View style={[styles.priceBody, stepMotionStyle]}>
-          <Text variant="caption" color={colors.secondaryDark} style={styles.eyebrow}>
+          <Text variant="label" color={theme.inkFaint} style={styles.eyebrow}>
             PRIX SUGGÉRÉ
           </Text>
-          <View style={styles.priceCard}>
+          <GlassSurface theme={theme} scheme={scheme} radius="2xl" style={styles.priceCard}>
             {pricing ? (
               <PriceRangeStepper
                 min={pricing.min}
@@ -424,27 +585,26 @@ export default function PublishRideScreen(): React.JSX.Element {
                 isEstimate={routeIsEstimate}
               />
             ) : null}
-          </View>
-          <Text variant="bodySmall" color={colors.gray600} align="center" style={styles.hint}>
+          </GlassSurface>
+          <Text variant="bodySmall" color={theme.inkFaint} align="center" style={styles.hint}>
             Ce montant est calculé pour ce trajet — vous pouvez l&apos;ajuster dans la marge
             proposée.
           </Text>
         </Animated.View>
 
         {errorMessage ? (
-          <Text variant="bodySmall" color={colors.error} align="center">
+          <Text variant="bodySmall" color={theme.error} align="center">
             {errorMessage}
           </Text>
         ) : null}
 
-        <View style={[styles.stopsFooter, { paddingBottom: insets.bottom + spacing.md }]}>
-          <Button
+        <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.md }]}>
+          <PrimaryButton
+            theme={theme}
             label="Continuer"
-            size="lg"
             loading={isUpdatingPrice}
             disabled={!pricing}
             onPress={() => void continueToStopsFromPrice()}
-            style={styles.cta}
           />
         </View>
       </View>
@@ -453,15 +613,15 @@ export default function PublishRideScreen(): React.JSX.Element {
 
   if (step === 'stops') {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: theme.background }]}>
         {header}
-        <StepProgress currentStep={3} totalSteps={4} style={styles.stepProgress} />
+        <StepProgressBar theme={theme} current={3} total={4} />
 
         <Animated.View style={[styles.stopsBody, stepMotionStyle]}>
           {isGeneratingStops ? (
             <View style={styles.stopsLoading}>
               <SkeletonBlock height={280} radius="xl" />
-              <Text variant="bodySmall" color={colors.gray600} align="center">
+              <Text variant="bodySmall" color={theme.inkFaint} align="center">
                 Recherche des meilleurs points d&apos;arrêt sur votre trajet…
               </Text>
             </View>
@@ -489,7 +649,7 @@ export default function PublishRideScreen(): React.JSX.Element {
                           coordinate={{ latitude: origin.lat, longitude: origin.lng }}
                           anchor={{ x: 0.5, y: 0.5 }}
                         >
-                          <View style={styles.originDot} />
+                          <View style={[styles.originDot, { backgroundColor: theme.accent, borderColor: theme.surface }]} />
                         </Marker>
                       ) : null}
                       {destination ? (
@@ -497,7 +657,7 @@ export default function PublishRideScreen(): React.JSX.Element {
                           coordinate={{ latitude: destination.lat, longitude: destination.lng }}
                           anchor={{ x: 0.5, y: 0.5 }}
                         >
-                          <View style={styles.destinationDot} />
+                          <View style={[styles.destinationDot, { backgroundColor: theme.ink, borderColor: theme.surface }]} />
                         </Marker>
                       ) : null}
                       {routeCoordinates.length > 1 ? (
@@ -513,7 +673,7 @@ export default function PublishRideScreen(): React.JSX.Element {
                             variant="compact"
                             data={{ id: stop.id, name: stop.label }}
                             recommended={selectedIds.has(stop.id)}
-                            accentColor={colors.secondary}
+                            accentColor={theme.accent}
                           />
                         </Marker>
                       ))}
@@ -521,10 +681,10 @@ export default function PublishRideScreen(): React.JSX.Element {
                   ) : null}
                 </View>
               </View>
-              <Text variant="bodySmall" color={colors.gray600} align="center" style={styles.hint}>
+              <Text variant="bodySmall" color={theme.inkFaint} align="center" style={styles.hint}>
                 Touchez un point pour l&apos;inclure ou le retirer de votre offre.
               </Text>
-              <Text variant="bodySmall" color={colors.gray700} align="center">
+              <Text variant="bodySmall" color={theme.inkMuted} align="center">
                 {selectedIds.size} arrêt(s) sélectionné(s) sur {candidates.length}
               </Text>
             </>
@@ -532,46 +692,63 @@ export default function PublishRideScreen(): React.JSX.Element {
         </Animated.View>
 
         {errorMessage ? (
-          <Text variant="bodySmall" color={colors.error} align="center">
+          <Text variant="bodySmall" color={theme.error} align="center">
             {errorMessage}
           </Text>
         ) : null}
 
-        <View style={[styles.stopsFooter, { paddingBottom: insets.bottom + spacing.md }]}>
-          <Button
+        <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.md }]}>
+          <PrimaryButton
+            theme={theme}
             label="Continuer"
-            size="lg"
             disabled={isGeneratingStops}
             onPress={() => setStep('review')}
-            style={styles.cta}
           />
         </View>
 
         <BottomSheet
+          theme={theme}
           visible={activeStop !== null}
           onClose={() => setActiveStop(null)}
           title={activeStop?.label}
         >
           {activeStop ? (
             <View style={styles.sheetContent}>
-              <FieldCard>
-                <FieldRow
-                  label="Type de route"
-                  value={ROAD_CLASS_LABELS[activeStop.roadClass ?? 'unknown'] ?? 'Route'}
+              <View style={[styles.sheetRow, { borderBottomColor: theme.outlineVariant }]}>
+                <Text variant="bodySmall" color={theme.inkFaint}>
+                  Type de route
+                </Text>
+                <Text variant="label" color={theme.ink}>
+                  {ROAD_CLASS_LABELS[activeStop.roadClass ?? 'unknown'] ?? 'Route'}
+                </Text>
+              </View>
+              <View style={styles.sheetRow}>
+                <Text variant="bodySmall" color={theme.inkFaint}>
+                  Détour estimé
+                </Text>
+                <Text variant="label" color={theme.ink}>
+                  {activeStop.deviationMeters} m ·{' '}
+                  {Math.round(activeStop.deviationSeconds / 60) || 1} min
+                </Text>
+              </View>
+              {selectedIds.has(activeStop.id) ? (
+                <TouchableOpacity
+                  style={[styles.outlineBtn, { borderColor: theme.outline }]}
+                  onPress={() => toggleStop(activeStop)}
+                  accessibilityRole="button"
+                  accessibilityLabel="Retirer ce point"
+                >
+                  <Text variant="label" color={theme.ink}>
+                    Retirer ce point
+                  </Text>
+                </TouchableOpacity>
+              ) : (
+                <PrimaryButton
+                  theme={theme}
+                  label="Inclure ce point"
+                  onPress={() => toggleStop(activeStop)}
                 />
-                <FieldRow
-                  label="Détour estimé"
-                  value={`${activeStop.deviationMeters} m · ${Math.round(activeStop.deviationSeconds / 60) || 1} min`}
-                  last
-                />
-              </FieldCard>
-              <Button
-                label={selectedIds.has(activeStop.id) ? 'Retirer ce point' : 'Inclure ce point'}
-                variant={selectedIds.has(activeStop.id) ? 'outline' : 'primary'}
-                size="lg"
-                onPress={() => toggleStop(activeStop)}
-                style={styles.cta}
-              />
+              )}
             </View>
           ) : null}
         </BottomSheet>
@@ -581,23 +758,23 @@ export default function PublishRideScreen(): React.JSX.Element {
 
   if (step === 'review') {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: theme.background }]}>
         {header}
-        <StepProgress currentStep={4} totalSteps={4} style={styles.stepProgress} />
+        <StepProgressBar theme={theme} current={totalWizardSteps} total={totalWizardSteps} />
 
         <ScrollView contentContainerStyle={styles.reviewContent}>
           <Animated.View style={[styles.reviewStack, stepMotionStyle]}>
-            <Text variant="h2" style={styles.reviewTitle}>
+            <Text variant="h2" color={theme.ink} style={styles.reviewTitle}>
               Prêt à publier votre trajet ?
             </Text>
-            <Text variant="body" color={colors.gray600} style={styles.reviewSubtitle}>
+            <Text variant="body" color={theme.inkMuted} style={styles.reviewSubtitle}>
               Vérifiez les détails ci-dessous — vous pouvez modifier chaque section avant de
               confirmer.
             </Text>
 
-            <View style={styles.reviewCard}>
+            <GlassSurface theme={theme} scheme={scheme} radius="2xl" style={styles.reviewCard}>
               <View style={styles.reviewCardHeader}>
-                <Text variant="label" color={colors.gray600} style={styles.reviewCardEyebrow}>
+                <Text variant="label" color={theme.inkFaint} style={styles.reviewCardEyebrow}>
                   ITINÉRAIRE
                 </Text>
                 <TouchableOpacity
@@ -606,25 +783,30 @@ export default function PublishRideScreen(): React.JSX.Element {
                   accessibilityRole="button"
                   accessibilityLabel="Modifier l'itinéraire"
                 >
-                  <Text variant="bodySmall" color={colors.gray700}>
+                  <Text variant="bodySmall" color={theme.inkMuted}>
                     Modifier
                   </Text>
-                  <Icon name="pencil-outline" size="xs" color={colors.gray700} />
+                  <Icon name="pencil-outline" size="xs" color={theme.inkMuted} />
                 </TouchableOpacity>
               </View>
 
               <View style={styles.timeline}>
-                <View style={styles.timelineLine} />
+                <View style={[styles.timelineLine, { backgroundColor: theme.outlineVariant }]} />
 
                 <View style={styles.timelineRow}>
-                  <View style={[styles.timelineDot, styles.timelineDotOrigin]} />
+                  <View
+                    style={[
+                      styles.timelineDot,
+                      { backgroundColor: theme.accent, borderColor: theme.surface },
+                    ]}
+                  />
                   <View style={styles.timelineRowContent}>
                     <View style={styles.timelineText}>
-                      <Text variant="label" numberOfLines={2}>
+                      <Text variant="label" color={theme.ink} numberOfLines={2}>
                         {origin?.label}
                       </Text>
                     </View>
-                    <Text variant="bodySmall" color={colors.gray700} style={styles.timelineTime}>
+                    <Text variant="bodySmall" color={theme.inkMuted} style={styles.timelineTime}>
                       {formatTime(departureAt)}
                     </Text>
                   </View>
@@ -632,13 +814,18 @@ export default function PublishRideScreen(): React.JSX.Element {
 
                 {selectedStops.map((stop) => (
                   <View key={stop.id} style={styles.timelineRow}>
-                    <View style={styles.timelineDotStop} />
+                    <View
+                      style={[
+                        styles.timelineDotStop,
+                        { backgroundColor: theme.surface, borderColor: theme.outline },
+                      ]}
+                    />
                     <View style={styles.timelineRowContent}>
                       <View style={styles.timelineText}>
-                        <Text variant="body" numberOfLines={2}>
+                        <Text variant="body" color={theme.ink} numberOfLines={2}>
                           {stop.label}
                         </Text>
-                        <Text variant="bodySmall" color={colors.gray600}>
+                        <Text variant="bodySmall" color={theme.inkFaint}>
                           {ROAD_CLASS_LABELS[stop.roadClass ?? 'unknown'] ?? 'Route'}
                         </Text>
                       </View>
@@ -647,50 +834,79 @@ export default function PublishRideScreen(): React.JSX.Element {
                 ))}
 
                 <View style={styles.timelineRow}>
-                  <View style={[styles.timelineDot, styles.timelineDotDestination]}>
-                    <View style={styles.timelineDotDestinationInner} />
+                  <View
+                    style={[
+                      styles.timelineDot,
+                      styles.timelineDotDestination,
+                      { backgroundColor: theme.surface, borderColor: theme.ink },
+                    ]}
+                  >
+                    <View style={[styles.timelineDotDestinationInner, { backgroundColor: theme.ink }]} />
                   </View>
                   <View style={styles.timelineRowContent}>
                     <View style={styles.timelineText}>
-                      <Text variant="label" numberOfLines={2}>
+                      <Text variant="label" color={theme.ink} numberOfLines={2}>
                         {destination?.label}
                       </Text>
                     </View>
                     {estimatedArrivalAt ? (
-                      <Text variant="bodySmall" color={colors.gray700} style={styles.timelineTime}>
+                      <Text variant="bodySmall" color={theme.inkMuted} style={styles.timelineTime}>
                         ~{formatTime(estimatedArrivalAt)}
                       </Text>
                     ) : null}
                   </View>
                 </View>
               </View>
-            </View>
+            </GlassSurface>
 
             <View style={styles.reviewRow}>
-              <View style={[styles.reviewCard, styles.reviewHalfCard]}>
+              <GlassSurface
+                theme={theme}
+                scheme={scheme}
+                radius="2xl"
+                style={[styles.reviewCard, styles.reviewHalfCard]}
+              >
                 <View style={styles.reviewCardHeader}>
-                  <Text variant="label" color={colors.gray600} style={styles.reviewCardEyebrow}>
+                  <Text variant="label" color={theme.inkFaint} style={styles.reviewCardEyebrow}>
                     PRIX PAR PLACE
                   </Text>
-                  <TouchableOpacity
-                    onPress={() => setStep('price')}
-                    accessibilityRole="button"
-                    accessibilityLabel="Modifier le prix"
-                  >
-                    <Icon name="pencil-outline" size="xs" color={colors.gray700} />
-                  </TouchableOpacity>
+                  {hasRideData ? (
+                    <TouchableOpacity
+                      onPress={() => setStep('price')}
+                      accessibilityRole="button"
+                      accessibilityLabel="Modifier le prix"
+                    >
+                      <Icon name="pencil-outline" size="xs" color={theme.inkMuted} />
+                    </TouchableOpacity>
+                  ) : null}
                 </View>
-                <View style={styles.reviewStatRow}>
-                  <Text variant="h2">{price.toFixed(2)}</Text>
-                  <Text variant="body" color={colors.gray600} style={styles.reviewUnit}>
-                    TND
-                  </Text>
-                </View>
-              </View>
+                {hasRideData ? (
+                  <View style={styles.reviewStatRow}>
+                    <Text variant="h2" color={theme.ink}>
+                      {price.toFixed(2)}
+                    </Text>
+                    <Text variant="body" color={theme.inkMuted} style={styles.reviewUnit}>
+                      TND
+                    </Text>
+                  </View>
+                ) : (
+                  <View style={styles.lockedRow}>
+                    <Icon name="lock-closed-outline" size="xs" color={colors.warningDark} />
+                    <Text variant="bodySmall" color={colors.warningDark}>
+                      Après vérification
+                    </Text>
+                  </View>
+                )}
+              </GlassSurface>
 
-              <View style={[styles.reviewCard, styles.reviewHalfCard]}>
+              <GlassSurface
+                theme={theme}
+                scheme={scheme}
+                radius="2xl"
+                style={[styles.reviewCard, styles.reviewHalfCard]}
+              >
                 <View style={styles.reviewCardHeader}>
-                  <Text variant="label" color={colors.gray600} style={styles.reviewCardEyebrow}>
+                  <Text variant="label" color={theme.inkFaint} style={styles.reviewCardEyebrow}>
                     PLACES DISPONIBLES
                   </Text>
                   <TouchableOpacity
@@ -698,75 +914,97 @@ export default function PublishRideScreen(): React.JSX.Element {
                     accessibilityRole="button"
                     accessibilityLabel="Modifier le nombre de places"
                   >
-                    <Icon name="pencil-outline" size="xs" color={colors.gray700} />
+                    <Icon name="pencil-outline" size="xs" color={theme.inkMuted} />
                   </TouchableOpacity>
                 </View>
                 <View style={styles.reviewStatRow}>
-                  <Text variant="h2">{seats}</Text>
+                  <Text variant="h2" color={theme.ink}>
+                    {seats}
+                  </Text>
                   <View style={styles.seatIcons}>
                     {Array.from({ length: Math.min(seats, 4) }).map((_, i) => (
-                      <Icon key={i} name="person" size="xs" color={colors.primary} />
+                      <Icon key={i} name="person" size="xs" color={theme.ink} />
                     ))}
                   </View>
                 </View>
-              </View>
+              </GlassSurface>
             </View>
 
             {vehicle ? (
-              <View style={styles.reviewCard}>
-                <Text variant="label" color={colors.gray600} style={styles.reviewCardEyebrow}>
+              <GlassSurface theme={theme} scheme={scheme} radius="2xl" style={styles.reviewCard}>
+                <Text variant="label" color={theme.inkFaint} style={styles.reviewCardEyebrow}>
                   VÉHICULE
                 </Text>
                 <View style={styles.vehicleSummaryRow}>
-                  <View style={styles.vehicleSummaryIcon}>
-                    <Icon name="car-sport-outline" size="md" color={colors.gray900} />
+                  <View style={[styles.vehicleSummaryIcon, { backgroundColor: theme.surfaceMuted }]}>
+                    <Icon name="car-sport-outline" size="md" color={theme.ink} />
                   </View>
                   <View>
-                    <Text variant="label">
+                    <Text variant="label" color={theme.ink}>
                       {vehicle.make} {vehicle.model} · {vehicle.color}
                     </Text>
-                    <Text variant="bodySmall" color={colors.gray600}>
+                    <Text variant="bodySmall" color={theme.inkMuted}>
                       {vehicle.plateNumber} · {vehicle.seatCount} places au total
                     </Text>
                   </View>
                 </View>
-              </View>
-            ) : null}
+              </GlassSurface>
+            ) : (
+              <GlassSurface theme={theme} scheme={scheme} radius="2xl" style={styles.reviewCard}>
+                <Text variant="label" color={theme.inkFaint} style={styles.reviewCardEyebrow}>
+                  VÉHICULE
+                </Text>
+                <View style={styles.vehicleSummaryRow}>
+                  <View style={[styles.vehicleSummaryIcon, { backgroundColor: theme.surfaceMuted }]}>
+                    <Icon name="lock-closed-outline" size="sm" color={theme.inkFaint} />
+                  </View>
+                  <Text
+                    variant="bodySmall"
+                    color={theme.inkMuted}
+                    style={styles.vehiclePendingText}
+                  >
+                    Vous ajouterez votre véhicule lors de la vérification de votre profil
+                    conducteur.
+                  </Text>
+                </View>
+              </GlassSurface>
+            )}
           </Animated.View>
         </ScrollView>
 
         {errorMessage ? (
-          <Text variant="bodySmall" color={colors.error} align="center">
+          <Text variant="bodySmall" color={theme.error} align="center">
             {errorMessage}
           </Text>
         ) : null}
 
-        <View style={[styles.stopsFooter, { paddingBottom: insets.bottom + spacing.md }]}>
-          <Button
+        <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.md }]}>
+          <PrimaryButton
+            theme={theme}
             label="Publier ce trajet"
-            size="lg"
+            icon="rocket-outline"
             loading={isPublishing}
             disabled={isPublishing}
             onPress={() => void finalizePublish()}
-            style={styles.cta}
           />
-          <Text variant="bodySmall" color={colors.gray600} align="center" style={styles.termsHint}>
+          <Text variant="bodySmall" color={theme.inkFaint} align="center" style={styles.termsHint}>
             En publiant, vous acceptez nos conditions d&apos;utilisation.
           </Text>
         </View>
 
         <BottomSheet
+          theme={theme}
           visible={isVerificationPromptVisible}
           onClose={() => setIsVerificationPromptVisible(false)}
         >
           <View style={styles.verificationSheet}>
-            <View style={styles.verificationIconWrap}>
-              <RoutePulseBadge icon="shield-checkmark" size="md" tone="onCream" />
+            <View style={[styles.verificationIconWrap, { backgroundColor: theme.surfaceMuted }]}>
+              <Icon name="shield-checkmark" size="lg" color={theme.ink} />
             </View>
-            <Text variant="h3" align="center">
+            <Text variant="h3" color={theme.ink} align="center">
               Une dernière étape pour prendre la route
             </Text>
-            <Text variant="body" color={colors.gray600} align="center">
+            <Text variant="body" color={theme.inkMuted} align="center">
               Pour publier votre premier trajet, nous devons vérifier votre profil de conducteur.
               Votre trajet est enregistré et sera publié automatiquement dès que votre
               vérification sera validée.
@@ -777,18 +1015,15 @@ export default function PublishRideScreen(): React.JSX.Element {
                 Vérification requise
               </Text>
             </View>
-            <Button
+            <PrimaryButton
+              theme={theme}
               label="Commencer la vérification"
-              size="lg"
               onPress={startVerification}
-              style={styles.cta}
             />
-            <Button
+            <GhostButton
+              theme={theme}
               label="Plus tard"
-              variant="ghost"
-              size="lg"
               onPress={() => setIsVerificationPromptVisible(false)}
-              style={styles.cta}
             />
           </View>
         </BottomSheet>
@@ -797,65 +1032,113 @@ export default function PublishRideScreen(): React.JSX.Element {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       {header}
-      <StepProgress currentStep={1} totalSteps={3} style={styles.stepProgress} />
+      <StepProgressBar theme={theme} current={1} total={totalWizardSteps} />
       <ScrollView contentContainerStyle={styles.content}>
         <Animated.View style={[styles.formStack, stepMotionStyle]}>
-          <Text variant="caption" color={colors.secondaryDark} style={styles.eyebrow}>
+          <Text variant="label" color={theme.inkFaint} style={styles.eyebrow}>
             ITINÉRAIRE
           </Text>
-          <FieldCard style={styles.fieldCardSpacing}>
-            <FieldRow
-              label="Départ"
-              value={origin?.label ?? 'Choisir un point de départ'}
-              dotColor={colors.secondary}
-              placeholder={!origin}
+          <GlassSurface theme={theme} scheme={scheme} radius="xl" style={styles.fieldCard}>
+            <TouchableOpacity
+              style={styles.fieldRow}
               onPress={() =>
                 router.push({ pathname: '/search/location', params: { field: 'origin' } })
               }
-            />
-            <FieldRow
-              label="Arrivée"
-              value={destination?.label ?? 'Où allez-vous ?'}
-              dotColor={colors.primary}
-              dotFilled={false}
-              placeholder={!destination}
-              last
+              accessibilityRole="button"
+              accessibilityLabel={`Départ, ${origin?.label ?? 'non choisi'}`}
+            >
+              <View style={[styles.fieldDot, { backgroundColor: theme.accent }]} />
+              <View style={styles.fieldTextCol}>
+                <Text variant="caption" color={theme.inkFaint}>
+                  Départ
+                </Text>
+                <Text
+                  variant="label"
+                  color={origin ? theme.ink : theme.inkFaint}
+                  numberOfLines={1}
+                >
+                  {origin?.label ?? 'Choisir un point de départ'}
+                </Text>
+              </View>
+            </TouchableOpacity>
+            <View style={[styles.fieldDivider, { backgroundColor: theme.outlineVariant }]} />
+            <TouchableOpacity
+              style={styles.fieldRow}
               onPress={() =>
                 router.push({ pathname: '/search/location', params: { field: 'destination' } })
               }
-            />
-          </FieldCard>
+              accessibilityRole="button"
+              accessibilityLabel={`Arrivée, ${destination?.label ?? 'non choisie'}`}
+            >
+              <View style={[styles.fieldDot, styles.fieldDotOutline, { borderColor: theme.ink }]} />
+              <View style={styles.fieldTextCol}>
+                <Text variant="caption" color={theme.inkFaint}>
+                  Arrivée
+                </Text>
+                <Text
+                  variant="label"
+                  color={destination ? theme.ink : theme.inkFaint}
+                  numberOfLines={1}
+                >
+                  {destination?.label ?? 'Où allez-vous ?'}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          </GlassSurface>
 
-          <Text variant="caption" color={colors.secondaryDark} style={styles.eyebrow}>
+          <Text variant="label" color={theme.inkFaint} style={styles.eyebrow}>
             DÉTAILS DU TRAJET
           </Text>
-          <View style={styles.detailsCard}>
+          <GlassSurface theme={theme} scheme={scheme} radius="2xl" style={styles.detailsCard}>
             <View style={styles.section}>
-              <Text variant="label" color={colors.gray700}>
+              <Text variant="label" color={theme.inkMuted}>
                 Départ
               </Text>
               <View style={styles.chipRow}>
                 {DEPARTURE_PRESETS.map((preset) => (
                   <TouchableOpacity
                     key={preset.minutes}
+                    style={[
+                      styles.chip,
+                      selectedPresetMinutes === preset.minutes
+                        ? { backgroundColor: theme.ink }
+                        : { backgroundColor: theme.surfaceMuted },
+                    ]}
                     onPress={() => {
                       setDepartureAt(new Date(Date.now() + preset.minutes * 60_000));
                       setSelectedPresetMinutes(preset.minutes);
                     }}
+                    accessibilityRole="button"
+                    accessibilityLabel={preset.label}
+                    accessibilityState={{ selected: selectedPresetMinutes === preset.minutes }}
                   >
-                    <Chip
-                      label={preset.label}
-                      tone={selectedPresetMinutes === preset.minutes ? 'default' : 'dim'}
-                    />
+                    <Text
+                      variant="caption"
+                      color={selectedPresetMinutes === preset.minutes ? theme.onInk : theme.inkMuted}
+                    >
+                      {preset.label}
+                    </Text>
                   </TouchableOpacity>
                 ))}
-                <TouchableOpacity onPress={() => setIsDepartureSheetOpen(true)}>
-                  <Chip
-                    label="Choisir une date"
-                    tone={selectedPresetMinutes === null ? 'default' : 'dim'}
-                  />
+                <TouchableOpacity
+                  style={[
+                    styles.chip,
+                    selectedPresetMinutes === null
+                      ? { backgroundColor: theme.ink }
+                      : { backgroundColor: theme.surfaceMuted },
+                  ]}
+                  onPress={() => setIsDepartureSheetOpen(true)}
+                  accessibilityRole="button"
+                  accessibilityLabel="Choisir une date"
+                >
+                  <Text
+                    variant="caption"
+                    color={selectedPresetMinutes === null ? theme.onInk : theme.inkMuted}
+                  >
+                    Choisir une date
+                  </Text>
                 </TouchableOpacity>
               </View>
               <TouchableOpacity
@@ -863,62 +1146,56 @@ export default function PublishRideScreen(): React.JSX.Element {
                 accessibilityRole="button"
                 accessibilityLabel={`Départ prévu, ${formatDepartureLabel(departureAt)}`}
               >
-                <Text variant="body" color={colors.gray900} style={styles.departureValue}>
+                <Text variant="body" color={theme.ink} style={styles.departureValue}>
                   {formatDepartureLabel(departureAt)}
                 </Text>
               </TouchableOpacity>
             </View>
 
-            <View style={[styles.section, styles.sectionDivider]}>
-              <Text variant="label" color={colors.gray700}>
+            <View style={[styles.section, styles.sectionDivider, { borderTopColor: theme.outlineVariant }]}>
+              <Text variant="label" color={theme.inkMuted}>
                 Places disponibles
               </Text>
               <View style={styles.stepperRow}>
                 <TouchableOpacity
-                  style={styles.stepperBtn}
+                  style={[styles.stepperBtn, { backgroundColor: theme.surfaceMuted }]}
                   onPress={() => setSeats((s) => Math.max(1, s - 1))}
                   accessibilityRole="button"
                   accessibilityLabel="Retirer une place"
                 >
-                  <Text variant="h3" color={colors.primary}>
+                  <Text variant="h3" color={theme.ink}>
                     −
                   </Text>
                 </TouchableOpacity>
-                <Text variant="h3" style={styles.stepperValue}>
+                <Text variant="h3" color={theme.ink} style={styles.stepperValue}>
                   {seats}
                 </Text>
                 <TouchableOpacity
-                  style={styles.stepperBtn}
+                  style={[styles.stepperBtn, { backgroundColor: theme.surfaceMuted }]}
                   onPress={() => setSeats((s) => Math.min(8, s + 1))}
                   accessibilityRole="button"
                   accessibilityLabel="Ajouter une place"
                 >
-                  <Text variant="h3" color={colors.primary}>
+                  <Text variant="h3" color={theme.ink}>
                     +
                   </Text>
                 </TouchableOpacity>
               </View>
             </View>
-          </View>
+          </GlassSurface>
 
-          {!vehicle ? (
-            <Text variant="bodySmall" color={colors.error} style={styles.formError}>
-              Aucun véhicule enregistré — complétez votre profil conducteur.
-            </Text>
-          ) : null}
           {errorMessage ? (
-            <Text variant="bodySmall" color={colors.error} style={styles.formError}>
+            <Text variant="bodySmall" color={theme.error} style={styles.formError}>
               {errorMessage}
             </Text>
           ) : null}
 
-          <Button
+          <PrimaryButton
+            theme={theme}
             label="Continuer"
-            size="lg"
             loading={isCreating}
             disabled={!canContinue}
-            onPress={() => void continueToPrice()}
-            style={styles.cta}
+            onPress={() => (vehicle ? void continueToPrice() : setStep('review'))}
           />
         </Animated.View>
       </ScrollView>
@@ -940,21 +1217,37 @@ export default function PublishRideScreen(): React.JSX.Element {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.gray100,
   },
   header: {
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.sm,
   },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  headerTitle: {
+    flex: 1,
+    textAlign: 'center',
+  },
+  headerSpacer: {
+    width: spacing.xl,
+  },
+  progressTrack: {
+    height: 2,
+    marginHorizontal: spacing.lg,
+    marginBottom: spacing.md,
+    borderRadius: radii.full,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+  },
   loadingWrap: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.gray100,
-  },
-  stepProgress: {
-    marginHorizontal: spacing.lg,
-    marginBottom: spacing.sm,
   },
   content: {
     padding: spacing.lg,
@@ -969,16 +1262,35 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
     marginTop: spacing.sm,
   },
-  fieldCardSpacing: {
+  fieldCard: {
     marginBottom: spacing.md,
+    paddingHorizontal: spacing.md,
+  },
+  fieldRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.md,
+  },
+  fieldDivider: {
+    height: 1,
+  },
+  fieldDot: {
+    width: 9,
+    height: 9,
+    borderRadius: 5,
+  },
+  fieldDotOutline: {
+    backgroundColor: 'transparent',
+    borderWidth: 2,
+  },
+  fieldTextCol: {
+    flex: 1,
+    gap: 1,
   },
   detailsCard: {
-    backgroundColor: colors.white,
-    borderRadius: radii['2xl'],
     padding: spacing.lg,
     marginBottom: spacing.md,
-    ...elevation?.lg,
-    shadowColor: colors.gray900,
   },
   section: {
     gap: spacing.sm,
@@ -987,7 +1299,6 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
     paddingTop: spacing.md,
     borderTopWidth: 1,
-    borderTopColor: colors.gray100,
   },
   formError: {
     marginBottom: spacing.xs,
@@ -996,6 +1307,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: spacing.sm,
+  },
+  chip: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: radii.full,
   },
   departureValue: {
     marginTop: spacing.sm,
@@ -1010,20 +1326,38 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: colors.white,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: colors.gray300,
   },
   stepperValue: {
     minWidth: 56,
     textAlign: 'center',
   },
-  cta: {
+  primaryBtn: {
     width: '100%',
-    ...elevation?.lg,
-    shadowColor: colors.primary,
+    minHeight: 52,
+    borderRadius: radii.lg,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+  },
+  btnDisabled: {
+    opacity: 0.5,
+  },
+  ghostBtn: {
+    width: '100%',
+    minHeight: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  outlineBtn: {
+    width: '100%',
+    minHeight: 52,
+    borderRadius: radii.lg,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   priceBody: {
     flex: 1,
@@ -1032,11 +1366,7 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   priceCard: {
-    backgroundColor: colors.white,
-    borderRadius: radii['2xl'],
     padding: spacing.lg,
-    ...elevation?.lg,
-    shadowColor: colors.gray900,
   },
   stopsBody: {
     flex: 1,
@@ -1052,8 +1382,6 @@ const styles = StyleSheet.create({
     flex: 1,
     minHeight: 280,
     borderRadius: radii.xl,
-    ...elevation?.lg,
-    shadowColor: colors.gray900,
   },
   mapWrap: {
     flex: 1,
@@ -1067,27 +1395,30 @@ const styles = StyleSheet.create({
     width: 16,
     height: 16,
     borderRadius: 8,
-    backgroundColor: colors.secondary,
     borderWidth: 2,
-    borderColor: colors.white,
   },
   destinationDot: {
     width: 16,
     height: 16,
     borderRadius: 8,
-    backgroundColor: colors.primary,
     borderWidth: 2,
-    borderColor: colors.white,
   },
   hint: {
     marginTop: spacing.xs,
   },
-  stopsFooter: {
+  footer: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.sm,
   },
   sheetContent: {
     gap: spacing.lg,
+  },
+  sheetRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: spacing.sm,
+    borderBottomWidth: 1,
   },
   reviewContent: {
     padding: spacing.lg,
@@ -1103,11 +1434,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   reviewCard: {
-    backgroundColor: colors.white,
-    borderRadius: radii['2xl'],
     padding: spacing.lg,
-    ...elevation?.lg,
-    shadowColor: colors.gray900,
   },
   reviewCardHeader: {
     flexDirection: 'row',
@@ -1139,6 +1466,14 @@ const styles = StyleSheet.create({
   reviewUnit: {
     paddingBottom: 2,
   },
+  lockedRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  vehiclePendingText: {
+    flex: 1,
+  },
   seatIcons: {
     flexDirection: 'row',
     gap: 2,
@@ -1154,7 +1489,6 @@ const styles = StyleSheet.create({
     top: 8,
     bottom: 8,
     width: 2,
-    backgroundColor: colors.gray200,
   },
   timelineRow: {
     marginBottom: spacing.md,
@@ -1179,23 +1513,16 @@ const styles = StyleSheet.create({
     height: 16,
     borderRadius: 8,
     borderWidth: 3,
-    borderColor: colors.white,
-  },
-  timelineDotOrigin: {
-    backgroundColor: colors.secondary,
   },
   timelineDotDestination: {
-    backgroundColor: colors.white,
-    borderWidth: 2,
-    borderColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 2,
   },
   timelineDotDestinationInner: {
     width: 5,
     height: 5,
     borderRadius: 2.5,
-    backgroundColor: colors.primary,
   },
   timelineDotStop: {
     position: 'absolute',
@@ -1204,9 +1531,7 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: colors.white,
     borderWidth: 2,
-    borderColor: colors.gray400,
   },
   vehicleSummaryRow: {
     flexDirection: 'row',
@@ -1217,7 +1542,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: radii.lg,
-    backgroundColor: colors.gray100,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1230,6 +1554,11 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.lg,
   },
   verificationIconWrap: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
     marginTop: spacing.sm,
   },
   verificationPill: {

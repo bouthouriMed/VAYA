@@ -10,19 +10,7 @@ import {
   AccessibilityInfo,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import {
-  Text,
-  Button,
-  Input,
-  StepProgress,
-  ScreenHeader,
-  RoutePulseBadge,
-  colors,
-  spacing,
-  radii,
-  elevation,
-  typography,
-} from '@vaya/design-system';
+import { Text, Icon, Input, GlassSurface, useAppTheme, spacing, radii } from '@vaya/design-system';
 import { router } from 'expo-router';
 import { useAppDispatch, useAppSelector } from '../../../src/state/store';
 import { setVehicleDraft } from '../../../src/state/driverOnboardingSlice';
@@ -31,6 +19,7 @@ const TOTAL_STEPS = 4;
 
 export default function VehicleStepScreen(): React.JSX.Element {
   const insets = useSafeAreaInsets();
+  const { colors: theme } = useAppTheme();
   const dispatch = useAppDispatch();
   const draft = useAppSelector((s) => s.driverOnboarding.vehicle);
 
@@ -75,29 +64,51 @@ export default function VehicleStepScreen(): React.JSX.Element {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: theme.background }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
-        <ScreenHeader onBack={() => router.back()} title={`Étape 1 sur ${TOTAL_STEPS}`} />
-        <StepProgress currentStep={1} totalSteps={TOTAL_STEPS} style={styles.stepProgress} />
+        <View style={styles.headerRow}>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel="Retour"
+          >
+            <Icon name="arrow-back" size="sm" color={theme.ink} />
+          </TouchableOpacity>
+          <Text variant="h3" color={theme.ink} style={styles.headerTitle}>
+            Étape 1 sur {TOTAL_STEPS}
+          </Text>
+          <View style={styles.headerSpacer} />
+        </View>
+        <View style={[styles.progressTrack, { backgroundColor: theme.outlineVariant }]}>
+          <View
+            style={[
+              styles.progressFill,
+              { backgroundColor: theme.ink, width: `${(1 / TOTAL_STEPS) * 100}%` },
+            ]}
+          />
+        </View>
       </View>
 
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <Animated.View style={{ opacity: fade }}>
-          <RoutePulseBadge icon="car-sport" size="md" tone="onCream" />
-          <Text variant="caption" color={colors.secondaryDark} style={styles.eyebrow}>
+          <View style={[styles.badge, { backgroundColor: theme.surfaceMuted }]}>
+            <Icon name="car-sport" size="lg" color={theme.ink} />
+          </View>
+          <Text variant="label" color={theme.inkFaint} style={styles.eyebrow}>
             PROFIL CONDUCTEUR
           </Text>
-          <Text variant="h2" style={styles.title}>
+          <Text variant="h2" color={theme.ink} style={styles.title}>
             Votre véhicule
           </Text>
-          <Text variant="body" color={colors.gray600} style={styles.subtitle}>
+          <Text variant="body" color={theme.inkMuted} style={styles.subtitle}>
             Ces informations apparaissent sur votre profil conducteur pour rassurer vos passagers.
           </Text>
 
-          <View style={styles.card}>
-            <Text variant="label" color={colors.gray500} style={styles.cardEyebrow}>
+          <GlassSurface theme={theme} radius="2xl" style={styles.card}>
+            <Text variant="label" color={theme.inkFaint} style={styles.cardEyebrow}>
               DÉTAILS DU VÉHICULE
             </Text>
             <View style={styles.fieldRow}>
@@ -123,48 +134,58 @@ export default function VehicleStepScreen(): React.JSX.Element {
               </View>
             </View>
 
-            <View style={styles.seatsSection}>
-              <Text variant="label" color={colors.gray700}>
+            <View style={[styles.seatsSection, { borderTopColor: theme.outlineVariant }]}>
+              <Text variant="label" color={theme.inkMuted}>
                 Nombre de places passagers
               </Text>
               <View style={styles.stepperRow}>
                 <TouchableOpacity
-                  style={styles.stepperBtn}
+                  style={[styles.stepperBtn, { backgroundColor: theme.surfaceMuted }]}
                   onPress={() => setSeatCount((s) => Math.max(1, s - 1))}
                   accessibilityRole="button"
                   accessibilityLabel="Retirer une place"
                 >
-                  <Text variant="h3" color={colors.primary}>
+                  <Text variant="h3" color={theme.ink}>
                     −
                   </Text>
                 </TouchableOpacity>
-                <Text variant="h3" style={styles.stepperValue}>
+                <Text variant="h3" color={theme.ink} style={styles.stepperValue}>
                   {seatCount}
                 </Text>
                 <TouchableOpacity
-                  style={styles.stepperBtn}
+                  style={[styles.stepperBtn, { backgroundColor: theme.surfaceMuted }]}
                   onPress={() => setSeatCount((s) => Math.min(8, s + 1))}
                   accessibilityRole="button"
                   accessibilityLabel="Ajouter une place"
                 >
-                  <Text variant="h3" color={colors.primary}>
+                  <Text variant="h3" color={theme.ink}>
                     +
                   </Text>
                 </TouchableOpacity>
               </View>
             </View>
-          </View>
+          </GlassSurface>
         </Animated.View>
       </ScrollView>
 
       <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.lg }]}>
-        <Button
-          label="Continuer"
-          size="lg"
-          disabled={!canContinue}
+        <TouchableOpacity
+          style={[
+            styles.cta,
+            { backgroundColor: theme.ink },
+            !canContinue && styles.ctaDisabled,
+          ]}
           onPress={next}
-          style={styles.cta}
-        />
+          disabled={!canContinue}
+          activeOpacity={0.85}
+          accessibilityRole="button"
+          accessibilityLabel="Continuer"
+          accessibilityState={{ disabled: !canContinue }}
+        >
+          <Text variant="label" color={theme.onInk}>
+            Continuer
+          </Text>
+        </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
   );
@@ -173,27 +194,50 @@ export default function VehicleStepScreen(): React.JSX.Element {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.gray100,
   },
   header: {
     paddingHorizontal: spacing.lg,
     gap: spacing.md,
   },
-  stepProgress: {
-    marginBottom: spacing.sm,
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  headerTitle: {
+    flex: 1,
+    textAlign: 'center',
+  },
+  headerSpacer: {
+    width: spacing.xl,
+  },
+  progressTrack: {
+    height: 2,
+    borderRadius: radii.full,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
   },
   content: {
     padding: spacing.lg,
     paddingBottom: spacing['4xl'],
   },
+  badge: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   eyebrow: {
     marginTop: spacing.lg,
-    fontWeight: typography.fontWeight.semibold,
+    fontWeight: '600',
     letterSpacing: 1.5,
   },
   title: {
     marginTop: spacing.xs,
-    fontWeight: typography.fontWeight.bold,
+    fontWeight: '700',
   },
   subtitle: {
     marginTop: spacing.sm,
@@ -201,17 +245,12 @@ const styles = StyleSheet.create({
     maxWidth: 320,
   },
   card: {
-    backgroundColor: colors.white,
-    borderRadius: radii['2xl'],
     padding: spacing.lg,
     gap: spacing.md,
-    ...elevation?.lg,
-    shadowColor: colors.gray900,
   },
   cardEyebrow: {
-    color: colors.gray400,
     letterSpacing: 1,
-    marginBottom: spacing.xs,
+    marginBottom: 2,
   },
   fieldRow: {
     flexDirection: 'row',
@@ -225,7 +264,6 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
     paddingTop: spacing.md,
     borderTopWidth: 1,
-    borderTopColor: colors.gray100,
   },
   stepperRow: {
     flexDirection: 'row',
@@ -236,7 +274,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: colors.gray100,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -247,9 +284,15 @@ const styles = StyleSheet.create({
   footer: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.sm,
-    backgroundColor: colors.gray100,
   },
   cta: {
     width: '100%',
+    minHeight: 52,
+    borderRadius: radii.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  ctaDisabled: {
+    opacity: 0.5,
   },
 });

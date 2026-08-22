@@ -19,12 +19,31 @@ export interface PendingRide {
   destinationLabel: string;
 }
 
+/** Same hand-off as `PendingRide`, but for a driver who had no vehicle at
+ *  all yet when they hit "Publier ce trajet" (never onboarded — the publish
+ *  tab now opens this wizard even then). No server-side ride exists to
+ *  reference, so the raw ride draft travels through onboarding instead; the
+ *  ride itself is created (and immediately published) once a real
+ *  `vehicleId` exists, right after onboarding succeeds. */
+export interface PendingRideDraft {
+  originLabel: string;
+  originLat: number;
+  originLng: number;
+  destinationLabel: string;
+  destinationLat: number;
+  destinationLng: number;
+  /** ISO string — Redux state must stay serializable. */
+  departureAt: string;
+  seatsTotal: number;
+}
+
 interface DriverOnboardingState {
   vehicle: VehicleDraft | null;
   licenseUri: string | null;
   insuranceUri: string | null;
   selfieUri: string | null;
   pendingRide: PendingRide | null;
+  pendingRideDraft: PendingRideDraft | null;
 }
 
 const initialState: DriverOnboardingState = {
@@ -33,6 +52,7 @@ const initialState: DriverOnboardingState = {
   insuranceUri: null,
   selfieUri: null,
   pendingRide: null,
+  pendingRideDraft: null,
 };
 
 const driverOnboardingSlice = createSlice({
@@ -54,6 +74,9 @@ const driverOnboardingSlice = createSlice({
     setPendingRide(state, action: PayloadAction<PendingRide>) {
       state.pendingRide = action.payload;
     },
+    setPendingRideDraft(state, action: PayloadAction<PendingRideDraft>) {
+      state.pendingRideDraft = action.payload;
+    },
     resetDriverOnboarding() {
       return initialState;
     },
@@ -66,6 +89,7 @@ export const {
   setInsuranceUri,
   setSelfieUri,
   setPendingRide,
+  setPendingRideDraft,
   resetDriverOnboarding,
 } = driverOnboardingSlice.actions;
 export default driverOnboardingSlice.reducer;
