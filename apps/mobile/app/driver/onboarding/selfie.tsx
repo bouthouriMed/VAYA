@@ -155,7 +155,7 @@ export default function SelfieCaptureScreen(): React.JSX.Element {
       dispatch(resetDriverOnboarding());
 
       if (!pendingRide && !pendingRideDraft) {
-        router.replace('/driver/publish');
+        router.replace('/(tabs)/publish');
         return;
       }
 

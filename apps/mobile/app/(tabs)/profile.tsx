@@ -149,7 +149,7 @@ export default function ProfileScreen(): React.JSX.Element {
 
   function goToDriverFlow(): void {
     haptics.selection();
-    router.push(realDriverProfile ? '/driver/publish' : '/driver/onboarding');
+    router.push(realDriverProfile ? '/(tabs)/publish' : '/driver/onboarding');
   }
 
   async function handleChangePhoto(): Promise<void> {
