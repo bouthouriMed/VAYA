@@ -1,71 +1,68 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   View,
   StyleSheet,
   TextInput,
+  TouchableOpacity,
   KeyboardAvoidingView,
-  TouchableWithoutFeedback,
-  Keyboard,
   Platform,
+  Animated,
+  AccessibilityInfo,
 } from 'react-native';
-import Svg, { Defs, LinearGradient as SvgGradient, Stop, Circle } from 'react-native-svg';
-import { Text, Button, colors, spacing, radii, typography } from '@vaya/design-system';
+import {
+  Text,
+  Icon,
+  BottomSheet,
+  RoutePulseBadge,
+  darkPalette,
+  spacing,
+  radii,
+  typography,
+} from '@vaya/design-system';
 import { router, Redirect } from 'expo-router';
-import { BlurView } from 'expo-blur';
 import { useAppSelector } from '../src/state/store';
 
-const ARC_SIZE = 200;
-const STROKE_WIDTH = 34;
-const RADIUS = (ARC_SIZE - STROKE_WIDTH) / 2;
-const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
-// Leaves a 60° gap centered at the bottom, so the shape reads as an open
-// arc/arch rather than a closed ring.
-const GAP_DEG = 60;
-const SOLID_DEG = 360 - GAP_DEG;
-const DASH = `${(SOLID_DEG / 360) * CIRCUMFERENCE} ${(GAP_DEG / 360) * CIRCUMFERENCE}`;
-const ROTATION = 90 + GAP_DEG / 2;
-
 /**
- * Stylized stand-in for the reference's photoreal 3D glass arc render — no 3D
- * asset pipeline here, so this approximates the same idea (a glassy,
- * sage-tinted open arc catching light, floating with a soft shadow) as a real
- * open arc rather than a closed ring.
+ * stitch/landing/vaya-landing-premium-dark-mode.html — the "Vaya Landing"
+ * project's premium dark hero, fixed-dark regardless of system theme (the
+ * app's own brand-identity choice, same as driver/onboarding/index.tsx's
+ * navy hero) rather than following useAppTheme()'s light/dark toggle.
+ * Stitch's reference is a full-bleed cinematic photo with glass OAuth
+ * buttons (Google/Facebook) — this backend has neither social login nor a
+ * separate sign-up step (VerifyOtp always creates-or-logs-in by phone
+ * number), so the photo becomes an on-brand ambient glow + the existing
+ * RoutePulseBadge motif, and the buttons become the one real auth
+ * mechanism this app has. "Subtly expandable": the landing itself stays a
+ * simple hero + one CTA, matching the companion
+ * `contextual-authentication-sheet.html`'s slide-up sheet pattern for the
+ * actual phone-number step, rather than showing the input up front.
  */
-function GlassArcHero(): React.JSX.Element {
-  return (
-    <View style={styles.heroWrap}>
-      <View style={styles.heroShadow} />
-      <Svg width={ARC_SIZE} height={ARC_SIZE} viewBox={`0 0 ${ARC_SIZE} ${ARC_SIZE}`}>
-        <Defs>
-          <SvgGradient id="arcGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <Stop offset="0%" stopColor="#EAF0EA" />
-            <Stop offset="45%" stopColor={colors.secondaryLight} />
-            <Stop offset="75%" stopColor={colors.secondary} />
-            <Stop offset="100%" stopColor="#3E5A41" />
-          </SvgGradient>
-        </Defs>
-        <Circle
-          cx={ARC_SIZE / 2}
-          cy={ARC_SIZE / 2}
-          r={RADIUS}
-          fill="none"
-          stroke="url(#arcGrad)"
-          strokeWidth={STROKE_WIDTH}
-          strokeLinecap="round"
-          strokeDasharray={DASH}
-          rotation={ROTATION}
-          origin={`${ARC_SIZE / 2}, ${ARC_SIZE / 2}`}
-        />
-      </Svg>
-      <View style={styles.heroHighlight} />
-    </View>
-  );
-}
-
 export default function LandingScreen(): React.JSX.Element {
   const accessToken = useAppSelector((s) => s.auth.accessToken);
+  const [isAuthSheetOpen, setIsAuthSheetOpen] = useState(false);
   const [phone, setPhone] = useState('');
   const canContinue = phone.replace(/\s/g, '').length >= 8;
+
+  const fade = useRef(new Animated.Value(0)).current;
+  const rise = useRef(new Animated.Value(16)).current;
+  useEffect(() => {
+    let cancelled = false;
+    void AccessibilityInfo.isReduceMotionEnabled().then((reduced) => {
+      if (cancelled) return;
+      if (reduced) {
+        fade.setValue(1);
+        rise.setValue(0);
+        return;
+      }
+      Animated.parallel([
+        Animated.timing(fade, { toValue: 1, duration: 500, useNativeDriver: true }),
+        Animated.timing(rise, { toValue: 0, duration: 500, useNativeDriver: true }),
+      ]).start();
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [fade, rise]);
 
   if (accessToken) {
     return <Redirect href="/(tabs)/explore" />;
@@ -73,137 +70,226 @@ export default function LandingScreen(): React.JSX.Element {
 
   function submit(): void {
     if (!canContinue) return;
-    Keyboard.dismiss();
+    setIsAuthSheetOpen(false);
     router.push({ pathname: '/(auth)/otp', params: { phone: `+216 ${phone}` } });
   }
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-      <KeyboardAvoidingView
-        style={styles.container}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
-      >
-        <View style={styles.content}>
-          <GlassArcHero />
+    <View style={styles.container}>
+      <View pointerEvents="none" style={styles.glowTop} />
+      <View pointerEvents="none" style={styles.glowBottom} />
 
-          <View style={styles.copy}>
-            <Text style={styles.wordmark}>arc.</Text>
-            <Text variant="body" color={colors.gray600}>
-              Your path, naturally.
-            </Text>
+      <View style={styles.content}>
+        <Animated.View style={[styles.hero, { opacity: fade, transform: [{ translateY: rise }] }]}>
+          <RoutePulseBadge icon="navigate" size="hero" tone="onNavy" />
+          <Text style={styles.wordmark}>VAYA</Text>
+          <Text variant="h3" color={darkPalette.ink} align="center" style={styles.headline}>
+            Voyagez, en toute confiance.
+          </Text>
+          <Text
+            variant="body"
+            color={darkPalette.inkMuted}
+            align="center"
+            style={styles.subhead}
+          >
+            Le covoiturage repensé pour la Tunisie — trajets vérifiés, prix justes, en toute
+            simplicité.
+          </Text>
+        </Animated.View>
+      </View>
+
+      <View style={styles.footer}>
+        <TouchableOpacity
+          style={[styles.cta, { backgroundColor: darkPalette.ink }]}
+          onPress={() => setIsAuthSheetOpen(true)}
+          activeOpacity={0.85}
+          accessibilityRole="button"
+          accessibilityLabel="Commencer"
+        >
+          <Text variant="label" color={darkPalette.onInk}>
+            Commencer
+          </Text>
+        </TouchableOpacity>
+        <Text
+          variant="bodySmall"
+          color={darkPalette.inkFaint}
+          align="center"
+          style={styles.legalHint}
+        >
+          En continuant, vous acceptez nos conditions d&apos;utilisation.
+        </Text>
+      </View>
+
+      <BottomSheet theme={darkPalette} visible={isAuthSheetOpen} onClose={() => setIsAuthSheetOpen(false)}>
+        <KeyboardAvoidingView
+          style={styles.sheetBody}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        >
+          <View style={[styles.sheetIconWrap, { backgroundColor: darkPalette.surfaceMuted }]}>
+            <Icon name="call" size="md" color={darkPalette.ink} />
           </View>
+          <Text variant="h3" color={darkPalette.ink} align="center">
+            Rejoignez VAYA
+          </Text>
+          <Text
+            variant="body"
+            color={darkPalette.inkMuted}
+            align="center"
+            style={styles.sheetSubtitle}
+          >
+            Entrez votre numéro pour recevoir un code de vérification par SMS.
+          </Text>
 
-          <View style={styles.formSection}>
-            <Text variant="label" color={colors.gray600} style={styles.fieldLabel}>
-              Phone number
-            </Text>
-            <BlurView intensity={40} tint="light" style={styles.glassInput}>
-              <View style={styles.glassInputOverlay}>
-                <View style={styles.countryPill}>
-                  <Text style={styles.flag}>🇹🇳</Text>
-                  <Text style={styles.countryCode}>+216</Text>
-                </View>
-                <TextInput
-                  value={phone}
-                  onChangeText={setPhone}
-                  placeholder="98 123 456"
-                  placeholderTextColor={colors.gray500}
-                  keyboardType="phone-pad"
-                  returnKeyType="done"
-                  onSubmitEditing={submit}
-                  style={styles.input}
-                />
-              </View>
-            </BlurView>
-
-            <Button
-              label="Get Started"
-              size="lg"
-              disabled={!canContinue}
-              onPress={submit}
-              style={styles.cta}
+          <View
+            style={[
+              styles.phoneRow,
+              { backgroundColor: darkPalette.surfaceMuted, borderColor: darkPalette.outlineVariant },
+            ]}
+          >
+            <View style={[styles.countryPill, { backgroundColor: darkPalette.surface }]}>
+              <Text style={styles.flag}>🇹🇳</Text>
+              <Text variant="label" color={darkPalette.ink}>
+                +216
+              </Text>
+            </View>
+            <TextInput
+              value={phone}
+              onChangeText={setPhone}
+              placeholder="98 123 456"
+              placeholderTextColor={darkPalette.inkFaint}
+              keyboardType="phone-pad"
+              returnKeyType="done"
+              onSubmitEditing={submit}
+              autoFocus
+              style={[styles.phoneInput, { color: darkPalette.ink }]}
             />
           </View>
-        </View>
-      </KeyboardAvoidingView>
-    </TouchableWithoutFeedback>
+
+          <TouchableOpacity
+            style={[
+              styles.cta,
+              { backgroundColor: darkPalette.ink },
+              !canContinue && styles.ctaDisabled,
+            ]}
+            onPress={submit}
+            disabled={!canContinue}
+            activeOpacity={0.85}
+            accessibilityRole="button"
+            accessibilityLabel="Continuer"
+            accessibilityState={{ disabled: !canContinue }}
+          >
+            <Text variant="label" color={darkPalette.onInk}>
+              Continuer
+            </Text>
+          </TouchableOpacity>
+        </KeyboardAvoidingView>
+      </BottomSheet>
+    </View>
   );
 }
-
-const RING_WRAP = ARC_SIZE + 40;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.gray100,
+    backgroundColor: darkPalette.background,
+    overflow: 'hidden',
+  },
+  glowTop: {
+    position: 'absolute',
+    top: -140,
+    left: -80,
+    width: 320,
+    height: 320,
+    borderRadius: 160,
+    backgroundColor: darkPalette.accentGlow,
+    opacity: 0.28,
+  },
+  glowBottom: {
+    position: 'absolute',
+    bottom: -160,
+    right: -100,
+    width: 360,
+    height: 360,
+    borderRadius: 180,
+    backgroundColor: darkPalette.accent,
+    opacity: 0.16,
   },
   content: {
     flex: 1,
-    justifyContent: 'center',
-    paddingHorizontal: spacing.xl,
-  },
-  heroWrap: {
-    alignSelf: 'center',
-    width: RING_WRAP,
-    height: RING_WRAP,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: spacing.lg,
+    paddingHorizontal: spacing['2xl'],
   },
-  heroShadow: {
-    position: 'absolute',
-    bottom: 6,
-    width: ARC_SIZE * 0.7,
-    height: 20,
-    borderRadius: 999,
-    backgroundColor: colors.gray900,
-    opacity: 0.12,
-  },
-  heroHighlight: {
-    position: 'absolute',
-    top: ARC_SIZE * 0.22,
-    left: ARC_SIZE * 0.16,
-    width: ARC_SIZE * 0.32,
-    height: ARC_SIZE * 0.22,
-    borderRadius: 999,
-    backgroundColor: 'rgba(255,255,255,0.5)',
-    transform: [{ rotate: '-25deg' }],
-  },
-  copy: {
+  hero: {
     alignItems: 'center',
-    gap: 6,
-    marginBottom: spacing['3xl'],
   },
   wordmark: {
-    color: colors.gray900,
+    marginTop: spacing.xl,
+    color: darkPalette.ink,
     fontWeight: '800',
-    fontSize: 56,
-    letterSpacing: -1.5,
+    fontSize: 40,
+    letterSpacing: 4,
+    textShadowColor: 'rgba(255,255,255,0.25)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 20,
   },
-  formSection: {
+  headline: {
+    marginTop: spacing.lg,
+    fontWeight: typography.fontWeight.bold,
+  },
+  subhead: {
+    marginTop: spacing.sm,
+    maxWidth: 300,
+  },
+  footer: {
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing['2xl'],
     gap: spacing.sm,
   },
-  fieldLabel: {
-    marginLeft: spacing.xs,
+  cta: {
+    width: '100%',
+    minHeight: 52,
+    borderRadius: radii.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  glassInput: {
-    borderRadius: radii.full,
-    overflow: 'hidden',
+  ctaDisabled: {
+    opacity: 0.5,
   },
-  glassInputOverlay: {
+  legalHint: {
+    marginTop: spacing.xs,
+  },
+  sheetBody: {
+    gap: spacing.md,
+    alignItems: 'center',
+    paddingBottom: spacing.lg,
+  },
+  sheetIconWrap: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sheetSubtitle: {
+    marginTop: -spacing.xs,
+    maxWidth: 300,
+  },
+  phoneRow: {
+    width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.55)',
+    gap: spacing.sm,
+    borderWidth: 1,
+    borderRadius: radii.full,
     paddingHorizontal: spacing.xs,
     paddingVertical: spacing.xs,
-    gap: spacing.xs,
+    marginTop: spacing.sm,
   },
   countryPill: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: colors.white,
     borderRadius: radii.full,
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.sm,
@@ -211,19 +297,9 @@ const styles = StyleSheet.create({
   flag: {
     fontSize: 16,
   },
-  countryCode: {
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.gray900,
-    fontSize: typography.fontSize.sm,
-  },
-  input: {
+  phoneInput: {
     flex: 1,
     fontSize: typography.fontSize.md,
-    color: colors.gray900,
     paddingHorizontal: spacing.xs,
-  },
-  cta: {
-    width: '100%',
-    marginTop: spacing.sm,
   },
 });
