@@ -18,7 +18,7 @@ import {
   spacing,
   radii,
 } from '@vaya/design-system';
-import { router, Redirect } from 'expo-router';
+import { router } from 'expo-router';
 import { useAppSelector } from '../../src/state/store';
 import {
   useListMyBookingsQuery,
@@ -128,13 +128,6 @@ export default function TripsScreen(): React.JSX.Element {
     ? estimateArrivalLabel(heroRide.departureAt, heroRide.estimatedDurationSec)
     : null;
 
-  // "Mes trajets" genuinely has nothing to show a guest — every list here is
-  // identity-scoped. Sent to sign-in.tsx explicitly rather than left to
-  // render on 401s from the skipped queries above.
-  if (!accessToken) {
-    return <Redirect href="/sign-in" />;
-  }
-
   function goToDriverFlow(): void {
     router.push(driverProfile ? '/(tabs)/publish' : '/driver/onboarding/vehicle');
   }
@@ -172,7 +165,19 @@ export default function TripsScreen(): React.JSX.Element {
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity style={[styles.publishCard, { backgroundColor: theme.surface }]} onPress={goToDriverFlow} activeOpacity={0.8}>
+        {!accessToken ? (
+          <View style={styles.guestEmptyWrap}>
+            <EmptyState
+              icon={<Icon name="car-sport-outline" size="lg" color={theme.inkFaint} />}
+              title="Trouvez votre premier trajet"
+              description="Recherchez un trajet pour commencer à voyager avec VAYA — vous pourrez suivre vos réservations ici."
+              actionLabel="Rechercher un trajet"
+              onAction={() => router.navigate('/(tabs)/explore')}
+            />
+          </View>
+        ) : (
+          <>
+            <TouchableOpacity style={[styles.publishCard, { backgroundColor: theme.surface }]} onPress={goToDriverFlow} activeOpacity={0.8}>
           <View style={[styles.publishIcon, { backgroundColor: theme.accent }]}>
             <Ionicons name="add" size={22} color={theme.onAccent} />
           </View>
@@ -434,6 +439,8 @@ export default function TripsScreen(): React.JSX.Element {
             )}
           </View>
         )}
+          </>
+        )}
       </ScrollView>
 
       <CancellationSheet
@@ -646,5 +653,8 @@ const styles = StyleSheet.create({
   },
   loading: {
     marginTop: spacing.md,
+  },
+  guestEmptyWrap: {
+    paddingTop: spacing['3xl'],
   },
 });

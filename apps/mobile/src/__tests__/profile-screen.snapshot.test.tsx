@@ -80,6 +80,22 @@ vi.mock('../services/auth/tokenStorage', () => ({
   saveTokens: async () => {},
 }));
 
+// profile.tsx imports ContextualAuthSheet unconditionally (only *rendered*
+// on the guest path these tests don't exercise), and that module's own
+// imports (googleAuth.ts) reach real native modules with no binding under
+// Vitest's Node environment — module-level import alone is enough to crash
+// without these stand-ins, whether or not the guest branch ever runs.
+vi.mock('expo-web-browser', () => ({
+  openAuthSessionAsync: async () => ({ type: 'cancel' }),
+}));
+vi.mock('expo-linking', () => ({
+  createURL: (path: string) => `vaya://${path}`,
+  parse: (url: string) => ({ queryParams: {}, hostname: null, path: url }),
+}));
+vi.mock('expo-constants', () => ({
+  default: { expoConfig: { extra: { apiBaseUrl: 'http://localhost:3000/api/v1' } } },
+}));
+
 vi.mock('../services/settings/appearanceStorage', () => ({
   saveAppearancePreference: async () => {},
   loadAppearancePreference: async () => 'system' as const,

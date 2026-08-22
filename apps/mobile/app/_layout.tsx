@@ -152,6 +152,10 @@ export default function RootLayout(): React.JSX.Element {
                   <Stack.Screen name="index" />
                   <Stack.Screen name="sign-in" />
                   <Stack.Screen name="(auth)" />
+                  {/* The Google OAuth deep link's real fallback landing pad
+                   *  (auth/google.tsx) — see that file's doc comment for why
+                   *  this needs to be a registered route at all. */}
+                  <Stack.Screen name="auth" />
                   {/* gestureEnabled: false — (tabs) sits after index/(auth) in
                    *  this stack, so it has a real screen underneath to pop
                    *  back to, and native-stack's default edge swipe-back

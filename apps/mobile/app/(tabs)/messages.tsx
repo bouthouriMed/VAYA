@@ -1,8 +1,10 @@
 import { useMemo, useState } from 'react';
 import { SectionList, View, StyleSheet, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router, Redirect } from 'expo-router';
+import { router } from 'expo-router';
 import { useAppSelector } from '../../src/state/store';
+import { useContextualAuth } from '../../src/features/auth/useContextualAuth';
+import { ContextualAuthSheet } from '../../src/features/auth/ContextualAuthSheet';
 import {
   Text,
   Avatar,
@@ -42,6 +44,8 @@ export default function MessagesScreen(): React.JSX.Element {
   const { data: conversations, isLoading, isError, refetch } = useListConversationsQuery(undefined, {
     skip: !accessToken,
   });
+  const { requireAuth, isAuthSheetVisible, authTrigger, handleAuthenticated, cancelAuth } =
+    useContextualAuth();
 
   const sections = useMemo(() => {
     const filtered = filterConversations(conversations ?? [], filter);
@@ -56,9 +60,35 @@ export default function MessagesScreen(): React.JSX.Element {
   }
 
   // Messaging is booking-scoped and identity-scoped end to end — nothing
-  // here exists for a guest. Sent to sign-in.tsx explicitly.
+  // here exists for a guest, but browsing this tab is still allowed
+  // (per the guest-browsing model). A friendly EmptyState replaces the
+  // real inbox instead of a hard redirect; its CTA opens the same
+  // ContextualAuthSheet search/publish already use, not a separate screen.
   if (!accessToken) {
-    return <Redirect href="/sign-in" />;
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top']}>
+        <View style={styles.header}>
+          <View style={styles.headerSlot} />
+          <Text variant="headlineDisplay" color={theme.ink}>
+            Messages
+          </Text>
+          <View style={styles.headerSlot} />
+        </View>
+        <EmptyState
+          icon={<Icon name="chatbubble-ellipses-outline" size="lg" color={theme.inkFaint} />}
+          title="Vos trajets, au même endroit."
+          description="Connectez-vous pour retrouver les conversations liées à vos trajets partagés — avant, pendant et après le départ."
+          actionLabel="Se connecter"
+          onAction={() => requireAuth(() => {}, 'messages')}
+        />
+        <ContextualAuthSheet
+          visible={isAuthSheetVisible}
+          trigger={authTrigger}
+          onClose={cancelAuth}
+          onAuthenticated={handleAuthenticated}
+        />
+      </SafeAreaView>
+    );
   }
 
   if (isLoading) {

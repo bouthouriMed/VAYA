@@ -5,6 +5,7 @@ import * as ImagePicker from 'expo-image-picker';
 import {
   Avatar,
   BottomSheet,
+  EmptyState,
   Icon,
   Modal,
   SkeletonCircle,
@@ -20,7 +21,9 @@ import {
   type IconName,
 } from '@vaya/design-system';
 import { TRUST_TIER_LABELS, type TrustTier } from '@vaya/domain';
-import { router, Redirect } from 'expo-router';
+import { router } from 'expo-router';
+import { useContextualAuth } from '../../src/features/auth/useContextualAuth';
+import { ContextualAuthSheet } from '../../src/features/auth/ContextualAuthSheet';
 import { SUPPORTED_LOCALES, type SupportedLocale } from '@vaya/config';
 import { useAppDispatch, useAppSelector } from '../../src/state/store';
 import { clearAuth } from '../../src/state/authSlice';
@@ -124,6 +127,8 @@ export default function ProfileScreen(): React.JSX.Element {
   const [uploadFile] = useUploadFileMutation();
   const [requestPhoneOtp, { isLoading: isSendingPhoneOtp }] = useRequestPhoneOtpMutation();
   const [verifyPhoneOtp, { isLoading: isVerifyingPhoneOtp }] = useVerifyPhoneOtpMutation();
+  const { requireAuth, isAuthSheetVisible, authTrigger, handleAuthenticated, cancelAuth } =
+    useContextualAuth();
 
   const [confirmingLogout, setConfirmingLogout] = useState(false);
   const [pickingLocale, setPickingLocale] = useState(false);
@@ -151,10 +156,30 @@ export default function ProfileScreen(): React.JSX.Element {
       .sort((a, b) => TIER_RANK[b.tier] - TIER_RANK[a.tier])[0];
 
   // Every row here is identity-scoped (real name, real stats, real
-  // settings) — nothing honest to show a guest. Sent to sign-in.tsx
-  // explicitly rather than rendering skeletons that never resolve.
+  // settings) — nothing honest to show a guest, but browsing this tab is
+  // still allowed (per the guest-browsing model). A friendly EmptyState
+  // replaces the real hub instead of a hard redirect; its CTA opens the
+  // same ContextualAuthSheet search/publish already use.
   if (!accessToken) {
-    return <Redirect href="/sign-in" />;
+    return (
+      <View style={[styles.container, styles.guestContainer, { backgroundColor: theme.background }]}>
+        <View style={{ height: insets.top + spacing.sm }} />
+        <EmptyState
+          icon={<Icon name="person-circle-outline" size="lg" color={theme.inkFaint} />}
+          title="Votre profil VAYA"
+          description="Connectez-vous pour gérer votre profil, suivre vos trajets et accéder à vos réglages."
+          actionLabel="Se connecter"
+          onAction={() => requireAuth(() => {}, 'account')}
+        />
+        <StatusBarBlend theme={theme} scheme={scheme} height={insets.top - spacing.sm} />
+        <ContextualAuthSheet
+          visible={isAuthSheetVisible}
+          trigger={authTrigger}
+          onClose={cancelAuth}
+          onAuthenticated={handleAuthenticated}
+        />
+      </View>
+    );
   }
 
   async function handleLogout(): Promise<void> {
@@ -956,6 +981,9 @@ export default function ProfileScreen(): React.JSX.Element {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  guestContainer: {
+    justifyContent: 'center',
   },
   identity: {
     alignItems: 'center',

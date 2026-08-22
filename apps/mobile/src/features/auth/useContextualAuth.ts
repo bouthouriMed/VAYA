@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState } from 'react';
 import { useAppSelector } from '../../state/store';
 
-export type ContextualAuthTrigger = 'booking' | 'publishing';
+export type ContextualAuthTrigger = 'booking' | 'publishing' | 'messages' | 'account';
 
 /**
  * Lets any screen gate a single action behind sign-in without a hard
