@@ -58,3 +58,5 @@ apps/api/uploads/
 # Misc
 *.pem
 .vercel
+
+stitch_mcp.md

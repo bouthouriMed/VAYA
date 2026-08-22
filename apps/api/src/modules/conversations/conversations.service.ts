@@ -1,8 +1,15 @@
-import { and, asc, eq, gt } from 'drizzle-orm';
+import { and, asc, desc, eq, gt, inArray, or } from 'drizzle-orm';
 import type { getDatabase } from '../../lib/database.js';
-import { bookings, conversations, messages } from '../../db/schema/index.js';
+import {
+  bookings,
+  conversations,
+  driverProfiles,
+  messages,
+  rides,
+} from '../../db/schema/index.js';
 import { ConflictError, ForbiddenError, NotFoundError } from '../../lib/errors.js';
 import type { SendMessageInput } from '@vaya/validation';
+import type { RideStatus, TripStatus } from '@vaya/domain';
 import { getLogger } from '../../config/logger.js';
 import { notifyBestEffort } from '../notifications/notifications.service.js';
 
@@ -116,29 +123,195 @@ async function getAuthorizedConversation(db: Database, conversationId: string, r
   };
 }
 
+/**
+ * The enriched shape both the inbox list and the single-conversation
+ * endpoints return. Everything the Stitch inbox/chat chrome renders that
+ * is genuinely derivable from existing rows: the other party (name/avatar
+ * — already public via profiles), which side the viewer is on, the ride's
+ * route/departure labels, live trip status, driver verification, and the
+ * last message preview. Deliberately NOT here: unread counts — no
+ * read-state is tracked anywhere in the schema, so none is reported.
+ */
+export interface ConversationSummary {
+  id: string;
+  bookingId: string;
+  status: 'open' | 'closed';
+  createdAt: Date;
+  updatedAt: Date;
+  viewerRole: 'driver' | 'rider';
+  otherParty: { id: string; fullName: string; avatarUrl: string | null };
+  otherPartyRole: 'driver' | 'rider';
+  /** True only when the other party is a driver whose verification was
+   *  approved — riders have no verification pipeline to be "verified" in.
+   *  Drives the inbox row's badge; never inferred from anything else. */
+  isOtherPartyVerified: boolean;
+  originLabel: string;
+  destinationLabel: string;
+  departureAt: Date;
+  rideStatus: RideStatus;
+  tripStatus: TripStatus | null;
+  lastMessage: {
+    body: string;
+    createdAt: Date;
+    senderUserId: string;
+  } | null;
+}
+
+type BookingWithContext = Awaited<ReturnType<typeof getBookingWithFullContextOrThrow>>;
+
+async function getBookingWithFullContextOrThrow(db: Database, bookingId: string) {
+  const booking = await db.query.bookings.findFirst({
+    where: eq(bookings.id, bookingId),
+    with: {
+      ride: { with: { driverProfile: { with: { user: true } } } },
+      rider: true,
+      trip: true,
+    },
+  });
+  if (!booking) throw new NotFoundError('Booking');
+  return booking;
+}
+
+/** Pure mapper — both endpoints' field mapping lives here exactly once. */
+function toSummary(
+  conversation: typeof conversations.$inferSelect,
+  booking: BookingWithContext,
+  requestingUserId: string,
+  lastMessage: typeof messages.$inferSelect | null,
+): ConversationSummary {
+  const viewerIsDriver = booking.ride.driverProfile.userId === requestingUserId;
+
+  return {
+    id: conversation.id,
+    bookingId: conversation.bookingId,
+    // Derived live from the trip, like every other read path in this
+    // module — the cached column is never authoritative on its own.
+    status: isTripTerminal(booking.trip?.status) ? 'closed' : 'open',
+    createdAt: conversation.createdAt,
+    updatedAt: conversation.updatedAt,
+    viewerRole: viewerIsDriver ? 'driver' : 'rider',
+    otherParty: viewerIsDriver
+      ? {
+          id: booking.rider.id,
+          fullName: booking.rider.fullName,
+          avatarUrl: booking.rider.avatarUrl,
+        }
+      : {
+          id: booking.ride.driverProfile.user.id,
+          fullName: booking.ride.driverProfile.user.fullName,
+          avatarUrl: booking.ride.driverProfile.user.avatarUrl,
+        },
+    otherPartyRole: viewerIsDriver ? 'rider' : 'driver',
+    isOtherPartyVerified:
+      !viewerIsDriver && booking.ride.driverProfile.verificationStatus === 'approved',
+    originLabel: booking.ride.originLabel,
+    destinationLabel: booking.ride.destinationLabel,
+    departureAt: booking.ride.departureAt,
+    rideStatus: booking.ride.status,
+    tripStatus: booking.trip?.status ?? null,
+    lastMessage: lastMessage
+      ? {
+          body: lastMessage.body,
+          createdAt: lastMessage.createdAt,
+          senderUserId: lastMessage.senderUserId,
+        }
+      : null,
+  };
+}
+
 export async function getConversationByBookingId(
   db: Database,
   bookingId: string,
   requestingUserId: string,
 ) {
-  const booking = await getBookingWithPartiesOrThrow(db, bookingId);
+  const [conversation, booking] = await Promise.all([
+    db.query.conversations.findFirst({ where: eq(conversations.bookingId, bookingId) }),
+    getBookingWithPartiesOrThrow(db, bookingId),
+  ]);
   assertIsParty(booking, requestingUserId);
-
-  const conversation = await db.query.conversations.findFirst({
-    where: eq(conversations.bookingId, bookingId),
-  });
   if (!conversation) throw new NotFoundError('Conversation');
 
-  const closed = isTripTerminal(booking.trip?.status);
-  if (closed && conversation.status !== 'closed') {
+  if (isTripTerminal(booking.trip?.status) && conversation.status !== 'closed') {
     await db
       .update(conversations)
       .set({ status: 'closed', updatedAt: new Date() })
       .where(eq(conversations.id, conversation.id));
-    conversation.status = 'closed';
   }
 
-  return conversation;
+  const fullBooking = await getBookingWithFullContextOrThrow(db, bookingId);
+  const lastMessage =
+    (await db.query.messages.findFirst({
+      where: eq(messages.conversationId, conversation.id),
+      orderBy: [desc(messages.createdAt)],
+    })) ?? null;
+  return toSummary(conversation, fullBooking, requestingUserId, lastMessage);
+}
+
+/**
+ * GET /conversations — every conversation whose booking the requester is a
+ * party to (as rider or as the ride's driver), newest activity first.
+ * Party scoping happens in the SQL itself (the OR over both membership
+ * shapes), not after fetching. Summaries are hydrated with two batched
+ * follow-up queries (bookings-with-context + last messages) rather than N
+ * relational round-trips per row.
+ */
+export async function listConversations(
+  db: Database,
+  requestingUserId: string,
+): Promise<ConversationSummary[]> {
+  const rows = await db
+    .select({ conversation: conversations })
+    .from(conversations)
+    .innerJoin(bookings, eq(bookings.id, conversations.bookingId))
+    .innerJoin(rides, eq(rides.id, bookings.rideId))
+    .innerJoin(driverProfiles, eq(driverProfiles.id, rides.driverProfileId))
+    .where(or(eq(bookings.riderId, requestingUserId), eq(driverProfiles.userId, requestingUserId)))
+    .orderBy(desc(conversations.updatedAt));
+
+  if (rows.length === 0) return [];
+  const conversationRows = rows.map((row) => row.conversation);
+
+  const relatedBookings = await db.query.bookings.findMany({
+    where: inArray(
+      bookings.id,
+      conversationRows.map((c) => c.bookingId),
+    ),
+    with: {
+      ride: { with: { driverProfile: { with: { user: true } } } },
+      rider: true,
+      trip: true,
+    },
+  });
+  const bookingsById = new Map(relatedBookings.map((b) => [b.id, b]));
+
+  const lastMessages = await db.query.messages.findMany({
+    where: inArray(
+      messages.conversationId,
+      conversationRows.map((c) => c.id),
+    ),
+    orderBy: [asc(messages.createdAt)],
+  });
+  const lastMessageByConversation = new Map<string, (typeof lastMessages)[number]>();
+  for (const message of lastMessages) {
+    // asc order ⇒ the last write per conversation wins.
+    lastMessageByConversation.set(message.conversationId, message);
+  }
+
+  const summaries: ConversationSummary[] = [];
+  for (const conversation of conversationRows) {
+    const booking = bookingsById.get(conversation.bookingId);
+    if (!booking) continue; // booking deleted mid-flight (cascade hasn't landed yet)
+
+    summaries.push(
+      toSummary(
+        conversation,
+        booking,
+        requestingUserId,
+        lastMessageByConversation.get(conversation.id) ?? null,
+      ),
+    );
+  }
+  return summaries;
 }
 
 export async function listMessages(
