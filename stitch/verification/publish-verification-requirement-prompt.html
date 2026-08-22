@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Vaya - Vérification requise</title>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Google Fonts: Inter -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Configuration (Injected from Design System) -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "outline-variant": "#c6c6cd",
+                    "on-secondary-fixed-variant": "#005236",
+                    "on-surface": "#191c20",
+                    "error": "#ba1a1a",
+                    "surface-container-high": "#e7e8ee",
+                    "secondary-fixed": "#6ffbbe",
+                    "secondary": "#006c49",
+                    "surface": "#f8f9ff",
+                    "surface-tint": "#565e74",
+                    "tertiary-fixed": "#d8e2ff",
+                    "on-tertiary-fixed": "#001a42",
+                    "surface-dim": "#d8dae0",
+                    "tertiary": "#000000",
+                    "on-tertiary": "#ffffff",
+                    "on-surface-variant": "#45464d",
+                    "status-verified": "#10b981",
+                    "on-secondary-container": "#00714d",
+                    "on-primary": "#ffffff",
+                    "status-pending": "#f59e0b",
+                    "background": "#f8f9ff",
+                    "role-passenger": "#64748b",
+                    "on-background": "#191c20",
+                    "on-tertiary-fixed-variant": "#004395",
+                    "on-error-container": "#93000a",
+                    "surface-container-low": "#f2f3f9",
+                    "on-secondary": "#ffffff",
+                    "outline": "#76777d",
+                    "surface-container-highest": "#e1e2e8",
+                    "role-driving": "#0f172a",
+                    "on-primary-container": "#7c839b",
+                    "primary": "#000000",
+                    "on-tertiary-container": "#3980f4",
+                    "primary-fixed": "#dae2fd",
+                    "tertiary-fixed-dim": "#adc6ff",
+                    "tertiary-container": "#001a42",
+                    "inverse-primary": "#bec6e0",
+                    "on-primary-fixed": "#131b2e",
+                    "on-secondary-fixed": "#002113",
+                    "error-container": "#ffdad6",
+                    "inverse-on-surface": "#eff0f6",
+                    "secondary-container": "#6cf8bb",
+                    "primary-fixed-dim": "#bec6e0",
+                    "surface-bright": "#f8f9ff",
+                    "on-primary-fixed-variant": "#3f465c",
+                    "primary-container": "#131b2e",
+                    "inverse-surface": "#2e3135",
+                    "on-error": "#ffffff",
+                    "status-upcoming": "#6366f1",
+                    "secondary-fixed-dim": "#4edea3",
+                    "surface-container": "#eceef3",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-variant": "#e1e2e8"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "stack-lg": "24px",
+                    "gutter-grid": "16px",
+                    "touch-target": "48px",
+                    "margin-main": "20px",
+                    "stack-md": "16px",
+                    "stack-sm": "8px"
+            },
+            "fontFamily": {
+                    "headline-md": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "label-md": ["Inter"],
+                    "body-md": ["Inter"],
+                    "label-lg": ["Inter"],
+                    "headline-lg": ["Inter"],
+                    "body-sm": ["Inter"],
+                    "headline-lg-mobile": ["Inter"],
+                    "headline-sm": ["Inter"]
+            },
+            "fontSize": {
+                    "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "label-md": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "headline-lg": ["30px", {"lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "headline-lg-mobile": ["26px", {"lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface font-body-md antialiased relative min-h-screen overflow-hidden">
+<!-- Mock Background Content (Final Review Screen underneath) -->
+<div class="absolute inset-0 z-0 opacity-40 blur-sm pointer-events-none filter">
+<header class="w-full top-0 sticky bg-surface flex justify-between items-center px-margin-main h-touch-target shadow-sm">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 0;">arrow_back</span>
+</div>
+<h1 class="font-headline-sm text-headline-sm text-primary">Récapitulatif</h1>
+<div class="w-8"></div> <!-- Spacer for centering -->
+</header>
+<main class="p-margin-main space-y-stack-lg">
+<div class="bg-surface-container-lowest p-4 rounded-xl shadow-sm border border-outline-variant/30">
+<h2 class="font-headline-sm text-headline-sm mb-4">Détails du trajet</h2>
+<div class="space-y-4">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary">my_location</span>
+<div>
+<p class="font-label-lg text-label-lg text-on-surface">Paris, France</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">08:00 AM</p>
+</div>
+</div>
+<div class="w-px h-8 bg-outline-variant ml-[11px]"></div>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary">location_on</span>
+<div>
+<p class="font-label-lg text-label-lg text-on-surface">Lyon, France</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">12:30 PM</p>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+<!-- Overlay Backdrop -->
+<div aria-hidden="true" class="fixed inset-0 bg-on-surface/40 backdrop-blur-md z-40 transition-opacity duration-300"></div>
+<!-- Bottom Sheet / Modal Container -->
+<div class="fixed inset-x-0 bottom-0 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 z-50 flex flex-col justify-end md:justify-center px-0 md:px-margin-main pb-0 md:pb-safe w-full md:max-w-lg transition-transform duration-300 transform translate-y-0">
+<div class="bg-surface-container-lowest rounded-t-xl md:rounded-xl shadow-xl w-full flex flex-col">
+<!-- Drag Handle (Mobile Only) -->
+<div class="flex justify-center pt-3 pb-1 md:hidden">
+<div class="w-12 h-1.5 bg-outline-variant/50 rounded-full"></div>
+</div>
+<div class="p-margin-main flex flex-col gap-stack-lg">
+<!-- Icon & Headline -->
+<div class="flex flex-col items-center text-center gap-stack-md mt-4 md:mt-0">
+<div class="w-16 h-16 rounded-full bg-primary-container flex items-center justify-center mb-2 shadow-sm">
+<span class="material-symbols-outlined text-on-primary-container text-3xl" style="font-variation-settings: 'FILL' 1;">verified_user</span>
+</div>
+<h2 class="font-headline-md text-headline-md text-on-surface md:font-headline-lg md:text-headline-lg">
+                        Une dernière étape pour prendre la route
+                    </h2>
+</div>
+<!-- Body Text -->
+<p class="font-body-lg text-body-lg text-on-surface-variant text-center px-2">
+                    Pour publier votre premier trajet, nous devons vérifier votre profil de conducteur. Votre trajet est enregistré et sera publié automatiquement dès que votre vérification sera validée.
+                </p>
+<!-- Status Pill (Optional reinforcement) -->
+<div class="flex justify-center">
+<div class="inline-flex items-center gap-2 px-4 py-2 bg-status-pending/15 text-status-pending rounded-full">
+<span class="material-symbols-outlined text-sm">hourglass_empty</span>
+<span class="font-label-md text-label-md">Vérification requise</span>
+</div>
+</div>
+<!-- Action Buttons -->
+<div class="flex flex-col gap-stack-sm mt-4">
+<button class="w-full h-touch-target flex items-center justify-center bg-primary text-on-primary font-label-lg text-label-lg rounded-lg shadow-sm hover:bg-on-surface-variant transition-colors active:scale-95">
+                        Commencer la vérification
+                    </button>
+<button class="w-full h-touch-target flex items-center justify-center bg-transparent text-primary font-label-lg text-label-lg rounded-lg hover:bg-surface-container-highest transition-colors active:scale-95">
+                        Plus tard
+                    </button>
+</div>
+</div>
+<!-- Safe Area Bottom Padding for Mobile -->
+<div class="h-safe md:hidden"></div>
+</div>
+</div>
+</body></html>

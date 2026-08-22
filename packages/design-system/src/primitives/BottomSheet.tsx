@@ -1,128 +1,208 @@
-import React, { useEffect, useRef } from 'react';
-import {
-  Animated,
-  Dimensions,
-  KeyboardAvoidingView,
-  PanResponder,
-  Platform,
-  StyleSheet,
-  TouchableWithoutFeedback,
-  View,
-  Modal as RNModal,
-} from 'react-native';
+import React, { useEffect } from 'react';
+import { Dimensions, KeyboardAvoidingView, Platform, StyleSheet, TouchableWithoutFeedback, View, Modal as RNModal } from 'react-native';
+import { GestureDetector, Gesture, GestureHandlerRootView } from 'react-native-gesture-handler';
+import type { PanGesture } from 'react-native-gesture-handler';
+import Animated, { useSharedValue, useAnimatedStyle, withSpring, withTiming, runOnJS } from 'react-native-reanimated';
+import { BlurView } from 'expo-blur';
 import { Text } from './Text';
 import { colors, radii, spacing, elevation } from '../tokens/index';
+import type { AppPalette } from '../theme/palette';
 
 interface BottomSheetProps {
   visible: boolean;
   onClose: () => void;
   title?: string;
+  /** Replaces the default title `Text` inside the draggable handle area —
+   *  for a caller whose header is more than a plain string (e.g. a
+   *  centered title with its own close button). */
+  headerContent?: React.ReactNode;
   children: React.ReactNode;
   /** Fraction of screen height the sheet occupies when open. */
   heightRatio?: number;
+  /** A gesture living inside `children` that competes with this sheet's own
+   *  drag-to-dismiss for the same touches (e.g. DateCalendarSheet's
+   *  horizontal month-swipe). `activeOffsetY`/`failOffsetX` alone don't
+   *  guarantee exclusivity between two independently-negotiated gestures on
+   *  nested `GestureDetector`s — passing it here makes the dismiss gesture
+   *  explicitly `requireExternalGestureToFail` it, so a touch that the
+   *  content gesture claims can never also trigger dismiss. */
+  contentGesture?: PanGesture;
+  /** Optional `useAppTheme()` override (Stitch migration) — when given, the
+   *  sheet surface/handle/title follow the live theme instead of the
+   *  legacy static `colors` token. Unused anywhere this primitive hasn't
+   *  been migrated yet. */
+  theme?: AppPalette;
 }
 
 const DISMISS_DRAG_PX = 100;
-const DISMISS_VELOCITY = 0.8;
+const DISMISS_VELOCITY = 800;
+// damping must be >= ~2*sqrt(stiffness) (here ~26.8) to be critically damped;
+// the previous {18, 180} was well underdamped, so the open animation flew
+// past translateY 0 and visibly bounced back down into place instead of
+// settling directly.
+const SPRING_CONFIG = { damping: 28, stiffness: 180, overshootClamping: true };
 
 /**
  * A modal sheet anchored to the bottom of the screen — the standard pattern
  * for selection UIs (stop pickers, filters, ride details) that don't
  * warrant a full route change. Backdrop tap and swipe-down both dismiss.
  *
- * Built on RN's core Animated + PanResponder rather than Reanimated +
- * react-native-gesture-handler: no other primitive in this package uses
- * either yet, and a spring/pan-driven sheet doesn't need the UI-thread
- * gesture system those add — core RN handles this interaction fine and
- * avoids a new peer-dependency + test-mock surface for this phase.
+ * Built on react-native-gesture-handler + react-native-reanimated (both
+ * already real, direct app dependencies — required by Expo Router's own
+ * native-stack transitions — not a new footprint). An earlier version was
+ * built on RN core `Animated` + `PanResponder` instead; that turned out to
+ * be genuinely unreliable specifically because this sheet's content is
+ * dense with `TouchableOpacity`s (day cells, buttons) — plain
+ * `PanResponder` negotiates touch-responder hand-off with nested
+ * Touchables on the JS thread, and that hand-off is a well-known weak
+ * spot: it can silently fail to hand the gesture up at all. GestureHandler
+ * runs its recognizers on the native/UI thread with real exclusivity
+ * rules, which is exactly why it's the standard tool for "draggable
+ * container with interactive content inside" — not swapped in lightly, but
+ * because the simpler approach demonstrably didn't work here.
+ *
+ * Requires `<GestureHandlerRootView>` mounted at the app root
+ * (apps/mobile/app/_layout.tsx) for the app's own screens, AND a second one
+ * scoped inside this component's own `<Modal>` (below) — Modal renders into
+ * a separate native view hierarchy the app-root one never reaches, so
+ * without this second root gesture recognizers here don't register right.
  */
 export function BottomSheet({
   visible,
   onClose,
   title,
+  headerContent,
   children,
   heightRatio = 0.6,
+  theme,
+  contentGesture,
 }: BottomSheetProps): React.JSX.Element {
   const screenHeight = Dimensions.get('window').height;
   const sheetHeight = screenHeight * heightRatio;
-  const translateY = useRef(new Animated.Value(sheetHeight)).current;
-  const backdropOpacity = useRef(new Animated.Value(0)).current;
-
-  const close = (): void => {
-    Animated.parallel([
-      Animated.timing(translateY, { toValue: sheetHeight, duration: 220, useNativeDriver: true }),
-      Animated.timing(backdropOpacity, { toValue: 0, duration: 220, useNativeDriver: true }),
-    ]).start(() => onClose());
-  };
+  const translateY = useSharedValue(sheetHeight);
+  const backdropOpacity = useSharedValue(0);
 
   useEffect(() => {
     if (visible) {
-      translateY.setValue(sheetHeight);
-      Animated.parallel([
-        Animated.spring(translateY, { toValue: 0, friction: 10, tension: 65, useNativeDriver: true }),
-        Animated.timing(backdropOpacity, { toValue: 1, duration: 200, useNativeDriver: true }),
-      ]).start();
+      translateY.value = sheetHeight;
+      translateY.value = withSpring(0, SPRING_CONFIG);
+      backdropOpacity.value = withTiming(1, { duration: 200 });
     }
     // Only re-run on visibility change, not on every sheetHeight recompute.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible]);
 
-  const panResponder = useRef(
-    PanResponder.create({
-      onMoveShouldSetPanResponder: (_evt, gesture) => gesture.dy > 4,
-      onPanResponderMove: (_evt, gesture) => {
-        if (gesture.dy > 0) translateY.setValue(gesture.dy);
-      },
-      onPanResponderRelease: (_evt, gesture) => {
-        if (gesture.dy > DISMISS_DRAG_PX || gesture.vy > DISMISS_VELOCITY) {
-          close();
-        } else {
-          Animated.spring(translateY, { toValue: 0, friction: 10, useNativeDriver: true }).start();
-        }
-      },
-    }),
-  ).current;
+  function close(): void {
+    'worklet';
+    translateY.value = withTiming(sheetHeight, { duration: 220 }, (finished) => {
+      if (finished) runOnJS(onClose)();
+    });
+    backdropOpacity.value = withTiming(0, { duration: 220 });
+  }
+
+  // Vertical-only, and yields to a horizontal sibling gesture (e.g.
+  // DateCalendarSheet's month swipe) via failOffsetX. That alone isn't a
+  // hard guarantee of exclusivity between two independently-negotiated
+  // gestures on nested GestureDetectors, though — hence also explicitly
+  // requiring `contentGesture` (when given) to fail first below, which is
+  // what actually makes a touch the content gesture claims unable to also
+  // trigger dismiss.
+  let dragGesture = Gesture.Pan()
+    .activeOffsetY(10)
+    .failOffsetX([-15, 15])
+    .onUpdate((e) => {
+      if (e.translationY > 0) translateY.value = e.translationY;
+    })
+    .onEnd((e, success) => {
+      // gesture-handler still invokes onEnd when a gesture never actually
+      // activated (e.g. it FAILED via failOffsetX because the touch was a
+      // horizontal swipe on DateCalendarSheet's grid) — without this guard,
+      // that failed touch's leftover translation/velocity numbers (which
+      // can carry a nonzero Y component even on a mostly-horizontal real
+      // swipe) were still evaluated against the dismiss thresholds, closing
+      // the sheet on a drag that was never a vertical drag at all.
+      if (!success) return;
+      if (e.translationY > DISMISS_DRAG_PX || e.velocityY > DISMISS_VELOCITY) {
+        close();
+      } else {
+        translateY.value = withSpring(0, SPRING_CONFIG);
+      }
+    });
+  if (contentGesture) {
+    dragGesture = dragGesture.requireExternalGestureToFail(contentGesture);
+  }
+
+  const sheetAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: translateY.value }],
+  }));
+  const backdropAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: backdropOpacity.value,
+  }));
 
   if (!visible) return <></>;
 
   return (
     <RNModal visible={visible} transparent animationType="none" onRequestClose={close}>
-      <TouchableWithoutFeedback onPress={close}>
-        <Animated.View style={[styles.backdrop, { opacity: backdropOpacity }]} />
-      </TouchableWithoutFeedback>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={styles.keyboardWrap}
-        pointerEvents="box-none"
-      >
-        <Animated.View
-          style={[
-            styles.sheet,
-            elevation?.xl,
-            // A sheet anchored to the bottom edge should cast its shadow
-            // upward, not in the token's default downward direction
-            // (Android's `elevation` has no directional component, so this
-            // only affects iOS).
-            styles.sheetShadowDirection,
-            { height: sheetHeight, transform: [{ translateY }] },
-          ]}
+      {/* RN's Modal renders its content in a separate native view hierarchy
+       *  (its own UIWindow on iOS) that the app-root GestureHandlerRootView
+       *  (apps/mobile/app/_layout.tsx, mounted OUTSIDE this Modal) never
+       *  reaches — gesture-handler's own documented caveat. Without a
+       *  second root scoped to the Modal's content, gesture recognition and
+       *  relations here (requireExternalGestureToFail included) silently
+       *  run without proper native supervision. */}
+      <GestureHandlerRootView style={styles.rootView}>
+        <TouchableWithoutFeedback onPress={close}>
+          <Animated.View style={[styles.backdrop, backdropAnimatedStyle]}>
+            {/* A frosted, not just darkened, backdrop — separates the sheet
+             *  from whatever's behind it (map, screen content) more clearly.
+             *  Android has no real compositor blur without this flag; the
+             *  tinted `backdrop` background underneath is what carries the
+             *  effect there instead. */}
+            <BlurView intensity={30} tint="dark" experimentalBlurMethod="dimezisBlurView" style={StyleSheet.absoluteFillObject} />
+          </Animated.View>
+        </TouchableWithoutFeedback>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={styles.keyboardWrap}
+          pointerEvents="box-none"
         >
-          <View {...panResponder.panHandlers} style={styles.handleArea}>
-            <View style={styles.handle} />
-            {title ? (
-              <Text variant="h3" style={styles.title}>
-                {title}
-              </Text>
-            ) : null}
-          </View>
-          <View style={styles.content}>{children}</View>
-        </Animated.View>
-      </KeyboardAvoidingView>
+          <GestureDetector gesture={dragGesture}>
+            <Animated.View
+              style={[
+                styles.sheet,
+                elevation?.xl,
+                // A sheet anchored to the bottom edge should cast its shadow
+                // upward, not in the token's default downward direction
+                // (Android's `elevation` has no directional component, so this
+                // only affects iOS).
+                styles.sheetShadowDirection,
+                theme ? { backgroundColor: theme.surface, shadowColor: theme.ink } : null,
+                { height: sheetHeight },
+                sheetAnimatedStyle,
+              ]}
+            >
+              <View style={styles.handleArea}>
+                <View style={[styles.handle, theme ? { backgroundColor: theme.outlineVariant } : null]} />
+                {headerContent ??
+                  (title ? (
+                    <Text variant="h3" color={theme?.ink} style={styles.title}>
+                      {title}
+                    </Text>
+                  ) : null)}
+              </View>
+              <View style={styles.content}>{children}</View>
+            </Animated.View>
+          </GestureDetector>
+        </KeyboardAvoidingView>
+      </GestureHandlerRootView>
     </RNModal>
   );
 }
 
 const styles = StyleSheet.create({
+  rootView: {
+    flex: 1,
+  },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(38, 51, 58, 0.5)',

@@ -47,6 +47,10 @@ export async function getPublicProfile(db: Database, userId: string) {
     avatarUrl: user.avatarUrl,
     driver: driverProfile
       ? {
+          bio: driverProfile.bio,
+          languages: driverProfile.languages
+            ? driverProfile.languages.split(',').map((l) => l.trim())
+            : null,
           ratingAvg: driverProfile.ratingAvg,
           tripCount: driverProfile.tripCount,
           punctualityScore: driverProfile.punctualityScore,
@@ -57,6 +61,7 @@ export async function getPublicProfile(db: Database, userId: string) {
                 model: vehicle.model,
                 color: vehicle.color,
                 photoUrl: vehicle.photoUrl,
+                plateNumber: vehicle.plateNumber,
               }
             : null,
         }

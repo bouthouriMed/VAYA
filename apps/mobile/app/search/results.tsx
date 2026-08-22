@@ -1,17 +1,24 @@
-import { useMemo } from 'react';
-import { View, StyleSheet, ActivityIndicator, type DimensionValue } from 'react-native';
+import { useMemo, useState } from 'react';
+import { View, StyleSheet, ActivityIndicator, TouchableOpacity, ScrollView } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps';
+import { Ionicons } from '@expo/vector-icons';
 import { skipToken } from '@reduxjs/toolkit/query/react';
 import {
   Text,
-  Button,
-  ClusterMarker,
+  Icon,
+  DriverListCard,
+  DriverMapPin,
   EmptyState,
-  SkeletonCircle,
+  SkeletonBlock,
   useToast,
-  colors,
+  useAppTheme,
   spacing,
   radii,
   formatDepartureLabel,
+  regionForPoints,
+  type AppPalette,
+  type DriverListCardData,
 } from '@vaya/design-system';
 import { router } from 'expo-router';
 import { useAppSelector } from '../../src/state/store';
@@ -19,53 +26,117 @@ import {
   useMatchingSearchQuery,
   useCorridorFallbackQuery,
   useNotifyMeMutation,
+  useListFellowPassengersQuery,
+  useGetRideStopsQuery,
   type MatchCandidate,
 } from '../../src/state/api';
+import { useOpenDriver } from '../../src/features/search/useOpenDriver';
+import { estimateWalkMinutes } from '../../src/utils/polyline';
 
-// Loose, hand-placed positions (percent of the scatter field) — mirrors the
-// reference's organic, non-grid arrangement. Cycled by index since cluster
-// count/labels are now dynamic (server-driven), not a fixed known set.
-const POSITION_POOL: { top: DimensionValue; left: DimensionValue }[] = [
-  { top: '4%', left: '14%' },
-  { top: '2%', left: '62%' },
-  { top: '38%', left: '38%' },
-  { top: '52%', left: '8%' },
-  { top: '58%', left: '64%' },
-  { top: '20%', left: '4%' },
-  { top: '10%', left: '82%' },
-  { top: '68%', left: '30%' },
-];
-
-interface ClusterGroup {
-  label: string;
-  candidates: MatchCandidate[];
-  emphasized: boolean;
+function toPinData(candidate: MatchCandidate): {
+  id: string;
+  name: string;
+  priceLabel: string;
+  etaLabel: string;
+} {
+  return {
+    id: candidate.rideId,
+    name: (candidate.driverFullName ?? 'Conducteur').split(' ')[0]!,
+    priceLabel: `${candidate.contributionPerSeat} DT`,
+    etaLabel: `${Math.round(candidate.pickupWalkMinutes)} min à pied`,
+  };
 }
 
-function groupByCluster(candidates: MatchCandidate[]): ClusterGroup[] {
-  const byLabel = new Map<string, MatchCandidate[]>();
-  for (const candidate of candidates) {
-    const list = byLabel.get(candidate.clusterLabel) ?? [];
-    list.push(candidate);
-    byLabel.set(candidate.clusterLabel, list);
-  }
-  return Array.from(byLabel.entries())
-    .map(([label, list]) => ({
-      label,
-      candidates: list.sort((a, b) => b.score - a.score),
-      emphasized: label === 'Maintenant',
-    }))
-    .sort(
-      (a, b) =>
-        new Date(a.candidates[0]!.departureAt).getTime() -
-        new Date(b.candidates[0]!.departureAt).getTime(),
+/** Splits a geocoded label like "Nabeul Centre, Nabeul, Tunisie" into a
+ *  broad first segment (for the card's bold "city" line) and the fuller
+ *  original label (for the specific "place" line below it) — real search
+ *  text, not invented. */
+function splitLocationLabel(label: string): { city: string; place?: string } {
+  const [first, ...rest] = label.split(',').map((s) => s.trim());
+  const remainder = rest.join(', ');
+  return { city: first || label, place: remainder || (first !== label ? label : undefined) };
+}
+
+/** Fetches this one candidate's real fellow-passengers + route stops (both
+ *  already-existing endpoints, RTK-Query-cached per rideId) so the card can
+ *  show real overlapping avatars and a real dropoff-walk estimate instead
+ *  of inventing either. */
+function RideResultCard({
+  candidate,
+  bestMatch,
+  origin,
+  destination,
+  searchAt,
+  theme,
+  onPress,
+}: {
+  candidate: MatchCandidate;
+  bestMatch: boolean;
+  origin: { label: string } | null;
+  destination: { label: string; lat: number; lng: number } | null;
+  searchAt: string | null;
+  theme: AppPalette;
+  onPress: () => void;
+}): React.JSX.Element {
+  const { data: passengers } = useListFellowPassengersQuery(candidate.rideId);
+  const { data: stops } = useGetRideStopsQuery(candidate.rideId);
+
+  const time = new Date(candidate.departureAt).toLocaleTimeString('fr-FR', {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+  const closestStop = candidate.rankedStops[0];
+  let timeOffsetNote: string | undefined;
+  if (searchAt) {
+    const offsetMin = Math.round(
+      (new Date(candidate.departureAt).getTime() - new Date(searchAt).getTime()) / 60_000,
     );
+    if (offsetMin > 2) {
+      timeOffsetNote = `Part ${offsetMin} min après l'heure demandée, vous prend à ${Math.round(
+        candidate.pickupWalkMinutes,
+      )} min à pied.`;
+    }
+  }
+
+  const dropoffSplit = destination ? splitLocationLabel(destination.label) : { city: 'Destination' };
+  // Real geometry, not fabricated: the driver's furthest real route_stop
+  // past the pickup, distance to the actual destination coordinates.
+  const lastStop = stops && stops.length > 0 ? stops[stops.length - 1] : undefined;
+  const dropoffWalkMinutes =
+    lastStop && destination
+      ? estimateWalkMinutes(
+          { latitude: lastStop.lat, longitude: lastStop.lng },
+          { latitude: destination.lat, longitude: destination.lng },
+        )
+      : undefined;
+
+  const data: DriverListCardData = {
+    driverName: candidate.driverFullName ?? 'Conducteur',
+    ratingAvg: candidate.ratingAvg,
+    timeLabel: time,
+    priceLabel: `${candidate.contributionPerSeat} DT`,
+    pickupCityLabel: origin?.label ? splitLocationLabel(origin.label).city : 'Départ',
+    pickupPlaceLabel: closestStop?.label ?? 'Point de rendez-vous',
+    pickupWalkLabel: `${Math.round(candidate.pickupWalkMinutes)} min`,
+    dropoffCityLabel: dropoffSplit.city,
+    dropoffPlaceLabel: dropoffSplit.place,
+    dropoffWalkLabel:
+      dropoffWalkMinutes !== undefined ? `${Math.max(1, Math.round(dropoffWalkMinutes))} min à pied` : undefined,
+    seatsAvailable: candidate.seatsAvailable,
+    timeOffsetNote,
+    passengers: passengers?.map((p) => ({ userId: p.userId, name: p.firstName, avatarUrl: p.avatarUrl })),
+  };
+
+  return <DriverListCard theme={theme} bestMatch={bestMatch} data={data} onPress={onPress} />;
 }
 
 export default function ResultsScreen(): React.JSX.Element {
+  const insets = useSafeAreaInsets();
+  const { colors: theme } = useAppTheme();
   const origin = useAppSelector((s) => s.search.origin);
   const destination = useAppSelector((s) => s.search.destination);
   const searchAt = useAppSelector((s) => s.search.searchAt);
+  const openDriver = useOpenDriver();
 
   const searchArgs =
     origin && destination
@@ -85,23 +156,46 @@ export default function ResultsScreen(): React.JSX.Element {
   );
   const [notifyMe, { isLoading: isNotifying, isSuccess: notified }] = useNotifyMeMutation();
   const showToast = useToast();
+  const [showMap, setShowMap] = useState(false);
 
-  const groups = useMemo(() => groupByCluster(candidates ?? []), [candidates]);
-  const fallbackGroups = useMemo(() => groupByCluster(fallback?.nearbyRides ?? []), [fallback]);
-  const totalPeople = (candidates?.length ?? 0) + (fallback?.nearbyRides.length ?? 0);
-  const emphasizedGroup = groups.find((g) => g.emphasized) ?? groups[0];
+  const sorted = useMemo(
+    () =>
+      [...(candidates ?? [])].sort(
+        (a, b) => new Date(a.departureAt).getTime() - new Date(b.departureAt).getTime(),
+      ),
+    [candidates],
+  );
+  const bestMatchId = useMemo(
+    () => [...(candidates ?? [])].sort((a, b) => b.score - a.score)[0]?.rideId,
+    [candidates],
+  );
+  const fallbackSorted = useMemo(
+    () =>
+      [...(fallback?.nearbyRides ?? [])].sort(
+        (a, b) => new Date(a.departureAt).getTime() - new Date(b.departureAt).getTime(),
+      ),
+    [fallback],
+  );
+  const fallbackBestMatchId = useMemo(
+    () => [...(fallback?.nearbyRides ?? [])].sort((a, b) => b.score - a.score)[0]?.rideId,
+    [fallback],
+  );
 
-  function openCluster(label: string): void {
-    router.push({ pathname: '/search/cluster', params: { label } });
-  }
+  // Real per-candidate offsets (see toCardData) already tell the rider when
+  // a ride doesn't land exactly on their requested time — this banner only
+  // needs to say that a substitution happened, not repeat the number.
+  const showApproxBanner =
+    !isLoading &&
+    sorted.length > 0 &&
+    sorted.some((c) => {
+      if (!searchAt) return false;
+      return (
+        Math.abs(new Date(c.departureAt).getTime() - new Date(searchAt).getTime()) > 2 * 60_000
+      );
+    });
 
   async function handleNotifyMe(): Promise<void> {
     if (!origin || !destination) return;
-    // Centered on the time the rider actually searched for (which may be a
-    // future date/time chosen on explore.tsx), not always "right now" — a
-    // notify-me signal for a search set to "Demain matin" should watch that
-    // window, not the next 3 hours from whenever the button happened to be
-    // tapped.
     const target = new Date(searchAt ?? Date.now());
     try {
       await notifyMe({
@@ -116,91 +210,213 @@ export default function ResultsScreen(): React.JSX.Element {
     }
   }
 
+  const mapCandidates = sorted.length > 0 ? sorted : fallbackSorted;
+  const mapRegion = useMemo(() => {
+    const points = mapCandidates.map((c) => ({ lat: c.originLat, lng: c.originLng }));
+    if (origin) points.push({ lat: origin.lat, lng: origin.lng });
+    return regionForPoints(points);
+  }, [mapCandidates, origin]);
+
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        {origin && destination ? (
-          <Text variant="bodySmall" color={colors.gray500} numberOfLines={1}>
-            {origin.label} → {destination.label}
-            {searchAt ? ` · ${formatDepartureLabel(new Date(searchAt))}` : ''}
-          </Text>
-        ) : null}
-        <Text variant="h2" style={styles.headline}>
-          {isLoading
-            ? 'Recherche en cours…'
-            : totalPeople > 0
-              ? `${totalPeople} personnes se dirigent dans votre direction.`
-              : "Aucun trajet pour l'instant."}
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
+      <View
+        style={[
+          styles.header,
+          {
+            paddingTop: insets.top + spacing.sm,
+            backgroundColor: theme.surface,
+            borderBottomColor: theme.outlineVariant,
+          },
+        ]}
+      >
+        <TouchableOpacity
+          onPress={() => router.back()}
+          hitSlop={12}
+          style={styles.headerSide}
+          accessibilityRole="button"
+          accessibilityLabel="Retour"
+        >
+          <Ionicons name="chevron-back" size={22} color={theme.ink} />
+        </TouchableOpacity>
+        <Text
+          variant="h3"
+          color={theme.ink}
+          numberOfLines={1}
+          align="center"
+          style={styles.headerTitle}
+        >
+          {origin && destination ? `${origin.label} → ${destination.label}` : 'Résultats'}
         </Text>
-        {!isLoading ? (
-          <Text variant="body" color={colors.gray600}>
-            {groups.length > 0
-              ? `${groups.length} groupes disponibles.`
-              : 'Essayez un autre horaire.'}
-          </Text>
-        ) : null}
+        <View style={styles.headerSide} />
       </View>
 
-      {isLoading ? (
-        <View style={styles.scatterField}>
-          {POSITION_POOL.map((position, i) => (
-            <SkeletonCircle key={i} size={i === 0 ? 64 : 46} style={[styles.scattered, position]} />
-          ))}
+      <View
+        style={[
+          styles.subheader,
+          { backgroundColor: theme.surface, borderBottomColor: theme.outlineVariant },
+        ]}
+      >
+        <View style={styles.subheaderDateRow}>
+          <Icon name="calendar-outline" size="xs" color={theme.inkFaint} />
+          <Text variant="bodySmall" color={theme.inkFaint} style={styles.subheaderDateText}>
+            {searchAt ? formatDepartureLabel(new Date(searchAt)) : "Aujourd'hui, maintenant"}
+          </Text>
         </View>
-      ) : groups.length > 0 ? (
-        <View style={styles.scatterField}>
-          {groups.map((group, i) => (
-            <ClusterMarker
-              key={group.label}
-              label={group.label}
-              emphasized={group.emphasized}
-              onPress={() => openCluster(group.label)}
-              style={[styles.scattered, POSITION_POOL[i % POSITION_POOL.length]]}
-            />
-          ))}
+
+        <TouchableOpacity
+          onPress={() => setShowMap((v) => !v)}
+          style={[styles.mapToggle, { backgroundColor: theme.surfaceMuted }]}
+          accessibilityRole="button"
+          accessibilityLabel={showMap ? 'Voir la liste' : 'Voir sur la carte'}
+        >
+          <Icon name={showMap ? 'list-outline' : 'map-outline'} size="xs" color={theme.ink} />
+          <Text variant="caption" color={theme.ink} style={styles.mapToggleText}>
+            {showMap ? 'Liste' : 'Carte'}
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {showMap ? (
+        <View style={styles.mapWrap}>
+          {mapRegion && !isLoading ? (
+            <MapView provider={PROVIDER_DEFAULT} style={styles.map} initialRegion={mapRegion} customMapStyle={[]}>
+              {origin ? (
+                <Marker coordinate={{ latitude: origin.lat, longitude: origin.lng }} anchor={{ x: 0.5, y: 0.5 }}>
+                  <View style={[styles.originDot, { backgroundColor: theme.accent, borderColor: theme.surface }]} />
+                </Marker>
+              ) : null}
+              {mapCandidates.map((candidate) => (
+                <Marker
+                  key={candidate.rideId}
+                  coordinate={{ latitude: candidate.originLat, longitude: candidate.originLng }}
+                  onPress={() => openDriver(candidate)}
+                  zIndex={candidate.rideId === bestMatchId ? 10 : 1}
+                >
+                  <DriverMapPin data={toPinData(candidate)} recommended={candidate.rideId === bestMatchId} />
+                </Marker>
+              ))}
+            </MapView>
+          ) : (
+            <View style={styles.mapLoading}>
+              <ActivityIndicator size="large" color={theme.accent} />
+            </View>
+          )}
         </View>
       ) : (
-        <EmptyState
-          title={
-            fallbackGroups.length > 0
-              ? `Rien d'exact, mais ${fallback?.nearbyRides.length} trajet(s) à proximité :`
-              : 'Personne sur ce trajet pour le moment.'
-          }
-          actionLabel={notified ? 'Nous vous préviendrons ✓' : 'Me notifier si un trajet apparaît'}
-          actionDisabled={isNotifying || notified}
-          onAction={() => void handleNotifyMe()}
-        >
-          {isFallbackLoading ? (
-            <ActivityIndicator size="large" color={colors.secondary} />
-          ) : fallbackGroups.length > 0 ? (
-            <View style={styles.scatterField}>
-              {fallbackGroups.map((group, i) => (
-                <ClusterMarker
-                  key={group.label}
-                  label={group.label}
-                  onPress={() => openCluster(group.label)}
-                  style={[styles.scattered, POSITION_POOL[i % POSITION_POOL.length]]}
+      <ScrollView contentContainerStyle={styles.listContent} showsVerticalScrollIndicator={false}>
+        {isLoading ? (
+          <View style={styles.skeletonWrap}>
+            <SkeletonBlock height={140} style={styles.skeletonCard} />
+            <SkeletonBlock height={140} style={styles.skeletonCard} />
+            <SkeletonBlock height={140} style={styles.skeletonCard} />
+          </View>
+        ) : sorted.length > 0 ? (
+          <>
+            {showApproxBanner ? (
+              <View
+                style={[
+                  styles.banner,
+                  { backgroundColor: theme.background, borderColor: theme.outlineVariant },
+                ]}
+              >
+                <Icon name="information-circle-outline" size="sm" color={theme.inkFaint} />
+                <Text variant="bodySmall" color={theme.inkMuted} style={styles.bannerText}>
+                  Aucun trajet exactement à l&apos;heure demandée. Voici les correspondances les
+                  plus proches.
+                </Text>
+              </View>
+            ) : null}
+
+            <View style={styles.cardsCol}>
+              {sorted.map((candidate) => (
+                <RideResultCard
+                  key={candidate.rideId}
+                  theme={theme}
+                  bestMatch={candidate.rideId === bestMatchId}
+                  candidate={candidate}
+                  origin={origin}
+                  destination={destination}
+                  searchAt={searchAt}
+                  onPress={() => openDriver(candidate)}
                 />
               ))}
             </View>
-          ) : null}
-        </EmptyState>
-      )}
+          </>
+        ) : isFallbackLoading ? (
+          <View style={styles.skeletonWrap}>
+            <SkeletonBlock height={140} style={styles.skeletonCard} />
+            <SkeletonBlock height={140} style={styles.skeletonCard} />
+          </View>
+        ) : fallbackSorted.length > 0 ? (
+          <>
+            <View
+              style={[
+                styles.banner,
+                { backgroundColor: theme.background, borderColor: theme.outlineVariant },
+              ]}
+            >
+              <Icon name="information-circle-outline" size="sm" color={theme.inkFaint} />
+              <Text variant="bodySmall" color={theme.inkMuted} style={styles.bannerText}>
+                {`Aucun trajet exactement à ${
+                  searchAt
+                    ? new Date(searchAt).toLocaleTimeString('fr-FR', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })
+                    : "l'heure demandée"
+                }. Voici les correspondances les plus proches.`}
+              </Text>
+            </View>
 
-      {groups.length > 0 ? (
-        <View style={styles.footer}>
-          <Text variant="h3">{groups.length} groupes disponibles.</Text>
-          <Text variant="bodySmall" color={colors.gray600}>
-            {candidates?.length ?? 0} places disponibles.
-          </Text>
-          <Button
-            label="Prêt maintenant"
-            size="lg"
-            onPress={() => emphasizedGroup && openCluster(emphasizedGroup.label)}
-            style={styles.cta}
-          />
-        </View>
-      ) : null}
+            <View style={styles.cardsCol}>
+              {fallbackSorted.map((candidate) => (
+                <RideResultCard
+                  key={candidate.rideId}
+                  theme={theme}
+                  bestMatch={candidate.rideId === fallbackBestMatchId}
+                  candidate={candidate}
+                  origin={origin}
+                  destination={destination}
+                  searchAt={searchAt}
+                  onPress={() => openDriver(candidate)}
+                />
+              ))}
+            </View>
+
+            <TouchableOpacity
+              style={[
+                styles.notifyButton,
+                {
+                  borderColor: theme.outline,
+                  opacity: isNotifying || notified ? 0.6 : 1,
+                },
+              ]}
+              onPress={() => void handleNotifyMe()}
+              disabled={isNotifying || notified}
+              accessibilityRole="button"
+              accessibilityLabel={
+                notified ? 'Nous vous préviendrons' : 'Me notifier si un trajet apparaît'
+              }
+            >
+              <Text variant="label" color={theme.ink} align="center">
+                {notified ? 'Nous vous préviendrons ✓' : 'Me notifier si un trajet apparaît'}
+              </Text>
+            </TouchableOpacity>
+          </>
+        ) : (
+          <View style={styles.emptyWrap}>
+            <EmptyState
+              title="Personne sur ce trajet pour le moment."
+              actionLabel={
+                notified ? 'Nous vous préviendrons ✓' : 'Me notifier si un trajet apparaît'
+              }
+              actionDisabled={isNotifying || notified}
+              onAction={() => void handleNotifyMe()}
+            />
+          </View>
+        )}
+      </ScrollView>
+      )}
     </View>
   );
 }
@@ -208,40 +424,99 @@ export default function ResultsScreen(): React.JSX.Element {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.gray100,
-    padding: spacing.lg,
   },
   header: {
-    gap: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingHorizontal: spacing.xl,
+    paddingBottom: spacing.md,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  headerTitle: {
+    flex: 1,
+  },
+  headerSide: {
+    width: 22,
+    alignItems: 'center',
+  },
+  mapToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    borderRadius: radii.full,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  mapToggleText: {
+    lineHeight: 16,
+  },
+  mapWrap: {
+    flex: 1,
+  },
+  map: {
+    flex: 1,
+  },
+  mapLoading: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  originDot: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    borderWidth: 2,
+  },
+  subheader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing['4xl'],
+    paddingVertical: spacing.md,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  subheaderDateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  subheaderDateText: {
+    lineHeight: 16,
+  },
+  listContent: {
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.lg,
+    gap: spacing.lg,
+  },
+  skeletonWrap: {
+    gap: spacing.md,
+  },
+  skeletonCard: {
+    borderRadius: radii.xl,
+  },
+  banner: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    borderRadius: radii.md,
+    borderWidth: 1,
+    padding: spacing.md,
     marginBottom: spacing.md,
   },
-  headline: {
-    fontWeight: '800',
-    lineHeight: 30,
-  },
-  scatterField: {
+  bannerText: {
     flex: 1,
-    position: 'relative',
-    minHeight: 300,
   },
-  scattered: {
-    position: 'absolute',
-  },
-  footer: {
-    backgroundColor: colors.white,
-    borderTopLeftRadius: radii['2xl'],
-    borderTopRightRadius: radii['2xl'],
-    borderBottomLeftRadius: radii.lg,
-    borderBottomRightRadius: radii.lg,
-    padding: spacing.lg,
+  cardsCol: {
     gap: spacing.md,
-    shadowColor: colors.gray900,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.06,
-    shadowRadius: 14,
-    elevation: 2,
   },
-  cta: {
-    width: '100%',
+  notifyButton: {
+    marginTop: spacing.lg,
+    borderRadius: radii.full,
+    borderWidth: 1,
+    paddingVertical: spacing.md,
+    alignItems: 'center',
+  },
+  emptyWrap: {
+    paddingTop: spacing['3xl'],
   },
 });

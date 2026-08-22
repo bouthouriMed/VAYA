@@ -11,6 +11,7 @@ import { Card } from './Card';
 import { Text } from './Text';
 import { Button } from './Button';
 import { colors, spacing } from '../tokens/index';
+import type { AppPalette } from '../theme/palette';
 
 interface ModalProps {
   visible: boolean;
@@ -23,6 +24,12 @@ interface ModalProps {
   onConfirm?: () => void;
   confirmDestructive?: boolean;
   cancelLabel?: string;
+  /** Optional `useAppTheme()` override — when given, the card surface,
+   *  title, cancel label, and destructive fill follow the live theme
+   *  instead of the legacy static tokens, so a dialog opened from a
+   *  dark-scheme screen doesn't render as a white plate with invisible
+   *  theme-colored text inside it. */
+  theme?: AppPalette;
 }
 
 /**
@@ -40,6 +47,7 @@ export function Modal({
   onConfirm,
   confirmDestructive,
   cancelLabel = 'Annuler',
+  theme,
 }: ModalProps): React.JSX.Element {
   const scale = useRef(new Animated.Value(0.94)).current;
   const opacity = useRef(new Animated.Value(0)).current;
@@ -59,9 +67,14 @@ export function Modal({
       </TouchableWithoutFeedback>
       <View style={styles.centerWrap} pointerEvents="box-none">
         <Animated.View style={{ transform: [{ scale }], opacity, width: '100%' }}>
-          <Card style={styles.card}>
+          <Card
+            style={{
+              ...styles.card,
+              ...(theme ? { backgroundColor: theme.surface } : {}),
+            }}
+          >
             {title ? (
-              <Text variant="h3" style={styles.title}>
+              <Text variant="h3" color={theme ? theme.ink : colors.gray900} style={styles.title}>
                 {title}
               </Text>
             ) : null}
@@ -74,7 +87,7 @@ export function Modal({
                   accessibilityLabel={cancelLabel}
                   style={styles.cancelBtn}
                 >
-                  <Text variant="label" color={colors.gray700}>
+                  <Text variant="label" color={theme ? theme.inkMuted : colors.gray700}>
                     {cancelLabel}
                   </Text>
                 </Pressable>
@@ -82,7 +95,11 @@ export function Modal({
                   label={confirmLabel}
                   variant={confirmDestructive ? 'primary' : 'primary'}
                   onPress={onConfirm}
-                  style={confirmDestructive ? styles.destructiveBtn : undefined}
+                  style={
+                    confirmDestructive
+                      ? { backgroundColor: theme ? theme.error : colors.error }
+                      : undefined
+                  }
                 />
               </View>
             ) : null}
@@ -120,8 +137,5 @@ const styles = StyleSheet.create({
   cancelBtn: {
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.sm,
-  },
-  destructiveBtn: {
-    backgroundColor: colors.error,
   },
 });

@@ -1,0 +1,1 @@
+ALTER TABLE "driver_profiles" ADD COLUMN "languages" varchar(200);

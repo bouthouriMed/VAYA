@@ -1,0 +1,3492 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`DateCalendarSheet snapshots > renders the month grid with the given value selected 1`] = `
+<Modal
+  animationType="none"
+  onRequestClose={[Function]}
+  transparent={true}
+  visible={true}
+>
+  <TouchableWithoutFeedback
+    onPress={[Function]}
+  >
+    <Animated.View
+      style={
+        [
+          {
+            "backgroundColor": "rgba(38, 51, 58, 0.5)",
+          },
+          {
+            "opacity": AnimatedValue {
+              "value": 0,
+            },
+          },
+        ]
+      }
+    />
+  </TouchableWithoutFeedback>
+  <KeyboardAvoidingView
+    pointerEvents="box-none"
+    style={
+      {
+        "flex": 1,
+        "justifyContent": "flex-end",
+      }
+    }
+  >
+    <Animated.View
+      style={
+        [
+          {
+            "backgroundColor": "#FFFFFF",
+            "borderTopLeftRadius": 24,
+            "borderTopRightRadius": 24,
+            "shadowColor": "#26333A",
+          },
+          {
+            "elevation": 8,
+          },
+          {
+            "shadowOffset": {
+              "height": -6,
+              "width": 0,
+            },
+          },
+          {
+            "backgroundColor": "#FFFFFF",
+            "shadowColor": "#000000",
+          },
+          {
+            "height": 506.4,
+            "transform": [
+              {
+                "translateY": AnimatedValue {
+                  "value": 506.4,
+                },
+              },
+            ],
+          },
+        ]
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "gap": 8,
+            "paddingBottom": 12,
+            "paddingTop": 8,
+          }
+        }
+      >
+        <View
+          style={
+            [
+              {
+                "backgroundColor": "#DDD9CA",
+                "borderRadius": 9999,
+                "height": 4,
+                "width": 40,
+              },
+              {
+                "backgroundColor": "#DAE2FD",
+              },
+            ]
+          }
+        />
+      </View>
+      <View
+        style={
+          {
+            "flex": 1,
+            "paddingHorizontal": 16,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "justifyContent": "space-between",
+              "marginBottom": 8,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "width": 32,
+              }
+            }
+          />
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 24,
+                  "fontWeight": "600",
+                  "lineHeight": 28.799999999999997,
+                },
+                {
+                  "color": "#000000",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                {
+                  "flex": 1,
+                  "textAlign": "center",
+                },
+              ]
+            }
+          >
+            Date de départ
+          </Text>
+          <TouchableOpacity
+            accessibilityLabel="Fermer"
+            accessibilityRole="button"
+            hitSlop={12}
+            onPress={[Function]}
+            style={
+              {
+                "alignItems": "center",
+                "height": 32,
+                "justifyContent": "center",
+                "width": 32,
+              }
+            }
+          >
+            <Ionicons
+              accessibilityElementsHidden={true}
+              color="#000000"
+              importantForAccessibility="no-hide-descendants"
+              name="close"
+              size={20}
+            />
+          </TouchableOpacity>
+        </View>
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "justifyContent": "space-between",
+              "marginBottom": 8,
+            }
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 30,
+                  "fontWeight": "700",
+                  "lineHeight": 36,
+                },
+                {
+                  "color": "#000000",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            Novembre 2026
+          </Text>
+          <View
+            style={
+              {
+                "flexDirection": "row",
+                "gap": 8,
+              }
+            }
+          >
+            <TouchableOpacity
+              accessibilityLabel="Mois précédent"
+              accessibilityRole="button"
+              disabled={false}
+              onPress={[Function]}
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "borderRadius": 18,
+                    "borderWidth": 1,
+                    "height": 36,
+                    "justifyContent": "center",
+                    "width": 36,
+                  },
+                  {
+                    "borderColor": "#DAE2FD",
+                  },
+                  false,
+                ]
+              }
+            >
+              <Ionicons
+                accessibilityElementsHidden={true}
+                color="#45464D"
+                importantForAccessibility="no-hide-descendants"
+                name="chevron-back"
+                size={20}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              accessibilityLabel="Mois suivant"
+              accessibilityRole="button"
+              onPress={[Function]}
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "borderRadius": 18,
+                    "borderWidth": 1,
+                    "height": 36,
+                    "justifyContent": "center",
+                    "width": 36,
+                  },
+                  {
+                    "borderColor": "#DAE2FD",
+                  },
+                ]
+              }
+            >
+              <Ionicons
+                accessibilityElementsHidden={true}
+                color="#000000"
+                importantForAccessibility="no-hide-descendants"
+                name="chevron-forward"
+                size={20}
+              />
+            </TouchableOpacity>
+          </View>
+        </View>
+        <View
+          style={
+            {
+              "flexDirection": "row",
+            }
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "lineHeight": 18,
+                },
+                {
+                  "color": "#76777D",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                [
+                  {
+                    "flexBasis": "14.285714285714286%",
+                    "textAlign": "center",
+                  },
+                  false,
+                ],
+              ]
+            }
+          >
+            L
+          </Text>
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "lineHeight": 18,
+                },
+                {
+                  "color": "#76777D",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                [
+                  {
+                    "flexBasis": "14.285714285714286%",
+                    "textAlign": "center",
+                  },
+                  false,
+                ],
+              ]
+            }
+          >
+            M
+          </Text>
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "lineHeight": 18,
+                },
+                {
+                  "color": "#76777D",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                [
+                  {
+                    "flexBasis": "14.285714285714286%",
+                    "textAlign": "center",
+                  },
+                  false,
+                ],
+              ]
+            }
+          >
+            M
+          </Text>
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "lineHeight": 18,
+                },
+                {
+                  "color": "#76777D",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                [
+                  {
+                    "flexBasis": "14.285714285714286%",
+                    "textAlign": "center",
+                  },
+                  false,
+                ],
+              ]
+            }
+          >
+            J
+          </Text>
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "lineHeight": 18,
+                },
+                {
+                  "color": "#76777D",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                [
+                  {
+                    "flexBasis": "14.285714285714286%",
+                    "textAlign": "center",
+                  },
+                  false,
+                ],
+              ]
+            }
+          >
+            V
+          </Text>
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "lineHeight": 18,
+                },
+                {
+                  "color": "#76777D",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                [
+                  {
+                    "flexBasis": "14.285714285714286%",
+                    "textAlign": "center",
+                  },
+                  {
+                    "opacity": 0.5,
+                  },
+                ],
+              ]
+            }
+          >
+            S
+          </Text>
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "lineHeight": 18,
+                },
+                {
+                  "color": "#76777D",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                [
+                  {
+                    "flexBasis": "14.285714285714286%",
+                    "textAlign": "center",
+                  },
+                  {
+                    "opacity": 0.5,
+                  },
+                ],
+              ]
+            }
+          >
+            D
+          </Text>
+        </View>
+        <View
+          style={
+            {
+              "flexDirection": "row",
+              "flexWrap": "wrap",
+              "marginTop": 4,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "height": 40,
+                "justifyContent": "center",
+                "width": "14.285714285714286%",
+              }
+            }
+          />
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "height": 40,
+                "justifyContent": "center",
+                "width": "14.285714285714286%",
+              }
+            }
+          />
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "height": 40,
+                "justifyContent": "center",
+                "width": "14.285714285714286%",
+              }
+            }
+          />
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "height": 40,
+                "justifyContent": "center",
+                "width": "14.285714285714286%",
+              }
+            }
+          />
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "height": 40,
+                "justifyContent": "center",
+                "width": "14.285714285714286%",
+              }
+            }
+          />
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "height": 40,
+                "justifyContent": "center",
+                "width": "14.285714285714286%",
+              }
+            }
+          />
+          <TouchableOpacity
+            accessibilityLabel="1 novembre"
+            accessibilityRole="button"
+            accessibilityState={
+              {
+                "disabled": false,
+                "selected": false,
+              }
+            }
+            disabled={false}
+            onPress={[Function]}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "height": 40,
+                  "justifyContent": "center",
+                  "width": "14.285714285714286%",
+                },
+                null,
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  {
+                    "color": "#000000",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  false,
+                ]
+              }
+            >
+              1
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            accessibilityLabel="2 novembre"
+            accessibilityRole="button"
+            accessibilityState={
+              {
+                "disabled": false,
+                "selected": false,
+              }
+            }
+            disabled={false}
+            onPress={[Function]}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "height": 40,
+                  "justifyContent": "center",
+                  "width": "14.285714285714286%",
+                },
+                null,
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  {
+                    "color": "#000000",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  false,
+                ]
+              }
+            >
+              2
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            accessibilityLabel="3 novembre"
+            accessibilityRole="button"
+            accessibilityState={
+              {
+                "disabled": false,
+                "selected": false,
+              }
+            }
+            disabled={false}
+            onPress={[Function]}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "height": 40,
+                  "justifyContent": "center",
+                  "width": "14.285714285714286%",
+                },
+                null,
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  {
+                    "color": "#000000",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  false,
+                ]
+              }
+            >
+              3
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            accessibilityLabel="4 novembre"
+            accessibilityRole="button"
+            accessibilityState={
+              {
+                "disabled": false,
+                "selected": false,
+              }
+            }
+            disabled={false}
+            onPress={[Function]}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "height": 40,
+                  "justifyContent": "center",
+                  "width": "14.285714285714286%",
+                },
+                null,
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  {
+                    "color": "#000000",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  false,
+                ]
+              }
+            >
+              4
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            accessibilityLabel="5 novembre"
+            accessibilityRole="button"
+            accessibilityState={
+              {
+                "disabled": false,
+                "selected": false,
+              }
+            }
+            disabled={false}
+            onPress={[Function]}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "height": 40,
+                  "justifyContent": "center",
+                  "width": "14.285714285714286%",
+                },
+                null,
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  {
+                    "color": "#000000",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  false,
+                ]
+              }
+            >
+              5
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            accessibilityLabel="6 novembre"
+            accessibilityRole="button"
+            accessibilityState={
+              {
+                "disabled": false,
+                "selected": false,
+              }
+            }
+            disabled={false}
+            onPress={[Function]}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "height": 40,
+                  "justifyContent": "center",
+                  "width": "14.285714285714286%",
+                },
+                null,
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  {
+                    "color": "#000000",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  false,
+                ]
+              }
+            >
+              6
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            accessibilityLabel="7 novembre"
+            accessibilityRole="button"
+            accessibilityState={
+              {
+                "disabled": false,
+                "selected": false,
+              }
+            }
+            disabled={false}
+            onPress={[Function]}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "height": 40,
+                  "justifyContent": "center",
+                  "width": "14.285714285714286%",
+                },
+                null,
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  {
+                    "color": "#000000",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  false,
+                ]
+              }
+            >
+              7
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            accessibilityLabel="8 novembre"
+            accessibilityRole="button"
+            accessibilityState={
+              {
+                "disabled": false,
+                "selected": false,
+              }
+            }
+            disabled={false}
+            onPress={[Function]}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "height": 40,
+                  "justifyContent": "center",
+                  "width": "14.285714285714286%",
+                },
+                null,
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  {
+                    "color": "#000000",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  false,
+                ]
+              }
+            >
+              8
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            accessibilityLabel="9 novembre"
+            accessibilityRole="button"
+            accessibilityState={
+              {
+                "disabled": false,
+                "selected": true,
+              }
+            }
+            disabled={false}
+            onPress={[Function]}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "height": 40,
+                  "justifyContent": "center",
+                  "width": "14.285714285714286%",
+                },
+                {
+                  "backgroundColor": "#000000",
+                },
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  {
+                    "color": "#FFFFFF",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  {
+                    "fontWeight": "600",
+                  },
+                ]
+              }
+            >
+              9
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            accessibilityLabel="10 novembre"
+            accessibilityRole="button"
+            accessibilityState={
+              {
+                "disabled": false,
+                "selected": false,
+              }
+            }
+            disabled={false}
+            onPress={[Function]}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "height": 40,
+                  "justifyContent": "center",
+                  "width": "14.285714285714286%",
+                },
+                null,
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  {
+                    "color": "#000000",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  false,
+                ]
+              }
+            >
+              10
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            accessibilityLabel="11 novembre"
+            accessibilityRole="button"
+            accessibilityState={
+              {
+                "disabled": false,
+                "selected": false,
+              }
+            }
+            disabled={false}
+            onPress={[Function]}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "height": 40,
+                  "justifyContent": "center",
+                  "width": "14.285714285714286%",
+                },
+                null,
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  {
+                    "color": "#000000",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  false,
+                ]
+              }
+            >
+              11
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            accessibilityLabel="12 novembre"
+            accessibilityRole="button"
+            accessibilityState={
+              {
+                "disabled": false,
+                "selected": false,
+              }
+            }
+            disabled={false}
+            onPress={[Function]}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "height": 40,
+                  "justifyContent": "center",
+                  "width": "14.285714285714286%",
+                },
+                null,
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  {
+                    "color": "#000000",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  false,
+                ]
+              }
+            >
+              12
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            accessibilityLabel="13 novembre"
+            accessibilityRole="button"
+            accessibilityState={
+              {
+                "disabled": false,
+                "selected": false,
+              }
+            }
+            disabled={false}
+            onPress={[Function]}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "height": 40,
+                  "justifyContent": "center",
+                  "width": "14.285714285714286%",
+                },
+                null,
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  {
+                    "color": "#000000",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  false,
+                ]
+              }
+            >
+              13
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            accessibilityLabel="14 novembre"
+            accessibilityRole="button"
+            accessibilityState={
+              {
+                "disabled": false,
+                "selected": false,
+              }
+            }
+            disabled={false}
+            onPress={[Function]}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "height": 40,
+                  "justifyContent": "center",
+                  "width": "14.285714285714286%",
+                },
+                null,
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  {
+                    "color": "#000000",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  false,
+                ]
+              }
+            >
+              14
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            accessibilityLabel="15 novembre"
+            accessibilityRole="button"
+            accessibilityState={
+              {
+                "disabled": false,
+                "selected": false,
+              }
+            }
+            disabled={false}
+            onPress={[Function]}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "height": 40,
+                  "justifyContent": "center",
+                  "width": "14.285714285714286%",
+                },
+                null,
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  {
+                    "color": "#000000",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  false,
+                ]
+              }
+            >
+              15
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            accessibilityLabel="16 novembre"
+            accessibilityRole="button"
+            accessibilityState={
+              {
+                "disabled": false,
+                "selected": false,
+              }
+            }
+            disabled={false}
+            onPress={[Function]}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "height": 40,
+                  "justifyContent": "center",
+                  "width": "14.285714285714286%",
+                },
+                null,
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  {
+                    "color": "#000000",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  false,
+                ]
+              }
+            >
+              16
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            accessibilityLabel="17 novembre"
+            accessibilityRole="button"
+            accessibilityState={
+              {
+                "disabled": false,
+                "selected": false,
+              }
+            }
+            disabled={false}
+            onPress={[Function]}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "height": 40,
+                  "justifyContent": "center",
+                  "width": "14.285714285714286%",
+                },
+                null,
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  {
+                    "color": "#000000",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  false,
+                ]
+              }
+            >
+              17
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            accessibilityLabel="18 novembre"
+            accessibilityRole="button"
+            accessibilityState={
+              {
+                "disabled": false,
+                "selected": false,
+              }
+            }
+            disabled={false}
+            onPress={[Function]}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "height": 40,
+                  "justifyContent": "center",
+                  "width": "14.285714285714286%",
+                },
+                null,
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  {
+                    "color": "#000000",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  false,
+                ]
+              }
+            >
+              18
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            accessibilityLabel="19 novembre"
+            accessibilityRole="button"
+            accessibilityState={
+              {
+                "disabled": false,
+                "selected": false,
+              }
+            }
+            disabled={false}
+            onPress={[Function]}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "height": 40,
+                  "justifyContent": "center",
+                  "width": "14.285714285714286%",
+                },
+                null,
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  {
+                    "color": "#000000",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  false,
+                ]
+              }
+            >
+              19
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            accessibilityLabel="20 novembre"
+            accessibilityRole="button"
+            accessibilityState={
+              {
+                "disabled": false,
+                "selected": false,
+              }
+            }
+            disabled={false}
+            onPress={[Function]}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "height": 40,
+                  "justifyContent": "center",
+                  "width": "14.285714285714286%",
+                },
+                null,
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  {
+                    "color": "#000000",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  false,
+                ]
+              }
+            >
+              20
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            accessibilityLabel="21 novembre"
+            accessibilityRole="button"
+            accessibilityState={
+              {
+                "disabled": false,
+                "selected": false,
+              }
+            }
+            disabled={false}
+            onPress={[Function]}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "height": 40,
+                  "justifyContent": "center",
+                  "width": "14.285714285714286%",
+                },
+                null,
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  {
+                    "color": "#000000",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  false,
+                ]
+              }
+            >
+              21
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            accessibilityLabel="22 novembre"
+            accessibilityRole="button"
+            accessibilityState={
+              {
+                "disabled": false,
+                "selected": false,
+              }
+            }
+            disabled={false}
+            onPress={[Function]}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "height": 40,
+                  "justifyContent": "center",
+                  "width": "14.285714285714286%",
+                },
+                null,
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  {
+                    "color": "#000000",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  false,
+                ]
+              }
+            >
+              22
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            accessibilityLabel="23 novembre"
+            accessibilityRole="button"
+            accessibilityState={
+              {
+                "disabled": false,
+                "selected": false,
+              }
+            }
+            disabled={false}
+            onPress={[Function]}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "height": 40,
+                  "justifyContent": "center",
+                  "width": "14.285714285714286%",
+                },
+                null,
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  {
+                    "color": "#000000",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  false,
+                ]
+              }
+            >
+              23
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            accessibilityLabel="24 novembre"
+            accessibilityRole="button"
+            accessibilityState={
+              {
+                "disabled": false,
+                "selected": false,
+              }
+            }
+            disabled={false}
+            onPress={[Function]}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "height": 40,
+                  "justifyContent": "center",
+                  "width": "14.285714285714286%",
+                },
+                null,
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  {
+                    "color": "#000000",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  false,
+                ]
+              }
+            >
+              24
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            accessibilityLabel="25 novembre"
+            accessibilityRole="button"
+            accessibilityState={
+              {
+                "disabled": false,
+                "selected": false,
+              }
+            }
+            disabled={false}
+            onPress={[Function]}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "height": 40,
+                  "justifyContent": "center",
+                  "width": "14.285714285714286%",
+                },
+                null,
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  {
+                    "color": "#000000",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  false,
+                ]
+              }
+            >
+              25
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            accessibilityLabel="26 novembre"
+            accessibilityRole="button"
+            accessibilityState={
+              {
+                "disabled": false,
+                "selected": false,
+              }
+            }
+            disabled={false}
+            onPress={[Function]}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "height": 40,
+                  "justifyContent": "center",
+                  "width": "14.285714285714286%",
+                },
+                null,
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  {
+                    "color": "#000000",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  false,
+                ]
+              }
+            >
+              26
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            accessibilityLabel="27 novembre"
+            accessibilityRole="button"
+            accessibilityState={
+              {
+                "disabled": false,
+                "selected": false,
+              }
+            }
+            disabled={false}
+            onPress={[Function]}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "height": 40,
+                  "justifyContent": "center",
+                  "width": "14.285714285714286%",
+                },
+                null,
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  {
+                    "color": "#000000",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  false,
+                ]
+              }
+            >
+              27
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            accessibilityLabel="28 novembre"
+            accessibilityRole="button"
+            accessibilityState={
+              {
+                "disabled": false,
+                "selected": false,
+              }
+            }
+            disabled={false}
+            onPress={[Function]}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "height": 40,
+                  "justifyContent": "center",
+                  "width": "14.285714285714286%",
+                },
+                null,
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  {
+                    "color": "#000000",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  false,
+                ]
+              }
+            >
+              28
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            accessibilityLabel="29 novembre"
+            accessibilityRole="button"
+            accessibilityState={
+              {
+                "disabled": false,
+                "selected": false,
+              }
+            }
+            disabled={false}
+            onPress={[Function]}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "height": 40,
+                  "justifyContent": "center",
+                  "width": "14.285714285714286%",
+                },
+                null,
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  {
+                    "color": "#000000",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  false,
+                ]
+              }
+            >
+              29
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            accessibilityLabel="30 novembre"
+            accessibilityRole="button"
+            accessibilityState={
+              {
+                "disabled": false,
+                "selected": false,
+              }
+            }
+            disabled={false}
+            onPress={[Function]}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "height": 40,
+                  "justifyContent": "center",
+                  "width": "14.285714285714286%",
+                },
+                null,
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  {
+                    "color": "#000000",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  false,
+                ]
+              }
+            >
+              30
+            </Text>
+          </TouchableOpacity>
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "height": 40,
+                "justifyContent": "center",
+                "width": "14.285714285714286%",
+              }
+            }
+          />
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "height": 40,
+                "justifyContent": "center",
+                "width": "14.285714285714286%",
+              }
+            }
+          />
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "height": 40,
+                "justifyContent": "center",
+                "width": "14.285714285714286%",
+              }
+            }
+          />
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "height": 40,
+                "justifyContent": "center",
+                "width": "14.285714285714286%",
+              }
+            }
+          />
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "height": 40,
+                "justifyContent": "center",
+                "width": "14.285714285714286%",
+              }
+            }
+          />
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "height": 40,
+                "justifyContent": "center",
+                "width": "14.285714285714286%",
+              }
+            }
+          />
+        </View>
+        <View
+          style={
+            {
+              "marginTop": 12,
+            }
+          }
+        >
+          <TouchableOpacity
+            accessibilityLabel="Confirmer la date"
+            accessibilityRole="button"
+            onPress={[Function]}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "borderRadius": 12,
+                  "height": 48,
+                  "justifyContent": "center",
+                },
+                {
+                  "backgroundColor": "#000000",
+                },
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 14,
+                    "fontWeight": "500",
+                    "lineHeight": 21,
+                  },
+                  {
+                    "color": "#FFFFFF",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              Confirmer la date
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Animated.View>
+  </KeyboardAvoidingView>
+</Modal>
+`;
+
+exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given value centered 1`] = `
+<Modal
+  animationType="none"
+  onRequestClose={[Function]}
+  transparent={true}
+  visible={true}
+>
+  <TouchableWithoutFeedback
+    onPress={[Function]}
+  >
+    <Animated.View
+      style={
+        [
+          {
+            "backgroundColor": "rgba(38, 51, 58, 0.5)",
+          },
+          {
+            "opacity": AnimatedValue {
+              "value": 0,
+            },
+          },
+        ]
+      }
+    />
+  </TouchableWithoutFeedback>
+  <KeyboardAvoidingView
+    pointerEvents="box-none"
+    style={
+      {
+        "flex": 1,
+        "justifyContent": "flex-end",
+      }
+    }
+  >
+    <Animated.View
+      style={
+        [
+          {
+            "backgroundColor": "#FFFFFF",
+            "borderTopLeftRadius": 24,
+            "borderTopRightRadius": 24,
+            "shadowColor": "#26333A",
+          },
+          {
+            "elevation": 8,
+          },
+          {
+            "shadowOffset": {
+              "height": -6,
+              "width": 0,
+            },
+          },
+          {
+            "backgroundColor": "#FFFFFF",
+            "shadowColor": "#000000",
+          },
+          {
+            "height": 506.4,
+            "transform": [
+              {
+                "translateY": AnimatedValue {
+                  "value": 506.4,
+                },
+              },
+            ],
+          },
+        ]
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "gap": 8,
+            "paddingBottom": 12,
+            "paddingTop": 8,
+          }
+        }
+      >
+        <View
+          style={
+            [
+              {
+                "backgroundColor": "#DDD9CA",
+                "borderRadius": 9999,
+                "height": 4,
+                "width": 40,
+              },
+              {
+                "backgroundColor": "#DAE2FD",
+              },
+            ]
+          }
+        />
+      </View>
+      <View
+        style={
+          {
+            "flex": 1,
+            "paddingHorizontal": 16,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "justifyContent": "space-between",
+              "marginBottom": 12,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "width": 32,
+              }
+            }
+          />
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 24,
+                  "fontWeight": "600",
+                  "lineHeight": 28.799999999999997,
+                },
+                {
+                  "color": "#000000",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                {
+                  "flex": 1,
+                  "textAlign": "center",
+                },
+              ]
+            }
+          >
+            Heure
+          </Text>
+          <TouchableOpacity
+            accessibilityLabel="Fermer"
+            accessibilityRole="button"
+            hitSlop={12}
+            onPress={[Function]}
+            style={
+              {
+                "alignItems": "center",
+                "height": 32,
+                "justifyContent": "center",
+                "width": 32,
+              }
+            }
+          >
+            <Ionicons
+              accessibilityElementsHidden={true}
+              color="#000000"
+              importantForAccessibility="no-hide-descendants"
+              name="close"
+              size={20}
+            />
+          </TouchableOpacity>
+        </View>
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "gap": 4,
+              "marginBottom": 16,
+            }
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "lineHeight": 21,
+                },
+                {
+                  "color": "#45464D",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            À quelle heure souhaitez-vous partir ?
+          </Text>
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 30,
+                  "fontWeight": "700",
+                  "lineHeight": 36,
+                },
+                {
+                  "color": "#000000",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                {
+                  "textAlign": "center",
+                },
+              ]
+            }
+          >
+            Rechercher vers 
+            18
+            :
+            30
+          </Text>
+        </View>
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "height": 168,
+              "justifyContent": "center",
+              "position": "relative",
+            }
+          }
+        >
+          <View
+            pointerEvents="none"
+            style={
+              [
+                {
+                  "borderRadius": 8,
+                  "borderWidth": 1,
+                  "height": 56,
+                  "left": "50%",
+                  "marginLeft": -90,
+                  "marginTop": -28,
+                  "position": "absolute",
+                  "top": "50%",
+                  "width": 180,
+                },
+                {
+                  "backgroundColor": "#E5EEFF",
+                  "borderColor": "#DAE2FD",
+                },
+              ]
+            }
+          />
+          <ScrollView
+            contentContainerStyle={
+              {
+                "paddingVertical": 56,
+              }
+            }
+            contentOffset={
+              {
+                "x": 0,
+                "y": 1008,
+              }
+            }
+            decelerationRate="fast"
+            onMomentumScrollEnd={[Function]}
+            onScrollEndDrag={[Function]}
+            showsVerticalScrollIndicator={false}
+            snapToInterval={56}
+            style={
+              {
+                "height": 168,
+                "width": 80,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "height": 56,
+                  "justifyContent": "center",
+                }
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "lineHeight": 24,
+                    },
+                    {
+                      "color": "#DAE2FD",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    {
+                      "fontSize": 20,
+                      "lineHeight": 24,
+                      "textAlign": "center",
+                    },
+                  ]
+                }
+              >
+                00
+              </Text>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "height": 56,
+                  "justifyContent": "center",
+                }
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "lineHeight": 24,
+                    },
+                    {
+                      "color": "#DAE2FD",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    {
+                      "fontSize": 20,
+                      "lineHeight": 24,
+                      "textAlign": "center",
+                    },
+                  ]
+                }
+              >
+                01
+              </Text>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "height": 56,
+                  "justifyContent": "center",
+                }
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "lineHeight": 24,
+                    },
+                    {
+                      "color": "#DAE2FD",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    {
+                      "fontSize": 20,
+                      "lineHeight": 24,
+                      "textAlign": "center",
+                    },
+                  ]
+                }
+              >
+                02
+              </Text>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "height": 56,
+                  "justifyContent": "center",
+                }
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "lineHeight": 24,
+                    },
+                    {
+                      "color": "#DAE2FD",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    {
+                      "fontSize": 20,
+                      "lineHeight": 24,
+                      "textAlign": "center",
+                    },
+                  ]
+                }
+              >
+                03
+              </Text>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "height": 56,
+                  "justifyContent": "center",
+                }
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "lineHeight": 24,
+                    },
+                    {
+                      "color": "#DAE2FD",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    {
+                      "fontSize": 20,
+                      "lineHeight": 24,
+                      "textAlign": "center",
+                    },
+                  ]
+                }
+              >
+                04
+              </Text>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "height": 56,
+                  "justifyContent": "center",
+                }
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "lineHeight": 24,
+                    },
+                    {
+                      "color": "#DAE2FD",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    {
+                      "fontSize": 20,
+                      "lineHeight": 24,
+                      "textAlign": "center",
+                    },
+                  ]
+                }
+              >
+                05
+              </Text>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "height": 56,
+                  "justifyContent": "center",
+                }
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "lineHeight": 24,
+                    },
+                    {
+                      "color": "#DAE2FD",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    {
+                      "fontSize": 20,
+                      "lineHeight": 24,
+                      "textAlign": "center",
+                    },
+                  ]
+                }
+              >
+                06
+              </Text>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "height": 56,
+                  "justifyContent": "center",
+                }
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "lineHeight": 24,
+                    },
+                    {
+                      "color": "#DAE2FD",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    {
+                      "fontSize": 20,
+                      "lineHeight": 24,
+                      "textAlign": "center",
+                    },
+                  ]
+                }
+              >
+                07
+              </Text>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "height": 56,
+                  "justifyContent": "center",
+                }
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "lineHeight": 24,
+                    },
+                    {
+                      "color": "#DAE2FD",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    {
+                      "fontSize": 20,
+                      "lineHeight": 24,
+                      "textAlign": "center",
+                    },
+                  ]
+                }
+              >
+                08
+              </Text>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "height": 56,
+                  "justifyContent": "center",
+                }
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "lineHeight": 24,
+                    },
+                    {
+                      "color": "#DAE2FD",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    {
+                      "fontSize": 20,
+                      "lineHeight": 24,
+                      "textAlign": "center",
+                    },
+                  ]
+                }
+              >
+                09
+              </Text>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "height": 56,
+                  "justifyContent": "center",
+                }
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "lineHeight": 24,
+                    },
+                    {
+                      "color": "#DAE2FD",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    {
+                      "fontSize": 20,
+                      "lineHeight": 24,
+                      "textAlign": "center",
+                    },
+                  ]
+                }
+              >
+                10
+              </Text>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "height": 56,
+                  "justifyContent": "center",
+                }
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "lineHeight": 24,
+                    },
+                    {
+                      "color": "#DAE2FD",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    {
+                      "fontSize": 20,
+                      "lineHeight": 24,
+                      "textAlign": "center",
+                    },
+                  ]
+                }
+              >
+                11
+              </Text>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "height": 56,
+                  "justifyContent": "center",
+                }
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "lineHeight": 24,
+                    },
+                    {
+                      "color": "#DAE2FD",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    {
+                      "fontSize": 20,
+                      "lineHeight": 24,
+                      "textAlign": "center",
+                    },
+                  ]
+                }
+              >
+                12
+              </Text>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "height": 56,
+                  "justifyContent": "center",
+                }
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "lineHeight": 24,
+                    },
+                    {
+                      "color": "#DAE2FD",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    {
+                      "fontSize": 20,
+                      "lineHeight": 24,
+                      "textAlign": "center",
+                    },
+                  ]
+                }
+              >
+                13
+              </Text>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "height": 56,
+                  "justifyContent": "center",
+                }
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "lineHeight": 24,
+                    },
+                    {
+                      "color": "#DAE2FD",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    {
+                      "fontSize": 20,
+                      "lineHeight": 24,
+                      "textAlign": "center",
+                    },
+                  ]
+                }
+              >
+                14
+              </Text>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "height": 56,
+                  "justifyContent": "center",
+                }
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "lineHeight": 24,
+                    },
+                    {
+                      "color": "#DAE2FD",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    {
+                      "fontSize": 20,
+                      "lineHeight": 24,
+                      "textAlign": "center",
+                    },
+                  ]
+                }
+              >
+                15
+              </Text>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "height": 56,
+                  "justifyContent": "center",
+                }
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "lineHeight": 24,
+                    },
+                    {
+                      "color": "#DAE2FD",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    {
+                      "fontSize": 20,
+                      "lineHeight": 24,
+                      "textAlign": "center",
+                    },
+                  ]
+                }
+              >
+                16
+              </Text>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "height": 56,
+                  "justifyContent": "center",
+                }
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "lineHeight": 24,
+                    },
+                    {
+                      "color": "#DAE2FD",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    {
+                      "fontSize": 20,
+                      "lineHeight": 24,
+                      "textAlign": "center",
+                    },
+                  ]
+                }
+              >
+                17
+              </Text>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "height": 56,
+                  "justifyContent": "center",
+                }
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "lineHeight": 24,
+                    },
+                    {
+                      "color": "#000000",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    {
+                      "fontSize": 24,
+                      "fontWeight": "700",
+                      "lineHeight": 29,
+                      "textAlign": "center",
+                    },
+                  ]
+                }
+              >
+                18
+              </Text>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "height": 56,
+                  "justifyContent": "center",
+                }
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "lineHeight": 24,
+                    },
+                    {
+                      "color": "#DAE2FD",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    {
+                      "fontSize": 20,
+                      "lineHeight": 24,
+                      "textAlign": "center",
+                    },
+                  ]
+                }
+              >
+                19
+              </Text>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "height": 56,
+                  "justifyContent": "center",
+                }
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "lineHeight": 24,
+                    },
+                    {
+                      "color": "#DAE2FD",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    {
+                      "fontSize": 20,
+                      "lineHeight": 24,
+                      "textAlign": "center",
+                    },
+                  ]
+                }
+              >
+                20
+              </Text>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "height": 56,
+                  "justifyContent": "center",
+                }
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "lineHeight": 24,
+                    },
+                    {
+                      "color": "#DAE2FD",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    {
+                      "fontSize": 20,
+                      "lineHeight": 24,
+                      "textAlign": "center",
+                    },
+                  ]
+                }
+              >
+                21
+              </Text>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "height": 56,
+                  "justifyContent": "center",
+                }
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "lineHeight": 24,
+                    },
+                    {
+                      "color": "#DAE2FD",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    {
+                      "fontSize": 20,
+                      "lineHeight": 24,
+                      "textAlign": "center",
+                    },
+                  ]
+                }
+              >
+                22
+              </Text>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "height": 56,
+                  "justifyContent": "center",
+                }
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "lineHeight": 24,
+                    },
+                    {
+                      "color": "#DAE2FD",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    {
+                      "fontSize": 20,
+                      "lineHeight": 24,
+                      "textAlign": "center",
+                    },
+                  ]
+                }
+              >
+                23
+              </Text>
+            </View>
+          </ScrollView>
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 30,
+                  "fontWeight": "700",
+                  "lineHeight": 36,
+                },
+                {
+                  "color": "#000000",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                {
+                  "textAlign": "center",
+                  "width": 20,
+                },
+              ]
+            }
+          >
+            :
+          </Text>
+          <ScrollView
+            contentContainerStyle={
+              {
+                "paddingVertical": 56,
+              }
+            }
+            contentOffset={
+              {
+                "x": 0,
+                "y": 336,
+              }
+            }
+            decelerationRate="fast"
+            onMomentumScrollEnd={[Function]}
+            onScrollEndDrag={[Function]}
+            showsVerticalScrollIndicator={false}
+            snapToInterval={56}
+            style={
+              {
+                "height": 168,
+                "width": 80,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "height": 56,
+                  "justifyContent": "center",
+                }
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "lineHeight": 24,
+                    },
+                    {
+                      "color": "#DAE2FD",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    {
+                      "fontSize": 20,
+                      "lineHeight": 24,
+                      "textAlign": "center",
+                    },
+                  ]
+                }
+              >
+                00
+              </Text>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "height": 56,
+                  "justifyContent": "center",
+                }
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "lineHeight": 24,
+                    },
+                    {
+                      "color": "#DAE2FD",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    {
+                      "fontSize": 20,
+                      "lineHeight": 24,
+                      "textAlign": "center",
+                    },
+                  ]
+                }
+              >
+                05
+              </Text>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "height": 56,
+                  "justifyContent": "center",
+                }
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "lineHeight": 24,
+                    },
+                    {
+                      "color": "#DAE2FD",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    {
+                      "fontSize": 20,
+                      "lineHeight": 24,
+                      "textAlign": "center",
+                    },
+                  ]
+                }
+              >
+                10
+              </Text>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "height": 56,
+                  "justifyContent": "center",
+                }
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "lineHeight": 24,
+                    },
+                    {
+                      "color": "#DAE2FD",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    {
+                      "fontSize": 20,
+                      "lineHeight": 24,
+                      "textAlign": "center",
+                    },
+                  ]
+                }
+              >
+                15
+              </Text>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "height": 56,
+                  "justifyContent": "center",
+                }
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "lineHeight": 24,
+                    },
+                    {
+                      "color": "#DAE2FD",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    {
+                      "fontSize": 20,
+                      "lineHeight": 24,
+                      "textAlign": "center",
+                    },
+                  ]
+                }
+              >
+                20
+              </Text>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "height": 56,
+                  "justifyContent": "center",
+                }
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "lineHeight": 24,
+                    },
+                    {
+                      "color": "#DAE2FD",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    {
+                      "fontSize": 20,
+                      "lineHeight": 24,
+                      "textAlign": "center",
+                    },
+                  ]
+                }
+              >
+                25
+              </Text>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "height": 56,
+                  "justifyContent": "center",
+                }
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "lineHeight": 24,
+                    },
+                    {
+                      "color": "#000000",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    {
+                      "fontSize": 24,
+                      "fontWeight": "700",
+                      "lineHeight": 29,
+                      "textAlign": "center",
+                    },
+                  ]
+                }
+              >
+                30
+              </Text>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "height": 56,
+                  "justifyContent": "center",
+                }
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "lineHeight": 24,
+                    },
+                    {
+                      "color": "#DAE2FD",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    {
+                      "fontSize": 20,
+                      "lineHeight": 24,
+                      "textAlign": "center",
+                    },
+                  ]
+                }
+              >
+                35
+              </Text>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "height": 56,
+                  "justifyContent": "center",
+                }
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "lineHeight": 24,
+                    },
+                    {
+                      "color": "#DAE2FD",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    {
+                      "fontSize": 20,
+                      "lineHeight": 24,
+                      "textAlign": "center",
+                    },
+                  ]
+                }
+              >
+                40
+              </Text>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "height": 56,
+                  "justifyContent": "center",
+                }
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "lineHeight": 24,
+                    },
+                    {
+                      "color": "#DAE2FD",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    {
+                      "fontSize": 20,
+                      "lineHeight": 24,
+                      "textAlign": "center",
+                    },
+                  ]
+                }
+              >
+                45
+              </Text>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "height": 56,
+                  "justifyContent": "center",
+                }
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "lineHeight": 24,
+                    },
+                    {
+                      "color": "#DAE2FD",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    {
+                      "fontSize": 20,
+                      "lineHeight": 24,
+                      "textAlign": "center",
+                    },
+                  ]
+                }
+              >
+                50
+              </Text>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "height": 56,
+                  "justifyContent": "center",
+                }
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "lineHeight": 24,
+                    },
+                    {
+                      "color": "#DAE2FD",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    {
+                      "fontSize": 20,
+                      "lineHeight": 24,
+                      "textAlign": "center",
+                    },
+                  ]
+                }
+              >
+                55
+              </Text>
+            </View>
+          </ScrollView>
+        </View>
+        <View
+          style={
+            {
+              "marginTop": 16,
+            }
+          }
+        >
+          <TouchableOpacity
+            accessibilityLabel="Confirmer l'heure"
+            accessibilityRole="button"
+            onPress={[Function]}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "borderRadius": 12,
+                  "height": 52,
+                  "justifyContent": "center",
+                },
+                {
+                  "backgroundColor": "#000000",
+                },
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 14,
+                    "fontWeight": "500",
+                    "lineHeight": 21,
+                  },
+                  {
+                    "color": "#FFFFFF",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              Confirmer
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Animated.View>
+  </KeyboardAvoidingView>
+</Modal>
+`;

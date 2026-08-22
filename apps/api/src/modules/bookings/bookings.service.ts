@@ -170,6 +170,25 @@ export async function listRequestsForRide(db: Database, rideId: string, requesti
   return db.query.bookings.findMany({ where: eq(bookings.rideId, rideId), with: { rider: true } });
 }
 
+/** Public, first-name-only roster of a ride's already-*accepted* fellow
+ *  passengers — for search/ride-details.tsx and results.tsx's ride cards,
+ *  which show "N seats booked" alongside who's already on board (matches
+ *  the same public-safe exposure level the driver's own public profile
+ *  already uses: first name + rating, never a full identity, phone, or
+ *  pending/declined requests). */
+export async function listFellowPassengers(db: Database, rideId: string) {
+  const accepted = await db.query.bookings.findMany({
+    where: and(eq(bookings.rideId, rideId), eq(bookings.status, 'accepted')),
+    with: { rider: { with: { riderProfile: true } } },
+  });
+  return accepted.map((booking) => ({
+    userId: booking.rider.id,
+    firstName: booking.rider.fullName.split(' ')[0]!,
+    avatarUrl: booking.rider.avatarUrl,
+    ratingAvg: booking.rider.riderProfile?.ratingAvg ?? 0,
+  }));
+}
+
 export async function acceptBooking(db: Database, bookingId: string, requestingUserId: string) {
   const booking = await getBookingOrThrow(db, bookingId);
   if (booking.ride.driverProfile.userId !== requestingUserId) {

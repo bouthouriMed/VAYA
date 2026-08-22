@@ -1,10 +1,11 @@
 import { Tabs, Redirect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '@vaya/design-system';
+import { useAppTheme } from '@vaya/design-system';
 import { useAppSelector } from '../../src/state/store';
 
 export default function TabLayout(): React.JSX.Element {
   const accessToken = useAppSelector((s) => s.auth.accessToken);
+  const { colors: theme } = useAppTheme();
   if (!accessToken) {
     return <Redirect href="/" />;
   }
@@ -13,9 +14,9 @@ export default function TabLayout(): React.JSX.Element {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.gray500,
-        tabBarStyle: { backgroundColor: colors.white },
+        tabBarActiveTintColor: theme.accent,
+        tabBarInactiveTintColor: theme.inkFaint,
+        tabBarStyle: { backgroundColor: theme.surface, borderTopColor: theme.outlineVariant },
       }}
     >
       <Tabs.Screen
@@ -29,7 +30,11 @@ export default function TabLayout(): React.JSX.Element {
         name="trips"
         options={{
           title: 'Trajets',
-          tabBarIcon: ({ color, size }) => <Ionicons name="car" size={size} color={color} />,
+          // Every tab icon stays the same outline-stroke family — only the
+          // active tab's color differs — so "car"/"add-circle"/"person"
+          // (their filled glyphs) don't stand out against "search" (which
+          // has no separate filled/outline pair).
+          tabBarIcon: ({ color, size }) => <Ionicons name="car-outline" size={size} color={color} />,
         }}
       />
       <Tabs.Screen
@@ -37,7 +42,7 @@ export default function TabLayout(): React.JSX.Element {
         options={{
           title: 'Publier',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="add-circle" size={size} color={color} />
+            <Ionicons name="add-circle-outline" size={size} color={color} />
           ),
         }}
       />
@@ -45,7 +50,7 @@ export default function TabLayout(): React.JSX.Element {
         name="profile"
         options={{
           title: 'Profil',
-          tabBarIcon: ({ color, size }) => <Ionicons name="person" size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => <Ionicons name="person-outline" size={size} color={color} />,
         }}
       />
     </Tabs>

@@ -27,6 +27,8 @@ const publicProfileResponseSchema = z.object({
   avatarUrl: z.string().nullable(),
   driver: z
     .object({
+      bio: z.string().nullable(),
+      languages: z.array(z.string()).nullable(),
       ratingAvg: z.number(),
       tripCount: z.number(),
       punctualityScore: z.number(),
@@ -37,6 +39,7 @@ const publicProfileResponseSchema = z.object({
           model: z.string(),
           color: z.string(),
           photoUrl: z.string().nullable(),
+          plateNumber: z.string(),
         })
         .nullable(),
     })

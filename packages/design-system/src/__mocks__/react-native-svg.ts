@@ -7,3 +7,8 @@ const Svg = 'Svg';
 export default Svg;
 
 export const Circle = 'Circle';
+export const Defs = 'Defs';
+export const LinearGradient = 'LinearGradient';
+export const RadialGradient = 'RadialGradient';
+export const Stop = 'Stop';
+export const Rect = 'Rect';

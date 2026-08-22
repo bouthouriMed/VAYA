@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Insurance Proof - Vaya</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-secondary": "#ffffff",
+                      "outline-variant": "#c6c6cd",
+                      "surface-container-low": "#eff4ff",
+                      "on-background": "#0b1c30",
+                      "on-primary-fixed-variant": "#3f465c",
+                      "surface-container": "#e5eeff",
+                      "on-tertiary": "#ffffff",
+                      "secondary-fixed": "#6ffbbe",
+                      "on-surface": "#0b1c30",
+                      "on-primary-fixed": "#131b2e",
+                      "surface-bright": "#f8f9ff",
+                      "surface-container-high": "#dce9ff",
+                      "tertiary-fixed-dim": "#adc6ff",
+                      "on-error": "#ffffff",
+                      "surface": "#f8f9ff",
+                      "inverse-on-surface": "#eaf1ff",
+                      "inverse-primary": "#bec6e0",
+                      "error-container": "#ffdad6",
+                      "on-primary": "#ffffff",
+                      "secondary-container": "#6cf8bb",
+                      "on-error-container": "#93000a",
+                      "primary-fixed": "#dae2fd",
+                      "surface-container-lowest": "#ffffff",
+                      "on-tertiary-fixed-variant": "#004395",
+                      "primary-fixed-dim": "#bec6e0",
+                      "on-secondary-container": "#00714d",
+                      "surface-dim": "#cbdbf5",
+                      "surface-variant": "#d3e4fe",
+                      "tertiary-fixed": "#d8e2ff",
+                      "on-primary-container": "#7c839b",
+                      "on-tertiary-fixed": "#001a42",
+                      "surface-tint": "#565e74",
+                      "outline": "#76777d",
+                      "inverse-surface": "#213145",
+                      "on-secondary-fixed": "#002113",
+                      "primary-container": "#131b2e",
+                      "on-tertiary-container": "#3980f4",
+                      "on-secondary-fixed-variant": "#005236",
+                      "secondary": "#006c49",
+                      "primary": "#000000",
+                      "tertiary-container": "#001a42",
+                      "error": "#ba1a1a",
+                      "tertiary": "#000000",
+                      "surface-container-highest": "#d3e4fe",
+                      "secondary-fixed-dim": "#4edea3",
+                      "on-surface-variant": "#45464d",
+                      "background": "#f8f9ff"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "gutter-grid": "16px",
+                      "touch-target": "48px",
+                      "margin-main": "20px",
+                      "stack-lg": "24px",
+                      "stack-md": "16px",
+                      "stack-sm": "8px"
+              },
+              "fontFamily": {
+                      "body-sm": ["Inter"],
+                      "body-md": ["Inter"],
+                      "body-lg": ["Inter"],
+                      "headline-sm": ["Inter"],
+                      "headline-md": ["Inter"],
+                      "headline-lg-mobile": ["Inter"],
+                      "label-lg": ["Inter"],
+                      "label-md": ["Inter"],
+                      "headline-lg": ["Inter"]
+              },
+              "fontSize": {
+                      "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                      "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                      "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                      "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                      "headline-lg-mobile": ["26px", {"lineHeight": "32px", "fontWeight": "700"}],
+                      "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                      "label-md": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                      "headline-lg": ["30px", {"lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+              }
+            }
+          }
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen flex flex-col font-body-md antialiased selection:bg-primary-container selection:text-on-primary-container">
+<!-- Top App Bar (Transactional variant - Nav Shell suppressed as per instructions for linear flows, but keeping a simplified header for structure) -->
+<header class="fixed top-0 w-full z-50 bg-surface dark:bg-surface-container-lowest shadow-sm shadow-primary/10 flex items-center justify-between px-margin-main h-touch-target">
+<div class="flex items-center gap-4">
+<button aria-label="Back" class="h-touch-target w-touch-target flex items-center justify-center text-on-surface hover:bg-surface-container-low transition-colors rounded-full active:scale-95">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">arrow_back</span>
+</button>
+<h1 class="font-headline-sm text-headline-sm text-primary dark:text-primary-fixed">Vaya</h1>
+</div>
+<div class="font-label-md text-label-md text-on-surface-variant flex items-center gap-1">
+<span>Step 3 of 4</span>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-1 mt-[48px] mb-[100px] px-margin-main py-stack-lg max-w-2xl mx-auto w-full">
+<!-- Header Section -->
+<div class="mb-stack-lg animate-fade-in-up">
+<h2 class="font-headline-lg-mobile text-headline-lg-mobile md:font-headline-lg md:text-headline-lg text-primary mb-stack-sm">Insurance Proof</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Please upload a clear photo of your current vehicle insurance document. Ensure all details are legible.</p>
+</div>
+<!-- Scan/Upload Area (Bento-style card) -->
+<div class="bg-surface-container-lowest rounded-xl shadow-[0_4px_24px_rgba(0,0,0,0.04)] border border-outline-variant/30 p-stack-md mb-stack-lg relative overflow-hidden group">
+<!-- Decorative subtle glow -->
+<div class="absolute inset-0 bg-gradient-to-br from-primary-fixed-dim/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+<div class="border-2 border-dashed border-primary-fixed-dim rounded-lg h-64 flex flex-col items-center justify-center bg-surface-bright relative transition-colors group-hover:border-primary/50 hover:bg-surface-container-low cursor-pointer">
+<div class="absolute inset-0 flex items-center justify-center opacity-10">
+<span class="material-symbols-outlined text-[120px] text-primary" style="font-variation-settings: 'FILL' 0;">document_scanner</span>
+</div>
+<div class="z-10 flex flex-col items-center text-center px-4">
+<span class="material-symbols-outlined text-primary mb-3 text-[40px]" style="font-variation-settings: 'FILL' 1;">add_a_photo</span>
+<h3 class="font-headline-sm text-headline-sm text-primary mb-1">Scan Document</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant max-w-[200px]">Position your insurance card within the frame</p>
+</div>
+</div>
+<div class="flex items-center justify-between mt-stack-md">
+<span class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">lock</span> Secure upload
+                </span>
+<button class="font-label-lg text-label-lg text-primary hover:text-on-primary-fixed-variant transition-colors underline decoration-primary/30 underline-offset-4">
+                    Enter manually instead
+                </button>
+</div>
+</div>
+<!-- Extraction Results / Confirmation (Simulated state) -->
+<div class="bg-surface-container-lowest rounded-xl shadow-[0_4px_24px_rgba(0,0,0,0.04)] border border-outline-variant/30 p-stack-md animate-fade-in-up" style="animation-delay: 100ms;">
+<h4 class="font-label-lg text-label-lg text-on-surface-variant mb-stack-sm flex items-center gap-2 uppercase tracking-wider">
+<span class="material-symbols-outlined text-[18px] text-secondary" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                 Extracted Details
+             </h4>
+<div class="space-y-stack-sm">
+<!-- Field 1 -->
+<div class="relative group">
+<label class="absolute -top-2 left-2 bg-surface-container-lowest px-1 font-label-md text-label-md text-on-surface-variant z-10 transition-colors group-focus-within:text-primary">Provider Name</label>
+<input class="w-full bg-transparent border border-outline-variant rounded-lg px-4 py-3 font-body-md text-body-md text-primary focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" readonly="" type="text" value="State Farm Insurance"/>
+</div>
+<!-- Field 2 & 3 row -->
+<div class="grid grid-cols-2 gap-stack-md">
+<div class="relative group">
+<label class="absolute -top-2 left-2 bg-surface-container-lowest px-1 font-label-md text-label-md text-on-surface-variant z-10 transition-colors group-focus-within:text-primary">Policy Number</label>
+<input class="w-full bg-transparent border border-outline-variant rounded-lg px-4 py-3 font-body-md text-body-md text-primary focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" readonly="" type="text" value="POL-987654321"/>
+</div>
+<div class="relative group">
+<label class="absolute -top-2 left-2 bg-surface-container-lowest px-1 font-label-md text-label-md text-on-surface-variant z-10 transition-colors group-focus-within:text-primary">Expiration Date</label>
+<input class="w-full bg-transparent border border-outline-variant rounded-lg px-4 py-3 font-body-md text-body-md text-primary focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" readonly="" type="text" value="12/2024"/>
+</div>
+</div>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-stack-md">Please verify these details match your document exactly.</p>
+</div>
+</main>
+<!-- Sticky Bottom CTA -->
+<div class="fixed bottom-0 left-0 w-full bg-surface/90 backdrop-blur-md border-t border-outline-variant/20 p-margin-main pb-safe z-40">
+<div class="max-w-2xl mx-auto">
+<button class="w-full h-touch-target bg-primary text-on-primary rounded-lg font-headline-sm text-headline-sm hover:bg-primary/90 active:scale-[0.98] transition-all flex items-center justify-center shadow-lg shadow-primary/20">
+                Continue
+            </button>
+</div>
+</div>
+<style>
+        .pb-safe { padding-bottom: env(safe-area-inset-bottom, 20px); }
+        
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-up {
+            animation: fadeInUp 0.4s ease-out forwards;
+        }
+    </style>
+</body></html>

@@ -31,3 +31,39 @@ export function decodePolyline(encoded: string): LatLng[] {
 
   return points;
 }
+
+const EARTH_RADIUS_KM = 6371;
+
+export function haversineKm(a: LatLng, b: LatLng): number {
+  const dLat = ((b.latitude - a.latitude) * Math.PI) / 180;
+  const dLng = ((b.longitude - a.longitude) * Math.PI) / 180;
+  const lat1 = (a.latitude * Math.PI) / 180;
+  const lat2 = (b.latitude * Math.PI) / 180;
+  const h =
+    Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
+  return 2 * EARTH_RADIUS_KM * Math.asin(Math.min(1, Math.sqrt(h)));
+}
+
+/** Real distance in km, summed segment-by-segment along the route's actual
+ *  decoded geometry — not a fabricated number, just a straight-line
+ *  approximation of the real OSRM/haversine-fallback polyline (curves get
+ *  slightly undercounted the coarser the point sampling is, same caveat as
+ *  any polyline-derived distance). */
+export function polylineDistanceKm(points: LatLng[]): number {
+  let total = 0;
+  for (let i = 1; i < points.length; i++) {
+    total += haversineKm(points[i - 1]!, points[i]!);
+  }
+  return total;
+}
+
+const AVERAGE_WALK_KMH = 5;
+
+/** Real straight-line distance between two coordinates, converted to a
+ *  walking-minutes estimate at an average pace — used where no server-side
+ *  walk-time field exists (e.g. a route stop's distance to the actual
+ *  drop-off point) but real coordinates for both ends do. Same "derived,
+ *  not fabricated" reasoning as polylineDistanceKm. */
+export function estimateWalkMinutes(a: LatLng, b: LatLng): number {
+  return (haversineKm(a, b) / AVERAGE_WALK_KMH) * 60;
+}

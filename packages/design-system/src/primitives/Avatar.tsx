@@ -1,5 +1,5 @@
 ﻿import React from 'react';
-import { View, Text, Image, StyleSheet, type ImageStyle } from 'react-native';
+import { View, Text, Image, StyleSheet, type ImageStyle, type StyleProp } from 'react-native';
 import { colors, typography } from '../tokens/index';
 
 type AvatarSize = 'sm' | 'md' | 'lg';
@@ -10,7 +10,14 @@ interface AvatarProps {
   size?: AvatarSize;
   /** Overrides the size preset with an exact pixel diameter (e.g. for map-zoom scaling). */
   sizePx?: number;
-  style?: ImageStyle;
+  style?: StyleProp<ImageStyle>;
+  /**
+   * Themed fallback override (Stitch migration). When given, the initials
+   * fallback uses these instead of the legacy hashed warm-token palette —
+   * for screens already on `useAppTheme()`. Omit to keep prior behavior.
+   */
+  fallbackBackgroundColor?: string;
+  fallbackTextColor?: string;
 }
 
 const sizeMap: Record<AvatarSize, number> = {
@@ -56,6 +63,8 @@ export function Avatar({
   size = 'md',
   sizePx,
   style,
+  fallbackBackgroundColor,
+  fallbackTextColor,
 }: AvatarProps): React.JSX.Element {
   const dimension = sizePx ?? sizeMap[size];
   const fontSize = sizePx ? Math.round(sizePx * 0.4) : fontSizeMap[size];
@@ -89,11 +98,13 @@ export function Avatar({
           width: dimension,
           height: dimension,
           borderRadius: dimension / 2,
-          backgroundColor: stringToColor(name),
+          backgroundColor: fallbackBackgroundColor ?? stringToColor(name),
         },
       ]}
     >
-      <Text style={[styles.initials, { fontSize }]}>{getInitials(name)}</Text>
+      <Text style={[styles.initials, { fontSize, color: fallbackTextColor }]}>
+        {getInitials(name)}
+      </Text>
     </View>
   );
 }

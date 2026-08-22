@@ -53,10 +53,20 @@ describe('buildAutoDraftDepartureAt', () => {
     const inOneHour = new Date(Date.now() + 3_600_000);
     const hh = inOneHour.getHours().toString().padStart(2, '0');
     const mm = inOneHour.getMinutes().toString().padStart(2, '0');
+    // Whether "now + 1h" is still *today* depends on when the suite runs —
+    // near midnight it lands tomorrow, so the constructed time has already
+    // passed today and the helper must take its fallback branch. Derive the
+    // expectation from the actual clock instead of assuming.
+    const patternTimeToday = new Date();
+    patternTimeToday.setHours(Number(hh), Number(mm), 0, 0);
     const result = buildAutoDraftDepartureAt({ timeWindowStart: `${hh}:${mm}` });
-    expect(result.getHours()).toBe(inOneHour.getHours());
-    expect(result.getMinutes()).toBe(inOneHour.getMinutes());
-    expect(result.toDateString()).toBe(new Date().toDateString());
+    if (patternTimeToday.getTime() > Date.now()) {
+      expect(result.getHours()).toBe(patternTimeToday.getHours());
+      expect(result.getMinutes()).toBe(patternTimeToday.getMinutes());
+      expect(result.toDateString()).toBe(patternTimeToday.toDateString());
+    } else {
+      expect(result.getTime()).toBeGreaterThan(Date.now());
+    }
   });
 
   it('falls back to ~30 minutes from now when the pattern time already passed today', () => {

@@ -55,6 +55,7 @@ export function MapPreview({
         rotateEnabled={false}
         pointerEvents="none"
         onMapReady={() => setIsReady(true)}
+        customMapStyle={[]}
       >
         {routeCoordinates && routeCoordinates.length > 1 ? (
           <Polyline coordinates={routeCoordinates} strokeColor={colors.mapRouteLine} strokeWidth={3} />
