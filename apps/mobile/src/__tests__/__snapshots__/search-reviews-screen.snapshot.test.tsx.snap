@@ -8,7 +8,7 @@ exports[`search/reviews.tsx snapshots > renders before the profile has loaded (i
         "flex": 1,
       },
       {
-        "backgroundColor": "#F3F1E9",
+        "backgroundColor": "#F7F3E8",
       },
     ]
   }
@@ -26,7 +26,7 @@ exports[`search/reviews.tsx snapshots > renders before the profile has loaded (i
         },
         {
           "backgroundColor": "#FFFFFF",
-          "borderBottomColor": "#EAE7DC",
+          "borderBottomColor": "#EDE6D4",
           "paddingTop": 8,
         },
       ]
@@ -39,7 +39,7 @@ exports[`search/reviews.tsx snapshots > renders before the profile has loaded (i
       onPress={[Function]}
     >
       <Ionicons
-        color="#1C2429"
+        color="#14201B"
         name="chevron-back"
         size={22}
       />
@@ -53,7 +53,7 @@ exports[`search/reviews.tsx snapshots > renders before the profile has loaded (i
             "lineHeight": 28.799999999999997,
           },
           {
-            "color": "#1C2429",
+            "color": "#14201B",
             "textAlign": undefined,
             "writingDirection": "ltr",
           },
@@ -83,7 +83,7 @@ exports[`search/reviews.tsx snapshots > renders before the profile has loaded (i
   >
     <Ionicons
       accessibilityElementsHidden={true}
-      color="#9B9788"
+      color="#8C8674"
       importantForAccessibility="no-hide-descendants"
       name="chatbubbles-outline"
       size={32}
@@ -97,7 +97,7 @@ exports[`search/reviews.tsx snapshots > renders before the profile has loaded (i
             "lineHeight": 36,
           },
           {
-            "color": "#1C2429",
+            "color": "#14201B",
             "textAlign": "center",
             "writingDirection": "ltr",
           },
@@ -125,7 +125,7 @@ exports[`search/reviews.tsx snapshots > renders before the profile has loaded (i
             "backgroundColor": "#FFFFFF",
           },
           {
-            "borderColor": "#EAE7DC",
+            "borderColor": "#EDE6D4",
             "borderWidth": 1,
           },
         ]
@@ -191,7 +191,7 @@ exports[`search/reviews.tsx snapshots > renders before the profile has loaded (i
                   "fontWeight": "600",
                 },
                 {
-                  "color": "#1C2429",
+                  "color": "#14201B",
                 },
               ]
             }
@@ -205,7 +205,7 @@ exports[`search/reviews.tsx snapshots > renders before the profile has loaded (i
                   "fontSize": 12,
                 },
                 {
-                  "color": "#9B9788",
+                  "color": "#8C8674",
                 },
               ]
             }
@@ -229,7 +229,7 @@ exports[`search/reviews.tsx snapshots > renders before the profile has loaded (i
                   "fontSize": 12,
                 },
                 {
-                  "color": "#7FA491",
+                  "color": "#2E9E6C",
                 },
               ]
             }
@@ -243,7 +243,7 @@ exports[`search/reviews.tsx snapshots > renders before the profile has loaded (i
                   "fontSize": 12,
                 },
                 {
-                  "color": "#7FA491",
+                  "color": "#2E9E6C",
                 },
               ]
             }
@@ -257,7 +257,7 @@ exports[`search/reviews.tsx snapshots > renders before the profile has loaded (i
                   "fontSize": 12,
                 },
                 {
-                  "color": "#7FA491",
+                  "color": "#2E9E6C",
                 },
               ]
             }
@@ -271,7 +271,7 @@ exports[`search/reviews.tsx snapshots > renders before the profile has loaded (i
                   "fontSize": 12,
                 },
                 {
-                  "color": "#7FA491",
+                  "color": "#2E9E6C",
                 },
               ]
             }
@@ -285,7 +285,7 @@ exports[`search/reviews.tsx snapshots > renders before the profile has loaded (i
                   "fontSize": 12,
                 },
                 {
-                  "color": "#7FA491",
+                  "color": "#2E9E6C",
                 },
               ]
             }
@@ -302,7 +302,7 @@ exports[`search/reviews.tsx snapshots > renders before the profile has loaded (i
               "lineHeight": 19,
             },
             {
-              "color": "#57616A",
+              "color": "#5C5748",
             },
           ]
         }
@@ -326,7 +326,7 @@ exports[`search/reviews.tsx snapshots > renders before the profile has loaded (i
             "backgroundColor": "#FFFFFF",
           },
           {
-            "borderColor": "#EAE7DC",
+            "borderColor": "#EDE6D4",
             "borderWidth": 1,
           },
         ]
@@ -392,7 +392,7 @@ exports[`search/reviews.tsx snapshots > renders before the profile has loaded (i
                   "fontWeight": "600",
                 },
                 {
-                  "color": "#1C2429",
+                  "color": "#14201B",
                 },
               ]
             }
@@ -406,7 +406,7 @@ exports[`search/reviews.tsx snapshots > renders before the profile has loaded (i
                   "fontSize": 12,
                 },
                 {
-                  "color": "#9B9788",
+                  "color": "#8C8674",
                 },
               ]
             }
@@ -430,7 +430,7 @@ exports[`search/reviews.tsx snapshots > renders before the profile has loaded (i
                   "fontSize": 12,
                 },
                 {
-                  "color": "#7FA491",
+                  "color": "#2E9E6C",
                 },
               ]
             }
@@ -444,7 +444,7 @@ exports[`search/reviews.tsx snapshots > renders before the profile has loaded (i
                   "fontSize": 12,
                 },
                 {
-                  "color": "#7FA491",
+                  "color": "#2E9E6C",
                 },
               ]
             }
@@ -458,7 +458,7 @@ exports[`search/reviews.tsx snapshots > renders before the profile has loaded (i
                   "fontSize": 12,
                 },
                 {
-                  "color": "#7FA491",
+                  "color": "#2E9E6C",
                 },
               ]
             }
@@ -472,7 +472,7 @@ exports[`search/reviews.tsx snapshots > renders before the profile has loaded (i
                   "fontSize": 12,
                 },
                 {
-                  "color": "#7FA491",
+                  "color": "#2E9E6C",
                 },
               ]
             }
@@ -486,7 +486,7 @@ exports[`search/reviews.tsx snapshots > renders before the profile has loaded (i
                   "fontSize": 12,
                 },
                 {
-                  "color": "#7FA491",
+                  "color": "#2E9E6C",
                 },
               ]
             }
@@ -503,7 +503,7 @@ exports[`search/reviews.tsx snapshots > renders before the profile has loaded (i
               "lineHeight": 19,
             },
             {
-              "color": "#57616A",
+              "color": "#5C5748",
             },
           ]
         }
@@ -527,7 +527,7 @@ exports[`search/reviews.tsx snapshots > renders before the profile has loaded (i
             "backgroundColor": "#FFFFFF",
           },
           {
-            "borderColor": "#EAE7DC",
+            "borderColor": "#EDE6D4",
             "borderWidth": 1,
           },
         ]
@@ -593,7 +593,7 @@ exports[`search/reviews.tsx snapshots > renders before the profile has loaded (i
                   "fontWeight": "600",
                 },
                 {
-                  "color": "#1C2429",
+                  "color": "#14201B",
                 },
               ]
             }
@@ -607,7 +607,7 @@ exports[`search/reviews.tsx snapshots > renders before the profile has loaded (i
                   "fontSize": 12,
                 },
                 {
-                  "color": "#9B9788",
+                  "color": "#8C8674",
                 },
               ]
             }
@@ -631,7 +631,7 @@ exports[`search/reviews.tsx snapshots > renders before the profile has loaded (i
                   "fontSize": 12,
                 },
                 {
-                  "color": "#7FA491",
+                  "color": "#2E9E6C",
                 },
               ]
             }
@@ -645,7 +645,7 @@ exports[`search/reviews.tsx snapshots > renders before the profile has loaded (i
                   "fontSize": 12,
                 },
                 {
-                  "color": "#7FA491",
+                  "color": "#2E9E6C",
                 },
               ]
             }
@@ -659,7 +659,7 @@ exports[`search/reviews.tsx snapshots > renders before the profile has loaded (i
                   "fontSize": 12,
                 },
                 {
-                  "color": "#7FA491",
+                  "color": "#2E9E6C",
                 },
               ]
             }
@@ -673,7 +673,7 @@ exports[`search/reviews.tsx snapshots > renders before the profile has loaded (i
                   "fontSize": 12,
                 },
                 {
-                  "color": "#7FA491",
+                  "color": "#2E9E6C",
                 },
               ]
             }
@@ -687,7 +687,7 @@ exports[`search/reviews.tsx snapshots > renders before the profile has loaded (i
                   "fontSize": 12,
                 },
                 {
-                  "color": "#DDD9CA",
+                  "color": "#DDD4BC",
                 },
               ]
             }
@@ -704,7 +704,7 @@ exports[`search/reviews.tsx snapshots > renders before the profile has loaded (i
               "lineHeight": 19,
             },
             {
-              "color": "#57616A",
+              "color": "#5C5748",
             },
           ]
         }
@@ -724,7 +724,7 @@ exports[`search/reviews.tsx snapshots > renders the mock review list under a rea
         "flex": 1,
       },
       {
-        "backgroundColor": "#F3F1E9",
+        "backgroundColor": "#F7F3E8",
       },
     ]
   }
@@ -742,7 +742,7 @@ exports[`search/reviews.tsx snapshots > renders the mock review list under a rea
         },
         {
           "backgroundColor": "#FFFFFF",
-          "borderBottomColor": "#EAE7DC",
+          "borderBottomColor": "#EDE6D4",
           "paddingTop": 8,
         },
       ]
@@ -755,7 +755,7 @@ exports[`search/reviews.tsx snapshots > renders the mock review list under a rea
       onPress={[Function]}
     >
       <Ionicons
-        color="#1C2429"
+        color="#14201B"
         name="chevron-back"
         size={22}
       />
@@ -769,7 +769,7 @@ exports[`search/reviews.tsx snapshots > renders the mock review list under a rea
             "lineHeight": 28.799999999999997,
           },
           {
-            "color": "#1C2429",
+            "color": "#14201B",
             "textAlign": undefined,
             "writingDirection": "ltr",
           },
@@ -842,7 +842,7 @@ exports[`search/reviews.tsx snapshots > renders the mock review list under a rea
             "lineHeight": 36,
           },
           {
-            "color": "#1C2429",
+            "color": "#14201B",
             "textAlign": "center",
             "writingDirection": "ltr",
           },
@@ -863,7 +863,7 @@ exports[`search/reviews.tsx snapshots > renders the mock review list under a rea
     >
       <Ionicons
         accessibilityElementsHidden={true}
-        color="#7FA491"
+        color="#2E9E6C"
         importantForAccessibility="no-hide-descendants"
         name="star"
         size={16}
@@ -877,7 +877,7 @@ exports[`search/reviews.tsx snapshots > renders the mock review list under a rea
               "lineHeight": 24,
             },
             {
-              "color": "#57616A",
+              "color": "#5C5748",
               "textAlign": undefined,
               "writingDirection": "ltr",
             },
@@ -906,7 +906,7 @@ exports[`search/reviews.tsx snapshots > renders the mock review list under a rea
             "backgroundColor": "#FFFFFF",
           },
           {
-            "borderColor": "#EAE7DC",
+            "borderColor": "#EDE6D4",
             "borderWidth": 1,
           },
         ]
@@ -972,7 +972,7 @@ exports[`search/reviews.tsx snapshots > renders the mock review list under a rea
                   "fontWeight": "600",
                 },
                 {
-                  "color": "#1C2429",
+                  "color": "#14201B",
                 },
               ]
             }
@@ -986,7 +986,7 @@ exports[`search/reviews.tsx snapshots > renders the mock review list under a rea
                   "fontSize": 12,
                 },
                 {
-                  "color": "#9B9788",
+                  "color": "#8C8674",
                 },
               ]
             }
@@ -1010,7 +1010,7 @@ exports[`search/reviews.tsx snapshots > renders the mock review list under a rea
                   "fontSize": 12,
                 },
                 {
-                  "color": "#7FA491",
+                  "color": "#2E9E6C",
                 },
               ]
             }
@@ -1024,7 +1024,7 @@ exports[`search/reviews.tsx snapshots > renders the mock review list under a rea
                   "fontSize": 12,
                 },
                 {
-                  "color": "#7FA491",
+                  "color": "#2E9E6C",
                 },
               ]
             }
@@ -1038,7 +1038,7 @@ exports[`search/reviews.tsx snapshots > renders the mock review list under a rea
                   "fontSize": 12,
                 },
                 {
-                  "color": "#7FA491",
+                  "color": "#2E9E6C",
                 },
               ]
             }
@@ -1052,7 +1052,7 @@ exports[`search/reviews.tsx snapshots > renders the mock review list under a rea
                   "fontSize": 12,
                 },
                 {
-                  "color": "#7FA491",
+                  "color": "#2E9E6C",
                 },
               ]
             }
@@ -1066,7 +1066,7 @@ exports[`search/reviews.tsx snapshots > renders the mock review list under a rea
                   "fontSize": 12,
                 },
                 {
-                  "color": "#7FA491",
+                  "color": "#2E9E6C",
                 },
               ]
             }
@@ -1083,7 +1083,7 @@ exports[`search/reviews.tsx snapshots > renders the mock review list under a rea
               "lineHeight": 19,
             },
             {
-              "color": "#57616A",
+              "color": "#5C5748",
             },
           ]
         }
@@ -1107,7 +1107,7 @@ exports[`search/reviews.tsx snapshots > renders the mock review list under a rea
             "backgroundColor": "#FFFFFF",
           },
           {
-            "borderColor": "#EAE7DC",
+            "borderColor": "#EDE6D4",
             "borderWidth": 1,
           },
         ]
@@ -1173,7 +1173,7 @@ exports[`search/reviews.tsx snapshots > renders the mock review list under a rea
                   "fontWeight": "600",
                 },
                 {
-                  "color": "#1C2429",
+                  "color": "#14201B",
                 },
               ]
             }
@@ -1187,7 +1187,7 @@ exports[`search/reviews.tsx snapshots > renders the mock review list under a rea
                   "fontSize": 12,
                 },
                 {
-                  "color": "#9B9788",
+                  "color": "#8C8674",
                 },
               ]
             }
@@ -1211,7 +1211,7 @@ exports[`search/reviews.tsx snapshots > renders the mock review list under a rea
                   "fontSize": 12,
                 },
                 {
-                  "color": "#7FA491",
+                  "color": "#2E9E6C",
                 },
               ]
             }
@@ -1225,7 +1225,7 @@ exports[`search/reviews.tsx snapshots > renders the mock review list under a rea
                   "fontSize": 12,
                 },
                 {
-                  "color": "#7FA491",
+                  "color": "#2E9E6C",
                 },
               ]
             }
@@ -1239,7 +1239,7 @@ exports[`search/reviews.tsx snapshots > renders the mock review list under a rea
                   "fontSize": 12,
                 },
                 {
-                  "color": "#7FA491",
+                  "color": "#2E9E6C",
                 },
               ]
             }
@@ -1253,7 +1253,7 @@ exports[`search/reviews.tsx snapshots > renders the mock review list under a rea
                   "fontSize": 12,
                 },
                 {
-                  "color": "#7FA491",
+                  "color": "#2E9E6C",
                 },
               ]
             }
@@ -1267,7 +1267,7 @@ exports[`search/reviews.tsx snapshots > renders the mock review list under a rea
                   "fontSize": 12,
                 },
                 {
-                  "color": "#7FA491",
+                  "color": "#2E9E6C",
                 },
               ]
             }
@@ -1284,7 +1284,7 @@ exports[`search/reviews.tsx snapshots > renders the mock review list under a rea
               "lineHeight": 19,
             },
             {
-              "color": "#57616A",
+              "color": "#5C5748",
             },
           ]
         }
@@ -1308,7 +1308,7 @@ exports[`search/reviews.tsx snapshots > renders the mock review list under a rea
             "backgroundColor": "#FFFFFF",
           },
           {
-            "borderColor": "#EAE7DC",
+            "borderColor": "#EDE6D4",
             "borderWidth": 1,
           },
         ]
@@ -1374,7 +1374,7 @@ exports[`search/reviews.tsx snapshots > renders the mock review list under a rea
                   "fontWeight": "600",
                 },
                 {
-                  "color": "#1C2429",
+                  "color": "#14201B",
                 },
               ]
             }
@@ -1388,7 +1388,7 @@ exports[`search/reviews.tsx snapshots > renders the mock review list under a rea
                   "fontSize": 12,
                 },
                 {
-                  "color": "#9B9788",
+                  "color": "#8C8674",
                 },
               ]
             }
@@ -1412,7 +1412,7 @@ exports[`search/reviews.tsx snapshots > renders the mock review list under a rea
                   "fontSize": 12,
                 },
                 {
-                  "color": "#7FA491",
+                  "color": "#2E9E6C",
                 },
               ]
             }
@@ -1426,7 +1426,7 @@ exports[`search/reviews.tsx snapshots > renders the mock review list under a rea
                   "fontSize": 12,
                 },
                 {
-                  "color": "#7FA491",
+                  "color": "#2E9E6C",
                 },
               ]
             }
@@ -1440,7 +1440,7 @@ exports[`search/reviews.tsx snapshots > renders the mock review list under a rea
                   "fontSize": 12,
                 },
                 {
-                  "color": "#7FA491",
+                  "color": "#2E9E6C",
                 },
               ]
             }
@@ -1454,7 +1454,7 @@ exports[`search/reviews.tsx snapshots > renders the mock review list under a rea
                   "fontSize": 12,
                 },
                 {
-                  "color": "#7FA491",
+                  "color": "#2E9E6C",
                 },
               ]
             }
@@ -1468,7 +1468,7 @@ exports[`search/reviews.tsx snapshots > renders the mock review list under a rea
                   "fontSize": 12,
                 },
                 {
-                  "color": "#DDD9CA",
+                  "color": "#DDD4BC",
                 },
               ]
             }
@@ -1485,7 +1485,7 @@ exports[`search/reviews.tsx snapshots > renders the mock review list under a rea
               "lineHeight": 19,
             },
             {
-              "color": "#57616A",
+              "color": "#5C5748",
             },
           ]
         }
