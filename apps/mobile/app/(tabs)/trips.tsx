@@ -113,7 +113,7 @@ export default function TripsScreen(): React.JSX.Element {
     : null;
 
   function goToDriverFlow(): void {
-    router.push(driverProfile ? '/driver/publish' : '/driver/onboarding/vehicle');
+    router.push(driverProfile ? '/(tabs)/publish' : '/driver/onboarding/vehicle');
   }
 
   const upcomingBookings = (bookings ?? []).filter((booking) =>
