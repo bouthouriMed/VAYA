@@ -139,6 +139,17 @@ export function formatMonthLabel(date: Date): string {
   return label.charAt(0).toUpperCase() + label.slice(1);
 }
 
+/** "novembre" — month alone, for the stacked month-over-year heading. */
+export function formatMonthName(date: Date): string {
+  const label = date.toLocaleDateString('fr-FR', { month: 'long' });
+  return label.charAt(0).toUpperCase() + label.slice(1);
+}
+
+/** "2023" — year alone, for the stacked month-over-year heading. */
+export function formatYearLabel(date: Date): string {
+  return date.toLocaleDateString('fr-FR', { year: 'numeric' });
+}
+
 /** Picks the first day in `days` that still has at least one time slot —
  *  the sensible default selection when opening the sheet (skips a "today"
  *  option that's already past its last slot for the day). Falls back to

@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { colors, spacing } from '../tokens/index';
+import type { AppPalette } from '../theme/palette';
 
 interface StarRatingInputProps {
   /** Current rating, 1-5. 0 renders all stars unfilled (no selection yet). */
@@ -9,6 +10,10 @@ interface StarRatingInputProps {
   /** Announced once for the whole control — defaults to a generic French label. */
   accessibilityLabel?: string;
   disabled?: boolean;
+  /** Optional `useAppTheme()` override — when given, filled/empty stars
+   *  follow the live accent/outline tokens instead of the legacy static
+   *  ones, so the input doesn't glow sage-on-white inside a themed sheet. */
+  theme?: AppPalette;
 }
 
 const STAR_VALUES = [1, 2, 3, 4, 5] as const;
@@ -32,7 +37,10 @@ export function StarRatingInput({
   onChange,
   accessibilityLabel = 'Note',
   disabled = false,
+  theme,
 }: StarRatingInputProps): React.JSX.Element {
+  const starColor = theme ? theme.outlineVariant : colors.gray300;
+  const starFilledColor = theme ? theme.accent : colors.secondary;
   return (
     <View
       style={styles.row}
@@ -53,7 +61,7 @@ export function StarRatingInput({
             accessibilityLabel={`${n} étoile${n > 1 ? 's' : ''}`}
             accessibilityState={{ selected: filled, disabled }}
           >
-            <Text style={[styles.star, filled && styles.starFilled]}>★</Text>
+            <Text style={[styles.star, { color: filled ? starFilledColor : starColor }]}>★</Text>
           </TouchableOpacity>
         );
       })}
@@ -69,8 +77,5 @@ const styles = StyleSheet.create({
   star: {
     fontSize: 32,
     color: colors.gray300,
-  },
-  starFilled: {
-    color: colors.secondary,
   },
 });

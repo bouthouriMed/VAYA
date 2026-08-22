@@ -30,6 +30,7 @@ import {
   usePublishRideMutation,
 } from '../../../src/state/api';
 import { CaptureCamera } from '../../../src/features/driver-onboarding/CaptureCamera';
+import { describeVerificationSubmitError } from '../../../src/features/driver-onboarding/verificationErrors';
 import { trackEvent } from '../../../src/services/analytics/analytics';
 
 function fileFromUri(uri: string, name: string): FormData {
@@ -139,12 +140,19 @@ export default function SelfieCaptureScreen(): React.JSX.Element {
     // the two is ever set: `pendingRide` when a real draft ride already
     // existed (had a vehicle), `pendingRideDraft` when it didn't yet.
     const { pendingRide, pendingRideDraft } = draft;
+    const originLabel = pendingRide?.originLabel ?? pendingRideDraft?.originLabel ?? '';
+    const destinationLabel =
+      pendingRide?.destinationLabel ?? pendingRideDraft?.destinationLabel ?? '';
+    // Which of the submit's two phases failed — uploads vs profile creation —
+    // so the rendered error can say what actually went wrong.
+    let stage: 'documents' | 'profile' = 'documents';
     try {
       const [licenseUpload, insuranceUpload, selfieUpload] = await Promise.all([
         uploadFile(fileFromUri(licenseUri!, 'license')).unwrap(),
         uploadFile(fileFromUri(insuranceUri!, 'insurance')).unwrap(),
         uploadFile(fileFromUri(selfieUri!, 'selfie')).unwrap(),
       ]);
+      stage = 'profile';
       const onboardingProfile = await createOnboarding({
         vehicle: vehicle!,
         documents: [
@@ -160,9 +168,6 @@ export default function SelfieCaptureScreen(): React.JSX.Element {
         return;
       }
 
-      const originLabel = pendingRide?.originLabel ?? pendingRideDraft?.originLabel ?? '';
-      const destinationLabel =
-        pendingRide?.destinationLabel ?? pendingRideDraft?.destinationLabel ?? '';
       let publishedOk = false;
       try {
         if (pendingRide) {
@@ -204,8 +209,22 @@ export default function SelfieCaptureScreen(): React.JSX.Element {
           status: publishedOk ? 'done' : 'error',
         },
       });
-    } catch {
-      setErrorMessage("Impossible d'activer votre profil conducteur. Réessayez.");
+    } catch (err) {
+      const info = describeVerificationSubmitError(err, stage);
+      if (info.kind === 'conflict') {
+        // The server's only CONFLICT trigger on createOnboarding is a
+        // pre-existing driver_profile, and profiles are created approved
+        // synchronously — so verification is genuinely already done (this
+        // is the retry-after-lost-response case). Route to the real
+        // confirmation instead of a dead-end error.
+        dispatch(resetDriverOnboarding());
+        router.replace({
+          pathname: '/driver/onboarding/confirmation',
+          params: { originLabel, destinationLabel, status: 'done' },
+        });
+        return;
+      }
+      setErrorMessage(info.message);
     }
   }
 
@@ -289,14 +308,14 @@ export default function SelfieCaptureScreen(): React.JSX.Element {
           disabled={isSubmitting}
           activeOpacity={0.85}
           accessibilityRole="button"
-          accessibilityLabel="Confirmer et activer mon profil"
+          accessibilityLabel={errorMessage ? 'Réessayer' : 'Confirmer et activer mon profil'}
           accessibilityState={{ disabled: isSubmitting, busy: isSubmitting }}
         >
           {isSubmitting ? (
             <ActivityIndicator color={theme.onInk} />
           ) : (
             <Text variant="label" color={theme.onInk}>
-              Confirmer et activer mon profil
+              {errorMessage ? 'Réessayer' : 'Confirmer et activer mon profil'}
             </Text>
           )}
         </TouchableOpacity>

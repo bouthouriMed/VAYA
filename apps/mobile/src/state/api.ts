@@ -99,7 +99,9 @@ export interface PublicProfile {
 
 export interface Me {
   id: string;
-  phone: string;
+  phone: string | null;
+  email: string | null;
+  authProvider: 'phone' | 'google';
   fullName: string;
   avatarUrl: string | null;
   locale: 'fr' | 'ar' | 'en';
@@ -484,6 +486,9 @@ export const api = createApi({
     verifyOtp: builder.mutation<AuthTokens, VerifyOtpInput>({
       query: (body) => ({ url: '/auth/otp/verify', method: 'POST', body }),
     }),
+    googleExchange: builder.mutation<AuthTokens, { ticket: string }>({
+      query: (body) => ({ url: '/auth/google/exchange', method: 'POST', body }),
+    }),
     logout: builder.mutation<{ success: boolean }, { refreshToken: string }>({
       query: (body) => ({ url: '/auth/logout', method: 'POST', body }),
     }),
@@ -532,6 +537,16 @@ export const api = createApi({
     // is updateMeSchema — fullName/locale/avatarFileUrl, all optional.
     updateMe: builder.mutation<Me, UpdateMeInput>({
       query: (body) => ({ url: '/users/me', method: 'PATCH', body }),
+      invalidatesTags: ['Me'],
+    }),
+    // Attaching a phone to an already-authenticated (e.g. Google) account —
+    // distinct from /auth/otp/*, which signs a session in/out. Same OTP
+    // mechanics, but scoped to the current user and never creates a session.
+    requestPhoneOtp: builder.mutation<{ sent: boolean; devCode?: string }, RequestOtpInput>({
+      query: (body) => ({ url: '/users/me/phone/request-otp', method: 'POST', body }),
+    }),
+    verifyPhoneOtp: builder.mutation<Me, VerifyOtpInput>({
+      query: (body) => ({ url: '/users/me/phone/verify', method: 'POST', body }),
       invalidatesTags: ['Me'],
     }),
     getUserPublicProfile: builder.query<PublicProfile, string>({
@@ -745,6 +760,9 @@ export const api = createApi({
 export const {
   useHealthCheckQuery,
   useRequestOtpMutation,
+  useGoogleExchangeMutation,
+  useRequestPhoneOtpMutation,
+  useVerifyPhoneOtpMutation,
   useVerifyOtpMutation,
   useLogoutMutation,
   useGeocodeSearchQuery,

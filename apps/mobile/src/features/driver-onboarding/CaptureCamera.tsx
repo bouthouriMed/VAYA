@@ -4,7 +4,7 @@ import { CameraView, useCameraPermissions, type CameraType } from 'expo-camera';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Svg, { Circle, Path } from 'react-native-svg';
-import { Text, Icon, StepProgress, useAppTheme, spacing, radii, type IconName } from '@vaya/design-system';
+import { Text, Icon, StepProgress, useToast, useAppTheme, spacing, radii, type IconName } from '@vaya/design-system';
 
 export type CaptureGuideShape = 'document' | 'face';
 
@@ -59,7 +59,13 @@ export function CaptureCamera({
   const [permission, requestPermission] = useCameraPermissions();
   const [capturedUri, setCapturedUri] = useState<string | null>(null);
   const [isCapturing, setIsCapturing] = useState(false);
+  const [isCameraReady, setIsCameraReady] = useState(false);
   const cameraRef = useRef<CameraView>(null);
+  // expo-camera v17's takePictureAsync() returns `undefined` (not a promise)
+  // when the native view isn't mounted yet, and rejects outright on Android
+  // when called before the preview is running — both previously vanished as
+  // silent no-ops. Every failure now lands here instead.
+  const showToast = useToast();
   const flash = useRef(new Animated.Value(0)).current;
   const ringScale = useRef(new Animated.Value(0.95)).current;
   const ringOpacity = useRef(new Animated.Value(0.8)).current;
@@ -96,13 +102,22 @@ export function CaptureCamera({
     setIsCapturing(true);
     try {
       const photo = await cameraRef.current.takePictureAsync({ quality: 0.8 });
-      if (photo) {
+      // takePictureAsync resolves to undefined when the native camera view
+      // ref isn't attached yet — treat that as a failure, never as success.
+      if (photo?.uri) {
         Animated.sequence([
           Animated.timing(flash, { toValue: 1, duration: 80, useNativeDriver: true }),
           Animated.timing(flash, { toValue: 0, duration: 180, useNativeDriver: true }),
         ]).start();
         setCapturedUri(photo.uri);
+      } else {
+        showToast({
+          message: 'La caméra n’est pas prête. Attendez une seconde et réessayez.',
+          tone: 'error',
+        });
       }
+    } catch {
+      showToast({ message: 'Impossible de prendre la photo. Réessayez.', tone: 'error' });
     } finally {
       setIsCapturing(false);
     }
@@ -250,7 +265,12 @@ export function CaptureCamera({
               { width: frameWidth, height: frameHeight, borderColor: theme.surface },
             ]}
           >
-            <CameraView ref={cameraRef} style={StyleSheet.absoluteFillObject} facing={facing} />
+            <CameraView
+              ref={cameraRef}
+              style={StyleSheet.absoluteFillObject}
+              facing={facing}
+              onCameraReady={() => setIsCameraReady(true)}
+            />
             <Animated.View pointerEvents="none" style={[styles.flashOverlay, { opacity: flash }]} />
             {isFace ? (
               <Svg
@@ -309,13 +329,14 @@ export function CaptureCamera({
         <TouchableOpacity
           style={[
             styles.shutterOuter,
-            { borderColor: theme.ink, backgroundColor: theme.surface },
+            { borderColor: theme.ink, backgroundColor: theme.surface, opacity: isCameraReady ? 1 : 0.5 },
           ]}
           onPress={() => void capture()}
-          disabled={isCapturing}
+          disabled={isCapturing || !isCameraReady}
           activeOpacity={0.75}
           accessibilityRole="button"
           accessibilityLabel="Prendre la photo"
+          accessibilityState={{ disabled: isCapturing || !isCameraReady, busy: isCapturing }}
         >
           <View style={[styles.shutterInner, { backgroundColor: theme.ink }]}>
             <Icon name="camera" size="sm" color={theme.onInk} />
@@ -351,6 +372,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,
+    // Fixed-height children (frame, tips) can exceed the remaining space on
+    // short screens; clipping them keeps the pinned shutter/actions visible
+    // instead of being pushed below the fold.
+    overflow: 'hidden',
   },
   eyebrow: {
     fontWeight: '700',

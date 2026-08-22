@@ -1,0 +1,447 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`PassengerSheet snapshots > renders the stepper stage with the given value selected 1`] = `
+<Modal
+  animationType="none"
+  onRequestClose={[Function]}
+  transparent={true}
+  visible={true}
+>
+  <GestureHandlerRootView
+    style={
+      {
+        "flex": 1,
+      }
+    }
+  >
+    <TouchableWithoutFeedback
+      onPress={[Function]}
+    >
+      <Animated.View
+        style={
+          [
+            {
+              "backgroundColor": "rgba(38, 51, 58, 0.5)",
+            },
+            {
+              "opacity": 0,
+            },
+          ]
+        }
+      >
+        <BlurView
+          experimentalBlurMethod="dimezisBlurView"
+          intensity={30}
+          style={{}}
+          tint="dark"
+        />
+      </Animated.View>
+    </TouchableWithoutFeedback>
+    <KeyboardAvoidingView
+      pointerEvents="box-none"
+      style={
+        {
+          "flex": 1,
+          "justifyContent": "flex-end",
+        }
+      }
+    >
+      <Animated.View
+        style={
+          [
+            {
+              "backgroundColor": "#FFFFFF",
+              "borderTopLeftRadius": 24,
+              "borderTopRightRadius": 24,
+              "shadowColor": "#26333A",
+            },
+            {
+              "elevation": 8,
+            },
+            {
+              "shadowOffset": {
+                "height": -6,
+                "width": 0,
+              },
+            },
+            {
+              "backgroundColor": "#FFFFFF",
+              "shadowColor": "#14201B",
+            },
+            {
+              "height": 354.47999999999996,
+            },
+            {
+              "transform": [
+                {
+                  "translateY": 354.47999999999996,
+                },
+              ],
+            },
+          ]
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "gap": 8,
+              "paddingBottom": 12,
+              "paddingTop": 8,
+            }
+          }
+        >
+          <View
+            style={
+              [
+                {
+                  "backgroundColor": "#DDD9CA",
+                  "borderRadius": 9999,
+                  "height": 4,
+                  "width": 40,
+                },
+                {
+                  "backgroundColor": "#EDE6D4",
+                },
+              ]
+            }
+          />
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "width": 32,
+                }
+              }
+            />
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 24,
+                    "fontWeight": "600",
+                    "lineHeight": 28.799999999999997,
+                  },
+                  {
+                    "color": "#26333A",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  [
+                    {
+                      "flex": 1,
+                      "textAlign": "center",
+                    },
+                    {
+                      "color": "#14201B",
+                    },
+                  ],
+                ]
+              }
+            >
+              Passagers
+            </Text>
+            <TouchableOpacity
+              accessibilityLabel="Fermer"
+              accessibilityRole="button"
+              hitSlop={
+                {
+                  "bottom": 8,
+                  "left": 8,
+                  "right": 8,
+                  "top": 8,
+                }
+              }
+              onPress={[Function]}
+            >
+              <Ionicons
+                accessibilityElementsHidden={true}
+                color="#14201B"
+                importantForAccessibility="no-hide-descendants"
+                name="close"
+                size={20}
+              />
+            </TouchableOpacity>
+          </View>
+        </View>
+        <View
+          style={
+            {
+              "flex": 1,
+              "paddingHorizontal": 16,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "paddingBottom": 20,
+                "paddingTop": 16,
+              }
+            }
+          >
+            <View
+              accessibilityActions={
+                [
+                  {
+                    "label": "Ajouter un passager",
+                    "name": "increment",
+                  },
+                  {
+                    "label": "Retirer un passager",
+                    "name": "decrement",
+                  },
+                ]
+              }
+              accessibilityRole="adjustable"
+              accessible={true}
+              onAccessibilityAction={[Function]}
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 32,
+                }
+              }
+            >
+              <TouchableOpacity
+                accessibilityLabel="Retirer un passager"
+                accessibilityRole="button"
+                accessibilityState={
+                  {
+                    "disabled": false,
+                  }
+                }
+                disabled={false}
+                hitSlop={
+                  {
+                    "bottom": 12,
+                    "left": 12,
+                    "right": 12,
+                    "top": 12,
+                  }
+                }
+                onPress={[Function]}
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 9999,
+                      "borderWidth": 1,
+                      "height": 56,
+                      "justifyContent": "center",
+                      "width": 56,
+                    },
+                    {
+                      "backgroundColor": "#EDE6D4",
+                      "borderColor": "#EDE6D4",
+                    },
+                    false,
+                  ]
+                }
+                testID="passenger-decrement"
+              >
+                <Ionicons
+                  accessibilityElementsHidden={false}
+                  accessibilityLabel="Retirer un passager"
+                  color="#14201B"
+                  importantForAccessibility="yes"
+                  name="remove"
+                  size={24}
+                />
+              </TouchableOpacity>
+              <Text
+                accessibilityLabel="2 passagers"
+                accessibilityLiveRegion="polite"
+                style={
+                  [
+                    {
+                      "fontFamily": "Fraunces_600SemiBold",
+                      "fontSize": 27,
+                      "letterSpacing": -0.3,
+                      "lineHeight": 31.049999999999997,
+                    },
+                    {
+                      "color": "#26333A",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    [
+                      {
+                        "minWidth": 64,
+                        "textAlign": "center",
+                      },
+                      {
+                        "color": "#14201B",
+                      },
+                    ],
+                  ]
+                }
+              >
+                2
+              </Text>
+              <TouchableOpacity
+                accessibilityLabel="Ajouter un passager"
+                accessibilityRole="button"
+                accessibilityState={
+                  {
+                    "disabled": false,
+                  }
+                }
+                disabled={false}
+                hitSlop={
+                  {
+                    "bottom": 12,
+                    "left": 12,
+                    "right": 12,
+                    "top": 12,
+                  }
+                }
+                onPress={[Function]}
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 9999,
+                      "borderWidth": 1,
+                      "height": 56,
+                      "justifyContent": "center",
+                      "width": 56,
+                    },
+                    {
+                      "backgroundColor": "#EDE6D4",
+                      "borderColor": "#EDE6D4",
+                    },
+                    false,
+                  ]
+                }
+                testID="passenger-increment"
+              >
+                <Ionicons
+                  accessibilityElementsHidden={false}
+                  accessibilityLabel="Ajouter un passager"
+                  color="#14201B"
+                  importantForAccessibility="yes"
+                  name="add"
+                  size={24}
+                />
+              </TouchableOpacity>
+            </View>
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "lineHeight": 21,
+                  },
+                  {
+                    "color": "#26333A",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  [
+                    {
+                      "marginTop": 16,
+                    },
+                    {
+                      "color": "#5C5748",
+                    },
+                  ],
+                ]
+              }
+            >
+              2 passagers
+            </Text>
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "lineHeight": 18,
+                  },
+                  {
+                    "color": "#26333A",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  [
+                    {
+                      "marginTop": 4,
+                    },
+                    {
+                      "color": "#8C8674",
+                    },
+                  ],
+                ]
+              }
+            >
+              Jusqu'à 
+              8
+               passagers par trajet
+            </Text>
+          </View>
+          <TouchableOpacity
+            accessibilityLabel="Confirmer 2 passagers"
+            accessibilityRole="button"
+            activeOpacity={0.85}
+            onPress={[Function]}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "borderRadius": 9999,
+                  "marginBottom": 16,
+                  "marginHorizontal": 16,
+                  "marginTop": 8,
+                  "paddingVertical": 14,
+                },
+                {
+                  "backgroundColor": "#14201B",
+                },
+              ]
+            }
+            testID="passenger-confirm"
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "lineHeight": 21,
+                  },
+                  {
+                    "color": "#26333A",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  [
+                    {
+                      "fontWeight": "600",
+                    },
+                    {
+                      "color": "#F7F3E8",
+                    },
+                  ],
+                ]
+              }
+            >
+              Confirmer
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </Animated.View>
+    </KeyboardAvoidingView>
+  </GestureHandlerRootView>
+</Modal>
+`;

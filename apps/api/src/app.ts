@@ -18,6 +18,7 @@ import { UnauthorizedError } from './lib/errors.js';
 import { errorHandler } from './middleware/error-handler.js';
 import { healthRoutes } from './modules/health/health.routes.js';
 import { authRoutes } from './modules/auth/auth.routes.js';
+import { googleOAuthRoutes } from './modules/auth/google-auth.routes.js';
 import { usersRoutes } from './modules/users/users.routes.js';
 import { geocodingRoutes } from './modules/geocoding/geocoding.routes.js';
 import { corridorRoutes } from './modules/routes/routes.routes.js';
@@ -96,6 +97,9 @@ export async function buildApp() {
   // Routes
   await app.register(healthRoutes, { prefix: env.API_PREFIX });
   await app.register(authRoutes, { prefix: env.API_PREFIX });
+  // Unprefixed: Google redirects the browser to GOOGLE_CALLBACK_URL exactly
+  // as registered in GCP, which this app doesn't get to reshape.
+  await app.register(googleOAuthRoutes);
   await app.register(usersRoutes, { prefix: env.API_PREFIX });
   await app.register(geocodingRoutes, { prefix: env.API_PREFIX });
   await app.register(corridorRoutes, { prefix: env.API_PREFIX });

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
-import { BottomSheet, Button, Chip, StarRatingInput, Text, colors, spacing } from '@vaya/design-system';
+import { BottomSheet, Button, Chip, StarRatingInput, Text, useAppTheme, spacing } from '@vaya/design-system';
 import type { RatingRole } from '../../state/api';
 
 const PUNCTUALITY_CHIP = 'Ponctuel';
@@ -28,6 +28,7 @@ export function RatingPromptSheet({
   counterpartName,
   onSubmit,
 }: RatingPromptSheetProps): React.JSX.Element {
+  const theme = useAppTheme().colors;
   const [stars, setStars] = useState(0);
   const [punctual, setPunctual] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -53,19 +54,20 @@ export function RatingPromptSheet({
   }
 
   return (
-    <BottomSheet visible={visible} onClose={onClose} title={heading} heightRatio={0.45}>
+    <BottomSheet visible={visible} onClose={onClose} title={heading} heightRatio={0.45} theme={theme}>
       <View style={styles.content}>
-        <StarRatingInput value={stars} onChange={setStars} accessibilityLabel="Votre note" />
+        <StarRatingInput value={stars} onChange={setStars} theme={theme} accessibilityLabel="Votre note" />
 
         <Chip
           label={PUNCTUALITY_CHIP}
           tone={punctual ? 'default' : 'dim'}
           selected={punctual}
           onPress={() => setPunctual((p) => !p)}
+          theme={theme}
         />
 
         {error ? (
-          <Text variant="bodySmall" color={colors.error}>
+          <Text variant="bodySmall" color={theme.error}>
             {error}
           </Text>
         ) : null}
@@ -77,6 +79,7 @@ export function RatingPromptSheet({
           loading={submitting}
           onPress={() => void handleSubmit()}
           style={styles.cta}
+          theme={theme}
         />
       </View>
     </BottomSheet>

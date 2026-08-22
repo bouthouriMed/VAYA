@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
-import { BottomSheet, Badge, Button, Text, colors, spacing, haptics } from '@vaya/design-system';
+import { BottomSheet, Badge, Button, Text, useAppTheme, spacing, haptics } from '@vaya/design-system';
 import { useCancelBookingMutation, useGetCancellationPreviewQuery } from '../../state/api';
 import { trackEvent } from '../../services/analytics/analytics';
 import { cancellationTierBadge, buildCancellationAnalyticsPayload } from './cancellationHelpers';
@@ -11,11 +11,11 @@ interface CancellationSheetProps {
   bookingId: string;
   /** Who is cancelling, for the `booking_cancelled` analytics event only —
    *  server-side authorization is independent of this and derives the real
-   *  party from the authenticated user. Always 'rider' at every current
-   *  call site (trips.tsx, bookings/pending|pickup|live.tsx): this app has
-   *  no driver-side per-booking screen yet (the same gap Phase 7/8/9's
-   *  notes already documented) — a future driver trip screen would pass
-   *  'driver' here instead of needing a second component. */
+   *  party from the authenticated user. 'rider' at the rider-side call sites
+   *  (trips.tsx's passenger list, bookings/pending|pickup|live.tsx); 'driver'
+   *  from DriverBookingDetailSheet (trips.tsx's driver dashboard) — no
+   *  second component needed for the driver side, this one was already
+   *  role-agnostic. */
   role: 'rider' | 'driver';
   /** Called once the booking is actually cancelled — the sheet itself never
    *  navigates, so the caller decides what "cancelled" means for its screen
@@ -42,6 +42,7 @@ export function CancellationSheet({
   role,
   onCancelled,
 }: CancellationSheetProps): React.JSX.Element {
+  const theme = useAppTheme().colors;
   const {
     data: preview,
     isFetching,
@@ -74,25 +75,31 @@ export function CancellationSheet({
   const badge = preview ? cancellationTierBadge(preview.tier) : null;
 
   return (
-    <BottomSheet visible={visible} onClose={onClose} title="Annuler ce trajet ?" heightRatio={0.48}>
+    <BottomSheet
+      visible={visible}
+      onClose={onClose}
+      title="Annuler ce trajet ?"
+      heightRatio={0.48}
+      theme={theme}
+    >
       <View style={styles.content}>
         {isFetching ? (
-          <ActivityIndicator size="small" color={colors.secondary} style={styles.loading} />
+          <ActivityIndicator size="small" color={theme.accent} style={styles.loading} />
         ) : isError || !preview ? (
-          <Text variant="bodySmall" color={colors.error}>
+          <Text variant="bodySmall" color={theme.error}>
             Impossible de vérifier la politique d’annulation pour le moment.
           </Text>
         ) : (
           <>
             <Badge label={badge!.label} variant={badge!.variant} />
-            <Text variant="body" color={colors.gray900}>
+            <Text variant="body" color={theme.ink}>
               {preview.consequence}
             </Text>
           </>
         )}
 
         {submitError ? (
-          <Text variant="bodySmall" color={colors.error}>
+          <Text variant="bodySmall" color={theme.error}>
             {submitError}
           </Text>
         ) : null}
@@ -105,8 +112,15 @@ export function CancellationSheet({
           disabled={isFetching || !preview}
           onPress={() => void handleConfirm()}
           style={styles.cta}
+          theme={theme}
         />
-        <Button label="Retour" variant="ghost" onPress={onClose} style={styles.cta} />
+        <Button
+          label="Retour"
+          variant="ghost"
+          onPress={onClose}
+          style={styles.cta}
+          theme={theme}
+        />
       </View>
     </BottomSheet>
   );

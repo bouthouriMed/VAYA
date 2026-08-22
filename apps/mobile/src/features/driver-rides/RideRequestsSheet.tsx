@@ -13,6 +13,11 @@ interface RideRequestsSheetProps {
   visible: boolean;
   rideId: string;
   onClose: () => void;
+  /** Tapping an already-accepted request — opens the driver's per-booking
+   *  detail view (message/cancel/report no-show). Pending requests have
+   *  their own Accepter/Refuser buttons instead; nothing to "manage" yet on
+   *  a request that hasn't been accepted. */
+  onManageBooking?: (booking: Booking) => void;
 }
 
 const REQUEST_BADGE: Record<Booking['status'], { label: string; variant: 'default' | 'success' | 'warning' | 'error' }> = {
@@ -34,7 +39,12 @@ const REQUEST_BADGE: Record<Booking['status'], { label: string; variant: 'defaul
  * asking before accepting — trust before commitment. Accept/decline reuse
  * Phase 1's atomic mutations untouched.
  */
-export function RideRequestsSheet({ visible, rideId, onClose }: RideRequestsSheetProps): React.JSX.Element {
+export function RideRequestsSheet({
+  visible,
+  rideId,
+  onClose,
+  onManageBooking,
+}: RideRequestsSheetProps): React.JSX.Element {
   const theme = useAppTheme().colors;
   const [actionError, setActionError] = useState<string | null>(null);
   const { data: requests, isLoading, isError, refetch } = useListRequestsForRideQuery(rideId, {
@@ -144,12 +154,19 @@ export function RideRequestsSheet({ visible, rideId, onClose }: RideRequestsShee
                 </Text>
                 {answered.map((request) => {
                   const badge = REQUEST_BADGE[request.status];
+                  const manageable = request.status === 'accepted' && Boolean(onManageBooking);
                   return (
                     <TouchableOpacity
                       key={request.id}
                       style={styles.answeredRow}
-                      disabled
-                      accessibilityRole="text"
+                      disabled={!manageable}
+                      onPress={manageable ? () => onManageBooking!(request) : undefined}
+                      accessibilityRole={manageable ? 'button' : 'text'}
+                      accessibilityLabel={
+                        manageable
+                          ? `Gérer la réservation de ${request.rider?.fullName ?? 'ce passager'}`
+                          : undefined
+                      }
                     >
                       <Avatar uri={request.rider?.avatarUrl} name={request.rider?.fullName ?? '?'} sizePx={36} />
                       <View style={styles.identityText}>
@@ -161,6 +178,9 @@ export function RideRequestsSheet({ visible, rideId, onClose }: RideRequestsShee
                         </Text>
                       </View>
                       <Badge label={badge.label} variant={badge.variant} />
+                      {manageable ? (
+                        <Icon name="chevron-forward" size="xs" color={theme.outline} />
+                      ) : null}
                     </TouchableOpacity>
                   );
                 })}

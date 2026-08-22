@@ -6,6 +6,8 @@ import {
   firstDayWithSlots,
   formatDepartureLabel,
   formatMonthLabel,
+  formatMonthName,
+  formatYearLabel,
   formatTime,
   isSameDay,
   roundUpToSlot,
@@ -147,6 +149,13 @@ describe('buildMonthGrid', () => {
 describe('formatMonthLabel', () => {
   it('capitalizes the French month name', () => {
     expect(formatMonthLabel(new Date(2026, 10, 5))).toBe('Novembre 2026');
+  });
+});
+
+describe('formatMonthName / formatYearLabel', () => {
+  it('splits the heading into a capitalized month and a bare year', () => {
+    expect(formatMonthName(new Date(2026, 10, 5))).toBe('Novembre');
+    expect(formatYearLabel(new Date(2026, 10, 5))).toBe('2026');
   });
 });
 

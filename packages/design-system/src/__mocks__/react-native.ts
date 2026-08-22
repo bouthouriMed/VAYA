@@ -125,6 +125,55 @@ function FlatList<T>({
   );
 }
 
+// Same rationale as FlatList above, for the list screens that group rows
+// under sticky-ish headers (e.g. the Messages inbox): sections map through
+// `renderSectionHeader`/`renderItem`/`ListEmptyComponent` so a snapshot
+// actually contains the rendered content instead of an opaque tag.
+interface SectionLike<T> {
+  title?: string;
+  data: readonly T[];
+}
+
+function SectionList<T>({
+  sections,
+  renderItem,
+  renderSectionHeader,
+  ListEmptyComponent,
+  keyExtractor,
+}: {
+  sections: readonly SectionLike<T>[];
+  renderItem: (info: { item: T; index: number }) => React.ReactNode;
+  renderSectionHeader?: (info: { section: SectionLike<T> }) => React.ReactNode;
+  ListEmptyComponent?: React.ReactNode;
+  keyExtractor?: (item: T, index: number) => string;
+}): React.ReactElement {
+  const isEmpty = sections.every((section) => section.data.length === 0);
+  return React.createElement(
+    'SectionList',
+    null,
+    isEmpty
+      ? (ListEmptyComponent ?? null)
+      : sections.flatMap((section) =>
+          [
+            renderSectionHeader
+              ? React.createElement(
+                  React.Fragment,
+                  { key: `header-${section.title ?? ''}` },
+                  renderSectionHeader({ section }),
+                )
+              : null,
+            ...section.data.map((item, index) =>
+              React.createElement(
+                React.Fragment,
+                { key: keyExtractor ? keyExtractor(item, index) : index },
+                renderItem({ item, index }),
+              ),
+            ),
+          ].filter(Boolean),
+        ),
+  );
+}
+
 export {
   Platform,
   StyleSheet,
@@ -148,4 +197,5 @@ export {
   Dimensions,
   PanResponder,
   FlatList,
+  SectionList,
 };

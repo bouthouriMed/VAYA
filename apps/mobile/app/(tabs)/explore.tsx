@@ -10,6 +10,8 @@ import {
   Icon,
   DateCalendarSheet,
   TimeWheelSheet,
+  PassengerSheet,
+  formatPassengerCount,
   formatDepartureLabel,
   useAppTheme,
   spacing,
@@ -30,7 +32,7 @@ import {
   startSearch,
 } from '../../src/state/searchSlice';
 import { useCurrentPosition } from '../../src/services/location/useCurrentPosition';
-import { useMatchingSearchQuery } from '../../src/state/api';
+import { useMatchingSearchQuery, useListNotificationsQuery } from '../../src/state/api';
 
 // A tight, "you are here" urban crop — not a whole-metro overview. Stitch's
 // own reference map is a close-in neighborhood view, not a zoomed-out city;
@@ -66,6 +68,15 @@ export default function HomeSearchScreen(): React.JSX.Element {
   const { status, position } = useCurrentPosition();
   const [isDateSheetOpen, setIsDateSheetOpen] = useState(false);
   const [isTimeSheetOpen, setIsTimeSheetOpen] = useState(false);
+  const [isPassengerSheetOpen, setIsPassengerSheetOpen] = useState(false);
+
+  // Polls via the same RTK Query cache the notifications inbox itself reads
+  // (Phase 7) — no separate unread-count endpoint, just derived from the
+  // real list. 30s is a light poll, matching the inbox screen's own cadence
+  // expectations without hammering the API from the tab a rider lands on
+  // most.
+  const { data: notifications } = useListNotificationsQuery(undefined, { pollingInterval: 30_000 });
+  const hasUnreadNotifications = notifications?.some((n) => !n.readAt) ?? false;
 
   // Silently adopt the device's GPS fix as the default departure point the
   // moment it resolves — mirrors Uber/BlaBlaCar's "we already know where you
@@ -202,6 +213,21 @@ export default function HomeSearchScreen(): React.JSX.Element {
             Vaya
           </Text>
         </LinearGradient>
+
+        <TouchableOpacity
+          onPress={() => router.push('/notifications')}
+          accessibilityRole="button"
+          accessibilityLabel={hasUnreadNotifications ? 'Notifications (non lues)' : 'Notifications'}
+          style={[
+            styles.notificationButton,
+            { top: insets.top + spacing.sm, backgroundColor: theme.surface, shadowColor: theme.ink },
+          ]}
+        >
+          <Ionicons name="notifications-outline" size={20} color={theme.ink} />
+          {hasUnreadNotifications ? (
+            <View style={[styles.notificationDot, { backgroundColor: theme.accent, borderColor: theme.surface }]} />
+          ) : null}
+        </TouchableOpacity>
       </View>
 
       <View
@@ -318,48 +344,27 @@ export default function HomeSearchScreen(): React.JSX.Element {
             </TouchableOpacity>
           </View>
 
-          {/* Inline stepper, not a tap-to-open modal — the count is a
-           *  single number with two obvious bounds (min 1), so a sheet
-           *  round-trip is overhead the interaction doesn't need. */}
-          <View style={[styles.passengerCard, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
-            <View style={styles.passengerLeft}>
-              <View style={[styles.locationIconWrap, styles.filterIconWrap, { backgroundColor: theme.surfaceMuted }]}>
-                <Icon name="person-outline" size="sm" color={theme.inkFaint} />
-              </View>
-              <View>
-                <Text variant="caption" color={theme.inkFaint}>
-                  Passagers
-                </Text>
-                <Text variant="bodySmall" color={theme.ink}>
-                  {passengers} passager{passengers > 1 ? 's' : ''}
-                </Text>
-              </View>
+          {/* Same tap-to-open sheet grammar as Date/Heure — one consistent
+           *  filter row; the count itself is edited in a draggable sheet. */}
+          <TouchableOpacity
+            style={[styles.paramBtnWide, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}
+            onPress={() => setIsPassengerSheetOpen(true)}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={`Passagers, ${formatPassengerCount(passengers)}`}
+          >
+            <View style={[styles.locationIconWrap, styles.filterIconWrap, { backgroundColor: theme.surfaceMuted }]}>
+              <Icon name="person-outline" size="sm" color={theme.inkFaint} />
             </View>
-
-            <View style={[styles.stepper, { backgroundColor: theme.surfaceMuted, borderColor: theme.outlineVariant }]}>
-              <TouchableOpacity
-                style={[styles.stepperBtn, { backgroundColor: theme.surface }]}
-                onPress={() => dispatch(setPassengers(passengers - 1))}
-                disabled={passengers <= 1}
-                accessibilityRole="button"
-                accessibilityLabel="Retirer un passager"
-              >
-                <Ionicons name="remove" size={15} color={passengers <= 1 ? theme.inkFaint : theme.ink} />
-              </TouchableOpacity>
-              <Text variant="label" color={theme.ink} style={styles.stepperCount}>
-                {passengers}
+            <View>
+              <Text variant="caption" color={theme.inkFaint}>
+                Passagers
               </Text>
-              <TouchableOpacity
-                style={[styles.stepperBtn, { backgroundColor: theme.surface }]}
-                onPress={() => dispatch(setPassengers(passengers + 1))}
-                disabled={passengers >= 8}
-                accessibilityRole="button"
-                accessibilityLabel="Ajouter un passager"
-              >
-                <Ionicons name="add" size={15} color={passengers >= 8 ? theme.inkFaint : theme.ink} />
-              </TouchableOpacity>
+              <Text variant="bodySmall" color={theme.ink}>
+                {formatPassengerCount(passengers)}
+              </Text>
             </View>
-          </View>
+          </TouchableOpacity>
 
           <TouchableOpacity
             style={[
@@ -407,6 +412,12 @@ export default function HomeSearchScreen(): React.JSX.Element {
         value={desiredDepartureAt ? new Date(desiredDepartureAt) : new Date()}
         onChange={(date) => dispatch(setDesiredDepartureAt(date.toISOString()))}
       />
+      <PassengerSheet
+        visible={isPassengerSheetOpen}
+        onClose={() => setIsPassengerSheetOpen(false)}
+        value={passengers}
+        onChange={(count) => dispatch(setPassengers(count))}
+      />
     </View>
   );
 }
@@ -430,6 +441,28 @@ const styles = StyleSheet.create({
     height: BRAND_BAR_HEIGHT,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  notificationButton: {
+    position: 'absolute',
+    right: spacing.lg,
+    width: 40,
+    height: 40,
+    borderRadius: radii.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  notificationDot: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    width: 9,
+    height: 9,
+    borderRadius: 5,
+    borderWidth: 1.5,
   },
   originDot: {
     width: 16,
@@ -550,6 +583,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: spacing.md,
   },
+  paramBtnWide: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    borderRadius: radii.xl,
+    borderWidth: 1,
+    padding: spacing.md,
+  },
   // The filter cards' icon circle is smaller (30px) than the route card's
   // (32px) — matches the reference's hierarchy between the primary route
   // input and these secondary filters.
@@ -557,38 +598,6 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 15,
-  },
-  passengerCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderRadius: radii.xl,
-    borderWidth: 1,
-    padding: spacing.md,
-  },
-  passengerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  stepper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    borderRadius: radii.md,
-    borderWidth: 1,
-    padding: 5,
-  },
-  stepperBtn: {
-    width: 26,
-    height: 26,
-    borderRadius: radii.sm,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  stepperCount: {
-    minWidth: 14,
-    textAlign: 'center',
   },
   cta: {
     flexDirection: 'row',

@@ -1,10 +1,18 @@
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
-import { idParamSchema, registerPushTokenSchema, updateMeSchema } from '@vaya/validation';
+import {
+  idParamSchema,
+  registerPushTokenSchema,
+  requestOtpSchema,
+  updateMeSchema,
+  verifyOtpSchema,
+} from '@vaya/validation';
 import { getDatabase } from '../../lib/database.js';
 import { getUserId } from '../../lib/auth-context.js';
-import { getPublicProfile, getUserById, updateUser } from './users.service.js';
+import { getPublicProfile, getUserById, updateUser, attachPhoneToUser } from './users.service.js';
+import { requestOtp } from '../auth/auth.service.js';
+import { getEnv } from '../../config/env.js';
 // Phase 7 (docs/roadmap/phase-07-notifications.md): device-token storage is
 // notification-domain data (device_tokens table), so the write logic lives
 // in the notifications module; this endpoint is exposed under /users/me per
@@ -13,7 +21,9 @@ import { registerPushToken } from '../notifications/notifications.service.js';
 
 const meResponseSchema = z.object({
   id: z.string().uuid(),
-  phone: z.string(),
+  phone: z.string().nullable(),
+  email: z.string().nullable(),
+  authProvider: z.enum(['phone', 'google']),
   fullName: z.string(),
   avatarUrl: z.string().nullable(),
   locale: z.enum(['fr', 'ar', 'en']),
@@ -76,6 +86,41 @@ export async function usersRoutes(fastify: FastifyInstance): Promise<void> {
     },
     async (request, reply) => {
       const user = await updateUser(db, getUserId(request), request.body);
+      reply.send(user);
+    },
+  );
+
+  app.post(
+    '/users/me/phone/request-otp',
+    {
+      onRequest: [fastify.authenticate],
+      // Same cost/abuse posture as /auth/otp/request (sends a real SMS).
+      config: { rateLimit: { max: 5, timeWindow: '1 minute' } },
+      schema: {
+        body: requestOtpSchema,
+        response: { 200: z.object({ sent: z.boolean(), devCode: z.string().optional() }) },
+      },
+    },
+    async (request, reply) => {
+      const { code } = await requestOtp(db, request.body.phone);
+      const devCode = getEnv().NODE_ENV === 'development' ? code : undefined;
+      reply.send({ sent: true, devCode });
+    },
+  );
+
+  app.post(
+    '/users/me/phone/verify',
+    {
+      onRequest: [fastify.authenticate],
+      schema: { body: verifyOtpSchema, response: { 200: meResponseSchema } },
+    },
+    async (request, reply) => {
+      const user = await attachPhoneToUser(
+        db,
+        getUserId(request),
+        request.body.phone,
+        request.body.code,
+      );
       reply.send(user);
     },
   );

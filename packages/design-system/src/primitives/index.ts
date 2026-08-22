@@ -38,6 +38,8 @@ export { DateCalendarSheet } from './DateCalendarSheet';
 export type { DateCalendarSheetProps } from './DateCalendarSheet';
 export { TimeWheelSheet } from './TimeWheelSheet';
 export type { TimeWheelSheetProps } from './TimeWheelSheet';
+export { PassengerSheet, formatPassengerCount } from './PassengerSheet';
+export type { PassengerSheetProps } from './PassengerSheet';
 export { GlassSurface } from './GlassSurface';
 export { StatusBarBlend } from './StatusBarBlend';
 export { DriverListCard } from './DriverListCard';

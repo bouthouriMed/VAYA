@@ -1,7 +1,8 @@
 import { eq } from 'drizzle-orm';
 import type { getDatabase } from '../../lib/database.js';
 import { users, driverProfiles, vehicles } from '../../db/schema/index.js';
-import { NotFoundError } from '../../lib/errors.js';
+import { ConflictError, NotFoundError } from '../../lib/errors.js';
+import { consumeValidOtp } from '../auth/auth.service.js';
 import type { UpdateMeInput } from '@vaya/validation';
 
 type Database = ReturnType<typeof getDatabase>;
@@ -21,6 +22,35 @@ export async function updateUser(db: Database, userId: string, input: UpdateMeIn
   const [updated] = await db
     .update(users)
     .set({ ...updates, updatedAt: new Date() })
+    .where(eq(users.id, userId))
+    .returning();
+  if (!updated) throw new NotFoundError('User');
+  return updated;
+}
+
+/**
+ * Attaches a verified phone number to an already-authenticated user (e.g. a
+ * Google sign-in account that has no phone yet) — distinct from
+ * verifyOtpAndIssueTokens, which signs a *new* session in for whichever user
+ * owns the phone. Here the caller is already signed in; a valid code only
+ * ever updates *their* row, never switches identity or creates a second user.
+ */
+export async function attachPhoneToUser(
+  db: Database,
+  userId: string,
+  phone: string,
+  code: string,
+) {
+  await consumeValidOtp(db, phone, code);
+
+  const existingWithPhone = await db.query.users.findFirst({ where: eq(users.phone, phone) });
+  if (existingWithPhone && existingWithPhone.id !== userId) {
+    throw new ConflictError('Ce numéro est déjà associé à un autre compte VAYA.');
+  }
+
+  const [updated] = await db
+    .update(users)
+    .set({ phone, updatedAt: new Date() })
     .where(eq(users.id, userId))
     .returning();
   if (!updated) throw new NotFoundError('User');

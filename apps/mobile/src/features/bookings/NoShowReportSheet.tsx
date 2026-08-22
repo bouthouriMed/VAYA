@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
-import { BottomSheet, Button, Text, colors, spacing, haptics } from '@vaya/design-system';
+import { BottomSheet, Button, Text, useAppTheme, spacing, haptics } from '@vaya/design-system';
 import { useReportNoShowMutation } from '../../state/api';
 import { trackEvent } from '../../services/analytics/analytics';
 
@@ -8,8 +8,8 @@ interface NoShowReportSheetProps {
   visible: boolean;
   onClose: () => void;
   bookingId: string;
-  /** See CancellationSheet's identical prop doc comment — analytics-only,
-   *  always 'rider' at the one current call site (bookings/live.tsx). */
+  /** See CancellationSheet's identical prop doc comment — analytics-only.
+   *  'rider' from bookings/live.tsx, 'driver' from DriverBookingDetailSheet. */
   role: 'rider' | 'driver';
   counterpartName?: string | null;
   onReported?: () => void;
@@ -35,6 +35,7 @@ export function NoShowReportSheet({
   counterpartName,
   onReported,
 }: NoShowReportSheetProps): React.JSX.Element {
+  const theme = useAppTheme().colors;
   const [reportNoShow, { isLoading }] = useReportNoShowMutation();
   const [error, setError] = useState<string | undefined>();
 
@@ -67,19 +68,20 @@ export function NoShowReportSheet({
       onClose={onClose}
       title={`${firstName} ne s’est pas présenté ?`}
       heightRatio={0.42}
+      theme={theme}
     >
       <View style={styles.content}>
-        <Text variant="body" color={colors.gray700}>
+        <Text variant="body" color={theme.ink}>
           Avant de signaler une absence, essayez de contacter {firstName} (message ou appel) — il
           ou elle a peut-être simplement un léger retard.
         </Text>
-        <Text variant="bodySmall" color={colors.gray600}>
+        <Text variant="bodySmall" color={theme.inkMuted}>
           Si vous ne parvenez pas à le/la joindre après l’heure de départ prévue, vous pouvez
           signaler l’absence ci-dessous.
         </Text>
 
         {error ? (
-          <Text variant="bodySmall" color={colors.error}>
+          <Text variant="bodySmall" color={theme.error}>
             {error}
           </Text>
         ) : null}
@@ -91,8 +93,15 @@ export function NoShowReportSheet({
           loading={isLoading}
           onPress={() => void handleConfirm()}
           style={styles.cta}
+          theme={theme}
         />
-        <Button label="Retour" variant="ghost" onPress={onClose} style={styles.cta} />
+        <Button
+          label="Retour"
+          variant="ghost"
+          onPress={onClose}
+          style={styles.cta}
+          theme={theme}
+        />
       </View>
     </BottomSheet>
   );

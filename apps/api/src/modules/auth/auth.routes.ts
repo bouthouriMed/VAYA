@@ -13,6 +13,8 @@ import {
   verifyOtpAndIssueTokens,
   refreshAccessToken,
   revokeRefreshToken,
+  consumeOauthTicket,
+  issueTokens,
 } from './auth.service.js';
 import { getEnv } from '../../config/env.js';
 
@@ -56,6 +58,21 @@ export async function authRoutes(fastify: FastifyInstance): Promise<void> {
         request.body.code,
         signAccessToken,
       );
+      reply.send(tokens);
+    },
+  );
+
+  app.post(
+    '/auth/google/exchange',
+    {
+      schema: {
+        body: z.object({ ticket: z.string().min(1) }),
+        response: { 200: authTokensSchema },
+      },
+    },
+    async (request, reply) => {
+      const userId = await consumeOauthTicket(db, request.body.ticket);
+      const tokens = await issueTokens(db, userId, signAccessToken);
       reply.send(tokens);
     },
   );
