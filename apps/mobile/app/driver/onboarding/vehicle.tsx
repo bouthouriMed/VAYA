@@ -102,7 +102,7 @@ export default function VehicleStepScreen(): React.JSX.Element {
           <Text variant="label" color={theme.inkFaint} style={styles.eyebrow}>
             PROFIL CONDUCTEUR
           </Text>
-          <Text variant="h2" color={theme.ink} style={styles.title}>
+          <Text variant="headlineDisplay" color={theme.ink} style={styles.title}>
             Votre véhicule
           </Text>
           <Text variant="body" color={theme.inkMuted} style={styles.subtitle}>
@@ -234,7 +234,6 @@ const styles = StyleSheet.create({
   },
   title: {
     marginTop: spacing.xs,
-    fontWeight: '700',
   },
   subtitle: {
     marginTop: spacing.sm,

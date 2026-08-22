@@ -76,7 +76,7 @@ export default function BecomeDriverScreen(): React.JSX.Element {
           <Text variant="caption" color={colors.secondaryLight} style={styles.eyebrow}>
             PROFIL CONDUCTEUR
           </Text>
-          <Text variant="h1" color={colors.navyText} style={styles.headline}>
+          <Text variant="headlineDisplay" color={colors.navyText} style={styles.headline}>
             Prenez le volant avec VAYA
           </Text>
           <Text variant="body" color={colors.navyTextMuted} style={styles.subhead}>

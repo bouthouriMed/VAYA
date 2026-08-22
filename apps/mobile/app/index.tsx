@@ -137,7 +137,12 @@ export default function LandingScreen(): React.JSX.Element {
           ]}
         >
           <RoutePulseBadge icon="navigate" size="hero" tone="onNavy" />
-          <Text variant="h3" color={darkPalette.ink} align="center" style={styles.headline}>
+          <Text
+            variant="headlineDisplay"
+            color={darkPalette.ink}
+            align="center"
+            style={styles.headline}
+          >
             Voyagez, en toute confiance.
           </Text>
           <Text variant="body" color={darkPalette.inkMuted} align="center" style={styles.subhead}>
@@ -274,7 +279,6 @@ const styles = StyleSheet.create({
   },
   headline: {
     marginTop: spacing.lg,
-    fontWeight: typography.fontWeight.bold,
   },
   subhead: {
     marginTop: spacing.sm,
