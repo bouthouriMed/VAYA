@@ -25,6 +25,8 @@ import {
   StepProgress,
   ScreenHeader,
   PriceRangeStepper,
+  Icon,
+  RoutePulseBadge,
   colors,
   spacing,
   radii,
@@ -33,10 +35,12 @@ import {
   haptics,
   regionForPoints,
   formatDepartureLabel,
+  formatTime,
 } from '@vaya/design-system';
 import { router } from 'expo-router';
 import { useAppDispatch, useAppSelector } from '../../src/state/store';
 import { resetSearch } from '../../src/state/searchSlice';
+import { setPendingRide } from '../../src/state/driverOnboardingSlice';
 import {
   useGetMyDriverProfileQuery,
   useCreateRideMutation,
@@ -56,6 +60,7 @@ import {
   buildStopSelectionPayload,
 } from '../../src/features/driver-publish/stopSelection';
 import { resolveInitialPrice } from '../../src/features/driver-publish/priceSelection';
+import { isVerifiedDriver } from '../../src/features/driver-publish/verificationGate';
 
 const DEPARTURE_PRESETS = [
   { label: 'Dans 15 min', minutes: 15 },
@@ -72,7 +77,7 @@ const ROAD_CLASS_LABELS: Record<string, string> = {
   unknown: 'Route',
 };
 
-type Step = 'form' | 'price' | 'stops';
+type Step = 'form' | 'price' | 'stops' | 'review';
 
 export default function PublishRideScreen(): React.JSX.Element {
   const insets = useSafeAreaInsets();
@@ -104,12 +109,17 @@ export default function PublishRideScreen(): React.JSX.Element {
   // `pricing.recommended`.
   const [pricing, setPricing] = useState<SuggestedPrice | null>(null);
   const [routeIsEstimate, setRouteIsEstimate] = useState(false);
+  const [estimatedDurationSec, setEstimatedDurationSec] = useState<number | null>(null);
   const [price, setPrice] = useState(0);
   const [candidates, setCandidates] = useState<RouteStop[]>([]);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [activeStop, setActiveStop] = useState<RouteStop | null>(null);
   const [isGeneratingStops, setIsGeneratingStops] = useState(false);
   const [osrmUnavailable, setOsrmUnavailable] = useState(false);
+  // Review step (stitch/verification/publish-verification-requirement-prompt.html):
+  // shown over the review screen when the driver isn't verified yet — the
+  // ride is already saved as a draft by this point (createRide below).
+  const [isVerificationPromptVisible, setIsVerificationPromptVisible] = useState(false);
 
   const { data: driverProfile, isLoading: isProfileLoading } = useGetMyDriverProfileQuery();
   const [createRide, { isLoading: isCreating }] = useCreateRideMutation();
@@ -169,6 +179,21 @@ export default function PublishRideScreen(): React.JSX.Element {
     if (destination) points.push({ lat: destination.lat, lng: destination.lng });
     return regionForPoints(points);
   }, [candidates, origin, destination]);
+  // Review step (stitch/publish_ride/publish-final-review.html)'s itinerary
+  // timeline — driver-selected stops only, in route order.
+  const selectedStops = useMemo(
+    () =>
+      candidates.filter((c) => selectedIds.has(c.id)).sort((a, b) => a.sequence - b.sequence),
+    [candidates, selectedIds],
+  );
+  // No per-stop ETA exists anywhere in this codebase (only the whole
+  // route's total duration) — showing one here for the destination only is
+  // real data; inventing per-stop times would violate the "never fabricate"
+  // rule (CLAUDE.md).
+  const estimatedArrivalAt = useMemo(
+    () => (estimatedDurationSec != null ? new Date(departureAt.getTime() + estimatedDurationSec * 1000) : null),
+    [departureAt, estimatedDurationSec],
+  );
 
   // Runs candidate-stop generation without blocking the caller — kicked off
   // as soon as the ride exists (right after continueToPrice) so it's ready,
@@ -204,6 +229,7 @@ export default function PublishRideScreen(): React.JSX.Element {
       routePolyline: string | null;
       pricing: SuggestedPrice;
       routeIsEstimate: boolean;
+      estimatedDurationSec: number | null;
     };
     try {
       ride = await createRide({
@@ -229,6 +255,7 @@ export default function PublishRideScreen(): React.JSX.Element {
     setRidePolyline(ride.routePolyline);
     setPricing(ride.pricing);
     setRouteIsEstimate(ride.routeIsEstimate);
+    setEstimatedDurationSec(ride.estimatedDurationSec);
     setPrice(resolveInitialPrice(ride.pricing.min, ride.pricing.recommended, ride.pricing.max));
     setStep('price');
     trackEvent('ride_price_suggested', {
@@ -282,9 +309,10 @@ export default function PublishRideScreen(): React.JSX.Element {
     });
   }
 
-  async function finalizePublish(): Promise<void> {
-    if (!rideId) return;
-    setErrorMessage(undefined);
+  // Persists the driver's stop selection — always safe to call before the
+  // ride is actually published, since it's just updating the draft.
+  async function saveStopSelection(): Promise<boolean> {
+    if (!rideId) return false;
     try {
       if (candidates.length > 0) {
         await updateRideStops({
@@ -292,9 +320,20 @@ export default function PublishRideScreen(): React.JSX.Element {
           selections: buildStopSelectionPayload(candidates, selectedIds),
         }).unwrap();
       }
-      if (selectedIds.size === 0) {
-        trackEvent('ride_published_with_zero_stops', { rideId });
-      }
+      return true;
+    } catch {
+      haptics.error();
+      setErrorMessage("Impossible d'enregistrer les arrêts. Réessayez.");
+      return false;
+    }
+  }
+
+  async function publishNow(): Promise<void> {
+    if (!rideId) return;
+    if (selectedIds.size === 0) {
+      trackEvent('ride_published_with_zero_stops', { rideId });
+    }
+    try {
       await publishRide(rideId).unwrap();
       haptics.success();
       // Contextual push-permission prompt (docs/roadmap/phase-07-notifications.md):
@@ -308,10 +347,35 @@ export default function PublishRideScreen(): React.JSX.Element {
     }
   }
 
+  // Review screen's "Publier ce trajet" (stitch/publish_ride/publish-final-review.html):
+  // saves the stop selection either way, then either publishes immediately
+  // (verified driver) or hands off to the verification-requirement prompt
+  // (stitch/verification/publish-verification-requirement-prompt.html) —
+  // the ride stays a saved draft either way.
+  async function finalizePublish(): Promise<void> {
+    setErrorMessage(undefined);
+    const saved = await saveStopSelection();
+    if (!saved) return;
+
+    if (!isVerifiedDriver(driverProfile)) {
+      setIsVerificationPromptVisible(true);
+      return;
+    }
+    await publishNow();
+  }
+
+  function startVerification(): void {
+    if (!rideId || !origin || !destination) return;
+    setIsVerificationPromptVisible(false);
+    dispatch(setPendingRide({ rideId, originLabel: origin.label, destinationLabel: destination.label }));
+    router.push('/driver/onboarding/vehicle');
+  }
+
   const stepTitles: Record<Step, string> = {
     form: 'Publier un trajet',
     price: 'Prix suggéré',
     stops: 'Arrêts suggérés',
+    review: 'Vérifier et publier',
   };
 
   const header = (
@@ -319,7 +383,8 @@ export default function PublishRideScreen(): React.JSX.Element {
       <ScreenHeader
         title={stepTitles[step]}
         onBack={() => {
-          if (step === 'stops') setStep('price');
+          if (step === 'review') setStep('stops');
+          else if (step === 'stops') setStep('price');
           else if (step === 'price') setStep('form');
           else router.back();
         }}
@@ -342,7 +407,7 @@ export default function PublishRideScreen(): React.JSX.Element {
     return (
       <View style={styles.container}>
         {header}
-        <StepProgress currentStep={2} totalSteps={3} style={styles.stepProgress} />
+        <StepProgress currentStep={2} totalSteps={4} style={styles.stepProgress} />
 
         <Animated.View style={[styles.priceBody, stepMotionStyle]}>
           <Text variant="caption" color={colors.secondaryDark} style={styles.eyebrow}>
@@ -390,7 +455,7 @@ export default function PublishRideScreen(): React.JSX.Element {
     return (
       <View style={styles.container}>
         {header}
-        <StepProgress currentStep={3} totalSteps={3} style={styles.stepProgress} />
+        <StepProgress currentStep={3} totalSteps={4} style={styles.stepProgress} />
 
         <Animated.View style={[styles.stopsBody, stepMotionStyle]}>
           {isGeneratingStops ? (
@@ -474,11 +539,10 @@ export default function PublishRideScreen(): React.JSX.Element {
 
         <View style={[styles.stopsFooter, { paddingBottom: insets.bottom + spacing.md }]}>
           <Button
-            label="Publier ce trajet"
+            label="Continuer"
             size="lg"
-            loading={isPublishing}
-            disabled={isGeneratingStops || isPublishing}
-            onPress={() => void finalizePublish()}
+            disabled={isGeneratingStops}
+            onPress={() => setStep('review')}
             style={styles.cta}
           />
         </View>
@@ -510,6 +574,223 @@ export default function PublishRideScreen(): React.JSX.Element {
               />
             </View>
           ) : null}
+        </BottomSheet>
+      </View>
+    );
+  }
+
+  if (step === 'review') {
+    return (
+      <View style={styles.container}>
+        {header}
+        <StepProgress currentStep={4} totalSteps={4} style={styles.stepProgress} />
+
+        <ScrollView contentContainerStyle={styles.reviewContent}>
+          <Animated.View style={[styles.reviewStack, stepMotionStyle]}>
+            <Text variant="h2" style={styles.reviewTitle}>
+              Prêt à publier votre trajet ?
+            </Text>
+            <Text variant="body" color={colors.gray600} style={styles.reviewSubtitle}>
+              Vérifiez les détails ci-dessous — vous pouvez modifier chaque section avant de
+              confirmer.
+            </Text>
+
+            <View style={styles.reviewCard}>
+              <View style={styles.reviewCardHeader}>
+                <Text variant="label" color={colors.gray600} style={styles.reviewCardEyebrow}>
+                  ITINÉRAIRE
+                </Text>
+                <TouchableOpacity
+                  style={styles.reviewEditBtn}
+                  onPress={() => setStep('form')}
+                  accessibilityRole="button"
+                  accessibilityLabel="Modifier l'itinéraire"
+                >
+                  <Text variant="bodySmall" color={colors.gray700}>
+                    Modifier
+                  </Text>
+                  <Icon name="pencil-outline" size="xs" color={colors.gray700} />
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.timeline}>
+                <View style={styles.timelineLine} />
+
+                <View style={styles.timelineRow}>
+                  <View style={[styles.timelineDot, styles.timelineDotOrigin]} />
+                  <View style={styles.timelineRowContent}>
+                    <View style={styles.timelineText}>
+                      <Text variant="label" numberOfLines={2}>
+                        {origin?.label}
+                      </Text>
+                    </View>
+                    <Text variant="bodySmall" color={colors.gray700} style={styles.timelineTime}>
+                      {formatTime(departureAt)}
+                    </Text>
+                  </View>
+                </View>
+
+                {selectedStops.map((stop) => (
+                  <View key={stop.id} style={styles.timelineRow}>
+                    <View style={styles.timelineDotStop} />
+                    <View style={styles.timelineRowContent}>
+                      <View style={styles.timelineText}>
+                        <Text variant="body" numberOfLines={2}>
+                          {stop.label}
+                        </Text>
+                        <Text variant="bodySmall" color={colors.gray600}>
+                          {ROAD_CLASS_LABELS[stop.roadClass ?? 'unknown'] ?? 'Route'}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+                ))}
+
+                <View style={styles.timelineRow}>
+                  <View style={[styles.timelineDot, styles.timelineDotDestination]}>
+                    <View style={styles.timelineDotDestinationInner} />
+                  </View>
+                  <View style={styles.timelineRowContent}>
+                    <View style={styles.timelineText}>
+                      <Text variant="label" numberOfLines={2}>
+                        {destination?.label}
+                      </Text>
+                    </View>
+                    {estimatedArrivalAt ? (
+                      <Text variant="bodySmall" color={colors.gray700} style={styles.timelineTime}>
+                        ~{formatTime(estimatedArrivalAt)}
+                      </Text>
+                    ) : null}
+                  </View>
+                </View>
+              </View>
+            </View>
+
+            <View style={styles.reviewRow}>
+              <View style={[styles.reviewCard, styles.reviewHalfCard]}>
+                <View style={styles.reviewCardHeader}>
+                  <Text variant="label" color={colors.gray600} style={styles.reviewCardEyebrow}>
+                    PRIX PAR PLACE
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => setStep('price')}
+                    accessibilityRole="button"
+                    accessibilityLabel="Modifier le prix"
+                  >
+                    <Icon name="pencil-outline" size="xs" color={colors.gray700} />
+                  </TouchableOpacity>
+                </View>
+                <View style={styles.reviewStatRow}>
+                  <Text variant="h2">{price.toFixed(2)}</Text>
+                  <Text variant="body" color={colors.gray600} style={styles.reviewUnit}>
+                    TND
+                  </Text>
+                </View>
+              </View>
+
+              <View style={[styles.reviewCard, styles.reviewHalfCard]}>
+                <View style={styles.reviewCardHeader}>
+                  <Text variant="label" color={colors.gray600} style={styles.reviewCardEyebrow}>
+                    PLACES DISPONIBLES
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => setStep('form')}
+                    accessibilityRole="button"
+                    accessibilityLabel="Modifier le nombre de places"
+                  >
+                    <Icon name="pencil-outline" size="xs" color={colors.gray700} />
+                  </TouchableOpacity>
+                </View>
+                <View style={styles.reviewStatRow}>
+                  <Text variant="h2">{seats}</Text>
+                  <View style={styles.seatIcons}>
+                    {Array.from({ length: Math.min(seats, 4) }).map((_, i) => (
+                      <Icon key={i} name="person" size="xs" color={colors.primary} />
+                    ))}
+                  </View>
+                </View>
+              </View>
+            </View>
+
+            {vehicle ? (
+              <View style={styles.reviewCard}>
+                <Text variant="label" color={colors.gray600} style={styles.reviewCardEyebrow}>
+                  VÉHICULE
+                </Text>
+                <View style={styles.vehicleSummaryRow}>
+                  <View style={styles.vehicleSummaryIcon}>
+                    <Icon name="car-sport-outline" size="md" color={colors.gray900} />
+                  </View>
+                  <View>
+                    <Text variant="label">
+                      {vehicle.make} {vehicle.model} · {vehicle.color}
+                    </Text>
+                    <Text variant="bodySmall" color={colors.gray600}>
+                      {vehicle.plateNumber} · {vehicle.seatCount} places au total
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            ) : null}
+          </Animated.View>
+        </ScrollView>
+
+        {errorMessage ? (
+          <Text variant="bodySmall" color={colors.error} align="center">
+            {errorMessage}
+          </Text>
+        ) : null}
+
+        <View style={[styles.stopsFooter, { paddingBottom: insets.bottom + spacing.md }]}>
+          <Button
+            label="Publier ce trajet"
+            size="lg"
+            loading={isPublishing}
+            disabled={isPublishing}
+            onPress={() => void finalizePublish()}
+            style={styles.cta}
+          />
+          <Text variant="bodySmall" color={colors.gray600} align="center" style={styles.termsHint}>
+            En publiant, vous acceptez nos conditions d&apos;utilisation.
+          </Text>
+        </View>
+
+        <BottomSheet
+          visible={isVerificationPromptVisible}
+          onClose={() => setIsVerificationPromptVisible(false)}
+        >
+          <View style={styles.verificationSheet}>
+            <View style={styles.verificationIconWrap}>
+              <RoutePulseBadge icon="shield-checkmark" size="md" tone="onCream" />
+            </View>
+            <Text variant="h3" align="center">
+              Une dernière étape pour prendre la route
+            </Text>
+            <Text variant="body" color={colors.gray600} align="center">
+              Pour publier votre premier trajet, nous devons vérifier votre profil de conducteur.
+              Votre trajet est enregistré et sera publié automatiquement dès que votre
+              vérification sera validée.
+            </Text>
+            <View style={styles.verificationPill}>
+              <Icon name="hourglass-outline" size="xs" color={colors.warningDark} />
+              <Text variant="bodySmall" color={colors.warningDark}>
+                Vérification requise
+              </Text>
+            </View>
+            <Button
+              label="Commencer la vérification"
+              size="lg"
+              onPress={startVerification}
+              style={styles.cta}
+            />
+            <Button
+              label="Plus tard"
+              variant="ghost"
+              size="lg"
+              onPress={() => setIsVerificationPromptVisible(false)}
+              style={styles.cta}
+            />
+          </View>
         </BottomSheet>
       </View>
     );
@@ -807,5 +1088,157 @@ const styles = StyleSheet.create({
   },
   sheetContent: {
     gap: spacing.lg,
+  },
+  reviewContent: {
+    padding: spacing.lg,
+    paddingBottom: spacing['4xl'],
+  },
+  reviewStack: {
+    gap: spacing.md,
+  },
+  reviewTitle: {
+    fontWeight: typography.fontWeight.bold,
+  },
+  reviewSubtitle: {
+    marginBottom: spacing.sm,
+  },
+  reviewCard: {
+    backgroundColor: colors.white,
+    borderRadius: radii['2xl'],
+    padding: spacing.lg,
+    ...elevation?.lg,
+    shadowColor: colors.gray900,
+  },
+  reviewCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: spacing.md,
+  },
+  reviewCardEyebrow: {
+    fontWeight: typography.fontWeight.semibold,
+    letterSpacing: 1,
+  },
+  reviewEditBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  reviewRow: {
+    flexDirection: 'row',
+    gap: spacing.md,
+  },
+  reviewHalfCard: {
+    flex: 1,
+  },
+  reviewStatRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: spacing.xs,
+  },
+  reviewUnit: {
+    paddingBottom: 2,
+  },
+  seatIcons: {
+    flexDirection: 'row',
+    gap: 2,
+    marginLeft: spacing.xs,
+  },
+  timeline: {
+    position: 'relative',
+    paddingLeft: spacing.xl,
+  },
+  timelineLine: {
+    position: 'absolute',
+    left: 7,
+    top: 8,
+    bottom: 8,
+    width: 2,
+    backgroundColor: colors.gray200,
+  },
+  timelineRow: {
+    marginBottom: spacing.md,
+  },
+  timelineRowContent: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: spacing.sm,
+  },
+  timelineText: {
+    flex: 1,
+  },
+  timelineTime: {
+    fontWeight: typography.fontWeight.semibold,
+  },
+  timelineDot: {
+    position: 'absolute',
+    left: -spacing.xl,
+    top: 2,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    borderWidth: 3,
+    borderColor: colors.white,
+  },
+  timelineDotOrigin: {
+    backgroundColor: colors.secondary,
+  },
+  timelineDotDestination: {
+    backgroundColor: colors.white,
+    borderWidth: 2,
+    borderColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  timelineDotDestinationInner: {
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
+    backgroundColor: colors.primary,
+  },
+  timelineDotStop: {
+    position: 'absolute',
+    left: -spacing.xl + 3,
+    top: 5,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: colors.white,
+    borderWidth: 2,
+    borderColor: colors.gray400,
+  },
+  vehicleSummaryRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  vehicleSummaryIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: radii.lg,
+    backgroundColor: colors.gray100,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  termsHint: {
+    marginTop: spacing.sm,
+  },
+  verificationSheet: {
+    alignItems: 'center',
+    gap: spacing.md,
+    paddingBottom: spacing.lg,
+  },
+  verificationIconWrap: {
+    marginTop: spacing.sm,
+  },
+  verificationPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    backgroundColor: colors.warningLight,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: radii.full,
   },
 });

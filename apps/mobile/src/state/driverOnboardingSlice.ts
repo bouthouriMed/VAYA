@@ -8,11 +8,23 @@ export interface VehicleDraft {
   seatCount: number;
 }
 
+/** Carried in from the publish flow's review screen (stitch/verification's
+ *  publish-verification-requirement-prompt.html) when an unverified driver
+ *  taps "Commencer la vérification" with a draft ride already saved — lets
+ *  the onboarding wizard's last step auto-publish that ride once
+ *  verification completes, instead of leaving it stranded as a draft. */
+export interface PendingRide {
+  rideId: string;
+  originLabel: string;
+  destinationLabel: string;
+}
+
 interface DriverOnboardingState {
   vehicle: VehicleDraft | null;
   licenseUri: string | null;
   insuranceUri: string | null;
   selfieUri: string | null;
+  pendingRide: PendingRide | null;
 }
 
 const initialState: DriverOnboardingState = {
@@ -20,6 +32,7 @@ const initialState: DriverOnboardingState = {
   licenseUri: null,
   insuranceUri: null,
   selfieUri: null,
+  pendingRide: null,
 };
 
 const driverOnboardingSlice = createSlice({
@@ -38,6 +51,9 @@ const driverOnboardingSlice = createSlice({
     setSelfieUri(state, action: PayloadAction<string>) {
       state.selfieUri = action.payload;
     },
+    setPendingRide(state, action: PayloadAction<PendingRide>) {
+      state.pendingRide = action.payload;
+    },
     resetDriverOnboarding() {
       return initialState;
     },
@@ -49,6 +65,7 @@ export const {
   setLicenseUri,
   setInsuranceUri,
   setSelfieUri,
+  setPendingRide,
   resetDriverOnboarding,
 } = driverOnboardingSlice.actions;
 export default driverOnboardingSlice.reducer;
