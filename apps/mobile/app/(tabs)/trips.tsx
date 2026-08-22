@@ -59,7 +59,7 @@ export default function TripsScreen(): React.JSX.Element {
   const [cancellingBookingId, setCancellingBookingId] = useState<string | null>(null);
 
   function goToDriverFlow(): void {
-    router.push(driverProfile ? '/driver/publish' : '/driver/onboarding/vehicle');
+    router.push(driverProfile ? '/(tabs)/publish' : '/driver/onboarding/vehicle');
   }
 
   return (

@@ -1,14 +1,14 @@
 import { Stack } from 'expo-router';
 
 export default function DriverLayout(): React.JSX.Element {
-  // headerShown: false everywhere — the onboarding wizard and publish screen
-  // each build their own on-brand header (back arrow + step progress),
-  // consistent with the rest of the app (otp.tsx, trust.tsx, etc.) rather
-  // than the plain native stack header.
+  // headerShown: false — the onboarding wizard builds its own on-brand
+  // header, consistent with the rest of the app (otp.tsx, trust.tsx, etc.)
+  // rather than the plain native stack header. The ride-creation wizard
+  // itself now lives at (tabs)/publish.tsx, not in this stack, so the
+  // bottom tab bar stays visible through it like every other tab.
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="onboarding" />
-      <Stack.Screen name="publish" />
     </Stack>
   );
 }
