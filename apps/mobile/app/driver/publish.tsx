@@ -40,7 +40,7 @@ import {
 import { router } from 'expo-router';
 import { useAppDispatch, useAppSelector } from '../../src/state/store';
 import { resetSearch } from '../../src/state/searchSlice';
-import { setPendingRide } from '../../src/state/driverOnboardingSlice';
+import { setPendingRide, setPendingRideDraft } from '../../src/state/driverOnboardingSlice';
 import {
   useGetMyDriverProfileQuery,
   useCreateRideMutation,
@@ -165,9 +165,22 @@ export default function PublishRideScreen(): React.JSX.Element {
   const stepMotionStyle = { opacity: stepFade, transform: [{ translateY: stepRise }] };
 
   const vehicle = driverProfile?.vehicles[0];
+  // No driver profile at all is now a fully supported path through this
+  // wizard, not a dead end — the publish tab opens this screen regardless
+  // (see (tabs)/publish.tsx). A vehicle is only ever required by the
+  // backend to actually create a ride (rides.vehicle_id is NOT NULL), so a
+  // driver without one skips straight from the form to a review screen
+  // with honest "available after verification" placeholders instead of
+  // real price/stop data, and the verification gate fires the moment they
+  // try to publish.
   const canContinue =
-    Boolean(origin && destination && vehicle) && departureAt.getTime() > Date.now() && !isCreating;
+    Boolean(origin && destination) && departureAt.getTime() > Date.now() && !isCreating;
   const isPublishing = isSavingStops || isPublishingRide;
+  // Only true once a real server-side ride exists (requires `vehicle`) —
+  // false for a not-yet-onboarded driver, who reaches `review` directly
+  // from `form`.
+  const hasRideData = Boolean(rideId);
+  const totalWizardSteps = vehicle ? 4 : 2;
 
   const routeCoordinates = useMemo(
     () => (ridePolyline ? decodePolyline(ridePolyline) : []),
@@ -351,9 +364,17 @@ export default function PublishRideScreen(): React.JSX.Element {
   // saves the stop selection either way, then either publishes immediately
   // (verified driver) or hands off to the verification-requirement prompt
   // (stitch/verification/publish-verification-requirement-prompt.html) —
-  // the ride stays a saved draft either way.
+  // the ride stays a saved draft either way. A driver with no vehicle yet
+  // never had a server-side ride to save in the first place — this is the
+  // first and only point that case needs verification at all.
   async function finalizePublish(): Promise<void> {
     setErrorMessage(undefined);
+
+    if (!hasRideData) {
+      setIsVerificationPromptVisible(true);
+      return;
+    }
+
     const saved = await saveStopSelection();
     if (!saved) return;
 
@@ -365,9 +386,32 @@ export default function PublishRideScreen(): React.JSX.Element {
   }
 
   function startVerification(): void {
-    if (!rideId || !origin || !destination) return;
+    if (!origin || !destination) return;
     setIsVerificationPromptVisible(false);
-    dispatch(setPendingRide({ rideId, originLabel: origin.label, destinationLabel: destination.label }));
+    if (rideId) {
+      // A real ride already exists (draft) — only reachable today for a
+      // profile whose verificationStatus isn't 'approved', which this
+      // codebase's backend never actually produces (see verificationGate.ts).
+      dispatch(
+        setPendingRide({ rideId, originLabel: origin.label, destinationLabel: destination.label }),
+      );
+    } else {
+      // No vehicle yet — nothing was ever created server-side. Carry the
+      // form's raw values through onboarding; selfie.tsx creates (and
+      // publishes) the real ride once a real vehicle exists.
+      dispatch(
+        setPendingRideDraft({
+          originLabel: origin.label,
+          originLat: origin.lat,
+          originLng: origin.lng,
+          destinationLabel: destination.label,
+          destinationLat: destination.lat,
+          destinationLng: destination.lng,
+          departureAt: departureAt.toISOString(),
+          seatsTotal: seats,
+        }),
+      );
+    }
     router.push('/driver/onboarding/vehicle');
   }
 
@@ -383,7 +427,7 @@ export default function PublishRideScreen(): React.JSX.Element {
       <ScreenHeader
         title={stepTitles[step]}
         onBack={() => {
-          if (step === 'review') setStep('stops');
+          if (step === 'review') setStep(vehicle ? 'stops' : 'form');
           else if (step === 'stops') setStep('price');
           else if (step === 'price') setStep('form');
           else router.back();
@@ -583,7 +627,11 @@ export default function PublishRideScreen(): React.JSX.Element {
     return (
       <View style={styles.container}>
         {header}
-        <StepProgress currentStep={4} totalSteps={4} style={styles.stepProgress} />
+        <StepProgress
+          currentStep={totalWizardSteps}
+          totalSteps={totalWizardSteps}
+          style={styles.stepProgress}
+        />
 
         <ScrollView contentContainerStyle={styles.reviewContent}>
           <Animated.View style={[styles.reviewStack, stepMotionStyle]}>
@@ -672,20 +720,31 @@ export default function PublishRideScreen(): React.JSX.Element {
                   <Text variant="label" color={colors.gray600} style={styles.reviewCardEyebrow}>
                     PRIX PAR PLACE
                   </Text>
-                  <TouchableOpacity
-                    onPress={() => setStep('price')}
-                    accessibilityRole="button"
-                    accessibilityLabel="Modifier le prix"
-                  >
-                    <Icon name="pencil-outline" size="xs" color={colors.gray700} />
-                  </TouchableOpacity>
+                  {hasRideData ? (
+                    <TouchableOpacity
+                      onPress={() => setStep('price')}
+                      accessibilityRole="button"
+                      accessibilityLabel="Modifier le prix"
+                    >
+                      <Icon name="pencil-outline" size="xs" color={colors.gray700} />
+                    </TouchableOpacity>
+                  ) : null}
                 </View>
-                <View style={styles.reviewStatRow}>
-                  <Text variant="h2">{price.toFixed(2)}</Text>
-                  <Text variant="body" color={colors.gray600} style={styles.reviewUnit}>
-                    TND
-                  </Text>
-                </View>
+                {hasRideData ? (
+                  <View style={styles.reviewStatRow}>
+                    <Text variant="h2">{price.toFixed(2)}</Text>
+                    <Text variant="body" color={colors.gray600} style={styles.reviewUnit}>
+                      TND
+                    </Text>
+                  </View>
+                ) : (
+                  <View style={styles.lockedRow}>
+                    <Icon name="lock-closed-outline" size="xs" color={colors.gray500} />
+                    <Text variant="bodySmall" color={colors.gray600}>
+                      Après vérification
+                    </Text>
+                  </View>
+                )}
               </View>
 
               <View style={[styles.reviewCard, styles.reviewHalfCard]}>
@@ -731,7 +790,22 @@ export default function PublishRideScreen(): React.JSX.Element {
                   </View>
                 </View>
               </View>
-            ) : null}
+            ) : (
+              <View style={styles.reviewCard}>
+                <Text variant="label" color={colors.gray600} style={styles.reviewCardEyebrow}>
+                  VÉHICULE
+                </Text>
+                <View style={styles.vehicleSummaryRow}>
+                  <View style={styles.vehicleSummaryIcon}>
+                    <Icon name="lock-closed-outline" size="sm" color={colors.gray500} />
+                  </View>
+                  <Text variant="bodySmall" color={colors.gray600} style={styles.vehiclePendingText}>
+                    Vous ajouterez votre véhicule lors de la vérification de votre profil
+                    conducteur.
+                  </Text>
+                </View>
+              </View>
+            )}
           </Animated.View>
         </ScrollView>
 
@@ -799,7 +873,7 @@ export default function PublishRideScreen(): React.JSX.Element {
   return (
     <View style={styles.container}>
       {header}
-      <StepProgress currentStep={1} totalSteps={3} style={styles.stepProgress} />
+      <StepProgress currentStep={1} totalSteps={totalWizardSteps} style={styles.stepProgress} />
       <ScrollView contentContainerStyle={styles.content}>
         <Animated.View style={[styles.formStack, stepMotionStyle]}>
           <Text variant="caption" color={colors.secondaryDark} style={styles.eyebrow}>
@@ -901,11 +975,6 @@ export default function PublishRideScreen(): React.JSX.Element {
             </View>
           </View>
 
-          {!vehicle ? (
-            <Text variant="bodySmall" color={colors.error} style={styles.formError}>
-              Aucun véhicule enregistré — complétez votre profil conducteur.
-            </Text>
-          ) : null}
           {errorMessage ? (
             <Text variant="bodySmall" color={colors.error} style={styles.formError}>
               {errorMessage}
@@ -917,7 +986,7 @@ export default function PublishRideScreen(): React.JSX.Element {
             size="lg"
             loading={isCreating}
             disabled={!canContinue}
-            onPress={() => void continueToPrice()}
+            onPress={() => (vehicle ? void continueToPrice() : setStep('review'))}
             style={styles.cta}
           />
         </Animated.View>
@@ -1138,6 +1207,14 @@ const styles = StyleSheet.create({
   },
   reviewUnit: {
     paddingBottom: 2,
+  },
+  lockedRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  vehiclePendingText: {
+    flex: 1,
   },
   seatIcons: {
     flexDirection: 'row',

@@ -17,8 +17,14 @@ import {
 import { router } from 'expo-router';
 import { useAppDispatch, useAppSelector } from '../../../src/state/store';
 import { setSelfieUri, resetDriverOnboarding } from '../../../src/state/driverOnboardingSlice';
-import { useUploadFileMutation, useCreateDriverOnboardingMutation } from '../../../src/state/api';
+import {
+  useUploadFileMutation,
+  useCreateDriverOnboardingMutation,
+  useCreateRideMutation,
+  usePublishRideMutation,
+} from '../../../src/state/api';
 import { CaptureCamera } from '../../../src/features/driver-onboarding/CaptureCamera';
+import { trackEvent } from '../../../src/services/analytics/analytics';
 
 function fileFromUri(uri: string, name: string): FormData {
   const formData = new FormData();
@@ -51,6 +57,8 @@ export default function SelfieCaptureScreen(): React.JSX.Element {
 
   const [uploadFile] = useUploadFileMutation();
   const [createOnboarding, { isLoading: isSubmitting }] = useCreateDriverOnboardingMutation();
+  const [createRide] = useCreateRideMutation();
+  const [publishRide] = usePublishRideMutation();
 
   const fade = useRef(new Animated.Value(0)).current;
   const scale = useRef(new Animated.Value(0.9)).current;
@@ -102,19 +110,21 @@ export default function SelfieCaptureScreen(): React.JSX.Element {
 
   async function submit(): Promise<void> {
     setErrorMessage(undefined);
-    // Captured before the reset below clears it — carried in from the
+    // Captured before the reset below clears them — carried in from the
     // publish flow's review screen (driver/publish.tsx's startVerification)
-    // when this wizard was entered mid-publish with a draft ride already
-    // saved (stitch/verification/verification-confirmation-pending-state.html
-    // promises that ride auto-publishes once verification completes).
-    const pendingRide = draft.pendingRide;
+    // when this wizard was entered mid-publish (stitch/verification's
+    // requirement-prompt + confirmation-pending screens promise the ride
+    // publishes automatically once verification completes). Exactly one of
+    // the two is ever set: `pendingRide` when a real draft ride already
+    // existed (had a vehicle), `pendingRideDraft` when it didn't yet.
+    const { pendingRide, pendingRideDraft } = draft;
     try {
       const [licenseUpload, insuranceUpload, selfieUpload] = await Promise.all([
         uploadFile(fileFromUri(licenseUri!, 'license')).unwrap(),
         uploadFile(fileFromUri(insuranceUri!, 'insurance')).unwrap(),
         uploadFile(fileFromUri(selfieUri!, 'selfie')).unwrap(),
       ]);
-      await createOnboarding({
+      const onboardingProfile = await createOnboarding({
         vehicle: vehicle!,
         documents: [
           { type: 'license', fileUrl: licenseUpload.url },
@@ -123,18 +133,56 @@ export default function SelfieCaptureScreen(): React.JSX.Element {
         ],
       }).unwrap();
       dispatch(resetDriverOnboarding());
-      if (pendingRide) {
-        router.replace({
-          pathname: '/driver/onboarding/confirmation',
-          params: {
-            rideId: pendingRide.rideId,
-            originLabel: pendingRide.originLabel,
-            destinationLabel: pendingRide.destinationLabel,
-          },
-        });
-      } else {
+
+      if (!pendingRide && !pendingRideDraft) {
         router.replace('/driver/publish');
+        return;
       }
+
+      const originLabel = pendingRide?.originLabel ?? pendingRideDraft?.originLabel ?? '';
+      const destinationLabel =
+        pendingRide?.destinationLabel ?? pendingRideDraft?.destinationLabel ?? '';
+      let publishedOk = false;
+      try {
+        if (pendingRide) {
+          await publishRide(pendingRide.rideId).unwrap();
+          publishedOk = true;
+        } else if (pendingRideDraft) {
+          const newVehicle = onboardingProfile.vehicles[0];
+          if (newVehicle) {
+            const created = await createRide({
+              vehicleId: newVehicle.id,
+              origin: {
+                label: pendingRideDraft.originLabel,
+                lat: pendingRideDraft.originLat,
+                lng: pendingRideDraft.originLng,
+              },
+              destination: {
+                label: pendingRideDraft.destinationLabel,
+                lat: pendingRideDraft.destinationLat,
+                lng: pendingRideDraft.destinationLng,
+              },
+              departureAt: new Date(pendingRideDraft.departureAt),
+              seatsTotal: pendingRideDraft.seatsTotal,
+            }).unwrap();
+            await publishRide(created.id).unwrap();
+            publishedOk = true;
+          }
+        }
+      } catch {
+        trackEvent('ride_auto_publish_after_verification_failed', {
+          rideId: pendingRide?.rideId,
+        });
+      }
+
+      router.replace({
+        pathname: '/driver/onboarding/confirmation',
+        params: {
+          originLabel,
+          destinationLabel,
+          status: publishedOk ? 'done' : 'error',
+        },
+      });
     } catch {
       setErrorMessage("Impossible d'activer votre profil conducteur. Réessayez.");
     }
