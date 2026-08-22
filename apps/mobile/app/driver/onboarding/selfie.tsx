@@ -103,7 +103,13 @@ export default function SelfieCaptureScreen(): React.JSX.Element {
         facing="front"
         guideShape="face"
         title="Vérification d'identité"
-        instruction="Centrez votre visage dans le cercle, dans un endroit bien éclairé."
+        eyebrow="Vérification d’identité"
+        instruction="Prenez un selfie pour confirmer que c'est bien vous."
+        tips={[
+          { icon: 'eye-outline', label: 'Regardez l’objectif' },
+          { icon: 'glasses-outline', label: 'Évitez les lunettes de soleil' },
+          { icon: 'sunny-outline', label: 'Bonne luminosité' },
+        ]}
         currentStep={4}
         totalSteps={4}
         onBack={() => router.back()}
