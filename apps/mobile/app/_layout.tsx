@@ -142,33 +142,35 @@ export default function RootLayout(): React.JSX.Element {
          *  migrated to useAppTheme(). */}
         <ReduxProvider store={store}>
           <ThemedApp>
-            <NotificationBridge />
-            <RatingPromptBridge />
-            <RecurringPatternPromptBridge />
-            <ThemedStatusBar />
-            <AuthHydrator>
-              <Stack screenOptions={{ headerShown: false }}>
-                <Stack.Screen name="index" />
-                <Stack.Screen name="(auth)" />
-                {/* gestureEnabled: false — (tabs) sits after index/(auth) in
-                 *  this stack, so it has a real screen underneath to pop
-                 *  back to, and native-stack's default edge swipe-back
-                 *  gesture (drag rightward from the left edge) was live on
-                 *  it. That's not a hypothetical: it's exactly what fired
-                 *  when dragging right inside DateCalendarSheet's month
-                 *  grid — a gesture entirely outside our own
-                 *  GestureDetector/reanimated code, popping the whole main
-                 *  app UI back to auth. Nothing legitimate should ever
-                 *  swipe-navigate away from the main app's tabs. */}
-                <Stack.Screen name="(tabs)" options={{ gestureEnabled: false }} />
-                <Stack.Screen name="search" />
-                <Stack.Screen name="bookings" />
-                <Stack.Screen name="driver" />
-                <Stack.Screen name="notifications" />
-                <Stack.Screen name="conversations" />
-                <Stack.Screen name="recurring" />
-              </Stack>
-            </AuthHydrator>
+            <ToastProvider>
+              <NotificationBridge />
+              <RatingPromptBridge />
+              <RecurringPatternPromptBridge />
+              <ThemedStatusBar />
+              <AuthHydrator>
+                <Stack screenOptions={{ headerShown: false }}>
+                  <Stack.Screen name="index" />
+                  <Stack.Screen name="(auth)" />
+                  {/* gestureEnabled: false — (tabs) sits after index/(auth) in
+                   *  this stack, so it has a real screen underneath to pop
+                   *  back to, and native-stack's default edge swipe-back
+                   *  gesture (drag rightward from the left edge) was live on
+                   *  it. That's not a hypothetical: it's exactly what fired
+                   *  when dragging right inside DateCalendarSheet's month
+                   *  grid — a gesture entirely outside our own
+                   *  GestureDetector/reanimated code, popping the whole main
+                   *  app UI back to auth. Nothing legitimate should ever
+                   *  swipe-navigate away from the main app's tabs. */}
+                  <Stack.Screen name="(tabs)" options={{ gestureEnabled: false }} />
+                  <Stack.Screen name="search" />
+                  <Stack.Screen name="bookings" />
+                  <Stack.Screen name="driver" />
+                  <Stack.Screen name="notifications" />
+                  <Stack.Screen name="conversations" />
+                  <Stack.Screen name="recurring" />
+                </Stack>
+              </AuthHydrator>
+            </ToastProvider>
           </ThemedApp>
         </ReduxProvider>
       </ErrorBoundary>
