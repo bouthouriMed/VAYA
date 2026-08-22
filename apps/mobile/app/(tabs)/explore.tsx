@@ -286,7 +286,7 @@ export default function HomeSearchScreen(): React.JSX.Element {
 
           <View style={styles.paramsGrid}>
             <TouchableOpacity
-              style={[styles.paramBtn, { backgroundColor: theme.surfaceMuted, borderColor: theme.outlineVariant }]}
+              style={[styles.paramBtn, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}
               onPress={() => setIsDateSheetOpen(true)}
               activeOpacity={0.7}
             >
@@ -302,7 +302,7 @@ export default function HomeSearchScreen(): React.JSX.Element {
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.paramBtn, { backgroundColor: theme.surfaceMuted, borderColor: theme.outlineVariant }]}
+              style={[styles.paramBtn, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}
               onPress={() => setIsTimeSheetOpen(true)}
               activeOpacity={0.7}
             >
@@ -321,9 +321,9 @@ export default function HomeSearchScreen(): React.JSX.Element {
           {/* Inline stepper, not a tap-to-open modal — the count is a
            *  single number with two obvious bounds (min 1), so a sheet
            *  round-trip is overhead the interaction doesn't need. */}
-          <View style={[styles.passengerCard, { backgroundColor: theme.surfaceMuted, borderColor: theme.outlineVariant }]}>
+          <View style={[styles.passengerCard, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
             <View style={styles.passengerLeft}>
-              <View style={[styles.locationIconWrap, styles.filterIconWrap, { backgroundColor: theme.surface }]}>
+              <View style={[styles.locationIconWrap, styles.filterIconWrap, { backgroundColor: theme.surfaceMuted }]}>
                 <Icon name="person-outline" size="sm" color={theme.inkFaint} />
               </View>
               <View>
@@ -336,9 +336,9 @@ export default function HomeSearchScreen(): React.JSX.Element {
               </View>
             </View>
 
-            <View style={[styles.stepper, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
+            <View style={[styles.stepper, { backgroundColor: theme.surfaceMuted, borderColor: theme.outlineVariant }]}>
               <TouchableOpacity
-                style={[styles.stepperBtn, { backgroundColor: theme.surfaceMuted }]}
+                style={[styles.stepperBtn, { backgroundColor: theme.surface }]}
                 onPress={() => dispatch(setPassengers(passengers - 1))}
                 disabled={passengers <= 1}
                 accessibilityRole="button"
@@ -350,7 +350,7 @@ export default function HomeSearchScreen(): React.JSX.Element {
                 {passengers}
               </Text>
               <TouchableOpacity
-                style={[styles.stepperBtn, { backgroundColor: theme.surfaceMuted }]}
+                style={[styles.stepperBtn, { backgroundColor: theme.surface }]}
                 onPress={() => dispatch(setPassengers(passengers + 1))}
                 disabled={passengers >= 8}
                 accessibilityRole="button"

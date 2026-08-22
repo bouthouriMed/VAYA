@@ -1120,7 +1120,7 @@ export default function PublishTabScreen(): React.JSX.Element {
               </View>
               <View style={styles.paramsGrid}>
                 <TouchableOpacity
-                  style={[styles.paramBtn, { backgroundColor: theme.surfaceMuted, borderColor: theme.outlineVariant }]}
+                  style={[styles.paramBtn, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}
                   onPress={() => setIsDateSheetOpen(true)}
                   activeOpacity={0.7}
                   accessibilityRole="button"
@@ -1137,7 +1137,7 @@ export default function PublishTabScreen(): React.JSX.Element {
                   </View>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={[styles.paramBtn, { backgroundColor: theme.surfaceMuted, borderColor: theme.outlineVariant }]}
+                  style={[styles.paramBtn, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}
                   onPress={() => setIsTimeSheetOpen(true)}
                   activeOpacity={0.7}
                   accessibilityRole="button"
@@ -1162,7 +1162,7 @@ export default function PublishTabScreen(): React.JSX.Element {
               </Text>
               <View style={styles.stepperRow}>
                 <TouchableOpacity
-                  style={[styles.stepperBtn, { backgroundColor: theme.surfaceMuted }]}
+                  style={[styles.stepperBtn, { backgroundColor: theme.surface }]}
                   onPress={() => setSeats((s) => Math.max(1, s - 1))}
                   accessibilityRole="button"
                   accessibilityLabel="Retirer une place"
@@ -1175,7 +1175,7 @@ export default function PublishTabScreen(): React.JSX.Element {
                   {seats}
                 </Text>
                 <TouchableOpacity
-                  style={[styles.stepperBtn, { backgroundColor: theme.surfaceMuted }]}
+                  style={[styles.stepperBtn, { backgroundColor: theme.surface }]}
                   onPress={() => setSeats((s) => Math.min(8, s + 1))}
                   accessibilityRole="button"
                   accessibilityLabel="Ajouter une place"
