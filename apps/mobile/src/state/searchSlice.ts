@@ -20,6 +20,18 @@ export interface SelectedPickupStop {
   lng: number;
 }
 
+/** Dropoff-side mirror of `SelectedPickupStop` (Phase 13, docs/roadmap/
+ *  phase-13-search-engine.md) — set by search/dropoff-point.tsx, only ever
+ *  reachable for a matched ride with `rankedDropoffStops`. Staying null
+ *  means "ride to the ride's own destination", the behavior every booking
+ *  had before this existed. */
+export interface SelectedDropoffStop {
+  stopId: string;
+  label: string;
+  lat: number;
+  lng: number;
+}
+
 interface SearchState {
   origin: SearchLocation | null;
   destination: SearchLocation | null;
@@ -41,6 +53,9 @@ interface SearchState {
    *  (useOpenDriver) so a stale stop from a previous ride can never leak
    *  into a different ride's booking. */
   selectedStop: SelectedPickupStop | null;
+  /** Dropoff-side mirror of `selectedStop`. Cleared alongside it whenever a
+   *  new ride is selected. */
+  selectedDropoffStop: SelectedDropoffStop | null;
   /** UI-only passenger count shown on the search composer — `matching.search`
    *  doesn't filter by seat count today, so this is never sent to the API.
    *  Kept here (rather than local component state) only so it survives
@@ -54,6 +69,7 @@ const initialState: SearchState = {
   searchAt: null,
   desiredDepartureAt: null,
   selectedStop: null,
+  selectedDropoffStop: null,
   passengers: 1,
 };
 
@@ -84,6 +100,19 @@ const searchSlice = createSlice({
     clearPickupStop(state) {
       state.selectedStop = null;
     },
+    selectDropoffStop(state, action: PayloadAction<SelectedDropoffStop>) {
+      state.selectedDropoffStop = action.payload;
+    },
+    clearDropoffStop(state) {
+      state.selectedDropoffStop = null;
+    },
+    /** Clears both pickup and dropoff selection — used whenever a fresh
+     *  ride is selected (useOpenDriver) so neither can leak from a
+     *  previously-viewed ride into a different one's booking. */
+    clearSelectedStops(state) {
+      state.selectedStop = null;
+      state.selectedDropoffStop = null;
+    },
     setPassengers(state, action: PayloadAction<number>) {
       state.passengers = Math.min(8, Math.max(1, action.payload));
     },
@@ -101,6 +130,9 @@ export const {
   startSearch,
   selectPickupStop,
   clearPickupStop,
+  selectDropoffStop,
+  clearDropoffStop,
+  clearSelectedStops,
   setPassengers,
   resetSearch,
 } = searchSlice.actions;

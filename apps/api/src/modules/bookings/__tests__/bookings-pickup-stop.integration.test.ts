@@ -27,6 +27,7 @@ describe('bookings.service — pickup-stop enforcement', () => {
   let otherRideId: string;
   let legacyRideId: string;
   let stopId: string;
+  let secondStopId: string;
   let otherRideStopId: string;
 
   beforeAll(async () => {
@@ -96,6 +97,23 @@ describe('bookings.service — pickup-stop enforcement', () => {
       })
       .returning();
     stopId = stop!.id;
+
+    // A second, further-along stop on the same ride — Phase 13's
+    // dropoff-stop tests need a stop that legitimately comes *after*
+    // `stopId` on the route.
+    const [secondStop] = await db
+      .insert(routeStops)
+      .values({
+        rideId: rideWithStopsId,
+        sequence: 1,
+        label: 'Second Test Stop',
+        lat: 36.83,
+        lng: 10.195,
+        roadSnapped: true,
+        isDriverSelected: true,
+      })
+      .returning();
+    secondStopId = secondStop!.id;
 
     // A second, unrelated ride with its own stop — proves cross-ride
     // stopId references are rejected.
@@ -211,5 +229,61 @@ describe('bookings.service — pickup-stop enforcement', () => {
         pickupStopId: stopId,
       }),
     ).rejects.toBeInstanceOf(ValidationError);
+  });
+
+  // Phase 13 (docs/roadmap/phase-13-search-engine.md): dropoff-stop
+  // enforcement mirrors pickupStopId's, plus the "must come after pickup"
+  // sequence check that pickup alone has no equivalent for.
+  describe('dropoffStopId', () => {
+    it('accepts a valid dropoffStopId after the pickup stop and copies label/lat/lng', async () => {
+      const booking = await createBooking(db, rideWithStopsId, riderId, {
+        seatsRequested: 1,
+        pickupStopId: stopId,
+        dropoffStopId: secondStopId,
+      });
+      expect(booking.dropoffStopId).toBe(secondStopId);
+      expect(booking.dropoffLabel).toBe('Second Test Stop');
+      expect(booking.dropoffLat).toBe(36.83);
+      expect(booking.dropoffLng).toBe(10.195);
+    });
+
+    it('defaults dropoff fields to null when dropoffStopId is omitted (rides at the ride\'s own destination)', async () => {
+      const booking = await createBooking(db, rideWithStopsId, riderId, {
+        seatsRequested: 1,
+        pickupStopId: stopId,
+      });
+      expect(booking.dropoffStopId).toBeNull();
+      expect(booking.dropoffLabel).toBeNull();
+    });
+
+    it('rejects a dropoffStopId at or before the pickup stop on the route', async () => {
+      await expect(
+        createBooking(db, rideWithStopsId, riderId, {
+          seatsRequested: 1,
+          pickupStopId: stopId,
+          dropoffStopId: stopId,
+        }),
+      ).rejects.toBeInstanceOf(ValidationError);
+    });
+
+    it('rejects a dropoffStopId belonging to a different ride', async () => {
+      await expect(
+        createBooking(db, rideWithStopsId, riderId, {
+          seatsRequested: 1,
+          pickupStopId: stopId,
+          dropoffStopId: otherRideStopId,
+        }),
+      ).rejects.toBeInstanceOf(ValidationError);
+    });
+
+    it('rejects a dropoffStopId for a ride with zero route_stops', async () => {
+      await expect(
+        createBooking(db, legacyRideId, riderId, {
+          seatsRequested: 1,
+          pickup: { label: 'Legacy free-form pin', lat: 36.71, lng: 10.11 },
+          dropoffStopId: stopId,
+        }),
+      ).rejects.toBeInstanceOf(ValidationError);
+    });
   });
 });

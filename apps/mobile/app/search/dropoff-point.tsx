@@ -19,21 +19,23 @@ import {
 } from '@vaya/design-system';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useAppDispatch, useAppSelector } from '../../src/state/store';
-import { selectPickupStop } from '../../src/state/searchSlice';
+import { selectDropoffStop } from '../../src/state/searchSlice';
 import { useMatchingSearchQuery, type MatchCandidate, type RankedStop } from '../../src/state/api';
 import { decodePolyline } from '../../src/utils/polyline';
 import { trackEvent } from '../../src/services/analytics/analytics';
 import { defaultStopId, rankedPosition } from '../../src/features/pickup-selection/pickupSelection';
 
 /**
- * Real ride-engine stop selection (docs/domain/ride-engine.md), replacing
- * the previous fixed-degrees-per-pixel projection fake — an arbitrary demo
- * mapping with no real geocoordinates behind it at all (docs/product/
- * audit.md §4, the single worst finding of the audit). Every point
- * rendered here is a real `route_stops` row the driver actually selected —
- * no free pin placement (CLAUDE.md product principle #1).
+ * Dropoff-side mirror of search/pickup-point.tsx (Phase 13, docs/roadmap/
+ * phase-13-search-engine.md) — only ever reached for a route-passthrough
+ * match (useOpenDriver/pickup-point.tsx only route here when the candidate
+ * has `rankedDropoffStops`), since an endpoint match's dropoff is simply
+ * the ride's own destination and needs no selection step at all. Every
+ * point rendered here is a real `route_stops` row the driver actually
+ * selected — same "never a free pin" guarantee (CLAUDE.md product
+ * principle #1) pickup-point.tsx already holds, now extended to dropoff.
  */
-export default function PickupPointScreen(): React.JSX.Element {
+export default function DropoffPointScreen(): React.JSX.Element {
   const { rideId, driverUserId } = useLocalSearchParams<{ rideId: string; driverUserId: string }>();
   const insets = useSafeAreaInsets();
   const dispatch = useAppDispatch();
@@ -53,48 +55,34 @@ export default function PickupPointScreen(): React.JSX.Element {
         }
       : undefined;
 
-  // Same args as results.tsx/cluster.tsx → served from RTK Query's cache,
-  // no extra network round-trip for a ride the passenger already matched.
   const { data: searchResult, isLoading } = useMatchingSearchQuery(searchArgs ?? skipToken);
   const candidate = useMemo<MatchCandidate | undefined>(
     () => searchResult?.candidates.find((c) => c.rideId === rideId),
     [searchResult, rideId],
   );
-  const rankedStops = useMemo(() => candidate?.rankedStops ?? [], [candidate]);
+  const rankedDropoffStops = useMemo(() => candidate?.rankedDropoffStops ?? [], [candidate]);
 
   const [selectedStopId, setSelectedStopId] = useState<string | null>(null);
   const [detailStop, setDetailStop] = useState<RankedStop | null>(null);
 
-  // Closest/best stop pre-selected by default — map-first hybrid per
-  // docs/ux/principles.md #1, so the passenger doesn't have to scan a list
-  // before anything is chosen.
   useEffect(() => {
-    if (!selectedStopId && rankedStops.length > 0) {
-      setSelectedStopId(defaultStopId(rankedStops));
+    if (!selectedStopId && rankedDropoffStops.length > 0) {
+      setSelectedStopId(defaultStopId(rankedDropoffStops));
     }
-  }, [rankedStops, selectedStopId]);
-
-  useEffect(() => {
-    if (!isLoading && candidate && rankedStops.length === 0) {
-      trackEvent('pickup_no_viable_stop', { rideId });
-    }
-    // Fire once per resolved (candidate, rankedStops) pair, not on every
-    // unrelated re-render.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoading, candidate, rankedStops.length]);
+  }, [rankedDropoffStops, selectedStopId]);
 
   const region = useMemo(() => {
-    const points = rankedStops.map((s) => ({ lat: s.lat, lng: s.lng }));
-    if (origin) points.push({ lat: origin.lat, lng: origin.lng });
+    const points = rankedDropoffStops.map((s) => ({ lat: s.lat, lng: s.lng }));
+    if (destination) points.push({ lat: destination.lat, lng: destination.lng });
     return regionForPoints(points) ?? undefined;
-  }, [rankedStops, origin]);
+  }, [rankedDropoffStops, destination]);
 
   const routeCoordinates = useMemo(
     () => (candidate?.routePolyline ? decodePolyline(candidate.routePolyline) : []),
     [candidate],
   );
 
-  const selectedStop = rankedStops.find((s) => s.stopId === selectedStopId) ?? null;
+  const selectedStop = rankedDropoffStops.find((s) => s.stopId === selectedStopId) ?? null;
 
   function pickStop(stop: RankedStop): void {
     haptics.selection();
@@ -103,28 +91,21 @@ export default function PickupPointScreen(): React.JSX.Element {
 
   function confirm(): void {
     if (!selectedStop) return;
-    trackEvent('pickup_stop_selected', {
+    trackEvent('dropoff_stop_selected', {
       rideId,
       stopId: selectedStop.stopId,
-      rankedPosition: rankedPosition(rankedStops, selectedStop.stopId),
-      totalStops: rankedStops.length,
+      rankedPosition: rankedPosition(rankedDropoffStops, selectedStop.stopId),
+      totalStops: rankedDropoffStops.length,
     });
     dispatch(
-      selectPickupStop({
+      selectDropoffStop({
         stopId: selectedStop.stopId,
         label: selectedStop.label,
         lat: selectedStop.lat,
         lng: selectedStop.lng,
       }),
     );
-    // A route-passthrough match (Phase 13) also has ranked dropoff stops —
-    // an endpoint match's dropoff is just the ride's own destination, so
-    // this only ever routes onward for the former.
-    if (candidate && candidate.rankedDropoffStops.length > 0) {
-      router.push({ pathname: '/search/dropoff-point', params: { rideId, driverUserId } });
-    } else {
-      router.push({ pathname: '/search/ride-details', params: { rideId, driverUserId } });
-    }
+    router.push({ pathname: '/search/ride-details', params: { rideId, driverUserId } });
   }
 
   if (isLoading) {
@@ -135,7 +116,7 @@ export default function PickupPointScreen(): React.JSX.Element {
     );
   }
 
-  if (!candidate || rankedStops.length === 0) {
+  if (!candidate || rankedDropoffStops.length === 0) {
     return (
       <View style={[styles.container, { paddingTop: insets.top }]}>
         <TouchableOpacity
@@ -149,9 +130,9 @@ export default function PickupPointScreen(): React.JSX.Element {
         </TouchableOpacity>
         <View style={styles.emptyWrap}>
           <EmptyState
-            icon={<Ionicons name="location-outline" size={40} color={colors.gray400} />}
-            title="Aucun point de rendez-vous accessible"
-            description="Aucun arrêt de ce trajet n'est assez proche de votre position pour être rejoint à pied. Essayez un autre trajet ou ajustez votre recherche."
+            icon={<Ionicons name="flag-outline" size={40} color={colors.gray400} />}
+            title="Aucun point de dépose accessible"
+            description="Aucun arrêt de ce trajet n'est assez proche de votre destination pour être rejoint à pied. Essayez un autre trajet ou ajustez votre recherche."
             actionLabel="Retour à la recherche"
             onAction={() => router.back()}
           />
@@ -163,18 +144,18 @@ export default function PickupPointScreen(): React.JSX.Element {
   return (
     <View style={styles.container}>
       <MapCanvas region={region} style={styles.map}>
-        {origin ? (
+        {destination ? (
           <Marker
-            coordinate={{ latitude: origin.lat, longitude: origin.lng }}
+            coordinate={{ latitude: destination.lat, longitude: destination.lng }}
             anchor={{ x: 0.5, y: 0.5 }}
           >
-            <View style={styles.originDot} />
+            <View style={styles.destinationDot} />
           </Marker>
         ) : null}
         {routeCoordinates.length > 1 ? (
           <Polyline coordinates={routeCoordinates} strokeColor={colors.mapRouteLine} strokeWidth={4} />
         ) : null}
-        {rankedStops.map((stop, index) => {
+        {rankedDropoffStops.map((stop, index) => {
           const isSelected = stop.stopId === selectedStopId;
           return (
             <Marker
@@ -205,7 +186,7 @@ export default function PickupPointScreen(): React.JSX.Element {
         </TouchableOpacity>
         <View style={styles.hint}>
           <Text variant="bodySmall" color={colors.gray700}>
-            {rankedStops.length} point{rankedStops.length > 1 ? 's' : ''} sur ce trajet
+            Où souhaitez-vous descendre ?
           </Text>
         </View>
       </View>
@@ -220,19 +201,19 @@ export default function PickupPointScreen(): React.JSX.Element {
             accessibilityLabel={`Détails du point ${selectedStop.label}`}
           >
             <View style={styles.footerIcon}>
-              <Ionicons name="pin" size={16} color={colors.white} />
+              <Ionicons name="flag" size={16} color={colors.white} />
             </View>
             <View style={styles.footerTextCol}>
               <Text style={styles.footerLabel}>{selectedStop.label}</Text>
               <Text variant="bodySmall" color={colors.gray500} numberOfLines={1}>
-                {Math.round(selectedStop.walkMinutes)} min à pied
+                {Math.round(selectedStop.walkMinutes)} min à pied de votre destination
               </Text>
             </View>
             <Ionicons name="information-circle-outline" size={22} color={colors.gray400} />
           </TouchableOpacity>
         ) : null}
         <Button
-          label="Confirmer ce point de rendez-vous"
+          label="Confirmer ce point de dépose"
           size="lg"
           onPress={confirm}
           disabled={!selectedStop}
@@ -248,17 +229,13 @@ export default function PickupPointScreen(): React.JSX.Element {
         {detailStop ? (
           <View style={styles.sheetContent}>
             <Text variant="body" color={colors.gray700}>
-              {Math.round(detailStop.walkMinutes)} min à pied depuis votre position de départ.
+              {Math.round(detailStop.walkMinutes)} min à pied jusqu&apos;à votre destination.
             </Text>
             <Text variant="bodySmall" color={colors.gray500}>
               Ce point a été validé par le conducteur comme arrêt sur son trajet.
             </Text>
             <Button
-              label={
-                detailStop.stopId === selectedStopId
-                  ? 'Point sélectionné'
-                  : 'Choisir ce point'
-              }
+              label={detailStop.stopId === selectedStopId ? 'Point sélectionné' : 'Choisir ce point'}
               variant={detailStop.stopId === selectedStopId ? 'outline' : 'primary'}
               size="lg"
               disabled={detailStop.stopId === selectedStopId}
@@ -293,11 +270,11 @@ const styles = StyleSheet.create({
   map: {
     flex: 1,
   },
-  originDot: {
+  destinationDot: {
     width: 16,
     height: 16,
     borderRadius: 8,
-    backgroundColor: colors.secondary,
+    backgroundColor: colors.primary,
     borderWidth: 2,
     borderColor: colors.white,
   },

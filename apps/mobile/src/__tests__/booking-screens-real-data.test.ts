@@ -43,6 +43,9 @@ describe('booking flow screens render real data, not mocks', () => {
   it('ride-details.tsx forwards the real booking pickup label and ride destination when creating a booking', () => {
     const source = readFileSync(path.join(appDir, 'search/ride-details.tsx'), 'utf-8');
     expect(source).toContain('pickupLabel: booking.pickupLabel');
-    expect(source).toContain('destinationLabel: ride!.destinationLabel');
+    // Phase 13 (docs/roadmap/phase-13-search-engine.md): falls back to the
+    // ride's own destination, but prefers the real booked dropoff-stop
+    // label when one was selected — never a hardcoded destination alone.
+    expect(source).toContain('destinationLabel: booking.dropoffLabel ?? ride!.destinationLabel');
   });
 });

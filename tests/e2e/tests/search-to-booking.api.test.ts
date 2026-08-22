@@ -181,13 +181,18 @@ test.describe('Search → match → stop-select → book (real ride engine)', ()
       },
     });
     expect(res.ok()).toBeTruthy();
-    const candidates = (await res.json()) as {
-      rideId: string;
-      rankedStops: { stopId: string; label: string; walkMinutes: number }[];
-      pickupViable: boolean;
-    }[];
+    // Phase 13 (docs/roadmap/phase-13-search-engine.md): the response is
+    // now a tiered-cascade envelope, not a bare candidate array.
+    const body = (await res.json()) as {
+      tier: string;
+      candidates: {
+        rideId: string;
+        rankedStops: { stopId: string; label: string; walkMinutes: number }[];
+        pickupViable: boolean;
+      }[];
+    };
 
-    const match = candidates.find((c) => c.rideId === rideWithStopsId);
+    const match = body.candidates.find((c) => c.rideId === rideWithStopsId);
     expect(match).toBeDefined();
     expect(match!.pickupViable).toBe(true);
     expect(match!.rankedStops.length).toBeGreaterThan(0);

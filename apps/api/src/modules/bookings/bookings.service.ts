@@ -126,6 +126,38 @@ export async function createBooking(
     pickupLng = input.pickup.lng;
   }
 
+  // Dropoff-stop selection (Phase 13, docs/roadmap/phase-13-search-engine.md):
+  // mirrors pickupStopId's validation, but always optional — a booking with
+  // no dropoffStopId simply drops the rider at the ride's own destination,
+  // exactly as every booking behaved before this field existed. Only
+  // reachable when the ride actually has selected stops (a stop-less ride
+  // has nothing to pick from), and must sit after the chosen pickup stop
+  // on the route — a dropoff "before" your own pickup isn't a real trip.
+  let dropoffStopId: string | null = null;
+  let dropoffLabel: string | null = null;
+  let dropoffLat: number | null = null;
+  let dropoffLng: number | null = null;
+
+  if (input.dropoffStopId) {
+    if (selectedStops.length === 0) {
+      throw new ValidationError('This ride has no selectable dropoff stops');
+    }
+    const dropStop = selectedStops.find((s) => s.id === input.dropoffStopId);
+    if (!dropStop) {
+      throw new ValidationError('Selected dropoff stop is not offered on this ride');
+    }
+    // selectedStops.length > 0 forces the pickupStopId branch above, so
+    // pickupStopId is always set here — the find below always succeeds.
+    const pickupStop = selectedStops.find((s) => s.id === pickupStopId)!;
+    if (dropStop.sequence <= pickupStop.sequence) {
+      throw new ValidationError('Dropoff stop must come after the pickup stop on this route');
+    }
+    dropoffStopId = dropStop.id;
+    dropoffLabel = dropStop.label;
+    dropoffLat = dropStop.lat;
+    dropoffLng = dropStop.lng;
+  }
+
   const [booking] = await db
     .insert(bookings)
     .values({
@@ -138,6 +170,10 @@ export async function createBooking(
       pickupLabel,
       pickupLat,
       pickupLng,
+      dropoffStopId,
+      dropoffLabel,
+      dropoffLat,
+      dropoffLng,
     })
     .returning();
   if (!booking) throw new Error('Failed to create booking');

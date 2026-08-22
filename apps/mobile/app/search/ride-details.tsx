@@ -28,7 +28,7 @@ import {
   useRegisterPushTokenMutation,
 } from '../../src/state/api';
 import { useAppDispatch, useAppSelector } from '../../src/state/store';
-import { clearPickupStop } from '../../src/state/searchSlice';
+import { clearSelectedStops } from '../../src/state/searchSlice';
 import { requestPushPermissionAndRegister } from '../../src/services/notifications/registerForPushNotifications';
 import { decodePolyline, polylineDistanceKm } from '../../src/utils/polyline';
 import { useContextualAuth } from '../../src/features/auth/useContextualAuth';
@@ -72,6 +72,7 @@ export default function RideDetailsScreen(): React.JSX.Element {
   const destination = useAppSelector((s) => s.search.destination);
   const searchAt = useAppSelector((s) => s.search.searchAt);
   const selectedStop = useAppSelector((s) => s.search.selectedStop);
+  const selectedDropoffStop = useAppSelector((s) => s.search.selectedDropoffStop);
   const [bookingError, setBookingError] = useState<string | undefined>();
   const [routeModalOpen, setRouteModalOpen] = useState(false);
 
@@ -96,8 +97,11 @@ export default function RideDetailsScreen(): React.JSX.Element {
           when: searchAt ?? new Date().toISOString(),
         }
       : undefined;
-  const { data: candidates } = useMatchingSearchQuery(searchArgs ?? skipToken);
-  const candidate = useMemo(() => candidates?.find((c) => c.rideId === rideId), [candidates, rideId]);
+  const { data: searchResult } = useMatchingSearchQuery(searchArgs ?? skipToken);
+  const candidate = useMemo(
+    () => searchResult?.candidates.find((c) => c.rideId === rideId),
+    [searchResult, rideId],
+  );
 
   const routeCoordinates = useMemo(
     () => (ride?.routePolyline ? decodePolyline(ride.routePolyline) : []),
@@ -123,15 +127,34 @@ export default function RideDetailsScreen(): React.JSX.Element {
   );
   const pickupLabel = pickupStop?.label ?? selectedStop?.label ?? candidate?.rankedStops[0]?.label ?? ride?.originLabel;
   const pickupWalkMinutes = candidate?.pickupWalkMinutes;
-  // Driver-selected stops that come after the passenger's pickup point on
-  // the route and aren't that same stop — real intermediate waypoints, not
-  // invented ones. No per-stop ETA exists anywhere in the data model, so
-  // (unlike the pickup row, which has a real departure time) these show no
-  // fabricated clock time.
+  // A route-passthrough match (Phase 13, docs/roadmap/phase-13-search-engine.md)
+  // may have a dropoff stop chosen on search/dropoff-point.tsx instead of
+  // riding all the way to the ride's own destination — falls back to the
+  // ride's real destination exactly as every booking behaved before dropoff
+  // stops existed.
+  const dropoffStopId = selectedDropoffStop?.stopId;
+  const dropoffLabel = selectedDropoffStop?.label ?? ride?.destinationLabel;
+  const dropoffLat = selectedDropoffStop?.lat ?? ride?.destinationLat;
+  const dropoffLng = selectedDropoffStop?.lng ?? ride?.destinationLng;
+
+  // Driver-selected stops that come after the passenger's pickup point (and
+  // before their dropoff point, when one is chosen) on the route and aren't
+  // either of those same stops — real intermediate waypoints, not invented
+  // ones. No per-stop ETA exists anywhere in the data model, so (unlike the
+  // pickup row, which has a real departure time) these show no fabricated
+  // clock time.
   const pickupSequence = pickupStop?.sequence ?? -1;
+  const dropoffStop = useMemo(
+    () => stops?.find((s) => s.id === dropoffStopId),
+    [stops, dropoffStopId],
+  );
+  const dropoffSequence = dropoffStop?.sequence ?? Number.POSITIVE_INFINITY;
   const intermediateStops = useMemo(
-    () => (stops ?? []).filter((s) => s.sequence > pickupSequence && s.id !== pickupStopId),
-    [stops, pickupSequence, pickupStopId],
+    () =>
+      (stops ?? []).filter(
+        (s) => s.sequence > pickupSequence && s.sequence < dropoffSequence && s.id !== pickupStopId,
+      ),
+    [stops, pickupSequence, dropoffSequence, pickupStopId],
   );
   const bookedSeats = ride ? ride.seatsTotal - ride.seatsAvailable : 0;
 
@@ -146,11 +169,12 @@ export default function RideDetailsScreen(): React.JSX.Element {
           ...(selectedStop
             ? { pickupStopId: selectedStop.stopId }
             : { pickup: { label: origin!.label, lat: origin!.lat, lng: origin!.lng } }),
+          ...(selectedDropoffStop ? { dropoffStopId: selectedDropoffStop.stopId } : {}),
         },
       }).unwrap();
       haptics.success();
       void requestPushPermissionAndRegister((args) => registerPushToken(args).unwrap());
-      dispatch(clearPickupStop());
+      dispatch(clearSelectedStops());
       router.dismissTo({
         pathname: '/bookings/confirmed',
         params: {
@@ -164,14 +188,14 @@ export default function RideDetailsScreen(): React.JSX.Element {
           driverRatingAvg: profile!.driver ? String(profile!.driver.ratingAvg) : '',
           driverUserId,
           pickupLabel: booking.pickupLabel,
-          destinationLabel: ride!.destinationLabel,
+          destinationLabel: booking.dropoffLabel ?? ride!.destinationLabel,
           estimatedDurationMin: ride!.estimatedDurationSec
             ? String(Math.round(ride!.estimatedDurationSec / 60))
             : '',
           pickupLat: String(booking.pickupLat),
           pickupLng: String(booking.pickupLng),
-          destinationLat: String(ride!.destinationLat),
-          destinationLng: String(ride!.destinationLng),
+          destinationLat: String(booking.dropoffLat ?? ride!.destinationLat),
+          destinationLng: String(booking.dropoffLng ?? ride!.destinationLng),
         },
       });
     } catch {
@@ -267,7 +291,10 @@ export default function RideDetailsScreen(): React.JSX.Element {
                 <View style={[styles.stopDot, { backgroundColor: theme.surface, borderColor: theme.ink }]} />
               </Marker>
             ))}
-            <Marker coordinate={{ latitude: ride.destinationLat, longitude: ride.destinationLng }} anchor={{ x: 0.5, y: 0.5 }}>
+            <Marker
+              coordinate={{ latitude: dropoffLat ?? ride.destinationLat, longitude: dropoffLng ?? ride.destinationLng }}
+              anchor={{ x: 0.5, y: 0.5 }}
+            >
               <View style={[styles.destDot, { backgroundColor: theme.ink, borderColor: theme.surface }]} />
             </Marker>
           </MapCanvas>
@@ -339,7 +366,7 @@ export default function RideDetailsScreen(): React.JSX.Element {
             </View>
             <View style={styles.timelineTextCol}>
               <Text variant="body" color={theme.ink}>
-                {ride.destinationLabel}
+                {dropoffLabel ?? ride.destinationLabel}
               </Text>
             </View>
           </View>

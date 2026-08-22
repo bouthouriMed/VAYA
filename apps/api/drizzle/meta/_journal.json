@@ -92,6 +92,13 @@
       "when": 1787392451252,
       "tag": "0012_striped_killraven",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1787428372681,
+      "tag": "0013_last_forge",
+      "breakpoints": true
     }
   ]
 }

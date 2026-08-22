@@ -20,6 +20,13 @@ export const createBookingSchema = z
     seatsRequested: z.coerce.number().int().min(1).max(8),
     pickupStopId: z.string().uuid().optional(),
     pickup: pickupPointSchema.optional(),
+    // Phase 13 (docs/roadmap/phase-13-search-engine.md): dropoff-side
+    // mirror of pickupStopId, always optional — omitting it means "drop me
+    // at the ride's own destination", the behavior every booking had
+    // before this field existed. No free-form dropoff-coordinates
+    // counterpart: unlike pickup, dropoff has no legacy free-form flow to
+    // stay backward-compatible with.
+    dropoffStopId: z.string().uuid().optional(),
   })
   .refine((data) => Boolean(data.pickupStopId) || Boolean(data.pickup), {
     message: 'Provide either pickupStopId or pickup coordinates',

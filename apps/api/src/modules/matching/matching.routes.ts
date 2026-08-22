@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { matchingSearchSchema, notifyMeSchema } from '@vaya/validation';
 import { getDatabase } from '../../lib/database.js';
 import { getUserId } from '../../lib/auth-context.js';
-import { corridorFallback, createDemandSignal, searchRides } from './matching.service.js';
+import { createDemandSignal, searchRides } from './matching.service.js';
 
 const rankedStopSchema = z.object({
   stopId: z.string().uuid(),
@@ -34,7 +34,22 @@ const matchCandidateSchema = z.object({
   destinationLng: z.number(),
   routePolyline: z.string().nullable(),
   rankedStops: z.array(rankedStopSchema),
+  rankedDropoffStops: z.array(rankedStopSchema),
   pickupViable: z.boolean(),
+  dropoffViable: z.boolean(),
+  matchType: z.enum(['endpoint', 'route_passthrough']),
+});
+
+// Phase 13 (docs/roadmap/phase-13-search-engine.md): one search response now
+// carries which tier of the cascade produced it plus a server-built,
+// French explanation — replaces the old two-endpoint (matching/search +
+// matching/corridor-fallback) client-orchestrated pair with a single round
+// trip that never silently returns nothing while a looser tier still has
+// results.
+const searchResultSchema = z.object({
+  tier: z.enum(['exact', 'wide_corridor', 'route_passthrough', 'closest_departure', 'none']),
+  candidates: z.array(matchCandidateSchema),
+  message: z.string().nullable(),
 });
 
 export async function matchingRoutes(fastify: FastifyInstance): Promise<void> {
@@ -43,36 +58,17 @@ export async function matchingRoutes(fastify: FastifyInstance): Promise<void> {
 
   // Public — a browsing (not yet signed-in) rider needs real search results
   // before Demander une place, which is where the real contextual-auth gate
-  // lives. Neither handler reads getUserId(request) at all.
+  // lives. Doesn't read getUserId(request) at all.
   app.get(
     '/matching/search',
     {
       schema: {
         querystring: matchingSearchSchema,
-        response: { 200: z.array(matchCandidateSchema) },
+        response: { 200: searchResultSchema },
       },
     },
     async (request, reply) => {
-      const results = await searchRides(db, request.query);
-      reply.send(results);
-    },
-  );
-
-  app.get(
-    '/matching/corridor-fallback',
-    {
-      schema: {
-        querystring: matchingSearchSchema,
-        response: {
-          200: z.object({
-            nearbyRides: z.array(matchCandidateSchema),
-            demandSignalCount: z.number(),
-          }),
-        },
-      },
-    },
-    async (request, reply) => {
-      const result = await corridorFallback(db, request.query);
+      const result = await searchRides(db, request.query);
       reply.send(result);
     },
   );

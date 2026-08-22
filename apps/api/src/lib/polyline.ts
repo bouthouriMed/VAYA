@@ -87,6 +87,79 @@ function distanceToNearestVertex(point: LatLng, polyline: LatLng[]): number {
   return best;
 }
 
+/** Cumulative distance (meters) from `polyline[0]` to each point in
+ *  `polyline`, same length as `polyline` — the along-route "odometer" that
+ *  `projectPointOntoRoute` turns a nearest-vertex index into a 0..1
+ *  fraction with. */
+function cumulativeDistances(polyline: LatLng[]): number[] {
+  const distances = [0];
+  for (let i = 1; i < polyline.length; i++) {
+    distances.push(distances[i - 1]! + haversineDistanceMeters(polyline[i - 1]!, polyline[i]!));
+  }
+  return distances;
+}
+
+export interface RouteProjection {
+  /** Distance in meters from `point` to the nearest sampled point on the
+   *  route — the same "dense sample + nearest vertex" corridor-distance
+   *  approximation `computeRouteOverlapFraction` already uses. */
+  distanceM: number;
+  /** 0..1 position along the route by cumulative distance, 0 = route start,
+   *  1 = route end. Used to check that a rider's origin and destination
+   *  fall on the route in the correct order, not just both "somewhere near
+   *  it". */
+  fraction: number;
+  nearestPoint: LatLng;
+}
+
+/** Projects `point` onto `route` (a decoded, real OSRM polyline) — the core
+ *  primitive behind route-passthrough matching (docs/roadmap/
+ *  phase-13-search-engine.md): does a ride's actual road path run near this
+ *  point, and if so, how far along the route. Resamples densely first
+ *  (`resamplePolyline`) so a sparse source polyline still yields a stable
+ *  answer, mirroring `computeRouteOverlapFraction`'s own approach at the
+ *  same corridor scale rather than introducing a second geometric method —
+ *  but unlike that function's fixed sample count (fine for a coarse overlap
+ *  *percentage*), this feeds a strict corridor-width qualification check
+ *  (`OVERLAP_CORRIDOR_WIDTH_M`, 150m), so sample spacing must stay well
+ *  under that regardless of the route's total length: `targetSpacingM`
+ *  drives the sample count instead of a fixed number, capped to keep a
+ *  very long intercity route's cost bounded. */
+export function projectPointOntoRoute(
+  point: LatLng,
+  route: LatLng[],
+  targetSpacingM = 25,
+): RouteProjection {
+  if (route.length === 0) {
+    return { distanceM: Infinity, fraction: 0, nearestPoint: point };
+  }
+  if (route.length === 1) {
+    return { distanceM: haversineDistanceMeters(point, route[0]!), fraction: 0, nearestPoint: route[0]! };
+  }
+
+  const routeLength = cumulativeDistances(route).at(-1)!;
+  const sampleCount = Math.min(3000, Math.max(50, Math.ceil(routeLength / targetSpacingM) + 1));
+  const dense = resamplePolyline(route, sampleCount);
+  const distances = cumulativeDistances(dense);
+  const totalLength = distances[distances.length - 1]!;
+
+  let bestIndex = 0;
+  let bestDistanceM = Infinity;
+  for (let i = 0; i < dense.length; i++) {
+    const d = haversineDistanceMeters(point, dense[i]!);
+    if (d < bestDistanceM) {
+      bestDistanceM = d;
+      bestIndex = i;
+    }
+  }
+
+  return {
+    distanceM: bestDistanceM,
+    fraction: totalLength === 0 ? 0 : distances[bestIndex]! / totalLength,
+    nearestPoint: dense[bestIndex]!,
+  };
+}
+
 /** Fraction (0..1) of `routeA`'s length that runs within `corridorWidthM` of
  *  `routeB` — the real geometric replacement for a distance-ratio proxy.
  *  Both inputs should already be decoded polylines. */

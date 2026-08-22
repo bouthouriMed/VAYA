@@ -88,6 +88,10 @@ const ACCEPTED_BOOKING: Booking = {
   pickupLabel: 'Arrêt Menzah 6',
   pickupLat: 36.842,
   pickupLng: 10.18,
+  dropoffStopId: null,
+  dropoffLabel: null,
+  dropoffLat: null,
+  dropoffLng: null,
   requestedAt: '2026-08-22T08:00:00',
   respondedAt: '2026-08-22T08:30:00',
   ride: {
