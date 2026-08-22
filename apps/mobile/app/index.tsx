@@ -10,8 +10,10 @@ import {
   Animated,
   Easing,
   AccessibilityInfo,
+  ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 import {
   Text,
   GlassSurface,
@@ -20,9 +22,14 @@ import {
   spacing,
   radii,
   typography,
+  haptics,
 } from '@vaya/design-system';
 import { router, Redirect } from 'expo-router';
-import { useAppSelector } from '../src/state/store';
+import { useAppSelector, useAppDispatch } from '../src/state/store';
+import { useGoogleExchangeMutation } from '../src/state/api';
+import { setTokens } from '../src/state/authSlice';
+import { saveTokens } from '../src/services/auth/tokenStorage';
+import { signInWithGoogle } from '../src/services/auth/googleAuth';
 
 /**
  * stitch/landing/vaya-landing-premium-dark-mode.html — the "Vaya Landing"
@@ -33,22 +40,56 @@ import { useAppSelector } from '../src/state/store';
  * (the app's own brand-identity choice, same as driver/onboarding/index.tsx's
  * navy hero) rather than following useAppTheme()'s light/dark toggle.
  *
- * Two deliberate divergences, both forced by what this app actually has:
- * (1) the reference's full-bleed cinematic photo has no real asset behind it
- * in this codebase and wasn't fabricated/sourced — replaced with the same
- * ambient ink-gradient + accent-glow treatment `driver/onboarding/index.tsx`
- * already establishes, plus the existing `RoutePulseBadge` hero motif;
- * (2) the reference shows three auth mechanisms (Google, Facebook, email)
- * this backend has none of (`VerifyOtp` always creates-or-logs-in by phone
- * number, no social login, no separate sign-up step) — so the glass card
- * shows the one real mechanism directly, inline, rather than three stand-ins
- * or a second screen behind them.
+ * One deliberate divergence, forced by what this app actually has: the
+ * reference's full-bleed cinematic photo has no real asset behind it in this
+ * codebase and wasn't fabricated/sourced — replaced with the same ambient
+ * ink-gradient + accent-glow treatment `driver/onboarding/index.tsx` already
+ * establishes, plus the existing `RoutePulseBadge` hero motif.
+ *
+ * The reference shows three auth mechanisms (Google, Facebook, email); this
+ * backend now has exactly one of those three for real (Google — a
+ * server-mediated OAuth flow, `src/services/auth/googleAuth.ts`) alongside
+ * the phone/OTP mechanism the reference doesn't show at all. Facebook/email
+ * stay unbuilt (no backend mechanism exists for either) rather than adding
+ * stand-in buttons that don't work.
  */
 export default function LandingScreen(): React.JSX.Element {
   const accessToken = useAppSelector((s) => s.auth.accessToken);
+  const dispatch = useAppDispatch();
   const [phone, setPhone] = useState('');
   const [isPhoneFocused, setIsPhoneFocused] = useState(false);
   const canContinue = phone.replace(/\s/g, '').length >= 8;
+
+  const [googleExchange] = useGoogleExchangeMutation();
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [googleError, setGoogleError] = useState<string | undefined>();
+
+  async function continueWithGoogle(): Promise<void> {
+    if (isGoogleLoading) return;
+    setGoogleError(undefined);
+    setIsGoogleLoading(true);
+    try {
+      const result = await signInWithGoogle();
+      if (result.status === 'success') {
+        const tokens = await googleExchange({ ticket: result.ticket }).unwrap();
+        haptics.success();
+        dispatch(setTokens(tokens));
+        await saveTokens(tokens);
+        router.replace('/(tabs)/explore');
+        return;
+      }
+      if (result.status === 'error') {
+        haptics.error();
+        setGoogleError('Connexion Google impossible. Réessayez.');
+      }
+      // 'cancelled': the user closed the browser themselves — no error to show.
+    } catch {
+      haptics.error();
+      setGoogleError('Connexion Google impossible. Réessayez.');
+    } finally {
+      setIsGoogleLoading(false);
+    }
+  }
 
   const fade = useRef(new Animated.Value(0)).current;
   const rise = useRef(new Animated.Value(16)).current;
@@ -213,6 +254,48 @@ export default function LandingScreen(): React.JSX.Element {
                   </Text>
                 </LinearGradient>
               </TouchableOpacity>
+
+              <View style={styles.dividerRow}>
+                <View style={[styles.dividerLine, { backgroundColor: darkPalette.outlineVariant }]} />
+                <Text variant="caption" color={darkPalette.inkFaint}>
+                  ou
+                </Text>
+                <View style={[styles.dividerLine, { backgroundColor: darkPalette.outlineVariant }]} />
+              </View>
+
+              <TouchableOpacity
+                onPress={() => void continueWithGoogle()}
+                disabled={isGoogleLoading}
+                activeOpacity={0.85}
+                accessibilityRole="button"
+                accessibilityLabel="Continuer avec Google"
+                accessibilityState={{ disabled: isGoogleLoading, busy: isGoogleLoading }}
+                style={[
+                  styles.googleCta,
+                  {
+                    backgroundColor: darkPalette.surface,
+                    borderColor: darkPalette.outlineVariant,
+                  },
+                  isGoogleLoading && styles.ctaDisabled,
+                ]}
+              >
+                {isGoogleLoading ? (
+                  <ActivityIndicator color={darkPalette.ink} size="small" />
+                ) : (
+                  <>
+                    <Ionicons name="logo-google" size={18} color={darkPalette.ink} />
+                    <Text variant="label" color={darkPalette.ink}>
+                      Continuer avec Google
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
+
+              {googleError ? (
+                <Text variant="bodySmall" color={darkPalette.error} align="center">
+                  {googleError}
+                </Text>
+              ) : null}
             </View>
           </GlassSurface>
 
@@ -345,6 +428,25 @@ const styles = StyleSheet.create({
     width: '70%',
     height: '260%',
     transform: [{ rotate: '20deg' }],
+  },
+  dividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+  },
+  googleCta: {
+    width: '100%',
+    minHeight: 52,
+    borderRadius: radii.lg,
+    borderWidth: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
   },
   legalHint: {
     marginTop: spacing.md,

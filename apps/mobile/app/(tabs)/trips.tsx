@@ -23,12 +23,14 @@ import {
   useListMyBookingsQuery,
   useListMyRidesQuery,
   useGetMyDriverProfileQuery,
+  useListNotificationsQuery,
   type Booking,
   type Ride,
 } from '../../src/state/api';
 import { CancellationSheet } from '../../src/features/bookings/CancellationSheet';
 import { RideRequestsSheet } from '../../src/features/driver-rides/RideRequestsSheet';
 import { ManageRideSheet } from '../../src/features/driver-rides/ManageRideSheet';
+import { DriverBookingDetailSheet } from '../../src/features/driver-rides/DriverBookingDetailSheet';
 import {
   pickNextUpcomingRide,
   orderRemainingRides,
@@ -94,6 +96,13 @@ export default function TripsScreen(): React.JSX.Element {
   const [cancellingBookingId, setCancellingBookingId] = useState<string | null>(null);
   const [requestsRideId, setRequestsRideId] = useState<string | null>(null);
   const [managedRide, setManagedRide] = useState<Ride | null>(null);
+  const [managedBooking, setManagedBooking] = useState<Booking | null>(null);
+
+  // Same query/poll the explore tab's header bell and the notifications
+  // inbox itself already use — no new endpoint, just a second reader of the
+  // same cache entry.
+  const { data: notifications } = useListNotificationsQuery(undefined, { pollingInterval: 30_000 });
+  const hasUnreadNotifications = notifications?.some((n) => !n.readAt) ?? false;
 
   useEffect(() => {
     if (driverProfile) setSegment('driver');
@@ -127,13 +136,26 @@ export default function TripsScreen(): React.JSX.Element {
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top']}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
         {/* Page header */}
-        <View style={styles.pageHeader}>
-          <Text variant="h2" color={theme.ink}>
-            Mes trajets
-          </Text>
-          <Text variant="body" color={theme.inkMuted}>
-            Gérez vos trajets à venir et passés.
-          </Text>
+        <View style={styles.pageHeaderRow}>
+          <View style={styles.pageHeader}>
+            <Text variant="headlineDisplay" color={theme.ink}>
+              Mes trajets
+            </Text>
+            <Text variant="body" color={theme.inkMuted}>
+              Gérez vos trajets à venir et passés.
+            </Text>
+          </View>
+          <TouchableOpacity
+            onPress={() => router.push('/notifications')}
+            accessibilityRole="button"
+            accessibilityLabel={hasUnreadNotifications ? 'Notifications (non lues)' : 'Notifications'}
+            style={[styles.notificationButton, { backgroundColor: theme.surface }]}
+          >
+            <Icon name="notifications-outline" size="sm" color={theme.ink} />
+            {hasUnreadNotifications ? (
+              <View style={[styles.notificationDot, { backgroundColor: theme.accent, borderColor: theme.surface }]} />
+            ) : null}
+          </TouchableOpacity>
         </View>
 
         <TouchableOpacity style={[styles.publishCard, { backgroundColor: theme.surface }]} onPress={goToDriverFlow} activeOpacity={0.8}>
@@ -410,11 +432,23 @@ export default function TripsScreen(): React.JSX.Element {
         visible={!!requestsRideId}
         rideId={requestsRideId ?? ''}
         onClose={() => setRequestsRideId(null)}
+        onManageBooking={(booking) => {
+          // Sequential, not stacked: closing the requests sheet before
+          // opening the booking detail one avoids two overlapping sheet
+          // backdrops/animations at once.
+          setRequestsRideId(null);
+          setManagedBooking(booking);
+        }}
       />
       <ManageRideSheet
         visible={!!managedRide}
         ride={managedRide}
         onClose={() => setManagedRide(null)}
+      />
+      <DriverBookingDetailSheet
+        visible={!!managedBooking}
+        booking={managedBooking}
+        onClose={() => setManagedBooking(null)}
       />
     </SafeAreaView>
   );
@@ -431,8 +465,31 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     paddingBottom: spacing['4xl'],
   },
+  pageHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: spacing.sm,
+  },
   pageHeader: {
+    flex: 1,
     gap: 2,
+  },
+  notificationButton: {
+    width: 40,
+    height: 40,
+    borderRadius: radii.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  notificationDot: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    width: 9,
+    height: 9,
+    borderRadius: 5,
+    borderWidth: 1.5,
   },
   sectionHeading: {
     textTransform: 'uppercase',

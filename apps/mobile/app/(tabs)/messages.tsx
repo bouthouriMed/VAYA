@@ -56,7 +56,7 @@ export default function MessagesScreen(): React.JSX.Element {
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top']}>
         <View style={[styles.header, { paddingTop: spacing.md }]}>
           <View style={styles.headerSlot} />
-          <Text variant="h3" color={theme.ink}>
+          <Text variant="headlineDisplay" color={theme.ink}>
             Messages
           </Text>
           <View style={styles.headerSlot} />
@@ -94,7 +94,7 @@ export default function MessagesScreen(): React.JSX.Element {
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top']}>
       <View style={styles.header}>
         <View style={styles.headerSlot} />
-        <Text variant="h3" color={theme.ink}>
+        <Text variant="headlineDisplay" color={theme.ink}>
           Messages
         </Text>
         <View style={styles.headerSlot} />

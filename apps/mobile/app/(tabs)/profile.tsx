@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import {
@@ -35,8 +35,10 @@ import {
   useGetMyDriverProfileQuery,
   useGetUserTrustSummaryQuery,
   useLogoutMutation,
+  useRequestPhoneOtpMutation,
   useUpdateMeMutation,
   useUploadFileMutation,
+  useVerifyPhoneOtpMutation,
 } from '../../src/state/api';
 
 const LOCALE_LABELS: Record<SupportedLocale, string> = {
@@ -69,6 +71,8 @@ interface ProfileRow {
   /** Current-value text shown before the chevron (e.g. the active locale). */
   value?: string;
   onPress?: () => void;
+  /** Small dot over the row's icon — an incomplete-profile nudge, not an error. */
+  alert?: boolean;
 }
 
 function fileFromUri(uri: string): FormData {
@@ -114,6 +118,8 @@ export default function ProfileScreen(): React.JSX.Element {
   const [logout] = useLogoutMutation();
   const [updateMe] = useUpdateMeMutation();
   const [uploadFile] = useUploadFileMutation();
+  const [requestPhoneOtp, { isLoading: isSendingPhoneOtp }] = useRequestPhoneOtpMutation();
+  const [verifyPhoneOtp, { isLoading: isVerifyingPhoneOtp }] = useVerifyPhoneOtpMutation();
 
   const [confirmingLogout, setConfirmingLogout] = useState(false);
   const [pickingLocale, setPickingLocale] = useState(false);
@@ -121,6 +127,13 @@ export default function ProfileScreen(): React.JSX.Element {
   const [showingAccountInfo, setShowingAccountInfo] = useState(false);
   const [locale, setLocale] = useState<SupportedLocale>('fr');
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+
+  const [addingPhone, setAddingPhone] = useState(false);
+  const [phoneStep, setPhoneStep] = useState<'phone' | 'code'>('phone');
+  const [phoneDraft, setPhoneDraft] = useState('');
+  const [phoneOtpCode, setPhoneOtpCode] = useState('');
+  const [phoneDevCode, setPhoneDevCode] = useState<string | undefined>();
+  const [phoneError, setPhoneError] = useState<string | undefined>();
 
   const appearancePreference = useAppSelector((s) => s.appearance.preference);
 
@@ -183,6 +196,58 @@ export default function ProfileScreen(): React.JSX.Element {
     }
   }
 
+  function openAddPhone(): void {
+    haptics.selection();
+    setShowingAccountInfo(false);
+    setPhoneDraft('');
+    setPhoneOtpCode('');
+    setPhoneError(undefined);
+    setPhoneDevCode(undefined);
+    setPhoneStep('phone');
+    setAddingPhone(true);
+  }
+
+  const canSendPhoneOtp = phoneDraft.replace(/\s/g, '').length >= 8 && !isSendingPhoneOtp;
+
+  async function sendPhoneOtp(): Promise<void> {
+    if (!canSendPhoneOtp) return;
+    setPhoneError(undefined);
+    try {
+      const result = await requestPhoneOtp({
+        phone: `+216${phoneDraft.replace(/\s/g, '')}`,
+      }).unwrap();
+      setPhoneDevCode(result.devCode);
+      setPhoneStep('code');
+    } catch {
+      setPhoneError('Numéro invalide ou envoi impossible. Réessayez.');
+    }
+  }
+
+  const canVerifyPhoneOtp = phoneOtpCode.length === 6 && !isVerifyingPhoneOtp;
+
+  async function confirmPhoneOtp(): Promise<void> {
+    if (!canVerifyPhoneOtp) return;
+    setPhoneError(undefined);
+    try {
+      await verifyPhoneOtp({
+        phone: `+216${phoneDraft.replace(/\s/g, '')}`,
+        code: phoneOtpCode,
+      }).unwrap();
+      haptics.success();
+      toast({ message: 'Numéro de téléphone vérifié.', tone: 'success' });
+      setAddingPhone(false);
+    } catch (err) {
+      haptics.error();
+      const status = (err as { status?: number } | undefined)?.status;
+      setPhoneError(
+        status === 409
+          ? 'Ce numéro est déjà associé à un autre compte VAYA.'
+          : 'Code invalide ou expiré. Réessayez.',
+      );
+      setPhoneOtpCode('');
+    }
+  }
+
   function pickLocale(option: SupportedLocale): void {
     setLocale(option);
     setPickingLocale(false);
@@ -215,6 +280,7 @@ export default function ProfileScreen(): React.JSX.Element {
           icon: 'person-outline',
           label: 'Informations personnelles',
           onPress: () => setShowingAccountInfo(true),
+          alert: Boolean(me && !me.phone),
         },
       ],
     },
@@ -276,16 +342,7 @@ export default function ProfileScreen(): React.JSX.Element {
 
         {/* User identity */}
         <View style={styles.identity}>
-          <TouchableOpacity
-            style={styles.avatarWrap}
-            activeOpacity={0.8}
-            disabled={isUploadingPhoto || isMeLoading}
-            onPress={handleChangePhoto}
-            accessibilityRole="button"
-            accessibilityLabel={
-              me?.avatarUrl ? 'Modifier la photo de profil' : 'Ajouter une photo de profil'
-            }
-          >
+          <View style={styles.avatarWrap}>
             {isMeLoading || !me ? (
               <SkeletonCircle size={96} />
             ) : (
@@ -298,21 +355,50 @@ export default function ProfileScreen(): React.JSX.Element {
                   fallbackTextColor={theme.ink}
                   style={{ borderWidth: 2, borderColor: theme.outlineVariant }}
                 />
-                {!me.avatarUrl ? (
-                  <View
-                    style={[
-                      styles.photoBadge,
-                      { backgroundColor: theme.surface, borderColor: theme.outlineVariant },
-                    ]}
-                  >
-                    <Icon name="camera-outline" size="xs" color={theme.inkFaint} />
-                  </View>
-                ) : null}
+                {/* Small, subtle edit affordance instead of a text link below
+                 *  the name — always present (not just when photo-less), the
+                 *  modern "tap the badge on the avatar" convention. */}
+                <TouchableOpacity
+                  onPress={handleChangePhoto}
+                  disabled={isUploadingPhoto}
+                  activeOpacity={0.8}
+                  accessibilityRole="button"
+                  accessibilityLabel={
+                    me.avatarUrl ? 'Modifier la photo de profil' : 'Ajouter une photo de profil'
+                  }
+                  style={[
+                    styles.photoBadge,
+                    { backgroundColor: theme.surface, borderColor: theme.outlineVariant },
+                  ]}
+                >
+                  {isUploadingPhoto ? (
+                    <ActivityIndicator size="small" color={theme.accent} />
+                  ) : (
+                    <Icon name="camera-outline" size="xs" color={theme.inkMuted} />
+                  )}
+                </TouchableOpacity>
               </>
             )}
-          </TouchableOpacity>
+          </View>
 
           <View style={styles.identityMeta}>
+            {/* The hub's page-heading moment — same headlineDisplay scale as
+             *  every other tab root (trips/messages/explore/publish); here
+             *  centered because the whole identity block is. Falls back to
+             *  an honest skeleton while /users/me loads. */}
+            {!isMeLoading ? (
+              <Text
+                variant="headlineDisplay"
+                color={theme.ink}
+                numberOfLines={2}
+                style={styles.identityName}
+              >
+                {me?.fullName ?? 'Mon profil'}
+              </Text>
+            ) : (
+              <SkeletonText variant="h2" width={170} />
+            )}
+
             {trustAggregate ? (
               <View
                 style={[
@@ -327,26 +413,22 @@ export default function ProfileScreen(): React.JSX.Element {
               </View>
             ) : isTrustLoading ? (
               <SkeletonText variant="bodySmall" width={110} />
-            ) : null}
-
-            {!isMeLoading && me ? (
-              <TouchableOpacity
-                onPress={handleChangePhoto}
-                disabled={isUploadingPhoto}
-                accessibilityRole="button"
-                accessibilityLabel={
-                  me.avatarUrl ? 'Modifier la photo de profil' : 'Ajoutez une photo de profil'
-                }
-                style={styles.photoCta}
+            ) : me ? (
+              // Genuinely zero trips either side (driver and rider trust
+              // summaries both null) — an honest "new here" status, not a
+              // fabricated stat, standing in for the old redundant photo-CTA
+              // text this replaced.
+              <View
+                style={[
+                  styles.tierPill,
+                  { backgroundColor: theme.surfaceMuted, borderColor: theme.outlineVariant },
+                ]}
               >
-                {isUploadingPhoto ? (
-                  <ActivityIndicator size="small" color={theme.accent} />
-                ) : (
-                  <Text variant="bodySmall" color={theme.inkFaint}>
-                    {me.avatarUrl ? 'Modifier la photo de profil' : 'Ajoutez une photo de profil'}
-                  </Text>
-                )}
-              </TouchableOpacity>
+                <Icon name="sparkles-outline" size="xs" color={theme.accent} />
+                <Text variant="bodySmall" color={theme.inkMuted}>
+                  Nouveau sur Vaya
+                </Text>
+              </View>
             ) : null}
           </View>
         </View>
@@ -410,11 +492,18 @@ export default function ProfileScreen(): React.JSX.Element {
                       accessibilityLabel={row.label}
                       accessibilityState={{ disabled: !row.onPress }}
                     >
-                      <Icon
-                        name={row.icon}
-                        size="sm"
-                        color={row.onPress ? theme.inkMuted : theme.outline}
-                      />
+                      <View>
+                        <Icon
+                          name={row.icon}
+                          size="sm"
+                          color={row.onPress ? theme.inkMuted : theme.outline}
+                        />
+                        {row.alert ? (
+                          <View
+                            style={[styles.rowAlertDot, { backgroundColor: theme.accent, borderColor: theme.surface }]}
+                          />
+                        ) : null}
+                      </View>
                       <Text
                         variant="body"
                         color={row.onPress ? theme.ink : theme.inkFaint}
@@ -562,10 +651,39 @@ export default function ProfileScreen(): React.JSX.Element {
               <Text variant="caption" color={theme.inkFaint}>
                 Téléphone
               </Text>
-              <Text variant="body" color={theme.ink}>
-                {me.phone}
-              </Text>
+              {me.phone ? (
+                <Text variant="body" color={theme.ink}>
+                  {me.phone}
+                </Text>
+              ) : (
+                <TouchableOpacity
+                  onPress={openAddPhone}
+                  activeOpacity={0.7}
+                  accessibilityRole="button"
+                  accessibilityLabel="Ajouter et vérifier votre numéro de téléphone"
+                  style={[
+                    styles.verifyPhoneChip,
+                    { backgroundColor: theme.surfaceMuted, borderColor: theme.accent },
+                  ]}
+                >
+                  <Icon name="shield-checkmark-outline" size="xs" color={theme.accent} />
+                  <Text variant="bodySmall" color={theme.accent}>
+                    Ajouter et vérifier
+                  </Text>
+                  <Icon name="chevron-forward" size="xs" color={theme.accent} />
+                </TouchableOpacity>
+              )}
             </View>
+            {me.email ? (
+              <View style={[styles.infoRow, { borderBottomColor: theme.outlineVariant }]}>
+                <Text variant="caption" color={theme.inkFaint}>
+                  Email
+                </Text>
+                <Text variant="body" color={theme.ink}>
+                  {me.email}
+                </Text>
+              </View>
+            ) : null}
             <View style={[styles.infoRow, { borderBottomColor: theme.outlineVariant }]}>
               <Text variant="caption" color={theme.inkFaint}>
                 Membre depuis
@@ -580,6 +698,134 @@ export default function ProfileScreen(): React.JSX.Element {
           </View>
         ) : (
           <SkeletonText variant="body" width="80%" />
+        )}
+      </BottomSheet>
+
+      <BottomSheet
+        visible={addingPhone}
+        onClose={() => setAddingPhone(false)}
+        title={phoneStep === 'phone' ? 'Ajouter votre numéro' : 'Vérification'}
+        heightRatio={0.42}
+        theme={theme}
+      >
+        {phoneStep === 'phone' ? (
+          <View style={styles.phoneSheetBody}>
+            <Text variant="bodySmall" color={theme.inkMuted}>
+              Utilisé pour la vérification et pour vous mettre en contact avec vos covoitureurs.
+            </Text>
+            <View
+              style={[
+                styles.phoneInputRow,
+                { backgroundColor: theme.surfaceMuted, borderColor: theme.outlineVariant },
+              ]}
+            >
+              <View style={[styles.countryPill, { backgroundColor: theme.surface }]}>
+                <Text variant="label" color={theme.ink}>
+                  +216
+                </Text>
+              </View>
+              <TextInput
+                value={phoneDraft}
+                onChangeText={setPhoneDraft}
+                placeholder="98 123 456"
+                placeholderTextColor={theme.inkFaint}
+                keyboardType="phone-pad"
+                returnKeyType="done"
+                onSubmitEditing={() => void sendPhoneOtp()}
+                style={[styles.phoneTextInput, { color: theme.ink }]}
+                accessibilityLabel="Numéro de téléphone"
+                autoFocus
+              />
+            </View>
+            {phoneError ? (
+              <Text variant="bodySmall" color={theme.error}>
+                {phoneError}
+              </Text>
+            ) : null}
+            <TouchableOpacity
+              onPress={() => void sendPhoneOtp()}
+              disabled={!canSendPhoneOtp}
+              activeOpacity={0.85}
+              accessibilityRole="button"
+              accessibilityLabel="Envoyer le code"
+              accessibilityState={{ disabled: !canSendPhoneOtp, busy: isSendingPhoneOtp }}
+              style={[
+                styles.phoneCta,
+                { backgroundColor: theme.ink },
+                !canSendPhoneOtp && styles.ctaDisabled,
+              ]}
+            >
+              {isSendingPhoneOtp ? (
+                <ActivityIndicator size="small" color={theme.onInk} />
+              ) : (
+                <Text variant="label" color={theme.onInk}>
+                  Envoyer le code
+                </Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <View style={styles.phoneSheetBody}>
+            <Text variant="bodySmall" color={theme.inkMuted}>
+              Code envoyé au +216 {phoneDraft}
+            </Text>
+            <TextInput
+              value={phoneOtpCode}
+              onChangeText={(v) => setPhoneOtpCode(v.replace(/[^0-9]/g, '').slice(0, 6))}
+              placeholder="000000"
+              placeholderTextColor={theme.inkFaint}
+              keyboardType="number-pad"
+              maxLength={6}
+              returnKeyType="done"
+              onSubmitEditing={() => void confirmPhoneOtp()}
+              style={[
+                styles.otpTextInput,
+                {
+                  color: theme.ink,
+                  borderColor: theme.outlineVariant,
+                  backgroundColor: theme.surfaceMuted,
+                },
+              ]}
+              accessibilityLabel="Code de vérification"
+              autoFocus
+            />
+            {phoneDevCode ? (
+              <Text variant="bodySmall" color={theme.inkFaint}>
+                Code de test : {phoneDevCode}
+              </Text>
+            ) : null}
+            {phoneError ? (
+              <Text variant="bodySmall" color={theme.error}>
+                {phoneError}
+              </Text>
+            ) : null}
+            <TouchableOpacity
+              onPress={() => void confirmPhoneOtp()}
+              disabled={!canVerifyPhoneOtp}
+              activeOpacity={0.85}
+              accessibilityRole="button"
+              accessibilityLabel="Vérifier"
+              accessibilityState={{ disabled: !canVerifyPhoneOtp, busy: isVerifyingPhoneOtp }}
+              style={[
+                styles.phoneCta,
+                { backgroundColor: theme.ink },
+                !canVerifyPhoneOtp && styles.ctaDisabled,
+              ]}
+            >
+              {isVerifyingPhoneOtp ? (
+                <ActivityIndicator size="small" color={theme.onInk} />
+              ) : (
+                <Text variant="label" color={theme.onInk}>
+                  Vérifier
+                </Text>
+              )}
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setPhoneStep('phone')} accessibilityRole="button">
+              <Text variant="bodySmall" color={theme.accent} align="center">
+                Changer de numéro
+              </Text>
+            </TouchableOpacity>
+          </View>
         )}
       </BottomSheet>
     </View>
@@ -617,6 +863,10 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
     minHeight: 56,
   },
+  identityName: {
+    marginTop: spacing.xs,
+    textAlign: 'center',
+  },
   tierPill: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -625,11 +875,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md + 4,
     borderRadius: radii.full,
     borderWidth: 1,
-  },
-  photoCta: {
-    paddingVertical: spacing.sm + 2,
-    paddingHorizontal: spacing.md + 4,
-    borderRadius: radii.full,
   },
   driverCard: {
     flexDirection: 'row',
@@ -685,6 +930,15 @@ const styles = StyleSheet.create({
   rowLabel: {
     flex: 1,
   },
+  rowAlertDot: {
+    position: 'absolute',
+    top: -2,
+    right: -2,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    borderWidth: 1.5,
+  },
   logoutCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -711,5 +965,58 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     paddingVertical: spacing.md,
     gap: 2,
+  },
+  verifyPhoneChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: 6,
+    marginTop: spacing.xs,
+    paddingVertical: spacing.sm - 2,
+    paddingHorizontal: spacing.md,
+    borderRadius: radii.full,
+    borderWidth: 1,
+  },
+  phoneSheetBody: {
+    gap: spacing.md,
+  },
+  phoneInputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    borderWidth: 1,
+    borderRadius: radii.full,
+    paddingHorizontal: spacing.xs,
+    paddingVertical: spacing.xs,
+  },
+  countryPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: radii.full,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.sm,
+  },
+  phoneTextInput: {
+    flex: 1,
+    fontSize: 16,
+    paddingHorizontal: spacing.xs,
+  },
+  otpTextInput: {
+    borderWidth: 1,
+    borderRadius: radii.lg,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    fontSize: 20,
+    letterSpacing: 6,
+    textAlign: 'center',
+  },
+  phoneCta: {
+    minHeight: 48,
+    borderRadius: radii.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  ctaDisabled: {
+    opacity: 0.5,
   },
 });

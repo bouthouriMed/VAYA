@@ -1,5 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
-import { View, StyleSheet, Animated, AccessibilityInfo, TouchableOpacity } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  Animated,
+  AccessibilityInfo,
+  TouchableOpacity,
+} from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Text,
@@ -8,7 +15,6 @@ import {
   Icon,
   GlassSurface,
   useAppTheme,
-  colors,
   spacing,
   radii,
   typography,
@@ -34,9 +40,19 @@ const BENEFITS: { icon: IconName; title: string; body: string }[] = [
   },
 ];
 
+/**
+ * The driver-flow entry hero. Fully theme-following (`useAppTheme()`): both
+ * modes render the same structure — a `backgroundGradient` wash with ambient
+ * accent glows behind the hero (the treatment landing/otp established, here
+ * in whichever scheme is live), the RoutePulseBadge motif picking its tone
+ * per scheme, and the same rounded sheet seam over it — so light mode reads
+ * as warm-ivory-with-emerald and dark as charcoal-emerald, one coherent
+ * design rather than a fixed navy block pasted onto either theme.
+ */
 export default function BecomeDriverScreen(): React.JSX.Element {
   const insets = useSafeAreaInsets();
-  const { colors: theme } = useAppTheme();
+  const { colors: theme, scheme } = useAppTheme();
+  const isDark = scheme === 'dark';
   const [reduceMotion, setReduceMotion] = useState(false);
   const fade = useRef(new Animated.Value(0)).current;
   const rise = useRef(new Animated.Value(16)).current;
@@ -65,33 +81,59 @@ export default function BecomeDriverScreen(): React.JSX.Element {
   }, [reduceMotion]);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
+      <LinearGradient
+        colors={theme.backgroundGradient}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
+        style={StyleSheet.absoluteFillObject}
+      />
+      <View
+        pointerEvents="none"
+        style={[styles.glowTop, { backgroundColor: theme.accentGlow }]}
+      />
+      <View
+        pointerEvents="none"
+        style={[styles.glowSeam, { backgroundColor: theme.accent }]}
+      />
+
       <View style={[styles.hero, { paddingTop: insets.top + spacing.sm }]}>
-        <ScreenHeader onBack={() => router.back()} tone="dark" />
+        <ScreenHeader onBack={() => router.back()} tone={isDark ? 'dark' : 'light'} />
 
         <Animated.View
           style={[styles.heroBody, { opacity: fade, transform: [{ translateY: rise }] }]}
         >
-          <RoutePulseBadge icon="car-sport" size="hero" tone="onNavy" />
-          <Text variant="caption" color={colors.secondaryLight} style={styles.eyebrow}>
+          <RoutePulseBadge icon="car-sport" size="hero" tone={isDark ? 'onNavy' : 'onCream'} />
+          <Text variant="caption" color={theme.accent} style={styles.eyebrow}>
             PROFIL CONDUCTEUR
           </Text>
-          <Text variant="headlineDisplay" color={colors.navyText} style={styles.headline}>
+          <Text variant="headlineDisplay" color={theme.ink} style={styles.headline}>
             Prenez le volant avec VAYA
           </Text>
-          <Text variant="body" color={colors.navyTextMuted} style={styles.subhead}>
+          <Text variant="body" color={theme.inkMuted} style={styles.subhead}>
             Proposez vos trajets, fixez votre itinéraire et partagez les frais de route — en toute
             confiance.
           </Text>
         </Animated.View>
       </View>
 
-      <View style={[styles.sheet, { backgroundColor: theme.background }]}>
+      <View
+        style={[
+          styles.sheet,
+          { backgroundColor: theme.background, borderTopColor: theme.outline },
+        ]}
+      >
         <View style={styles.benefits}>
           {BENEFITS.map((benefit) => (
-            <GlassSurface key={benefit.title} theme={theme} radius="xl" style={styles.benefitRow}>
+            <GlassSurface
+              key={benefit.title}
+              theme={theme}
+              scheme={scheme}
+              radius="xl"
+              style={[styles.benefitRow, { borderColor: theme.outlineVariant }]}
+            >
               <View style={[styles.benefitIcon, { backgroundColor: theme.surfaceMuted }]}>
-                <Icon name={benefit.icon} size="sm" color={theme.ink} />
+                <Icon name={benefit.icon} size="sm" color={theme.accent} />
               </View>
               <View style={styles.benefitTextCol}>
                 <Text variant="label" color={theme.ink}>
@@ -107,15 +149,31 @@ export default function BecomeDriverScreen(): React.JSX.Element {
 
         <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.lg }]}>
           <TouchableOpacity
-            style={[styles.cta, { backgroundColor: theme.ink }]}
             onPress={() => router.push('/driver/onboarding/vehicle')}
             activeOpacity={0.85}
             accessibilityRole="button"
             accessibilityLabel="Commencer"
+            style={styles.ctaWrap}
           >
-            <Text variant="label" color={theme.onInk}>
-              Commencer
-            </Text>
+            <LinearGradient
+              colors={theme.inkGradient}
+              start={{ x: 0.1, y: 0 }}
+              end={{ x: 0.9, y: 1 }}
+              style={styles.cta}
+            >
+              <View pointerEvents="none" style={styles.ctaSheenClip}>
+                <LinearGradient
+                  colors={['transparent', theme.glimmer, 'transparent']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.ctaSheen}
+                />
+              </View>
+              <Text variant="label" color={theme.onInk}>
+                Commencer
+              </Text>
+              <Icon name="arrow-forward" size="sm" color={theme.onInk} />
+            </LinearGradient>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => router.back()}
@@ -124,7 +182,7 @@ export default function BecomeDriverScreen(): React.JSX.Element {
             accessibilityRole="button"
             accessibilityLabel="Retour"
           >
-            <Text variant="bodySmall" color={theme.inkFaint}>
+            <Text variant="bodySmall" color={theme.inkMuted}>
               Pas maintenant
             </Text>
           </TouchableOpacity>
@@ -137,7 +195,25 @@ export default function BecomeDriverScreen(): React.JSX.Element {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.navySurface,
+    overflow: 'hidden',
+  },
+  glowTop: {
+    position: 'absolute',
+    top: -140,
+    left: -80,
+    width: 320,
+    height: 320,
+    borderRadius: 160,
+    opacity: 0.28,
+  },
+  glowSeam: {
+    position: 'absolute',
+    top: '30%',
+    right: -110,
+    width: 300,
+    height: 300,
+    borderRadius: 150,
+    opacity: 0.14,
   },
   hero: {
     paddingHorizontal: spacing.lg,
@@ -166,6 +242,7 @@ const styles = StyleSheet.create({
     flex: 1,
     borderTopLeftRadius: radii['2xl'],
     borderTopRightRadius: radii['2xl'],
+    borderTopWidth: 1,
     marginTop: -spacing['2xl'],
     paddingTop: spacing['2xl'],
     justifyContent: 'space-between',
@@ -179,6 +256,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     gap: spacing.md,
     padding: spacing.lg,
+    borderWidth: 1,
   },
   benefitIcon: {
     width: 40,
@@ -200,12 +278,30 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     alignItems: 'center',
   },
+  ctaWrap: {
+    width: '100%',
+    borderRadius: radii.lg,
+    overflow: 'hidden',
+  },
   cta: {
     width: '100%',
     minHeight: 52,
-    borderRadius: radii.lg,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    gap: spacing.sm,
+  },
+  ctaSheenClip: {
+    ...StyleSheet.absoluteFillObject,
+    overflow: 'hidden',
+  },
+  ctaSheen: {
+    position: 'absolute',
+    top: -20,
+    left: -40,
+    width: '70%',
+    height: '260%',
+    transform: [{ rotate: '20deg' }],
   },
   secondaryBack: {
     padding: spacing.sm,

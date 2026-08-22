@@ -16,6 +16,15 @@ const envSchema = z.object({
   JWT_ACCESS_TTL_SEC: z.coerce.number().default(900),
   JWT_REFRESH_TTL_DAYS: z.coerce.number().default(30),
   OSRM_URL: z.string().url().default('http://localhost:5001'),
+  GOOGLE_CLIENT_ID: z.string().optional(),
+  GOOGLE_CLIENT_SECRET: z.string().optional(),
+  GOOGLE_CALLBACK_URL: z.string().url().optional(),
+  // The LOCAL port the OAuth callback listener binds to — independent of
+  // whatever port (if any) appears in GOOGLE_CALLBACK_URL itself. They match
+  // for a bare host:port callback URL, but diverge once GOOGLE_CALLBACK_URL
+  // is a tunnel domain (e.g. https://*.trycloudflare.com, implicit port
+  // 443) whose *local* target the tunnel process points at this port.
+  GOOGLE_OAUTH_CALLBACK_PORT: z.coerce.number().default(4000),
 });
 
 export type Env = z.infer<typeof envSchema>;

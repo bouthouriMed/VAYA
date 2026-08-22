@@ -755,7 +755,7 @@ export default function PublishTabScreen(): React.JSX.Element {
 
         <ScrollView contentContainerStyle={styles.reviewContent}>
           <Animated.View style={[styles.reviewStack, stepMotionStyle]}>
-            <Text variant="h2" color={theme.ink} style={styles.reviewTitle}>
+            <Text variant="headlineDisplay" color={theme.ink} style={styles.reviewTitle}>
               Prêt à publier votre trajet ?
             </Text>
             <Text variant="body" color={theme.inkMuted} style={styles.reviewSubtitle}>

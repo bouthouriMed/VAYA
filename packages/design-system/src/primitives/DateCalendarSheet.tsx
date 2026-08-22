@@ -12,7 +12,7 @@ import { Text } from './Text';
 import { Icon } from './Icon';
 import { spacing, radii } from '../tokens/index';
 import { useAppTheme } from '../theme/AppThemeProvider';
-import { buildMonthGrid, formatMonthLabel, isSameDay, startOfDay } from '../utils/scheduling';
+import { buildMonthGrid, formatMonthName, formatYearLabel, isSameDay, startOfDay } from '../utils/scheduling';
 
 export interface DateCalendarSheetProps {
   visible: boolean;
@@ -156,11 +156,10 @@ export function DateCalendarSheet({
         </View>
       }
     >
-      <View style={styles.monthRow}>
-        <Text variant="h2" color={theme.ink}>
-          {formatMonthLabel(monthAnchor)}
-        </Text>
-        <View style={styles.monthNav}>
+      <View style={styles.monthHeader}>
+        {/* Outer cells share the calendar's 100/7% column width, so each
+         *  arrow centers exactly over the first/last weekday column below. */}
+        <View style={styles.navCell}>
           <TouchableOpacity
             onPress={() => goToMonth(-1)}
             disabled={isCurrentMonth}
@@ -178,6 +177,16 @@ export function DateCalendarSheet({
               color={isCurrentMonth ? theme.outlineVariant : theme.inkMuted}
             />
           </TouchableOpacity>
+        </View>
+        <View style={styles.monthTitleWrap}>
+          <Text variant="h3" color={theme.ink}>
+            {formatMonthName(monthAnchor)}
+          </Text>
+          <Text variant="caption" color={theme.inkFaint}>
+            {formatYearLabel(monthAnchor)}
+          </Text>
+        </View>
+        <View style={styles.navCell}>
           <TouchableOpacity
             onPress={() => goToMonth(1)}
             style={[styles.navBtn, { borderColor: theme.outlineVariant }]}
@@ -287,17 +296,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  monthRow: {
+  monthHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: spacing.sm,
-    paddingLeft: spacing.lg,
     marginBottom: spacing.sm,
   },
-  monthNav: {
-    flexDirection: 'row',
-    gap: spacing.sm,
+  navCell: {
+    width: `${100 / 7}%`,
+    alignItems: 'center',
+  },
+  monthTitleWrap: {
+    flex: 1,
+    alignItems: 'center',
+    gap: 2,
   },
   navBtn: {
     width: 36,

@@ -2,6 +2,10 @@
 
 This is the status tracker and index for the phased roadmap produced by the 2026-08-19 codebase audit (`docs/product/audit.md`). Each phase is independently understandable and sized to be executable in one Claude Code session — a future session should be able to say **"Implement Phase N"** and act on that phase's file alone, without rediscovering the product from scratch.
 
+## End-to-end implementation & QA tracking
+
+`end-to-end-qa-plan.md` is the persistent, continuously-updated tracker for the "take VAYA to a genuinely working end-to-end product" mission (Google Sign-In, full vertical feature audit, notification system UI, testing) — separate from the phase-by-phase roadmap below because it audits *across* phases rather than executing one. Read it for current auth/notification status and the up-to-date list of known gaps and external blockers.
+
 ## How to use this document
 
 - Read `docs/product/audit.md`, `docs/domain/model.md`, `docs/domain/ride-engine.md`, and `docs/domain/pricing.md` once, at the start of a roadmap session, for the shared context every phase assumes.

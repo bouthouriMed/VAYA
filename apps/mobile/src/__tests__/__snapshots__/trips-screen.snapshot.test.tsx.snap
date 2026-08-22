@@ -1,0 +1,1427 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`trips.tsx snapshots > driver dashboard — hero ride card over segmented lists 1`] = `
+<SafeAreaView
+  edges={
+    [
+      "top",
+    ]
+  }
+  style={
+    [
+      {
+        "flex": 1,
+      },
+      {
+        "backgroundColor": "#F7F3E8",
+      },
+    ]
+  }
+>
+  <ScrollView
+    contentContainerStyle={
+      {
+        "gap": 12,
+        "padding": 16,
+        "paddingBottom": 40,
+      }
+    }
+    showsVerticalScrollIndicator={false}
+  >
+    <View
+      style={
+        {
+          "alignItems": "flex-start",
+          "flexDirection": "row",
+          "gap": 8,
+          "justifyContent": "space-between",
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "flex": 1,
+            "gap": 2,
+          }
+        }
+      >
+        <Text
+          style={
+            [
+              {
+                "fontFamily": "Fraunces_600SemiBold",
+                "fontSize": 27,
+                "letterSpacing": -0.3,
+                "lineHeight": 31.049999999999997,
+              },
+              {
+                "color": "#14201B",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              undefined,
+            ]
+          }
+        >
+          Mes trajets
+        </Text>
+        <Text
+          style={
+            [
+              {
+                "fontSize": 16,
+                "fontWeight": "400",
+                "lineHeight": 24,
+              },
+              {
+                "color": "#5C5748",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              undefined,
+            ]
+          }
+        >
+          Gérez vos trajets à venir et passés.
+        </Text>
+      </View>
+      <TouchableOpacity
+        accessibilityLabel="Notifications"
+        accessibilityRole="button"
+        onPress={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "borderRadius": 9999,
+              "height": 40,
+              "justifyContent": "center",
+              "width": 40,
+            },
+            {
+              "backgroundColor": "#FFFFFF",
+            },
+          ]
+        }
+      >
+        <Ionicons
+          accessibilityElementsHidden={true}
+          color="#14201B"
+          importantForAccessibility="no-hide-descendants"
+          name="notifications-outline"
+          size={20}
+        />
+      </TouchableOpacity>
+    </View>
+    <TouchableOpacity
+      activeOpacity={0.8}
+      onPress={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "borderRadius": 16,
+            "flexDirection": "row",
+            "gap": 8,
+            "padding": 12,
+          },
+          {
+            "backgroundColor": "#FFFFFF",
+          },
+        ]
+      }
+    >
+      <View
+        style={
+          [
+            {
+              "alignItems": "center",
+              "borderRadius": 20,
+              "height": 40,
+              "justifyContent": "center",
+              "width": 40,
+            },
+            {
+              "backgroundColor": "#2E9E6C",
+            },
+          ]
+        }
+      >
+        <Ionicons
+          color="#0D1512"
+          name="add"
+          size={22}
+        />
+      </View>
+      <View
+        style={
+          {
+            "flex": 1,
+          }
+        }
+      >
+        <Text
+          style={
+            [
+              {
+                "fontSize": 16,
+                "fontWeight": "400",
+                "lineHeight": 24,
+              },
+              {
+                "color": "#26333A",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              [
+                {
+                  "fontSize": 16,
+                  "fontWeight": "700",
+                },
+                {
+                  "color": "#14201B",
+                },
+              ],
+            ]
+          }
+        >
+          Publier un trajet
+        </Text>
+        <Text
+          style={
+            [
+              {
+                "fontSize": 14,
+                "fontWeight": "400",
+                "lineHeight": 21,
+              },
+              {
+                "color": "#5C5748",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              undefined,
+            ]
+          }
+        >
+          Proposez des places et gagnez de la contribution
+        </Text>
+      </View>
+      <Ionicons
+        accessibilityElementsHidden={true}
+        color="#8C8674"
+        importantForAccessibility="no-hide-descendants"
+        name="chevron-forward"
+        size={20}
+      />
+    </TouchableOpacity>
+    <View
+      style={
+        {
+          "gap": 8,
+        }
+      }
+    >
+      <Text
+        style={
+          [
+            {
+              "fontSize": 14,
+              "fontWeight": "500",
+              "lineHeight": 21,
+            },
+            {
+              "color": "#5C5748",
+              "textAlign": undefined,
+              "writingDirection": "ltr",
+            },
+            {
+              "letterSpacing": 0.4,
+              "textTransform": "uppercase",
+            },
+          ]
+        }
+      >
+        Prochain trajet
+      </Text>
+      <View
+        style={
+          [
+            {
+              "borderRadius": 16,
+              "borderWidth": 1,
+              "overflow": "hidden",
+            },
+            {
+              "backgroundColor": "#FFFFFF",
+              "borderColor": "#EDE6D4",
+            },
+          ]
+        }
+      >
+        <View
+          style={
+            [
+              {
+                "backgroundColor": "#EDEBE1",
+                "borderRadius": 16,
+                "overflow": "hidden",
+                "position": "relative",
+              },
+              {
+                "height": 128,
+              },
+              {
+                "borderTopLeftRadius": 16,
+                "borderTopRightRadius": 16,
+              },
+            ]
+          }
+        >
+          <MapView
+            customMapStyle={[]}
+            initialRegion={
+              {
+                "latitude": 36.316050000000004,
+                "latitudeDelta": 1.5694399999999975,
+                "longitude": 10.4092,
+                "longitudeDelta": 0.7286400000000015,
+              }
+            }
+            onMapReady={[Function]}
+            pitchEnabled={false}
+            pointerEvents="none"
+            provider="default"
+            rotateEnabled={false}
+            scrollEnabled={false}
+            style={{}}
+            zoomEnabled={false}
+          >
+            <Marker
+              anchor={
+                {
+                  "x": 0.5,
+                  "y": 0.5,
+                }
+              }
+              coordinate={
+                {
+                  "latitude": 36.8065,
+                  "longitude": 10.1815,
+                }
+              }
+            >
+              <View
+                style={
+                  [
+                    {
+                      "borderColor": "#FFFFFF",
+                      "borderRadius": 6,
+                      "borderWidth": 2,
+                      "height": 12,
+                      "width": 12,
+                    },
+                    {
+                      "backgroundColor": "#7FA491",
+                    },
+                  ]
+                }
+              />
+            </Marker>
+            <Marker
+              anchor={
+                {
+                  "x": 0.5,
+                  "y": 0.5,
+                }
+              }
+              coordinate={
+                {
+                  "latitude": 35.8256,
+                  "longitude": 10.6369,
+                }
+              }
+            >
+              <View
+                style={
+                  [
+                    {
+                      "borderColor": "#FFFFFF",
+                      "borderRadius": 6,
+                      "borderWidth": 2,
+                      "height": 12,
+                      "width": 12,
+                    },
+                    {
+                      "backgroundColor": "#2E3B42",
+                    },
+                  ]
+                }
+              />
+            </Marker>
+          </MapView>
+          <View
+            pointerEvents="none"
+            style={
+              {
+                "backgroundColor": "#EDEBE1",
+                "opacity": 0.18,
+              }
+            }
+          />
+          <Animated.View
+            accessibilityElementsHidden={true}
+            importantForAccessibility="no-hide-descendants"
+            style={
+              [
+                {
+                  "backgroundColor": "#EAE7DC",
+                },
+                {
+                  "borderRadius": 0,
+                  "height": 16,
+                  "opacity": AnimatedValue {
+                    "value": 0.45,
+                  },
+                  "width": "100%",
+                },
+                {},
+              ]
+            }
+          />
+          <View
+            style={
+              {
+                "backgroundColor": "#2E3B42",
+                "borderRadius": 9999,
+                "left": 8,
+                "paddingHorizontal": 8,
+                "paddingVertical": 4,
+                "position": "absolute",
+                "top": 8,
+              }
+            }
+          >
+            <Text
+              style={
+                {
+                  "color": "#F3F1E9",
+                  "fontSize": 12,
+                  "fontWeight": "600",
+                }
+              }
+            >
+              Publié
+            </Text>
+          </View>
+        </View>
+        <View
+          style={
+            {
+              "gap": 12,
+              "padding": 12,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "alignItems": "flex-start",
+                "flexDirection": "row",
+                "gap": 8,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "flex": 1,
+                  "gap": 2,
+                }
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 24,
+                      "fontWeight": "600",
+                      "lineHeight": 28.799999999999997,
+                    },
+                    {
+                      "color": "#14201B",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                Tunis → Sousse
+              </Text>
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "lineHeight": 21,
+                    },
+                    {
+                      "color": "#5C5748",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                dim. 23 août · 08:30 • 3 places disponibles
+              </Text>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "flex-end",
+                }
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 24,
+                      "fontWeight": "600",
+                      "lineHeight": 28.799999999999997,
+                    },
+                    {
+                      "color": "#14201B",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                12.5 DT
+              </Text>
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 12,
+                      "fontWeight": "400",
+                      "lineHeight": 18,
+                    },
+                    {
+                      "color": "#5C5748",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                par place
+              </Text>
+            </View>
+          </View>
+          <View
+            style={
+              {
+                "flexDirection": "row",
+                "gap": 8,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "width": 14,
+                }
+              }
+            >
+              <View
+                style={
+                  [
+                    {
+                      "borderRadius": 6,
+                      "borderWidth": 2,
+                      "height": 12,
+                      "width": 12,
+                    },
+                    {
+                      "borderColor": "#14201B",
+                    },
+                  ]
+                }
+              />
+              <View
+                style={
+                  [
+                    {
+                      "flex": 1,
+                      "marginVertical": 2,
+                      "minHeight": 24,
+                      "width": 2,
+                    },
+                    {
+                      "backgroundColor": "#EDE6D4",
+                    },
+                  ]
+                }
+              />
+              <View
+                style={
+                  [
+                    {
+                      "borderRadius": 6,
+                      "height": 12,
+                      "width": 12,
+                    },
+                    {
+                      "backgroundColor": "#2E9E6C",
+                    },
+                  ]
+                }
+              />
+            </View>
+            <View
+              style={
+                {
+                  "flex": 1,
+                  "gap": 8,
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "gap": 1,
+                  }
+                }
+              >
+                <Text
+                  style={
+                    [
+                      {
+                        "fontSize": 12,
+                        "fontWeight": "400",
+                        "lineHeight": 18,
+                      },
+                      {
+                        "color": "#5C5748",
+                        "textAlign": undefined,
+                        "writingDirection": "ltr",
+                      },
+                      undefined,
+                    ]
+                  }
+                >
+                  08:30
+                </Text>
+                <Text
+                  numberOfLines={1}
+                  style={
+                    [
+                      {
+                        "fontSize": 16,
+                        "fontWeight": "400",
+                        "lineHeight": 24,
+                      },
+                      {
+                        "color": "#14201B",
+                        "textAlign": undefined,
+                        "writingDirection": "ltr",
+                      },
+                      undefined,
+                    ]
+                  }
+                >
+                  Tunis
+                </Text>
+              </View>
+              <View
+                style={
+                  {
+                    "gap": 1,
+                  }
+                }
+              >
+                <Text
+                  style={
+                    [
+                      {
+                        "fontSize": 12,
+                        "fontWeight": "400",
+                        "lineHeight": 18,
+                      },
+                      {
+                        "color": "#5C5748",
+                        "textAlign": undefined,
+                        "writingDirection": "ltr",
+                      },
+                      undefined,
+                    ]
+                  }
+                >
+                  10:30 (est.)
+                </Text>
+                <Text
+                  numberOfLines={1}
+                  style={
+                    [
+                      {
+                        "fontSize": 16,
+                        "fontWeight": "400",
+                        "lineHeight": 24,
+                      },
+                      {
+                        "color": "#14201B",
+                        "textAlign": undefined,
+                        "writingDirection": "ltr",
+                      },
+                      undefined,
+                    ]
+                  }
+                >
+                  Sousse
+                </Text>
+              </View>
+            </View>
+          </View>
+          <View
+            style={
+              {
+                "flexDirection": "row",
+                "gap": 8,
+              }
+            }
+          >
+            <Pressable
+              accessibilityLabel="Gérer"
+              accessibilityRole="button"
+              accessibilityState={
+                {
+                  "busy": false,
+                  "disabled": false,
+                }
+              }
+              disabled={false}
+              onPress={[Function]}
+              style={[Function]}
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "fontWeight": "600",
+                    },
+                    {
+                      "fontSize": 16,
+                    },
+                    {
+                      "color": "#14201B",
+                    },
+                  ]
+                }
+              >
+                Gérer
+              </Text>
+            </Pressable>
+            <Pressable
+              accessibilityLabel="Demandes"
+              accessibilityRole="button"
+              accessibilityState={
+                {
+                  "busy": false,
+                  "disabled": false,
+                }
+              }
+              disabled={false}
+              onPress={[Function]}
+              style={[Function]}
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "fontWeight": "600",
+                    },
+                    {
+                      "fontSize": 16,
+                    },
+                    {
+                      "color": "#0D1512",
+                    },
+                  ]
+                }
+              >
+                Demandes
+              </Text>
+            </Pressable>
+          </View>
+        </View>
+      </View>
+    </View>
+    <View
+      style={
+        [
+          {
+            "borderRadius": 12,
+            "flexDirection": "row",
+            "marginTop": 4,
+            "padding": 4,
+          },
+          {
+            "backgroundColor": "#EDE6D4",
+          },
+        ]
+      }
+    >
+      <TouchableOpacity
+        accessibilityLabel="Conducteur"
+        accessibilityRole="tab"
+        accessibilityState={
+          {
+            "selected": true,
+          }
+        }
+        onPress={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "borderRadius": 8,
+              "flex": 1,
+              "paddingVertical": 6,
+            },
+            {
+              "backgroundColor": "#FFFFFF",
+            },
+          ]
+        }
+      >
+        <Text
+          style={
+            [
+              {
+                "fontSize": 14,
+                "fontWeight": "400",
+                "lineHeight": 21,
+              },
+              {
+                "color": "#14201B",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              {
+                "fontWeight": "600",
+              },
+            ]
+          }
+        >
+          Conducteur
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        accessibilityLabel="Passager"
+        accessibilityRole="tab"
+        accessibilityState={
+          {
+            "selected": false,
+          }
+        }
+        onPress={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "borderRadius": 8,
+              "flex": 1,
+              "paddingVertical": 6,
+            },
+            null,
+          ]
+        }
+      >
+        <Text
+          style={
+            [
+              {
+                "fontSize": 14,
+                "fontWeight": "400",
+                "lineHeight": 21,
+              },
+              {
+                "color": "#5C5748",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              undefined,
+            ]
+          }
+        >
+          Passager
+        </Text>
+      </TouchableOpacity>
+    </View>
+    <View
+      style={
+        {
+          "gap": 8,
+        }
+      }
+    >
+      <View
+        style={
+          [
+            {
+              "alignItems": "center",
+              "borderRadius": 16,
+              "borderWidth": 1,
+              "flexDirection": "row",
+              "gap": 8,
+              "padding": 12,
+            },
+            {
+              "backgroundColor": "#FFFFFF",
+              "borderColor": "#EDE6D4",
+            },
+          ]
+        }
+      >
+        <View
+          style={
+            [
+              {
+                "alignItems": "center",
+                "borderRadius": 24,
+                "height": 48,
+                "justifyContent": "center",
+                "width": 48,
+              },
+              {
+                "backgroundColor": "#EDE6D4",
+              },
+            ]
+          }
+        >
+          <Ionicons
+            accessibilityElementsHidden={true}
+            color="#5C5748"
+            importantForAccessibility="no-hide-descendants"
+            name="car-outline"
+            size={24}
+          />
+        </View>
+        <View
+          style={
+            {
+              "flex": 1,
+              "gap": 1,
+            }
+          }
+        >
+          <Text
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "fontSize": 16,
+                  "fontWeight": "400",
+                  "lineHeight": 24,
+                },
+                {
+                  "color": "#14201B",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            Tunis → Sousse
+          </Text>
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "lineHeight": 18,
+                },
+                {
+                  "color": "#5C5748",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            15 août, 08:30 • Terminé
+          </Text>
+        </View>
+        <View
+          style={
+            {
+              "alignItems": "flex-end",
+              "gap": 4,
+            }
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 16,
+                  "fontWeight": "400",
+                  "lineHeight": 24,
+                },
+                {
+                  "color": "#14201B",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            12.5 DT
+          </Text>
+        </View>
+      </View>
+    </View>
+  </ScrollView>
+</SafeAreaView>
+`;
+
+exports[`trips.tsx snapshots > first run — no bookings, no profile, rider empty state 1`] = `
+<SafeAreaView
+  edges={
+    [
+      "top",
+    ]
+  }
+  style={
+    [
+      {
+        "flex": 1,
+      },
+      {
+        "backgroundColor": "#F7F3E8",
+      },
+    ]
+  }
+>
+  <ScrollView
+    contentContainerStyle={
+      {
+        "gap": 12,
+        "padding": 16,
+        "paddingBottom": 40,
+      }
+    }
+    showsVerticalScrollIndicator={false}
+  >
+    <View
+      style={
+        {
+          "alignItems": "flex-start",
+          "flexDirection": "row",
+          "gap": 8,
+          "justifyContent": "space-between",
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "flex": 1,
+            "gap": 2,
+          }
+        }
+      >
+        <Text
+          style={
+            [
+              {
+                "fontFamily": "Fraunces_600SemiBold",
+                "fontSize": 27,
+                "letterSpacing": -0.3,
+                "lineHeight": 31.049999999999997,
+              },
+              {
+                "color": "#14201B",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              undefined,
+            ]
+          }
+        >
+          Mes trajets
+        </Text>
+        <Text
+          style={
+            [
+              {
+                "fontSize": 16,
+                "fontWeight": "400",
+                "lineHeight": 24,
+              },
+              {
+                "color": "#5C5748",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              undefined,
+            ]
+          }
+        >
+          Gérez vos trajets à venir et passés.
+        </Text>
+      </View>
+      <TouchableOpacity
+        accessibilityLabel="Notifications"
+        accessibilityRole="button"
+        onPress={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "borderRadius": 9999,
+              "height": 40,
+              "justifyContent": "center",
+              "width": 40,
+            },
+            {
+              "backgroundColor": "#FFFFFF",
+            },
+          ]
+        }
+      >
+        <Ionicons
+          accessibilityElementsHidden={true}
+          color="#14201B"
+          importantForAccessibility="no-hide-descendants"
+          name="notifications-outline"
+          size={20}
+        />
+      </TouchableOpacity>
+    </View>
+    <TouchableOpacity
+      activeOpacity={0.8}
+      onPress={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "borderRadius": 16,
+            "flexDirection": "row",
+            "gap": 8,
+            "padding": 12,
+          },
+          {
+            "backgroundColor": "#FFFFFF",
+          },
+        ]
+      }
+    >
+      <View
+        style={
+          [
+            {
+              "alignItems": "center",
+              "borderRadius": 20,
+              "height": 40,
+              "justifyContent": "center",
+              "width": 40,
+            },
+            {
+              "backgroundColor": "#2E9E6C",
+            },
+          ]
+        }
+      >
+        <Ionicons
+          color="#0D1512"
+          name="add"
+          size={22}
+        />
+      </View>
+      <View
+        style={
+          {
+            "flex": 1,
+          }
+        }
+      >
+        <Text
+          style={
+            [
+              {
+                "fontSize": 16,
+                "fontWeight": "400",
+                "lineHeight": 24,
+              },
+              {
+                "color": "#26333A",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              [
+                {
+                  "fontSize": 16,
+                  "fontWeight": "700",
+                },
+                {
+                  "color": "#14201B",
+                },
+              ],
+            ]
+          }
+        >
+          Devenir conducteur
+        </Text>
+        <Text
+          style={
+            [
+              {
+                "fontSize": 14,
+                "fontWeight": "400",
+                "lineHeight": 21,
+              },
+              {
+                "color": "#5C5748",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              undefined,
+            ]
+          }
+        >
+          Ajoutez votre véhicule pour commencer à conduire
+        </Text>
+      </View>
+      <Ionicons
+        accessibilityElementsHidden={true}
+        color="#8C8674"
+        importantForAccessibility="no-hide-descendants"
+        name="chevron-forward"
+        size={20}
+      />
+    </TouchableOpacity>
+    <View
+      style={
+        [
+          {
+            "borderRadius": 12,
+            "flexDirection": "row",
+            "marginTop": 4,
+            "padding": 4,
+          },
+          {
+            "backgroundColor": "#EDE6D4",
+          },
+        ]
+      }
+    >
+      <TouchableOpacity
+        accessibilityLabel="Conducteur"
+        accessibilityRole="tab"
+        accessibilityState={
+          {
+            "selected": false,
+          }
+        }
+        onPress={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "borderRadius": 8,
+              "flex": 1,
+              "paddingVertical": 6,
+            },
+            null,
+          ]
+        }
+      >
+        <Text
+          style={
+            [
+              {
+                "fontSize": 14,
+                "fontWeight": "400",
+                "lineHeight": 21,
+              },
+              {
+                "color": "#5C5748",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              undefined,
+            ]
+          }
+        >
+          Conducteur
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        accessibilityLabel="Passager"
+        accessibilityRole="tab"
+        accessibilityState={
+          {
+            "selected": true,
+          }
+        }
+        onPress={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "borderRadius": 8,
+              "flex": 1,
+              "paddingVertical": 6,
+            },
+            {
+              "backgroundColor": "#FFFFFF",
+            },
+          ]
+        }
+      >
+        <Text
+          style={
+            [
+              {
+                "fontSize": 14,
+                "fontWeight": "400",
+                "lineHeight": 21,
+              },
+              {
+                "color": "#14201B",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              {
+                "fontWeight": "600",
+              },
+            ]
+          }
+        >
+          Passager
+        </Text>
+      </TouchableOpacity>
+    </View>
+    <View
+      style={
+        {
+          "gap": 8,
+        }
+      }
+    >
+      <View
+        accessibilityRole="text"
+        accessible={true}
+        style={
+          {
+            "alignItems": "center",
+            "gap": 8,
+            "padding": 20,
+          }
+        }
+      >
+        <View
+          accessibilityElementsHidden={true}
+          importantForAccessibility="no-hide-descendants"
+        >
+          <Ionicons
+            accessibilityElementsHidden={true}
+            color="#8C8674"
+            importantForAccessibility="no-hide-descendants"
+            name="search-outline"
+            size={32}
+          />
+        </View>
+        <Text
+          style={
+            [
+              {
+                "fontSize": 24,
+                "fontWeight": "600",
+                "lineHeight": 28.799999999999997,
+              },
+              {
+                "color": "#26333A",
+                "textAlign": "center",
+                "writingDirection": "ltr",
+              },
+              {
+                "marginTop": 4,
+              },
+            ]
+          }
+        >
+          Aucune réservation
+        </Text>
+        <Text
+          style={
+            [
+              {
+                "fontSize": 16,
+                "fontWeight": "400",
+                "lineHeight": 24,
+              },
+              {
+                "color": "#7A8288",
+                "textAlign": "center",
+                "writingDirection": "ltr",
+              },
+              {
+                "marginBottom": 4,
+              },
+            ]
+          }
+        >
+          Recherchez un trajet pour réserver votre première place.
+        </Text>
+        <Pressable
+          accessibilityLabel="Trouver un trajet"
+          accessibilityRole="button"
+          accessibilityState={
+            {
+              "busy": false,
+              "disabled": false,
+            }
+          }
+          disabled={false}
+          onPress={[Function]}
+          style={[Function]}
+        >
+          <Text
+            style={
+              [
+                {
+                  "fontWeight": "600",
+                },
+                {
+                  "fontSize": 16,
+                },
+                {
+                  "color": "#2E3B42",
+                },
+              ]
+            }
+          >
+            Trouver un trajet
+          </Text>
+        </Pressable>
+      </View>
+    </View>
+  </ScrollView>
+</SafeAreaView>
+`;
