@@ -1,0 +1,154 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Verification Submitted - Vaya</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "outline-variant": "#c6c6cd",
+                        "on-secondary-fixed-variant": "#005236",
+                        "on-surface": "#191c20",
+                        "error": "#ba1a1a",
+                        "surface-container-high": "#e7e8ee",
+                        "secondary-fixed": "#6ffbbe",
+                        "secondary": "#006c49",
+                        "surface": "#f8f9ff",
+                        "surface-tint": "#565e74",
+                        "tertiary-fixed": "#d8e2ff",
+                        "on-tertiary-fixed": "#001a42",
+                        "surface-dim": "#d8dae0",
+                        "tertiary": "#000000",
+                        "on-tertiary": "#ffffff",
+                        "on-surface-variant": "#45464d",
+                        "status-verified": "#10b981",
+                        "on-secondary-container": "#00714d",
+                        "on-primary": "#ffffff",
+                        "status-pending": "#f59e0b",
+                        "background": "#f8f9ff",
+                        "role-passenger": "#64748b",
+                        "on-background": "#191c20",
+                        "on-tertiary-fixed-variant": "#004395",
+                        "on-error-container": "#93000a",
+                        "surface-container-low": "#f2f3f9",
+                        "on-secondary": "#ffffff",
+                        "outline": "#76777d",
+                        "surface-container-highest": "#e1e2e8",
+                        "role-driving": "#0f172a",
+                        "on-primary-container": "#7c839b",
+                        "primary": "#000000",
+                        "on-tertiary-container": "#3980f4",
+                        "primary-fixed": "#dae2fd",
+                        "tertiary-fixed-dim": "#adc6ff",
+                        "tertiary-container": "#001a42",
+                        "inverse-primary": "#bec6e0",
+                        "on-primary-fixed": "#131b2e",
+                        "on-secondary-fixed": "#002113",
+                        "error-container": "#ffdad6",
+                        "inverse-on-surface": "#eff0f6",
+                        "secondary-container": "#6cf8bb",
+                        "primary-fixed-dim": "#bec6e0",
+                        "surface-bright": "#f8f9ff",
+                        "on-primary-fixed-variant": "#3f465c",
+                        "primary-container": "#131b2e",
+                        "inverse-surface": "#2e3135",
+                        "on-error": "#ffffff",
+                        "status-upcoming": "#6366f1",
+                        "secondary-fixed-dim": "#4edea3",
+                        "surface-container": "#eceef3",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-variant": "#e1e2e8"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-lg": "24px",
+                        "gutter-grid": "16px",
+                        "touch-target": "48px",
+                        "margin-main": "20px",
+                        "stack-md": "16px",
+                        "stack-sm": "8px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "label-md": ["Inter"],
+                        "body-md": ["Inter"],
+                        "label-lg": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "headline-sm": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "headline-lg": ["30px", { "lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "headline-lg-mobile": ["26px", { "lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "headline-sm": ["20px", { "lineHeight": "28px", "fontWeight": "600" }]
+                    },
+                    "animation": {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface min-h-screen flex flex-col items-center justify-center relative overflow-hidden">
+<!-- Ambient Background Elements -->
+<div class="absolute inset-0 pointer-events-none z-0">
+<div class="absolute top-[-10%] left-[-10%] w-96 h-96 bg-primary-fixed-dim/20 rounded-full blur-[100px]"></div>
+<div class="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-tertiary-fixed-dim/20 rounded-full blur-[100px]"></div>
+</div>
+<!-- Main Content Canvas -->
+<main class="w-full max-w-md px-margin-main z-10 flex flex-col items-center text-center">
+<!-- Icon/Animation Wrapper -->
+<div class="relative w-32 h-32 mb-stack-lg flex items-center justify-center">
+<!-- Pulsing backdrop -->
+<div class="absolute inset-0 bg-status-pending/20 rounded-full animate-pulse-slow"></div>
+<div class="absolute inset-4 bg-status-pending/30 rounded-full animate-pulse"></div>
+<!-- Shield Icon -->
+<div class="relative z-10 w-20 h-20 bg-surface rounded-full flex items-center justify-center shadow-lg shadow-status-pending/10">
+<span class="material-symbols-outlined text-[48px] text-status-pending" style="font-variation-settings: 'FILL' 1;">
+                    shield_person
+                </span>
+</div>
+</div>
+<!-- Typography -->
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile md:font-headline-lg md:text-headline-lg text-primary mb-stack-md">
+            C'est presque prêt !
+        </h1>
+<p class="font-body-md text-body-md text-on-surface-variant mb-stack-lg max-w-sm">
+            Vos documents sont en cours de révision par notre équipe de sécurité. Nous vous informerons dès que votre profil sera validé. Votre trajet de Tunis vers Sousse sera alors publié automatiquement.
+        </p>
+<!-- Ride Summary Card (Glassmorphism/Minimalist) -->
+
+</main>
+<!-- Pinned Bottom Action -->
+<div class="fixed bottom-0 left-0 w-full p-margin-main bg-gradient-to-t from-surface via-surface/90 to-transparent pb-safe">
+<button class="w-full h-touch-target bg-primary text-on-primary rounded-lg font-label-lg text-label-lg flex items-center justify-center gap-2 hover:bg-primary/90 active:scale-[0.98] transition-all shadow-md shadow-primary/20">
+<span class="material-symbols-outlined">history</span>
+            Aller à Mes Trajets
+        </button>
+</div>
+
+
+</body></html>

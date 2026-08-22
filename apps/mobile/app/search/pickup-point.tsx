@@ -117,7 +117,7 @@ export default function PickupPointScreen(): React.JSX.Element {
         lng: selectedStop.lng,
       }),
     );
-    router.push({ pathname: '/search/trust', params: { rideId, driverUserId } });
+    router.push({ pathname: '/search/ride-details', params: { rideId, driverUserId } });
   }
 
   if (isLoading) {

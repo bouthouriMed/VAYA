@@ -1,0 +1,260 @@
+<!DOCTYPE html><html class="h-full" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Publish - Vaya</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-background": "#0b1c30",
+                        "error": "#ba1a1a",
+                        "primary-fixed": "#dae2fd",
+                        "surface": "#f8f9ff",
+                        "on-surface-variant": "#45464d",
+                        "primary-container": "#131b2e",
+                        "on-primary": "#ffffff",
+                        "secondary-fixed-dim": "#4edea3",
+                        "tertiary-fixed": "#d8e2ff",
+                        "outline": "#76777d",
+                        "on-secondary-fixed-variant": "#005236",
+                        "on-error-container": "#93000a",
+                        "on-primary-fixed": "#131b2e",
+                        "surface-container": "#e5eeff",
+                        "surface-dim": "#cbdbf5",
+                        "primary-fixed-dim": "#bec6e0",
+                        "tertiary-fixed-dim": "#adc6ff",
+                        "tertiary-container": "#001a42",
+                        "on-tertiary-container": "#3980f4",
+                        "surface-container-low": "#eff4ff",
+                        "surface-bright": "#f8f9ff",
+                        "secondary": "#006c49",
+                        "inverse-surface": "#213145",
+                        "on-secondary": "#ffffff",
+                        "on-primary-fixed-variant": "#3f465c",
+                        "tertiary": "#000000",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary-container": "#6cf8bb",
+                        "error-container": "#ffdad6",
+                        "outline-variant": "#c6c6cd",
+                        "on-surface": "#0b1c30",
+                        "on-error": "#ffffff",
+                        "inverse-primary": "#bec6e0",
+                        "surface-tint": "#565e74",
+                        "on-tertiary": "#ffffff",
+                        "surface-container-high": "#dce9ff",
+                        "surface-variant": "#d3e4fe",
+                        "on-secondary-fixed": "#002113",
+                        "surface-container-highest": "#d3e4fe",
+                        "on-tertiary-fixed": "#001a42",
+                        "secondary-fixed": "#6ffbbe",
+                        "on-tertiary-fixed-variant": "#004395",
+                        "primary": "#000000",
+                        "inverse-on-surface": "#eaf1ff",
+                        "on-secondary-container": "#00714d",
+                        "on-primary-container": "#7c839b",
+                        "background": "#f8f9ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-main": "20px",
+                        "touch-target": "48px",
+                        "gutter-grid": "16px",
+                        "stack-sm": "8px",
+                        "stack-md": "16px",
+                        "stack-lg": "24px"
+                    },
+                    "fontFamily": {
+                        "headline-sm": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "label-lg": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "body-md": ["Inter"],
+                        "label-md": ["Inter"],
+                        "body-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-sm": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "headline-lg": ["30px", { "lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "headline-lg-mobile": ["26px", { "lineHeight": "32px", "fontWeight": "700" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.filled {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background h-full flex flex-col font-body-md antialiased">
+<!-- Top App Bar -->
+<header class="w-full sticky top-0 bg-surface dark:bg-background shadow-sm flex items-center justify-between px-margin-main h-14 z-40">
+<button class="w-touch-target h-touch-target flex items-center justify-center -ml-3 text-primary hover:opacity-80 transition-opacity active:scale-95 duration-150">
+<span class="material-symbols-outlined text-2xl">arrow_back</span>
+</button>
+<h1 class="font-headline-md text-headline-md font-bold text-primary absolute left-1/2 -translate-x-1/2">Vaya</h1>
+<button class="w-touch-target h-touch-target flex items-center justify-center -mr-3 text-primary hover:opacity-80 transition-opacity active:scale-95 duration-150">
+<span class="material-symbols-outlined text-2xl">account_circle</span>
+</button>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-grow flex flex-col px-margin-main pt-stack-lg pb-32 overflow-y-auto">
+<!-- Conversational Header -->
+<section class="mb-stack-lg">
+<h2 class="font-headline-lg-mobile text-headline-lg-mobile md:font-headline-lg md:text-headline-lg text-on-background">
+                Where are you leaving from?
+            </h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant mt-stack-sm">
+                Enter your departure point to start offering a ride.
+            </p>
+</section>
+<!-- Search Input Area -->
+<section class="mb-stack-lg relative">
+<div class="flex items-center bg-surface-container-lowest border border-outline-variant rounded-lg px-4 h-14 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-all shadow-sm">
+<span class="material-symbols-outlined text-on-surface-variant mr-3">search</span>
+<input autofocus="" class="w-full bg-transparent border-none p-0 focus:ring-0 font-body-md text-body-md text-on-background placeholder-on-surface-variant/70" placeholder="Search departure location" type="text">
+</div>
+<button class="mt-stack-sm flex items-center gap-3 w-full p-3 rounded-lg hover:bg-surface-container-low transition-colors text-primary active:scale-95 duration-150">
+<div class="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center">
+<span class="material-symbols-outlined filled text-primary-container">my_location</span>
+</div>
+<span class="font-body-md text-body-md font-medium">Use current location</span>
+</button>
+</section>
+<!-- Recent Locations -->
+<section>
+<h3 class="font-label-lg text-label-lg text-on-surface-variant uppercase tracking-wider mb-stack-md">Recent Locations</h3>
+<ul class="flex flex-col gap-2">
+<!-- Location Item -->
+<li>
+<button class="w-full flex items-center gap-4 p-3 rounded-lg hover:bg-surface-container-lowest hover:shadow-sm transition-all active:scale-95 duration-150 group">
+<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center group-hover:bg-primary-fixed transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary">schedule</span>
+</div>
+<div class="flex flex-col items-start">
+<span class="font-body-md text-body-md font-medium text-on-background">San Francisco International Airport</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">San Francisco, CA</span>
+</div>
+</button>
+</li>
+<!-- Location Item -->
+<li>
+<button class="w-full flex items-center gap-4 p-3 rounded-lg hover:bg-surface-container-lowest hover:shadow-sm transition-all active:scale-95 duration-150 group">
+<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center group-hover:bg-primary-fixed transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary">schedule</span>
+</div>
+<div class="flex flex-col items-start">
+<span class="font-body-md text-body-md font-medium text-on-background">Stanford University</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">450 Serra Mall, Stanford, CA</span>
+</div>
+</button>
+</li>
+<!-- Location Item -->
+<li>
+<button class="w-full flex items-center gap-4 p-3 rounded-lg hover:bg-surface-container-lowest hover:shadow-sm transition-all active:scale-95 duration-150 group">
+<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center group-hover:bg-primary-fixed transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary">schedule</span>
+</div>
+<div class="flex flex-col items-start">
+<span class="font-body-md text-body-md font-medium text-on-background">1 Market Street</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Financial District, San Francisco</span>
+</div>
+</button>
+</li>
+</ul>
+</section>
+</main>
+<!-- Bottom Navigation Bar (Mobile Only per Shell Relevance) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-2 pb-safe bg-surface-container-lowest dark:bg-inverse-surface shadow-[0_-4px_12px_rgba(0,0,0,0.05)] rounded-t-xl">
+<button class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline hover:bg-surface-variant/30 active:scale-90 transition-transform duration-200 p-2 rounded-lg w-16">
+<span class="material-symbols-outlined mb-1">search</span>
+<span class="font-label-md text-label-md">Search</span>
+</button>
+<!-- Active Publish State (Mapped to primary driver action, substituting 'My Rides' slot for context) -->
+<button class="flex flex-col items-center justify-center text-secondary dark:text-secondary-fixed-dim font-semibold bg-secondary-container/20 dark:bg-secondary-container/10 rounded-full px-4 py-1 active:scale-90 transition-transform duration-200">
+<span class="material-symbols-outlined mb-1 filled">add_circle</span>
+<span class="font-label-md text-label-md">Publish</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline hover:bg-surface-variant/30 active:scale-90 transition-transform duration-200 p-2 rounded-lg w-16">
+<span class="material-symbols-outlined mb-1">chat_bubble</span>
+<span class="font-label-md text-label-md">Inbox</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline hover:bg-surface-variant/30 active:scale-90 transition-transform duration-200 p-2 rounded-lg w-16">
+<span class="material-symbols-outlined mb-1">person</span>
+<span class="font-label-md text-label-md">Profile</span>
+</button>
+</nav>
+<!-- Desktop Navigation Overlay (SideNav replacement for Web per Platform Anchor) -->
+<nav class="hidden md:flex fixed inset-y-0 left-0 z-[60] flex-col bg-surface shadow-2xl h-full w-80 rounded-r-xl">
+<div class="p-6 border-b border-surface-variant">
+<div class="flex items-center gap-4 mb-4">
+<div class="w-12 h-12 rounded-full bg-surface-container overflow-hidden">
+<span class="material-symbols-outlined text-4xl text-on-surface-variant flex items-center justify-center h-full w-full">account_circle</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-background">Driver Name</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Verified Member • 4.9 ★</p>
+</div>
+</div>
+</div>
+<div class="flex-grow py-4 px-3 flex flex-col gap-2">
+<button class="w-full flex items-center gap-4 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors active:opacity-70 text-left">
+<span class="material-symbols-outlined">search</span>
+<span class="font-body-md text-body-md font-medium">Search Rides</span>
+</button>
+<button class="w-full flex items-center gap-4 px-4 py-3 rounded-lg text-secondary bg-secondary-container/10 font-bold hover:bg-surface-container-high transition-colors active:opacity-70 text-left">
+<span class="material-symbols-outlined filled">add_circle</span>
+<span class="font-body-md text-body-md">Publish Ride</span>
+</button>
+<button class="w-full flex items-center gap-4 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors active:opacity-70 text-left">
+<span class="material-symbols-outlined">history</span>
+<span class="font-body-md text-body-md font-medium">My Rides</span>
+</button>
+<button class="w-full flex items-center gap-4 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors active:opacity-70 text-left">
+<span class="material-symbols-outlined">chat_bubble</span>
+<span class="font-body-md text-body-md font-medium">Inbox</span>
+</button>
+<button class="w-full flex items-center gap-4 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors active:opacity-70 text-left mt-auto">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-body-md text-body-md font-medium">Settings</span>
+</button>
+</div>
+</nav>
+<script>
+        // Simple input focus interaction enhancement
+        document.addEventListener('DOMContentLoaded', () => {
+            const input = document.querySelector('input[type="text"]');
+            if(input) {
+                input.addEventListener('focus', () => {
+                    input.parentElement.classList.add('shadow-md');
+                });
+                input.addEventListener('blur', () => {
+                    input.parentElement.classList.remove('shadow-md');
+                });
+            }
+        });
+    </script>
+</body></html>

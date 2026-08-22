@@ -40,8 +40,8 @@ describe('booking flow screens render real data, not mocks', () => {
     expect(source).toContain('destinationLabel');
   });
 
-  it('trust.tsx forwards the real booking pickup label and ride destination when creating a booking', () => {
-    const source = readFileSync(path.join(appDir, 'search/trust.tsx'), 'utf-8');
+  it('ride-details.tsx forwards the real booking pickup label and ride destination when creating a booking', () => {
+    const source = readFileSync(path.join(appDir, 'search/ride-details.tsx'), 'utf-8');
     expect(source).toContain('pickupLabel: booking.pickupLabel');
     expect(source).toContain('destinationLabel: ride!.destinationLabel');
   });

@@ -1,0 +1,1220 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`search/trust.tsx snapshots > renders a passenger-only profile (no driver stats/vehicle/pills) 1`] = `
+<View
+  style={
+    [
+      {
+        "flex": 1,
+      },
+      {
+        "backgroundColor": "#F8F9FF",
+      },
+    ]
+  }
+>
+  <View
+    style={
+      [
+        {
+          "alignItems": "center",
+          "borderBottomWidth": 1,
+          "flexDirection": "row",
+          "justifyContent": "space-between",
+          "paddingBottom": 8,
+          "paddingHorizontal": 16,
+        },
+        {
+          "backgroundColor": "#FFFFFF",
+          "borderBottomColor": "#DAE2FD",
+          "paddingTop": 8,
+        },
+      ]
+    }
+  >
+    <TouchableOpacity
+      accessibilityLabel="Retour"
+      accessibilityRole="button"
+      hitSlop={12}
+      onPress={[Function]}
+    >
+      <Ionicons
+        color="#000000"
+        name="chevron-back"
+        size={22}
+      />
+    </TouchableOpacity>
+    <Text
+      style={
+        [
+          {
+            "fontSize": 24,
+            "fontWeight": "600",
+            "lineHeight": 28.799999999999997,
+          },
+          {
+            "color": "#000000",
+            "textAlign": undefined,
+            "writingDirection": "ltr",
+          },
+          undefined,
+        ]
+      }
+    >
+      Vaya
+    </Text>
+    <View
+      style={
+        {
+          "width": 22,
+        }
+      }
+    />
+  </View>
+  <ScrollView
+    contentContainerStyle={
+      {
+        "gap": 12,
+        "padding": 16,
+      }
+    }
+    showsVerticalScrollIndicator={false}
+  >
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "gap": 8,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "position": "relative",
+          }
+        }
+      >
+        <View
+          accessibilityLabel="Photo de Mehdi Gharbi"
+          accessibilityRole="image"
+          accessible={true}
+          style={
+            [
+              {
+                "alignItems": "center",
+                "justifyContent": "center",
+              },
+              {
+                "backgroundColor": "#5B7D8A",
+                "borderRadius": 52,
+                "height": 104,
+                "width": 104,
+              },
+            ]
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "color": "#FFFFFF",
+                  "fontWeight": "600",
+                },
+                {
+                  "color": undefined,
+                  "fontSize": 42,
+                },
+              ]
+            }
+          >
+            MG
+          </Text>
+        </View>
+      </View>
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "gap": 8,
+          }
+        }
+      >
+        <Text
+          style={
+            [
+              {
+                "fontSize": 30,
+                "fontWeight": "700",
+                "lineHeight": 36,
+              },
+              {
+                "color": "#000000",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              undefined,
+            ]
+          }
+        >
+          Mehdi
+        </Text>
+      </View>
+    </View>
+    <View
+      style={
+        {
+          "height": 100,
+        }
+      }
+    />
+  </ScrollView>
+  <View
+    style={
+      [
+        {
+          "borderTopWidth": 1,
+          "gap": 8,
+          "paddingHorizontal": 16,
+          "paddingTop": 12,
+        },
+        {
+          "backgroundColor": "#FFFFFF",
+          "borderTopColor": "#DAE2FD",
+          "paddingBottom": 8,
+        },
+      ]
+    }
+  >
+    <View
+      style={
+        [
+          {
+            "alignItems": "center",
+            "borderRadius": 9999,
+            "flexDirection": "row",
+            "gap": 4,
+            "justifyContent": "center",
+            "paddingVertical": 12,
+            "width": "100%",
+          },
+          {
+            "opacity": 0.4,
+          },
+          {
+            "backgroundColor": "#000000",
+          },
+        ]
+      }
+    >
+      <Ionicons
+        accessibilityElementsHidden={true}
+        color="#FFFFFF"
+        importantForAccessibility="no-hide-descendants"
+        name="chatbubble-outline"
+        size={20}
+      />
+      <Text
+        style={
+          [
+            {
+              "fontSize": 14,
+              "fontWeight": "500",
+              "lineHeight": 21,
+            },
+            {
+              "color": "#FFFFFF",
+              "textAlign": undefined,
+              "writingDirection": "ltr",
+            },
+            undefined,
+          ]
+        }
+      >
+        Message conducteur
+      </Text>
+    </View>
+    <Text
+      style={
+        [
+          {
+            "fontSize": 12,
+            "fontWeight": "400",
+            "lineHeight": 18,
+          },
+          {
+            "color": "#76777D",
+            "textAlign": "center",
+            "writingDirection": "ltr",
+          },
+          undefined,
+        ]
+      }
+    >
+      Disponible une fois votre demande de place acceptée.
+    </Text>
+  </View>
+</View>
+`;
+
+exports[`search/trust.tsx snapshots > renders a verified driver profile with real stats, pills and vehicle 1`] = `
+<View
+  style={
+    [
+      {
+        "flex": 1,
+      },
+      {
+        "backgroundColor": "#F8F9FF",
+      },
+    ]
+  }
+>
+  <View
+    style={
+      [
+        {
+          "alignItems": "center",
+          "borderBottomWidth": 1,
+          "flexDirection": "row",
+          "justifyContent": "space-between",
+          "paddingBottom": 8,
+          "paddingHorizontal": 16,
+        },
+        {
+          "backgroundColor": "#FFFFFF",
+          "borderBottomColor": "#DAE2FD",
+          "paddingTop": 8,
+        },
+      ]
+    }
+  >
+    <TouchableOpacity
+      accessibilityLabel="Retour"
+      accessibilityRole="button"
+      hitSlop={12}
+      onPress={[Function]}
+    >
+      <Ionicons
+        color="#000000"
+        name="chevron-back"
+        size={22}
+      />
+    </TouchableOpacity>
+    <Text
+      style={
+        [
+          {
+            "fontSize": 24,
+            "fontWeight": "600",
+            "lineHeight": 28.799999999999997,
+          },
+          {
+            "color": "#000000",
+            "textAlign": undefined,
+            "writingDirection": "ltr",
+          },
+          undefined,
+        ]
+      }
+    >
+      Vaya
+    </Text>
+    <View
+      style={
+        {
+          "width": 22,
+        }
+      }
+    />
+  </View>
+  <ScrollView
+    contentContainerStyle={
+      {
+        "gap": 12,
+        "padding": 16,
+      }
+    }
+    showsVerticalScrollIndicator={false}
+  >
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "gap": 8,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "position": "relative",
+          }
+        }
+      >
+        <View
+          accessibilityLabel="Photo de Mehdi Gharbi"
+          accessibilityRole="image"
+          accessible={true}
+          style={
+            [
+              {
+                "alignItems": "center",
+                "justifyContent": "center",
+              },
+              {
+                "backgroundColor": "#5B7D8A",
+                "borderRadius": 52,
+                "height": 104,
+                "width": 104,
+              },
+            ]
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "color": "#FFFFFF",
+                  "fontWeight": "600",
+                },
+                {
+                  "color": undefined,
+                  "fontSize": 42,
+                },
+              ]
+            }
+          >
+            MG
+          </Text>
+        </View>
+        <View
+          style={
+            [
+              {
+                "alignItems": "center",
+                "borderRadius": 13,
+                "borderWidth": 2,
+                "bottom": 0,
+                "height": 26,
+                "justifyContent": "center",
+                "position": "absolute",
+                "right": 0,
+                "width": 26,
+              },
+              {
+                "backgroundColor": "#006C49",
+                "borderColor": "#FFFFFF",
+              },
+            ]
+          }
+        >
+          <Ionicons
+            accessibilityElementsHidden={true}
+            color="#FFFFFF"
+            importantForAccessibility="no-hide-descendants"
+            name="checkmark"
+            size={16}
+          />
+        </View>
+      </View>
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "gap": 8,
+          }
+        }
+      >
+        <Text
+          style={
+            [
+              {
+                "fontSize": 30,
+                "fontWeight": "700",
+                "lineHeight": 36,
+              },
+              {
+                "color": "#000000",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              undefined,
+            ]
+          }
+        >
+          Mehdi
+        </Text>
+        <View
+          style={
+            [
+              {
+                "alignItems": "center",
+                "borderRadius": 9999,
+                "flexDirection": "row",
+                "gap": 4,
+                "paddingHorizontal": 8,
+                "paddingVertical": 2,
+              },
+              {
+                "backgroundColor": "#E5EEFF",
+              },
+            ]
+          }
+        >
+          <Ionicons
+            accessibilityElementsHidden={true}
+            color="#45464D"
+            importantForAccessibility="no-hide-descendants"
+            name="shield-checkmark"
+            size={16}
+          />
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "lineHeight": 18,
+                },
+                {
+                  "color": "#45464D",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            Vérifié
+          </Text>
+        </View>
+      </View>
+      <Text
+        style={
+          [
+            {
+              "fontSize": 14,
+              "fontWeight": "400",
+              "lineHeight": 21,
+            },
+            {
+              "color": "#76777D",
+              "textAlign": undefined,
+              "writingDirection": "ltr",
+            },
+            undefined,
+          ]
+        }
+      >
+        Parle 
+        Français, Arabe
+      </Text>
+    </View>
+    <View
+      style={
+        {
+          "flexDirection": "row",
+          "gap": 8,
+        }
+      }
+    >
+      <View
+        style={
+          [
+            {
+              "alignItems": "center",
+              "borderRadius": 16,
+              "borderWidth": 1,
+              "flex": 1,
+              "gap": 4,
+              "paddingVertical": 12,
+            },
+            {
+              "backgroundColor": "#FFFFFF",
+              "borderColor": "#DAE2FD",
+            },
+          ]
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "gap": 4,
+            }
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 24,
+                  "fontWeight": "600",
+                  "lineHeight": 28.799999999999997,
+                },
+                {
+                  "color": "#000000",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            4.7
+          </Text>
+          <Ionicons
+            accessibilityElementsHidden={true}
+            color="#006C49"
+            importantForAccessibility="no-hide-descendants"
+            name="star"
+            size={16}
+          />
+        </View>
+        <Text
+          style={
+            [
+              {
+                "fontSize": 12,
+                "fontWeight": "400",
+                "lineHeight": 18,
+              },
+              {
+                "color": "#76777D",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              undefined,
+            ]
+          }
+        >
+          Note
+        </Text>
+      </View>
+      <View
+        style={
+          [
+            {
+              "alignItems": "center",
+              "borderRadius": 16,
+              "borderWidth": 1,
+              "flex": 1,
+              "gap": 4,
+              "paddingVertical": 12,
+            },
+            {
+              "backgroundColor": "#FFFFFF",
+              "borderColor": "#DAE2FD",
+            },
+          ]
+        }
+      >
+        <Text
+          style={
+            [
+              {
+                "fontSize": 24,
+                "fontWeight": "600",
+                "lineHeight": 28.799999999999997,
+              },
+              {
+                "color": "#000000",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              undefined,
+            ]
+          }
+        >
+          128
+        </Text>
+        <Text
+          style={
+            [
+              {
+                "fontSize": 12,
+                "fontWeight": "400",
+                "lineHeight": 18,
+              },
+              {
+                "color": "#76777D",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              undefined,
+            ]
+          }
+        >
+          Trajets
+        </Text>
+      </View>
+    </View>
+    <View
+      style={
+        {
+          "flexDirection": "row",
+          "flexWrap": "wrap",
+          "gap": 8,
+        }
+      }
+    >
+      <View
+        style={
+          [
+            {
+              "alignItems": "center",
+              "borderRadius": 9999,
+              "flexDirection": "row",
+              "gap": 4,
+              "paddingHorizontal": 12,
+              "paddingVertical": 8,
+            },
+            {
+              "backgroundColor": "#E5EEFF",
+            },
+          ]
+        }
+      >
+        <Ionicons
+          accessibilityElementsHidden={true}
+          color="#006C49"
+          importantForAccessibility="no-hide-descendants"
+          name="thumbs-up"
+          size={16}
+        />
+        <Text
+          style={
+            [
+              {
+                "fontSize": 14,
+                "fontWeight": "400",
+                "lineHeight": 21,
+              },
+              {
+                "color": "#000000",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              undefined,
+            ]
+          }
+        >
+          Fiable
+        </Text>
+      </View>
+      <View
+        style={
+          [
+            {
+              "alignItems": "center",
+              "borderRadius": 9999,
+              "flexDirection": "row",
+              "gap": 4,
+              "paddingHorizontal": 12,
+              "paddingVertical": 8,
+            },
+            {
+              "backgroundColor": "#E5EEFF",
+            },
+          ]
+        }
+      >
+        <Ionicons
+          accessibilityElementsHidden={true}
+          color="#006C49"
+          importantForAccessibility="no-hide-descendants"
+          name="ribbon-outline"
+          size={16}
+        />
+        <Text
+          style={
+            [
+              {
+                "fontSize": 14,
+                "fontWeight": "400",
+                "lineHeight": 21,
+              },
+              {
+                "color": "#000000",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              undefined,
+            ]
+          }
+        >
+          Top VAYA
+        </Text>
+      </View>
+    </View>
+    <View
+      style={
+        [
+          {
+            "borderRadius": 16,
+            "borderWidth": 1,
+            "gap": 8,
+            "padding": 12,
+          },
+          {
+            "backgroundColor": "#FFFFFF",
+            "borderColor": "#DAE2FD",
+          },
+        ]
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "gap": 4,
+          }
+        }
+      >
+        <Ionicons
+          accessibilityElementsHidden={true}
+          color="#76777D"
+          importantForAccessibility="no-hide-descendants"
+          name="information-circle-outline"
+          size={20}
+        />
+        <Text
+          style={
+            [
+              {
+                "fontSize": 14,
+                "fontWeight": "500",
+                "lineHeight": 21,
+              },
+              {
+                "color": "#000000",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              undefined,
+            ]
+          }
+        >
+          À propos de 
+          Mehdi
+        </Text>
+      </View>
+      <Text
+        style={
+          [
+            {
+              "fontSize": 14,
+              "fontWeight": "400",
+              "lineHeight": 21,
+            },
+            {
+              "color": "#45464D",
+              "textAlign": undefined,
+              "writingDirection": "ltr",
+            },
+            undefined,
+          ]
+        }
+      >
+        Conducteur ponctuel, trajets Tunis-Nabeul tous les jours.
+      </Text>
+    </View>
+    <View
+      style={
+        [
+          {
+            "borderRadius": 16,
+            "borderWidth": 1,
+            "gap": 8,
+            "padding": 12,
+          },
+          {
+            "backgroundColor": "#FFFFFF",
+            "borderColor": "#DAE2FD",
+          },
+        ]
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "gap": 4,
+          }
+        }
+      >
+        <Ionicons
+          accessibilityElementsHidden={true}
+          color="#76777D"
+          importantForAccessibility="no-hide-descendants"
+          name="car-sport-outline"
+          size={20}
+        />
+        <Text
+          style={
+            [
+              {
+                "fontSize": 14,
+                "fontWeight": "500",
+                "lineHeight": 21,
+              },
+              {
+                "color": "#000000",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              undefined,
+            ]
+          }
+        >
+          Véhicule
+        </Text>
+      </View>
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "justifyContent": "space-between",
+          }
+        }
+      >
+        <View>
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 16,
+                  "fontWeight": "400",
+                  "lineHeight": 24,
+                },
+                {
+                  "color": "#000000",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                {
+                  "fontWeight": "600",
+                },
+              ]
+            }
+          >
+            Gris
+             
+            Volkswagen
+             
+            Golf
+          </Text>
+          <View
+            style={
+              [
+                {
+                  "alignSelf": "flex-start",
+                  "borderRadius": 4,
+                  "borderWidth": 1,
+                  "marginTop": 4,
+                  "paddingHorizontal": 8,
+                  "paddingVertical": 2,
+                },
+                {
+                  "backgroundColor": "#F8F9FF",
+                  "borderColor": "#DAE2FD",
+                },
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "lineHeight": 18,
+                  },
+                  {
+                    "color": "#45464D",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  {
+                    "letterSpacing": 1.5,
+                  },
+                ]
+              }
+            >
+              123 TU 4567
+            </Text>
+          </View>
+        </View>
+        <View
+          style={
+            [
+              {
+                "alignItems": "center",
+                "borderRadius": 12,
+                "borderWidth": 1,
+                "height": 56,
+                "justifyContent": "center",
+                "width": 56,
+              },
+              {
+                "backgroundColor": "#F8F9FF",
+                "borderColor": "#DAE2FD",
+              },
+            ]
+          }
+        >
+          <Ionicons
+            accessibilityElementsHidden={true}
+            color="#76777D"
+            importantForAccessibility="no-hide-descendants"
+            name="car-sport"
+            size={32}
+          />
+        </View>
+      </View>
+    </View>
+    <TouchableOpacity
+      activeOpacity={0.8}
+      onPress={[Function]}
+      style={
+        [
+          {
+            "borderRadius": 16,
+            "borderWidth": 1,
+            "gap": 8,
+            "padding": 12,
+          },
+          {
+            "backgroundColor": "#FFFFFF",
+            "borderColor": "#DAE2FD",
+          },
+        ]
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "gap": 4,
+          }
+        }
+      >
+        <Ionicons
+          accessibilityElementsHidden={true}
+          color="#76777D"
+          importantForAccessibility="no-hide-descendants"
+          name="chatbubble-ellipses-outline"
+          size={20}
+        />
+        <Text
+          style={
+            [
+              {
+                "fontSize": 14,
+                "fontWeight": "500",
+                "lineHeight": 21,
+              },
+              {
+                "color": "#000000",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              {
+                "flex": 1,
+              },
+            ]
+          }
+        >
+          Avis
+        </Text>
+        <Ionicons
+          accessibilityElementsHidden={true}
+          color="#76777D"
+          importantForAccessibility="no-hide-descendants"
+          name="chevron-forward"
+          size={20}
+        />
+      </View>
+      <Text
+        style={
+          [
+            {
+              "fontSize": 14,
+              "fontWeight": "400",
+              "lineHeight": 21,
+            },
+            {
+              "color": "#76777D",
+              "textAlign": undefined,
+              "writingDirection": "ltr",
+            },
+            undefined,
+          ]
+        }
+      >
+        Voir tous les avis sur 
+        Mehdi
+      </Text>
+    </TouchableOpacity>
+    <View
+      style={
+        {
+          "height": 100,
+        }
+      }
+    />
+  </ScrollView>
+  <View
+    style={
+      [
+        {
+          "borderTopWidth": 1,
+          "gap": 8,
+          "paddingHorizontal": 16,
+          "paddingTop": 12,
+        },
+        {
+          "backgroundColor": "#FFFFFF",
+          "borderTopColor": "#DAE2FD",
+          "paddingBottom": 8,
+        },
+      ]
+    }
+  >
+    <View
+      style={
+        [
+          {
+            "alignItems": "center",
+            "borderRadius": 9999,
+            "flexDirection": "row",
+            "gap": 4,
+            "justifyContent": "center",
+            "paddingVertical": 12,
+            "width": "100%",
+          },
+          {
+            "opacity": 0.4,
+          },
+          {
+            "backgroundColor": "#000000",
+          },
+        ]
+      }
+    >
+      <Ionicons
+        accessibilityElementsHidden={true}
+        color="#FFFFFF"
+        importantForAccessibility="no-hide-descendants"
+        name="chatbubble-outline"
+        size={20}
+      />
+      <Text
+        style={
+          [
+            {
+              "fontSize": 14,
+              "fontWeight": "500",
+              "lineHeight": 21,
+            },
+            {
+              "color": "#FFFFFF",
+              "textAlign": undefined,
+              "writingDirection": "ltr",
+            },
+            undefined,
+          ]
+        }
+      >
+        Message conducteur
+      </Text>
+    </View>
+    <Text
+      style={
+        [
+          {
+            "fontSize": 12,
+            "fontWeight": "400",
+            "lineHeight": 18,
+          },
+          {
+            "color": "#76777D",
+            "textAlign": "center",
+            "writingDirection": "ltr",
+          },
+          undefined,
+        ]
+      }
+    >
+      Disponible une fois votre demande de place acceptée.
+    </Text>
+  </View>
+</View>
+`;
+
+exports[`search/trust.tsx snapshots > renders the "profile not found" state 1`] = `
+<View
+  style={
+    [
+      {
+        "alignItems": "center",
+        "flex": 1,
+        "justifyContent": "center",
+      },
+      {
+        "backgroundColor": "#F8F9FF",
+      },
+    ]
+  }
+>
+  <Text
+    style={
+      [
+        {
+          "fontSize": 16,
+          "fontWeight": "400",
+          "lineHeight": 24,
+        },
+        {
+          "color": "#76777D",
+          "textAlign": undefined,
+          "writingDirection": "ltr",
+        },
+        undefined,
+      ]
+    }
+  >
+    Profil introuvable.
+  </Text>
+</View>
+`;
+
+exports[`search/trust.tsx snapshots > renders the loading state 1`] = `
+<View
+  style={
+    [
+      {
+        "alignItems": "center",
+        "flex": 1,
+        "justifyContent": "center",
+      },
+      {
+        "backgroundColor": "#F8F9FF",
+      },
+    ]
+  }
+>
+  <ActivityIndicator
+    color="#006C49"
+    size="large"
+  />
+</View>
+`;

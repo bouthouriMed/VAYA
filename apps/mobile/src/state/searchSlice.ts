@@ -24,9 +24,10 @@ interface SearchState {
   origin: SearchLocation | null;
   destination: SearchLocation | null;
   /** ISO timestamp captured once when "Rechercher" is pressed — reused as
-   *  the `when` param by both results.tsx and cluster.tsx so their
-   *  useMatchingSearchQuery calls share one RTK Query cache entry instead
-   *  of each computing `new Date()` independently and missing the cache. */
+   *  the `when` param by results.tsx, ride-details.tsx and pickup-point.tsx
+   *  so their useMatchingSearchQuery calls share one RTK Query cache entry
+   *  instead of each computing `new Date()` independently and missing the
+   *  cache. */
   searchAt: string | null;
   /** The rider's chosen departure window, set on explore.tsx's "Quand ?"
    *  field — null means "now" (the long-standing default: search departs
@@ -37,9 +38,14 @@ interface SearchState {
   desiredDepartureAt: string | null;
   /** The pickup stop chosen on search/pickup-point.tsx for whichever ride
    *  is currently being booked. Cleared whenever a new ride is selected
-   *  (cluster.tsx) so a stale stop from a previous ride can never leak
+   *  (useOpenDriver) so a stale stop from a previous ride can never leak
    *  into a different ride's booking. */
   selectedStop: SelectedPickupStop | null;
+  /** UI-only passenger count shown on the search composer — `matching.search`
+   *  doesn't filter by seat count today, so this is never sent to the API.
+   *  Kept here (rather than local component state) only so it survives
+   *  navigating between explore.tsx and search/composer.tsx. */
+  passengers: number;
 }
 
 const initialState: SearchState = {
@@ -48,6 +54,7 @@ const initialState: SearchState = {
   searchAt: null,
   desiredDepartureAt: null,
   selectedStop: null,
+  passengers: 1,
 };
 
 const searchSlice = createSlice({
@@ -77,6 +84,9 @@ const searchSlice = createSlice({
     clearPickupStop(state) {
       state.selectedStop = null;
     },
+    setPassengers(state, action: PayloadAction<number>) {
+      state.passengers = Math.min(8, Math.max(1, action.payload));
+    },
     resetSearch() {
       return initialState;
     },
@@ -91,6 +101,7 @@ export const {
   startSearch,
   selectPickupStop,
   clearPickupStop,
+  setPassengers,
   resetSearch,
 } = searchSlice.actions;
 export default searchSlice.reducer;

@@ -1,60 +1,31 @@
-import { useEffect, useRef, useState } from 'react';
-import { Animated, View, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { useEffect } from 'react';
+import { View, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import {
-  Text,
-  Button,
-  Avatar,
-  Badge,
-  Meter,
-  StatTile,
-  colors,
-  spacing,
-  radii,
-  typography,
-  haptics,
-} from '@vaya/design-system';
+import { Text, Avatar, Icon, useAppTheme, spacing, radii } from '@vaya/design-system';
 import { router, useLocalSearchParams } from 'expo-router';
-import {
-  useGetUserPublicProfileQuery,
-  useGetRideQuery,
-  useGetUserTrustSummaryQuery,
-  useCreateBookingMutation,
-  useRegisterPushTokenMutation,
-} from '../../src/state/api';
-import { useAppDispatch, useAppSelector } from '../../src/state/store';
-import { clearPickupStop } from '../../src/state/searchSlice';
-import { requestPushPermissionAndRegister } from '../../src/services/notifications/registerForPushNotifications';
-import { trustTierBadge } from '../../src/features/ratings/ratingHelpers';
+import { useGetUserPublicProfileQuery, useGetUserTrustSummaryQuery } from '../../src/state/api';
 import { trackEvent } from '../../src/services/analytics/analytics';
 
-const HERO_HEIGHT = 200;
-const HERO_AVATAR_PX = 108;
-const STICKY_THRESHOLD = 120;
+// Real reliabilityScore threshold for the "Fiable" pill — chosen once here
+// rather than hardcoded inline so the rationale lives in one place: below
+// this, a driver isn't lying about being unreliable, but this screen
+// shouldn't actively vouch for them as a highlight either.
+const RELIABLE_THRESHOLD = 0.85;
 
+/** Stitch's "Driver Profile" — pure trust/vetting content. The actual
+ *  booking request lives on search/ride-details.tsx (reached *before* this
+ *  screen, from results.tsx); this screen is reached by tapping the driver
+ *  row there, and its own footer action is "Message Driver" — rendered
+ *  disabled since messaging is booking-scoped (Phase 8) and no conversation
+ *  can exist before a booking is even requested. */
 export default function TrustScreen(): React.JSX.Element {
-  const { rideId, driverUserId } = useLocalSearchParams<{ rideId: string; driverUserId: string }>();
+  const { driverUserId } = useLocalSearchParams<{ rideId: string; driverUserId: string }>();
   const insets = useSafeAreaInsets();
-  const scrollY = useRef(new Animated.Value(0)).current;
-  const origin = useAppSelector((s) => s.search.origin);
-  // Set by search/pickup-point.tsx when the matched ride has real,
-  // driver-selected route_stops (docs/domain/ride-engine.md). Absent for a
-  // legacy ride with zero route_stops, which keeps the free-form
-  // `origin`-based pickup flow below working unchanged.
-  const selectedStop = useAppSelector((s) => s.search.selectedStop);
-  const dispatch = useAppDispatch();
-  const [bookingError, setBookingError] = useState<string | undefined>();
+  const { colors: theme } = useAppTheme();
 
   const { data: profile, isLoading: isProfileLoading } = useGetUserPublicProfileQuery(driverUserId);
-  const { data: ride, isLoading: isRideLoading } = useGetRideQuery(rideId);
-  // Phase 9 (docs/roadmap/phase-09-ratings-trust.md): the trust signal a
-  // passenger needs *before* committing to book — UX principle #7 ("trust
-  // is visible before commitment, not after"), the exact reason this
-  // phase exists.
   const { data: trustSummary } = useGetUserTrustSummaryQuery(driverUserId);
-  const [createBooking, { isLoading: isBooking }] = useCreateBookingMutation();
-  const [registerPushToken] = useRegisterPushTokenMutation();
 
   useEffect(() => {
     if (trustSummary?.driver) {
@@ -62,34 +33,18 @@ export default function TrustScreen(): React.JSX.Element {
     }
   }, [trustSummary]);
 
-  const stickyBg = scrollY.interpolate({
-    inputRange: [0, STICKY_THRESHOLD],
-    outputRange: ['rgba(127,164,145,0)', 'rgba(127,164,145,1)'],
-    extrapolate: 'clamp',
-  });
-  const identityOpacity = scrollY.interpolate({
-    inputRange: [STICKY_THRESHOLD * 0.6, STICKY_THRESHOLD],
-    outputRange: [0, 1],
-    extrapolate: 'clamp',
-  });
-  const heroScale = scrollY.interpolate({
-    inputRange: [-120, 0],
-    outputRange: [1.4, 1],
-    extrapolate: 'clamp',
-  });
-
-  if (isProfileLoading || isRideLoading) {
+  if (isProfileLoading) {
     return (
-      <View style={styles.loadingWrap}>
-        <ActivityIndicator size="large" color={colors.secondary} />
+      <View style={[styles.loadingWrap, { backgroundColor: theme.background }]}>
+        <ActivityIndicator size="large" color={theme.accent} />
       </View>
     );
   }
 
-  if (!profile || !ride) {
+  if (!profile) {
     return (
-      <View style={styles.loadingWrap}>
-        <Text variant="body" color={colors.gray500}>
+      <View style={[styles.loadingWrap, { backgroundColor: theme.background }]}>
+        <Text variant="body" color={theme.inkFaint}>
           Profil introuvable.
         </Text>
       </View>
@@ -98,184 +53,178 @@ export default function TrustScreen(): React.JSX.Element {
 
   const firstName = profile.fullName.split(' ')[0]!;
   const driverStats = profile.driver;
-
-  async function requestSeat(): Promise<void> {
-    // A selected stop (search/pickup-point.tsx) takes precedence — it's
-    // the real, driver-validated point for rides that have route_stops.
-    // Falls back to the free-form origin only for legacy (stop-less)
-    // rides, where pickup-point.tsx is never shown in the first place.
-    if (!selectedStop && !origin) return;
-    setBookingError(undefined);
-    try {
-      const booking = await createBooking({
-        rideId,
-        input: {
-          seatsRequested: 1,
-          ...(selectedStop
-            ? { pickupStopId: selectedStop.stopId }
-            : { pickup: { label: origin!.label, lat: origin!.lat, lng: origin!.lng } }),
-        },
-      }).unwrap();
-      haptics.success();
-      // Contextual push-permission prompt (docs/roadmap/phase-07-notifications.md):
-      // a passenger's first booking request is a real reason to ask — never
-      // blocks navigation, and is a silent no-op after the first prompt.
-      void requestPushPermissionAndRegister((args) => registerPushToken(args).unwrap());
-      dispatch(clearPickupStop());
-      router.dismissTo({
-        pathname: '/bookings/confirmed',
-        params: {
-          bookingId: booking.id,
-          driverName: profile!.fullName,
-          price: String(booking.contributionTotal),
-          vehicleLabel: driverStats?.vehicle
-            ? `${driverStats.vehicle.make} ${driverStats.vehicle.model} ${driverStats.vehicle.color}`
-            : '',
-          // Real fields from the booking we just created and the ride we
-          // already fetched — every downstream screen in this flow forwards
-          // `params` wholesale, so this is the single place that needs to
-          // supply them (see docs/product/audit.md §4 on why these screens
-          // used to show fabricated data instead).
-          pickupLabel: booking.pickupLabel,
-          destinationLabel: ride!.destinationLabel,
-          estimatedDurationMin: ride!.estimatedDurationSec
-            ? String(Math.round(ride!.estimatedDurationSec / 60))
-            : '',
-          // Real coordinates so the post-booking screens can render an
-          // actual MapPreview (Phase 3) instead of no map at all.
-          pickupLat: String(booking.pickupLat),
-          pickupLng: String(booking.pickupLng),
-          destinationLat: String(ride!.destinationLat),
-          destinationLng: String(ride!.destinationLng),
-        },
-      });
-    } catch {
-      haptics.error();
-      setBookingError('Cette place vient peut-être d’être prise. Réessayez.');
-    }
-  }
+  const isTopRated = trustSummary?.driver?.tier === 'top_rated';
+  const isReliable = (driverStats?.reliabilityScore ?? 0) >= RELIABLE_THRESHOLD;
 
   return (
-    <View style={styles.container}>
-      <Animated.ScrollView
-        onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], {
-          useNativeDriver: false,
-        })}
-        scrollEventThrottle={16}
-        showsVerticalScrollIndicator={false}
-      >
-        <Animated.View style={[styles.hero, { transform: [{ scale: heroScale }] }]} />
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
+      <View style={[styles.header, { paddingTop: insets.top + spacing.sm, backgroundColor: theme.surface, borderBottomColor: theme.outlineVariant }]}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          hitSlop={12}
+          accessibilityRole="button"
+          accessibilityLabel="Retour"
+        >
+          <Ionicons name="chevron-back" size={22} color={theme.ink} />
+        </TouchableOpacity>
+        <Text variant="h3" color={theme.ink}>
+          Vaya
+        </Text>
+        <View style={{ width: 22 }} />
+      </View>
 
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.identity}>
-          <Avatar name={profile.fullName} sizePx={HERO_AVATAR_PX} style={styles.heroAvatar} />
-          <View style={styles.nameRow}>
-            <Text variant="h2">{firstName}</Text>
+          <View style={styles.avatarWrap}>
+            <Avatar uri={profile.avatarUrl} name={profile.fullName} sizePx={104} style={{ borderWidth: 3, borderColor: theme.surface }} />
             {driverStats ? (
-              <Ionicons name="checkmark-circle" size={20} color={colors.secondary} />
+              <View style={[styles.verifiedBadge, { backgroundColor: theme.accent, borderColor: theme.surface }]}>
+                <Icon name="checkmark" size="xs" color={theme.onAccent} />
+              </View>
             ) : null}
           </View>
-          {driverStats ? (
-            <Text variant="body" color={colors.gray600}>
-              ★ {driverStats.ratingAvg.toFixed(1)} · {driverStats.tripCount} trajets
+          <View style={styles.nameRow}>
+            <Text variant="h2" color={theme.ink}>
+              {firstName}
             </Text>
-          ) : null}
-          {trustSummary?.driver ? (
-            <Badge
-              label={trustTierBadge(trustSummary.driver.tier).label}
-              variant={trustTierBadge(trustSummary.driver.tier).variant}
-              style={styles.trustBadge}
-            />
+            {driverStats ? (
+              <View style={[styles.verifiedPill, { backgroundColor: theme.surfaceMuted }]}>
+                <Icon name="shield-checkmark" size="xs" color={theme.inkMuted} />
+                <Text variant="caption" color={theme.inkMuted}>
+                  Vérifié
+                </Text>
+              </View>
+            ) : null}
+          </View>
+          {driverStats?.languages && driverStats.languages.length > 0 ? (
+            <Text variant="bodySmall" color={theme.inkFaint}>
+              Parle {driverStats.languages.join(', ')}
+            </Text>
           ) : null}
         </View>
 
         {driverStats ? (
           <View style={styles.statsRow}>
-            <StatTile
-              icon={<Ionicons name="checkmark-done-outline" size={16} color={colors.gray600} />}
-              value={`${Math.round(driverStats.punctualityScore * 100)}%`}
-              label="Ponctualité"
-            />
-            <StatTile
-              icon={<Ionicons name="shield-checkmark-outline" size={16} color={colors.gray600} />}
-              value={`${Math.round(driverStats.reliabilityScore * 100)}%`}
-              label="Fiabilité"
-            />
-            <StatTile
-              icon={<Ionicons name="car-sport-outline" size={16} color={colors.gray600} />}
-              value={`${ride.seatsAvailable}`}
-              label="Places dispo"
-            />
-          </View>
-        ) : null}
-
-        <View style={styles.card}>
-          <Text variant="label">Trajet</Text>
-          <Text variant="bodySmall" color={colors.gray600}>
-            {ride.originLabel} → {ride.destinationLabel}
-          </Text>
-          <Text variant="bodySmall" color={colors.gray500}>
-            Départ{' '}
-            {new Date(ride.departureAt).toLocaleTimeString('fr-FR', {
-              hour: '2-digit',
-              minute: '2-digit',
-            })}
-          </Text>
-        </View>
-
-        {driverStats ? (
-          <View style={styles.card}>
-            <Meter label="Fiabilité" valueRatio={driverStats.reliabilityScore} />
-            <Meter label="Ponctualité" valueRatio={driverStats.punctualityScore} />
-          </View>
-        ) : null}
-
-        {driverStats?.vehicle ? (
-          <View style={styles.card}>
-            <Text variant="label" style={styles.cardTitle}>
-              Véhicule
-            </Text>
-            <View style={styles.vehicleRow}>
-              <Ionicons name="car-sport-outline" size={20} color={colors.gray900} />
-              <Text variant="bodySmall" color={colors.gray700}>
-                {driverStats.vehicle.make} {driverStats.vehicle.model} · {driverStats.vehicle.color}
+            <View style={[styles.statTile, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
+              <View style={styles.statValueRow}>
+                <Text variant="h3" color={theme.ink}>
+                  {driverStats.ratingAvg.toFixed(1)}
+                </Text>
+                <Icon name="star" size="xs" color={theme.accent} />
+              </View>
+              <Text variant="caption" color={theme.inkFaint}>
+                Note
+              </Text>
+            </View>
+            <View style={[styles.statTile, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
+              <Text variant="h3" color={theme.ink}>
+                {driverStats.tripCount}
+              </Text>
+              <Text variant="caption" color={theme.inkFaint}>
+                Trajets
               </Text>
             </View>
           </View>
         ) : null}
 
+        {driverStats && (isReliable || isTopRated) ? (
+          <View style={styles.pillsRow}>
+            {isReliable ? (
+              <View style={[styles.pill, { backgroundColor: theme.surfaceMuted }]}>
+                <Icon name="thumbs-up" size="xs" color={theme.accent} />
+                <Text variant="bodySmall" color={theme.ink}>
+                  Fiable
+                </Text>
+              </View>
+            ) : null}
+            {isTopRated ? (
+              <View style={[styles.pill, { backgroundColor: theme.surfaceMuted }]}>
+                <Icon name="ribbon-outline" size="xs" color={theme.accent} />
+                <Text variant="bodySmall" color={theme.ink}>
+                  Top VAYA
+                </Text>
+              </View>
+            ) : null}
+          </View>
+        ) : null}
+
+        {driverStats?.bio ? (
+          <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
+            <View style={styles.cardTitleRow}>
+              <Icon name="information-circle-outline" size="sm" color={theme.inkFaint} />
+              <Text variant="label" color={theme.ink}>
+                À propos de {firstName}
+              </Text>
+            </View>
+            <Text variant="bodySmall" color={theme.inkMuted}>
+              {driverStats.bio}
+            </Text>
+          </View>
+        ) : null}
+
+        {driverStats?.vehicle ? (
+          <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
+            <View style={styles.cardTitleRow}>
+              <Icon name="car-sport-outline" size="sm" color={theme.inkFaint} />
+              <Text variant="label" color={theme.ink}>
+                Véhicule
+              </Text>
+            </View>
+            <View style={styles.vehicleRow}>
+              <View>
+                <Text variant="body" color={theme.ink} style={styles.vehicleName}>
+                  {driverStats.vehicle.color} {driverStats.vehicle.make} {driverStats.vehicle.model}
+                </Text>
+                <View style={[styles.platePill, { backgroundColor: theme.background, borderColor: theme.outlineVariant }]}>
+                  <Text variant="caption" color={theme.inkMuted} style={styles.plateText}>
+                    {driverStats.vehicle.plateNumber}
+                  </Text>
+                </View>
+              </View>
+              <View style={[styles.vehicleIconWrap, { backgroundColor: theme.background, borderColor: theme.outlineVariant }]}>
+                <Icon name="car-sport" size="lg" color={theme.inkFaint} />
+              </View>
+            </View>
+          </View>
+        ) : null}
+
+        {driverStats ? (
+          <TouchableOpacity
+            style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}
+            onPress={() => router.push({ pathname: '/search/reviews', params: { driverUserId, driverName: profile.fullName } })}
+            activeOpacity={0.8}
+          >
+            <View style={styles.cardTitleRow}>
+              <Icon name="chatbubble-ellipses-outline" size="sm" color={theme.inkFaint} />
+              <Text variant="label" color={theme.ink} style={styles.reviewsTitle}>
+                Avis
+              </Text>
+              <Icon name="chevron-forward" size="sm" color={theme.inkFaint} />
+            </View>
+            <Text variant="bodySmall" color={theme.inkFaint}>
+              Voir tous les avis sur {firstName}
+            </Text>
+          </TouchableOpacity>
+        ) : null}
+
         <View style={styles.scrollSpacer} />
-      </Animated.ScrollView>
+      </ScrollView>
 
-      <Animated.View
-        style={[styles.stickyHeader, { paddingTop: insets.top, backgroundColor: stickyBg }]}
-      >
-        <TouchableOpacity onPress={() => router.back()} hitSlop={12} style={styles.backBtn}>
-          <Ionicons name="chevron-back" size={24} color={colors.white} />
-        </TouchableOpacity>
-        <Animated.View style={[styles.stickyIdentity, { opacity: identityOpacity }]}>
-          <Avatar name={profile.fullName} size="sm" style={styles.stickyAvatar} />
-          <Text style={styles.stickyName}>{firstName}</Text>
-        </Animated.View>
-      </Animated.View>
-
-      <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.sm }]}>
-        {bookingError ? (
-          <Text variant="bodySmall" color={colors.error} align="center">
-            {bookingError}
+      <View style={[styles.footer, { backgroundColor: theme.surface, borderTopColor: theme.outlineVariant, paddingBottom: insets.bottom + spacing.sm }]}>
+        {/* Messaging is booking-scoped (Phase 8) — a conversation is only
+         *  created once a booking reaches `accepted`, so there is no real
+         *  backend path for messaging a driver before a seat is even
+         *  requested. Rendered as the design's solid "Message Driver" pill,
+         *  just disabled, rather than wired to nothing. */}
+        <View style={[styles.cta, styles.ctaDisabled, { backgroundColor: theme.ink }]}>
+          <Icon name="chatbubble-outline" size="sm" color={theme.onInk} />
+          <Text variant="label" color={theme.onInk}>
+            Message conducteur
           </Text>
-        ) : (
-          <Text variant="bodySmall" color={colors.gray600} align="center">
-            La contribution se règle directement avec votre conducteur.
-          </Text>
-        )}
-        <Button
-          label={`Demander une place · ${ride.contributionPerSeat} DT`}
-          size="lg"
-          loading={isBooking}
-          disabled={(!selectedStop && !origin) || ride.seatsAvailable < 1}
-          onPress={() => void requestSeat()}
-          style={styles.cta}
-        />
+        </View>
+        <Text variant="caption" color={theme.inkFaint} align="center">
+          Disponible une fois votre demande de place acceptée.
+        </Text>
       </View>
     </View>
   );
@@ -284,119 +233,145 @@ export default function TrustScreen(): React.JSX.Element {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.gray100,
   },
   loadingWrap: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.gray100,
   },
-  hero: {
-    height: HERO_HEIGHT,
-    backgroundColor: colors.secondary,
-    borderBottomLeftRadius: 40,
-    borderBottomRightRadius: 40,
-  },
-  stickyHeader: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
+  header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.xs,
-    paddingHorizontal: spacing.sm,
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.lg,
     paddingBottom: spacing.sm,
+    borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  backBtn: {
-    width: 36,
-    height: 36,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  stickyIdentity: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-  },
-  stickyAvatar: {
-    borderWidth: 1.5,
-    borderColor: colors.white,
-  },
-  stickyName: {
-    color: colors.white,
-    fontWeight: typography.fontWeight.bold,
-    fontSize: typography.fontSize.md,
+  scrollContent: {
+    padding: spacing.lg,
+    gap: spacing.md,
   },
   identity: {
     alignItems: 'center',
-    marginTop: -HERO_AVATAR_PX / 2,
-    paddingHorizontal: spacing.lg,
-    gap: 2,
+    gap: spacing.sm,
   },
-  heroAvatar: {
-    borderWidth: 3,
-    borderColor: colors.white,
-    marginBottom: spacing.sm,
+  avatarWrap: {
+    position: 'relative',
+  },
+  verifiedBadge: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    borderWidth: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   nameRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.xs,
+    gap: spacing.sm,
   },
-  trustBadge: {
-    marginTop: spacing.xs,
+  verifiedPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    borderRadius: radii.full,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
   },
   statsRow: {
     flexDirection: 'row',
     gap: spacing.sm,
-    paddingHorizontal: spacing.lg,
-    marginTop: spacing.lg,
+  },
+  statTile: {
+    flex: 1,
+    alignItems: 'center',
+    gap: spacing.xs,
+    borderRadius: radii.xl,
+    borderWidth: 1,
+    paddingVertical: spacing.md,
+  },
+  statValueRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  pillsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  pill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    borderRadius: radii.full,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
   },
   card: {
-    backgroundColor: colors.white,
-    borderRadius: radii['2xl'],
-    padding: spacing.lg,
-    marginHorizontal: spacing.lg,
-    marginTop: spacing.md,
+    borderRadius: radii.xl,
+    borderWidth: 1,
+    padding: spacing.md,
     gap: spacing.sm,
-    shadowColor: colors.gray900,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 1,
   },
-  cardTitle: {
-    marginBottom: 2,
+  cardTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  reviewsTitle: {
+    flex: 1,
   },
   vehicleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm,
+    justifyContent: 'space-between',
+  },
+  vehicleName: {
+    fontWeight: '600',
+  },
+  platePill: {
+    marginTop: spacing.xs,
+    alignSelf: 'flex-start',
+    borderRadius: radii.sm,
+    borderWidth: 1,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+  },
+  plateText: {
+    letterSpacing: 1.5,
+  },
+  vehicleIconWrap: {
+    width: 56,
+    height: 56,
+    borderRadius: radii.lg,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   scrollSpacer: {
-    height: 120,
+    height: 100,
   },
   footer: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: colors.white,
+    borderTopWidth: 1,
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,
     gap: spacing.sm,
-    borderTopLeftRadius: radii['2xl'],
-    borderTopRightRadius: radii['2xl'],
-    shadowColor: colors.gray900,
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
   },
   cta: {
     width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+    borderRadius: radii.full,
+    paddingVertical: spacing.md,
+  },
+  ctaDisabled: {
+    opacity: 0.4,
   },
 });

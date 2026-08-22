@@ -10,6 +10,7 @@ import {
   cancelBooking,
   createBooking,
   declineBooking,
+  listFellowPassengers,
   listMyBookings,
   listRequestsForRide,
   previewBookingCancellation,
@@ -44,6 +45,13 @@ const bookingResponseSchema = z.object({
 
 const rideIdParamSchema = z.object({ rideId: z.string().uuid() });
 const bookingIdParamSchema = z.object({ bookingId: z.string().uuid() });
+
+const fellowPassengerResponseSchema = z.object({
+  userId: z.string().uuid(),
+  firstName: z.string(),
+  avatarUrl: z.string().nullable(),
+  ratingAvg: z.number(),
+});
 
 // Phase 10 (docs/roadmap/phase-10-cancellation-no-show.md).
 const cancellationPolicySchema = z.object({
@@ -91,6 +99,20 @@ export async function bookingsRoutes(fastify: FastifyInstance): Promise<void> {
     async (request, reply) => {
       const results = await listMyBookings(db, getUserId(request));
       reply.send(results);
+    },
+  );
+
+  // Public — no auth, mirrors GET /rides/:rideId/stops' passenger-facing
+  // default. Only accepted bookings, only first name + rating, never a
+  // pending/declined request or any contact info.
+  app.get(
+    '/rides/:rideId/fellow-passengers',
+    {
+      schema: { params: rideIdParamSchema, response: { 200: z.array(fellowPassengerResponseSchema) } },
+    },
+    async (request, reply) => {
+      const passengers = await listFellowPassengers(db, request.params.rideId);
+      reply.send(passengers);
     },
   );
 

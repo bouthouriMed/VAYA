@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import searchReducer from './searchSlice';
 import authReducer from './authSlice';
 import driverOnboardingReducer from './driverOnboardingSlice';
+import appearanceReducer from './appearanceSlice';
 import { api } from './api';
 
 export const store = configureStore({
@@ -11,6 +12,7 @@ export const store = configureStore({
     search: searchReducer,
     auth: authReducer,
     driverOnboarding: driverOnboardingReducer,
+    appearance: appearanceReducer,
     [api.reducerPath]: api.reducer,
   },
   middleware: (getDefaultMiddleware) =>

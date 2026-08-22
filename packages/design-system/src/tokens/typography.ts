@@ -6,8 +6,23 @@ const fontFamily = Platform.select({
   default: 'System',
 });
 
+// Fraunces — a warm, soft-edged editorial serif that matches VAYA's brand
+// character (navy/sage/cream, generous radii) far more than the system
+// grotesk. Loaded once at the app root (apps/mobile/app/_layout.tsx) via
+// @expo-google-fonts/fraunces; these are the registered font-family names
+// RN resolves by string, so referencing them here is safe even before the
+// app has loaded them (RN silently falls back to the system font for an
+// unregistered family name — see Text.tsx's `display*` variants).
+export const fontFamilyDisplay = {
+  regular: 'Fraunces_400Regular',
+  medium: 'Fraunces_500Medium',
+  semibold: 'Fraunces_600SemiBold',
+  italic: 'Fraunces_500Medium_Italic',
+} as const;
+
 export const typography = {
   fontFamily,
+  fontFamilyDisplay,
   fontSize: {
     xs: 12,
     sm: 14,
@@ -17,6 +32,8 @@ export const typography = {
     '2xl': 24,
     '3xl': 30,
     '4xl': 36,
+    '5xl': 44,
+    '6xl': 56,
   },
   fontWeight: {
     regular: '400' as const,

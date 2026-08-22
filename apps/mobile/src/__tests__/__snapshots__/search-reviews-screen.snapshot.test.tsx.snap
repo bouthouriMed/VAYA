@@ -1,0 +1,1498 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`search/reviews.tsx snapshots > renders before the profile has loaded (icon placeholder, no rating row) 1`] = `
+<View
+  style={
+    [
+      {
+        "flex": 1,
+      },
+      {
+        "backgroundColor": "#F8F9FF",
+      },
+    ]
+  }
+>
+  <View
+    style={
+      [
+        {
+          "alignItems": "center",
+          "borderBottomWidth": 1,
+          "flexDirection": "row",
+          "justifyContent": "space-between",
+          "paddingBottom": 8,
+          "paddingHorizontal": 16,
+        },
+        {
+          "backgroundColor": "#FFFFFF",
+          "borderBottomColor": "#DAE2FD",
+          "paddingTop": 8,
+        },
+      ]
+    }
+  >
+    <TouchableOpacity
+      accessibilityLabel="Retour"
+      accessibilityRole="button"
+      hitSlop={12}
+      onPress={[Function]}
+    >
+      <Ionicons
+        color="#000000"
+        name="chevron-back"
+        size={22}
+      />
+    </TouchableOpacity>
+    <Text
+      style={
+        [
+          {
+            "fontSize": 24,
+            "fontWeight": "600",
+            "lineHeight": 28.799999999999997,
+          },
+          {
+            "color": "#000000",
+            "textAlign": undefined,
+            "writingDirection": "ltr",
+          },
+          undefined,
+        ]
+      }
+    >
+      Vaya
+    </Text>
+    <View
+      style={
+        {
+          "width": 22,
+        }
+      }
+    />
+  </View>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "gap": 8,
+        "paddingHorizontal": 16,
+        "paddingVertical": 16,
+      }
+    }
+  >
+    <Ionicons
+      accessibilityElementsHidden={true}
+      color="#76777D"
+      importantForAccessibility="no-hide-descendants"
+      name="chatbubbles-outline"
+      size={32}
+    />
+    <Text
+      style={
+        [
+          {
+            "fontSize": 30,
+            "fontWeight": "700",
+            "lineHeight": 36,
+          },
+          {
+            "color": "#000000",
+            "textAlign": "center",
+            "writingDirection": "ltr",
+          },
+          undefined,
+        ]
+      }
+    >
+      Mehdi
+    </Text>
+  </View>
+  <FlatList>
+    <View
+      accessibilityLabel="Emma L., 5 sur 5 étoiles, il y a 2 jours. Trajet impeccable, très ponctuel. La voiture était impeccable et il m’a aidée avec mes bagages."
+      accessible={true}
+      style={
+        [
+          {
+            "borderRadius": 16,
+            "gap": 4,
+            "padding": 12,
+            "shadowColor": "#26333A",
+          },
+          false,
+          {
+            "backgroundColor": "#FFFFFF",
+          },
+          {
+            "borderColor": "#DAE2FD",
+            "borderWidth": 1,
+          },
+        ]
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "gap": 8,
+          }
+        }
+      >
+        <View
+          accessibilityLabel="Photo de Emma L."
+          accessibilityRole="image"
+          accessible={true}
+          style={
+            [
+              {
+                "alignItems": "center",
+                "justifyContent": "center",
+              },
+              {
+                "backgroundColor": "#5B7D8A",
+                "borderRadius": 16,
+                "height": 32,
+                "width": 32,
+              },
+            ]
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "color": "#FFFFFF",
+                  "fontWeight": "600",
+                },
+                {
+                  "color": undefined,
+                  "fontSize": 14,
+                },
+              ]
+            }
+          >
+            EL
+          </Text>
+        </View>
+        <View
+          style={
+            {
+              "flex": 1,
+            }
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 14,
+                  "fontWeight": "600",
+                },
+                {
+                  "color": "#000000",
+                },
+              ]
+            }
+          >
+            Emma L.
+          </Text>
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                },
+                {
+                  "color": "#76777D",
+                },
+              ]
+            }
+          >
+            il y a 2 jours
+          </Text>
+        </View>
+        <View
+          accessibilityElementsHidden={true}
+          importantForAccessibility="no-hide-descendants"
+          style={
+            {
+              "flexDirection": "row",
+            }
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                },
+                {
+                  "color": "#006C49",
+                },
+              ]
+            }
+          >
+            ★
+          </Text>
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                },
+                {
+                  "color": "#006C49",
+                },
+              ]
+            }
+          >
+            ★
+          </Text>
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                },
+                {
+                  "color": "#006C49",
+                },
+              ]
+            }
+          >
+            ★
+          </Text>
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                },
+                {
+                  "color": "#006C49",
+                },
+              ]
+            }
+          >
+            ★
+          </Text>
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                },
+                {
+                  "color": "#006C49",
+                },
+              ]
+            }
+          >
+            ★
+          </Text>
+        </View>
+      </View>
+      <Text
+        style={
+          [
+            {
+              "fontSize": 14,
+              "lineHeight": 19,
+            },
+            {
+              "color": "#45464D",
+            },
+          ]
+        }
+      >
+        Trajet impeccable, très ponctuel. La voiture était impeccable et il m’a aidée avec mes bagages.
+      </Text>
+    </View>
+    <View
+      accessibilityLabel="Karim T., 5 sur 5 étoiles, il y a 5 jours. Voiture propre et conduite prudente. A bien géré le trafic. Je reprendrais volontiers ce trajet."
+      accessible={true}
+      style={
+        [
+          {
+            "borderRadius": 16,
+            "gap": 4,
+            "padding": 12,
+            "shadowColor": "#26333A",
+          },
+          false,
+          {
+            "backgroundColor": "#FFFFFF",
+          },
+          {
+            "borderColor": "#DAE2FD",
+            "borderWidth": 1,
+          },
+        ]
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "gap": 8,
+          }
+        }
+      >
+        <View
+          accessibilityLabel="Photo de Karim T."
+          accessibilityRole="image"
+          accessible={true}
+          style={
+            [
+              {
+                "alignItems": "center",
+                "justifyContent": "center",
+              },
+              {
+                "backgroundColor": "#7FA491",
+                "borderRadius": 16,
+                "height": 32,
+                "width": 32,
+              },
+            ]
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "color": "#FFFFFF",
+                  "fontWeight": "600",
+                },
+                {
+                  "color": undefined,
+                  "fontSize": 14,
+                },
+              ]
+            }
+          >
+            KT
+          </Text>
+        </View>
+        <View
+          style={
+            {
+              "flex": 1,
+            }
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 14,
+                  "fontWeight": "600",
+                },
+                {
+                  "color": "#000000",
+                },
+              ]
+            }
+          >
+            Karim T.
+          </Text>
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                },
+                {
+                  "color": "#76777D",
+                },
+              ]
+            }
+          >
+            il y a 5 jours
+          </Text>
+        </View>
+        <View
+          accessibilityElementsHidden={true}
+          importantForAccessibility="no-hide-descendants"
+          style={
+            {
+              "flexDirection": "row",
+            }
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                },
+                {
+                  "color": "#006C49",
+                },
+              ]
+            }
+          >
+            ★
+          </Text>
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                },
+                {
+                  "color": "#006C49",
+                },
+              ]
+            }
+          >
+            ★
+          </Text>
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                },
+                {
+                  "color": "#006C49",
+                },
+              ]
+            }
+          >
+            ★
+          </Text>
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                },
+                {
+                  "color": "#006C49",
+                },
+              ]
+            }
+          >
+            ★
+          </Text>
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                },
+                {
+                  "color": "#006C49",
+                },
+              ]
+            }
+          >
+            ★
+          </Text>
+        </View>
+      </View>
+      <Text
+        style={
+          [
+            {
+              "fontSize": 14,
+              "lineHeight": 19,
+            },
+            {
+              "color": "#45464D",
+            },
+          ]
+        }
+      >
+        Voiture propre et conduite prudente. A bien géré le trafic. Je reprendrais volontiers ce trajet.
+      </Text>
+    </View>
+    <View
+      accessibilityLabel="Sarah B., 4 sur 5 étoiles, il y a 1 semaine. Bonne expérience dans l’ensemble. Conducteur un peu silencieux, mais trajet fluide et à l’heure."
+      accessible={true}
+      style={
+        [
+          {
+            "borderRadius": 16,
+            "gap": 4,
+            "padding": 12,
+            "shadowColor": "#26333A",
+          },
+          false,
+          {
+            "backgroundColor": "#FFFFFF",
+          },
+          {
+            "borderColor": "#DAE2FD",
+            "borderWidth": 1,
+          },
+        ]
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "gap": 8,
+          }
+        }
+      >
+        <View
+          accessibilityLabel="Photo de Sarah B."
+          accessibilityRole="image"
+          accessible={true}
+          style={
+            [
+              {
+                "alignItems": "center",
+                "justifyContent": "center",
+              },
+              {
+                "backgroundColor": "#B08A4E",
+                "borderRadius": 16,
+                "height": 32,
+                "width": 32,
+              },
+            ]
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "color": "#FFFFFF",
+                  "fontWeight": "600",
+                },
+                {
+                  "color": undefined,
+                  "fontSize": 14,
+                },
+              ]
+            }
+          >
+            SB
+          </Text>
+        </View>
+        <View
+          style={
+            {
+              "flex": 1,
+            }
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 14,
+                  "fontWeight": "600",
+                },
+                {
+                  "color": "#000000",
+                },
+              ]
+            }
+          >
+            Sarah B.
+          </Text>
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                },
+                {
+                  "color": "#76777D",
+                },
+              ]
+            }
+          >
+            il y a 1 semaine
+          </Text>
+        </View>
+        <View
+          accessibilityElementsHidden={true}
+          importantForAccessibility="no-hide-descendants"
+          style={
+            {
+              "flexDirection": "row",
+            }
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                },
+                {
+                  "color": "#006C49",
+                },
+              ]
+            }
+          >
+            ★
+          </Text>
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                },
+                {
+                  "color": "#006C49",
+                },
+              ]
+            }
+          >
+            ★
+          </Text>
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                },
+                {
+                  "color": "#006C49",
+                },
+              ]
+            }
+          >
+            ★
+          </Text>
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                },
+                {
+                  "color": "#006C49",
+                },
+              ]
+            }
+          >
+            ★
+          </Text>
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                },
+                {
+                  "color": "#C6C6CD",
+                },
+              ]
+            }
+          >
+            ★
+          </Text>
+        </View>
+      </View>
+      <Text
+        style={
+          [
+            {
+              "fontSize": 14,
+              "lineHeight": 19,
+            },
+            {
+              "color": "#45464D",
+            },
+          ]
+        }
+      >
+        Bonne expérience dans l’ensemble. Conducteur un peu silencieux, mais trajet fluide et à l’heure.
+      </Text>
+    </View>
+  </FlatList>
+</View>
+`;
+
+exports[`search/reviews.tsx snapshots > renders the mock review list under a real driver identity/rating 1`] = `
+<View
+  style={
+    [
+      {
+        "flex": 1,
+      },
+      {
+        "backgroundColor": "#F8F9FF",
+      },
+    ]
+  }
+>
+  <View
+    style={
+      [
+        {
+          "alignItems": "center",
+          "borderBottomWidth": 1,
+          "flexDirection": "row",
+          "justifyContent": "space-between",
+          "paddingBottom": 8,
+          "paddingHorizontal": 16,
+        },
+        {
+          "backgroundColor": "#FFFFFF",
+          "borderBottomColor": "#DAE2FD",
+          "paddingTop": 8,
+        },
+      ]
+    }
+  >
+    <TouchableOpacity
+      accessibilityLabel="Retour"
+      accessibilityRole="button"
+      hitSlop={12}
+      onPress={[Function]}
+    >
+      <Ionicons
+        color="#000000"
+        name="chevron-back"
+        size={22}
+      />
+    </TouchableOpacity>
+    <Text
+      style={
+        [
+          {
+            "fontSize": 24,
+            "fontWeight": "600",
+            "lineHeight": 28.799999999999997,
+          },
+          {
+            "color": "#000000",
+            "textAlign": undefined,
+            "writingDirection": "ltr",
+          },
+          undefined,
+        ]
+      }
+    >
+      Vaya
+    </Text>
+    <View
+      style={
+        {
+          "width": 22,
+        }
+      }
+    />
+  </View>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "gap": 8,
+        "paddingHorizontal": 16,
+        "paddingVertical": 16,
+      }
+    }
+  >
+    <View
+      accessibilityLabel="Photo de Mehdi Gharbi"
+      accessibilityRole="image"
+      accessible={true}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
+          {
+            "backgroundColor": "#5B7D8A",
+            "borderRadius": 36,
+            "height": 72,
+            "width": 72,
+          },
+        ]
+      }
+    >
+      <Text
+        style={
+          [
+            {
+              "color": "#FFFFFF",
+              "fontWeight": "600",
+            },
+            {
+              "color": undefined,
+              "fontSize": 29,
+            },
+          ]
+        }
+      >
+        MG
+      </Text>
+    </View>
+    <Text
+      style={
+        [
+          {
+            "fontSize": 30,
+            "fontWeight": "700",
+            "lineHeight": 36,
+          },
+          {
+            "color": "#000000",
+            "textAlign": "center",
+            "writingDirection": "ltr",
+          },
+          undefined,
+        ]
+      }
+    >
+      Mehdi
+    </Text>
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "flexDirection": "row",
+          "gap": 4,
+        }
+      }
+    >
+      <Ionicons
+        accessibilityElementsHidden={true}
+        color="#006C49"
+        importantForAccessibility="no-hide-descendants"
+        name="star"
+        size={16}
+      />
+      <Text
+        style={
+          [
+            {
+              "fontSize": 16,
+              "fontWeight": "400",
+              "lineHeight": 24,
+            },
+            {
+              "color": "#45464D",
+              "textAlign": undefined,
+              "writingDirection": "ltr",
+            },
+            undefined,
+          ]
+        }
+      >
+        4.7
+      </Text>
+    </View>
+  </View>
+  <FlatList>
+    <View
+      accessibilityLabel="Emma L., 5 sur 5 étoiles, il y a 2 jours. Trajet impeccable, très ponctuel. La voiture était impeccable et il m’a aidée avec mes bagages."
+      accessible={true}
+      style={
+        [
+          {
+            "borderRadius": 16,
+            "gap": 4,
+            "padding": 12,
+            "shadowColor": "#26333A",
+          },
+          false,
+          {
+            "backgroundColor": "#FFFFFF",
+          },
+          {
+            "borderColor": "#DAE2FD",
+            "borderWidth": 1,
+          },
+        ]
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "gap": 8,
+          }
+        }
+      >
+        <View
+          accessibilityLabel="Photo de Emma L."
+          accessibilityRole="image"
+          accessible={true}
+          style={
+            [
+              {
+                "alignItems": "center",
+                "justifyContent": "center",
+              },
+              {
+                "backgroundColor": "#5B7D8A",
+                "borderRadius": 16,
+                "height": 32,
+                "width": 32,
+              },
+            ]
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "color": "#FFFFFF",
+                  "fontWeight": "600",
+                },
+                {
+                  "color": undefined,
+                  "fontSize": 14,
+                },
+              ]
+            }
+          >
+            EL
+          </Text>
+        </View>
+        <View
+          style={
+            {
+              "flex": 1,
+            }
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 14,
+                  "fontWeight": "600",
+                },
+                {
+                  "color": "#000000",
+                },
+              ]
+            }
+          >
+            Emma L.
+          </Text>
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                },
+                {
+                  "color": "#76777D",
+                },
+              ]
+            }
+          >
+            il y a 2 jours
+          </Text>
+        </View>
+        <View
+          accessibilityElementsHidden={true}
+          importantForAccessibility="no-hide-descendants"
+          style={
+            {
+              "flexDirection": "row",
+            }
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                },
+                {
+                  "color": "#006C49",
+                },
+              ]
+            }
+          >
+            ★
+          </Text>
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                },
+                {
+                  "color": "#006C49",
+                },
+              ]
+            }
+          >
+            ★
+          </Text>
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                },
+                {
+                  "color": "#006C49",
+                },
+              ]
+            }
+          >
+            ★
+          </Text>
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                },
+                {
+                  "color": "#006C49",
+                },
+              ]
+            }
+          >
+            ★
+          </Text>
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                },
+                {
+                  "color": "#006C49",
+                },
+              ]
+            }
+          >
+            ★
+          </Text>
+        </View>
+      </View>
+      <Text
+        style={
+          [
+            {
+              "fontSize": 14,
+              "lineHeight": 19,
+            },
+            {
+              "color": "#45464D",
+            },
+          ]
+        }
+      >
+        Trajet impeccable, très ponctuel. La voiture était impeccable et il m’a aidée avec mes bagages.
+      </Text>
+    </View>
+    <View
+      accessibilityLabel="Karim T., 5 sur 5 étoiles, il y a 5 jours. Voiture propre et conduite prudente. A bien géré le trafic. Je reprendrais volontiers ce trajet."
+      accessible={true}
+      style={
+        [
+          {
+            "borderRadius": 16,
+            "gap": 4,
+            "padding": 12,
+            "shadowColor": "#26333A",
+          },
+          false,
+          {
+            "backgroundColor": "#FFFFFF",
+          },
+          {
+            "borderColor": "#DAE2FD",
+            "borderWidth": 1,
+          },
+        ]
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "gap": 8,
+          }
+        }
+      >
+        <View
+          accessibilityLabel="Photo de Karim T."
+          accessibilityRole="image"
+          accessible={true}
+          style={
+            [
+              {
+                "alignItems": "center",
+                "justifyContent": "center",
+              },
+              {
+                "backgroundColor": "#7FA491",
+                "borderRadius": 16,
+                "height": 32,
+                "width": 32,
+              },
+            ]
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "color": "#FFFFFF",
+                  "fontWeight": "600",
+                },
+                {
+                  "color": undefined,
+                  "fontSize": 14,
+                },
+              ]
+            }
+          >
+            KT
+          </Text>
+        </View>
+        <View
+          style={
+            {
+              "flex": 1,
+            }
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 14,
+                  "fontWeight": "600",
+                },
+                {
+                  "color": "#000000",
+                },
+              ]
+            }
+          >
+            Karim T.
+          </Text>
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                },
+                {
+                  "color": "#76777D",
+                },
+              ]
+            }
+          >
+            il y a 5 jours
+          </Text>
+        </View>
+        <View
+          accessibilityElementsHidden={true}
+          importantForAccessibility="no-hide-descendants"
+          style={
+            {
+              "flexDirection": "row",
+            }
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                },
+                {
+                  "color": "#006C49",
+                },
+              ]
+            }
+          >
+            ★
+          </Text>
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                },
+                {
+                  "color": "#006C49",
+                },
+              ]
+            }
+          >
+            ★
+          </Text>
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                },
+                {
+                  "color": "#006C49",
+                },
+              ]
+            }
+          >
+            ★
+          </Text>
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                },
+                {
+                  "color": "#006C49",
+                },
+              ]
+            }
+          >
+            ★
+          </Text>
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                },
+                {
+                  "color": "#006C49",
+                },
+              ]
+            }
+          >
+            ★
+          </Text>
+        </View>
+      </View>
+      <Text
+        style={
+          [
+            {
+              "fontSize": 14,
+              "lineHeight": 19,
+            },
+            {
+              "color": "#45464D",
+            },
+          ]
+        }
+      >
+        Voiture propre et conduite prudente. A bien géré le trafic. Je reprendrais volontiers ce trajet.
+      </Text>
+    </View>
+    <View
+      accessibilityLabel="Sarah B., 4 sur 5 étoiles, il y a 1 semaine. Bonne expérience dans l’ensemble. Conducteur un peu silencieux, mais trajet fluide et à l’heure."
+      accessible={true}
+      style={
+        [
+          {
+            "borderRadius": 16,
+            "gap": 4,
+            "padding": 12,
+            "shadowColor": "#26333A",
+          },
+          false,
+          {
+            "backgroundColor": "#FFFFFF",
+          },
+          {
+            "borderColor": "#DAE2FD",
+            "borderWidth": 1,
+          },
+        ]
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "gap": 8,
+          }
+        }
+      >
+        <View
+          accessibilityLabel="Photo de Sarah B."
+          accessibilityRole="image"
+          accessible={true}
+          style={
+            [
+              {
+                "alignItems": "center",
+                "justifyContent": "center",
+              },
+              {
+                "backgroundColor": "#B08A4E",
+                "borderRadius": 16,
+                "height": 32,
+                "width": 32,
+              },
+            ]
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "color": "#FFFFFF",
+                  "fontWeight": "600",
+                },
+                {
+                  "color": undefined,
+                  "fontSize": 14,
+                },
+              ]
+            }
+          >
+            SB
+          </Text>
+        </View>
+        <View
+          style={
+            {
+              "flex": 1,
+            }
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 14,
+                  "fontWeight": "600",
+                },
+                {
+                  "color": "#000000",
+                },
+              ]
+            }
+          >
+            Sarah B.
+          </Text>
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                },
+                {
+                  "color": "#76777D",
+                },
+              ]
+            }
+          >
+            il y a 1 semaine
+          </Text>
+        </View>
+        <View
+          accessibilityElementsHidden={true}
+          importantForAccessibility="no-hide-descendants"
+          style={
+            {
+              "flexDirection": "row",
+            }
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                },
+                {
+                  "color": "#006C49",
+                },
+              ]
+            }
+          >
+            ★
+          </Text>
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                },
+                {
+                  "color": "#006C49",
+                },
+              ]
+            }
+          >
+            ★
+          </Text>
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                },
+                {
+                  "color": "#006C49",
+                },
+              ]
+            }
+          >
+            ★
+          </Text>
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                },
+                {
+                  "color": "#006C49",
+                },
+              ]
+            }
+          >
+            ★
+          </Text>
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                },
+                {
+                  "color": "#C6C6CD",
+                },
+              ]
+            }
+          >
+            ★
+          </Text>
+        </View>
+      </View>
+      <Text
+        style={
+          [
+            {
+              "fontSize": 14,
+              "lineHeight": 19,
+            },
+            {
+              "color": "#45464D",
+            },
+          ]
+        }
+      >
+        Bonne expérience dans l’ensemble. Conducteur un peu silencieux, mais trajet fluide et à l’heure.
+      </Text>
+    </View>
+  </FlatList>
+</View>
+`;

@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<title>Vaya - Conversation</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary": "#000000",
+                        "on-primary": "#ffffff",
+                        "on-background": "#0b1c30",
+                        "on-primary-container": "#7c839b",
+                        "on-surface": "#0b1c30",
+                        "on-secondary-fixed": "#002113",
+                        "secondary-container": "#6cf8bb",
+                        "primary-fixed": "#dae2fd",
+                        "inverse-primary": "#bec6e0",
+                        "on-tertiary-container": "#3980f4",
+                        "primary-fixed-dim": "#bec6e0",
+                        "surface-container-high": "#dce9ff",
+                        "tertiary-fixed-dim": "#adc6ff",
+                        "outline-variant": "#c6c6cd",
+                        "inverse-on-surface": "#eaf1ff",
+                        "surface-variant": "#d3e4fe",
+                        "secondary-fixed-dim": "#4edea3",
+                        "surface-container": "#e5eeff",
+                        "secondary-fixed": "#6ffbbe",
+                        "primary-container": "#131b2e",
+                        "tertiary-fixed": "#d8e2ff",
+                        "error-container": "#ffdad6",
+                        "on-secondary": "#ffffff",
+                        "on-secondary-fixed-variant": "#005236",
+                        "on-error": "#ffffff",
+                        "surface-container-highest": "#d3e4fe",
+                        "on-tertiary-fixed": "#001a42",
+                        "surface-container-lowest": "#ffffff",
+                        "tertiary": "#000000",
+                        "secondary": "#006c49",
+                        "inverse-surface": "#213145",
+                        "on-error-container": "#93000a",
+                        "background": "#f8f9ff",
+                        "outline": "#76777d",
+                        "on-surface-variant": "#45464d",
+                        "surface-tint": "#565e74",
+                        "surface-container-low": "#eff4ff",
+                        "on-primary-fixed": "#131b2e",
+                        "on-tertiary": "#ffffff",
+                        "on-tertiary-fixed-variant": "#004395",
+                        "tertiary-container": "#001a42",
+                        "on-secondary-container": "#00714d",
+                        "surface-bright": "#f8f9ff",
+                        "on-primary-fixed-variant": "#3f465c",
+                        "error": "#ba1a1a",
+                        "surface-dim": "#cbdbf5",
+                        "surface": "#f8f9ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-sm": "8px",
+                        "gutter-grid": "16px",
+                        "margin-main": "20px",
+                        "touch-target": "48px",
+                        "stack-lg": "24px",
+                        "stack-md": "16px"
+                    },
+                    "fontFamily": {
+                        "label-lg": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "body-md": ["Inter"],
+                        "label-md": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "headline-sm": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "headline-lg-mobile": ["26px", { "lineHeight": "32px", "fontWeight": "700" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+                        "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "headline-sm": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "headline-lg": ["30px", { "lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body-md min-h-screen flex flex-col">
+<!-- Top Navigation (Customized for Chat Context) -->
+<header class="fixed top-0 w-full z-50 bg-surface shadow-sm shadow-primary/10">
+<!-- Main Top Bar -->
+<div class="flex items-center justify-between px-margin-main h-[72px] w-full">
+<button aria-label="Back" class="h-touch-target w-touch-target flex items-center justify-center text-primary active:scale-95 transition-transform">
+<span class="material-symbols-outlined" data-weight="regular">arrow_back</span>
+</button>
+<button class="flex items-center gap-3 active:scale-95 transition-transform group">
+<div class="relative">
+<img alt="Driver" class="w-10 h-10 rounded-full object-cover shadow-sm group-hover:ring-2 ring-primary/20 transition-all" data-alt="A professional, clear headshot of a middle-aged North African man with a friendly smile, wearing a casual collared shirt. He has short dark hair and a neat beard. The background is a blurred bright outdoor setting, conveying a sense of reliability and trust in a light-mode modern UI context." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDNpn05tRCcRgAT3qiZC1A1wUQu_z1sqZvk6hrEeGuWMMZejAikLpgiZDgrgdX2rfSpyfRR3ouvfyWx0S0n7RLKX8UYz8983JkG60K1Mk-XaSB3MiTs88xrSZSLRitA-_hfGQfKyXfRUTv7VgVgW0SRPuMVr5wVpDMLBIFW1iuDpNkKhJY2ahQQLFchxXrR9Dy6LV3yri-TvGhxfrWq0RcxJehjOs2sFpzXYA52DLi3nWijDFS-IMzF"/>
+<div class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-secondary rounded-full border-2 border-surface"></div>
+</div>
+<div class="flex flex-col items-start text-left">
+<div class="flex items-center gap-1">
+<span class="font-headline-sm text-headline-sm text-primary font-semibold">Ahmed Ben Ali</span>
+<span class="material-symbols-outlined text-[16px] text-tertiary-container" data-weight="fill">verified</span>
+</div>
+<span class="font-label-md text-label-md text-on-surface-variant">Conducteur · 4.9 ★</span>
+</div>
+</button>
+<button aria-label="More options" class="h-touch-target w-touch-target flex items-center justify-center text-primary active:scale-95 transition-transform">
+<span class="material-symbols-outlined" data-weight="regular">more_vert</span>
+</button>
+</div>
+<!-- Persistent Trip Context -->
+<div class="px-margin-main pb-4 bg-surface-container-low border-b border-outline-variant/30">
+<div class="flex items-center justify-between">
+<div>
+<div class="flex items-center gap-2 mb-1">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<span class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Trajet Confirmé</span>
+</div>
+<div class="font-body-md text-body-md text-primary font-medium">
+                        Tunis <span class="text-outline mx-1">→</span> Sousse
+                    </div>
+<div class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">
+                        Aujourd'hui · 18:30
+                    </div>
+</div>
+<button class="flex items-center gap-1 text-tertiary-container font-label-lg text-label-lg hover:underline decoration-1 underline-offset-4 transition-all">
+<span>Voir le trajet</span>
+<span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Chat Canvas -->
+<main class="flex-1 flex flex-col pt-[160px] pb-[140px] px-margin-main overflow-y-auto bg-background gap-stack-lg scroll-smooth" id="chat-container">
+<!-- System Message: Date -->
+<div class="flex justify-center my-2">
+<span class="font-label-md text-label-md bg-surface-container text-on-surface-variant px-3 py-1 rounded-full shadow-sm">Aujourd'hui</span>
+</div>
+<!-- System Message: Event -->
+<div class="flex flex-col items-center justify-center gap-2 py-4">
+<div class="w-10 h-10 rounded-full bg-secondary-container/20 flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined" data-weight="regular">check_circle</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant text-center max-w-[250px]">
+                Votre trajet est confirmé. Le point de rendez-vous a été partagé.
+            </span>
+</div>
+<!-- Message from Driver -->
+<div class="flex items-end gap-2 max-w-[85%] self-start">
+<img alt="Driver" class="w-8 h-8 rounded-full object-cover mb-1" data-alt="A professional, clear headshot of a middle-aged North African man with a friendly smile, wearing a casual collared shirt. He has short dark hair and a neat beard. The background is a blurred bright outdoor setting, conveying a sense of reliability and trust in a light-mode modern UI context." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAO7Jsx1NqIGFHnS3qXAkfMl47Pqn7CwUQpTLtfwuAIzi02zuAz-5OeAeYyTz1Hy652SDrJEEqEgTOgaQQQ737IeyedTJBvWELlr1t_i60S_7OtS8vSWg0Qa2JqmFbxUixizz3rJV93ZyjkPJlrsoFCiX3ie5439UnL1hZlRqvL2J5UmAb4NiZ6gLCFa4YQ0KXRho1n7bP0YLOh84EZ6_Hse1gW15ThjXMAAoJzfnhcUpDhkuisxtYE"/>
+<div class="flex flex-col gap-1 items-start">
+<div class="bg-surface p-4 rounded-xl rounded-bl-sm shadow-sm border border-outline-variant/20 text-on-surface font-body-md text-body-md leading-relaxed">
+                    Bonjour ! Je serai au point de rendez-vous d'ici 10 minutes. La circulation est fluide.
+                </div>
+<span class="font-label-md text-label-md text-on-surface-variant ml-1">17:45</span>
+</div>
+</div>
+<!-- Message from Passenger (User) -->
+<div class="flex flex-col gap-1 items-end max-w-[85%] self-end">
+<div class="bg-primary text-on-primary p-4 rounded-xl rounded-br-sm shadow-sm font-body-md text-body-md leading-relaxed">
+                Parfait, merci. Je vous attends devant l'entrée principale du centre commercial.
+            </div>
+<div class="flex items-center gap-1 mr-1">
+<span class="font-label-md text-label-md text-on-surface-variant">17:47</span>
+<span class="material-symbols-outlined text-[14px] text-tertiary-container" data-weight="fill">done_all</span>
+</div>
+</div>
+<!-- System Message: Action -->
+<div class="flex flex-col items-center justify-center gap-2 py-2">
+<div class="bg-surface-container-high px-4 py-3 rounded-lg border border-outline-variant/30 flex items-center gap-3 w-full max-w-[300px]">
+<div class="text-tertiary-container">
+<span class="material-symbols-outlined">location_on</span>
+</div>
+<div class="flex-1">
+<div class="font-body-sm text-body-sm font-semibold text-primary">Point de rendez-vous</div>
+<div class="font-label-md text-label-md text-on-surface-variant">Partagé par le conducteur</div>
+</div>
+<button class="text-tertiary-container font-label-md font-semibold">Voir</button>
+</div>
+</div>
+<!-- Message from Driver -->
+<div class="flex items-end gap-2 max-w-[85%] self-start">
+<img alt="Driver" class="w-8 h-8 rounded-full object-cover mb-1" data-alt="A professional, clear headshot of a middle-aged North African man with a friendly smile, wearing a casual collared shirt. He has short dark hair and a neat beard. The background is a blurred bright outdoor setting, conveying a sense of reliability and trust in a light-mode modern UI context." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDqht_c571ikMqkMaXk7dtl03Si_bJr4H0LkB-L0ml8lVNT4TUtS-WAX4_dmBB0jK80EL69qt5HQCGE3e20c-TldQfLGQhx_NPNnan0ZLU-RJuY5KuqycbC4LCoarJQ-KYI_Jfe6z2PpCGSnvD3iAgeZUxTMbNvp1XCFeq-M9JJISk60KmLj2Gda9x44NFKLNgrwK4phhzJ2sl2aYK9vhlBVVSypCS6DiaBZ1EHysGlNzWOuiX7idQ0"/>
+<div class="flex flex-col gap-1 items-start">
+<div class="bg-surface p-4 rounded-xl rounded-bl-sm shadow-sm border border-outline-variant/20 text-on-surface font-body-md text-body-md leading-relaxed">
+                    Je suis là, une voiture blanche.
+                </div>
+<span class="font-label-md text-label-md text-on-surface-variant ml-1">17:52</span>
+</div>
+</div>
+</main>
+<!-- Bottom Input Area -->
+<div class="fixed bottom-0 w-full bg-surface border-t border-outline-variant/30 shadow-[0_-4px_12px_rgba(0,0,0,0.05)] pb-safe z-50">
+<!-- Contextual Quick Actions -->
+<div class="flex gap-2 px-margin-main pt-3 overflow-x-auto no-scrollbar pb-2">
+<button class="whitespace-nowrap px-4 py-2 bg-surface-container-low hover:bg-surface-container border border-outline-variant/40 rounded-full font-label-md text-label-md text-primary transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">waving_hand</span>
+                Où êtes-vous ?
+            </button>
+<button class="whitespace-nowrap px-4 py-2 bg-surface-container-low hover:bg-surface-container border border-outline-variant/40 rounded-full font-label-md text-label-md text-primary transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">my_location</span>
+                Voir le point de rendez-vous
+            </button>
+</div>
+<!-- Composer -->
+<div class="flex items-center gap-3 px-margin-main pb-4 pt-2">
+<div class="flex-1 bg-surface-container-low border border-outline-variant/50 rounded-full flex items-center px-4 h-12 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-all">
+<input class="w-full bg-transparent border-none focus:ring-0 text-primary font-body-md placeholder:text-on-surface-variant/70 p-0" placeholder="Écrire un message…" type="text"/>
+</div>
+<button aria-label="Send Message" class="w-12 h-12 bg-primary text-on-primary rounded-full flex items-center justify-center active:scale-95 transition-transform hover:bg-primary/90 shadow-sm">
+<span class="material-symbols-outlined" data-weight="fill">send</span>
+</button>
+</div>
+</div>
+<script>
+        // Simple script to ensure chat scrolls to bottom on load
+        document.addEventListener('DOMContentLoaded', () => {
+            const chatContainer = document.getElementById('chat-container');
+            if(chatContainer) {
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+        });
+    </script>
+</body></html>
