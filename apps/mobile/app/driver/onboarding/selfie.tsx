@@ -102,6 +102,12 @@ export default function SelfieCaptureScreen(): React.JSX.Element {
 
   async function submit(): Promise<void> {
     setErrorMessage(undefined);
+    // Captured before the reset below clears it — carried in from the
+    // publish flow's review screen (driver/publish.tsx's startVerification)
+    // when this wizard was entered mid-publish with a draft ride already
+    // saved (stitch/verification/verification-confirmation-pending-state.html
+    // promises that ride auto-publishes once verification completes).
+    const pendingRide = draft.pendingRide;
     try {
       const [licenseUpload, insuranceUpload, selfieUpload] = await Promise.all([
         uploadFile(fileFromUri(licenseUri!, 'license')).unwrap(),
@@ -117,7 +123,18 @@ export default function SelfieCaptureScreen(): React.JSX.Element {
         ],
       }).unwrap();
       dispatch(resetDriverOnboarding());
-      router.replace('/driver/publish');
+      if (pendingRide) {
+        router.replace({
+          pathname: '/driver/onboarding/confirmation',
+          params: {
+            rideId: pendingRide.rideId,
+            originLabel: pendingRide.originLabel,
+            destinationLabel: pendingRide.destinationLabel,
+          },
+        });
+      } else {
+        router.replace('/driver/publish');
+      }
     } catch {
       setErrorMessage("Impossible d'activer votre profil conducteur. Réessayez.");
     }
