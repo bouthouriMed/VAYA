@@ -1,8 +1,11 @@
 import { useEffect, useRef } from 'react';
-import { View, StyleSheet, Animated, AccessibilityInfo } from 'react-native';
+import { Animated, View, StyleSheet, Easing, AccessibilityInfo, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Text, Button, RoutePulseBadge, colors, spacing, typography } from '@vaya/design-system';
+import { Text, Icon, useAppTheme, spacing, radii, colors } from '@vaya/design-system';
 import { router, useLocalSearchParams } from 'expo-router';
+
+const BADGE_SIZE = 84;
+const RING_SIZE = 84;
 
 /**
  * stitch/verification/verification-confirmation-pending-state.html.
@@ -14,9 +17,16 @@ import { router, useLocalSearchParams } from 'expo-router';
  * describes an async admin-review wait; this codebase's `createOnboarding`
  * auto-approves synchronously (see verificationGate.ts), so there is no
  * real waiting left to do by the time this screen renders.
+ *
+ * Pulse/ring treatment mirrors bookings/confirmed.tsx's hand-built pattern
+ * (the established convention for this kind of moment across the rebuilt
+ * screens) — amber/`colors.warning`, not `theme.accent`, since this is a
+ * "pending verification" status, not a success state, and `AppPalette` has
+ * no dedicated pending/warning role yet.
  */
 export default function VerificationConfirmationScreen(): React.JSX.Element {
   const insets = useSafeAreaInsets();
+  const { colors: theme } = useAppTheme();
   const { originLabel, destinationLabel, status } = useLocalSearchParams<{
     originLabel?: string;
     destinationLabel?: string;
@@ -24,38 +34,75 @@ export default function VerificationConfirmationScreen(): React.JSX.Element {
   }>();
   const failed = status === 'error';
 
-  const pulse = useRef(new Animated.Value(1)).current;
+  const badgeScale = useRef(new Animated.Value(0)).current;
+  const ringScale = useRef(new Animated.Value(0.6)).current;
+  const ringOpacity = useRef(new Animated.Value(0.5)).current;
+
   useEffect(() => {
     let cancelled = false;
-    let loop: Animated.CompositeAnimation | undefined;
     void AccessibilityInfo.isReduceMotionEnabled().then((reduced) => {
-      if (cancelled || reduced) return;
-      loop = Animated.loop(
-        Animated.sequence([
-          Animated.timing(pulse, { toValue: 1.12, duration: 900, useNativeDriver: true }),
-          Animated.timing(pulse, { toValue: 1, duration: 900, useNativeDriver: true }),
+      if (cancelled) return;
+      if (reduced) {
+        badgeScale.setValue(1);
+        return;
+      }
+      Animated.spring(badgeScale, {
+        toValue: 1,
+        friction: 5,
+        tension: 80,
+        useNativeDriver: true,
+      }).start();
+      Animated.loop(
+        Animated.parallel([
+          Animated.timing(ringScale, {
+            toValue: 1.9,
+            duration: 1100,
+            easing: Easing.out(Easing.ease),
+            useNativeDriver: true,
+          }),
+          Animated.timing(ringOpacity, {
+            toValue: 0,
+            duration: 1100,
+            easing: Easing.out(Easing.ease),
+            useNativeDriver: true,
+          }),
         ]),
-      );
-      loop.start();
+      ).start();
     });
     return () => {
       cancelled = true;
-      loop?.stop();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       <View style={styles.content}>
-        <Animated.View style={[styles.badgeWrap, { transform: [{ scale: pulse }] }]}>
-          <RoutePulseBadge icon="shield-checkmark" size="hero" tone="onCream" />
-        </Animated.View>
+        <View style={styles.badgeWrap}>
+          <Animated.View
+            style={[
+              styles.ring,
+              {
+                borderColor: colors.warning,
+                transform: [{ scale: ringScale }],
+                opacity: ringOpacity,
+              },
+            ]}
+          />
+          <Animated.View
+            style={[
+              styles.badge,
+              { backgroundColor: colors.warningLight, transform: [{ scale: badgeScale }] },
+            ]}
+          >
+            <Icon name="shield-checkmark" size="lg" color={colors.warningDark} />
+          </Animated.View>
+        </View>
 
-        <Text variant="h2" align="center" style={styles.title}>
+        <Text variant="h2" color={theme.ink} align="center" style={styles.title}>
           {failed ? 'Profil vérifié' : "C'est presque prêt !"}
         </Text>
-        <Text variant="body" color={colors.gray600} align="center" style={styles.subtitle}>
+        <Text variant="body" color={theme.inkMuted} align="center" style={styles.subtitle}>
           Votre profil conducteur vient d&apos;être vérifié.{' '}
           {failed
             ? originLabel && destinationLabel
@@ -68,12 +115,18 @@ export default function VerificationConfirmationScreen(): React.JSX.Element {
       </View>
 
       <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.lg }]}>
-        <Button
-          label="Aller à Mes Trajets"
-          size="lg"
+        <TouchableOpacity
+          style={[styles.cta, { backgroundColor: theme.ink }]}
           onPress={() => router.replace('/(tabs)/trips')}
-          style={styles.cta}
-        />
+          activeOpacity={0.85}
+          accessibilityRole="button"
+          accessibilityLabel="Aller à Mes Trajets"
+        >
+          <Icon name="time-outline" size="sm" color={theme.onInk} />
+          <Text variant="label" color={theme.onInk}>
+            Aller à Mes Trajets
+          </Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -82,7 +135,6 @@ export default function VerificationConfirmationScreen(): React.JSX.Element {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.gray100,
     justifyContent: 'space-between',
   },
   content: {
@@ -92,10 +144,27 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing['2xl'],
   },
   badgeWrap: {
+    width: RING_SIZE,
+    height: RING_SIZE,
+    alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: spacing.xl,
   },
+  ring: {
+    position: 'absolute',
+    width: RING_SIZE,
+    height: RING_SIZE,
+    borderRadius: RING_SIZE / 2,
+    borderWidth: 2,
+  },
+  badge: {
+    width: BADGE_SIZE,
+    height: BADGE_SIZE,
+    borderRadius: BADGE_SIZE / 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   title: {
-    fontWeight: typography.fontWeight.bold,
     marginBottom: spacing.sm,
   },
   subtitle: {
@@ -107,5 +176,11 @@ const styles = StyleSheet.create({
   },
   cta: {
     width: '100%',
+    minHeight: 52,
+    borderRadius: radii.lg,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
   },
 });

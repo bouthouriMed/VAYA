@@ -1,18 +1,23 @@
 import { useEffect, useRef, useState } from 'react';
-import { View, StyleSheet, ScrollView, Image, Animated, AccessibilityInfo } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  ScrollView,
+  Image,
+  Animated,
+  AccessibilityInfo,
+  TouchableOpacity,
+  ActivityIndicator,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
 import {
   Text,
-  Button,
-  StepProgress,
-  ScreenHeader,
-  RoutePulseBadge,
-  colors,
+  Icon,
+  GlassSurface,
+  useAppTheme,
   spacing,
   radii,
-  elevation,
-  typography,
+  type AppPalette,
 } from '@vaya/design-system';
 import { router } from 'expo-router';
 import { useAppDispatch, useAppSelector } from '../../../src/state/store';
@@ -34,14 +39,22 @@ function fileFromUri(uri: string, name: string): FormData {
   return formData;
 }
 
-function ThumbCard({ uri, label }: { uri: string; label: string }): React.JSX.Element {
+function ThumbCard({
+  theme,
+  uri,
+  label,
+}: {
+  theme: AppPalette;
+  uri: string;
+  label: string;
+}): React.JSX.Element {
   return (
     <View style={styles.thumbCard}>
       <Image source={{ uri }} style={styles.thumbImage} />
-      <View style={styles.thumbBadge}>
-        <Ionicons name="checkmark" size={12} color={colors.white} />
+      <View style={[styles.thumbBadge, { backgroundColor: theme.accent, borderColor: theme.surface }]}>
+        <Icon name="checkmark" size="xs" color={theme.onAccent} />
       </View>
-      <Text variant="bodySmall" color={colors.gray700} style={styles.thumbLabel}>
+      <Text variant="bodySmall" color={theme.inkMuted} style={styles.thumbLabel}>
         {label}
       </Text>
     </View>
@@ -50,6 +63,7 @@ function ThumbCard({ uri, label }: { uri: string; label: string }): React.JSX.El
 
 export default function SelfieCaptureScreen(): React.JSX.Element {
   const insets = useSafeAreaInsets();
+  const { colors: theme } = useAppTheme();
   const dispatch = useAppDispatch();
   const draft = useAppSelector((s) => s.driverOnboarding);
   const [phase, setPhase] = useState<'capture' | 'review'>(draft.selfieUri ? 'review' : 'capture');
@@ -189,71 +203,98 @@ export default function SelfieCaptureScreen(): React.JSX.Element {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
-        <ScreenHeader onBack={() => setPhase('capture')} title="Vérifier et confirmer" />
-        <StepProgress currentStep={4} totalSteps={4} style={styles.stepProgress} />
+        <View style={styles.headerRow}>
+          <TouchableOpacity
+            onPress={() => setPhase('capture')}
+            hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel="Retour"
+          >
+            <Icon name="arrow-back" size="sm" color={theme.ink} />
+          </TouchableOpacity>
+          <Text variant="h3" color={theme.ink} style={styles.headerTitle}>
+            Vérifier et confirmer
+          </Text>
+          <View style={styles.headerSpacer} />
+        </View>
+        <View style={[styles.progressTrack, { backgroundColor: theme.outlineVariant }]}>
+          <View style={[styles.progressFill, { backgroundColor: theme.ink }]} />
+        </View>
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
         <Animated.View style={{ opacity: fade, transform: [{ scale }] }}>
-          <RoutePulseBadge icon="shield-checkmark" size="md" tone="onCream" />
-          <Text variant="caption" color={colors.secondaryDark} style={styles.eyebrow}>
+          <View style={[styles.heroBadge, { backgroundColor: theme.surfaceMuted }]}>
+            <Icon name="shield-checkmark" size="lg" color={theme.ink} />
+          </View>
+          <Text variant="label" color={theme.inkFaint} style={styles.eyebrow}>
             DERNIÈRE ÉTAPE
           </Text>
-          <Text variant="h2" style={styles.title}>
+          <Text variant="h2" color={theme.ink} style={styles.title}>
             Tout est prêt
           </Text>
-          <Text variant="body" color={colors.gray600} style={styles.subtitle}>
+          <Text variant="body" color={theme.inkMuted} style={styles.subtitle}>
             Vérifiez vos informations avant d&apos;activer votre profil conducteur.
           </Text>
 
-          <View style={styles.card}>
-            <Text variant="label" color={colors.gray400} style={styles.cardEyebrow}>
+          <GlassSurface theme={theme} radius="2xl" style={styles.card}>
+            <Text variant="label" color={theme.inkFaint} style={styles.cardEyebrow}>
               VÉHICULE
             </Text>
             <View style={styles.vehicleRow}>
-              <View style={styles.vehicleIcon}>
-                <Ionicons name="car-sport-outline" size={20} color={colors.gray900} />
+              <View style={[styles.vehicleIcon, { backgroundColor: theme.surfaceMuted }]}>
+                <Icon name="car-sport-outline" size="sm" color={theme.ink} />
               </View>
               <View>
-                <Text variant="label">
+                <Text variant="label" color={theme.ink}>
                   {vehicle.make} {vehicle.model} · {vehicle.color}
                 </Text>
-                <Text variant="bodySmall" color={colors.gray600}>
+                <Text variant="bodySmall" color={theme.inkMuted}>
                   {vehicle.plateNumber} · {vehicle.seatCount} places
                 </Text>
               </View>
             </View>
-          </View>
+          </GlassSurface>
 
-          <View style={styles.card}>
-            <Text variant="label" color={colors.gray400} style={styles.cardEyebrow}>
+          <GlassSurface theme={theme} radius="2xl" style={styles.card}>
+            <Text variant="label" color={theme.inkFaint} style={styles.cardEyebrow}>
               DOCUMENTS VÉRIFIÉS EN DIRECT
             </Text>
             <View style={styles.thumbRow}>
-              <ThumbCard uri={licenseUri} label="Permis" />
-              <ThumbCard uri={insuranceUri} label="Assurance" />
-              <ThumbCard uri={selfieUri} label="Identité" />
+              <ThumbCard theme={theme} uri={licenseUri} label="Permis" />
+              <ThumbCard theme={theme} uri={insuranceUri} label="Assurance" />
+              <ThumbCard theme={theme} uri={selfieUri} label="Identité" />
             </View>
-          </View>
+          </GlassSurface>
 
           {errorMessage ? (
-            <Text variant="bodySmall" color={colors.error} align="center" style={styles.error}>
+            <Text variant="bodySmall" color={theme.error} align="center" style={styles.error}>
               {errorMessage}
             </Text>
           ) : null}
         </Animated.View>
       </ScrollView>
 
-      <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.lg }]}>
-        <Button
-          label="Confirmer et activer mon profil"
-          size="lg"
-          loading={isSubmitting}
+      <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.lg, backgroundColor: theme.background }]}>
+        <TouchableOpacity
+          style={[styles.cta, { backgroundColor: theme.ink }, isSubmitting && styles.ctaDisabled]}
           onPress={() => void submit()}
-          style={styles.cta}
-        />
+          disabled={isSubmitting}
+          activeOpacity={0.85}
+          accessibilityRole="button"
+          accessibilityLabel="Confirmer et activer mon profil"
+          accessibilityState={{ disabled: isSubmitting, busy: isSubmitting }}
+        >
+          {isSubmitting ? (
+            <ActivityIndicator color={theme.onInk} />
+          ) : (
+            <Text variant="label" color={theme.onInk}>
+              Confirmer et activer mon profil
+            </Text>
+          )}
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -262,27 +303,51 @@ export default function SelfieCaptureScreen(): React.JSX.Element {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.gray100,
   },
   header: {
     paddingHorizontal: spacing.lg,
     gap: spacing.md,
   },
-  stepProgress: {
-    marginBottom: spacing.sm,
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  headerTitle: {
+    flex: 1,
+    textAlign: 'center',
+  },
+  headerSpacer: {
+    width: spacing.xl,
+  },
+  progressTrack: {
+    height: 2,
+    borderRadius: radii.full,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    width: '100%',
   },
   content: {
     padding: spacing.lg,
     paddingBottom: spacing['4xl'],
   },
+  heroBadge: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   eyebrow: {
     marginTop: spacing.lg,
-    fontWeight: typography.fontWeight.semibold,
+    fontWeight: '600',
     letterSpacing: 1.5,
   },
   title: {
     marginTop: spacing.xs,
-    fontWeight: typography.fontWeight.bold,
+    fontWeight: '700',
   },
   subtitle: {
     marginTop: spacing.sm,
@@ -290,13 +355,9 @@ const styles = StyleSheet.create({
     maxWidth: 320,
   },
   card: {
-    backgroundColor: colors.white,
-    borderRadius: radii['2xl'],
     padding: spacing.lg,
     gap: spacing.sm,
     marginBottom: spacing.md,
-    ...elevation?.md,
-    shadowColor: colors.gray900,
   },
   cardEyebrow: {
     letterSpacing: 1,
@@ -311,7 +372,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: radii.lg,
-    backgroundColor: colors.gray100,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -328,9 +388,6 @@ const styles = StyleSheet.create({
     width: '100%',
     aspectRatio: 1,
     borderRadius: radii.lg,
-    backgroundColor: colors.gray200,
-    ...elevation?.sm,
-    shadowColor: colors.gray900,
   },
   thumbBadge: {
     position: 'absolute',
@@ -339,14 +396,12 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: colors.secondary,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: colors.white,
   },
   thumbLabel: {
-    fontWeight: typography.fontWeight.medium,
+    fontWeight: '500',
   },
   error: {
     marginTop: spacing.sm,
@@ -354,11 +409,15 @@ const styles = StyleSheet.create({
   footer: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.sm,
-    backgroundColor: colors.gray100,
   },
   cta: {
     width: '100%',
-    ...elevation?.lg,
-    shadowColor: colors.primary,
+    minHeight: 52,
+    borderRadius: radii.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  ctaDisabled: {
+    opacity: 0.5,
   },
 });
