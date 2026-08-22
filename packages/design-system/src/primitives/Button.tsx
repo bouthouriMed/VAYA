@@ -58,8 +58,39 @@ const sizeTextStyles: Record<ButtonSize, TextStyle> = {
 function getVariantStyles(
   variant: ButtonVariant,
   disabled: boolean,
+  theme?: AppPalette,
 ): { container: ViewStyle; text: TextStyle } {
   const opacity = disabled ? 0.5 : 1;
+
+  if (theme) {
+    switch (variant) {
+      case 'primary':
+        return {
+          container: { backgroundColor: theme.accent, opacity },
+          text: { color: theme.onAccent },
+        };
+      case 'secondary':
+        return {
+          container: { backgroundColor: theme.surfaceMuted, opacity },
+          text: { color: theme.ink },
+        };
+      case 'outline':
+        return {
+          container: {
+            backgroundColor: 'transparent',
+            borderWidth: 1,
+            borderColor: theme.outline,
+            opacity,
+          },
+          text: { color: theme.ink },
+        };
+      case 'ghost':
+        return {
+          container: { backgroundColor: 'transparent', opacity },
+          text: { color: theme.accent },
+        };
+    }
+  }
 
   switch (variant) {
     case 'primary':
@@ -99,8 +130,9 @@ export function Button({
   loading = false,
   style,
   accessibilityLabel,
+  theme,
 }: ButtonProps): React.JSX.Element {
-  const variantStyle = getVariantStyles(variant, disabled);
+  const variantStyle = getVariantStyles(variant, disabled, theme);
   const pressedStyle: ViewStyle = { transform: [{ scale: 0.97 }], opacity: 0.92 };
 
   return (
