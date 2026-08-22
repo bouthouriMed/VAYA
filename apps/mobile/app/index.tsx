@@ -4,7 +4,9 @@ import {
   StyleSheet,
   TextInput,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   KeyboardAvoidingView,
+  Keyboard,
   Platform,
   Animated,
   AccessibilityInfo,
@@ -79,102 +81,113 @@ export default function LandingScreen(): React.JSX.Element {
   }
 
   return (
-    <View style={styles.container}>
-      <LinearGradient
-        colors={darkPalette.backgroundGradient}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
-        style={StyleSheet.absoluteFillObject}
-      />
-      <View pointerEvents="none" style={styles.glowTop} />
-      <View pointerEvents="none" style={styles.glowBottom} />
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <LinearGradient
+          colors={darkPalette.backgroundGradient}
+          start={{ x: 0.5, y: 0 }}
+          end={{ x: 0.5, y: 1 }}
+          style={StyleSheet.absoluteFillObject}
+        />
+        <View pointerEvents="none" style={styles.glowTop} />
+        <View pointerEvents="none" style={styles.glowBottom} />
 
-      <View style={styles.spacer} />
+        <View style={styles.header}>
+          <Text style={styles.wordmark}>VAYA</Text>
+        </View>
 
-      <Animated.View style={[styles.main, { opacity: fade, transform: [{ translateY: rise }] }]}>
-        <RoutePulseBadge icon="navigate" size="hero" tone="onNavy" />
-        <Text variant="h3" color={darkPalette.ink} align="center" style={styles.headline}>
-          Voyagez, en toute confiance.
-        </Text>
-        <Text variant="body" color={darkPalette.inkMuted} align="center" style={styles.subhead}>
-          Le covoiturage repensé pour la Tunisie — trajets vérifiés, prix justes, en toute
-          simplicité.
-        </Text>
+        <View style={styles.spacer} />
 
-        <GlassSurface theme={darkPalette} scheme="dark" radius="xl" style={styles.card}>
-          <KeyboardAvoidingView
-            style={styles.cardBody}
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          >
-            <Text variant="label" color={darkPalette.inkMuted} style={styles.cardLabel}>
-              Rejoignez VAYA avec votre numéro
-            </Text>
-            <View
-              style={[
-                styles.phoneRow,
-                {
-                  backgroundColor: darkPalette.surfaceMuted,
-                  borderColor: isPhoneFocused ? darkPalette.accent : darkPalette.outlineVariant,
-                },
-              ]}
-            >
-              <View style={[styles.countryPill, { backgroundColor: darkPalette.surface }]}>
-                <Text style={styles.flag}>🇹🇳</Text>
-                <Text variant="label" color={darkPalette.ink}>
-                  +216
-                </Text>
-              </View>
-              <TextInput
-                value={phone}
-                onChangeText={setPhone}
-                placeholder="98 123 456"
-                placeholderTextColor={darkPalette.inkFaint}
-                keyboardType="phone-pad"
-                returnKeyType="done"
-                onSubmitEditing={submit}
-                onFocus={() => setIsPhoneFocused(true)}
-                onBlur={() => setIsPhoneFocused(false)}
-                style={[styles.phoneInput, { color: darkPalette.ink }]}
-                accessibilityLabel="Numéro de téléphone"
-              />
-            </View>
+        <Animated.View style={[styles.main, { opacity: fade, transform: [{ translateY: rise }] }]}>
+          <RoutePulseBadge icon="navigate" size="hero" tone="onNavy" />
+          <Text variant="h3" color={darkPalette.ink} align="center" style={styles.headline}>
+            Voyagez, en toute confiance.
+          </Text>
+          <Text variant="body" color={darkPalette.inkMuted} align="center" style={styles.subhead}>
+            Le covoiturage repensé pour la Tunisie — trajets vérifiés, prix justes, en toute
+            simplicité.
+          </Text>
 
-            <TouchableOpacity
-              onPress={submit}
-              disabled={!canContinue}
-              activeOpacity={0.85}
-              accessibilityRole="button"
-              accessibilityLabel="Continuer"
-              accessibilityState={{ disabled: !canContinue }}
-              style={[styles.ctaWrap, !canContinue && styles.ctaDisabled]}
-            >
-              <LinearGradient
-                colors={darkPalette.inkGradient}
-                start={{ x: 0.1, y: 0 }}
-                end={{ x: 0.9, y: 1 }}
-                style={styles.cta}
+          <GlassSurface theme={darkPalette} scheme="dark" radius="xl" style={styles.card}>
+            <View style={styles.cardBody}>
+              <Text variant="label" color={darkPalette.inkMuted} style={styles.cardLabel}>
+                Rejoignez VAYA avec votre numéro
+              </Text>
+              <View
+                style={[
+                  styles.phoneRow,
+                  {
+                    backgroundColor: darkPalette.surfaceMuted,
+                    borderColor: isPhoneFocused ? darkPalette.accent : darkPalette.outlineVariant,
+                  },
+                ]}
               >
-                <View pointerEvents="none" style={styles.ctaSheenClip}>
-                  <LinearGradient
-                    colors={['transparent', darkPalette.glimmer, 'transparent']}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={styles.ctaSheen}
-                  />
+                <View style={[styles.countryPill, { backgroundColor: darkPalette.surface }]}>
+                  <Text style={styles.flag}>🇹🇳</Text>
+                  <Text variant="label" color={darkPalette.ink}>
+                    +216
+                  </Text>
                 </View>
-                <Text variant="label" color={darkPalette.onInk}>
-                  Continuer
-                </Text>
-              </LinearGradient>
-            </TouchableOpacity>
-          </KeyboardAvoidingView>
-        </GlassSurface>
+                <TextInput
+                  value={phone}
+                  onChangeText={setPhone}
+                  placeholder="98 123 456"
+                  placeholderTextColor={darkPalette.inkFaint}
+                  keyboardType="phone-pad"
+                  returnKeyType="done"
+                  onSubmitEditing={submit}
+                  onFocus={() => setIsPhoneFocused(true)}
+                  onBlur={() => setIsPhoneFocused(false)}
+                  style={[styles.phoneInput, { color: darkPalette.ink }]}
+                  accessibilityLabel="Numéro de téléphone"
+                />
+              </View>
 
-        <Text variant="bodySmall" color={darkPalette.inkFaint} align="center" style={styles.legalHint}>
-          En continuant, vous acceptez nos conditions d&apos;utilisation.
-        </Text>
-      </Animated.View>
-    </View>
+              <TouchableOpacity
+                onPress={submit}
+                disabled={!canContinue}
+                activeOpacity={0.85}
+                accessibilityRole="button"
+                accessibilityLabel="Continuer"
+                accessibilityState={{ disabled: !canContinue }}
+                style={[styles.ctaWrap, !canContinue && styles.ctaDisabled]}
+              >
+                <LinearGradient
+                  colors={darkPalette.inkGradient}
+                  start={{ x: 0.1, y: 0 }}
+                  end={{ x: 0.9, y: 1 }}
+                  style={styles.cta}
+                >
+                  <View pointerEvents="none" style={styles.ctaSheenClip}>
+                    <LinearGradient
+                      colors={['transparent', darkPalette.glimmer, 'transparent']}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                      style={styles.ctaSheen}
+                    />
+                  </View>
+                  <Text variant="label" color={darkPalette.onInk}>
+                    Continuer
+                  </Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+          </GlassSurface>
+
+          <Text
+            variant="bodySmall"
+            color={darkPalette.inkFaint}
+            align="center"
+            style={styles.legalHint}
+          >
+            En continuant, vous acceptez nos conditions d&apos;utilisation.
+          </Text>
+        </Animated.View>
+      </KeyboardAvoidingView>
+    </TouchableWithoutFeedback>
   );
 }
 
