@@ -2,21 +2,22 @@ import { useCallback } from 'react';
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { colors } from '@vaya/design-system';
-import { useGetMyDriverProfileQuery } from '../../src/state/api';
 
 // This tab never renders its own content — it exists so "publish a ride" is
-// one tap from anywhere in the tab bar (the CTA card on trips.tsx/profile.tsx
-// stays as an alternate entry point). Same driverProfile-existence gate those
-// two use: routes straight into the publish flow for an onboarded driver, or
-// into vehicle/KYC onboarding first for anyone else.
+// one tap from anywhere in the tab bar. Always opens the ride-creation
+// wizard (driver/publish.tsx), whether or not the user has a driver profile
+// yet — that screen itself handles the no-vehicle case (a shortened
+// form → review path with an honest "available after verification"
+// preview) and only routes into KYC onboarding when the driver actually
+// tries to publish (stitch/verification/publish-verification-requirement-prompt.html).
+// Profile's standalone "Become a driver" CTA remains a separate, direct
+// entry into onboarding for someone who wants to verify without publishing
+// a ride first.
 export default function PublishTabScreen(): React.JSX.Element {
-  const { data: driverProfile, isLoading } = useGetMyDriverProfileQuery();
-
   useFocusEffect(
     useCallback(() => {
-      if (isLoading) return;
-      router.replace(driverProfile ? '/driver/publish' : '/driver/onboarding/vehicle');
-    }, [isLoading, driverProfile]),
+      router.replace('/driver/publish');
+    }, []),
   );
 
   return (
