@@ -99,6 +99,22 @@ export default function SelfieCaptureScreen(): React.JSX.Element {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase]);
 
+  // Shouldn't happen via normal navigation — bail to the start of the
+  // wizard if this screen is somehow reached without everything the
+  // submit step needs. The redirect must run from an effect, not inline
+  // during render: calling router.replace() directly in the render body
+  // updates the navigation container while this component is still
+  // rendering, which is exactly what produced the "Cannot update a
+  // component (NavigationContainerInner) while rendering a different
+  // component (SelfieCaptureScreen)" warning reported on this screen.
+  const missingRequiredAssets =
+    !draft.vehicle || !draft.licenseUri || !draft.insuranceUri || !draft.selfieUri;
+  useEffect(() => {
+    if (phase === 'review' && missingRequiredAssets) {
+      router.replace('/driver/onboarding/vehicle');
+    }
+  }, [phase, missingRequiredAssets]);
+
   if (phase === 'capture') {
     return (
       <CaptureCamera
@@ -125,8 +141,8 @@ export default function SelfieCaptureScreen(): React.JSX.Element {
 
   const { vehicle, licenseUri, insuranceUri, selfieUri } = draft;
   if (!vehicle || !licenseUri || !insuranceUri || !selfieUri) {
-    // Shouldn't happen via normal navigation — bail to the start of the wizard.
-    router.replace('/driver/onboarding/vehicle');
+    // The effect above handles the actual redirect; render nothing while
+    // it fires.
     return <View style={styles.container} />;
   }
 
