@@ -23,7 +23,18 @@ const CONVERSATION_ID = 'conversation-1';
 interface FakeBooking {
   id: string;
   riderId: string;
-  ride: { driverProfile: { userId: string } };
+  ride: {
+    originLabel: string;
+    destinationLabel: string;
+    departureAt: Date;
+    status: string;
+    driverProfile: {
+      userId: string;
+      verificationStatus: string;
+      user: { id: string; fullName: string; avatarUrl: string | null };
+    };
+  };
+  rider: { id: string; fullName: string; avatarUrl: string | null };
   trip: { status: string } | null;
 }
 
@@ -31,7 +42,18 @@ function makeBooking(overrides: Partial<FakeBooking> = {}): FakeBooking {
   return {
     id: BOOKING_ID,
     riderId: RIDER_ID,
-    ride: { driverProfile: { userId: DRIVER_USER_ID } },
+    ride: {
+      originLabel: 'Fake Origin',
+      destinationLabel: 'Fake Dest',
+      departureAt: new Date('2026-01-01T10:00:00Z'),
+      status: 'published',
+      driverProfile: {
+        userId: DRIVER_USER_ID,
+        verificationStatus: 'approved',
+        user: { id: DRIVER_USER_ID, fullName: 'Fake Driver', avatarUrl: null },
+      },
+    },
+    rider: { id: RIDER_ID, fullName: 'Fake Rider', avatarUrl: null },
     trip: { status: 'scheduled' },
     ...overrides,
   };
@@ -50,6 +72,7 @@ function makeBooking(overrides: Partial<FakeBooking> = {}): FakeBooking {
 function makeFakeDb(options: {
   conversation?: { id: string; bookingId: string; status: 'open' | 'closed' };
   booking?: FakeBooking;
+  lastMessage?: unknown;
   messages?: unknown[];
   insertedMessage?: {
     id: string;
@@ -70,6 +93,7 @@ function makeFakeDb(options: {
         findFirst: async () => options.booking,
       },
       messages: {
+        findFirst: async () => options.lastMessage ?? null,
         findMany: async () => options.messages ?? [],
       },
     },

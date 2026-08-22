@@ -1,4 +1,5 @@
 import type { Conversation, ConversationMessage } from '../../state/api';
+import { formatDaySectionLabel } from './inboxHelpers';
 
 /** A message renders right-aligned (own) vs left-aligned (other party) —
  *  the one piece of chat-bubble logic that has to be correct regardless of
@@ -46,6 +47,65 @@ export interface SubmitMessageDeps {
   sendMessage: (body: string) => Promise<unknown>;
   trackEvent: (name: string, payload?: Record<string, string | number | boolean | null>) => void;
   role: 'driver' | 'rider';
+}
+
+/** Trip statuses that mean the shared ride is happening right now. */
+const LIVE_TRIP_STATUSES = new Set(['driver_approaching', 'pickup', 'active', 'arriving']);
+/** Trip statuses that permanently end the trip — same set the server's
+ *  conversation-closing rule derives from (trips.status is re-derived live,
+ *  so this mirrors what GET /conversations already returned). */
+const TERMINAL_TRIP_STATUSES = new Set(['completed', 'no_show', 'cancelled']);
+
+export interface TripContext {
+  label: string;
+  /** True only while the trip is actively happening — drives the pulsing
+   *  status dot in the chat header's context bar. */
+  isLive: boolean;
+}
+
+/**
+ * The chat header's persistent trip-context label, derived ONLY from real
+ * state the server returned — never a fabricated "confirmed" when the
+ * underlying booking/trip says otherwise.
+ */
+export function getTripContext(conversation: Conversation): TripContext {
+  if (
+    conversation.status === 'closed' ||
+    (conversation.tripStatus !== null && TERMINAL_TRIP_STATUSES.has(conversation.tripStatus))
+  ) {
+    return { label: 'Trajet terminé', isLive: false };
+  }
+  if (conversation.tripStatus !== null && LIVE_TRIP_STATUSES.has(conversation.tripStatus)) {
+    return { label: 'Trajet en cours', isLive: true };
+  }
+  return { label: 'Trajet à venir', isLive: false };
+}
+
+export interface MessageDayGroup {
+  label: string;
+  messages: ConversationMessage[];
+}
+
+/**
+ * Splits a time-sorted message list into calendar-day groups so the screen
+ * can render Stitch's date-pill separators. Assumes `messages` are already
+ * sorted ascending (listConversationMessages returns them that way).
+ */
+export function groupMessagesByDay(
+  messages: ConversationMessage[],
+  now: Date = new Date(),
+): MessageDayGroup[] {
+  const groups: MessageDayGroup[] = [];
+  for (const message of messages) {
+    const label = formatDaySectionLabel(message.createdAt, now);
+    const last = groups[groups.length - 1];
+    if (last && last.label === label) {
+      last.messages.push(message);
+    } else {
+      groups.push({ label, messages: [message] });
+    }
+  }
+  return groups;
 }
 
 /**

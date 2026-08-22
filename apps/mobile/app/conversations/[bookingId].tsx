@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   View,
   StyleSheet,
@@ -6,16 +6,19 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  TouchableOpacity,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import {
   Text,
-  Input,
-  Button,
+  Avatar,
+  Chip,
   Icon,
   EmptyState,
   MessageBubble,
-  colors,
+  Input,
+  useAppTheme,
   spacing,
   radii,
 } from '@vaya/design-system';
@@ -29,6 +32,8 @@ import {
   isOwnMessage,
   canSendMessage,
   formatMessageTimestamp,
+  getTripContext,
+  groupMessagesByDay,
   submitMessage,
 } from '../../src/features/conversations/conversationHelpers';
 import { trackEvent } from '../../src/services/analytics/analytics';
@@ -38,18 +43,33 @@ import { trackEvent } from '../../src/services/analytics/analytics';
 // conversation feeling responsive without hammering the API.
 const POLL_INTERVAL_MS = 4000;
 
+const ICEBREAKERS = [
+  "On se retrouve à l'arrêt indiqué ?",
+  'Je suis en route, à tout de suite !',
+];
+
+function formatDeparture(iso: string): string {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return '';
+  const now = new Date();
+  const time = date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  if (date.toDateString() === now.toDateString()) return time;
+  return `${date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })} · ${time}`;
+}
+
+/** Stitch's "Conversation / active trip coordination" — the other party's
+ *  identity, verification, and the trip context are all read straight off
+ *  GET /conversations/:bookingId's enriched summary (same shape the inbox
+ *  list uses), so nothing on this screen is guessed client-side. */
 export default function ConversationScreen(): React.JSX.Element {
-  const params = useLocalSearchParams<{
-    bookingId: string;
-    role?: 'driver' | 'rider';
-    otherPartyName?: string;
-  }>();
+  const params = useLocalSearchParams<{ bookingId: string }>();
   const bookingId = params.bookingId;
-  const role: 'driver' | 'rider' = params.role === 'driver' ? 'driver' : 'rider';
   const [draft, setDraft] = useState('');
   const scrollRef = useRef<ScrollView>(null);
   const hasTrackedStart = useRef(false);
   const hasTrackedCount = useRef(false);
+  const insets = useSafeAreaInsets();
+  const theme = useAppTheme().colors;
 
   const { data: me } = useGetMeQuery();
   const {
@@ -65,6 +85,13 @@ export default function ConversationScreen(): React.JSX.Element {
 
   const [sendConversationMessage, { isLoading: isSending }] = useSendConversationMessageMutation();
 
+  const sendAllowed = canSendMessage(conversation);
+  const tripContext = conversation ? getTripContext(conversation) : null;
+  const dayGroups = useMemo(
+    () => (messages && messages.length > 0 ? groupMessagesByDay(messages) : []),
+    [messages],
+  );
+
   useEffect(() => {
     if (!messages) return;
     if (messages.length === 0 && conversation?.status === 'open' && !hasTrackedStart.current) {
@@ -77,15 +104,15 @@ export default function ConversationScreen(): React.JSX.Element {
     }
   }, [messages, conversation?.status, bookingId]);
 
-  async function handleSend(): Promise<void> {
+  async function handleSend(bodyOverride?: string): Promise<void> {
     if (!conversation) return;
-    const body = draft;
+    const body = bodyOverride ?? draft;
     try {
       const sent = await submitMessage(body, {
         sendMessage: (text) =>
           sendConversationMessage({ conversationId: conversation.id, body: text }).unwrap(),
         trackEvent,
-        role,
+        role: conversation.viewerRole,
       });
       if (sent) {
         setDraft('');
@@ -100,17 +127,17 @@ export default function ConversationScreen(): React.JSX.Element {
 
   if (isConversationLoading) {
     return (
-      <View style={styles.centered}>
-        <ActivityIndicator color={colors.secondary} size="large" />
+      <View style={[styles.centered, { backgroundColor: theme.background }]}>
+        <ActivityIndicator color={theme.accent} size="large" />
       </View>
     );
   }
 
   if (conversationError || !conversation) {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, styles.centered, { backgroundColor: theme.background }]}>
         <EmptyState
-          icon={<Icon name="chatbubble-outline" size="lg" color={colors.gray400} />}
+          icon={<Icon name="chatbubble-outline" size="lg" color={theme.inkFaint} />}
           title="Conversation indisponible"
           description="Cette conversation n'existe pas ou n'est pas encore ouverte — elle s'ouvre dès que la réservation est confirmée."
           actionLabel="Retour"
@@ -120,48 +147,151 @@ export default function ConversationScreen(): React.JSX.Element {
     );
   }
 
-  const sendAllowed = canSendMessage(conversation);
-
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: theme.background }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={80}
+      keyboardVerticalOffset={0}
     >
+      {/* Header */}
+      <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          hitSlop={12}
+          accessibilityRole="button"
+          accessibilityLabel="Retour"
+        >
+          <Icon name="chevron-back" size="md" color={theme.ink} />
+        </TouchableOpacity>
+
+        <View style={styles.headerIdentity}>
+          <View style={styles.avatarWrap}>
+            <Avatar
+              uri={conversation.otherParty.avatarUrl}
+              name={conversation.otherParty.fullName}
+              sizePx={40}
+            />
+            {conversation.isOtherPartyVerified ? (
+              <View
+                style={[
+                  styles.verifiedBadge,
+                  { backgroundColor: theme.accent, borderColor: theme.surface },
+                ]}
+              >
+                <Icon name="checkmark" size="xs" color={theme.onAccent} />
+              </View>
+            ) : null}
+          </View>
+          <View style={styles.headerNameCol}>
+            <Text variant="body" color={theme.ink} numberOfLines={1} style={styles.headerName}>
+              {conversation.otherParty.fullName}
+            </Text>
+            <Text variant="caption" color={theme.inkMuted}>
+              {conversation.otherPartyRole === 'driver' ? 'Conducteur' : 'Passager'}
+            </Text>
+          </View>
+        </View>
+      </View>
+
+      {/* Persistent trip-context bar */}
+      {tripContext ? (
+        <View
+          style={[
+            styles.tripBar,
+            { backgroundColor: theme.surface, borderBottomColor: theme.outlineVariant },
+          ]}
+        >
+          <View style={[styles.statusDot, { backgroundColor: tripContext.isLive ? theme.accent : theme.outlineVariant }]} />
+          <View style={styles.tripBarTextCol}>
+            <Text variant="caption" color={tripContext.isLive ? theme.accent : theme.inkMuted} style={styles.tripBarLabel}>
+              {tripContext.label.toUpperCase()}
+            </Text>
+            <Text variant="bodySmall" color={theme.ink} numberOfLines={1}>
+              {`${conversation.originLabel} → ${conversation.destinationLabel} · ${formatDeparture(conversation.departureAt)}`}
+            </Text>
+          </View>
+          <TouchableOpacity
+            onPress={() => router.navigate('/(tabs)/trips')}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel="Voir le trajet"
+          >
+            <Text variant="caption" color={theme.accent}>
+              Voir le trajet
+            </Text>
+          </TouchableOpacity>
+        </View>
+      ) : null}
+
       {!sendAllowed ? (
-        <View style={styles.closedBanner}>
-          <Icon name="lock-closed-outline" size="sm" color={colors.gray600} />
-          <Text variant="bodySmall" color={colors.gray700} style={styles.closedBannerText}>
+        <View
+          style={[styles.closedBanner, { backgroundColor: theme.surfaceMuted }]}
+        >
+          <Icon name="lock-closed-outline" size="xs" color={theme.inkMuted} />
+          <Text variant="bodySmall" color={theme.inkMuted} style={styles.closedBannerText}>
             Ce trajet est terminé — la conversation est en lecture seule.
           </Text>
         </View>
       ) : null}
 
+      {/* Messages */}
       <ScrollView
         ref={scrollRef}
         style={styles.list}
         contentContainerStyle={styles.listContent}
         onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: false })}
       >
-        {!messages || messages.length === 0 ? (
-          <EmptyState
-            icon={<Icon name="chatbubble-outline" size="lg" color={colors.gray400} />}
-            title="Dites bonjour"
-            description="Coordonnez votre point de rendez-vous avec votre conducteur."
-          />
+        {dayGroups.length === 0 ? (
+          <View style={styles.icebreakersWrap}>
+            <EmptyState
+              icon={<Icon name="chatbubble-ellipses-outline" size="lg" color={theme.inkFaint} />}
+              title="Dites bonjour"
+              description={`Coordonnez votre point de rendez-vous avec votre ${
+                conversation.otherPartyRole === 'driver' ? 'conducteur' : 'passager'
+              }.`}
+            >
+              {sendAllowed ? (
+                <View style={styles.icebreakers}>
+                  {ICEBREAKERS.map((icebreaker) => (
+                    <Chip
+                      key={icebreaker}
+                      label={icebreaker}
+                      theme={theme}
+                      tone="dim"
+                      onPress={() => void handleSend(icebreaker)}
+                      style={{ backgroundColor: theme.surface }}
+                    />
+                  ))}
+                </View>
+              ) : null}
+            </EmptyState>
+          </View>
         ) : (
-          messages.map((message) => (
-            <MessageBubble
-              key={message.id}
-              body={message.body}
-              isOwn={Boolean(me && isOwnMessage(message, me.id))}
-              timestamp={formatMessageTimestamp(message.createdAt)}
-            />
+          dayGroups.map((group) => (
+            <View key={group.label}>
+              <View style={[styles.dayPill, { backgroundColor: theme.surfaceMuted }]}>
+                <Text variant="caption" color={theme.inkMuted}>
+                  {group.label}
+                </Text>
+              </View>
+              {group.messages.map((message) => (
+                <MessageBubble
+                  key={message.id}
+                  body={message.body}
+                  isOwn={Boolean(me && isOwnMessage(message, me.id))}
+                  timestamp={formatMessageTimestamp(message.createdAt)}
+                  theme={theme}
+                />
+              ))}
+            </View>
           ))
         )}
       </ScrollView>
 
-      <View style={styles.composer}>
+      {/* Composer */}
+      <View
+        style={[styles.composer, { backgroundColor: theme.surface, borderTopColor: theme.outlineVariant }]}
+      >
         <View style={styles.inputWrap}>
           <Input
             value={draft}
@@ -171,15 +301,30 @@ export default function ConversationScreen(): React.JSX.Element {
             multiline
             maxLength={1000}
             accessibilityLabel="Message"
+            theme={theme}
+            style={styles.composerInput}
           />
         </View>
-        <Button
-          label="Envoyer"
-          size="sm"
+        <TouchableOpacity
           onPress={() => void handleSend()}
           disabled={!sendAllowed || isSending || draft.trim().length === 0}
-          loading={isSending}
-        />
+          style={[
+            styles.sendButton,
+            {
+              backgroundColor:
+                sendAllowed && draft.trim().length > 0 ? theme.accent : theme.surfaceMuted,
+            },
+          ]}
+          accessibilityRole="button"
+          accessibilityLabel="Envoyer le message"
+          accessibilityState={{ disabled: !sendAllowed || isSending || draft.trim().length === 0 }}
+        >
+          <Icon
+            name="send"
+            size="sm"
+            color={sendAllowed && draft.trim().length > 0 ? theme.onAccent : theme.inkFaint}
+          />
+        </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
   );
@@ -188,19 +333,68 @@ export default function ConversationScreen(): React.JSX.Element {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.gray100,
   },
   centered: {
-    flex: 1,
-    backgroundColor: colors.gray100,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    paddingHorizontal: spacing.md,
+    paddingBottom: spacing.sm,
+  },
+  headerIdentity: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  avatarWrap: {
+    position: 'relative',
+  },
+  verifiedBadge: {
+    position: 'absolute',
+    right: -2,
+    bottom: -2,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    borderWidth: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerNameCol: {
+    flexShrink: 1,
+  },
+  headerName: {
+    fontWeight: '600',
+  },
+  tripBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  statusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  tripBarTextCol: {
+    flex: 1,
+    gap: 1,
+  },
+  tripBarLabel: {
+    fontWeight: '600',
   },
   closedBanner: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
-    backgroundColor: colors.gray200,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
   },
@@ -214,22 +408,44 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     flexGrow: 1,
   },
+  icebreakersWrap: {
+    flexGrow: 1,
+    justifyContent: 'center',
+  },
+  icebreakers: {
+    alignSelf: 'center',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: spacing.xs,
+    marginTop: spacing.sm,
+  },
+  dayPill: {
+    alignSelf: 'center',
+    borderRadius: radii.full,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    marginVertical: spacing.sm,
+  },
   composer: {
     flexDirection: 'row',
     alignItems: 'flex-end',
     gap: spacing.sm,
     padding: spacing.md,
-    backgroundColor: colors.white,
-    borderTopLeftRadius: radii.xl,
-    borderTopRightRadius: radii.xl,
-    shadowColor: colors.gray900,
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    borderTopWidth: StyleSheet.hairlineWidth,
   },
   inputWrap: {
     flex: 1,
+  },
+  composerInput: {
+    borderRadius: radii.full,
     maxHeight: 100,
+  },
+  sendButton: {
+    width: 44,
+    height: 44,
+    borderRadius: radii.full,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

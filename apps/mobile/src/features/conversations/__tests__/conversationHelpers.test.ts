@@ -4,6 +4,8 @@ import {
   canSendMessage,
   mergeAndSortMessages,
   submitMessage,
+  getTripContext,
+  groupMessagesByDay,
 } from '../conversationHelpers';
 import type { Conversation, ConversationMessage } from '../../../state/api';
 
@@ -25,6 +27,16 @@ function makeConversation(overrides: Partial<Conversation> = {}): Conversation {
     status: 'open',
     createdAt: '2026-08-19T09:00:00.000Z',
     updatedAt: '2026-08-19T09:00:00.000Z',
+    viewerRole: 'rider',
+    otherParty: { id: 'driver-1', fullName: 'Sami Trabelsi', avatarUrl: null },
+    otherPartyRole: 'driver',
+    isOtherPartyVerified: true,
+    originLabel: 'Tunis',
+    destinationLabel: 'Sousse',
+    departureAt: '2026-08-20T08:00:00.000Z',
+    rideStatus: 'published',
+    tripStatus: null,
+    lastMessage: null,
     ...overrides,
   };
 }
@@ -103,5 +115,64 @@ describe('submitMessage', () => {
       submitMessage('hi', { sendMessage, trackEvent, role: 'rider' }),
     ).rejects.toThrow('network error');
     expect(trackEvent).not.toHaveBeenCalled();
+  });
+});
+
+describe('getTripContext', () => {
+  it('labels an upcoming trip before departure with no live trip yet', () => {
+    expect(getTripContext(makeConversation({ tripStatus: null }))).toEqual({
+      label: 'Trajet à venir',
+      isLive: false,
+    });
+  });
+
+  it('labels a scheduled trip as upcoming too', () => {
+    expect(getTripContext(makeConversation({ tripStatus: 'scheduled' }))).toEqual({
+      label: 'Trajet à venir',
+      isLive: false,
+    });
+  });
+
+  it('marks active trip statuses as live', () => {
+    for (const status of ['driver_approaching', 'pickup', 'active', 'arriving']) {
+      expect(getTripContext(makeConversation({ tripStatus: status })).isLive).toBe(true);
+    }
+    expect(getTripContext(makeConversation({ tripStatus: 'pickup' })).label).toBe(
+      'Trajet en cours',
+    );
+  });
+
+  it('labels terminal trips and closed conversations as finished, never live', () => {
+    for (const status of ['completed', 'no_show', 'cancelled']) {
+      expect(getTripContext(makeConversation({ tripStatus: status }))).toEqual({
+        label: 'Trajet terminé',
+        isLive: false,
+      });
+    }
+    expect(
+      getTripContext(makeConversation({ status: 'closed', tripStatus: 'completed' })),
+    ).toEqual({ label: 'Trajet terminé', isLive: false });
+  });
+});
+
+describe('groupMessagesByDay', () => {
+  const NOW = new Date(2026, 7, 19, 12, 0); // 2026-08-19 local noon
+
+  it('groups same-day messages under one pill and splits distinct days in order', () => {
+    const groups = groupMessagesByDay(
+      [
+        makeMessage({ id: 'a', createdAt: new Date(2026, 7, 18, 20, 0).toISOString() }),
+        makeMessage({ id: 'b', createdAt: new Date(2026, 7, 19, 8, 0).toISOString() }),
+        makeMessage({ id: 'c', createdAt: new Date(2026, 7, 19, 9, 30).toISOString() }),
+      ],
+      NOW,
+    );
+
+    expect(groups.map((g) => g.label)).toEqual(['Hier', "Aujourd'hui"]);
+    expect(groups[1]!.messages.map((m) => m.id)).toEqual(['b', 'c']);
+  });
+
+  it('returns no groups for an empty thread', () => {
+    expect(groupMessagesByDay([], NOW)).toEqual([]);
   });
 });

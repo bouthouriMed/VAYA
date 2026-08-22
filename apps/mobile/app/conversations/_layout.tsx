@@ -13,7 +13,10 @@ export default function ConversationsLayout(): React.JSX.Element {
         headerBackButtonDisplayMode: 'minimal',
       }}
     >
-      <Stack.Screen name="[bookingId]" options={{ title: 'Messages' }} />
+      {/* The chat screen renders its own Stitch-style header (avatar,
+          verified badge, live trip context bar) — the OS header is off so
+          the two never stack. */}
+      <Stack.Screen name="[bookingId]" options={{ headerShown: false }} />
     </Stack>
   );
 }

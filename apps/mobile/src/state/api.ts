@@ -240,6 +240,25 @@ export interface Conversation {
   status: 'open' | 'closed';
   createdAt: string;
   updatedAt: string;
+  /** Which side of the booking the requester is on — everything role-
+   *  specific (labels, verification badge) is derived from this, server-
+   *  side, so no client-side party guessing. */
+  viewerRole: 'driver' | 'rider';
+  otherParty: { id: string; fullName: string; avatarUrl: string | null };
+  otherPartyRole: 'driver' | 'rider';
+  /** Server-derived: true only when the other party is a driver with an
+   *  approved verification — never guessed from anything else. */
+  isOtherPartyVerified: boolean;
+  originLabel: string;
+  destinationLabel: string;
+  departureAt: string;
+  rideStatus: string;
+  tripStatus: string | null;
+  lastMessage: {
+    body: string;
+    createdAt: string;
+    senderUserId: string;
+  } | null;
 }
 
 export interface ConversationMessage {
@@ -379,6 +398,13 @@ export interface Booking {
     contributionPerSeat: number;
     driverFullName: string | null;
   };
+  /** Only present on driver-facing results from listRequestsForRide —
+   *  who is asking, so a request sheet isn't a list of opaque UUIDs. */
+  rider?: {
+    id: string;
+    fullName: string;
+    avatarUrl: string | null;
+  };
 }
 
 /** Public, first-name-only — a ride's already-*accepted* fellow passengers.
@@ -440,6 +466,7 @@ export const api = createApi({
     'MyBookings',
     'RideRequests',
     'Notifications',
+    'Conversations',
     'ConversationMessages',
     'Trip',
     'TrustSummary',
@@ -636,6 +663,10 @@ export const api = createApi({
     // Phase 8 (docs/roadmap/phase-08-messaging.md). Delivery is
     // polling-based: the conversation screen calls listConversationMessages
     // on an interval (RTK Query's `pollingInterval`), never a socket.
+    listConversations: builder.query<Conversation[], void>({
+      query: () => '/conversations',
+      providesTags: ['Conversations'],
+    }),
     getConversationByBooking: builder.query<Conversation, string>({
       query: (bookingId) => `/conversations/${bookingId}`,
     }),
@@ -662,6 +693,7 @@ export const api = createApi({
       }),
       invalidatesTags: (_result, _error, { conversationId }) => [
         { type: 'ConversationMessages', id: conversationId },
+        'Conversations',
       ],
     }),
 
@@ -752,6 +784,7 @@ export const {
   useListNotificationsQuery,
   useMarkNotificationReadMutation,
   useGetConversationByBookingQuery,
+  useListConversationsQuery,
   useListConversationMessagesQuery,
   useSendConversationMessageMutation,
   useGetTripByBookingQuery,

@@ -167,7 +167,24 @@ export async function listRequestsForRide(db: Database, rideId: string, requesti
   if (ride.driverProfile.userId !== requestingUserId) {
     throw new ForbiddenError('Only the driver can view requests for this ride');
   }
-  return db.query.bookings.findMany({ where: eq(bookings.rideId, rideId), with: { rider: true } });
+  const results = await db.query.bookings.findMany({
+    where: eq(bookings.rideId, rideId),
+    with: { rider: true },
+  });
+
+  // Flatten booking.rider -> booking.rider {id, fullName, avatarUrl} so the
+  // driver's request list can show WHO is asking (same additive-display
+  // pattern as listMyBookings's ride enrichment above — driver-facing
+  // endpoint; fellow-passengers' public-safe first-name-only rule doesn't
+  // apply here).
+  return results.map(({ rider, ...booking }) => ({
+    ...booking,
+    rider: {
+      id: rider.id,
+      fullName: rider.fullName,
+      avatarUrl: rider.avatarUrl,
+    },
+  }));
 }
 
 /** Public, first-name-only roster of a ride's already-*accepted* fellow

@@ -32,7 +32,7 @@ describe('conversations — inbox list + enriched summaries', () => {
   let riderAId: string;
   let riderBId: string;
   let outsiderId: string;
-  let cleanupRideIds: string[] = [];
+  const cleanupRideIds: string[] = [];
   let bookingAId: string;
   let bookingBId: string;
   let conversationAId: string;
@@ -125,15 +125,16 @@ describe('conversations — inbox list + enriched summaries', () => {
         pickup: { label: 'Inbox pickup B', lat: 36.8, lng: 10.18 },
       })
     ).id;
-    await createBooking(db, rideAId, riderBId, {
-      seatsRequested: 1,
-      pickup: { label: 'Inbox pickup C', lat: 36.81, lng: 10.19 },
-    });
+    const bookingCId = (
+      await createBooking(db, rideAId, riderBId, {
+        seatsRequested: 1,
+        pickup: { label: 'Inbox pickup C', lat: 36.81, lng: 10.19 },
+      })
+    ).id;
 
     await acceptBooking(db, bookingAId, driverUserId);
     await acceptBooking(db, bookingBId, driverUserId);
-    void riderBId; // riderB's conversation asserted via their own listing below
-
+    await acceptBooking(db, bookingCId, driverUserId);
     const [convA] = await db
       .select()
       .from(conversations)

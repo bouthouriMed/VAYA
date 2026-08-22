@@ -30,6 +30,15 @@ const bookingResponseSchema = z.object({
   pickupLng: z.number(),
   requestedAt: z.date(),
   respondedAt: z.date().nullable(),
+  // Only populated by GET /rides/:rideId/requests (driver view) — who is
+  // asking, so the driver's request sheet isn't a list of opaque UUIDs.
+  rider: z
+    .object({
+      id: z.string().uuid(),
+      fullName: z.string(),
+      avatarUrl: z.string().nullable(),
+    })
+    .optional(),
   // Only populated by GET /bookings/mine, which fetches the ride for
   // display purposes — other endpoints return the bare booking row.
   ride: z

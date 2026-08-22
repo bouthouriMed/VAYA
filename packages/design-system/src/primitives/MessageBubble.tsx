@@ -2,6 +2,7 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Text } from './Text';
 import { colors, spacing, radii, typography } from '../tokens/index';
+import type { AppPalette } from '../theme/palette';
 
 interface MessageBubbleProps {
   body: string;
@@ -12,6 +13,10 @@ interface MessageBubbleProps {
   /** Pre-formatted, locale-aware timestamp string — formatting stays at
    *  the screen layer (same discipline as notifications/index.tsx). */
   timestamp: string;
+  /** Optional `useAppTheme()` override (Stitch migration) — own bubbles
+   *  render solid-accent/onAccent, others on surfaceMuted with an
+   *  outlineVariant hairline. Omit for the legacy static palette. */
+  theme?: AppPalette;
 }
 
 /**
@@ -21,23 +26,48 @@ interface MessageBubbleProps {
  * asymmetric own/other alignment, bubble tail-corner, and two-tone bubble
  * color without duplicating that logic at every call site.
  */
-export function MessageBubble({ body, isOwn, timestamp }: MessageBubbleProps): React.JSX.Element {
+export function MessageBubble({
+  body,
+  isOwn,
+  timestamp,
+  theme,
+}: MessageBubbleProps): React.JSX.Element {
+  const themed = theme
+    ? {
+        row: [styles.row, isOwn ? styles.rowOwn : styles.rowOther],
+        bubble: [
+          styles.bubble,
+          isOwn
+            ? { backgroundColor: theme.accent, borderBottomRightRadius: radii.sm }
+            : {
+                backgroundColor: theme.surfaceMuted,
+                borderBottomLeftRadius: radii.sm,
+                borderWidth: 1,
+                borderColor: theme.outlineVariant,
+              },
+        ],
+        bodyColor: isOwn ? theme.onAccent : theme.ink,
+        timestampColor: isOwn ? theme.onAccent : theme.inkMuted,
+      }
+    : {
+        row: [styles.row, isOwn ? styles.rowOwn : styles.rowOther],
+        bubble: [styles.bubble, isOwn ? styles.bubbleOwn : styles.bubbleOther],
+        bodyColor: isOwn ? colors.white : colors.gray900,
+        timestampColor: isOwn ? colors.navyTextMuted : colors.gray500,
+      };
+
   return (
     <View
-      style={[styles.row, isOwn ? styles.rowOwn : styles.rowOther]}
+      style={themed.row}
       accessible
       accessibilityRole="text"
       accessibilityLabel={`${isOwn ? 'Vous' : 'Autre participant'}, ${timestamp}: ${body}`}
     >
-      <View style={[styles.bubble, isOwn ? styles.bubbleOwn : styles.bubbleOther]}>
-        <Text variant="body" color={isOwn ? colors.white : colors.gray900}>
+      <View style={themed.bubble}>
+        <Text variant="body" color={themed.bodyColor}>
           {body}
         </Text>
-        <Text
-          variant="caption"
-          color={isOwn ? colors.navyTextMuted : colors.gray500}
-          style={styles.timestamp}
-        >
+        <Text variant="caption" color={themed.timestampColor} style={styles.timestamp}>
           {timestamp}
         </Text>
       </View>
