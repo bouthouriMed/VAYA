@@ -461,6 +461,20 @@ const baseQueryWithReauth: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQue
 export const api = createApi({
   reducerPath: 'api',
   baseQuery: baseQueryWithReauth,
+  // Without these, a query only ever refetches when its own tag is
+  // invalidated by a mutation *in this same app instance* — it never
+  // reflects something that happened on someone else's device (a driver
+  // accepting a request, a passenger's new booking). Real-world effect
+  // this was causing: a driver taps a "new request" push notification,
+  // lands on the request sheet, and sees whatever was cached from before —
+  // not the new request — until they happen to background/foreground the
+  // app or wait out keepUnusedDataFor. refetchOnFocus (wired to RN's
+  // AppState below, since RTK Query's default only listens for the web
+  // visibilitychange event) and refetchOnMountOrArgChange close that gap
+  // for every screen, not just notification-triggered navigation.
+  refetchOnFocus: true,
+  refetchOnReconnect: true,
+  refetchOnMountOrArgChange: 30,
   tagTypes: [
     'Me',
     'DriverProfile',

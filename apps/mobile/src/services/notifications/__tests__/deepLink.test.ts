@@ -2,12 +2,23 @@ import { describe, it, expect } from 'vitest';
 import { resolveNotificationDeepLink } from '../deepLink';
 
 describe('resolveNotificationDeepLink', () => {
-  it.each(['booking_requested', 'booking_accepted', 'booking_declined', 'trip_completed'])(
+  it.each(['booking_accepted', 'booking_declined', 'trip_completed'])(
     'resolves %s to the trips tab',
     (type) => {
       expect(resolveNotificationDeepLink(type)).toBe('/(tabs)/trips');
     },
   );
+
+  it('falls back to the plain trips tab for booking_requested without a rideId', () => {
+    expect(resolveNotificationDeepLink('booking_requested')).toBe('/(tabs)/trips');
+    expect(resolveNotificationDeepLink('booking_requested', {})).toBe('/(tabs)/trips');
+  });
+
+  it('resolves booking_requested directly to that ride\'s request sheet when rideId is present', () => {
+    expect(resolveNotificationDeepLink('booking_requested', { rideId: 'ride-1' })).toBe(
+      '/(tabs)/trips?openRequestsForRide=ride-1',
+    );
+  });
 
   it('returns null for an event type this phase does not dispatch a tap-through for', () => {
     expect(resolveNotificationDeepLink('trip_driver_approaching')).toBeNull();

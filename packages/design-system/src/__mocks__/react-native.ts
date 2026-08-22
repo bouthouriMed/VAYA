@@ -68,6 +68,14 @@ const BackHandler = {
   addEventListener: () => ({ remove: () => {} }),
 };
 
+// state/store.ts wires RTK Query's setupListeners to this for
+// refetch-on-app-foreground — same "exists and is removable, never actually
+// fires in a snapshot render" rationale as BackHandler above.
+const AppState = {
+  currentState: 'active' as const,
+  addEventListener: () => ({ remove: () => {} }),
+};
+
 const Text = 'Text';
 const View = 'View';
 const Image = 'Image';
@@ -182,6 +190,7 @@ export {
   Easing,
   AccessibilityInfo,
   BackHandler,
+  AppState,
   useColorScheme,
   Text,
   View,

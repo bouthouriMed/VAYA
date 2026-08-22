@@ -152,7 +152,9 @@ function bodyFor(type: NotificationEventType, payload: Record<string, unknown>):
         ? `${payload.driverName} a accepté votre demande.`
         : 'Votre demande de réservation a été acceptée.';
     case 'booking_declined':
-      return 'Votre demande de réservation a été refusée.';
+      return typeof payload.driverName === 'string'
+        ? `${payload.driverName} n'a pas pu accepter votre demande.`
+        : 'Votre demande de réservation a été refusée.';
     case 'message_received':
       return typeof payload.senderName === 'string'
         ? `${payload.senderName} vous a envoyé un message.`
