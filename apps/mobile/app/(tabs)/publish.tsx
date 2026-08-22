@@ -1028,7 +1028,7 @@ export default function PublishTabScreen(): React.JSX.Element {
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       <ScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.md }]}>
         <Animated.View style={[styles.formStack, stepMotionStyle]}>
-          <Text variant="h2" color={theme.ink}>
+          <Text variant="headlineDisplay" color={theme.ink}>
             Publier un trajet
           </Text>
 

@@ -65,7 +65,7 @@ export default function TripsScreen(): React.JSX.Element {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
-        <Text variant="h2">Mes trajets</Text>
+        <Text variant="headlineDisplay">Mes trajets</Text>
 
         <TouchableOpacity style={styles.publishCard} onPress={goToDriverFlow} activeOpacity={0.8}>
           <View style={styles.publishIcon}>
