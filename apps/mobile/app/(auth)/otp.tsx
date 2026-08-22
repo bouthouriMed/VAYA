@@ -110,37 +110,41 @@ export default function OtpScreen(): React.JSX.Element {
     return () => clearTimeout(timer);
   }, [secondsLeft]);
 
-  // Same hand-rolled approach as app/index.tsx: KeyboardAvoidingView's own
-  // Android path is an instant `setValue` snap regardless of `behavior`, so
-  // the CTA is lifted via a translateY synced to the real keyboard event's
-  // duration instead, smooth on both platforms.
-  const keyboardOffset = useRef(new Animated.Value(0)).current;
+  // A real layout resize (animated paddingBottom), not a transform — driven
+  // by the real keyboard event's own duration so both platforms animate
+  // smoothly (KeyboardAvoidingView's Android path is an instant `setValue`
+  // snap regardless of `behavior`). Scoped to `lowerSection` only — the
+  // header never moves, and because this shrinks real available flex space
+  // rather than translating the whole screen, the vertically-centered OTP
+  // block re-centers into the smaller area instead of ever being able to
+  // ride up over the header/status bar.
+  const keyboardPad = useRef(new Animated.Value(0)).current;
   useEffect(() => {
     const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
     const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
 
     const showSub = Keyboard.addListener(showEvent, (e) => {
-      const lift = Math.max(0, e.endCoordinates.height - insets.bottom - spacing.sm);
-      Animated.timing(keyboardOffset, {
-        toValue: -lift,
+      const lift = Math.max(0, e.endCoordinates.height - insets.bottom + spacing.sm);
+      Animated.timing(keyboardPad, {
+        toValue: lift,
         duration: e.duration && e.duration > 0 ? e.duration : 250,
         easing: Easing.out(Easing.cubic),
-        useNativeDriver: true,
+        useNativeDriver: false,
       }).start();
     });
     const hideSub = Keyboard.addListener(hideEvent, (e) => {
-      Animated.timing(keyboardOffset, {
+      Animated.timing(keyboardPad, {
         toValue: 0,
         duration: e.duration && e.duration > 0 ? e.duration : 250,
         easing: Easing.out(Easing.cubic),
-        useNativeDriver: true,
+        useNativeDriver: false,
       }).start();
     });
     return () => {
       showSub.remove();
       hideSub.remove();
     };
-  }, [keyboardOffset, insets.bottom]);
+  }, [keyboardPad, insets.bottom]);
 
   const mm = String(Math.floor(secondsLeft / 60)).padStart(2, '0');
   const ss = String(secondsLeft % 60).padStart(2, '0');
@@ -175,15 +179,13 @@ export default function OtpScreen(): React.JSX.Element {
         <View pointerEvents="none" style={styles.glowTop} />
         <View pointerEvents="none" style={styles.glowBottom} />
 
-        <Animated.View
-          style={[styles.content, { transform: [{ translateY: keyboardOffset }] }]}
-        >
-          <View style={{ paddingTop: insets.top + spacing.md }}>
-            <TouchableOpacity onPress={() => router.back()} hitSlop={12} style={styles.backBtn}>
-              <Ionicons name="chevron-back" size={26} color={darkPalette.ink} />
-            </TouchableOpacity>
-          </View>
+        <View style={[styles.header, { paddingTop: insets.top + spacing.md }]}>
+          <TouchableOpacity onPress={() => router.back()} hitSlop={12} style={styles.backBtn}>
+            <Ionicons name="chevron-back" size={26} color={darkPalette.ink} />
+          </TouchableOpacity>
+        </View>
 
+        <Animated.View style={[styles.lowerSection, { paddingBottom: keyboardPad }]}>
           <View style={styles.body}>
             <Text style={styles.title}>Entrez le code de vérification</Text>
             <Text variant="body" color={darkPalette.inkMuted} style={styles.subtitle}>
@@ -322,10 +324,8 @@ const styles = StyleSheet.create({
     backgroundColor: darkPalette.accent,
     opacity: 0.18,
   },
-  content: {
-    flex: 1,
+  header: {
     paddingHorizontal: spacing['2xl'],
-    justifyContent: 'space-between',
   },
   backBtn: {
     width: 36,
@@ -333,8 +333,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  // Fills the space below the header; centers the OTP block within it
+  // instead of top-anchoring it with a dead gap above the CTA. `paddingBottom`
+  // is the animated keyboard-avoidance value — a real layout shrink, so
+  // `body`'s centering recomputes into the smaller area on its own rather
+  // than needing a hand-computed translate.
+  lowerSection: {
+    flex: 1,
+    paddingHorizontal: spacing['2xl'],
+    justifyContent: 'space-between',
+  },
   body: {
-    marginTop: spacing['2xl'],
+    flex: 1,
+    justifyContent: 'center',
   },
   title: {
     color: darkPalette.ink,
