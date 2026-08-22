@@ -1,24 +1,22 @@
 /**
  * App theme palette, consumed via `AppThemeProvider`/`useAppTheme()`.
  *
- * Originally pulled directly from the "Vaya Passenger Journey UX" Stitch
- * export — a generic Material-3 black/white/emerald-mint scheme. That read
- * as exactly the "generic Material default" CLAUDE.md's design-system
- * rules warn against, and diluted the one thing `tokens/colors.ts`'s warm
- * navy/sage/cream palette already had going for it: a distinctive,
- * non-generic identity ("the strongest, most distinctive asset in the
- * current product"). Every role below is now derived from that same
- * existing palette instead — `ink`/`onInk`/`background` are never flat
- * `#000000`/`#FFFFFF`, and `accent` is VAYA's actual sage rather than a
- * Material emerald — so a screen on `useAppTheme()` and a screen still on
- * the static `colors` tokens read as one coherent brand instead of two
- * different apps stitched together, in both light and dark.
+ * A deliberate, from-scratch design pass — not a remap of an existing
+ * token set. The brief: make VAYA read as genuinely premium in both light
+ * and dark, not "basic black and white with a green accent." The concept:
+ * deep charcoal-emerald darkness meets warm ivory light, unified by one
+ * saturated jewel-tone emerald accent (not a muted "eco-app sage" — a
+ * confident gem-green with real presence). Both modes lean warm rather
+ * than clinical: `ink`/`background` are never flat `#000000`/`#FFFFFF` in
+ * either mode.
  *
- * `dark` is not a separate invention: it reuses `tokens/colors.ts`'s own
- * navy family (`primary`/`primaryLight`/`primaryDark`, already used
- * elsewhere in the app as a deliberate dark-hero surface — see
- * `driver/onboarding/index.tsx`) as the background/surface steps, and the
- * same sage/cream tones as light mode's, just redistributed across roles.
+ * The two modes are built to mirror each other rather than simply invert:
+ * dark mode's `background` (`#0D1512`) and light mode's `ink` (`#14201B`)
+ * sit in the same deep charcoal-forest family, and light mode's
+ * `background` (warm ivory) is close to dark mode's `ink` (warm
+ * champagne). That relationship — not just "swap every value" — is what
+ * makes a two-theme system read as one considered design instead of an
+ * automated inversion.
  */
 export interface AppPalette {
   /** Screen background. */
@@ -38,7 +36,7 @@ export interface AppPalette {
   /** Hairline borders, dividers, unselected icon strokes. */
   outline: string;
   outlineVariant: string;
-  /** Sage accent — origin/live markers, ratings, success states. */
+  /** Jewel-emerald accent — origin/live markers, ratings, success states. */
   accent: string;
   accentStrong: string;
   accentGlow: string;
@@ -52,41 +50,41 @@ export interface AppPalette {
 }
 
 export const lightPalette: AppPalette = {
-  background: '#F3F1E9',
+  background: '#F7F3E8',
   surface: '#FFFFFF',
-  surfaceMuted: '#EAE7DC',
-  ink: '#1C2429',
-  onInk: '#FAF8F2',
-  inkMuted: '#57616A',
-  inkFaint: '#9B9788',
-  outline: '#DDD9CA',
-  outlineVariant: '#EAE7DC',
-  accent: '#7FA491',
-  accentStrong: '#587566',
-  accentGlow: '#A8C4B6',
-  onAccent: '#1C2429',
-  error: '#A65C4E',
-  errorMuted: '#CE9787',
-  info: '#5B7D8A',
+  surfaceMuted: '#EDE6D4',
+  ink: '#14201B',
+  onInk: '#F7F3E8',
+  inkMuted: '#5C5748',
+  inkFaint: '#8C8674',
+  outline: '#DDD4BC',
+  outlineVariant: '#EDE6D4',
+  accent: '#2E9E6C',
+  accentStrong: '#22794F',
+  accentGlow: '#8FD9B4',
+  onAccent: '#0D1512',
+  error: '#B5503C',
+  errorMuted: '#F3D9CE',
+  info: '#4A7C8C',
 };
 
 export const darkPalette: AppPalette = {
-  background: '#1C2429',
-  surface: '#2E3B42',
-  surfaceMuted: '#4B5960',
-  ink: '#F3F1E9',
-  onInk: '#1C2429',
-  inkMuted: '#BDB9A9',
-  inkFaint: '#9B9788',
-  outline: '#3A4750',
-  outlineVariant: '#4B5960',
-  accent: '#A8C4B6',
-  accentStrong: '#7FA491',
-  accentGlow: '#7FA491',
-  onAccent: '#1C2429',
-  error: '#CE9787',
-  errorMuted: '#733D33',
-  info: '#9DBAC3',
+  background: '#0D1512',
+  surface: '#16211C',
+  surfaceMuted: '#20302A',
+  ink: '#F6F1E7',
+  onInk: '#0D1512',
+  inkMuted: '#B4AFA0',
+  inkFaint: '#7C7A6E',
+  outline: '#2A362F',
+  outlineVariant: '#20302A',
+  accent: '#3FBE85',
+  accentStrong: '#2E9E6C',
+  accentGlow: '#1F6B49',
+  onAccent: '#0D1512',
+  error: '#E08672',
+  errorMuted: '#5C2E24',
+  info: '#8FB8C7',
 };
 
 export type ColorScheme = 'light' | 'dark';
