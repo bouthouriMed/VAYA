@@ -1,11 +1,30 @@
-import { Tabs, Redirect } from 'expo-router';
+import { useEffect } from 'react';
+import { Tabs, Redirect, useNavigation } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppTheme } from '@vaya/design-system';
 import { useAppSelector } from '../../src/state/store';
 
 export default function TabLayout(): React.JSX.Element {
   const accessToken = useAppSelector((s) => s.auth.accessToken);
+  const navigation = useNavigation();
   const { colors: theme } = useAppTheme();
+
+  // Last-line-of-defense against "swiping right dismisses the entire app":
+  // a swipe that starts near the screen edge can be delivered as a system
+  // back event (Android gesture nav), which pops this stack below (tabs)
+  // and lands the whole app on the landing/auth screen. gestureEnabled:
+  // false on the root Stack only disables the navigator's own edge-swipe
+  // gesture — it does nothing for back events. Swallow any pop attempt
+  // targeting (tabs); programmatic router.replace() calls (e.g. sign-out's
+  // replace('/')) dispatch REPLACE actions and stay allowed.
+  useEffect(() => {
+    if (!accessToken) return;
+    return navigation.addListener('beforeRemove', (e) => {
+      if (e.data.action.type === 'REPLACE') return;
+      e.preventDefault();
+    });
+  }, [accessToken, navigation]);
+
   if (!accessToken) {
     return <Redirect href="/" />;
   }

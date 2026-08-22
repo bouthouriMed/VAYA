@@ -16,6 +16,14 @@ module.exports = {
     },
     android: {
       package: 'com.vaya.app',
+      // Keep hardware/system back on the classic onBackPressed pipeline
+      // instead of Android 13+'s predictive-back OnBackInvokedCallback.
+      // With predictive back enabled, an edge-starting swipe can be
+      // delivered as a raw back invocation that RN Modal windows don't
+      // consume — a rightward swipe inside an open bottom sheet (e.g. the
+      // calendar) then pops the whole app instead of just the sheet.
+      // Requires a native dev-client rebuild to take effect.
+      enableOnBackInvokedCallback: false,
       // react-native-maps needs its own Google Maps API key on Android
       // (iOS uses Apple Maps by default, no key needed). Real key required
       // for the map to render on a real Android build/device — set

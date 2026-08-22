@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { GestureDetector, Gesture } from 'react-native-gesture-handler';
-import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
+import Animated, { useSharedValue, useAnimatedStyle, withTiming, runOnJS } from 'react-native-reanimated';
 import { BottomSheet } from './BottomSheet';
 import { Text } from './Text';
 import { Icon } from './Icon';
@@ -74,9 +74,17 @@ export function DateCalendarSheet({
   // TouchableOpacity content.
   const gridTranslateX = useSharedValue(0);
 
+  // MUST be a 'worklet' and reach goToMonth via runOnJS: settleGrid runs on
+  // the UI thread (called from the auto-workletized monthSwipeGesture.onEnd),
+  // and calling a non-worklet function — let alone React's setState inside
+  // goToMonth — directly from there throws on the UI thread, where there is
+  // no redbox: on iOS/Fabric it kills the process outright, silently bouncing
+  // the whole app to the home screen. That was exactly the "swiping right in
+  // the calendar dismisses the entire app" crash.
   function settleGrid(nextMonthOffset?: 1 | -1): void {
+    'worklet';
     gridTranslateX.value = withTiming(0, { duration: 150 });
-    if (nextMonthOffset) goToMonth(nextMonthOffset);
+    if (nextMonthOffset) runOnJS(goToMonth)(nextMonthOffset);
   }
 
   // Horizontal-only, and yields early to BottomSheet's own vertical drag
