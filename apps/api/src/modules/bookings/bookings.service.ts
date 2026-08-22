@@ -1,6 +1,6 @@
 import { and, eq, gte, sql } from 'drizzle-orm';
 import type { getDatabase } from '../../lib/database.js';
-import { bookings, rides, routeStops, trips } from '../../db/schema/index.js';
+import { bookings, rides, routeStops, trips, users } from '../../db/schema/index.js';
 import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from '../../lib/errors.js';
 import {
   canReportNoShow,
@@ -55,6 +55,17 @@ async function getBookingOrThrow(db: Database, bookingId: string) {
   });
   if (!booking) throw new NotFoundError('Booking');
   return booking;
+}
+
+/** Best-effort display name for a notification body — never blocks the
+ *  triggering booking action if the lookup itself fails for any reason. */
+async function getUserFullNameSafe(db: Database, userId: string): Promise<string | undefined> {
+  try {
+    const user = await db.query.users.findFirst({ where: eq(users.id, userId) });
+    return user?.fullName;
+  } catch {
+    return undefined;
+  }
 }
 
 export async function createBooking(
@@ -135,6 +146,7 @@ export async function createBooking(
     bookingId: booking.id,
     rideId,
     riderId,
+    riderName: await getUserFullNameSafe(db, riderId),
     seatsRequested: booking.seatsRequested,
   });
 
@@ -253,6 +265,7 @@ export async function acceptBooking(db: Database, bookingId: string, requestingU
   await notifyBestEffort(db, booking.riderId, 'booking_accepted', {
     bookingId: booking.id,
     rideId: booking.rideId,
+    driverName: await getUserFullNameSafe(db, booking.ride.driverProfile.userId),
   });
 
   // Phase 8: one conversation per booking, opened the moment it's
@@ -282,6 +295,7 @@ export async function declineBooking(db: Database, bookingId: string, requesting
   await notifyBestEffort(db, booking.riderId, 'booking_declined', {
     bookingId: booking.id,
     rideId: booking.rideId,
+    driverName: await getUserFullNameSafe(db, booking.ride.driverProfile.userId),
   });
 
   return updated;

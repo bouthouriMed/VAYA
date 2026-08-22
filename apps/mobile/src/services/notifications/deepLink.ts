@@ -6,13 +6,19 @@
  * explicit scope boundary "do not build a general deep-linking system
  * beyond what these notification types need").
  *
- * The three booking_* types resolve to the "Mes trajets" tab: it already
- * renders both a driver's published rides and a rider's bookings
- * ((tabs)/trips.tsx), which is the closest existing screen to each event's
- * subject. A dedicated driver "review this request" screen doesn't exist
- * yet anywhere in this codebase (verified — no accept/decline call site in
- * apps/mobile/app) — a real product gap, not something to build as a side
- * effect of this phase. Once it exists, only this map needs to change.
+ * booking_accepted/booking_declined resolve to the "Mes trajets" tab — it
+ * already renders a rider's bookings ((tabs)/trips.tsx), the closest
+ * existing screen to those events' subject.
+ *
+ * booking_requested resolves more specifically: its payload always carries
+ * `rideId` (bookings.service.ts's createBooking), so a tap opens Mes trajets
+ * *with that ride's request sheet already open*
+ * (`?openRequestsForRide=<rideId>`, read by trips.tsx) — a driver taps the
+ * notification and lands directly on the request they can accept/decline,
+ * not just the dashboard they'd have to navigate from manually. (An earlier
+ * version of this file described this as "a real product gap" — that
+ * screen, RideRequestsSheet, has existed since a "booking (wip)" commit;
+ * this comment was simply never updated.)
  *
  * message_received (Phase 8) is the one type that can resolve more
  * specifically: its payload always carries the bookingId
@@ -50,7 +56,12 @@ export function resolveNotificationDeepLink(
   payload?: Record<string, unknown>,
 ): string | null {
   switch (type) {
-    case 'booking_requested':
+    case 'booking_requested': {
+      const rideId = payload?.rideId;
+      return typeof rideId === 'string'
+        ? `/(tabs)/trips?openRequestsForRide=${encodeURIComponent(rideId)}`
+        : '/(tabs)/trips';
+    }
     case 'booking_accepted':
     case 'booking_declined':
     case 'trip_completed':

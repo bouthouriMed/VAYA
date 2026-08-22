@@ -22,6 +22,8 @@ const FUTURE_DEPARTURE = '2026-08-23T08:30:00';
 vi.mock('expo-router', () => ({
   router: { push: vi.fn(), navigate: vi.fn(), canGoBack: vi.fn(() => false) },
   Redirect: () => null,
+  // No booking_requested-notification deep link in these fixtures.
+  useLocalSearchParams: () => ({}),
 }));
 
 // trips.tsx guards itself behind accessToken (guest browsing landed on

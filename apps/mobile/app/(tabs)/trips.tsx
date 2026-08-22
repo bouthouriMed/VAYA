@@ -18,7 +18,7 @@ import {
   spacing,
   radii,
 } from '@vaya/design-system';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useAppSelector } from '../../src/state/store';
 import {
   useListMyBookingsQuery,
@@ -88,6 +88,7 @@ type Segment = 'rider' | 'driver';
  * "Gérer" opens ride management (facts + two-step cancel). */
 export default function TripsScreen(): React.JSX.Element {
   const theme = useAppTheme().colors;
+  const { openRequestsForRide } = useLocalSearchParams<{ openRequestsForRide?: string }>();
   const accessToken = useAppSelector((s) => s.auth.accessToken);
   const { data: bookings, isLoading: isBookingsLoading } = useListMyBookingsQuery(undefined, {
     skip: !accessToken,
@@ -114,6 +115,16 @@ export default function TripsScreen(): React.JSX.Element {
   useEffect(() => {
     if (driverProfile) setSegment('driver');
   }, [driverProfile]);
+
+  // A "new request" notification tap (deepLink.ts) lands here with the
+  // specific ride already known — opens straight to the request instead of
+  // making the driver find it themselves on the dashboard below.
+  useEffect(() => {
+    if (openRequestsForRide) {
+      setSegment('driver');
+      setRequestsRideId(openRequestsForRide);
+    }
+  }, [openRequestsForRide]);
 
   const heroRide = useMemo(() => pickNextUpcomingRide(myRides ?? []), [myRides]);
   const remainingRides = useMemo(

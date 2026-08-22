@@ -35,3 +35,69 @@ const FALLBACK_META: NotificationTypeMeta = { title: 'Notification', icon: 'noti
 export function notificationTypeMeta(type: NotificationEventType): NotificationTypeMeta {
   return NOTIFICATION_TYPE_META[type] ?? FALLBACK_META;
 }
+
+/** Which of AppPalette's few semantic tones (accent/error/info/neutral) an
+ *  event reads as — purely a visual grouping for the inbox row's icon
+ *  chip, independent of `title`/`icon` above. */
+export type NotificationTone = 'accent' | 'error' | 'info' | 'neutral';
+
+const NOTIFICATION_TONE: Partial<Record<NotificationEventType, NotificationTone>> = {
+  booking_requested: 'accent',
+  booking_accepted: 'accent',
+  booking_declined: 'error',
+  booking_cancelled: 'error',
+  booking_no_show_reported: 'error',
+  message_received: 'info',
+  trip_completed: 'accent',
+  recurring_pattern_detected: 'info',
+  recurring_proactive_match: 'info',
+  demand_signal_matched: 'info',
+};
+
+export function notificationTone(type: NotificationEventType): NotificationTone {
+  return NOTIFICATION_TONE[type] ?? 'neutral';
+}
+
+/**
+ * A real, specific preview line for the inbox row — mirrors the backend's
+ * own push-body copy (notifications.service.ts's bodyFor) so the two never
+ * drift, built from the same real payload fields (riderName/driverName/
+ * seatsRequested — never fabricated when a field is missing, an honest
+ * generic fallback instead). The API intentionally never stores this text
+ * itself (see this file's own top doc comment on why), so it's derived
+ * fresh at render time from `payload` on every screen that shows it.
+ */
+export function notificationDescription(
+  type: NotificationEventType,
+  payload: Record<string, unknown>,
+): string {
+  switch (type) {
+    case 'booking_requested': {
+      const seats = typeof payload.seatsRequested === 'number' ? payload.seatsRequested : undefined;
+      const seatsLabel = seats ? (seats > 1 ? `${seats} places` : 'une place') : 'une place';
+      return typeof payload.riderName === 'string'
+        ? `${payload.riderName} souhaite réserver ${seatsLabel}.`
+        : 'Une nouvelle demande de réservation attend votre réponse.';
+    }
+    case 'booking_accepted':
+      return typeof payload.driverName === 'string'
+        ? `${payload.driverName} a accepté votre demande.`
+        : 'Votre demande de réservation a été acceptée.';
+    case 'booking_declined':
+      return typeof payload.driverName === 'string'
+        ? `${payload.driverName} n'a pas pu accepter votre demande.`
+        : 'Votre demande de réservation a été refusée.';
+    case 'message_received':
+      return typeof payload.senderName === 'string'
+        ? `${payload.senderName} vous a envoyé un message.`
+        : 'Vous avez reçu un nouveau message.';
+    case 'trip_completed':
+      return 'Votre trajet est terminé — notez votre expérience.';
+    case 'booking_cancelled':
+      return 'Un trajet réservé vient d’être annulé.';
+    case 'booking_no_show_reported':
+      return 'Une absence a été signalée pour ce trajet.';
+    default:
+      return notificationTypeMeta(type).title;
+  }
+}
