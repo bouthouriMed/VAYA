@@ -8,6 +8,7 @@ export default function OnboardingWizardLayout(): React.JSX.Element {
       <Stack.Screen name="license" />
       <Stack.Screen name="insurance" />
       <Stack.Screen name="selfie" />
+      <Stack.Screen name="confirmation" />
     </Stack>
   );
 }
