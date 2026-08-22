@@ -1,0 +1,215 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport">
+<title>Where to? - Vaya</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-secondary": "#ffffff",
+                        "outline-variant": "#c6c6cd",
+                        "surface-container-low": "#eff4ff",
+                        "on-background": "#0b1c30",
+                        "on-primary-fixed-variant": "#3f465c",
+                        "surface-container": "#e5eeff",
+                        "on-tertiary": "#ffffff",
+                        "secondary-fixed": "#6ffbbe",
+                        "on-surface": "#0b1c30",
+                        "on-primary-fixed": "#131b2e",
+                        "surface-bright": "#f8f9ff",
+                        "surface-container-high": "#dce9ff",
+                        "tertiary-fixed-dim": "#adc6ff",
+                        "on-error": "#ffffff",
+                        "surface": "#f8f9ff",
+                        "inverse-on-surface": "#eaf1ff",
+                        "inverse-primary": "#bec6e0",
+                        "error-container": "#ffdad6",
+                        "on-primary": "#ffffff",
+                        "secondary-container": "#6cf8bb",
+                        "on-error-container": "#93000a",
+                        "primary-fixed": "#dae2fd",
+                        "surface-container-lowest": "#ffffff",
+                        "on-tertiary-fixed-variant": "#004395",
+                        "primary-fixed-dim": "#bec6e0",
+                        "on-secondary-container": "#00714d",
+                        "surface-dim": "#cbdbf5",
+                        "surface-variant": "#d3e4fe",
+                        "tertiary-fixed": "#d8e2ff",
+                        "on-primary-container": "#7c839b",
+                        "on-tertiary-fixed": "#001a42",
+                        "surface-tint": "#565e74",
+                        "outline": "#76777d",
+                        "inverse-surface": "#213145",
+                        "on-secondary-fixed": "#002113",
+                        "primary-container": "#131b2e",
+                        "on-tertiary-container": "#3980f4",
+                        "on-secondary-fixed-variant": "#005236",
+                        "secondary": "#006c49",
+                        "primary": "#000000",
+                        "tertiary-container": "#001a42",
+                        "error": "#ba1a1a",
+                        "tertiary": "#000000",
+                        "surface-container-highest": "#d3e4fe",
+                        "secondary-fixed-dim": "#4edea3",
+                        "on-surface-variant": "#45464d",
+                        "background": "#f8f9ff"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    spacing: {
+                        "gutter-grid": "16px",
+                        "touch-target": "48px",
+                        "margin-main": "20px",
+                        "stack-lg": "24px",
+                        "stack-md": "16px",
+                        "stack-sm": "8px"
+                    },
+                    fontFamily: {
+                        "body-sm": ["Inter"],
+                        "body-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-sm": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "label-lg": ["Inter"],
+                        "label-md": ["Inter"],
+                        "headline-lg": ["Inter"]
+                    },
+                    fontSize: {
+                        "body-sm": ["14px", { lineHeight: "20px", fontWeight: "400" }],
+                        "body-md": ["16px", { lineHeight: "24px", fontWeight: "400" }],
+                        "body-lg": ["18px", { lineHeight: "28px", fontWeight: "400" }],
+                        "headline-sm": ["20px", { lineHeight: "28px", fontWeight: "600" }],
+                        "headline-md": ["24px", { lineHeight: "32px", letterSpacing: "-0.01em", fontWeight: "600" }],
+                        "headline-lg-mobile": ["26px", { lineHeight: "32px", fontWeight: "700" }],
+                        "label-lg": ["14px", { lineHeight: "20px", letterSpacing: "0.05em", fontWeight: "600" }],
+                        "label-md": ["12px", { lineHeight: "16px", fontWeight: "500" }],
+                        "headline-lg": ["30px", { lineHeight: "38px", letterSpacing: "-0.02em", fontWeight: "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            -webkit-tap-highlight-color: transparent;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .icon-fill {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        
+        /* Input focus animation */
+        .input-focus-ring:focus-within {
+            box-shadow: 0 0 0 2px theme('colors.primary');
+            border-color: transparent;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen flex flex-col font-body-md overflow-hidden">
+<!-- Top App Bar (Destination Flow - Specific) -->
+<header class="bg-surface w-full z-50 shadow-sm shadow-primary/5 fixed top-0 h-touch-target flex items-center justify-between px-margin-main">
+<button aria-label="Go back" class="h-touch-target w-touch-target -ml-3 flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low rounded-full transition-colors active:scale-95">
+<span class="material-symbols-outlined text-2xl">arrow_back</span>
+</button>
+<h1 class="font-headline-sm text-headline-sm text-primary absolute left-1/2 -translate-x-1/2">Where to?</h1>
+<div class="w-touch-target"></div> <!-- Spacer for centering -->
+</header>
+<!-- Main Content Area -->
+<main class="flex-1 mt-[48px] px-margin-main pt-stack-lg pb-[90px] flex flex-col gap-stack-lg overflow-y-auto">
+<!-- Search Input Group (Pickup & Dropoff) -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm shadow-primary/5 p-4 border border-outline-variant/30 flex relative">
+<!-- Timeline connector -->
+<div class="flex flex-col items-center mr-4 mt-2">
+<span class="material-symbols-outlined text-outline-variant text-[20px] icon-fill">circle</span>
+<div class="w-px h-8 bg-outline-variant/50 my-1"></div>
+<span class="material-symbols-outlined text-primary text-[20px] icon-fill">square</span>
+</div>
+<!-- Input Fields -->
+<div class="flex-1 flex flex-col gap-3">
+<div class="relative input-focus-ring rounded-lg border border-outline-variant/30 bg-surface-bright transition-all">
+<input aria-label="Pickup location" class="w-full h-[44px] bg-transparent border-none focus:ring-0 px-3 font-body-md text-on-surface placeholder:text-on-surface-variant" readonly="" type="text" value="Current Location">
+</div>
+<div class="relative input-focus-ring rounded-lg border border-outline-variant/30 bg-surface-bright transition-all">
+<input aria-label="Dropoff location" autofocus="" class="w-full h-[44px] bg-transparent border-none focus:ring-0 px-3 font-body-md text-on-surface placeholder:text-on-surface-variant" placeholder="Where to?" type="text">
+</div>
+</div>
+<!-- Swap Button -->
+<button class="absolute right-4 top-1/2 -translate-y-1/2 h-10 w-10 bg-surface-container-low rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-variant transition-colors active:scale-95 shadow-sm shadow-primary/5">
+<span class="material-symbols-outlined text-xl">swap_vert</span>
+</button>
+</div>
+<!-- Quick Actions -->
+<div class="flex gap-3">
+<button class="flex-1 bg-surface-container-low hover:bg-surface-variant active:scale-95 transition-all rounded-lg py-3 px-4 flex items-center gap-2 justify-center shadow-sm shadow-primary/5 border border-outline-variant/10">
+<span class="material-symbols-outlined text-primary">my_location</span>
+<span class="font-label-lg text-label-lg text-primary">Use current location</span>
+</button>
+<button aria-label="Select on map" class="bg-surface-container-low hover:bg-surface-variant active:scale-95 transition-all rounded-lg py-3 px-4 flex items-center gap-2 justify-center shadow-sm shadow-primary/5 border border-outline-variant/10">
+<span class="material-symbols-outlined text-primary">map</span>
+<span class="font-label-lg text-label-lg text-primary hidden md:inline">Select on map</span>
+</button>
+</div>
+<hr class="border-outline-variant/20 border-t-2">
+<!-- Recent Locations -->
+<div class="flex flex-col gap-1">
+<h2 class="font-label-md text-label-md text-outline px-2 uppercase tracking-wider mb-2">Recent Locations</h2>
+<button class="flex items-center gap-4 p-3 rounded-xl hover:bg-surface-container-low active:bg-surface-variant transition-colors text-left group">
+<div class="h-10 w-10 bg-surface-container flex items-center justify-center rounded-full text-on-surface-variant group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]">history</span>
+</div>
+<div class="flex-1 border-b border-outline-variant/10 pb-3 group-last:border-0 group-last:pb-0">
+<div class="font-body-md text-body-md font-semibold text-on-surface">Nabeul Centre</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant truncate max-w-[250px]">Avenue Habib Bourguiba, Nabeul</div>
+</div>
+</button>
+<button class="flex items-center gap-4 p-3 rounded-xl hover:bg-surface-container-low active:bg-surface-variant transition-colors text-left group">
+<div class="h-10 w-10 bg-surface-container flex items-center justify-center rounded-full text-on-surface-variant group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]">history</span>
+</div>
+<div class="flex-1 border-b border-outline-variant/10 pb-3 group-last:border-0 group-last:pb-0">
+<div class="font-body-md text-body-md font-semibold text-on-surface">Hammamet Gare</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant truncate max-w-[250px]">Route de la Gare, Hammamet</div>
+</div>
+</button>
+<button class="flex items-center gap-4 p-3 rounded-xl hover:bg-surface-container-low active:bg-surface-variant transition-colors text-left group">
+<div class="h-10 w-10 bg-surface-container flex items-center justify-center rounded-full text-on-surface-variant group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]">star</span>
+</div>
+<div class="flex-1 border-b border-outline-variant/10 pb-3 group-last:border-0 group-last:pb-0">
+<div class="font-body-md text-body-md font-semibold text-on-surface">Home</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant truncate max-w-[250px]">Cité El Wafa, Nabeul</div>
+</div>
+</button>
+</div>
+</main>
+<!-- Bottom Nav Bar (From Shared Components, Suppressed for this flow as it's a sub-page with back action) -->
+<!-- SUPPRESSED per Shell Visibility Rule: Task-Focused page with a "Back" action implying temporary departure from main nav flow. -->
+<script>
+        // Simple script to auto-focus the dropoff input on load for immediate typing
+        document.addEventListener('DOMContentLoaded', () => {
+            const dropoffInput = document.querySelector('input[placeholder="Where to?"]');
+            if(dropoffInput) {
+                // Short timeout ensures it works reliably on mobile rendering
+                setTimeout(() => dropoffInput.focus(), 100);
+            }
+        });
+    </script>
+</body></html>

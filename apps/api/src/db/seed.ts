@@ -37,6 +37,18 @@ function daysAgo(d: number): Date {
   return new Date(Date.now() - d * 86_400_000);
 }
 
+/** A specific local hour/minute N days from today — used for the "today and
+ *  tomorrow" search-flow demo rides below instead of `hoursFromNow`, so
+ *  tomorrow's departure times read as real timetable slots (07:30, 13:00,
+ *  ...) rather than whatever offset happened to still be "tomorrow" at
+ *  whatever time this script was run. */
+function atTime(daysFromNow: number, hour: number, minute = 0): Date {
+  const d = new Date();
+  d.setDate(d.getDate() + daysFromNow);
+  d.setHours(hour, minute, 0, 0);
+  return d;
+}
+
 async function main(): Promise<void> {
   if (process.env.NODE_ENV === 'production') {
     throw new Error('Refusing to seed a production database');
@@ -333,6 +345,8 @@ async function main(): Promise<void> {
       punctualityScore: 0.95,
       reliabilityScore: 0.97,
       verificationStatus: 'approved' as const,
+      bio: "Plus de 200 trajets réalisés, toujours ponctuelle. J'aime discuter en route mais je respecte aussi le silence si vous préférez.",
+      languages: ['Français', 'Arabe', 'Anglais'],
       vehicle: {
         make: 'Peugeot',
         model: '208',
@@ -348,6 +362,8 @@ async function main(): Promise<void> {
       punctualityScore: 0.9,
       reliabilityScore: 0.92,
       verificationStatus: 'approved' as const,
+      bio: 'Trajets réguliers vers le Grand Tunis. Voiture climatisée, chargeur USB disponible.',
+      languages: ['Français', 'Arabe'],
       vehicle: {
         make: 'Renault',
         model: 'Clio',
@@ -363,6 +379,8 @@ async function main(): Promise<void> {
       punctualityScore: 0.88,
       reliabilityScore: 0.9,
       verificationStatus: 'approved' as const,
+      bio: 'Trajets quotidiens vers le centre-ville. Voiture spacieuse, coffre pour bagages.',
+      languages: ['Français', 'Arabe'],
       vehicle: {
         make: 'Dacia',
         model: 'Logan',
@@ -378,6 +396,8 @@ async function main(): Promise<void> {
       punctualityScore: 0.85,
       reliabilityScore: 0.87,
       verificationStatus: 'approved' as const,
+      bio: "Je conduis dans la ville depuis plus de 5 ans. J'aime rencontrer de nouvelles personnes et je m'assure qu'elles arrivent à destination en toute sécurité. Je garde ma voiture propre et j'ai toujours de la musique douce.",
+      languages: ['Français', 'Arabe', 'Anglais'],
       vehicle: {
         make: 'Kia',
         model: 'Picanto',
@@ -393,6 +413,8 @@ async function main(): Promise<void> {
       punctualityScore: 0.82,
       reliabilityScore: 0.85,
       verificationStatus: 'approved' as const,
+      bio: "Je conduis dans la ville depuis plus de 5 ans. J'aime rencontrer de nouvelles personnes et je garde toujours ma voiture propre.",
+      languages: ['Français', 'Arabe', 'Anglais'],
       vehicle: {
         make: 'Volkswagen',
         model: 'Golf',
@@ -408,6 +430,8 @@ async function main(): Promise<void> {
       punctualityScore: 0.93,
       reliabilityScore: 0.94,
       verificationStatus: 'approved' as const,
+      bio: 'Trajets réguliers Tunis-Sousse, toujours à l’heure. Musique douce et climatisation à bord.',
+      languages: ['Français', 'Arabe'],
       vehicle: {
         make: 'Peugeot',
         model: '301',
@@ -423,6 +447,8 @@ async function main(): Promise<void> {
       punctualityScore: 0.8,
       reliabilityScore: 0.83,
       verificationStatus: 'approved' as const,
+      bio: 'Nouveau sur Vaya mais déjà plusieurs trajets réussis. Ponctuel et discret.',
+      languages: ['Arabe', 'Français'],
       vehicle: {
         make: 'Hyundai',
         model: 'i10',
@@ -438,12 +464,48 @@ async function main(): Promise<void> {
       punctualityScore: 0,
       reliabilityScore: 0,
       verificationStatus: 'pending' as const,
+      bio: null,
+      languages: null,
       vehicle: {
         make: 'Seat',
         model: 'Ibiza',
         color: 'Grise',
         plateNumber: '188TU6622',
         seatCount: 3,
+      },
+    },
+    {
+      user: userByName('Rania Chaabane'),
+      ratingAvg: 4.75,
+      tripCount: 97,
+      punctualityScore: 0.91,
+      reliabilityScore: 0.93,
+      verificationStatus: 'approved' as const,
+      bio: "Conductrice depuis 3 ans, je propose surtout des trajets le matin. J'aime garder une ambiance calme pendant le trajet.",
+      languages: ['Français', 'Arabe', 'Anglais'],
+      vehicle: {
+        make: 'Citroën',
+        model: 'C3',
+        color: 'Bleue',
+        plateNumber: '142TU7701',
+        seatCount: 4,
+      },
+    },
+    {
+      user: userByName('Leila Mansour'),
+      ratingAvg: 4.65,
+      tripCount: 53,
+      punctualityScore: 0.87,
+      reliabilityScore: 0.89,
+      verificationStatus: 'approved' as const,
+      bio: 'Toujours ponctuelle, voiture climatisée. Je facilite les bagages et je respecte les arrêts convenus.',
+      languages: ['Français', 'Arabe'],
+      vehicle: {
+        make: 'Toyota',
+        model: 'Yaris',
+        color: 'Blanche',
+        plateNumber: '69TU8823',
+        seatCount: 4,
       },
     },
   ];
@@ -457,6 +519,8 @@ async function main(): Promise<void> {
       .values({
         userId: seed.user.id,
         verificationStatus: seed.verificationStatus,
+        bio: seed.bio ?? null,
+        languages: seed.languages ? seed.languages.join(',') : null,
         ratingAvg: seed.ratingAvg,
         tripCount: seed.tripCount,
         punctualityScore: seed.punctualityScore,
@@ -503,6 +567,12 @@ async function main(): Promise<void> {
   const amineVehicle = vehicleByUserId.get(amine.id)!;
   const ahmedProfile = driverProfileByUserId.get(ahmed.id)!;
   const ahmedVehicle = vehicleByUserId.get(ahmed.id)!;
+  const hediProfile = driverProfileByUserId.get(hedi.id)!;
+  const hediVehicle = vehicleByUserId.get(hedi.id)!;
+  const raniaProfile = driverProfileByUserId.get(userByName('Rania Chaabane').id)!;
+  const raniaVehicle = vehicleByUserId.get(userByName('Rania Chaabane').id)!;
+  const leilaProfile = driverProfileByUserId.get(userByName('Leila Mansour').id)!;
+  const leilaVehicle = vehicleByUserId.get(userByName('Leila Mansour').id)!;
 
   // ── Recurring pattern: Youssef's weekday morning commute ──────────
   const [morningCommutePattern] = await db
@@ -1055,6 +1125,95 @@ async function main(): Promise<void> {
     },
   ]);
 
+  // ── Search-flow demo rides: 10 drivers × 10 rides, today + tomorrow ──
+  // A dedicated, easy-to-eyeball spread for exercising the search flow
+  // (explore → results → cluster/route-map → trust) with real variety:
+  // every one of the 10 seeded drivers publishes exactly one ride here,
+  // rotated across all 8 corridors above (the last 2 repeat a corridor —
+  // still a different driver/vehicle/time/price), 5 departing later today
+  // and 5 tomorrow at fixed timetable-style hours. All `published` with
+  // real seats available so they actually surface as matches, and — like
+  // every other seeded ride — `contributionPerSeat` is the corridor's
+  // formula-derived `recommended` price, never hand-typed.
+  const demoDrivers = [
+    sarraProfile,
+    youssefProfile,
+    mehdiProfile,
+    karimProfile,
+    hediProfile,
+    amineProfile,
+    ahmedProfile,
+    raniaProfile,
+    leilaProfile,
+    sarraProfile,
+  ];
+  const demoVehicles = [
+    sarraVehicle,
+    youssefVehicle,
+    mehdiVehicle,
+    karimVehicle,
+    hediVehicle,
+    amineVehicle,
+    ahmedVehicle,
+    raniaVehicle,
+    leilaVehicle,
+    sarraVehicle,
+  ];
+  const demoCorridors = [
+    elMenzahDigitalCenter,
+    laMarsaCentreVille,
+    arianaLeBardo,
+    benArousTunis,
+    manoubaTunis,
+    sousseMonastir,
+    sfaxSakietEzzit,
+    tunisNabeul,
+    elMenzahDigitalCenter,
+    laMarsaCentreVille,
+  ];
+  const demoDepartures = [
+    // Later today — relative to "now" so a seed run at any hour still
+    // lands these in the future.
+    hoursFromNow(1),
+    hoursFromNow(2.5),
+    hoursFromNow(4),
+    hoursFromNow(6),
+    hoursFromNow(8),
+    // Tomorrow — fixed timetable hours, always in the future regardless
+    // of when the seed runs.
+    atTime(1, 7, 30),
+    atTime(1, 9, 0),
+    atTime(1, 13, 0),
+    atTime(1, 16, 0),
+    atTime(1, 19, 30),
+  ];
+  const demoSeatsTotal = [3, 4, 3, 4, 3, 4, 3, 4, 3, 4];
+  const demoSeatsAvailable = [2, 4, 1, 3, 3, 2, 3, 4, 1, 2];
+
+  await db.insert(rides).values(
+    demoDrivers.map((driver, i) => {
+      const vehicle = demoVehicles[i]!;
+      const corridor = demoCorridors[i]!;
+      return {
+        driverProfileId: driver.id,
+        vehicleId: vehicle.id,
+        routeId: corridor.id,
+        originLabel: corridor.originLabel,
+        originLat: corridor.originLat,
+        originLng: corridor.originLng,
+        destinationLabel: corridor.destinationLabel,
+        destinationLat: corridor.destinationLat,
+        destinationLng: corridor.destinationLng,
+        departureAt: demoDepartures[i]!,
+        seatsTotal: demoSeatsTotal[i]!,
+        seatsAvailable: demoSeatsAvailable[i]!,
+        contributionPerSeat: priceFor(corridor.id),
+        status: 'published' as const,
+        ...geometryFor(corridor.id),
+      };
+    }),
+  );
+
   // ── Notifications ───────────────────────────────────────────────────
   await db.insert(notifications).values([
     {
@@ -1075,7 +1234,9 @@ async function main(): Promise<void> {
   ]);
 
   console.log('Seed complete.');
-  console.log(`Routes: ${8}, Users: ${insertedUsers.length}, Drivers: ${driverSeeds.length}`);
+  console.log(
+    `Routes: 8, Users: ${insertedUsers.length}, Drivers: ${driverSeeds.length}, Search-flow demo rides: ${demoDrivers.length}`,
+  );
 
   await pool.end();
 }

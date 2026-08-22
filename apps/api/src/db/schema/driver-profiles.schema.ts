@@ -6,6 +6,7 @@
   text,
   timestamp,
   uuid,
+  varchar,
 } from 'drizzle-orm/pg-core';
 import { users } from './users.schema';
 
@@ -23,6 +24,11 @@ export const driverProfiles = pgTable('driver_profiles', {
     .references(() => users.id, { onDelete: 'cascade' }),
   verificationStatus: verificationStatusEnum('verification_status').notNull().default('pending'),
   bio: text('bio'),
+  // Comma-separated (e.g. "Français,Arabe,Anglais") — a simple free-text
+  // list rather than a normalized languages table, matching this schema's
+  // existing low-complexity conventions (see CLAUDE.md: no premature
+  // abstraction). Nullable: most existing driver rows predate this column.
+  languages: varchar('languages', { length: 200 }),
   ratingAvg: doublePrecision('rating_avg').notNull().default(0),
   tripCount: integer('trip_count').notNull().default(0),
   punctualityScore: doublePrecision('punctuality_score').notNull().default(0),

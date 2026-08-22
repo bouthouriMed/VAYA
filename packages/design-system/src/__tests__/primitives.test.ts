@@ -56,6 +56,16 @@ describe('Design system primitives', () => {
     expect(primitives.DepartureTimeSheet).toBeDefined();
   });
 
+  it('exports the frosted glass surface primitive', async () => {
+    const primitives = await import('../primitives/index.js');
+    expect(primitives.GlassSurface).toBeDefined();
+  });
+
+  it('exports the ride-match list card', async () => {
+    const primitives = await import('../primitives/index.js');
+    expect(primitives.DriverListCard).toBeDefined();
+  });
+
   it('exports haptics from the package root', async () => {
     const index = await import('../index.js');
     expect(index.haptics).toBeDefined();

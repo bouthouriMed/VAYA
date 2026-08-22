@@ -1,0 +1,256 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport">
+<title>Vaya - Calendar Selection</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "surface-container-highest": "#d3e4fe",
+                        "on-tertiary-fixed-variant": "#004395",
+                        "primary-fixed": "#dae2fd",
+                        "outline-variant": "#c6c6cd",
+                        "tertiary-container": "#001a42",
+                        "on-secondary": "#ffffff",
+                        "inverse-on-surface": "#eaf1ff",
+                        "surface": "#f8f9ff",
+                        "error-container": "#ffdad6",
+                        "on-primary": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-container": "#00714d",
+                        "error": "#ba1a1a",
+                        "on-primary-fixed-variant": "#3f465c",
+                        "outline": "#76777d",
+                        "tertiary": "#000000",
+                        "secondary-fixed": "#6ffbbe",
+                        "surface-container-high": "#dce9ff",
+                        "surface-dim": "#cbdbf5",
+                        "secondary-container": "#6cf8bb",
+                        "tertiary-fixed": "#d8e2ff",
+                        "on-error": "#ffffff",
+                        "surface-container": "#e5eeff",
+                        "inverse-primary": "#bec6e0",
+                        "on-secondary-fixed-variant": "#005236",
+                        "on-tertiary-fixed": "#001a42",
+                        "on-tertiary-container": "#3980f4",
+                        "surface-container-low": "#eff4ff",
+                        "surface-variant": "#d3e4fe",
+                        "primary": "#000000",
+                        "inverse-surface": "#213145",
+                        "surface-tint": "#565e74",
+                        "on-secondary-fixed": "#002113",
+                        "on-error-container": "#93000a",
+                        "secondary": "#006c49",
+                        "on-tertiary": "#ffffff",
+                        "on-primary-fixed": "#131b2e",
+                        "secondary-fixed-dim": "#4edea3",
+                        "on-background": "#0b1c30",
+                        "primary-container": "#131b2e",
+                        "primary-fixed-dim": "#bec6e0",
+                        "tertiary-fixed-dim": "#adc6ff",
+                        "background": "#f8f9ff",
+                        "on-primary-container": "#7c839b",
+                        "on-surface": "#0b1c30",
+                        "on-surface-variant": "#45464d",
+                        "surface-bright": "#f8f9ff"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    spacing: {
+                        "stack-sm": "8px",
+                        "gutter-grid": "16px",
+                        "touch-target": "48px",
+                        "stack-md": "16px",
+                        "stack-lg": "24px",
+                        "margin-main": "20px"
+                    },
+                    fontFamily: {
+                        "headline-lg-mobile": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "label-md": ["Inter"],
+                        "headline-sm": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "label-lg": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-lg": ["Inter"]
+                    },
+                    fontSize: {
+                        "headline-lg-mobile": ["26px", { "lineHeight": "32px", "fontWeight": "700" }],
+                        "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+                        "headline-sm": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "headline-lg": ["30px", { "lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .month-enter {
+            opacity: 0;
+            transform: translateX(10px);
+        }
+        .month-enter-active {
+            opacity: 1;
+            transform: translateX(0);
+            transition: opacity 300ms ease-out, transform 300ms ease-out;
+        }
+        .date-cell-active {
+            animation: pulse-ring 1.25s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+        @keyframes pulse-ring {
+            0% { box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.1); }
+            70% { box-shadow: 0 0 0 6px rgba(0, 0, 0, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 0, 0, 0); }
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body-md antialiased min-h-screen flex flex-col items-center justify-center p-4">
+<!-- Top App Bar (Suppressed as this is a focused task overlay) -->
+<!-- Main Content Canvas (Calendar Overlay) -->
+<main class="w-full max-w-md bg-surface-container-lowest rounded-3xl shadow-[0_12px_48px_rgba(0,0,0,0.08)] overflow-hidden flex flex-col h-[600px] max-h-[795px]">
+<!-- Header -->
+<header class="flex items-center justify-between p-margin-main pb-stack-sm border-b border-surface-container">
+<button aria-label="Close" class="h-touch-target w-touch-target flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low rounded-full transition-colors">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">close</span>
+</button>
+<h1 class="font-headline-sm text-headline-sm text-on-surface">Select Date</h1>
+<div class="w-touch-target h-touch-target"></div> <!-- Balancer -->
+</header>
+<!-- Calendar Area -->
+<div class="flex-1 overflow-y-auto p-margin-main flex flex-col gap-stack-lg">
+<!-- Month Navigation -->
+<div class="flex items-center justify-between">
+<button class="h-10 w-10 flex items-center justify-center text-on-surface-variant hover:bg-surface-container rounded-full transition-colors">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<div class="flex flex-col items-center">
+<h2 class="font-headline-md text-headline-md text-on-surface">October</h2>
+<span class="font-body-sm text-body-sm text-on-surface-variant">2023</span>
+</div>
+<button class="h-10 w-10 flex items-center justify-center text-on-surface hover:bg-surface-container rounded-full transition-colors">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+<!-- Days of Week -->
+<div class="grid grid-cols-7 gap-1 text-center mb-stack-sm">
+<span class="font-label-md text-label-md text-on-surface-variant">Su</span>
+<span class="font-label-md text-label-md text-on-surface-variant">Mo</span>
+<span class="font-label-md text-label-md text-on-surface-variant">Tu</span>
+<span class="font-label-md text-label-md text-on-surface-variant">We</span>
+<span class="font-label-md text-label-md text-on-surface-variant">Th</span>
+<span class="font-label-md text-label-md text-on-surface-variant">Fr</span>
+<span class="font-label-md text-label-md text-on-surface-variant">Sa</span>
+</div>
+<!-- Date Grid -->
+<div class="grid grid-cols-7 gap-y-2 gap-x-1">
+<!-- Empty slots for alignment -->
+<div class="h-10 w-full"></div>
+<div class="h-10 w-full"></div>
+<div class="h-10 w-full"></div>
+<!-- Past Dates (Disabled) -->
+<button class="h-10 w-full flex items-center justify-center font-body-md text-body-md text-outline-variant opacity-50" disabled="">1</button>
+<button class="h-10 w-full flex items-center justify-center font-body-md text-body-md text-outline-variant opacity-50" disabled="">2</button>
+<!-- Today (Available) -->
+<button class="h-10 w-full flex flex-col items-center justify-center font-body-md text-body-md text-primary bg-surface-container-high rounded-lg hover:bg-surface-container-highest transition-colors relative">
+<span class="font-bold">3</span>
+<span class="absolute bottom-1 w-1 h-1 bg-secondary rounded-full"></span>
+</button>
+<!-- Available Dates -->
+<button class="h-10 w-full flex items-center justify-center font-body-md text-body-md text-on-surface hover:bg-surface-container-low rounded-lg transition-colors">4</button>
+<button class="h-10 w-full flex items-center justify-center font-body-md text-body-md text-on-surface hover:bg-surface-container-low rounded-lg transition-colors relative">
+                    5
+                    <!-- Popular Indicator -->
+<span class="absolute top-1 right-1 w-1.5 h-1.5 bg-tertiary-container rounded-full"></span>
+</button>
+<button class="h-10 w-full flex items-center justify-center font-body-md text-body-md text-on-surface hover:bg-surface-container-low rounded-lg transition-colors">6</button>
+<button class="h-10 w-full flex items-center justify-center font-body-md text-body-md text-on-surface hover:bg-surface-container-low rounded-lg transition-colors">7</button>
+<button class="h-10 w-full flex items-center justify-center font-body-md text-body-md text-on-surface hover:bg-surface-container-low rounded-lg transition-colors">8</button>
+<!-- Selected Range Start (For visual variation, assuming user selected weekend) -->
+<button class="h-10 w-full flex items-center justify-center font-body-md text-body-md text-on-primary bg-primary rounded-l-lg hover:bg-on-surface transition-colors z-10 shadow-sm">9</button>
+<!-- Range Middle -->
+<div class="h-10 w-full flex items-center justify-center font-body-md text-body-md text-primary bg-surface-container-highest">10</div>
+<!-- Range End -->
+<button class="h-10 w-full flex items-center justify-center font-body-md text-body-md text-on-primary bg-primary rounded-r-lg hover:bg-on-surface transition-colors z-10 shadow-sm relative">
+                    11
+                    <div class="absolute inset-0 rounded-r-lg border-2 border-primary pointer-events-none"></div>
+</button>
+<button class="h-10 w-full flex items-center justify-center font-body-md text-body-md text-on-surface hover:bg-surface-container-low rounded-lg transition-colors">12</button>
+<button class="h-10 w-full flex items-center justify-center font-body-md text-body-md text-on-surface hover:bg-surface-container-low rounded-lg transition-colors">13</button>
+<button class="h-10 w-full flex items-center justify-center font-body-md text-body-md text-on-surface hover:bg-surface-container-low rounded-lg transition-colors relative">
+                    14
+                    <span class="absolute top-1 right-1 w-1.5 h-1.5 bg-tertiary-container rounded-full"></span>
+</button>
+<button class="h-10 w-full flex items-center justify-center font-body-md text-body-md text-on-surface hover:bg-surface-container-low rounded-lg transition-colors">15</button>
+<button class="h-10 w-full flex items-center justify-center font-body-md text-body-md text-on-surface hover:bg-surface-container-low rounded-lg transition-colors">16</button>
+<button class="h-10 w-full flex items-center justify-center font-body-md text-body-md text-on-surface hover:bg-surface-container-low rounded-lg transition-colors">17</button>
+<button class="h-10 w-full flex items-center justify-center font-body-md text-body-md text-on-surface hover:bg-surface-container-low rounded-lg transition-colors">18</button>
+<button class="h-10 w-full flex items-center justify-center font-body-md text-body-md text-on-surface hover:bg-surface-container-low rounded-lg transition-colors">19</button>
+<button class="h-10 w-full flex items-center justify-center font-body-md text-body-md text-on-surface hover:bg-surface-container-low rounded-lg transition-colors">20</button>
+<button class="h-10 w-full flex items-center justify-center font-body-md text-body-md text-on-surface hover:bg-surface-container-low rounded-lg transition-colors">21</button>
+<button class="h-10 w-full flex items-center justify-center font-body-md text-body-md text-on-surface hover:bg-surface-container-low rounded-lg transition-colors">22</button>
+<button class="h-10 w-full flex items-center justify-center font-body-md text-body-md text-on-surface hover:bg-surface-container-low rounded-lg transition-colors">23</button>
+<button class="h-10 w-full flex items-center justify-center font-body-md text-body-md text-on-surface hover:bg-surface-container-low rounded-lg transition-colors">24</button>
+<button class="h-10 w-full flex items-center justify-center font-body-md text-body-md text-on-surface hover:bg-surface-container-low rounded-lg transition-colors">25</button>
+<button class="h-10 w-full flex items-center justify-center font-body-md text-body-md text-on-surface hover:bg-surface-container-low rounded-lg transition-colors">26</button>
+<button class="h-10 w-full flex items-center justify-center font-body-md text-body-md text-on-surface hover:bg-surface-container-low rounded-lg transition-colors">27</button>
+<button class="h-10 w-full flex items-center justify-center font-body-md text-body-md text-on-surface hover:bg-surface-container-low rounded-lg transition-colors">28</button>
+<button class="h-10 w-full flex items-center justify-center font-body-md text-body-md text-on-surface hover:bg-surface-container-low rounded-lg transition-colors">29</button>
+<button class="h-10 w-full flex items-center justify-center font-body-md text-body-md text-on-surface hover:bg-surface-container-low rounded-lg transition-colors">30</button>
+<button class="h-10 w-full flex items-center justify-center font-body-md text-body-md text-on-surface hover:bg-surface-container-low rounded-lg transition-colors">31</button>
+</div>
+<!-- Legend / Context -->
+<div class="flex items-center justify-center gap-stack-lg mt-auto pt-stack-md">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<span class="font-label-md text-label-md text-on-surface-variant">Today</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-tertiary-container"></span>
+<span class="font-label-md text-label-md text-on-surface-variant">High Demand</span>
+</div>
+</div>
+</div>
+<!-- Sticky Footer Action -->
+<div class="p-margin-main bg-surface-container-lowest border-t border-surface-container">
+<button class="w-full h-touch-target bg-primary text-on-primary font-label-lg text-label-lg rounded-xl flex items-center justify-center gap-2 hover:bg-on-surface transition-colors shadow-sm active:scale-[0.98]">
+<span>Confirm Dates</span>
+<span class="material-symbols-outlined text-[18px]">check</span>
+</button>
+</div>
+</main>
+<script>
+        // Simple subtle entrance animation for the overlay
+        document.addEventListener('DOMContentLoaded', () => {
+            const mainContent = document.querySelector('main');
+            mainContent.style.opacity = '0';
+            mainContent.style.transform = 'translateY(20px)';
+            
+            setTimeout(() => {
+                mainContent.style.transition = 'opacity 400ms ease-out, transform 400ms cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                mainContent.style.opacity = '1';
+                mainContent.style.transform = 'translateY(0)';
+            }, 100);
+        });
+    </script>
+</body></html>

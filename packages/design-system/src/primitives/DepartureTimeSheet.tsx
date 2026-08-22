@@ -3,7 +3,8 @@ import { ScrollView, StyleSheet } from 'react-native';
 import { BottomSheet } from './BottomSheet';
 import { Chip } from './Chip';
 import { Text } from './Text';
-import { colors, spacing } from '../tokens/index';
+import { spacing } from '../tokens/index';
+import { useAppTheme } from '../theme/AppThemeProvider';
 import {
   buildDayOptions,
   buildTimeOptions,
@@ -44,6 +45,7 @@ export function DepartureTimeSheet({
   title = 'Quand ?',
   dayCount = 14,
 }: DepartureTimeSheetProps): React.JSX.Element {
+  const { colors: theme } = useAppTheme();
   // Captured once per mount/minDate-change rather than recomputed on every
   // render — keeps the day/time grid stable while the sheet stays open.
   const now = useMemo(() => minDate ?? new Date(), [minDate]);
@@ -59,7 +61,7 @@ export function DepartureTimeSheet({
   }
 
   return (
-    <BottomSheet visible={visible} onClose={onClose} title={title} heightRatio={0.72}>
+    <BottomSheet visible={visible} onClose={onClose} title={title} heightRatio={0.72} theme={theme}>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -75,17 +77,18 @@ export function DepartureTimeSheet({
               selected={selected}
               onPress={() => setSelectedDay(day)}
               style={styles.dayChip}
+              theme={theme}
             />
           );
         })}
       </ScrollView>
 
-      <Text variant="label" color={colors.gray600} style={styles.timeLabel}>
+      <Text variant="label" color={theme.inkMuted} style={styles.timeLabel}>
         HEURE
       </Text>
 
       {times.length === 0 ? (
-        <Text variant="bodySmall" color={colors.gray500} style={styles.emptyNote}>
+        <Text variant="bodySmall" color={theme.inkFaint} style={styles.emptyNote}>
           Plus de créneaux disponibles pour ce jour — choisissez-en un autre.
         </Text>
       ) : (
@@ -100,6 +103,7 @@ export function DepartureTimeSheet({
                 selected={selected}
                 onPress={() => selectTime(time)}
                 style={styles.timeChip}
+                theme={theme}
               />
             );
           })}

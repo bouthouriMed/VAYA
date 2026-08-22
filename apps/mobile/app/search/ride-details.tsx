@@ -1,0 +1,691 @@
+import { useMemo, useState } from 'react';
+import { View, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView, Modal } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Marker, Polyline } from 'react-native-maps';
+import { Ionicons } from '@expo/vector-icons';
+import { skipToken } from '@reduxjs/toolkit/query/react';
+import {
+  Text,
+  Icon,
+  Avatar,
+  MapCanvas,
+  useAppTheme,
+  spacing,
+  radii,
+  haptics,
+  formatTime,
+  isSameDay,
+  regionForPoints,
+} from '@vaya/design-system';
+import { router, useLocalSearchParams } from 'expo-router';
+import {
+  useGetRideQuery,
+  useGetUserPublicProfileQuery,
+  useGetRideStopsQuery,
+  useMatchingSearchQuery,
+  useListFellowPassengersQuery,
+  useCreateBookingMutation,
+  useRegisterPushTokenMutation,
+} from '../../src/state/api';
+import { useAppDispatch, useAppSelector } from '../../src/state/store';
+import { clearPickupStop } from '../../src/state/searchSlice';
+import { requestPushPermissionAndRegister } from '../../src/services/notifications/registerForPushNotifications';
+import { decodePolyline, polylineDistanceKm } from '../../src/utils/polyline';
+
+function dayLabel(date: Date, now: Date): string {
+  if (isSameDay(date, now)) return "Aujourd'hui";
+  const tomorrow = new Date(now.getTime() + 24 * 60 * 60_000);
+  if (isSameDay(date, tomorrow)) return 'Demain';
+  const label = date.toLocaleDateString('fr-FR', { weekday: 'long' });
+  return label.charAt(0).toUpperCase() + label.slice(1);
+}
+
+function fullDateLabel(date: Date): string {
+  const label = date.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+  return label.charAt(0).toUpperCase() + label.slice(1);
+}
+
+function durationLabel(seconds: number): string {
+  const totalMin = Math.round(seconds / 60);
+  const h = Math.floor(totalMin / 60);
+  const m = totalMin % 60;
+  if (h === 0) return `${m} min`;
+  return m === 0 ? `${h} h` : `${h} h ${m}`;
+}
+
+/**
+ * Stitch's "Ride Details - Stops & Distance" — the new intermediate screen
+ * between search/results.tsx and search/trust.tsx. This is where the actual
+ * booking request now happens (moved from trust.tsx, which is pure
+ * driver-profile/trust content reached by tapping the driver row below).
+ * Replaces the dropped search/cluster.tsx entirely — that screen's
+ * multi-candidate map concept has no equivalent in the current design.
+ */
+export default function RideDetailsScreen(): React.JSX.Element {
+  const { rideId, driverUserId } = useLocalSearchParams<{ rideId: string; driverUserId: string }>();
+  const insets = useSafeAreaInsets();
+  const { colors: theme } = useAppTheme();
+  const dispatch = useAppDispatch();
+  const origin = useAppSelector((s) => s.search.origin);
+  const destination = useAppSelector((s) => s.search.destination);
+  const searchAt = useAppSelector((s) => s.search.searchAt);
+  const selectedStop = useAppSelector((s) => s.search.selectedStop);
+  const [bookingError, setBookingError] = useState<string | undefined>();
+  const [routeModalOpen, setRouteModalOpen] = useState(false);
+
+  const { data: ride, isLoading: isRideLoading } = useGetRideQuery(rideId);
+  const { data: profile, isLoading: isProfileLoading } = useGetUserPublicProfileQuery(driverUserId);
+  const { data: stops } = useGetRideStopsQuery(rideId);
+  const { data: passengers } = useListFellowPassengersQuery(rideId);
+  const [createBooking, { isLoading: isBooking }] = useCreateBookingMutation();
+  const [registerPushToken] = useRegisterPushTokenMutation();
+
+  // Same cache entry results.tsx/pickup-point.tsx already populated — gives
+  // us the real per-passenger pickup-walk minutes without a second fetch.
+  const searchArgs =
+    origin && destination
+      ? {
+          originLat: origin.lat,
+          originLng: origin.lng,
+          destinationLat: destination.lat,
+          destinationLng: destination.lng,
+          when: searchAt ?? new Date().toISOString(),
+        }
+      : undefined;
+  const { data: candidates } = useMatchingSearchQuery(searchArgs ?? skipToken);
+  const candidate = useMemo(() => candidates?.find((c) => c.rideId === rideId), [candidates, rideId]);
+
+  const routeCoordinates = useMemo(
+    () => (ride?.routePolyline ? decodePolyline(ride.routePolyline) : []),
+    [ride],
+  );
+  const distanceKm = useMemo(() => polylineDistanceKm(routeCoordinates), [routeCoordinates]);
+  const routeRegion = useMemo(() => {
+    if (!ride) return undefined;
+    return (
+      regionForPoints([
+        { lat: ride.originLat, lng: ride.originLng },
+        { lat: ride.destinationLat, lng: ride.destinationLng },
+      ]) ?? undefined
+    );
+  }, [ride]);
+
+  // Matched by stopId, not label text — a label match is fragile (two real
+  // stops can share display text) and silently produced wrong results.
+  const pickupStopId = selectedStop?.stopId ?? candidate?.rankedStops[0]?.stopId;
+  const pickupStop = useMemo(
+    () => stops?.find((s) => s.id === pickupStopId),
+    [stops, pickupStopId],
+  );
+  const pickupLabel = pickupStop?.label ?? selectedStop?.label ?? candidate?.rankedStops[0]?.label ?? ride?.originLabel;
+  const pickupWalkMinutes = candidate?.pickupWalkMinutes;
+  // Driver-selected stops that come after the passenger's pickup point on
+  // the route and aren't that same stop — real intermediate waypoints, not
+  // invented ones. No per-stop ETA exists anywhere in the data model, so
+  // (unlike the pickup row, which has a real departure time) these show no
+  // fabricated clock time.
+  const pickupSequence = pickupStop?.sequence ?? -1;
+  const intermediateStops = useMemo(
+    () => (stops ?? []).filter((s) => s.sequence > pickupSequence && s.id !== pickupStopId),
+    [stops, pickupSequence, pickupStopId],
+  );
+  const bookedSeats = ride ? ride.seatsTotal - ride.seatsAvailable : 0;
+
+  async function requestSeat(): Promise<void> {
+    if (!selectedStop && !origin) return;
+    setBookingError(undefined);
+    try {
+      const booking = await createBooking({
+        rideId,
+        input: {
+          seatsRequested: 1,
+          ...(selectedStop
+            ? { pickupStopId: selectedStop.stopId }
+            : { pickup: { label: origin!.label, lat: origin!.lat, lng: origin!.lng } }),
+        },
+      }).unwrap();
+      haptics.success();
+      void requestPushPermissionAndRegister((args) => registerPushToken(args).unwrap());
+      dispatch(clearPickupStop());
+      router.dismissTo({
+        pathname: '/bookings/confirmed',
+        params: {
+          bookingId: booking.id,
+          driverName: profile!.fullName,
+          price: String(booking.contributionTotal),
+          vehicleLabel: profile!.driver?.vehicle
+            ? `${profile!.driver.vehicle.make} ${profile!.driver.vehicle.model} ${profile!.driver.vehicle.color}`
+            : '',
+          vehiclePlate: profile!.driver?.vehicle?.plateNumber ?? '',
+          driverRatingAvg: profile!.driver ? String(profile!.driver.ratingAvg) : '',
+          driverUserId,
+          pickupLabel: booking.pickupLabel,
+          destinationLabel: ride!.destinationLabel,
+          estimatedDurationMin: ride!.estimatedDurationSec
+            ? String(Math.round(ride!.estimatedDurationSec / 60))
+            : '',
+          pickupLat: String(booking.pickupLat),
+          pickupLng: String(booking.pickupLng),
+          destinationLat: String(ride!.destinationLat),
+          destinationLng: String(ride!.destinationLng),
+        },
+      });
+    } catch {
+      haptics.error();
+      setBookingError('Cette place vient peut-être d’être prise. Réessayez.');
+    }
+  }
+
+  if (isRideLoading || isProfileLoading) {
+    return (
+      <View style={[styles.loadingWrap, { backgroundColor: theme.background }]}>
+        <ActivityIndicator size="large" color={theme.accent} />
+      </View>
+    );
+  }
+
+  if (!ride || !profile) {
+    return (
+      <View style={[styles.loadingWrap, { backgroundColor: theme.background }]}>
+        <Text variant="body" color={theme.inkFaint}>
+          Trajet introuvable.
+        </Text>
+      </View>
+    );
+  }
+
+  const driverStats = profile.driver;
+  const firstName = profile.fullName.split(' ')[0]!;
+  const departureDate = new Date(ride.departureAt);
+  const now = new Date();
+
+  return (
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
+      <View
+        style={[
+          styles.header,
+          { paddingTop: insets.top + spacing.sm, backgroundColor: theme.surface, borderBottomColor: theme.outlineVariant },
+        ]}
+      >
+        <TouchableOpacity
+          onPress={() => router.back()}
+          hitSlop={12}
+          accessibilityRole="button"
+          accessibilityLabel="Retour"
+        >
+          <Ionicons name="chevron-back" size={22} color={theme.ink} />
+        </TouchableOpacity>
+        <Text variant="h3" color={theme.ink}>
+          Vaya
+        </Text>
+        <View style={{ width: 22 }} />
+      </View>
+
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <View style={styles.summaryRow}>
+          <View>
+            <Text variant="h2" color={theme.ink}>
+              {dayLabel(departureDate, now)}
+            </Text>
+            <Text variant="bodySmall" color={theme.inkFaint}>
+              {fullDateLabel(departureDate)}
+            </Text>
+          </View>
+          <View style={styles.summaryPriceCol}>
+            <Text variant="h2" color={theme.ink}>
+              {ride.contributionPerSeat}
+              <Text variant="label" color={theme.inkFaint}>
+                {' '}
+                DT
+              </Text>
+            </Text>
+            <Text variant="bodySmall" color={theme.inkFaint}>
+              {ride.seatsAvailable} place{ride.seatsAvailable > 1 ? 's' : ''} disponible
+              {ride.seatsAvailable > 1 ? 's' : ''}
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.mapCard}>
+          <MapCanvas region={routeRegion} height={160} style={styles.mapCanvas}>
+            {routeCoordinates.length > 1 ? (
+              <Polyline coordinates={routeCoordinates} strokeColor={theme.ink} strokeWidth={4} />
+            ) : null}
+            <Marker coordinate={{ latitude: ride.originLat, longitude: ride.originLng }} anchor={{ x: 0.5, y: 0.5 }}>
+              <View style={[styles.originDot, { backgroundColor: theme.accent, borderColor: theme.surface }]} />
+            </Marker>
+            {stops?.map((stop) => (
+              <Marker
+                key={stop.id}
+                coordinate={{ latitude: stop.lat, longitude: stop.lng }}
+                anchor={{ x: 0.5, y: 0.5 }}
+              >
+                <View style={[styles.stopDot, { backgroundColor: theme.surface, borderColor: theme.ink }]} />
+              </Marker>
+            ))}
+            <Marker coordinate={{ latitude: ride.destinationLat, longitude: ride.destinationLng }} anchor={{ x: 0.5, y: 0.5 }}>
+              <View style={[styles.destDot, { backgroundColor: theme.ink, borderColor: theme.surface }]} />
+            </Marker>
+          </MapCanvas>
+
+          {ride.estimatedDurationSec ? (
+            <View style={[styles.mapValuesBadge, { backgroundColor: theme.surface }]}>
+              <Text variant="caption" color={theme.ink} style={styles.mapValuesText}>
+                ~{durationLabel(ride.estimatedDurationSec)}
+                {distanceKm > 0 ? ` · ${Math.round(distanceKm)} km` : ''}
+              </Text>
+            </View>
+          ) : null}
+
+          <TouchableOpacity
+            style={[styles.viewRouteBtn, { backgroundColor: theme.surface }]}
+            onPress={() => setRouteModalOpen(true)}
+            activeOpacity={0.85}
+            accessibilityRole="button"
+            accessibilityLabel="Voir l'itinéraire en plein écran"
+          >
+            <Icon name="expand-outline" size="xs" color={theme.ink} />
+            <Text variant="caption" color={theme.ink}>
+              Voir l&apos;itinéraire
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={[styles.timeline, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
+          <View style={styles.timelineRow}>
+            <View style={styles.timelineMarkerCol}>
+              <View style={[styles.timelineDot, styles.timelineDotOpen, { borderColor: theme.ink }]} />
+              <View style={[styles.timelineLine, { backgroundColor: theme.outlineVariant }]} />
+            </View>
+            <View style={styles.timelineTextCol}>
+              <Text variant="label" color={theme.ink}>
+                {formatTime(departureDate)}
+              </Text>
+              <Text variant="body" color={theme.ink}>
+                {pickupLabel ?? ride.originLabel}
+              </Text>
+              {pickupWalkMinutes !== undefined ? (
+                <Text variant="caption" color={theme.inkFaint}>
+                  {Math.round(pickupWalkMinutes)} min à pied jusqu&apos;au point de rendez-vous
+                </Text>
+              ) : null}
+            </View>
+          </View>
+
+          {intermediateStops.map((stop) => (
+            <View key={stop.id} style={styles.timelineRow}>
+              <View style={styles.timelineMarkerCol}>
+                <View style={[styles.timelineDot, styles.timelineDotStop, { borderColor: theme.outline }]} />
+                <View style={[styles.timelineLine, { backgroundColor: theme.outlineVariant }]} />
+              </View>
+              <View style={styles.timelineTextCol}>
+                <Text variant="body" color={theme.inkMuted}>
+                  {stop.label}
+                </Text>
+                <Text variant="caption" color={theme.inkFaint}>
+                  Arrêt bref
+                </Text>
+              </View>
+            </View>
+          ))}
+
+          <View style={[styles.timelineRow, styles.timelineRowLast]}>
+            <View style={styles.timelineMarkerCol}>
+              <View style={[styles.timelineDot, styles.timelineDotFilled, { backgroundColor: theme.ink }]} />
+            </View>
+            <View style={styles.timelineTextCol}>
+              <Text variant="body" color={theme.ink}>
+                {ride.destinationLabel}
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        <TouchableOpacity
+          style={[styles.driverCard, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}
+          onPress={() => router.push({ pathname: '/search/trust', params: { rideId, driverUserId } })}
+          activeOpacity={0.8}
+          accessibilityRole="button"
+          accessibilityLabel={`Voir le profil de ${firstName}`}
+        >
+          <Avatar uri={profile.avatarUrl} name={profile.fullName} size="md" />
+          <View style={styles.driverTextCol}>
+            <View style={styles.driverNameRow}>
+              <Text variant="label" color={theme.ink}>
+                {firstName}
+              </Text>
+              {driverStats ? <Icon name="checkmark-circle" size="xs" color={theme.accent} /> : null}
+            </View>
+            {driverStats ? (
+              <View style={styles.driverStatsRow}>
+                <Icon name="star" size="xs" color={theme.accent} />
+                <Text variant="caption" color={theme.inkMuted}>
+                  {driverStats.ratingAvg.toFixed(1)} · {driverStats.tripCount} trajets
+                </Text>
+              </View>
+            ) : null}
+          </View>
+          <Icon name="chevron-forward" size="sm" color={theme.inkFaint} />
+        </TouchableOpacity>
+
+        {driverStats?.vehicle ? (
+          <View style={[styles.vehicleCard, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
+            <View style={[styles.vehicleIconWrap, { backgroundColor: theme.background, borderColor: theme.outlineVariant }]}>
+              <Icon name="car-sport" size="md" color={theme.inkFaint} />
+            </View>
+            <View>
+              <Text variant="label" color={theme.ink}>
+                Véhicule
+              </Text>
+              <Text variant="bodySmall" color={theme.inkMuted}>
+                {driverStats.vehicle.make} {driverStats.vehicle.model} · {driverStats.vehicle.color}
+              </Text>
+            </View>
+          </View>
+        ) : null}
+
+        {passengers && passengers.length > 0 ? (
+          <View style={styles.passengersSection}>
+            <Text variant="caption" color={theme.inkFaint} style={styles.passengersTitle}>
+              PASSAGERS · {bookedSeats}/{ride.seatsTotal} PLACES RÉSERVÉES
+            </Text>
+            <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
+              {passengers.map((passenger, i) => (
+                <View
+                  key={passenger.userId}
+                  style={[styles.passengerRow, i > 0 && { borderTopColor: theme.outlineVariant, borderTopWidth: 1 }]}
+                >
+                  <Avatar uri={passenger.avatarUrl} name={passenger.firstName} size="sm" />
+                  <Text variant="body" color={theme.ink} style={styles.passengerName}>
+                    {passenger.firstName}
+                  </Text>
+                  <Icon name="star" size="xs" color={theme.accent} />
+                  <Text variant="bodySmall" color={theme.inkMuted}>
+                    {passenger.ratingAvg.toFixed(1)}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        ) : null}
+
+        <View style={styles.scrollSpacer} />
+      </ScrollView>
+
+      <View style={[styles.footer, { backgroundColor: theme.surface, borderTopColor: theme.outlineVariant, paddingBottom: insets.bottom + spacing.sm }]}>
+        {bookingError ? (
+          <Text variant="bodySmall" color={theme.error} align="center">
+            {bookingError}
+          </Text>
+        ) : null}
+        <TouchableOpacity
+          style={[
+            styles.cta,
+            { backgroundColor: theme.ink },
+            ((!selectedStop && !origin) || ride.seatsAvailable < 1) && styles.ctaDisabled,
+          ]}
+          disabled={isBooking || (!selectedStop && !origin) || ride.seatsAvailable < 1}
+          activeOpacity={0.85}
+          onPress={() => void requestSeat()}
+          accessibilityRole="button"
+          accessibilityLabel={`Demander une place, ${ride.contributionPerSeat} DT`}
+        >
+          {isBooking ? (
+            <ActivityIndicator color={theme.onInk} size="small" />
+          ) : (
+            <Text variant="label" color={theme.onInk}>
+              Demander une place
+            </Text>
+          )}
+        </TouchableOpacity>
+      </View>
+
+      <Modal
+        visible={routeModalOpen}
+        animationType="slide"
+        onRequestClose={() => setRouteModalOpen(false)}
+      >
+        <View style={[styles.routeModal, { backgroundColor: theme.background }]}>
+          <MapCanvas region={routeRegion} style={styles.routeModalMap}>
+            <Marker coordinate={{ latitude: ride.originLat, longitude: ride.originLng }} anchor={{ x: 0.5, y: 0.5 }}>
+              <View style={[styles.originDot, { backgroundColor: theme.accent, borderColor: theme.surface }]} />
+            </Marker>
+            <Marker coordinate={{ latitude: ride.destinationLat, longitude: ride.destinationLng }} anchor={{ x: 0.5, y: 0.5 }}>
+              <View style={[styles.destDot, { backgroundColor: theme.ink, borderColor: theme.surface }]} />
+            </Marker>
+            {routeCoordinates.length > 1 ? (
+              <Polyline coordinates={routeCoordinates} strokeColor={theme.ink} strokeWidth={4} />
+            ) : null}
+          </MapCanvas>
+          <TouchableOpacity
+            style={[styles.routeModalClose, { top: insets.top + spacing.sm, backgroundColor: theme.surface }]}
+            onPress={() => setRouteModalOpen(false)}
+            hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel="Fermer"
+          >
+            <Ionicons name="close" size={22} color={theme.ink} />
+          </TouchableOpacity>
+        </View>
+      </Modal>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  loadingWrap: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.sm,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  scrollContent: {
+    padding: spacing.lg,
+    gap: spacing.md,
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+  },
+  summaryPriceCol: {
+    alignItems: 'flex-end',
+  },
+  mapCard: {
+    position: 'relative',
+  },
+  mapCanvas: {
+    height: 160,
+  },
+  mapValuesBadge: {
+    position: 'absolute',
+    left: spacing.sm,
+    top: spacing.sm,
+    borderRadius: radii.full,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+  },
+  mapValuesText: {
+    fontWeight: '600',
+  },
+  viewRouteBtn: {
+    position: 'absolute',
+    right: spacing.sm,
+    bottom: spacing.sm,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    borderRadius: radii.full,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+  },
+  timeline: {
+    borderRadius: radii.xl,
+    borderWidth: 1,
+    padding: spacing.md,
+  },
+  timelineRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  timelineRowLast: {
+    paddingBottom: 0,
+  },
+  timelineMarkerCol: {
+    width: 12,
+    alignItems: 'center',
+  },
+  timelineDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+  },
+  timelineDotOpen: {
+    borderWidth: 2,
+    backgroundColor: 'transparent',
+  },
+  timelineDotStop: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    borderWidth: 2,
+    backgroundColor: 'transparent',
+    marginTop: 2,
+  },
+  timelineDotFilled: {},
+  timelineLine: {
+    flex: 1,
+    width: 2,
+    marginVertical: 4,
+  },
+  timelineTextCol: {
+    flex: 1,
+    paddingBottom: spacing.md,
+    gap: 2,
+  },
+  stopDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    borderWidth: 2,
+  },
+  driverCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    borderRadius: radii.xl,
+    borderWidth: 1,
+    padding: spacing.md,
+  },
+  driverTextCol: {
+    flex: 1,
+    gap: 2,
+  },
+  driverNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  driverStatsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  vehicleCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    borderRadius: radii.xl,
+    borderWidth: 1,
+    padding: spacing.md,
+  },
+  vehicleIconWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: radii.lg,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  passengersSection: {
+    gap: spacing.sm,
+  },
+  passengersTitle: {
+    letterSpacing: 0.6,
+    fontWeight: '700',
+  },
+  card: {
+    borderRadius: radii.xl,
+    borderWidth: 1,
+    overflow: 'hidden',
+  },
+  passengerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    padding: spacing.md,
+  },
+  passengerName: {
+    flex: 1,
+  },
+  scrollSpacer: {
+    height: 90,
+  },
+  footer: {
+    borderTopWidth: 1,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
+    gap: spacing.sm,
+  },
+  cta: {
+    width: '100%',
+    borderRadius: radii.full,
+    paddingVertical: spacing.md,
+    alignItems: 'center',
+  },
+  ctaDisabled: {
+    opacity: 0.4,
+  },
+  routeModal: {
+    flex: 1,
+  },
+  routeModalMap: {
+    flex: 1,
+  },
+  routeModalClose: {
+    position: 'absolute',
+    right: spacing.lg,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  originDot: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    borderWidth: 2,
+  },
+  destDot: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    borderWidth: 2,
+  },
+});

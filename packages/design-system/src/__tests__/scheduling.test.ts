@@ -1,9 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import {
   buildDayOptions,
+  buildMonthGrid,
   buildTimeOptions,
   firstDayWithSlots,
   formatDepartureLabel,
+  formatMonthLabel,
   formatTime,
   isSameDay,
   roundUpToSlot,
@@ -100,6 +102,51 @@ describe('buildTimeOptions', () => {
       expect(slot.getHours()).toBeGreaterThanOrEqual(6);
       expect(isSameDay(slot, tomorrow)).toBe(true);
     }
+  });
+});
+
+describe('buildMonthGrid', () => {
+  it('always returns exactly 42 cells (6 full weeks)', () => {
+    const grid = buildMonthGrid(new Date(2026, 7, 19));
+    expect(grid).toHaveLength(42);
+  });
+
+  it('starts the grid on a Monday', () => {
+    const grid = buildMonthGrid(new Date(2026, 7, 19));
+    expect(grid[0]!.date.getDay()).toBe(1);
+  });
+
+  it('marks leading/trailing adjacent-month days as not-current-month', () => {
+    // August 2026 starts on a Saturday — the grid must include some July
+    // days to fill the first week (Monday-first).
+    const grid = buildMonthGrid(new Date(2026, 7, 1));
+    expect(grid[0]!.isCurrentMonth).toBe(false);
+    expect(grid[0]!.date.getMonth()).toBe(6);
+  });
+
+  it('flags exactly one cell as today, and only when the month actually contains it', () => {
+    const now = new Date(2026, 7, 19);
+    const gridWithToday = buildMonthGrid(now, now);
+    expect(gridWithToday.filter((c) => c.isToday)).toHaveLength(1);
+
+    const nextMonth = new Date(2026, 8, 1);
+    const gridWithoutToday = buildMonthGrid(nextMonth, now);
+    expect(gridWithoutToday.every((c) => !c.isToday)).toBe(true);
+  });
+
+  it('flags days strictly before today as past, today itself as not past', () => {
+    const now = new Date(2026, 7, 19, 23, 59);
+    const grid = buildMonthGrid(now, now);
+    const today = grid.find((c) => c.isToday)!;
+    expect(today.isPast).toBe(false);
+    const yesterday = grid.find((c) => isSameDay(c.date, new Date(2026, 7, 18)))!;
+    expect(yesterday.isPast).toBe(true);
+  });
+});
+
+describe('formatMonthLabel', () => {
+  it('capitalizes the French month name', () => {
+    expect(formatMonthLabel(new Date(2026, 10, 5))).toBe('Novembre 2026');
   });
 });
 

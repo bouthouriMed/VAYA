@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Justificatif d'assurance - Vaya</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "secondary-fixed-dim": "#4edea3",
+                      "surface-container-highest": "#e1e2e8",
+                      "surface-tint": "#565e74",
+                      "outline": "#76777d",
+                      "surface-container-lowest": "#ffffff",
+                      "status-verified": "#10b981",
+                      "role-driving": "#0f172a",
+                      "on-error": "#ffffff",
+                      "surface-variant": "#e1e2e8",
+                      "surface-container-high": "#e7e8ee",
+                      "error-container": "#ffdad6",
+                      "inverse-surface": "#2e3135",
+                      "status-upcoming": "#6366f1",
+                      "error": "#ba1a1a",
+                      "primary-fixed": "#dae2fd",
+                      "tertiary": "#000000",
+                      "secondary-fixed": "#6ffbbe",
+                      "secondary-container": "#6cf8bb",
+                      "on-background": "#191c20",
+                      "primary": "#000000",
+                      "surface-bright": "#f8f9ff",
+                      "surface-container": "#eceef3",
+                      "primary-fixed-dim": "#bec6e0",
+                      "on-surface-variant": "#45464d",
+                      "inverse-primary": "#bec6e0",
+                      "on-secondary-fixed-variant": "#005236",
+                      "on-tertiary-fixed": "#001a42",
+                      "tertiary-fixed-dim": "#adc6ff",
+                      "on-secondary": "#ffffff",
+                      "inverse-on-surface": "#eff0f6",
+                      "role-passenger": "#64748b",
+                      "on-primary-fixed-variant": "#3f465c",
+                      "tertiary-container": "#001a42",
+                      "outline-variant": "#c6c6cd",
+                      "on-surface": "#191c20",
+                      "secondary": "#006c49",
+                      "on-secondary-container": "#00714d",
+                      "surface": "#f8f9ff",
+                      "surface-container-low": "#f2f3f9",
+                      "on-primary-fixed": "#131b2e",
+                      "background": "#f8f9ff",
+                      "on-primary": "#ffffff",
+                      "surface-dim": "#cbdbf5",
+                      "on-primary-container": "#7c839b",
+                      "status-pending": "#f59e0b",
+                      "on-error-container": "#93000a",
+                      "on-tertiary": "#ffffff",
+                      "on-secondary-fixed": "#002113",
+                      "on-tertiary-fixed-variant": "#004395",
+                      "on-tertiary-container": "#3980f4",
+                      "primary-container": "#131b2e",
+                      "tertiary-fixed": "#d8e2ff"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "stack-lg": "24px",
+                      "stack-sm": "8px",
+                      "margin-main": "20px",
+                      "stack-md": "16px",
+                      "gutter-grid": "16px",
+                      "touch-target": "48px"
+              },
+              "fontFamily": {
+                      "headline-md": [
+                              "Inter"
+                      ],
+                      "label-lg": [
+                              "Inter"
+                      ],
+                      "label-md": [
+                              "Inter"
+                      ],
+                      "headline-sm": [
+                              "Inter"
+                      ],
+                      "headline-lg": [
+                              "Inter"
+                      ],
+                      "body-lg": [
+                              "Inter"
+                      ],
+                      "headline-lg-mobile": [
+                              "Inter"
+                      ],
+                      "body-md": [
+                              "Inter"
+                      ],
+                      "body-sm": [
+                              "Inter"
+                      ]
+              },
+              "fontSize": {
+                      "headline-md": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "label-lg": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "letterSpacing": "0.05em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "label-md": [
+                              "12px",
+                              {
+                                      "lineHeight": "16px",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "headline-sm": [
+                              "20px",
+                              {
+                                      "lineHeight": "28px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "headline-lg": [
+                              "30px",
+                              {
+                                      "lineHeight": "38px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "body-lg": [
+                              "18px",
+                              {
+                                      "lineHeight": "28px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "headline-lg-mobile": [
+                              "26px",
+                              {
+                                      "lineHeight": "32px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "body-md": [
+                              "16px",
+                              {
+                                      "lineHeight": "24px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "body-sm": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "fontWeight": "400"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+    </script>
+<style>
+        .progress-bar-glow {
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .upload-zone:hover {
+            border-color: #000000;
+            background-color: #f2f3f9;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface min-h-screen flex flex-col font-sans antialiased">
+<!-- Progress Indicator -->
+<div class="w-full h-1 bg-surface-variant fixed top-0 z-50">
+<div class="h-full bg-primary w-2/3 progress-bar-glow"></div>
+</div>
+<!-- Top App Bar -->
+<header class="w-full top-0 sticky bg-surface flex justify-between items-center px-margin-main h-touch-target shadow-sm z-40">
+<button aria-label="Retour" class="h-touch-target w-touch-target flex items-center justify-start text-on-surface-variant hover:text-primary active:scale-95 transition-transform">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">arrow_back</span>
+</button>
+<div class="font-headline-md text-headline-md font-bold text-primary">Assurance</div>
+<div class="w-touch-target h-touch-target"></div> <!-- Spacer to center title -->
+</header>
+<!-- Main Canvas -->
+<main class="flex-grow flex flex-col px-margin-main pt-stack-lg pb-32 max-w-2xl mx-auto w-full">
+<!-- Context Header -->
+<div class="mb-stack-lg animate-fade-in-up">
+<h1 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface mb-stack-sm">
+                Justificatif d'assurance
+            </h1>
+<p class="font-body-md text-body-md text-on-surface-variant">
+                Veuillez télécharger un document d'assurance valide pour le véhicule que vous avez enregistré.
+            </p>
+</div>
+<!-- Upload Area (Bento-style Card) -->
+<div aria-label="Télécharger un document" class="bg-surface-container-lowest rounded-xl shadow-lg border border-outline-variant p-stack-lg flex flex-col items-center justify-center text-center cursor-pointer upload-zone transition-all duration-300 group min-h-[240px] mb-stack-md" role="button" tabindex="0">
+<div class="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center mb-stack-md group-hover:scale-110 transition-transform duration-300">
+<span class="material-symbols-outlined text-4xl text-primary" style="font-variation-settings: 'FILL' 0;">description</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-2">Appuyez pour télécharger</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+                PDF, JPG ou PNG (Max 5MB)
+            </p>
+<input accept=".pdf,.jpg,.jpeg,.png" class="hidden" type="file"/>
+</div>
+<!-- Guidance List -->
+<div class="bg-surface-container-low rounded-xl p-stack-md">
+<h4 class="font-label-lg text-label-lg text-on-surface mb-stack-sm flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">info</span>
+                Directives importantes
+            </h4>
+<ul class="font-body-sm text-body-sm text-on-surface-variant space-y-2 list-none pl-1">
+<li class="flex items-start gap-2">
+<span class="material-symbols-outlined text-[18px] text-status-verified mt-0.5">check_circle</span>
+                    Le document doit être actuellement valide.
+                </li>
+<li class="flex items-start gap-2">
+<span class="material-symbols-outlined text-[18px] text-status-verified mt-0.5">check_circle</span>
+                    La plaque d'immatriculation du véhicule doit être clairement visible.
+                </li>
+<li class="flex items-start gap-2">
+<span class="material-symbols-outlined text-[18px] text-status-verified mt-0.5">check_circle</span>
+                    La date d'expiration doit être lisible.
+                </li>
+</ul>
+</div>
+</main>
+<!-- Pinned Footer Action -->
+<div class="fixed bottom-0 left-0 w-full bg-surface/80 backdrop-blur-md border-t border-outline-variant p-margin-main z-40 flex justify-center pb-safe">
+<button class="w-full max-w-2xl h-touch-target bg-primary text-on-primary font-label-lg text-label-lg rounded-lg shadow-md active:scale-95 transition-transform flex items-center justify-center">
+            Continuer
+        </button>
+</div>
+<script>
+        // Simple file input trigger for visual effect
+        document.querySelector('.upload-zone').addEventListener('click', function() {
+            this.querySelector('input[type="file"]').click();
+        });
+        
+        // Handle keyboard interaction for accessibility
+        document.querySelector('.upload-zone').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                this.querySelector('input[type="file"]').click();
+            }
+        });
+    </script>
+</body></html>

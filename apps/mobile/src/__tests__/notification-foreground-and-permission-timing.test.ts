@@ -63,8 +63,8 @@ describe('notification foreground display and permission-prompt timing', () => {
     expect(promptCallIndex).toBeGreaterThan(publishCallIndex);
   });
 
-  it('search/trust.tsx requests push permission only after a successful booking request, not before', () => {
-    const source = read(appDir, 'search/trust.tsx');
+  it('search/ride-details.tsx requests push permission only after a successful booking request, not before', () => {
+    const source = read(appDir, 'search/ride-details.tsx');
     const bookingCallIndex = source.indexOf('const booking = await createBooking(');
     const promptCallIndex = source.indexOf('requestPushPermissionAndRegister(');
     expect(bookingCallIndex).toBeGreaterThan(-1);

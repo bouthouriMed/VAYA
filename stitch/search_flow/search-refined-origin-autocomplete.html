@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<title>Vaya - Origin Selection</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary": "#006c49",
+                        "inverse-primary": "#bec6e0",
+                        "on-tertiary-container": "#3980f4",
+                        "on-background": "#0b1c30",
+                        "primary-fixed-dim": "#bec6e0",
+                        "error-container": "#ffdad6",
+                        "surface-bright": "#f8f9ff",
+                        "on-surface": "#0b1c30",
+                        "secondary-container": "#6cf8bb",
+                        "secondary-fixed-dim": "#4edea3",
+                        "surface-tint": "#565e74",
+                        "primary-container": "#131b2e",
+                        "surface-container": "#e5eeff",
+                        "on-tertiary": "#ffffff",
+                        "surface": "#f8f9ff",
+                        "on-primary-container": "#7c839b",
+                        "surface-container-high": "#dce9ff",
+                        "surface-container-highest": "#d3e4fe",
+                        "secondary-fixed": "#6ffbbe",
+                        "on-primary": "#ffffff",
+                        "on-secondary-fixed": "#002113",
+                        "on-primary-fixed": "#131b2e",
+                        "on-secondary-container": "#00714d",
+                        "on-secondary-fixed-variant": "#005236",
+                        "primary-fixed": "#dae2fd",
+                        "on-tertiary-fixed": "#001a42",
+                        "background": "#f8f9ff",
+                        "outline": "#76777d",
+                        "surface-variant": "#d3e4fe",
+                        "tertiary-fixed": "#d8e2ff",
+                        "surface-container-low": "#eff4ff",
+                        "error": "#ba1a1a",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "on-primary-fixed-variant": "#3f465c",
+                        "on-error-container": "#93000a",
+                        "surface-dim": "#cbdbf5",
+                        "on-error": "#ffffff",
+                        "tertiary-container": "#001a42",
+                        "tertiary-fixed-dim": "#adc6ff",
+                        "outline-variant": "#c6c6cd",
+                        "on-surface-variant": "#45464d",
+                        "inverse-on-surface": "#eaf1ff",
+                        "primary": "#000000",
+                        "tertiary": "#000000",
+                        "inverse-surface": "#213145",
+                        "on-tertiary-fixed-variant": "#004395"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-main": "20px",
+                        "gutter-grid": "16px",
+                        "stack-sm": "8px",
+                        "stack-md": "16px",
+                        "touch-target": "48px",
+                        "stack-lg": "24px"
+                    },
+                    "fontFamily": {
+                        "label-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "headline-sm": ["Inter"],
+                        "label-md": ["Inter"],
+                        "headline-lg-mobile": ["Inter"]
+                    },
+                    "fontSize": {
+                        "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "headline-lg": ["30px", { "lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "headline-sm": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+                        "headline-lg-mobile": ["26px", { "lineHeight": "32px", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-surface h-screen w-full overflow-hidden flex flex-col font-body-md text-on-surface select-none">
+<!-- Top App Bar -->
+<header class="w-full bg-surface shadow-sm shadow-primary/5 flex items-center justify-between px-margin-main h-touch-target flex-none z-10 border-b border-surface-container-high">
+<button aria-label="Back" class="h-10 w-10 flex items-center justify-center rounded-full hover:bg-surface-container-low transition-colors active:scale-95 text-on-surface -ml-2">
+<span class="material-symbols-outlined text-[24px]">arrow_back</span>
+</button>
+<h1 class="font-headline-sm text-headline-sm text-primary font-semibold mx-auto truncate px-4">D'où partez-vous ?</h1>
+<div class="h-10 w-10"></div> <!-- Spacer for balance -->
+</header>
+<!-- Main Content Area -->
+<main class="flex-1 w-full h-full overflow-y-auto px-margin-main py-stack-lg flex flex-col gap-stack-lg">
+<!-- Search Input Area -->
+<div class="flex flex-col gap-stack-sm">
+<div class="relative w-full group">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-[20px] text-on-surface-variant">search</span>
+</div>
+<input autofocus="" class="w-full bg-surface-container-low border border-outline-variant/30 text-on-surface font-body-md text-body-md rounded-lg py-3 pl-10 pr-10 focus:border-primary focus:ring-1 focus:ring-primary focus:bg-surface-container-lowest transition-all shadow-sm" placeholder="Rechercher un point de départ" type="text"/>
+<button class="absolute inset-y-0 right-0 pr-3 flex items-center text-on-surface-variant hover:text-primary">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<!-- Current Location Shortcut -->
+<button class="flex items-center gap-3 py-3 px-2 rounded-lg hover:bg-surface-container-low active:scale-[0.98] transition-all text-primary font-label-lg text-label-lg text-left mt-2">
+<span class="material-symbols-outlined text-[24px] text-on-tertiary-container">my_location</span>
+<span>Ma position actuelle</span>
+</button>
+</div>
+<!-- Saved Places Section -->
+<section class="flex flex-col gap-stack-sm">
+<h2 class="font-label-lg text-label-lg text-on-surface-variant px-2 uppercase tracking-wider">Lieux enregistrés</h2>
+<div class="grid grid-cols-2 gap-3">
+<button class="flex items-center gap-3 p-3 bg-surface-container-low rounded-lg border border-outline-variant/20 hover:bg-surface-container transition-colors active:scale-95">
+<div class="w-8 h-8 rounded-full bg-surface flex items-center justify-center text-on-surface-variant shadow-sm">
+<span class="material-symbols-outlined text-[18px]">work</span>
+</div>
+<div class="flex flex-col text-left">
+<span class="font-label-lg text-label-lg text-on-surface">Travail</span>
+<span class="font-label-md text-label-md text-on-surface-variant truncate">Ajouter une adresse</span>
+</div>
+</button>
+<button class="flex items-center gap-3 p-3 bg-surface-container-low rounded-lg border border-outline-variant/20 hover:bg-surface-container transition-colors active:scale-95">
+<div class="w-8 h-8 rounded-full bg-surface flex items-center justify-center text-on-surface-variant shadow-sm">
+<span class="material-symbols-outlined text-[18px]">home</span>
+</div>
+<div class="flex flex-col text-left">
+<span class="font-label-lg text-label-lg text-on-surface">Domicile</span>
+<span class="font-label-md text-label-md text-on-surface-variant truncate">Ajouter une adresse</span>
+</div>
+</button>
+</div>
+</section>
+<!-- Recent Addresses Section -->
+<section class="flex flex-col gap-stack-sm mt-2">
+<h2 class="font-label-lg text-label-lg text-on-surface-variant px-2 uppercase tracking-wider">Récents</h2>
+<ul class="flex flex-col">
+<li>
+<button class="w-full flex items-center gap-4 py-4 px-2 hover:bg-surface-container-low rounded-lg transition-colors active:scale-[0.98] text-left border-b border-surface-container-high last:border-0">
+<span class="material-symbols-outlined text-[24px] text-outline">history</span>
+<div class="flex flex-col flex-1 overflow-hidden">
+<span class="font-body-md text-body-md text-on-surface font-medium truncate">Avenue Habib Bourguiba, Tunis</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">Tunisie</span>
+</div>
+</button>
+</li>
+<li>
+<button class="w-full flex items-center gap-4 py-4 px-2 hover:bg-surface-container-low rounded-lg transition-colors active:scale-[0.98] text-left border-b border-surface-container-high last:border-0">
+<span class="material-symbols-outlined text-[24px] text-outline">history</span>
+<div class="flex flex-col flex-1 overflow-hidden">
+<span class="font-body-md text-body-md text-on-surface font-medium truncate">Les Berges du Lac</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">Tunis, Tunisie</span>
+</div>
+</button>
+</li>
+</ul>
+</section>
+</main>
+</body></html>

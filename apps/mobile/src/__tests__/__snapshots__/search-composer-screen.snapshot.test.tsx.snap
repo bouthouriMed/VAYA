@@ -1,0 +1,2408 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`search/composer.tsx snapshots > renders the destination field active — no current-position row 1`] = `
+<View
+  style={
+    [
+      {
+        "flex": 1,
+      },
+      {
+        "backgroundColor": "#F8F9FF",
+      },
+    ]
+  }
+>
+  <View
+    style={
+      [
+        {
+          "alignItems": "center",
+          "flexDirection": "row",
+          "gap": 12,
+          "paddingBottom": 12,
+          "paddingHorizontal": 16,
+        },
+        {
+          "paddingTop": 8,
+        },
+      ]
+    }
+  >
+    <TouchableOpacity
+      accessibilityLabel="Retour"
+      accessibilityRole="button"
+      hitSlop={8}
+      onPress={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "borderRadius": 20,
+            "elevation": 2,
+            "height": 40,
+            "justifyContent": "center",
+            "shadowOffset": {
+              "height": 2,
+              "width": 0,
+            },
+            "shadowOpacity": 0.1,
+            "shadowRadius": 6,
+            "width": 40,
+          },
+          {
+            "backgroundColor": "#FFFFFF",
+            "shadowColor": "#000000",
+          },
+        ]
+      }
+    >
+      <Ionicons
+        color="#000000"
+        name="arrow-back"
+        size={20}
+      />
+    </TouchableOpacity>
+    <Text
+      numberOfLines={1}
+      style={
+        [
+          {
+            "fontSize": 24,
+            "fontWeight": "600",
+            "lineHeight": 28.799999999999997,
+          },
+          {
+            "color": "#000000",
+            "textAlign": undefined,
+            "writingDirection": "ltr",
+          },
+          {
+            "flex": 1,
+            "textAlign": "center",
+          },
+        ]
+      }
+    >
+      Où allez-vous ?
+    </Text>
+    <View
+      style={
+        {
+          "width": 40,
+        }
+      }
+    />
+  </View>
+  <View
+    style={
+      {
+        "flex": 1,
+        "paddingHorizontal": 16,
+      }
+    }
+  >
+    <View
+      style={
+        [
+          {
+            "alignItems": "center",
+            "borderRadius": 12,
+            "borderWidth": 1,
+            "flexDirection": "row",
+            "gap": 8,
+            "height": 52,
+            "paddingHorizontal": 12,
+          },
+          {
+            "backgroundColor": "#FFFFFF",
+            "borderColor": "#DAE2FD",
+          },
+        ]
+      }
+    >
+      <Ionicons
+        accessibilityElementsHidden={true}
+        color="#45464D"
+        importantForAccessibility="no-hide-descendants"
+        name="search"
+        size={20}
+      />
+      <TextInput
+        autoFocus={true}
+        onChangeText={[Function]}
+        placeholder="Rechercher une destination"
+        placeholderTextColor="#76777D"
+        returnKeyType="search"
+        style={
+          [
+            {
+              "flex": 1,
+              "fontSize": 16,
+              "padding": 0,
+            },
+            {
+              "color": "#000000",
+            },
+          ]
+        }
+        value=""
+      />
+    </View>
+    <View
+      style={
+        {
+          "marginTop": 8,
+        }
+      }
+    >
+      <Text
+        style={
+          [
+            {
+              "fontSize": 12,
+              "fontWeight": "400",
+              "lineHeight": 18,
+            },
+            {
+              "color": "#76777D",
+              "textAlign": undefined,
+              "writingDirection": "ltr",
+            },
+            {
+              "letterSpacing": 0.6,
+              "marginBottom": 8,
+              "marginTop": 16,
+            },
+          ]
+        }
+      >
+        LIEUX ENREGISTRÉS
+      </Text>
+      <View
+        style={
+          {
+            "flexDirection": "row",
+            "gap": 8,
+          }
+        }
+      >
+        <TouchableOpacity
+          accessibilityState={
+            {
+              "disabled": true,
+            }
+          }
+          disabled={true}
+          style={
+            [
+              {
+                "alignItems": "center",
+                "borderRadius": 12,
+                "borderWidth": 1,
+                "flex": 1,
+                "flexDirection": "row",
+                "gap": 8,
+                "padding": 8,
+              },
+              {
+                "backgroundColor": "#FFFFFF",
+                "borderColor": "#DAE2FD",
+              },
+            ]
+          }
+        >
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "borderRadius": 16,
+                  "height": 32,
+                  "justifyContent": "center",
+                  "width": 32,
+                },
+                {
+                  "backgroundColor": "#E5EEFF",
+                },
+              ]
+            }
+          >
+            <Ionicons
+              accessibilityElementsHidden={true}
+              color="#C6C6CD"
+              importantForAccessibility="no-hide-descendants"
+              name="briefcase-outline"
+              size={20}
+            />
+          </View>
+          <View
+            style={
+              {
+                "flex": 1,
+                "gap": 1,
+              }
+            }
+          >
+            <Text
+              numberOfLines={1}
+              style={
+                [
+                  {
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "lineHeight": 21,
+                  },
+                  {
+                    "color": "#76777D",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              Travail
+            </Text>
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "lineHeight": 18,
+                  },
+                  {
+                    "color": "#76777D",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              Bientôt
+            </Text>
+          </View>
+        </TouchableOpacity>
+        <TouchableOpacity
+          accessibilityState={
+            {
+              "disabled": true,
+            }
+          }
+          disabled={true}
+          style={
+            [
+              {
+                "alignItems": "center",
+                "borderRadius": 12,
+                "borderWidth": 1,
+                "flex": 1,
+                "flexDirection": "row",
+                "gap": 8,
+                "padding": 8,
+              },
+              {
+                "backgroundColor": "#FFFFFF",
+                "borderColor": "#DAE2FD",
+              },
+            ]
+          }
+        >
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "borderRadius": 16,
+                  "height": 32,
+                  "justifyContent": "center",
+                  "width": 32,
+                },
+                {
+                  "backgroundColor": "#E5EEFF",
+                },
+              ]
+            }
+          >
+            <Ionicons
+              accessibilityElementsHidden={true}
+              color="#C6C6CD"
+              importantForAccessibility="no-hide-descendants"
+              name="home-outline"
+              size={20}
+            />
+          </View>
+          <View
+            style={
+              {
+                "flex": 1,
+                "gap": 1,
+              }
+            }
+          >
+            <Text
+              numberOfLines={1}
+              style={
+                [
+                  {
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "lineHeight": 21,
+                  },
+                  {
+                    "color": "#76777D",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              Domicile
+            </Text>
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "lineHeight": 18,
+                  },
+                  {
+                    "color": "#76777D",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              Bientôt
+            </Text>
+          </View>
+        </TouchableOpacity>
+      </View>
+    </View>
+    <Text
+      style={
+        [
+          {
+            "fontSize": 12,
+            "fontWeight": "400",
+            "lineHeight": 18,
+          },
+          {
+            "color": "#76777D",
+            "textAlign": undefined,
+            "writingDirection": "ltr",
+          },
+          {
+            "letterSpacing": 0.6,
+            "marginBottom": 8,
+            "marginTop": 16,
+          },
+        ]
+      }
+    >
+      RÉCENTS
+    </Text>
+    <FlatList>
+      <TouchableOpacity
+        activeOpacity={0.7}
+        onPress={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "borderRadius": 12,
+              "borderWidth": 1,
+              "flexDirection": "row",
+              "gap": 12,
+              "padding": 12,
+            },
+            {
+              "backgroundColor": "#FFFFFF",
+              "borderColor": "#DAE2FD",
+            },
+          ]
+        }
+      >
+        <View
+          style={
+            [
+              {
+                "alignItems": "center",
+                "borderRadius": 18,
+                "height": 36,
+                "justifyContent": "center",
+                "width": 36,
+              },
+              {
+                "backgroundColor": "#E5EEFF",
+              },
+            ]
+          }
+        >
+          <Ionicons
+            accessibilityElementsHidden={true}
+            color="#45464D"
+            importantForAccessibility="no-hide-descendants"
+            name="location-outline"
+            size={20}
+          />
+        </View>
+        <View
+          style={
+            {
+              "flex": 1,
+              "gap": 1,
+            }
+          }
+        >
+          <Text
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "fontSize": 16,
+                  "fontWeight": "400",
+                  "lineHeight": 24,
+                },
+                {
+                  "color": "#000000",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                {
+                  "fontWeight": "500",
+                },
+              ]
+            }
+          >
+            El Menzah 5
+          </Text>
+          <Text
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "lineHeight": 18,
+                },
+                {
+                  "color": "#76777D",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            Ariana
+          </Text>
+        </View>
+      </TouchableOpacity>
+      <TouchableOpacity
+        activeOpacity={0.7}
+        onPress={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "borderRadius": 12,
+              "borderWidth": 1,
+              "flexDirection": "row",
+              "gap": 12,
+              "padding": 12,
+            },
+            {
+              "backgroundColor": "#FFFFFF",
+              "borderColor": "#DAE2FD",
+            },
+          ]
+        }
+      >
+        <View
+          style={
+            [
+              {
+                "alignItems": "center",
+                "borderRadius": 18,
+                "height": 36,
+                "justifyContent": "center",
+                "width": 36,
+              },
+              {
+                "backgroundColor": "#E5EEFF",
+              },
+            ]
+          }
+        >
+          <Ionicons
+            accessibilityElementsHidden={true}
+            color="#45464D"
+            importantForAccessibility="no-hide-descendants"
+            name="location-outline"
+            size={20}
+          />
+        </View>
+        <View
+          style={
+            {
+              "flex": 1,
+              "gap": 1,
+            }
+          }
+        >
+          <Text
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "fontSize": 16,
+                  "fontWeight": "400",
+                  "lineHeight": 24,
+                },
+                {
+                  "color": "#000000",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                {
+                  "fontWeight": "500",
+                },
+              ]
+            }
+          >
+            Tunis Digital Center
+          </Text>
+          <Text
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "lineHeight": 18,
+                },
+                {
+                  "color": "#76777D",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            Lac 2, Tunis
+          </Text>
+        </View>
+      </TouchableOpacity>
+      <TouchableOpacity
+        activeOpacity={0.7}
+        onPress={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "borderRadius": 12,
+              "borderWidth": 1,
+              "flexDirection": "row",
+              "gap": 12,
+              "padding": 12,
+            },
+            {
+              "backgroundColor": "#FFFFFF",
+              "borderColor": "#DAE2FD",
+            },
+          ]
+        }
+      >
+        <View
+          style={
+            [
+              {
+                "alignItems": "center",
+                "borderRadius": 18,
+                "height": 36,
+                "justifyContent": "center",
+                "width": 36,
+              },
+              {
+                "backgroundColor": "#E5EEFF",
+              },
+            ]
+          }
+        >
+          <Ionicons
+            accessibilityElementsHidden={true}
+            color="#45464D"
+            importantForAccessibility="no-hide-descendants"
+            name="location-outline"
+            size={20}
+          />
+        </View>
+        <View
+          style={
+            {
+              "flex": 1,
+              "gap": 1,
+            }
+          }
+        >
+          <Text
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "fontSize": 16,
+                  "fontWeight": "400",
+                  "lineHeight": 24,
+                },
+                {
+                  "color": "#000000",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                {
+                  "fontWeight": "500",
+                },
+              ]
+            }
+          >
+            Avenue Habib Bourguiba
+          </Text>
+          <Text
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "lineHeight": 18,
+                },
+                {
+                  "color": "#76777D",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            Centre-ville, Tunis
+          </Text>
+        </View>
+      </TouchableOpacity>
+      <TouchableOpacity
+        activeOpacity={0.7}
+        onPress={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "borderRadius": 12,
+              "borderWidth": 1,
+              "flexDirection": "row",
+              "gap": 12,
+              "padding": 12,
+            },
+            {
+              "backgroundColor": "#FFFFFF",
+              "borderColor": "#DAE2FD",
+            },
+          ]
+        }
+      >
+        <View
+          style={
+            [
+              {
+                "alignItems": "center",
+                "borderRadius": 18,
+                "height": 36,
+                "justifyContent": "center",
+                "width": 36,
+              },
+              {
+                "backgroundColor": "#E5EEFF",
+              },
+            ]
+          }
+        >
+          <Ionicons
+            accessibilityElementsHidden={true}
+            color="#45464D"
+            importantForAccessibility="no-hide-descendants"
+            name="location-outline"
+            size={20}
+          />
+        </View>
+        <View
+          style={
+            {
+              "flex": 1,
+              "gap": 1,
+            }
+          }
+        >
+          <Text
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "fontSize": 16,
+                  "fontWeight": "400",
+                  "lineHeight": 24,
+                },
+                {
+                  "color": "#000000",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                {
+                  "fontWeight": "500",
+                },
+              ]
+            }
+          >
+            La Marsa
+          </Text>
+          <Text
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "lineHeight": 18,
+                },
+                {
+                  "color": "#76777D",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            La Marsa, Tunis
+          </Text>
+        </View>
+      </TouchableOpacity>
+      <TouchableOpacity
+        activeOpacity={0.7}
+        onPress={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "borderRadius": 12,
+              "borderWidth": 1,
+              "flexDirection": "row",
+              "gap": 12,
+              "padding": 12,
+            },
+            {
+              "backgroundColor": "#FFFFFF",
+              "borderColor": "#DAE2FD",
+            },
+          ]
+        }
+      >
+        <View
+          style={
+            [
+              {
+                "alignItems": "center",
+                "borderRadius": 18,
+                "height": 36,
+                "justifyContent": "center",
+                "width": 36,
+              },
+              {
+                "backgroundColor": "#E5EEFF",
+              },
+            ]
+          }
+        >
+          <Ionicons
+            accessibilityElementsHidden={true}
+            color="#45464D"
+            importantForAccessibility="no-hide-descendants"
+            name="location-outline"
+            size={20}
+          />
+        </View>
+        <View
+          style={
+            {
+              "flex": 1,
+              "gap": 1,
+            }
+          }
+        >
+          <Text
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "fontSize": 16,
+                  "fontWeight": "400",
+                  "lineHeight": 24,
+                },
+                {
+                  "color": "#000000",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                {
+                  "fontWeight": "500",
+                },
+              ]
+            }
+          >
+            Les Berges du Lac 1
+          </Text>
+          <Text
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "lineHeight": 18,
+                },
+                {
+                  "color": "#76777D",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            Lac 1, Tunis
+          </Text>
+        </View>
+      </TouchableOpacity>
+      <TouchableOpacity
+        activeOpacity={0.7}
+        onPress={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "borderRadius": 12,
+              "borderWidth": 1,
+              "flexDirection": "row",
+              "gap": 12,
+              "padding": 12,
+            },
+            {
+              "backgroundColor": "#FFFFFF",
+              "borderColor": "#DAE2FD",
+            },
+          ]
+        }
+      >
+        <View
+          style={
+            [
+              {
+                "alignItems": "center",
+                "borderRadius": 18,
+                "height": 36,
+                "justifyContent": "center",
+                "width": 36,
+              },
+              {
+                "backgroundColor": "#E5EEFF",
+              },
+            ]
+          }
+        >
+          <Ionicons
+            accessibilityElementsHidden={true}
+            color="#45464D"
+            importantForAccessibility="no-hide-descendants"
+            name="location-outline"
+            size={20}
+          />
+        </View>
+        <View
+          style={
+            {
+              "flex": 1,
+              "gap": 1,
+            }
+          }
+        >
+          <Text
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "fontSize": 16,
+                  "fontWeight": "400",
+                  "lineHeight": 24,
+                },
+                {
+                  "color": "#000000",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                {
+                  "fontWeight": "500",
+                },
+              ]
+            }
+          >
+            El Manar
+          </Text>
+          <Text
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "lineHeight": 18,
+                },
+                {
+                  "color": "#76777D",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            Tunis
+          </Text>
+        </View>
+      </TouchableOpacity>
+      <TouchableOpacity
+        activeOpacity={0.7}
+        onPress={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "borderRadius": 12,
+              "borderWidth": 1,
+              "flexDirection": "row",
+              "gap": 12,
+              "padding": 12,
+            },
+            {
+              "backgroundColor": "#FFFFFF",
+              "borderColor": "#DAE2FD",
+            },
+          ]
+        }
+      >
+        <View
+          style={
+            [
+              {
+                "alignItems": "center",
+                "borderRadius": 18,
+                "height": 36,
+                "justifyContent": "center",
+                "width": 36,
+              },
+              {
+                "backgroundColor": "#E5EEFF",
+              },
+            ]
+          }
+        >
+          <Ionicons
+            accessibilityElementsHidden={true}
+            color="#45464D"
+            importantForAccessibility="no-hide-descendants"
+            name="location-outline"
+            size={20}
+          />
+        </View>
+        <View
+          style={
+            {
+              "flex": 1,
+              "gap": 1,
+            }
+          }
+        >
+          <Text
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "fontSize": 16,
+                  "fontWeight": "400",
+                  "lineHeight": 24,
+                },
+                {
+                  "color": "#000000",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                {
+                  "fontWeight": "500",
+                },
+              ]
+            }
+          >
+            Aéroport Tunis-Carthage
+          </Text>
+          <Text
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "lineHeight": 18,
+                },
+                {
+                  "color": "#76777D",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            Terminal 1
+          </Text>
+        </View>
+      </TouchableOpacity>
+      <TouchableOpacity
+        activeOpacity={0.7}
+        onPress={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "borderRadius": 12,
+              "borderWidth": 1,
+              "flexDirection": "row",
+              "gap": 12,
+              "padding": 12,
+            },
+            {
+              "backgroundColor": "#FFFFFF",
+              "borderColor": "#DAE2FD",
+            },
+          ]
+        }
+      >
+        <View
+          style={
+            [
+              {
+                "alignItems": "center",
+                "borderRadius": 18,
+                "height": 36,
+                "justifyContent": "center",
+                "width": 36,
+              },
+              {
+                "backgroundColor": "#E5EEFF",
+              },
+            ]
+          }
+        >
+          <Ionicons
+            accessibilityElementsHidden={true}
+            color="#45464D"
+            importantForAccessibility="no-hide-descendants"
+            name="location-outline"
+            size={20}
+          />
+        </View>
+        <View
+          style={
+            {
+              "flex": 1,
+              "gap": 1,
+            }
+          }
+        >
+          <Text
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "fontSize": 16,
+                  "fontWeight": "400",
+                  "lineHeight": 24,
+                },
+                {
+                  "color": "#000000",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                {
+                  "fontWeight": "500",
+                },
+              ]
+            }
+          >
+            Ariana Centre
+          </Text>
+          <Text
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "lineHeight": 18,
+                },
+                {
+                  "color": "#76777D",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            Ariana
+          </Text>
+        </View>
+      </TouchableOpacity>
+    </FlatList>
+  </View>
+</View>
+`;
+
+exports[`search/composer.tsx snapshots > renders the origin field active — title, current-position row, saved places, recents 1`] = `
+<View
+  style={
+    [
+      {
+        "flex": 1,
+      },
+      {
+        "backgroundColor": "#F8F9FF",
+      },
+    ]
+  }
+>
+  <View
+    style={
+      [
+        {
+          "alignItems": "center",
+          "flexDirection": "row",
+          "gap": 12,
+          "paddingBottom": 12,
+          "paddingHorizontal": 16,
+        },
+        {
+          "paddingTop": 8,
+        },
+      ]
+    }
+  >
+    <TouchableOpacity
+      accessibilityLabel="Retour"
+      accessibilityRole="button"
+      hitSlop={8}
+      onPress={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "borderRadius": 20,
+            "elevation": 2,
+            "height": 40,
+            "justifyContent": "center",
+            "shadowOffset": {
+              "height": 2,
+              "width": 0,
+            },
+            "shadowOpacity": 0.1,
+            "shadowRadius": 6,
+            "width": 40,
+          },
+          {
+            "backgroundColor": "#FFFFFF",
+            "shadowColor": "#000000",
+          },
+        ]
+      }
+    >
+      <Ionicons
+        color="#000000"
+        name="arrow-back"
+        size={20}
+      />
+    </TouchableOpacity>
+    <Text
+      numberOfLines={1}
+      style={
+        [
+          {
+            "fontSize": 24,
+            "fontWeight": "600",
+            "lineHeight": 28.799999999999997,
+          },
+          {
+            "color": "#000000",
+            "textAlign": undefined,
+            "writingDirection": "ltr",
+          },
+          {
+            "flex": 1,
+            "textAlign": "center",
+          },
+        ]
+      }
+    >
+      D'où partez-vous ?
+    </Text>
+    <View
+      style={
+        {
+          "width": 40,
+        }
+      }
+    />
+  </View>
+  <View
+    style={
+      {
+        "flex": 1,
+        "paddingHorizontal": 16,
+      }
+    }
+  >
+    <View
+      style={
+        [
+          {
+            "alignItems": "center",
+            "borderRadius": 12,
+            "borderWidth": 1,
+            "flexDirection": "row",
+            "gap": 8,
+            "height": 52,
+            "paddingHorizontal": 12,
+          },
+          {
+            "backgroundColor": "#FFFFFF",
+            "borderColor": "#DAE2FD",
+          },
+        ]
+      }
+    >
+      <Ionicons
+        accessibilityElementsHidden={true}
+        color="#45464D"
+        importantForAccessibility="no-hide-descendants"
+        name="search"
+        size={20}
+      />
+      <TextInput
+        autoFocus={true}
+        onChangeText={[Function]}
+        placeholder="Rechercher un point de départ"
+        placeholderTextColor="#76777D"
+        returnKeyType="search"
+        style={
+          [
+            {
+              "flex": 1,
+              "fontSize": 16,
+              "padding": 0,
+            },
+            {
+              "color": "#000000",
+            },
+          ]
+        }
+        value=""
+      />
+    </View>
+    <TouchableOpacity
+      activeOpacity={0.7}
+      disabled={false}
+      onPress={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "gap": 8,
+            "paddingVertical": 12,
+          },
+          false,
+        ]
+      }
+    >
+      <Ionicons
+        accessibilityElementsHidden={true}
+        color="#3980F4"
+        importantForAccessibility="no-hide-descendants"
+        name="locate"
+        size={20}
+      />
+      <Text
+        style={
+          [
+            {
+              "fontSize": 14,
+              "fontWeight": "500",
+              "lineHeight": 21,
+            },
+            {
+              "color": "#000000",
+              "textAlign": undefined,
+              "writingDirection": "ltr",
+            },
+            undefined,
+          ]
+        }
+      >
+        Ma position actuelle
+      </Text>
+    </TouchableOpacity>
+    <View
+      style={
+        {
+          "marginTop": 8,
+        }
+      }
+    >
+      <Text
+        style={
+          [
+            {
+              "fontSize": 12,
+              "fontWeight": "400",
+              "lineHeight": 18,
+            },
+            {
+              "color": "#76777D",
+              "textAlign": undefined,
+              "writingDirection": "ltr",
+            },
+            {
+              "letterSpacing": 0.6,
+              "marginBottom": 8,
+              "marginTop": 16,
+            },
+          ]
+        }
+      >
+        LIEUX ENREGISTRÉS
+      </Text>
+      <View
+        style={
+          {
+            "flexDirection": "row",
+            "gap": 8,
+          }
+        }
+      >
+        <TouchableOpacity
+          accessibilityState={
+            {
+              "disabled": true,
+            }
+          }
+          disabled={true}
+          style={
+            [
+              {
+                "alignItems": "center",
+                "borderRadius": 12,
+                "borderWidth": 1,
+                "flex": 1,
+                "flexDirection": "row",
+                "gap": 8,
+                "padding": 8,
+              },
+              {
+                "backgroundColor": "#FFFFFF",
+                "borderColor": "#DAE2FD",
+              },
+            ]
+          }
+        >
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "borderRadius": 16,
+                  "height": 32,
+                  "justifyContent": "center",
+                  "width": 32,
+                },
+                {
+                  "backgroundColor": "#E5EEFF",
+                },
+              ]
+            }
+          >
+            <Ionicons
+              accessibilityElementsHidden={true}
+              color="#C6C6CD"
+              importantForAccessibility="no-hide-descendants"
+              name="briefcase-outline"
+              size={20}
+            />
+          </View>
+          <View
+            style={
+              {
+                "flex": 1,
+                "gap": 1,
+              }
+            }
+          >
+            <Text
+              numberOfLines={1}
+              style={
+                [
+                  {
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "lineHeight": 21,
+                  },
+                  {
+                    "color": "#76777D",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              Travail
+            </Text>
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "lineHeight": 18,
+                  },
+                  {
+                    "color": "#76777D",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              Bientôt
+            </Text>
+          </View>
+        </TouchableOpacity>
+        <TouchableOpacity
+          accessibilityState={
+            {
+              "disabled": true,
+            }
+          }
+          disabled={true}
+          style={
+            [
+              {
+                "alignItems": "center",
+                "borderRadius": 12,
+                "borderWidth": 1,
+                "flex": 1,
+                "flexDirection": "row",
+                "gap": 8,
+                "padding": 8,
+              },
+              {
+                "backgroundColor": "#FFFFFF",
+                "borderColor": "#DAE2FD",
+              },
+            ]
+          }
+        >
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "borderRadius": 16,
+                  "height": 32,
+                  "justifyContent": "center",
+                  "width": 32,
+                },
+                {
+                  "backgroundColor": "#E5EEFF",
+                },
+              ]
+            }
+          >
+            <Ionicons
+              accessibilityElementsHidden={true}
+              color="#C6C6CD"
+              importantForAccessibility="no-hide-descendants"
+              name="home-outline"
+              size={20}
+            />
+          </View>
+          <View
+            style={
+              {
+                "flex": 1,
+                "gap": 1,
+              }
+            }
+          >
+            <Text
+              numberOfLines={1}
+              style={
+                [
+                  {
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "lineHeight": 21,
+                  },
+                  {
+                    "color": "#76777D",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              Domicile
+            </Text>
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "lineHeight": 18,
+                  },
+                  {
+                    "color": "#76777D",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              Bientôt
+            </Text>
+          </View>
+        </TouchableOpacity>
+      </View>
+    </View>
+    <Text
+      style={
+        [
+          {
+            "fontSize": 12,
+            "fontWeight": "400",
+            "lineHeight": 18,
+          },
+          {
+            "color": "#76777D",
+            "textAlign": undefined,
+            "writingDirection": "ltr",
+          },
+          {
+            "letterSpacing": 0.6,
+            "marginBottom": 8,
+            "marginTop": 16,
+          },
+        ]
+      }
+    >
+      RÉCENTS
+    </Text>
+    <FlatList>
+      <TouchableOpacity
+        activeOpacity={0.7}
+        onPress={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "borderRadius": 12,
+              "borderWidth": 1,
+              "flexDirection": "row",
+              "gap": 12,
+              "padding": 12,
+            },
+            {
+              "backgroundColor": "#FFFFFF",
+              "borderColor": "#DAE2FD",
+            },
+          ]
+        }
+      >
+        <View
+          style={
+            [
+              {
+                "alignItems": "center",
+                "borderRadius": 18,
+                "height": 36,
+                "justifyContent": "center",
+                "width": 36,
+              },
+              {
+                "backgroundColor": "#E5EEFF",
+              },
+            ]
+          }
+        >
+          <Ionicons
+            accessibilityElementsHidden={true}
+            color="#45464D"
+            importantForAccessibility="no-hide-descendants"
+            name="location-outline"
+            size={20}
+          />
+        </View>
+        <View
+          style={
+            {
+              "flex": 1,
+              "gap": 1,
+            }
+          }
+        >
+          <Text
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "fontSize": 16,
+                  "fontWeight": "400",
+                  "lineHeight": 24,
+                },
+                {
+                  "color": "#000000",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                {
+                  "fontWeight": "500",
+                },
+              ]
+            }
+          >
+            El Menzah 5
+          </Text>
+          <Text
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "lineHeight": 18,
+                },
+                {
+                  "color": "#76777D",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            Ariana
+          </Text>
+        </View>
+      </TouchableOpacity>
+      <TouchableOpacity
+        activeOpacity={0.7}
+        onPress={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "borderRadius": 12,
+              "borderWidth": 1,
+              "flexDirection": "row",
+              "gap": 12,
+              "padding": 12,
+            },
+            {
+              "backgroundColor": "#FFFFFF",
+              "borderColor": "#DAE2FD",
+            },
+          ]
+        }
+      >
+        <View
+          style={
+            [
+              {
+                "alignItems": "center",
+                "borderRadius": 18,
+                "height": 36,
+                "justifyContent": "center",
+                "width": 36,
+              },
+              {
+                "backgroundColor": "#E5EEFF",
+              },
+            ]
+          }
+        >
+          <Ionicons
+            accessibilityElementsHidden={true}
+            color="#45464D"
+            importantForAccessibility="no-hide-descendants"
+            name="location-outline"
+            size={20}
+          />
+        </View>
+        <View
+          style={
+            {
+              "flex": 1,
+              "gap": 1,
+            }
+          }
+        >
+          <Text
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "fontSize": 16,
+                  "fontWeight": "400",
+                  "lineHeight": 24,
+                },
+                {
+                  "color": "#000000",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                {
+                  "fontWeight": "500",
+                },
+              ]
+            }
+          >
+            Tunis Digital Center
+          </Text>
+          <Text
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "lineHeight": 18,
+                },
+                {
+                  "color": "#76777D",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            Lac 2, Tunis
+          </Text>
+        </View>
+      </TouchableOpacity>
+      <TouchableOpacity
+        activeOpacity={0.7}
+        onPress={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "borderRadius": 12,
+              "borderWidth": 1,
+              "flexDirection": "row",
+              "gap": 12,
+              "padding": 12,
+            },
+            {
+              "backgroundColor": "#FFFFFF",
+              "borderColor": "#DAE2FD",
+            },
+          ]
+        }
+      >
+        <View
+          style={
+            [
+              {
+                "alignItems": "center",
+                "borderRadius": 18,
+                "height": 36,
+                "justifyContent": "center",
+                "width": 36,
+              },
+              {
+                "backgroundColor": "#E5EEFF",
+              },
+            ]
+          }
+        >
+          <Ionicons
+            accessibilityElementsHidden={true}
+            color="#45464D"
+            importantForAccessibility="no-hide-descendants"
+            name="location-outline"
+            size={20}
+          />
+        </View>
+        <View
+          style={
+            {
+              "flex": 1,
+              "gap": 1,
+            }
+          }
+        >
+          <Text
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "fontSize": 16,
+                  "fontWeight": "400",
+                  "lineHeight": 24,
+                },
+                {
+                  "color": "#000000",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                {
+                  "fontWeight": "500",
+                },
+              ]
+            }
+          >
+            Avenue Habib Bourguiba
+          </Text>
+          <Text
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "lineHeight": 18,
+                },
+                {
+                  "color": "#76777D",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            Centre-ville, Tunis
+          </Text>
+        </View>
+      </TouchableOpacity>
+      <TouchableOpacity
+        activeOpacity={0.7}
+        onPress={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "borderRadius": 12,
+              "borderWidth": 1,
+              "flexDirection": "row",
+              "gap": 12,
+              "padding": 12,
+            },
+            {
+              "backgroundColor": "#FFFFFF",
+              "borderColor": "#DAE2FD",
+            },
+          ]
+        }
+      >
+        <View
+          style={
+            [
+              {
+                "alignItems": "center",
+                "borderRadius": 18,
+                "height": 36,
+                "justifyContent": "center",
+                "width": 36,
+              },
+              {
+                "backgroundColor": "#E5EEFF",
+              },
+            ]
+          }
+        >
+          <Ionicons
+            accessibilityElementsHidden={true}
+            color="#45464D"
+            importantForAccessibility="no-hide-descendants"
+            name="location-outline"
+            size={20}
+          />
+        </View>
+        <View
+          style={
+            {
+              "flex": 1,
+              "gap": 1,
+            }
+          }
+        >
+          <Text
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "fontSize": 16,
+                  "fontWeight": "400",
+                  "lineHeight": 24,
+                },
+                {
+                  "color": "#000000",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                {
+                  "fontWeight": "500",
+                },
+              ]
+            }
+          >
+            La Marsa
+          </Text>
+          <Text
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "lineHeight": 18,
+                },
+                {
+                  "color": "#76777D",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            La Marsa, Tunis
+          </Text>
+        </View>
+      </TouchableOpacity>
+      <TouchableOpacity
+        activeOpacity={0.7}
+        onPress={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "borderRadius": 12,
+              "borderWidth": 1,
+              "flexDirection": "row",
+              "gap": 12,
+              "padding": 12,
+            },
+            {
+              "backgroundColor": "#FFFFFF",
+              "borderColor": "#DAE2FD",
+            },
+          ]
+        }
+      >
+        <View
+          style={
+            [
+              {
+                "alignItems": "center",
+                "borderRadius": 18,
+                "height": 36,
+                "justifyContent": "center",
+                "width": 36,
+              },
+              {
+                "backgroundColor": "#E5EEFF",
+              },
+            ]
+          }
+        >
+          <Ionicons
+            accessibilityElementsHidden={true}
+            color="#45464D"
+            importantForAccessibility="no-hide-descendants"
+            name="location-outline"
+            size={20}
+          />
+        </View>
+        <View
+          style={
+            {
+              "flex": 1,
+              "gap": 1,
+            }
+          }
+        >
+          <Text
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "fontSize": 16,
+                  "fontWeight": "400",
+                  "lineHeight": 24,
+                },
+                {
+                  "color": "#000000",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                {
+                  "fontWeight": "500",
+                },
+              ]
+            }
+          >
+            Les Berges du Lac 1
+          </Text>
+          <Text
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "lineHeight": 18,
+                },
+                {
+                  "color": "#76777D",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            Lac 1, Tunis
+          </Text>
+        </View>
+      </TouchableOpacity>
+      <TouchableOpacity
+        activeOpacity={0.7}
+        onPress={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "borderRadius": 12,
+              "borderWidth": 1,
+              "flexDirection": "row",
+              "gap": 12,
+              "padding": 12,
+            },
+            {
+              "backgroundColor": "#FFFFFF",
+              "borderColor": "#DAE2FD",
+            },
+          ]
+        }
+      >
+        <View
+          style={
+            [
+              {
+                "alignItems": "center",
+                "borderRadius": 18,
+                "height": 36,
+                "justifyContent": "center",
+                "width": 36,
+              },
+              {
+                "backgroundColor": "#E5EEFF",
+              },
+            ]
+          }
+        >
+          <Ionicons
+            accessibilityElementsHidden={true}
+            color="#45464D"
+            importantForAccessibility="no-hide-descendants"
+            name="location-outline"
+            size={20}
+          />
+        </View>
+        <View
+          style={
+            {
+              "flex": 1,
+              "gap": 1,
+            }
+          }
+        >
+          <Text
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "fontSize": 16,
+                  "fontWeight": "400",
+                  "lineHeight": 24,
+                },
+                {
+                  "color": "#000000",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                {
+                  "fontWeight": "500",
+                },
+              ]
+            }
+          >
+            El Manar
+          </Text>
+          <Text
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "lineHeight": 18,
+                },
+                {
+                  "color": "#76777D",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            Tunis
+          </Text>
+        </View>
+      </TouchableOpacity>
+      <TouchableOpacity
+        activeOpacity={0.7}
+        onPress={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "borderRadius": 12,
+              "borderWidth": 1,
+              "flexDirection": "row",
+              "gap": 12,
+              "padding": 12,
+            },
+            {
+              "backgroundColor": "#FFFFFF",
+              "borderColor": "#DAE2FD",
+            },
+          ]
+        }
+      >
+        <View
+          style={
+            [
+              {
+                "alignItems": "center",
+                "borderRadius": 18,
+                "height": 36,
+                "justifyContent": "center",
+                "width": 36,
+              },
+              {
+                "backgroundColor": "#E5EEFF",
+              },
+            ]
+          }
+        >
+          <Ionicons
+            accessibilityElementsHidden={true}
+            color="#45464D"
+            importantForAccessibility="no-hide-descendants"
+            name="location-outline"
+            size={20}
+          />
+        </View>
+        <View
+          style={
+            {
+              "flex": 1,
+              "gap": 1,
+            }
+          }
+        >
+          <Text
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "fontSize": 16,
+                  "fontWeight": "400",
+                  "lineHeight": 24,
+                },
+                {
+                  "color": "#000000",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                {
+                  "fontWeight": "500",
+                },
+              ]
+            }
+          >
+            Aéroport Tunis-Carthage
+          </Text>
+          <Text
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "lineHeight": 18,
+                },
+                {
+                  "color": "#76777D",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            Terminal 1
+          </Text>
+        </View>
+      </TouchableOpacity>
+      <TouchableOpacity
+        activeOpacity={0.7}
+        onPress={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "borderRadius": 12,
+              "borderWidth": 1,
+              "flexDirection": "row",
+              "gap": 12,
+              "padding": 12,
+            },
+            {
+              "backgroundColor": "#FFFFFF",
+              "borderColor": "#DAE2FD",
+            },
+          ]
+        }
+      >
+        <View
+          style={
+            [
+              {
+                "alignItems": "center",
+                "borderRadius": 18,
+                "height": 36,
+                "justifyContent": "center",
+                "width": 36,
+              },
+              {
+                "backgroundColor": "#E5EEFF",
+              },
+            ]
+          }
+        >
+          <Ionicons
+            accessibilityElementsHidden={true}
+            color="#45464D"
+            importantForAccessibility="no-hide-descendants"
+            name="location-outline"
+            size={20}
+          />
+        </View>
+        <View
+          style={
+            {
+              "flex": 1,
+              "gap": 1,
+            }
+          }
+        >
+          <Text
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "fontSize": 16,
+                  "fontWeight": "400",
+                  "lineHeight": 24,
+                },
+                {
+                  "color": "#000000",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                {
+                  "fontWeight": "500",
+                },
+              ]
+            }
+          >
+            Ariana Centre
+          </Text>
+          <Text
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "lineHeight": 18,
+                },
+                {
+                  "color": "#76777D",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            Ariana
+          </Text>
+        </View>
+      </TouchableOpacity>
+    </FlatList>
+  </View>
+</View>
+`;
