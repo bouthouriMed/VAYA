@@ -15,7 +15,8 @@ import {
   DriverMapPin,
   MapRoute,
   BottomSheet,
-  DepartureTimeSheet,
+  DateCalendarSheet,
+  TimeWheelSheet,
   GlassSurface,
   EmptyState,
   SkeletonBlock,
@@ -206,7 +207,8 @@ export default function PublishRideScreen(): React.JSX.Element {
   // instant, which `selectedPresetMinutes` (highlighting only) can't express.
   const [departureAt, setDepartureAt] = useState(() => new Date(Date.now() + 30 * 60_000));
   const [selectedPresetMinutes, setSelectedPresetMinutes] = useState<number | null>(30);
-  const [isDepartureSheetOpen, setIsDepartureSheetOpen] = useState(false);
+  const [isDateSheetOpen, setIsDateSheetOpen] = useState(false);
+  const [isTimeSheetOpen, setIsTimeSheetOpen] = useState(false);
   const [seats, setSeats] = useState(3);
   const [errorMessage, setErrorMessage] = useState<string | undefined>();
 
@@ -544,7 +546,11 @@ export default function PublishRideScreen(): React.JSX.Element {
     if (step === 'review') setStep(vehicle ? 'stops' : 'form');
     else if (step === 'stops') setStep('price');
     else if (step === 'price') setStep('form');
-    else router.back();
+    // On the first step there's nothing to pop back to — the publish tab
+    // always *replaces* into this screen ((tabs)/publish.tsx), never
+    // pushes, so it leaves no history entry `router.back()` could land on.
+    else if (router.canGoBack()) router.back();
+    else router.replace('/(tabs)/explore');
   }
 
   const header = (
@@ -1044,7 +1050,7 @@ export default function PublishRideScreen(): React.JSX.Element {
             <TouchableOpacity
               style={styles.fieldRow}
               onPress={() =>
-                router.push({ pathname: '/search/location', params: { field: 'origin' } })
+                router.push({ pathname: '/search/composer', params: { field: 'origin' } })
               }
               accessibilityRole="button"
               accessibilityLabel={`Départ, ${origin?.label ?? 'non choisi'}`}
@@ -1067,7 +1073,7 @@ export default function PublishRideScreen(): React.JSX.Element {
             <TouchableOpacity
               style={styles.fieldRow}
               onPress={() =>
-                router.push({ pathname: '/search/location', params: { field: 'destination' } })
+                router.push({ pathname: '/search/composer', params: { field: 'destination' } })
               }
               accessibilityRole="button"
               accessibilityLabel={`Arrivée, ${destination?.label ?? 'non choisie'}`}
@@ -1122,34 +1128,43 @@ export default function PublishRideScreen(): React.JSX.Element {
                     </Text>
                   </TouchableOpacity>
                 ))}
+              </View>
+              <View style={styles.paramsGrid}>
                 <TouchableOpacity
-                  style={[
-                    styles.chip,
-                    selectedPresetMinutes === null
-                      ? { backgroundColor: theme.ink }
-                      : { backgroundColor: theme.surfaceMuted },
-                  ]}
-                  onPress={() => setIsDepartureSheetOpen(true)}
+                  style={[styles.paramBtn, { backgroundColor: theme.surfaceMuted, borderColor: theme.outlineVariant }]}
+                  onPress={() => setIsDateSheetOpen(true)}
+                  activeOpacity={0.7}
                   accessibilityRole="button"
-                  accessibilityLabel="Choisir une date"
+                  accessibilityLabel={`Date de départ, ${formatDepartureLabel(departureAt)}`}
                 >
-                  <Text
-                    variant="caption"
-                    color={selectedPresetMinutes === null ? theme.onInk : theme.inkMuted}
-                  >
-                    Choisir une date
-                  </Text>
+                  <Icon name="calendar-outline" size="sm" color={theme.inkFaint} />
+                  <View>
+                    <Text variant="caption" color={theme.inkFaint}>
+                      Date
+                    </Text>
+                    <Text variant="bodySmall" color={theme.ink}>
+                      {formatDepartureLabel(departureAt).split(' · ')[0]}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.paramBtn, { backgroundColor: theme.surfaceMuted, borderColor: theme.outlineVariant }]}
+                  onPress={() => setIsTimeSheetOpen(true)}
+                  activeOpacity={0.7}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Heure de départ, ${formatTime(departureAt)}`}
+                >
+                  <Icon name="time-outline" size="sm" color={theme.inkFaint} />
+                  <View>
+                    <Text variant="caption" color={theme.inkFaint}>
+                      Heure
+                    </Text>
+                    <Text variant="bodySmall" color={theme.ink}>
+                      {formatTime(departureAt)}
+                    </Text>
+                  </View>
                 </TouchableOpacity>
               </View>
-              <TouchableOpacity
-                onPress={() => setIsDepartureSheetOpen(true)}
-                accessibilityRole="button"
-                accessibilityLabel={`Départ prévu, ${formatDepartureLabel(departureAt)}`}
-              >
-                <Text variant="body" color={theme.ink} style={styles.departureValue}>
-                  {formatDepartureLabel(departureAt)}
-                </Text>
-              </TouchableOpacity>
             </View>
 
             <View style={[styles.section, styles.sectionDivider, { borderTopColor: theme.outlineVariant }]}>
@@ -1200,15 +1215,25 @@ export default function PublishRideScreen(): React.JSX.Element {
         </Animated.View>
       </ScrollView>
 
-      <DepartureTimeSheet
-        visible={isDepartureSheetOpen}
-        onClose={() => setIsDepartureSheetOpen(false)}
+      <DateCalendarSheet
+        visible={isDateSheetOpen}
+        onClose={() => setIsDateSheetOpen(false)}
         value={departureAt}
         onChange={(date) => {
           setDepartureAt(date);
           setSelectedPresetMinutes(null);
         }}
-        title="Départ prévu"
+        title="Date de départ"
+      />
+      <TimeWheelSheet
+        visible={isTimeSheetOpen}
+        onClose={() => setIsTimeSheetOpen(false)}
+        value={departureAt}
+        onChange={(date) => {
+          setDepartureAt(date);
+          setSelectedPresetMinutes(null);
+        }}
+        title="Heure de départ"
       />
     </View>
   );
@@ -1313,9 +1338,21 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xs,
     borderRadius: radii.full,
   },
-  departureValue: {
+  paramsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
     marginTop: spacing.sm,
-    fontWeight: typography.fontWeight.semibold,
+  },
+  paramBtn: {
+    flexBasis: '47%',
+    flexGrow: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    borderRadius: radii.xl,
+    borderWidth: 1,
+    padding: spacing.md,
   },
   stepperRow: {
     flexDirection: 'row',
