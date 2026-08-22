@@ -9,10 +9,10 @@ import {
   Animated,
   AccessibilityInfo,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import {
   Text,
-  Icon,
-  BottomSheet,
+  GlassSurface,
   RoutePulseBadge,
   darkPalette,
   spacing,
@@ -24,23 +24,28 @@ import { useAppSelector } from '../src/state/store';
 
 /**
  * stitch/landing/vaya-landing-premium-dark-mode.html — the "Vaya Landing"
- * project's premium dark hero, fixed-dark regardless of system theme (the
- * app's own brand-identity choice, same as driver/onboarding/index.tsx's
+ * project's premium dark hero, matched structurally: a centered "VAYA"
+ * wordmark pinned to the top, hero copy + a glass auth card bottom-anchored
+ * (the reference's flex-col justify-between), a sheen-lit primary CTA inside
+ * the card, and a legal line below it. Fixed-dark regardless of system theme
+ * (the app's own brand-identity choice, same as driver/onboarding/index.tsx's
  * navy hero) rather than following useAppTheme()'s light/dark toggle.
- * Stitch's reference is a full-bleed cinematic photo with glass OAuth
- * buttons (Google/Facebook) — this backend has neither social login nor a
- * separate sign-up step (VerifyOtp always creates-or-logs-in by phone
- * number), so the photo becomes an on-brand ambient glow + the existing
- * RoutePulseBadge motif, and the buttons become the one real auth
- * mechanism this app has. "Subtly expandable": the landing itself stays a
- * simple hero + one CTA, matching the companion
- * `contextual-authentication-sheet.html`'s slide-up sheet pattern for the
- * actual phone-number step, rather than showing the input up front.
+ *
+ * Two deliberate divergences, both forced by what this app actually has:
+ * (1) the reference's full-bleed cinematic photo has no real asset behind it
+ * in this codebase and wasn't fabricated/sourced — replaced with the same
+ * ambient ink-gradient + accent-glow treatment `driver/onboarding/index.tsx`
+ * already establishes, plus the existing `RoutePulseBadge` hero motif;
+ * (2) the reference shows three auth mechanisms (Google, Facebook, email)
+ * this backend has none of (`VerifyOtp` always creates-or-logs-in by phone
+ * number, no social login, no separate sign-up step) — so the glass card
+ * shows the one real mechanism directly, inline, rather than three stand-ins
+ * or a second screen behind them.
  */
 export default function LandingScreen(): React.JSX.Element {
   const accessToken = useAppSelector((s) => s.auth.accessToken);
-  const [isAuthSheetOpen, setIsAuthSheetOpen] = useState(false);
   const [phone, setPhone] = useState('');
+  const [isPhoneFocused, setIsPhoneFocused] = useState(false);
   const canContinue = phone.replace(/\s/g, '').length >= 8;
 
   const fade = useRef(new Animated.Value(0)).current;
@@ -70,120 +75,109 @@ export default function LandingScreen(): React.JSX.Element {
 
   function submit(): void {
     if (!canContinue) return;
-    setIsAuthSheetOpen(false);
     router.push({ pathname: '/(auth)/otp', params: { phone: `+216 ${phone}` } });
   }
 
   return (
     <View style={styles.container}>
+      <LinearGradient
+        colors={darkPalette.backgroundGradient}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
+        style={StyleSheet.absoluteFillObject}
+      />
       <View pointerEvents="none" style={styles.glowTop} />
       <View pointerEvents="none" style={styles.glowBottom} />
 
-      <View style={styles.content}>
-        <Animated.View style={[styles.hero, { opacity: fade, transform: [{ translateY: rise }] }]}>
-          <RoutePulseBadge icon="navigate" size="hero" tone="onNavy" />
-          <Text style={styles.wordmark}>VAYA</Text>
-          <Text variant="h3" color={darkPalette.ink} align="center" style={styles.headline}>
-            Voyagez, en toute confiance.
-          </Text>
-          <Text
-            variant="body"
-            color={darkPalette.inkMuted}
-            align="center"
-            style={styles.subhead}
-          >
-            Le covoiturage repensé pour la Tunisie — trajets vérifiés, prix justes, en toute
-            simplicité.
-          </Text>
-        </Animated.View>
+      <View style={styles.header}>
+        <Text style={styles.wordmark}>VAYA</Text>
       </View>
 
-      <View style={styles.footer}>
-        <TouchableOpacity
-          style={[styles.cta, { backgroundColor: darkPalette.ink }]}
-          onPress={() => setIsAuthSheetOpen(true)}
-          activeOpacity={0.85}
-          accessibilityRole="button"
-          accessibilityLabel="Commencer"
-        >
-          <Text variant="label" color={darkPalette.onInk}>
-            Commencer
-          </Text>
-        </TouchableOpacity>
-        <Text
-          variant="bodySmall"
-          color={darkPalette.inkFaint}
-          align="center"
-          style={styles.legalHint}
-        >
+      <View style={styles.spacer} />
+
+      <Animated.View style={[styles.main, { opacity: fade, transform: [{ translateY: rise }] }]}>
+        <RoutePulseBadge icon="navigate" size="hero" tone="onNavy" />
+        <Text variant="h3" color={darkPalette.ink} align="center" style={styles.headline}>
+          Voyagez, en toute confiance.
+        </Text>
+        <Text variant="body" color={darkPalette.inkMuted} align="center" style={styles.subhead}>
+          Le covoiturage repensé pour la Tunisie — trajets vérifiés, prix justes, en toute
+          simplicité.
+        </Text>
+
+        <GlassSurface theme={darkPalette} scheme="dark" radius="xl" style={styles.card}>
+          <KeyboardAvoidingView
+            style={styles.cardBody}
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          >
+            <Text variant="label" color={darkPalette.inkMuted} style={styles.cardLabel}>
+              Rejoignez VAYA avec votre numéro
+            </Text>
+            <View
+              style={[
+                styles.phoneRow,
+                {
+                  backgroundColor: darkPalette.surfaceMuted,
+                  borderColor: isPhoneFocused ? darkPalette.accent : darkPalette.outlineVariant,
+                },
+              ]}
+            >
+              <View style={[styles.countryPill, { backgroundColor: darkPalette.surface }]}>
+                <Text style={styles.flag}>🇹🇳</Text>
+                <Text variant="label" color={darkPalette.ink}>
+                  +216
+                </Text>
+              </View>
+              <TextInput
+                value={phone}
+                onChangeText={setPhone}
+                placeholder="98 123 456"
+                placeholderTextColor={darkPalette.inkFaint}
+                keyboardType="phone-pad"
+                returnKeyType="done"
+                onSubmitEditing={submit}
+                onFocus={() => setIsPhoneFocused(true)}
+                onBlur={() => setIsPhoneFocused(false)}
+                style={[styles.phoneInput, { color: darkPalette.ink }]}
+                accessibilityLabel="Numéro de téléphone"
+              />
+            </View>
+
+            <TouchableOpacity
+              onPress={submit}
+              disabled={!canContinue}
+              activeOpacity={0.85}
+              accessibilityRole="button"
+              accessibilityLabel="Continuer"
+              accessibilityState={{ disabled: !canContinue }}
+              style={[styles.ctaWrap, !canContinue && styles.ctaDisabled]}
+            >
+              <LinearGradient
+                colors={darkPalette.inkGradient}
+                start={{ x: 0.1, y: 0 }}
+                end={{ x: 0.9, y: 1 }}
+                style={styles.cta}
+              >
+                <View pointerEvents="none" style={styles.ctaSheenClip}>
+                  <LinearGradient
+                    colors={['transparent', darkPalette.glimmer, 'transparent']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.ctaSheen}
+                  />
+                </View>
+                <Text variant="label" color={darkPalette.onInk}>
+                  Continuer
+                </Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </KeyboardAvoidingView>
+        </GlassSurface>
+
+        <Text variant="bodySmall" color={darkPalette.inkFaint} align="center" style={styles.legalHint}>
           En continuant, vous acceptez nos conditions d&apos;utilisation.
         </Text>
-      </View>
-
-      <BottomSheet theme={darkPalette} visible={isAuthSheetOpen} onClose={() => setIsAuthSheetOpen(false)}>
-        <KeyboardAvoidingView
-          style={styles.sheetBody}
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        >
-          <View style={[styles.sheetIconWrap, { backgroundColor: darkPalette.surfaceMuted }]}>
-            <Icon name="call" size="md" color={darkPalette.ink} />
-          </View>
-          <Text variant="h3" color={darkPalette.ink} align="center">
-            Rejoignez VAYA
-          </Text>
-          <Text
-            variant="body"
-            color={darkPalette.inkMuted}
-            align="center"
-            style={styles.sheetSubtitle}
-          >
-            Entrez votre numéro pour recevoir un code de vérification par SMS.
-          </Text>
-
-          <View
-            style={[
-              styles.phoneRow,
-              { backgroundColor: darkPalette.surfaceMuted, borderColor: darkPalette.outlineVariant },
-            ]}
-          >
-            <View style={[styles.countryPill, { backgroundColor: darkPalette.surface }]}>
-              <Text style={styles.flag}>🇹🇳</Text>
-              <Text variant="label" color={darkPalette.ink}>
-                +216
-              </Text>
-            </View>
-            <TextInput
-              value={phone}
-              onChangeText={setPhone}
-              placeholder="98 123 456"
-              placeholderTextColor={darkPalette.inkFaint}
-              keyboardType="phone-pad"
-              returnKeyType="done"
-              onSubmitEditing={submit}
-              autoFocus
-              style={[styles.phoneInput, { color: darkPalette.ink }]}
-            />
-          </View>
-
-          <TouchableOpacity
-            style={[
-              styles.cta,
-              { backgroundColor: darkPalette.ink },
-              !canContinue && styles.ctaDisabled,
-            ]}
-            onPress={submit}
-            disabled={!canContinue}
-            activeOpacity={0.85}
-            accessibilityRole="button"
-            accessibilityLabel="Continuer"
-            accessibilityState={{ disabled: !canContinue }}
-          >
-            <Text variant="label" color={darkPalette.onInk}>
-              Continuer
-            </Text>
-          </TouchableOpacity>
-        </KeyboardAvoidingView>
-      </BottomSheet>
+      </Animated.View>
     </View>
   );
 }
@@ -202,7 +196,7 @@ const styles = StyleSheet.create({
     height: 320,
     borderRadius: 160,
     backgroundColor: darkPalette.accentGlow,
-    opacity: 0.28,
+    opacity: 0.3,
   },
   glowBottom: {
     position: 'absolute',
@@ -212,26 +206,28 @@ const styles = StyleSheet.create({
     height: 360,
     borderRadius: 180,
     backgroundColor: darkPalette.accent,
-    opacity: 0.16,
+    opacity: 0.18,
   },
-  content: {
+  header: {
+    alignItems: 'center',
+    paddingTop: spacing['3xl'],
+  },
+  spacer: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: spacing['2xl'],
-  },
-  hero: {
-    alignItems: 'center',
   },
   wordmark: {
-    marginTop: spacing.xl,
     color: darkPalette.ink,
     fontWeight: '800',
-    fontSize: 40,
-    letterSpacing: 4,
+    fontSize: 28,
+    letterSpacing: 5,
     textShadowColor: 'rgba(255,255,255,0.25)',
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 20,
+  },
+  main: {
+    alignItems: 'center',
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing['2xl'],
   },
   headline: {
     marginTop: spacing.lg,
@@ -241,39 +237,16 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
     maxWidth: 300,
   },
-  footer: {
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing['2xl'],
-    gap: spacing.sm,
-  },
-  cta: {
+  card: {
     width: '100%',
-    minHeight: 52,
-    borderRadius: radii.lg,
-    alignItems: 'center',
-    justifyContent: 'center',
+    marginTop: spacing.xl,
   },
-  ctaDisabled: {
-    opacity: 0.5,
-  },
-  legalHint: {
-    marginTop: spacing.xs,
-  },
-  sheetBody: {
+  cardBody: {
     gap: spacing.md,
-    alignItems: 'center',
-    paddingBottom: spacing.lg,
+    padding: spacing.lg,
   },
-  sheetIconWrap: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  sheetSubtitle: {
-    marginTop: -spacing.xs,
-    maxWidth: 300,
+  cardLabel: {
+    textAlign: 'center',
   },
   phoneRow: {
     width: '100%',
@@ -284,7 +257,6 @@ const styles = StyleSheet.create({
     borderRadius: radii.full,
     paddingHorizontal: spacing.xs,
     paddingVertical: spacing.xs,
-    marginTop: spacing.sm,
   },
   countryPill: {
     flexDirection: 'row',
@@ -301,5 +273,34 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: typography.fontSize.md,
     paddingHorizontal: spacing.xs,
+  },
+  ctaWrap: {
+    width: '100%',
+    borderRadius: radii.lg,
+    overflow: 'hidden',
+  },
+  ctaDisabled: {
+    opacity: 0.5,
+  },
+  cta: {
+    minHeight: 52,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  ctaSheenClip: {
+    ...StyleSheet.absoluteFillObject,
+    overflow: 'hidden',
+  },
+  ctaSheen: {
+    position: 'absolute',
+    top: -20,
+    left: -40,
+    width: '70%',
+    height: '260%',
+    transform: [{ rotate: '20deg' }],
+  },
+  legalHint: {
+    marginTop: spacing.md,
+    maxWidth: 300,
   },
 });
