@@ -1,4 +1,5 @@
-import { Redirect } from 'expo-router';
+import { useEffect } from 'react';
+import { router } from 'expo-router';
 
 /**
  * Real fallback landing pad for the Google OAuth deep link
@@ -9,15 +10,34 @@ import { Redirect } from 'expo-router';
  * OS ever delivers it as a real in-app navigation. iOS's
  * `ASWebAuthenticationSession` does this reliably; Android's Custom-Tabs-
  * based implementation doesn't always suppress the underlying deep link, so
- * the router can receive it as a genuine navigation attempt — without a
- * registered route here, that showed "Unmatched Route" on Android (iOS
- * unaffected), confirmed live on a real device. This route makes that
- * landing harmless. The actual ticket exchange still happens through
- * `openAuthSessionAsync`'s resolved promise (`ContextualAuthSheet.tsx` /
- * `sign-in.tsx`'s `continueWithGoogle`), not here — by the time (if ever)
- * this route renders, that has typically already run, which is why even
- * before this fix "go back" already showed a signed-in session.
+ * the router can receive it as a genuine *push* on top of whatever screen
+ * the user was actually on — without a registered route here, that showed
+ * "Unmatched Route" on Android (iOS unaffected), confirmed live on a real
+ * device.
+ *
+ * Deliberately does NOT redirect anywhere fixed (an earlier version of this
+ * file did `<Redirect href="/(tabs)/explore" />`, which "fixed" the error
+ * screen by replacing it with something worse: it silently yanked the user
+ * to Explore even mid-booking or mid-publish, and left a stray grey overlay
+ * behind — the real screen's own ContextualAuthSheet never got to complete
+ * its own close/resume lifecycle because this competing navigation
+ * interrupted it). The actual ticket exchange and sign-in already happen
+ * through `openAuthSessionAsync`'s resolved promise
+ * (`ContextualAuthSheet.tsx` / `sign-in.tsx`'s `continueWithGoogle`) on the
+ * screen the user was already on — this route's only job is to get out of
+ * the way, popping itself off so that screen (and its sheet) resume
+ * normally underneath.
  */
-export default function GoogleAuthDeepLinkFallback(): React.JSX.Element {
-  return <Redirect href="/(tabs)/explore" />;
+export default function GoogleAuthDeepLinkFallback(): null {
+  useEffect(() => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      // Only reachable in practice via a cold app launch straight into this
+      // deep link (no screen underneath to pop back to) — explore is the
+      // same guest-safe default index.tsx itself redirects to.
+      router.replace('/(tabs)/explore');
+    }
+  }, []);
+  return null;
 }
