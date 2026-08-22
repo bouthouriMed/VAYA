@@ -1,0 +1,3265 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`DriverListCard snapshots > renders a regular (non-best-match) card in the light theme 1`] = `
+<View>
+  <TouchableOpacity
+    accessibilityLabel="Mehdi Gharbi, départ 21:28, 5.5 DT"
+    accessibilityRole="button"
+    activeOpacity={0.85}
+    style={
+      [
+        {
+          "borderRadius": 16,
+          "borderWidth": 1,
+          "overflow": "hidden",
+        },
+        {
+          "backgroundColor": "#FFFFFF",
+          "borderColor": "#DAE2FD",
+        },
+      ]
+    }
+  >
+    <View
+      style={
+        {
+          "gap": 8,
+          "padding": 12,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "baseline",
+            "flexDirection": "row",
+            "justifyContent": "space-between",
+          }
+        }
+      >
+        <Text
+          style={
+            [
+              {
+                "fontSize": 24,
+                "fontWeight": "600",
+                "lineHeight": 28.799999999999997,
+              },
+              {
+                "color": "#000000",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              undefined,
+            ]
+          }
+        >
+          21:28
+        </Text>
+        <Text
+          style={
+            [
+              {
+                "fontSize": 16,
+                "fontWeight": "400",
+                "lineHeight": 24,
+              },
+              {
+                "color": "#006C49",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              undefined,
+            ]
+          }
+        >
+          5.5 DT
+        </Text>
+      </View>
+      <View
+        style={
+          {
+            "gap": 0,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "flexDirection": "row",
+              "gap": 8,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "paddingTop": 6,
+                "width": 10,
+              }
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "borderRadius": 4,
+                    "height": 8,
+                    "width": 8,
+                  },
+                  {
+                    "backgroundColor": "#000000",
+                  },
+                ]
+              }
+            />
+            <View
+              style={
+                [
+                  {
+                    "flex": 1,
+                    "marginVertical": 4,
+                    "minHeight": 20,
+                    "width": 2,
+                  },
+                  {
+                    "backgroundColor": "#DAE2FD",
+                  },
+                ]
+              }
+            />
+          </View>
+          <View
+            style={
+              {
+                "flex": 1,
+                "paddingBottom": 8,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 8,
+                  "justifyContent": "space-between",
+                }
+              }
+            >
+              <Text
+                numberOfLines={1}
+                style={
+                  [
+                    {
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "lineHeight": 24,
+                    },
+                    {
+                      "color": "#000000",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    {
+                      "flexShrink": 1,
+                      "fontWeight": "600",
+                    },
+                  ]
+                }
+              >
+                La Marsa
+              </Text>
+              <View
+                style={
+                  [
+                    {
+                      "borderRadius": 9999,
+                      "paddingHorizontal": 8,
+                      "paddingVertical": 2,
+                    },
+                    {
+                      "backgroundColor": "#6FFBBE40",
+                    },
+                  ]
+                }
+              >
+                <Text
+                  style={
+                    [
+                      {
+                        "fontSize": 12,
+                        "fontWeight": "400",
+                        "lineHeight": 18,
+                      },
+                      {
+                        "color": "#00714D",
+                        "textAlign": undefined,
+                        "writingDirection": "ltr",
+                      },
+                      undefined,
+                    ]
+                  }
+                >
+                  2 min
+                </Text>
+              </View>
+            </View>
+            <Text
+              numberOfLines={1}
+              style={
+                [
+                  {
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "lineHeight": 18,
+                  },
+                  {
+                    "color": "#45464D",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              Point de rendez-vous
+            </Text>
+          </View>
+        </View>
+        <View
+          style={
+            {
+              "flexDirection": "row",
+              "gap": 8,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "paddingTop": 6,
+                "width": 10,
+              }
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "borderRadius": 4,
+                    "height": 8,
+                    "width": 8,
+                  },
+                  {
+                    "backgroundColor": "#006C49",
+                  },
+                ]
+              }
+            />
+          </View>
+          <View
+            style={
+              {
+                "flex": 1,
+                "paddingBottom": 8,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 8,
+                  "justifyContent": "space-between",
+                }
+              }
+            >
+              <Text
+                numberOfLines={1}
+                style={
+                  [
+                    {
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "lineHeight": 24,
+                    },
+                    {
+                      "color": "#000000",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    {
+                      "flexShrink": 1,
+                      "fontWeight": "600",
+                    },
+                  ]
+                }
+              >
+                Avenue Habib Bourguiba
+              </Text>
+            </View>
+          </View>
+        </View>
+      </View>
+      <View
+        style={
+          [
+            {
+              "height": 1,
+            },
+            {
+              "backgroundColor": "#DAE2FD",
+            },
+          ]
+        }
+      />
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "justifyContent": "space-between",
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "gap": 8,
+            }
+          }
+        >
+          <View
+            accessibilityLabel="Photo de Mehdi Gharbi"
+            accessibilityRole="image"
+            accessible={true}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "justifyContent": "center",
+                },
+                {
+                  "backgroundColor": "#5B7D8A",
+                  "borderRadius": 16,
+                  "height": 32,
+                  "width": 32,
+                },
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "color": "#FFFFFF",
+                    "fontWeight": "600",
+                  },
+                  {
+                    "color": undefined,
+                    "fontSize": 14,
+                  },
+                ]
+              }
+            >
+              MG
+            </Text>
+          </View>
+          <View>
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "lineHeight": 21,
+                  },
+                  {
+                    "color": "#000000",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  {
+                    "fontWeight": "600",
+                  },
+                ]
+              }
+            >
+              Mehdi Gharbi
+            </Text>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 2,
+                }
+              }
+            >
+              <Ionicons
+                accessibilityElementsHidden={true}
+                color="#006C49"
+                importantForAccessibility="no-hide-descendants"
+                name="star"
+                size={16}
+              />
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 12,
+                      "fontWeight": "400",
+                      "lineHeight": 18,
+                    },
+                    {
+                      "color": "#45464D",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                4.7
+              </Text>
+            </View>
+          </View>
+        </View>
+        <Text
+          style={
+            [
+              {
+                "fontSize": 12,
+                "fontWeight": "400",
+                "lineHeight": 18,
+              },
+              {
+                "color": "#76777D",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              undefined,
+            ]
+          }
+        >
+          4
+           place
+          s
+        </Text>
+      </View>
+    </View>
+  </TouchableOpacity>
+</View>
+`;
+
+exports[`DriverListCard snapshots > renders in the dark theme 1`] = `
+<View>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "flexDirection": "row",
+        "gap": 4,
+        "paddingBottom": 4,
+        "paddingHorizontal": 4,
+      }
+    }
+  >
+    <Ionicons
+      accessibilityElementsHidden={true}
+      color="#ADC6FF"
+      importantForAccessibility="no-hide-descendants"
+      name="star"
+      size={16}
+    />
+    <Text
+      style={
+        [
+          {
+            "fontSize": 12,
+            "fontWeight": "400",
+            "lineHeight": 18,
+          },
+          {
+            "color": "#ADC6FF",
+            "textAlign": undefined,
+            "writingDirection": "ltr",
+          },
+          {
+            "fontWeight": "700",
+            "letterSpacing": 0.8,
+          },
+        ]
+      }
+    >
+      MEILLEURE CORRESPONDANCE
+    </Text>
+  </View>
+  <TouchableOpacity
+    accessibilityLabel="Mehdi Gharbi, départ 21:28, 5.5 DT"
+    accessibilityRole="button"
+    activeOpacity={0.85}
+    style={
+      [
+        {
+          "borderRadius": 16,
+          "borderWidth": 1,
+          "overflow": "hidden",
+        },
+        {
+          "backgroundColor": "#131B2E",
+          "borderColor": "#213145",
+        },
+      ]
+    }
+  >
+    <View
+      style={
+        {
+          "gap": 8,
+          "padding": 12,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "baseline",
+            "flexDirection": "row",
+            "justifyContent": "space-between",
+          }
+        }
+      >
+        <Text
+          style={
+            [
+              {
+                "fontSize": 30,
+                "fontWeight": "700",
+                "lineHeight": 36,
+              },
+              {
+                "color": "#F8F9FF",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              undefined,
+            ]
+          }
+        >
+          21:28
+        </Text>
+        <Text
+          style={
+            [
+              {
+                "fontSize": 24,
+                "fontWeight": "600",
+                "lineHeight": 28.799999999999997,
+              },
+              {
+                "color": "#4EDEA3",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              undefined,
+            ]
+          }
+        >
+          5.5 DT
+        </Text>
+      </View>
+      <View
+        style={
+          {
+            "gap": 0,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "flexDirection": "row",
+              "gap": 8,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "paddingTop": 6,
+                "width": 10,
+              }
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "borderRadius": 4,
+                    "height": 8,
+                    "width": 8,
+                  },
+                  {
+                    "backgroundColor": "#F8F9FF",
+                  },
+                ]
+              }
+            />
+            <View
+              style={
+                [
+                  {
+                    "flex": 1,
+                    "marginVertical": 4,
+                    "minHeight": 20,
+                    "width": 2,
+                  },
+                  {
+                    "backgroundColor": "#213145",
+                  },
+                ]
+              }
+            />
+          </View>
+          <View
+            style={
+              {
+                "flex": 1,
+                "paddingBottom": 8,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 8,
+                  "justifyContent": "space-between",
+                }
+              }
+            >
+              <Text
+                numberOfLines={1}
+                style={
+                  [
+                    {
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "lineHeight": 24,
+                    },
+                    {
+                      "color": "#F8F9FF",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    {
+                      "flexShrink": 1,
+                      "fontWeight": "600",
+                    },
+                  ]
+                }
+              >
+                La Marsa
+              </Text>
+              <View
+                style={
+                  [
+                    {
+                      "borderRadius": 9999,
+                      "paddingHorizontal": 8,
+                      "paddingVertical": 2,
+                    },
+                    {
+                      "backgroundColor": "#00714D40",
+                    },
+                  ]
+                }
+              >
+                <Text
+                  style={
+                    [
+                      {
+                        "fontSize": 12,
+                        "fontWeight": "400",
+                        "lineHeight": 18,
+                      },
+                      {
+                        "color": "#6FFBBE",
+                        "textAlign": undefined,
+                        "writingDirection": "ltr",
+                      },
+                      undefined,
+                    ]
+                  }
+                >
+                  2 min
+                </Text>
+              </View>
+            </View>
+            <Text
+              numberOfLines={1}
+              style={
+                [
+                  {
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "lineHeight": 18,
+                  },
+                  {
+                    "color": "#BEC6E0",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              Point de rendez-vous
+            </Text>
+          </View>
+        </View>
+        <View
+          style={
+            {
+              "flexDirection": "row",
+              "gap": 8,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "paddingTop": 6,
+                "width": 10,
+              }
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "borderRadius": 4,
+                    "height": 8,
+                    "width": 8,
+                  },
+                  {
+                    "backgroundColor": "#4EDEA3",
+                  },
+                ]
+              }
+            />
+          </View>
+          <View
+            style={
+              {
+                "flex": 1,
+                "paddingBottom": 8,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 8,
+                  "justifyContent": "space-between",
+                }
+              }
+            >
+              <Text
+                numberOfLines={1}
+                style={
+                  [
+                    {
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "lineHeight": 24,
+                    },
+                    {
+                      "color": "#F8F9FF",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    {
+                      "flexShrink": 1,
+                      "fontWeight": "600",
+                    },
+                  ]
+                }
+              >
+                Avenue Habib Bourguiba
+              </Text>
+            </View>
+          </View>
+        </View>
+      </View>
+      <View
+        style={
+          [
+            {
+              "height": 1,
+            },
+            {
+              "backgroundColor": "#213145",
+            },
+          ]
+        }
+      />
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "justifyContent": "space-between",
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "gap": 8,
+            }
+          }
+        >
+          <View
+            accessibilityLabel="Photo de Mehdi Gharbi"
+            accessibilityRole="image"
+            accessible={true}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "justifyContent": "center",
+                },
+                {
+                  "backgroundColor": "#5B7D8A",
+                  "borderRadius": 16,
+                  "height": 32,
+                  "width": 32,
+                },
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "color": "#FFFFFF",
+                    "fontWeight": "600",
+                  },
+                  {
+                    "color": undefined,
+                    "fontSize": 14,
+                  },
+                ]
+              }
+            >
+              MG
+            </Text>
+          </View>
+          <View>
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "lineHeight": 21,
+                  },
+                  {
+                    "color": "#F8F9FF",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  {
+                    "fontWeight": "600",
+                  },
+                ]
+              }
+            >
+              Mehdi Gharbi
+            </Text>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 2,
+                }
+              }
+            >
+              <Ionicons
+                accessibilityElementsHidden={true}
+                color="#4EDEA3"
+                importantForAccessibility="no-hide-descendants"
+                name="star"
+                size={16}
+              />
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 12,
+                      "fontWeight": "400",
+                      "lineHeight": 18,
+                    },
+                    {
+                      "color": "#BEC6E0",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                4.7
+              </Text>
+            </View>
+          </View>
+        </View>
+        <Text
+          style={
+            [
+              {
+                "fontSize": 12,
+                "fontWeight": "400",
+                "lineHeight": 18,
+              },
+              {
+                "color": "#7C839B",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              undefined,
+            ]
+          }
+        >
+          4
+           place
+          s
+        </Text>
+      </View>
+    </View>
+  </TouchableOpacity>
+</View>
+`;
+
+exports[`DriverListCard snapshots > renders the "MEILLEURE CORRESPONDANCE" best-match card 1`] = `
+<View>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "flexDirection": "row",
+        "gap": 4,
+        "paddingBottom": 4,
+        "paddingHorizontal": 4,
+      }
+    }
+  >
+    <Ionicons
+      accessibilityElementsHidden={true}
+      color="#3980F4"
+      importantForAccessibility="no-hide-descendants"
+      name="star"
+      size={16}
+    />
+    <Text
+      style={
+        [
+          {
+            "fontSize": 12,
+            "fontWeight": "400",
+            "lineHeight": 18,
+          },
+          {
+            "color": "#3980F4",
+            "textAlign": undefined,
+            "writingDirection": "ltr",
+          },
+          {
+            "fontWeight": "700",
+            "letterSpacing": 0.8,
+          },
+        ]
+      }
+    >
+      MEILLEURE CORRESPONDANCE
+    </Text>
+  </View>
+  <TouchableOpacity
+    accessibilityLabel="Mehdi Gharbi, départ 21:28, 5.5 DT"
+    accessibilityRole="button"
+    activeOpacity={0.85}
+    style={
+      [
+        {
+          "borderRadius": 16,
+          "borderWidth": 1,
+          "overflow": "hidden",
+        },
+        {
+          "backgroundColor": "#FFFFFF",
+          "borderColor": "#DAE2FD",
+        },
+      ]
+    }
+  >
+    <View
+      style={
+        {
+          "gap": 8,
+          "padding": 12,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "baseline",
+            "flexDirection": "row",
+            "justifyContent": "space-between",
+          }
+        }
+      >
+        <Text
+          style={
+            [
+              {
+                "fontSize": 30,
+                "fontWeight": "700",
+                "lineHeight": 36,
+              },
+              {
+                "color": "#000000",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              undefined,
+            ]
+          }
+        >
+          21:28
+        </Text>
+        <Text
+          style={
+            [
+              {
+                "fontSize": 24,
+                "fontWeight": "600",
+                "lineHeight": 28.799999999999997,
+              },
+              {
+                "color": "#006C49",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              undefined,
+            ]
+          }
+        >
+          5.5 DT
+        </Text>
+      </View>
+      <View
+        style={
+          {
+            "gap": 0,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "flexDirection": "row",
+              "gap": 8,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "paddingTop": 6,
+                "width": 10,
+              }
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "borderRadius": 4,
+                    "height": 8,
+                    "width": 8,
+                  },
+                  {
+                    "backgroundColor": "#000000",
+                  },
+                ]
+              }
+            />
+            <View
+              style={
+                [
+                  {
+                    "flex": 1,
+                    "marginVertical": 4,
+                    "minHeight": 20,
+                    "width": 2,
+                  },
+                  {
+                    "backgroundColor": "#DAE2FD",
+                  },
+                ]
+              }
+            />
+          </View>
+          <View
+            style={
+              {
+                "flex": 1,
+                "paddingBottom": 8,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 8,
+                  "justifyContent": "space-between",
+                }
+              }
+            >
+              <Text
+                numberOfLines={1}
+                style={
+                  [
+                    {
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "lineHeight": 24,
+                    },
+                    {
+                      "color": "#000000",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    {
+                      "flexShrink": 1,
+                      "fontWeight": "600",
+                    },
+                  ]
+                }
+              >
+                La Marsa
+              </Text>
+              <View
+                style={
+                  [
+                    {
+                      "borderRadius": 9999,
+                      "paddingHorizontal": 8,
+                      "paddingVertical": 2,
+                    },
+                    {
+                      "backgroundColor": "#6FFBBE40",
+                    },
+                  ]
+                }
+              >
+                <Text
+                  style={
+                    [
+                      {
+                        "fontSize": 12,
+                        "fontWeight": "400",
+                        "lineHeight": 18,
+                      },
+                      {
+                        "color": "#00714D",
+                        "textAlign": undefined,
+                        "writingDirection": "ltr",
+                      },
+                      undefined,
+                    ]
+                  }
+                >
+                  2 min
+                </Text>
+              </View>
+            </View>
+            <Text
+              numberOfLines={1}
+              style={
+                [
+                  {
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "lineHeight": 18,
+                  },
+                  {
+                    "color": "#45464D",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              Point de rendez-vous
+            </Text>
+          </View>
+        </View>
+        <View
+          style={
+            {
+              "flexDirection": "row",
+              "gap": 8,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "paddingTop": 6,
+                "width": 10,
+              }
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "borderRadius": 4,
+                    "height": 8,
+                    "width": 8,
+                  },
+                  {
+                    "backgroundColor": "#006C49",
+                  },
+                ]
+              }
+            />
+          </View>
+          <View
+            style={
+              {
+                "flex": 1,
+                "paddingBottom": 8,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 8,
+                  "justifyContent": "space-between",
+                }
+              }
+            >
+              <Text
+                numberOfLines={1}
+                style={
+                  [
+                    {
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "lineHeight": 24,
+                    },
+                    {
+                      "color": "#000000",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    {
+                      "flexShrink": 1,
+                      "fontWeight": "600",
+                    },
+                  ]
+                }
+              >
+                Avenue Habib Bourguiba
+              </Text>
+            </View>
+          </View>
+        </View>
+      </View>
+      <View
+        style={
+          [
+            {
+              "height": 1,
+            },
+            {
+              "backgroundColor": "#DAE2FD",
+            },
+          ]
+        }
+      />
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "justifyContent": "space-between",
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "gap": 8,
+            }
+          }
+        >
+          <View
+            accessibilityLabel="Photo de Mehdi Gharbi"
+            accessibilityRole="image"
+            accessible={true}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "justifyContent": "center",
+                },
+                {
+                  "backgroundColor": "#5B7D8A",
+                  "borderRadius": 16,
+                  "height": 32,
+                  "width": 32,
+                },
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "color": "#FFFFFF",
+                    "fontWeight": "600",
+                  },
+                  {
+                    "color": undefined,
+                    "fontSize": 14,
+                  },
+                ]
+              }
+            >
+              MG
+            </Text>
+          </View>
+          <View>
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "lineHeight": 21,
+                  },
+                  {
+                    "color": "#000000",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  {
+                    "fontWeight": "600",
+                  },
+                ]
+              }
+            >
+              Mehdi Gharbi
+            </Text>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 2,
+                }
+              }
+            >
+              <Ionicons
+                accessibilityElementsHidden={true}
+                color="#006C49"
+                importantForAccessibility="no-hide-descendants"
+                name="star"
+                size={16}
+              />
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 12,
+                      "fontWeight": "400",
+                      "lineHeight": 18,
+                    },
+                    {
+                      "color": "#45464D",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                4.7
+              </Text>
+            </View>
+          </View>
+        </View>
+        <Text
+          style={
+            [
+              {
+                "fontSize": 12,
+                "fontWeight": "400",
+                "lineHeight": 18,
+              },
+              {
+                "color": "#76777D",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              undefined,
+            ]
+          }
+        >
+          4
+           place
+          s
+        </Text>
+      </View>
+    </View>
+  </TouchableOpacity>
+</View>
+`;
+
+exports[`DriverListCard snapshots > renders with a real dropoff place/walk label and a time-offset note 1`] = `
+<View>
+  <TouchableOpacity
+    accessibilityLabel="Mehdi Gharbi, départ 21:28, 5.5 DT"
+    accessibilityRole="button"
+    activeOpacity={0.85}
+    style={
+      [
+        {
+          "borderRadius": 16,
+          "borderWidth": 1,
+          "overflow": "hidden",
+        },
+        {
+          "backgroundColor": "#FFFFFF",
+          "borderColor": "#DAE2FD",
+        },
+      ]
+    }
+  >
+    <View
+      style={
+        {
+          "gap": 8,
+          "padding": 12,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "baseline",
+            "flexDirection": "row",
+            "justifyContent": "space-between",
+          }
+        }
+      >
+        <Text
+          style={
+            [
+              {
+                "fontSize": 24,
+                "fontWeight": "600",
+                "lineHeight": 28.799999999999997,
+              },
+              {
+                "color": "#000000",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              undefined,
+            ]
+          }
+        >
+          21:28
+        </Text>
+        <Text
+          style={
+            [
+              {
+                "fontSize": 16,
+                "fontWeight": "400",
+                "lineHeight": 24,
+              },
+              {
+                "color": "#006C49",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              undefined,
+            ]
+          }
+        >
+          5.5 DT
+        </Text>
+      </View>
+      <View
+        style={
+          [
+            {
+              "borderRadius": 4,
+              "padding": 8,
+            },
+            {
+              "backgroundColor": "#F8F9FF",
+            },
+          ]
+        }
+      >
+        <Text
+          style={
+            [
+              {
+                "fontSize": 12,
+                "fontWeight": "400",
+                "lineHeight": 18,
+              },
+              {
+                "color": "#45464D",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              undefined,
+            ]
+          }
+        >
+          Part 15 min après l'heure demandée, vous prend à 2 min à pied.
+        </Text>
+      </View>
+      <View
+        style={
+          {
+            "gap": 0,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "flexDirection": "row",
+              "gap": 8,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "paddingTop": 6,
+                "width": 10,
+              }
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "borderRadius": 4,
+                    "height": 8,
+                    "width": 8,
+                  },
+                  {
+                    "backgroundColor": "#000000",
+                  },
+                ]
+              }
+            />
+            <View
+              style={
+                [
+                  {
+                    "flex": 1,
+                    "marginVertical": 4,
+                    "minHeight": 20,
+                    "width": 2,
+                  },
+                  {
+                    "backgroundColor": "#DAE2FD",
+                  },
+                ]
+              }
+            />
+          </View>
+          <View
+            style={
+              {
+                "flex": 1,
+                "paddingBottom": 8,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 8,
+                  "justifyContent": "space-between",
+                }
+              }
+            >
+              <Text
+                numberOfLines={1}
+                style={
+                  [
+                    {
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "lineHeight": 24,
+                    },
+                    {
+                      "color": "#000000",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    {
+                      "flexShrink": 1,
+                      "fontWeight": "600",
+                    },
+                  ]
+                }
+              >
+                La Marsa
+              </Text>
+              <View
+                style={
+                  [
+                    {
+                      "borderRadius": 9999,
+                      "paddingHorizontal": 8,
+                      "paddingVertical": 2,
+                    },
+                    {
+                      "backgroundColor": "#6FFBBE40",
+                    },
+                  ]
+                }
+              >
+                <Text
+                  style={
+                    [
+                      {
+                        "fontSize": 12,
+                        "fontWeight": "400",
+                        "lineHeight": 18,
+                      },
+                      {
+                        "color": "#00714D",
+                        "textAlign": undefined,
+                        "writingDirection": "ltr",
+                      },
+                      undefined,
+                    ]
+                  }
+                >
+                  2 min
+                </Text>
+              </View>
+            </View>
+            <Text
+              numberOfLines={1}
+              style={
+                [
+                  {
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "lineHeight": 18,
+                  },
+                  {
+                    "color": "#45464D",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              Point de rendez-vous
+            </Text>
+          </View>
+        </View>
+        <View
+          style={
+            {
+              "flexDirection": "row",
+              "gap": 8,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "paddingTop": 6,
+                "width": 10,
+              }
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "borderRadius": 4,
+                    "height": 8,
+                    "width": 8,
+                  },
+                  {
+                    "backgroundColor": "#006C49",
+                  },
+                ]
+              }
+            />
+          </View>
+          <View
+            style={
+              {
+                "flex": 1,
+                "paddingBottom": 8,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 8,
+                  "justifyContent": "space-between",
+                }
+              }
+            >
+              <Text
+                numberOfLines={1}
+                style={
+                  [
+                    {
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "lineHeight": 24,
+                    },
+                    {
+                      "color": "#000000",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    {
+                      "flexShrink": 1,
+                      "fontWeight": "600",
+                    },
+                  ]
+                }
+              >
+                Avenue Habib Bourguiba
+              </Text>
+              <View
+                style={
+                  [
+                    {
+                      "borderRadius": 9999,
+                      "paddingHorizontal": 8,
+                      "paddingVertical": 2,
+                    },
+                    {
+                      "backgroundColor": "#6FFBBE40",
+                    },
+                  ]
+                }
+              >
+                <Text
+                  style={
+                    [
+                      {
+                        "fontSize": 12,
+                        "fontWeight": "400",
+                        "lineHeight": 18,
+                      },
+                      {
+                        "color": "#00714D",
+                        "textAlign": undefined,
+                        "writingDirection": "ltr",
+                      },
+                      undefined,
+                    ]
+                  }
+                >
+                  4 min à pied
+                </Text>
+              </View>
+            </View>
+            <Text
+              numberOfLines={1}
+              style={
+                [
+                  {
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "lineHeight": 18,
+                  },
+                  {
+                    "color": "#45464D",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              Avenue Habib Bourguiba, Tunis
+            </Text>
+          </View>
+        </View>
+      </View>
+      <View
+        style={
+          [
+            {
+              "height": 1,
+            },
+            {
+              "backgroundColor": "#DAE2FD",
+            },
+          ]
+        }
+      />
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "justifyContent": "space-between",
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "gap": 8,
+            }
+          }
+        >
+          <View
+            accessibilityLabel="Photo de Mehdi Gharbi"
+            accessibilityRole="image"
+            accessible={true}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "justifyContent": "center",
+                },
+                {
+                  "backgroundColor": "#5B7D8A",
+                  "borderRadius": 16,
+                  "height": 32,
+                  "width": 32,
+                },
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "color": "#FFFFFF",
+                    "fontWeight": "600",
+                  },
+                  {
+                    "color": undefined,
+                    "fontSize": 14,
+                  },
+                ]
+              }
+            >
+              MG
+            </Text>
+          </View>
+          <View>
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "lineHeight": 21,
+                  },
+                  {
+                    "color": "#000000",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  {
+                    "fontWeight": "600",
+                  },
+                ]
+              }
+            >
+              Mehdi Gharbi
+            </Text>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 2,
+                }
+              }
+            >
+              <Ionicons
+                accessibilityElementsHidden={true}
+                color="#006C49"
+                importantForAccessibility="no-hide-descendants"
+                name="star"
+                size={16}
+              />
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 12,
+                      "fontWeight": "400",
+                      "lineHeight": 18,
+                    },
+                    {
+                      "color": "#45464D",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                4.7
+              </Text>
+            </View>
+          </View>
+        </View>
+        <Text
+          style={
+            [
+              {
+                "fontSize": 12,
+                "fontWeight": "400",
+                "lineHeight": 18,
+              },
+              {
+                "color": "#76777D",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              undefined,
+            ]
+          }
+        >
+          4
+           place
+          s
+        </Text>
+      </View>
+    </View>
+  </TouchableOpacity>
+</View>
+`;
+
+exports[`DriverListCard snapshots > renders with fellow-passenger avatars instead of the seat-count text 1`] = `
+<View>
+  <TouchableOpacity
+    accessibilityLabel="Mehdi Gharbi, départ 21:28, 5.5 DT"
+    accessibilityRole="button"
+    activeOpacity={0.85}
+    style={
+      [
+        {
+          "borderRadius": 16,
+          "borderWidth": 1,
+          "overflow": "hidden",
+        },
+        {
+          "backgroundColor": "#FFFFFF",
+          "borderColor": "#DAE2FD",
+        },
+      ]
+    }
+  >
+    <View
+      style={
+        {
+          "gap": 8,
+          "padding": 12,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "baseline",
+            "flexDirection": "row",
+            "justifyContent": "space-between",
+          }
+        }
+      >
+        <Text
+          style={
+            [
+              {
+                "fontSize": 24,
+                "fontWeight": "600",
+                "lineHeight": 28.799999999999997,
+              },
+              {
+                "color": "#000000",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              undefined,
+            ]
+          }
+        >
+          21:28
+        </Text>
+        <Text
+          style={
+            [
+              {
+                "fontSize": 16,
+                "fontWeight": "400",
+                "lineHeight": 24,
+              },
+              {
+                "color": "#006C49",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              undefined,
+            ]
+          }
+        >
+          5.5 DT
+        </Text>
+      </View>
+      <View
+        style={
+          {
+            "gap": 0,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "flexDirection": "row",
+              "gap": 8,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "paddingTop": 6,
+                "width": 10,
+              }
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "borderRadius": 4,
+                    "height": 8,
+                    "width": 8,
+                  },
+                  {
+                    "backgroundColor": "#000000",
+                  },
+                ]
+              }
+            />
+            <View
+              style={
+                [
+                  {
+                    "flex": 1,
+                    "marginVertical": 4,
+                    "minHeight": 20,
+                    "width": 2,
+                  },
+                  {
+                    "backgroundColor": "#DAE2FD",
+                  },
+                ]
+              }
+            />
+          </View>
+          <View
+            style={
+              {
+                "flex": 1,
+                "paddingBottom": 8,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 8,
+                  "justifyContent": "space-between",
+                }
+              }
+            >
+              <Text
+                numberOfLines={1}
+                style={
+                  [
+                    {
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "lineHeight": 24,
+                    },
+                    {
+                      "color": "#000000",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    {
+                      "flexShrink": 1,
+                      "fontWeight": "600",
+                    },
+                  ]
+                }
+              >
+                La Marsa
+              </Text>
+              <View
+                style={
+                  [
+                    {
+                      "borderRadius": 9999,
+                      "paddingHorizontal": 8,
+                      "paddingVertical": 2,
+                    },
+                    {
+                      "backgroundColor": "#6FFBBE40",
+                    },
+                  ]
+                }
+              >
+                <Text
+                  style={
+                    [
+                      {
+                        "fontSize": 12,
+                        "fontWeight": "400",
+                        "lineHeight": 18,
+                      },
+                      {
+                        "color": "#00714D",
+                        "textAlign": undefined,
+                        "writingDirection": "ltr",
+                      },
+                      undefined,
+                    ]
+                  }
+                >
+                  2 min
+                </Text>
+              </View>
+            </View>
+            <Text
+              numberOfLines={1}
+              style={
+                [
+                  {
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "lineHeight": 18,
+                  },
+                  {
+                    "color": "#45464D",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              Point de rendez-vous
+            </Text>
+          </View>
+        </View>
+        <View
+          style={
+            {
+              "flexDirection": "row",
+              "gap": 8,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "paddingTop": 6,
+                "width": 10,
+              }
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "borderRadius": 4,
+                    "height": 8,
+                    "width": 8,
+                  },
+                  {
+                    "backgroundColor": "#006C49",
+                  },
+                ]
+              }
+            />
+          </View>
+          <View
+            style={
+              {
+                "flex": 1,
+                "paddingBottom": 8,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 8,
+                  "justifyContent": "space-between",
+                }
+              }
+            >
+              <Text
+                numberOfLines={1}
+                style={
+                  [
+                    {
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "lineHeight": 24,
+                    },
+                    {
+                      "color": "#000000",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    {
+                      "flexShrink": 1,
+                      "fontWeight": "600",
+                    },
+                  ]
+                }
+              >
+                Avenue Habib Bourguiba
+              </Text>
+            </View>
+          </View>
+        </View>
+      </View>
+      <View
+        style={
+          [
+            {
+              "height": 1,
+            },
+            {
+              "backgroundColor": "#DAE2FD",
+            },
+          ]
+        }
+      />
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "justifyContent": "space-between",
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "gap": 8,
+            }
+          }
+        >
+          <View
+            accessibilityLabel="Photo de Mehdi Gharbi"
+            accessibilityRole="image"
+            accessible={true}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "justifyContent": "center",
+                },
+                {
+                  "backgroundColor": "#5B7D8A",
+                  "borderRadius": 16,
+                  "height": 32,
+                  "width": 32,
+                },
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "color": "#FFFFFF",
+                    "fontWeight": "600",
+                  },
+                  {
+                    "color": undefined,
+                    "fontSize": 14,
+                  },
+                ]
+              }
+            >
+              MG
+            </Text>
+          </View>
+          <View>
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "lineHeight": 21,
+                  },
+                  {
+                    "color": "#000000",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  {
+                    "fontWeight": "600",
+                  },
+                ]
+              }
+            >
+              Mehdi Gharbi
+            </Text>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 2,
+                }
+              }
+            >
+              <Ionicons
+                accessibilityElementsHidden={true}
+                color="#006C49"
+                importantForAccessibility="no-hide-descendants"
+                name="star"
+                size={16}
+              />
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 12,
+                      "fontWeight": "400",
+                      "lineHeight": 18,
+                    },
+                    {
+                      "color": "#45464D",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                4.7
+              </Text>
+            </View>
+          </View>
+        </View>
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+            }
+          }
+        >
+          <View
+            accessibilityLabel="Photo de Sarah"
+            accessibilityRole="image"
+            accessible={true}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "justifyContent": "center",
+                },
+                {
+                  "backgroundColor": "#2E3B42",
+                  "borderRadius": 12,
+                  "height": 24,
+                  "width": 24,
+                },
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "color": "#FFFFFF",
+                    "fontWeight": "600",
+                  },
+                  {
+                    "color": undefined,
+                    "fontSize": 10,
+                  },
+                ]
+              }
+            >
+              S
+            </Text>
+          </View>
+          <View
+            accessibilityLabel="Photo de Karim"
+            accessibilityRole="image"
+            accessible={true}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "justifyContent": "center",
+                },
+                {
+                  "backgroundColor": "#2E3B42",
+                  "borderRadius": 12,
+                  "height": 24,
+                  "width": 24,
+                },
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "color": "#FFFFFF",
+                    "fontWeight": "600",
+                  },
+                  {
+                    "color": undefined,
+                    "fontSize": 10,
+                  },
+                ]
+              }
+            >
+              K
+            </Text>
+          </View>
+        </View>
+      </View>
+    </View>
+  </TouchableOpacity>
+</View>
+`;
+
+exports[`EmptyState snapshots > renders the genuine no-results state with a notify-me action 1`] = `
+<View
+  accessibilityRole="text"
+  accessible={true}
+  style={
+    {
+      "alignItems": "center",
+      "gap": 8,
+      "padding": 20,
+    }
+  }
+>
+  <Text
+    style={
+      [
+        {
+          "fontSize": 24,
+          "fontWeight": "600",
+          "lineHeight": 28.799999999999997,
+        },
+        {
+          "color": "#26333A",
+          "textAlign": "center",
+          "writingDirection": "ltr",
+        },
+        {
+          "marginTop": 4,
+        },
+      ]
+    }
+  >
+    Personne sur ce trajet pour le moment.
+  </Text>
+  <Pressable
+    accessibilityLabel="Me notifier si un trajet apparaît"
+    accessibilityRole="button"
+    accessibilityState={
+      {
+        "busy": false,
+        "disabled": false,
+      }
+    }
+    disabled={false}
+    onPress={[Function]}
+    style={[Function]}
+  >
+    <Text
+      style={
+        [
+          {
+            "fontWeight": "600",
+          },
+          {
+            "fontSize": 16,
+          },
+          {
+            "color": "#2E3B42",
+          },
+        ]
+      }
+    >
+      Me notifier si un trajet apparaît
+    </Text>
+  </Pressable>
+</View>
+`;
+
+exports[`EmptyState snapshots > renders with the action disabled once notified 1`] = `
+<View
+  accessibilityRole="text"
+  accessible={true}
+  style={
+    {
+      "alignItems": "center",
+      "gap": 8,
+      "padding": 20,
+    }
+  }
+>
+  <Text
+    style={
+      [
+        {
+          "fontSize": 24,
+          "fontWeight": "600",
+          "lineHeight": 28.799999999999997,
+        },
+        {
+          "color": "#26333A",
+          "textAlign": "center",
+          "writingDirection": "ltr",
+        },
+        {
+          "marginTop": 4,
+        },
+      ]
+    }
+  >
+    Personne sur ce trajet pour le moment.
+  </Text>
+  <Pressable
+    accessibilityLabel="Nous vous préviendrons ✓"
+    accessibilityRole="button"
+    accessibilityState={
+      {
+        "busy": false,
+        "disabled": true,
+      }
+    }
+    disabled={true}
+    onPress={[Function]}
+    style={[Function]}
+  >
+    <Text
+      style={
+        [
+          {
+            "fontWeight": "600",
+          },
+          {
+            "fontSize": 16,
+          },
+          {
+            "color": "#2E3B42",
+          },
+        ]
+      }
+    >
+      Nous vous préviendrons ✓
+    </Text>
+  </Pressable>
+</View>
+`;
+
+exports[`ReviewCard snapshots > renders a partial (non-5-star) rating themed 1`] = `
+<View
+  accessibilityLabel="Emma L., 3 sur 5 étoiles, il y a 2 jours. Trajet impeccable, très ponctuel."
+  accessible={true}
+  style={
+    [
+      {
+        "borderRadius": 16,
+        "gap": 4,
+        "padding": 12,
+        "shadowColor": "#26333A",
+      },
+      false,
+      {
+        "backgroundColor": "#FFFFFF",
+      },
+      {
+        "borderColor": "#DAE2FD",
+        "borderWidth": 1,
+      },
+    ]
+  }
+>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "flexDirection": "row",
+        "gap": 8,
+      }
+    }
+  >
+    <View
+      accessibilityLabel="Photo de Emma L."
+      accessibilityRole="image"
+      accessible={true}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
+          {
+            "backgroundColor": "#5B7D8A",
+            "borderRadius": 16,
+            "height": 32,
+            "width": 32,
+          },
+        ]
+      }
+    >
+      <Text
+        style={
+          [
+            {
+              "color": "#FFFFFF",
+              "fontWeight": "600",
+            },
+            {
+              "color": undefined,
+              "fontSize": 14,
+            },
+          ]
+        }
+      >
+        EL
+      </Text>
+    </View>
+    <View
+      style={
+        {
+          "flex": 1,
+        }
+      }
+    >
+      <Text
+        style={
+          [
+            {
+              "fontSize": 14,
+              "fontWeight": "600",
+            },
+            {
+              "color": "#000000",
+            },
+          ]
+        }
+      >
+        Emma L.
+      </Text>
+      <Text
+        style={
+          [
+            {
+              "fontSize": 12,
+            },
+            {
+              "color": "#76777D",
+            },
+          ]
+        }
+      >
+        il y a 2 jours
+      </Text>
+    </View>
+    <View
+      accessibilityElementsHidden={true}
+      importantForAccessibility="no-hide-descendants"
+      style={
+        {
+          "flexDirection": "row",
+        }
+      }
+    >
+      <Text
+        style={
+          [
+            {
+              "fontSize": 12,
+            },
+            {
+              "color": "#006C49",
+            },
+          ]
+        }
+      >
+        ★
+      </Text>
+      <Text
+        style={
+          [
+            {
+              "fontSize": 12,
+            },
+            {
+              "color": "#006C49",
+            },
+          ]
+        }
+      >
+        ★
+      </Text>
+      <Text
+        style={
+          [
+            {
+              "fontSize": 12,
+            },
+            {
+              "color": "#006C49",
+            },
+          ]
+        }
+      >
+        ★
+      </Text>
+      <Text
+        style={
+          [
+            {
+              "fontSize": 12,
+            },
+            {
+              "color": "#C6C6CD",
+            },
+          ]
+        }
+      >
+        ★
+      </Text>
+      <Text
+        style={
+          [
+            {
+              "fontSize": 12,
+            },
+            {
+              "color": "#C6C6CD",
+            },
+          ]
+        }
+      >
+        ★
+      </Text>
+    </View>
+  </View>
+  <Text
+    style={
+      [
+        {
+          "fontSize": 14,
+          "lineHeight": 19,
+        },
+        {
+          "color": "#45464D",
+        },
+      ]
+    }
+  >
+    Trajet impeccable, très ponctuel.
+  </Text>
+</View>
+`;
+
+exports[`ReviewCard snapshots > renders themed (light palette) once a screen passes theme 1`] = `
+<View
+  accessibilityLabel="Emma L., 5 sur 5 étoiles, il y a 2 jours. Trajet impeccable, très ponctuel."
+  accessible={true}
+  style={
+    [
+      {
+        "borderRadius": 16,
+        "gap": 4,
+        "padding": 12,
+        "shadowColor": "#26333A",
+      },
+      false,
+      {
+        "backgroundColor": "#FFFFFF",
+      },
+      {
+        "borderColor": "#DAE2FD",
+        "borderWidth": 1,
+      },
+    ]
+  }
+>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "flexDirection": "row",
+        "gap": 8,
+      }
+    }
+  >
+    <View
+      accessibilityLabel="Photo de Emma L."
+      accessibilityRole="image"
+      accessible={true}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
+          {
+            "backgroundColor": "#5B7D8A",
+            "borderRadius": 16,
+            "height": 32,
+            "width": 32,
+          },
+        ]
+      }
+    >
+      <Text
+        style={
+          [
+            {
+              "color": "#FFFFFF",
+              "fontWeight": "600",
+            },
+            {
+              "color": undefined,
+              "fontSize": 14,
+            },
+          ]
+        }
+      >
+        EL
+      </Text>
+    </View>
+    <View
+      style={
+        {
+          "flex": 1,
+        }
+      }
+    >
+      <Text
+        style={
+          [
+            {
+              "fontSize": 14,
+              "fontWeight": "600",
+            },
+            {
+              "color": "#000000",
+            },
+          ]
+        }
+      >
+        Emma L.
+      </Text>
+      <Text
+        style={
+          [
+            {
+              "fontSize": 12,
+            },
+            {
+              "color": "#76777D",
+            },
+          ]
+        }
+      >
+        il y a 2 jours
+      </Text>
+    </View>
+    <View
+      accessibilityElementsHidden={true}
+      importantForAccessibility="no-hide-descendants"
+      style={
+        {
+          "flexDirection": "row",
+        }
+      }
+    >
+      <Text
+        style={
+          [
+            {
+              "fontSize": 12,
+            },
+            {
+              "color": "#006C49",
+            },
+          ]
+        }
+      >
+        ★
+      </Text>
+      <Text
+        style={
+          [
+            {
+              "fontSize": 12,
+            },
+            {
+              "color": "#006C49",
+            },
+          ]
+        }
+      >
+        ★
+      </Text>
+      <Text
+        style={
+          [
+            {
+              "fontSize": 12,
+            },
+            {
+              "color": "#006C49",
+            },
+          ]
+        }
+      >
+        ★
+      </Text>
+      <Text
+        style={
+          [
+            {
+              "fontSize": 12,
+            },
+            {
+              "color": "#006C49",
+            },
+          ]
+        }
+      >
+        ★
+      </Text>
+      <Text
+        style={
+          [
+            {
+              "fontSize": 12,
+            },
+            {
+              "color": "#006C49",
+            },
+          ]
+        }
+      >
+        ★
+      </Text>
+    </View>
+  </View>
+  <Text
+    style={
+      [
+        {
+          "fontSize": 14,
+          "lineHeight": 19,
+        },
+        {
+          "color": "#45464D",
+        },
+      ]
+    }
+  >
+    Trajet impeccable, très ponctuel.
+  </Text>
+</View>
+`;
+
+exports[`ReviewCard snapshots > renders with the legacy static palette when no theme prop is given 1`] = `
+<View
+  accessibilityLabel="Emma L., 5 sur 5 étoiles, il y a 2 jours. Trajet impeccable, très ponctuel."
+  accessible={true}
+  style={
+    [
+      {
+        "borderRadius": 16,
+        "gap": 4,
+        "padding": 12,
+        "shadowColor": "#26333A",
+      },
+      {
+        "elevation": 1,
+      },
+      {
+        "backgroundColor": "#FFFFFF",
+      },
+      null,
+    ]
+  }
+>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "flexDirection": "row",
+        "gap": 8,
+      }
+    }
+  >
+    <View
+      accessibilityLabel="Photo de Emma L."
+      accessibilityRole="image"
+      accessible={true}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
+          {
+            "backgroundColor": "#5B7D8A",
+            "borderRadius": 16,
+            "height": 32,
+            "width": 32,
+          },
+        ]
+      }
+    >
+      <Text
+        style={
+          [
+            {
+              "color": "#FFFFFF",
+              "fontWeight": "600",
+            },
+            {
+              "color": undefined,
+              "fontSize": 14,
+            },
+          ]
+        }
+      >
+        EL
+      </Text>
+    </View>
+    <View
+      style={
+        {
+          "flex": 1,
+        }
+      }
+    >
+      <Text
+        style={
+          [
+            {
+              "fontSize": 14,
+              "fontWeight": "600",
+            },
+            {
+              "color": "#26333A",
+            },
+          ]
+        }
+      >
+        Emma L.
+      </Text>
+      <Text
+        style={
+          [
+            {
+              "fontSize": 12,
+            },
+            {
+              "color": "#9B9788",
+            },
+          ]
+        }
+      >
+        il y a 2 jours
+      </Text>
+    </View>
+    <View
+      accessibilityElementsHidden={true}
+      importantForAccessibility="no-hide-descendants"
+      style={
+        {
+          "flexDirection": "row",
+        }
+      }
+    >
+      <Text
+        style={
+          [
+            {
+              "fontSize": 12,
+            },
+            {
+              "color": "#7FA491",
+            },
+          ]
+        }
+      >
+        ★
+      </Text>
+      <Text
+        style={
+          [
+            {
+              "fontSize": 12,
+            },
+            {
+              "color": "#7FA491",
+            },
+          ]
+        }
+      >
+        ★
+      </Text>
+      <Text
+        style={
+          [
+            {
+              "fontSize": 12,
+            },
+            {
+              "color": "#7FA491",
+            },
+          ]
+        }
+      >
+        ★
+      </Text>
+      <Text
+        style={
+          [
+            {
+              "fontSize": 12,
+            },
+            {
+              "color": "#7FA491",
+            },
+          ]
+        }
+      >
+        ★
+      </Text>
+      <Text
+        style={
+          [
+            {
+              "fontSize": 12,
+            },
+            {
+              "color": "#7FA491",
+            },
+          ]
+        }
+      >
+        ★
+      </Text>
+    </View>
+  </View>
+  <Text
+    style={
+      [
+        {
+          "fontSize": 14,
+          "lineHeight": 19,
+        },
+        {
+          "color": "#57616A",
+        },
+      ]
+    }
+  >
+    Trajet impeccable, très ponctuel.
+  </Text>
+</View>
+`;

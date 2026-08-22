@@ -42,6 +42,10 @@ export function MapCanvas({ height, region, style, children }: MapCanvasProps): 
         style={StyleSheet.absoluteFillObject}
         initialRegion={region ?? DEFAULT_REGION}
         onMapReady={() => setIsReady(true)}
+        // Forces the default light Google Maps style regardless of the
+        // device's system dark-mode setting (Android can otherwise render
+        // tiles dark even in a forced-light app).
+        customMapStyle={[]}
       >
         {children}
       </MapView>

@@ -1,0 +1,258 @@
+<!DOCTYPE html><html class="light" lang="fr"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport">
+<title>Vaya - Inbox</title>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Google Fonts: Inter -->
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary": "#000000",
+                        "on-primary": "#ffffff",
+                        "on-background": "#0b1c30",
+                        "on-primary-container": "#7c839b",
+                        "on-surface": "#0b1c30",
+                        "on-secondary-fixed": "#002113",
+                        "secondary-container": "#6cf8bb",
+                        "primary-fixed": "#dae2fd",
+                        "inverse-primary": "#bec6e0",
+                        "on-tertiary-container": "#3980f4",
+                        "primary-fixed-dim": "#bec6e0",
+                        "surface-container-high": "#dce9ff",
+                        "tertiary-fixed-dim": "#adc6ff",
+                        "outline-variant": "#c6c6cd",
+                        "inverse-on-surface": "#eaf1ff",
+                        "surface-variant": "#d3e4fe",
+                        "secondary-fixed-dim": "#4edea3",
+                        "surface-container": "#e5eeff",
+                        "secondary-fixed": "#6ffbbe",
+                        "primary-container": "#131b2e",
+                        "tertiary-fixed": "#d8e2ff",
+                        "error-container": "#ffdad6",
+                        "on-secondary": "#ffffff",
+                        "on-secondary-fixed-variant": "#005236",
+                        "on-error": "#ffffff",
+                        "surface-container-highest": "#d3e4fe",
+                        "on-tertiary-fixed": "#001a42",
+                        "surface-container-lowest": "#ffffff",
+                        "tertiary": "#000000",
+                        "secondary": "#006c49",
+                        "inverse-surface": "#213145",
+                        "on-error-container": "#93000a",
+                        "background": "#f8f9ff",
+                        "outline": "#76777d",
+                        "on-surface-variant": "#45464d",
+                        "surface-tint": "#565e74",
+                        "surface-container-low": "#eff4ff",
+                        "on-primary-fixed": "#131b2e",
+                        "on-tertiary": "#ffffff",
+                        "on-tertiary-fixed-variant": "#004395",
+                        "tertiary-container": "#001a42",
+                        "on-secondary-container": "#00714d",
+                        "surface-bright": "#f8f9ff",
+                        "on-primary-fixed-variant": "#3f465c",
+                        "error": "#ba1a1a",
+                        "surface-dim": "#cbdbf5",
+                        "surface": "#f8f9ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-sm": "8px",
+                        "gutter-grid": "16px",
+                        "margin-main": "20px",
+                        "touch-target": "48px",
+                        "stack-lg": "24px",
+                        "stack-md": "16px"
+                    },
+                    "fontFamily": {
+                        "label-lg": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "body-md": ["Inter"],
+                        "label-md": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "headline-sm": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "headline-lg-mobile": ["26px", { "lineHeight": "32px", "fontWeight": "700" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+                        "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "headline-sm": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "headline-lg": ["30px", { "lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { -webkit-tap-highlight-color: transparent; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen font-body-md flex justify-center w-full">
+<div class="w-full max-w-md relative min-h-screen flex flex-col bg-surface-container-lowest overflow-hidden shadow-2xl pb-24 md:pb-0">
+<!-- TopAppBar (From JSON) -->
+<header class="fixed top-0 w-full max-w-md z-50 bg-surface dark:bg-surface-container-lowest shadow-sm shadow-primary/10 flex items-center justify-between px-margin-main h-touch-target">
+<!-- Leading: Avatar -->
+<div class="h-8 w-8 rounded-full overflow-hidden bg-surface-container-high border border-outline-variant/30 flex-shrink-0 cursor-pointer active:scale-95 transition-transform">
+<img alt="User profile photo" class="w-full h-full object-cover" data-alt="A small, professional portrait photo of a smiling urban professional, softly lit against a minimalist light grey background. Modern corporate aesthetic, high quality, suitable for a user profile avatar." src="https://lh3.googleusercontent.com/aida-public/AB6AXuARcJExqJMycfgo7-WfcH_HRkMU5k7SoJpAsbfN2pqIwvUZA1sktxVi_Wn3ywwVCy0S1AbnQLpBS_zAsWmVfmXkYZ6mrK1AulxM5jxLtdVwNsaZXKk8kMZILD31kPmpPRRrqwzT912ZhNOiiy8LxqtA-xo48EZX8tTB-ENqHj1Tz3QVHmwwz04Mjpy6eb5QzuvtDTN9nS4PqFtlLLxIpJKBjnRqd7bAleHgN_Il1VjERmr_PGorLTlY">
+</div>
+<!-- Headline -->
+<h1 class="font-headline-md text-headline-md font-bold text-primary dark:text-primary-fixed absolute left-1/2 transform -translate-x-1/2">
+                Messages
+            </h1>
+<!-- Trailing: Icon -->
+<button class="h-10 w-10 flex items-center justify-center text-on-surface-variant dark:text-outline hover:bg-surface-container-low dark:hover:bg-surface-container transition-colors rounded-full active:scale-95">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">search</span>
+</button>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-1 mt-[56px] pt-stack-sm pb-stack-lg overflow-y-auto">
+<!-- Filter Chips -->
+<div class="px-margin-main mb-stack-md pt-2">
+<div class="flex gap-2 overflow-x-auto hide-scrollbar pb-2">
+<button class="px-4 py-1.5 rounded-full bg-primary text-on-primary font-label-md text-label-md flex-shrink-0 active:scale-95 transition-transform">Tous</button>
+<button class="px-4 py-1.5 rounded-full bg-surface-container border border-outline-variant/30 text-on-surface-variant font-label-md text-label-md flex-shrink-0 active:scale-95 transition-transform hover:bg-surface-container-high">À venir</button>
+<button class="px-4 py-1.5 rounded-full bg-surface-container border border-outline-variant/30 text-on-surface-variant font-label-md text-label-md flex-shrink-0 active:scale-95 transition-transform hover:bg-surface-container-high">En cours</button>
+<button class="px-4 py-1.5 rounded-full bg-surface-container border border-outline-variant/30 text-on-surface-variant font-label-md text-label-md flex-shrink-0 active:scale-95 transition-transform hover:bg-surface-container-high">Passés</button>
+</div>
+</div>
+<!-- List Container -->
+<div class="flex flex-col">
+<!-- Section: Aujourd'hui -->
+<div class="px-margin-main py-2 bg-surface-container-lowest/80 sticky top-[56px] backdrop-blur-md z-10 border-b border-surface-container">
+<h2 class="font-label-lg text-label-lg text-on-surface-variant uppercase tracking-wider">Aujourd'hui</h2>
+</div>
+<!-- Unread Message Row -->
+<button class="w-full text-left px-margin-main py-stack-md flex gap-gutter-grid items-start hover:bg-surface-container-low transition-colors active:bg-surface-container group relative">
+<!-- Unread Dot -->
+<div class="absolute left-2 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-primary"></div>
+<!-- Avatar -->
+<div class="relative w-12 h-12 flex-shrink-0">
+<img class="w-full h-full rounded-full object-cover border border-outline-variant/20" data-alt="A friendly, clear headshot of a young woman driving, modern urban setting, natural lighting, high quality portrait." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAML0khll9L2CisXvouAC_LMgDHg206F89rAWXnkf1gkYMBIdhQRY5G0--7GjosF_bTEtbU5FfzSQ4rG79Esmq4eqhHoCieyI3WU4N7huPBCNfQ66VwAfQfY_UYoVQNVyFK2-aQxDfmgvFA8awrjc0-7b1jovuYkRP7zLmOmnFPrQUEe1-eam9vSDUqdupifEdKTqaCRX9D4pLrSIsR2Ct9bbSSO4pnspsavPOyma6DZV1rDYLCLUNN">
+<!-- Verification Badge -->
+<div class="absolute -bottom-1 -right-1 bg-surface-container-lowest rounded-full p-0.5">
+<span class="material-symbols-outlined text-secondary text-[16px]" style="font-variation-settings: 'FILL' 1;">verified</span>
+</div>
+</div>
+<!-- Content -->
+<div class="flex-1 min-w-0 flex flex-col justify-center">
+<div class="flex justify-between items-baseline mb-1">
+<h3 class="font-headline-sm text-headline-sm text-on-surface truncate pr-2">Amira K.</h3>
+<span class="font-label-md text-label-md text-primary font-semibold flex-shrink-0">10:42</span>
+</div>
+<div class="flex items-center gap-1 mb-1.5">
+<span class="font-label-md text-label-md text-on-surface-variant bg-surface-container px-2 py-0.5 rounded text-[10px]">Conductrice</span>
+<span class="text-outline-variant mx-1">•</span>
+<span class="font-label-md text-label-md text-on-surface-variant truncate text-[11px]">Tunis → Sousse (14:30)</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface font-medium truncate">Oui, je vous attends près de la station service.</p>
+</div>
+</button>
+<!-- Separator -->
+<div class="h-px bg-surface-container mx-margin-main ml-[84px]"></div>
+<!-- Read Message Row -->
+<button class="w-full text-left px-margin-main py-stack-md flex gap-gutter-grid items-start hover:bg-surface-container-low transition-colors active:bg-surface-container group">
+<!-- Avatar -->
+<div class="relative w-12 h-12 flex-shrink-0">
+<img class="w-full h-full rounded-full object-cover border border-outline-variant/20" data-alt="A professional portrait of an older gentleman with glasses, calm demeanor, light studio background, high quality photography." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCxIOXuxUcHM_qbX2UX4SNSf9E84Xz5Q3M8IRTMo7n0j-iGAO7RYJj557JwllH-f68YQIzWkew5re_ojLpickiW_rzI5qh2uCyXTWsSqAktBbPV6VDjrHyNP7_WsRGkeTIIZBlmZUBrwPzZZ13DCdO5Gv5l5vZ1saNQyL0Y5yrCN6j7tY80MvNGgn1KP2_7NiaJ_Jt28FVpy4H-PM0_HlbMpFjCemwjk2B1B0h6TjHRAO9R7qN-bEN_">
+<!-- Verification Badge -->
+<div class="absolute -bottom-1 -right-1 bg-surface-container-lowest rounded-full p-0.5">
+<span class="material-symbols-outlined text-secondary text-[16px]" style="font-variation-settings: 'FILL' 1;">verified</span>
+</div>
+</div>
+<!-- Content -->
+<div class="flex-1 min-w-0 flex flex-col justify-center">
+<div class="flex justify-between items-baseline mb-1">
+<h3 class="font-body-md text-body-md font-medium text-on-surface truncate pr-2">Karim B.</h3>
+<span class="font-label-md text-label-md text-on-surface-variant flex-shrink-0">08:15</span>
+</div>
+<div class="flex items-center gap-1 mb-1.5">
+<span class="font-label-md text-label-md text-on-surface-variant bg-surface-container px-2 py-0.5 rounded text-[10px]">Passager</span>
+<span class="text-outline-variant mx-1">•</span>
+<span class="font-label-md text-label-md text-on-surface-variant truncate text-[11px]">Sfax → Tunis (Demain)</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant truncate">Merci beaucoup, à demain !</p>
+</div>
+</button>
+<!-- Section: Passés -->
+<div class="px-margin-main py-2 mt-2 bg-surface-container-lowest/80 sticky top-[56px] backdrop-blur-md z-10 border-b border-surface-container">
+<h2 class="font-label-lg text-label-lg text-on-surface-variant uppercase tracking-wider">Passés</h2>
+</div>
+<!-- Past Message Row -->
+<button class="w-full text-left px-margin-main py-stack-md flex gap-gutter-grid items-start hover:bg-surface-container-low transition-colors active:bg-surface-container group opacity-75">
+<!-- Avatar -->
+<div class="relative w-12 h-12 flex-shrink-0">
+<div class="w-full h-full rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant font-headline-sm">
+                            S
+                        </div>
+</div>
+<!-- Content -->
+<div class="flex-1 min-w-0 flex flex-col justify-center">
+<div class="flex justify-between items-baseline mb-1">
+<h3 class="font-body-md text-body-md text-on-surface truncate pr-2">Sami T.</h3>
+<span class="font-label-md text-label-md text-on-surface-variant flex-shrink-0">Lun.</span>
+</div>
+<div class="flex items-center gap-1 mb-1.5">
+<span class="font-label-md text-label-md text-on-surface-variant bg-surface-container px-2 py-0.5 rounded text-[10px]">Conducteur</span>
+<span class="text-outline-variant mx-1">•</span>
+<span class="font-label-md text-label-md text-on-surface-variant truncate text-[11px]">Bizerte → Tunis</span>
+<span class="material-symbols-outlined text-[14px] text-secondary ml-auto" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant truncate">Trajet terminé. Merci !</p>
+</div>
+</button>
+</div>
+</main>
+<!-- BottomNavBar (From JSON) -->
+<nav class="fixed bottom-0 w-full max-w-md z-50 md:hidden bg-surface dark:bg-surface-container-lowest border-t border-outline-variant dark:border-outline-variant/20 shadow-[0_-4px_12px_rgba(0,0,0,0.05)] flex justify-around items-center h-[72px] px-gutter-grid pb-safe w-full">
+<!-- Search (Inactive) -->
+<button class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline hover:opacity-80 transition-opacity active:scale-90 duration-200 w-16">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 0;">search</span>
+<span class="font-label-md text-label-md">Search</span>
+</button>
+<!-- My Rides (Inactive) -->
+<button class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline hover:opacity-80 transition-opacity active:scale-90 duration-200 w-16">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 0;">directions_car</span>
+<span class="font-label-md text-label-md">My Rides</span>
+</button>
+<!-- Inbox (Active) -->
+<button class="flex flex-col items-center justify-center bg-secondary-container dark:bg-tertiary-container text-on-secondary-container dark:text-on-tertiary-container rounded-xl px-4 py-1.5 hover:opacity-80 transition-opacity active:scale-90 duration-200 w-16">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 1;">mail</span>
+<span class="font-label-md text-label-md font-semibold">Inbox</span>
+</button>
+<!-- Profile (Inactive) -->
+<button class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline hover:opacity-80 transition-opacity active:scale-90 duration-200 w-16">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 0;">person</span>
+<span class="font-label-md text-label-md">Profile</span>
+</button>
+</nav>
+</div>
+</body></html>

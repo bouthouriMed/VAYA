@@ -12,6 +12,7 @@ import type {
   CreateBookingInput,
   NotifyMeInput,
   UpdateRecurringPatternInput,
+  UpdateMeInput,
 } from '@vaya/validation';
 import { setAccessToken, clearAuth } from './authSlice';
 import { clearTokens } from '../services/auth/tokenStorage';
@@ -80,11 +81,19 @@ export interface PublicProfile {
   fullName: string;
   avatarUrl: string | null;
   driver: {
+    bio: string | null;
+    languages: string[] | null;
     ratingAvg: number;
     tripCount: number;
     punctualityScore: number;
     reliabilityScore: number;
-    vehicle: { make: string; model: string; color: string; photoUrl: string | null } | null;
+    vehicle: {
+      make: string;
+      model: string;
+      color: string;
+      photoUrl: string | null;
+      plateNumber: string;
+    } | null;
   } | null;
 }
 
@@ -372,6 +381,15 @@ export interface Booking {
   };
 }
 
+/** Public, first-name-only — a ride's already-*accepted* fellow passengers.
+ *  Never a pending/declined request, never a full identity. */
+export interface FellowPassenger {
+  userId: string;
+  firstName: string;
+  avatarUrl: string | null;
+  ratingAvg: number;
+}
+
 const rawBaseQuery = fetchBaseQuery({
   baseUrl: getBaseUrl(),
   prepareHeaders: (headers, { getState }) => {
@@ -482,6 +500,13 @@ export const api = createApi({
       query: () => '/users/me',
       providesTags: ['Me'],
     }),
+    // Profile hub: persists the rider-editable profile fields (avatar photo
+    // URL from a completed /uploads call, chosen locale). Server-side shape
+    // is updateMeSchema — fullName/locale/avatarFileUrl, all optional.
+    updateMe: builder.mutation<Me, UpdateMeInput>({
+      query: (body) => ({ url: '/users/me', method: 'PATCH', body }),
+      invalidatesTags: ['Me'],
+    }),
     getUserPublicProfile: builder.query<PublicProfile, string>({
       query: (userId) => `/users/${userId}`,
     }),
@@ -543,6 +568,12 @@ export const api = createApi({
         body: selections,
       }),
     }),
+    // Public, passenger-facing: only the driver-selected stops (no `?all=true`),
+    // for the ride-details.tsx stop timeline — the same list a passenger's
+    // pickup selection is drawn from, just for a single already-chosen ride.
+    getRideStops: builder.query<RouteStop[], string>({
+      query: (rideId) => `/rides/${rideId}/stops`,
+    }),
 
     createBooking: builder.mutation<Booking, { rideId: string; input: CreateBookingInput }>({
       query: ({ rideId, input }) => ({
@@ -551,6 +582,9 @@ export const api = createApi({
         body: input,
       }),
       invalidatesTags: ['MyBookings'],
+    }),
+    listFellowPassengers: builder.query<FellowPassenger[], string>({
+      query: (rideId) => `/rides/${rideId}/fellow-passengers`,
     }),
     listMyBookings: builder.query<Booking[], void>({
       query: () => '/bookings/mine',
@@ -690,6 +724,7 @@ export const {
   useLazyCorridorFallbackQuery,
   useNotifyMeMutation,
   useGetMeQuery,
+  useUpdateMeMutation,
   useGetUserPublicProfileQuery,
   useGetMyDriverProfileQuery,
   useCreateDriverOnboardingMutation,
@@ -703,7 +738,9 @@ export const {
   usePublishRideMutation,
   useGenerateCandidateStopsMutation,
   useUpdateRideStopsMutation,
+  useGetRideStopsQuery,
   useCreateBookingMutation,
+  useListFellowPassengersQuery,
   useListMyBookingsQuery,
   useListRequestsForRideQuery,
   useAcceptBookingMutation,

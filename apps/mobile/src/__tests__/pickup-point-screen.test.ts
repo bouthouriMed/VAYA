@@ -54,38 +54,43 @@ describe('search/pickup-point.tsx is real-map-backed, not pixel-projection', () 
   });
 });
 
-describe('search/cluster.tsx routes through pickup-point.tsx for rides with stops', () => {
-  const source = readScreen('search/cluster.tsx');
+describe('search/results.tsx routes through pickup-point.tsx for rides with stops', () => {
+  // useOpenDriver() (apps/mobile/src/features/search/useOpenDriver.ts) is
+  // the single source of this branching behavior — results.tsx's list and
+  // inline map both call it. search/cluster.tsx (the old multi-candidate
+  // map) was dropped; search/ride-details.tsx is the new post-selection
+  // screen, reached either directly or after a pickup-point.tsx selection.
+  const hookSource = readFileSync(
+    path.resolve(appDir, '../src/features/search/useOpenDriver.ts'),
+    'utf-8',
+  );
+  const resultsSource = readScreen('search/results.tsx');
 
   it('branches on rankedStops before deciding where to navigate', () => {
-    expect(source).toContain('candidate.rankedStops.length > 0');
-    expect(source).toContain("pathname: '/search/pickup-point'");
+    expect(hookSource).toContain('candidate.rankedStops.length > 0');
+    expect(hookSource).toContain("pathname: '/search/pickup-point'");
+  });
+
+  it('resolves a stop-less ride straight to ride-details, not trust', () => {
+    expect(hookSource).toContain("pathname: '/search/ride-details'");
   });
 
   it('clears any previously selected stop before a fresh ride selection', () => {
-    expect(source).toContain('clearPickupStop');
+    expect(hookSource).toContain('clearPickupStop');
+  });
+
+  it('results.tsx uses the shared hook', () => {
+    expect(resultsSource).toContain('useOpenDriver');
+  });
+
+  it('pickup-point.tsx hands off to ride-details.tsx after a stop is chosen', () => {
+    const pickupPointSource = readScreen('search/pickup-point.tsx');
+    expect(pickupPointSource).toContain("pathname: '/search/ride-details'");
   });
 });
 
-describe('search/cluster.tsx falls back to corridor-fallback data for a fallback cluster', () => {
-  const source = readScreen('search/cluster.tsx');
-
-  // Regression guard: a cluster tapped from results.tsx's fallback list
-  // (useCorridorFallbackQuery's nearbyRides) only exists in that query's
-  // cache, not in useMatchingSearchQuery's. Filtering only the latter left
-  // clusterCandidates empty and rendered "Ce groupe n'est plus disponible"
-  // for every fallback cluster tap — this guards against that regressing.
-  it('queries the corridor-fallback endpoint, not only the exact-match endpoint', () => {
-    expect(source).toContain('useCorridorFallbackQuery');
-  });
-
-  it('falls back to nearbyRides when the exact-match list has no candidates for this label', () => {
-    expect(source).toContain('fallback?.nearbyRides');
-  });
-});
-
-describe('search/trust.tsx prefers the selected stop over free-form coordinates', () => {
-  const source = readScreen('search/trust.tsx');
+describe('search/ride-details.tsx prefers the selected stop over free-form coordinates', () => {
+  const source = readScreen('search/ride-details.tsx');
 
   it('sends pickupStopId when a stop was selected', () => {
     expect(source).toContain('pickupStopId: selectedStop.stopId');
@@ -93,5 +98,13 @@ describe('search/trust.tsx prefers the selected stop over free-form coordinates'
 
   it('still falls back to free-form pickup for legacy (stop-less) rides', () => {
     expect(source).toMatch(/pickup:\s*{\s*label:\s*origin!\.label/);
+  });
+});
+
+describe('search/trust.tsx is a pure profile view, not a second booking path', () => {
+  const source = readScreen('search/trust.tsx');
+
+  it('has no booking mutation of its own — that moved to ride-details.tsx', () => {
+    expect(source).not.toContain('useCreateBookingMutation');
   });
 });

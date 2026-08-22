@@ -99,6 +99,46 @@ export function buildTimeOptions(
   return slots;
 }
 
+export interface MonthGridCell {
+  date: Date;
+  /** false for the leading/trailing days of adjacent months shown to fill
+   *  the grid — rendered dimmed/inert, never selectable. */
+  isCurrentMonth: boolean;
+  isToday: boolean;
+  /** A past day (before today) is never selectable — a departure can't be
+   *  in the past. */
+  isPast: boolean;
+}
+
+/** A Monday-first (French convention) 6-row x 7-col month grid for
+ *  `anchor`'s month, including the adjacent-month days needed to fill the
+ *  first/last week — the shape a real calendar UI renders, not just a list
+ *  of same-month days. Always exactly 42 cells (6 full weeks) so a
+ *  caller's layout never reflows between months. */
+export function buildMonthGrid(anchor: Date, now: Date = new Date()): MonthGridCell[] {
+  const today = startOfDay(now);
+  const firstOfMonth = new Date(anchor.getFullYear(), anchor.getMonth(), 1);
+  // getDay(): 0=Sun..6=Sat. Convert to a Monday-first offset (0=Mon..6=Sun).
+  const mondayOffset = (firstOfMonth.getDay() + 6) % 7;
+  const gridStart = new Date(firstOfMonth.getTime() - mondayOffset * DAY_MS);
+
+  return Array.from({ length: 42 }, (_, i) => {
+    const date = new Date(gridStart.getTime() + i * DAY_MS);
+    return {
+      date,
+      isCurrentMonth: date.getMonth() === anchor.getMonth(),
+      isToday: isSameDay(date, today),
+      isPast: date.getTime() < today.getTime(),
+    };
+  });
+}
+
+/** "novembre 2023" — the calendar grid's month/year heading. */
+export function formatMonthLabel(date: Date): string {
+  const label = date.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+  return label.charAt(0).toUpperCase() + label.slice(1);
+}
+
 /** Picks the first day in `days` that still has at least one time slot —
  *  the sensible default selection when opening the sheet (skips a "today"
  *  option that's already past its last slot for the day). Falls back to
