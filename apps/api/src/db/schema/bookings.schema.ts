@@ -49,6 +49,18 @@ export const bookings = pgTable(
     pickupLabel: varchar('pickup_label', { length: 140 }).notNull(),
     pickupLat: doublePrecision('pickup_lat').notNull(),
     pickupLng: doublePrecision('pickup_lng').notNull(),
+    // Phase 13 (docs/roadmap/phase-13-search-engine.md): dropoff-side mirror
+    // of pickupStopId above, needed once matching can find a ride whose own
+    // destination isn't the rider's actual destination (route-passthrough
+    // matches). Nullable, unlike the pickup columns — most bookings never
+    // set this and simply drop the rider at the ride's own destinationLabel/
+    // Lat/Lng, exactly as every booking behaved before this column existed.
+    // `set null` on delete for the same reason as pickupStopId: stop
+    // regeneration must never destroy a booking.
+    dropoffStopId: uuid('dropoff_stop_id').references(() => routeStops.id, { onDelete: 'set null' }),
+    dropoffLabel: varchar('dropoff_label', { length: 140 }),
+    dropoffLat: doublePrecision('dropoff_lat'),
+    dropoffLng: doublePrecision('dropoff_lng'),
     requestedAt: timestamp('requested_at', { withTimezone: true }).notNull().defaultNow(),
     respondedAt: timestamp('responded_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
@@ -58,5 +70,6 @@ export const bookings = pgTable(
     rideIdIdx: index('bookings_ride_id_idx').on(table.rideId),
     riderIdIdx: index('bookings_rider_id_idx').on(table.riderId),
     pickupStopIdIdx: index('bookings_pickup_stop_id_idx').on(table.pickupStopId),
+    dropoffStopIdIdx: index('bookings_dropoff_stop_id_idx').on(table.dropoffStopId),
   }),
 );

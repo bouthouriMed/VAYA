@@ -65,15 +65,34 @@ export interface MatchCandidate {
    *  the passenger's requested origin, closest first. Empty for a legacy
    *  ride with zero route_stops (free-form pickup flow still applies). */
   rankedStops: RankedStop[];
+  /** Dropoff-side mirror of `rankedStops` (Phase 13, docs/roadmap/
+   *  phase-13-search-engine.md) — ranked by walk-distance from the
+   *  passenger's requested destination. Empty means "drop off at the
+   *  ride's own destination", the behavior every ride had before this
+   *  field existed. */
+  rankedDropoffStops: RankedStop[];
   /** False only when this ride has route_stops but none are within a
    *  walkable radius for this passenger — a legitimate "doesn't reach you
    *  conveniently" result. Always true for legacy (stop-less) rides. */
   pickupViable: boolean;
+  /** Dropoff-side mirror of `pickupViable`. */
+  dropoffViable: boolean;
+  /** 'route_passthrough' when this ride was found because its route runs
+   *  through the rider's corridor (the driver's own origin/destination are
+   *  elsewhere), not because its own endpoints matched. */
+  matchType: 'endpoint' | 'route_passthrough';
 }
 
-export interface CorridorFallbackResult {
-  nearbyRides: MatchCandidate[];
-  demandSignalCount: number;
+/** Phase 13 (docs/roadmap/phase-13-search-engine.md): one search response
+ *  now carries which tier of the server-side cascade produced it plus a
+ *  ready-to-render French explanation — replaces the old two-endpoint
+ *  (matching/search + matching/corridor-fallback) client-orchestrated pair
+ *  the pre-Phase-13 UI used to build its own "why these results" banner
+ *  copy from a local time-diff heuristic. */
+export interface SearchResult {
+  tier: 'exact' | 'wide_corridor' | 'route_passthrough' | 'closest_departure' | 'none';
+  candidates: MatchCandidate[];
+  message: string | null;
 }
 
 export interface PublicProfile {
@@ -390,6 +409,14 @@ export interface Booking {
   pickupLabel: string;
   pickupLat: number;
   pickupLng: number;
+  /** Phase 13 (docs/roadmap/phase-13-search-engine.md): null on almost every
+   *  booking — the rider rides to the ride's own destination unchanged. Set
+   *  only when the rider chose a mid-route dropoff stop on a
+   *  route-passthrough match. */
+  dropoffStopId: string | null;
+  dropoffLabel: string | null;
+  dropoffLat: number | null;
+  dropoffLng: number | null;
   requestedAt: string;
   respondedAt: string | null;
   /** Only present on results from listMyBookings. */
@@ -501,7 +528,7 @@ export const api = createApi({
     }),
 
     matchingSearch: builder.query<
-      MatchCandidate[],
+      SearchResult,
       {
         originLat: number;
         originLng: number;
@@ -511,18 +538,6 @@ export const api = createApi({
       }
     >({
       query: (params) => ({ url: '/matching/search', params }),
-    }),
-    corridorFallback: builder.query<
-      CorridorFallbackResult,
-      {
-        originLat: number;
-        originLng: number;
-        destinationLat: number;
-        destinationLng: number;
-        when: string;
-      }
-    >({
-      query: (params) => ({ url: '/matching/corridor-fallback', params }),
     }),
     notifyMe: builder.mutation<{ id: string }, NotifyMeInput>({
       query: (body) => ({ url: '/matching/notify-me', method: 'POST', body }),
@@ -770,8 +785,6 @@ export const {
   useGeocodeReverseQuery,
   useMatchingSearchQuery,
   useLazyMatchingSearchQuery,
-  useCorridorFallbackQuery,
-  useLazyCorridorFallbackQuery,
   useNotifyMeMutation,
   useGetMeQuery,
   useUpdateMeMutation,

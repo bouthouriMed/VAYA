@@ -103,7 +103,7 @@ export default function HomeSearchScreen(): React.JSX.Element {
   // Real data, not a hardcoded placeholder — same query results.tsx will
   // run again once the rider actually taps "Rechercher" (RTK Query caches
   // by args, so this also warms that cache rather than duplicating cost).
-  const { data: candidates } = useMatchingSearchQuery(
+  const { data: searchResult } = useMatchingSearchQuery(
     canSearch
       ? {
           originLat: origin!.lat,
@@ -114,6 +114,7 @@ export default function HomeSearchScreen(): React.JSX.Element {
         }
       : skipToken,
   );
+  const candidates = searchResult?.candidates;
 
   const region = useMemo(() => {
     const points = [origin, destination]

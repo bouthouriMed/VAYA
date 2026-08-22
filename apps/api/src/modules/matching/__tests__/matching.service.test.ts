@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { rankStopsByWalkDistance, isPickupViable } from '../matching.service.js';
+import { rankStopsByWalkDistance, isPickupViable, isDropoffViable } from '../matching.service.js';
 
 // Pure functions, no DB/OSRM dependency — exercised the same way
 // stop-candidates.service.test.ts exercises its own pure scoring/
@@ -65,5 +65,22 @@ describe('isPickupViable', () => {
 
   it('is not viable when the ride has stops but none rank within range', () => {
     expect(isPickupViable(3, 0)).toBe(false);
+  });
+});
+
+// Phase 13 (docs/roadmap/phase-13-search-engine.md): dropoff-side mirror of
+// isPickupViable — same three cases, same rule, verified independently
+// since a future change to one shouldn't silently drift the other apart.
+describe('isDropoffViable', () => {
+  it('is always viable for a legacy ride with zero route_stops', () => {
+    expect(isDropoffViable(0, 0)).toBe(true);
+  });
+
+  it('is viable when at least one dropoff-ranked stop is within range', () => {
+    expect(isDropoffViable(3, 1)).toBe(true);
+  });
+
+  it('is not viable when the ride has stops but none rank within range of the destination', () => {
+    expect(isDropoffViable(3, 0)).toBe(false);
   });
 });

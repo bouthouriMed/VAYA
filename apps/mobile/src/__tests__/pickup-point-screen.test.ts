@@ -75,8 +75,13 @@ describe('search/results.tsx routes through pickup-point.tsx for rides with stop
     expect(hookSource).toContain("pathname: '/search/ride-details'");
   });
 
-  it('clears any previously selected stop before a fresh ride selection', () => {
-    expect(hookSource).toContain('clearPickupStop');
+  it('clears any previously selected pickup/dropoff stop before a fresh ride selection', () => {
+    expect(hookSource).toContain('clearSelectedStops');
+  });
+
+  it('routes to dropoff-point.tsx for a route-passthrough match with ranked dropoff stops', () => {
+    expect(hookSource).toContain('candidate.rankedDropoffStops.length > 0');
+    expect(hookSource).toContain("pathname: '/search/dropoff-point'");
   });
 
   it('results.tsx uses the shared hook', () => {
@@ -98,6 +103,36 @@ describe('search/ride-details.tsx prefers the selected stop over free-form coord
 
   it('still falls back to free-form pickup for legacy (stop-less) rides', () => {
     expect(source).toMatch(/pickup:\s*{\s*label:\s*origin!\.label/);
+  });
+
+  it('sends dropoffStopId when a dropoff stop was selected (Phase 13)', () => {
+    expect(source).toContain('dropoffStopId: selectedDropoffStop.stopId');
+  });
+});
+
+// Phase 13 (docs/roadmap/phase-13-search-engine.md): dropoff-point.tsx is
+// the dropoff-side mirror of pickup-point.tsx — same source-level
+// regression discipline (no RN render harness in this repo).
+describe('search/dropoff-point.tsx is real-map-backed and stop-driven', () => {
+  const source = readScreen('search/dropoff-point.tsx');
+
+  it('sources its markers/list from the matching API\'s rankedDropoffStops', () => {
+    expect(source).toContain('rankedDropoffStops');
+    expect(source).toContain('useMatchingSearchQuery');
+  });
+
+  it('selecting a stop dispatches a real stopId into search state', () => {
+    expect(source).toContain('selectDropoffStop');
+    expect(source).toContain('stopId: selectedStop.stopId');
+  });
+
+  it('shows an honest EmptyState when zero dropoff stops are within range', () => {
+    expect(source).toContain('EmptyState');
+    expect(source).toContain('rankedDropoffStops.length === 0');
+  });
+
+  it('hands off to ride-details.tsx after a dropoff stop is chosen', () => {
+    expect(source).toContain("pathname: '/search/ride-details'");
   });
 });
 

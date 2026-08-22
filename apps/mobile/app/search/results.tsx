@@ -24,7 +24,6 @@ import { router } from 'expo-router';
 import { useAppSelector } from '../../src/state/store';
 import {
   useMatchingSearchQuery,
-  useCorridorFallbackQuery,
   useNotifyMeMutation,
   useListFellowPassengersQuery,
   useGetRideStopsQuery,
@@ -125,6 +124,7 @@ function RideResultCard({
     seatsAvailable: candidate.seatsAvailable,
     timeOffsetNote,
     passengers: passengers?.map((p) => ({ userId: p.userId, name: p.firstName, avatarUrl: p.avatarUrl })),
+    routeBadgeLabel: candidate.matchType === 'route_passthrough' ? 'Sur votre trajet' : undefined,
   };
 
   return <DriverListCard theme={theme} bestMatch={bestMatch} data={data} onPress={onPress} />;
@@ -149,50 +149,32 @@ export default function ResultsScreen(): React.JSX.Element {
         }
       : undefined;
 
-  const { data: candidates, isLoading } = useMatchingSearchQuery(searchArgs ?? skipToken);
-  const noExactMatches = !isLoading && (candidates?.length ?? 0) === 0;
-  const { data: fallback, isFetching: isFallbackLoading } = useCorridorFallbackQuery(
-    !searchArgs || !noExactMatches ? skipToken : searchArgs,
-  );
+  // Phase 13 (docs/roadmap/phase-13-search-engine.md): one query, one
+  // server-side tiered cascade — replaces the old two-endpoint (matching/
+  // search + matching/corridor-fallback) client-orchestrated pair and its
+  // local "did the time drift?" banner heuristic with the server's own
+  // tier + ready-to-render `message`.
+  const { data: searchResult, isLoading } = useMatchingSearchQuery(searchArgs ?? skipToken);
+  const tier = searchResult?.tier;
   const [notifyMe, { isLoading: isNotifying, isSuccess: notified }] = useNotifyMeMutation();
   const showToast = useToast();
   const [showMap, setShowMap] = useState(false);
 
+  // Depends on `searchResult` itself (a stable RTK Query reference per
+  // cache entry), not `searchResult?.candidates ?? []` — the latter builds
+  // a fresh array on every render even when nothing changed, which would
+  // otherwise invalidate both memos below on every unrelated re-render.
   const sorted = useMemo(
     () =>
-      [...(candidates ?? [])].sort(
+      [...(searchResult?.candidates ?? [])].sort(
         (a, b) => new Date(a.departureAt).getTime() - new Date(b.departureAt).getTime(),
       ),
-    [candidates],
+    [searchResult],
   );
   const bestMatchId = useMemo(
-    () => [...(candidates ?? [])].sort((a, b) => b.score - a.score)[0]?.rideId,
-    [candidates],
+    () => [...(searchResult?.candidates ?? [])].sort((a, b) => b.score - a.score)[0]?.rideId,
+    [searchResult],
   );
-  const fallbackSorted = useMemo(
-    () =>
-      [...(fallback?.nearbyRides ?? [])].sort(
-        (a, b) => new Date(a.departureAt).getTime() - new Date(b.departureAt).getTime(),
-      ),
-    [fallback],
-  );
-  const fallbackBestMatchId = useMemo(
-    () => [...(fallback?.nearbyRides ?? [])].sort((a, b) => b.score - a.score)[0]?.rideId,
-    [fallback],
-  );
-
-  // Real per-candidate offsets (see toCardData) already tell the rider when
-  // a ride doesn't land exactly on their requested time — this banner only
-  // needs to say that a substitution happened, not repeat the number.
-  const showApproxBanner =
-    !isLoading &&
-    sorted.length > 0 &&
-    sorted.some((c) => {
-      if (!searchAt) return false;
-      return (
-        Math.abs(new Date(c.departureAt).getTime() - new Date(searchAt).getTime()) > 2 * 60_000
-      );
-    });
 
   async function handleNotifyMe(): Promise<void> {
     if (!origin || !destination) return;
@@ -210,12 +192,11 @@ export default function ResultsScreen(): React.JSX.Element {
     }
   }
 
-  const mapCandidates = sorted.length > 0 ? sorted : fallbackSorted;
   const mapRegion = useMemo(() => {
-    const points = mapCandidates.map((c) => ({ lat: c.originLat, lng: c.originLng }));
+    const points = sorted.map((c) => ({ lat: c.originLat, lng: c.originLng }));
     if (origin) points.push({ lat: origin.lat, lng: origin.lng });
     return regionForPoints(points);
-  }, [mapCandidates, origin]);
+  }, [sorted, origin]);
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -285,7 +266,7 @@ export default function ResultsScreen(): React.JSX.Element {
                   <View style={[styles.originDot, { backgroundColor: theme.accent, borderColor: theme.surface }]} />
                 </Marker>
               ) : null}
-              {mapCandidates.map((candidate) => (
+              {sorted.map((candidate) => (
                 <Marker
                   key={candidate.rideId}
                   coordinate={{ latitude: candidate.originLat, longitude: candidate.originLng }}
@@ -312,17 +293,20 @@ export default function ResultsScreen(): React.JSX.Element {
           </View>
         ) : sorted.length > 0 ? (
           <>
-            {showApproxBanner ? (
+            {searchResult?.message ? (
               <View
                 style={[
                   styles.banner,
                   { backgroundColor: theme.background, borderColor: theme.outlineVariant },
                 ]}
               >
-                <Icon name="information-circle-outline" size="sm" color={theme.inkFaint} />
+                <Icon
+                  name={tier === 'route_passthrough' ? 'git-network-outline' : 'information-circle-outline'}
+                  size="sm"
+                  color={theme.inkFaint}
+                />
                 <Text variant="bodySmall" color={theme.inkMuted} style={styles.bannerText}>
-                  Aucun trajet exactement à l&apos;heure demandée. Voici les correspondances les
-                  plus proches.
+                  {searchResult.message}
                 </Text>
               </View>
             ) : null}
@@ -341,67 +325,28 @@ export default function ResultsScreen(): React.JSX.Element {
                 />
               ))}
             </View>
-          </>
-        ) : isFallbackLoading ? (
-          <View style={styles.skeletonWrap}>
-            <SkeletonBlock height={140} style={styles.skeletonCard} />
-            <SkeletonBlock height={140} style={styles.skeletonCard} />
-          </View>
-        ) : fallbackSorted.length > 0 ? (
-          <>
-            <View
-              style={[
-                styles.banner,
-                { backgroundColor: theme.background, borderColor: theme.outlineVariant },
-              ]}
-            >
-              <Icon name="information-circle-outline" size="sm" color={theme.inkFaint} />
-              <Text variant="bodySmall" color={theme.inkMuted} style={styles.bannerText}>
-                {`Aucun trajet exactement à ${
-                  searchAt
-                    ? new Date(searchAt).toLocaleTimeString('fr-FR', {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })
-                    : "l'heure demandée"
-                }. Voici les correspondances les plus proches.`}
-              </Text>
-            </View>
 
-            <View style={styles.cardsCol}>
-              {fallbackSorted.map((candidate) => (
-                <RideResultCard
-                  key={candidate.rideId}
-                  theme={theme}
-                  bestMatch={candidate.rideId === fallbackBestMatchId}
-                  candidate={candidate}
-                  origin={origin}
-                  destination={destination}
-                  searchAt={searchAt}
-                  onPress={() => openDriver(candidate)}
-                />
-              ))}
-            </View>
-
-            <TouchableOpacity
-              style={[
-                styles.notifyButton,
-                {
-                  borderColor: theme.outline,
-                  opacity: isNotifying || notified ? 0.6 : 1,
-                },
-              ]}
-              onPress={() => void handleNotifyMe()}
-              disabled={isNotifying || notified}
-              accessibilityRole="button"
-              accessibilityLabel={
-                notified ? 'Nous vous préviendrons' : 'Me notifier si un trajet apparaît'
-              }
-            >
-              <Text variant="label" color={theme.ink} align="center">
-                {notified ? 'Nous vous préviendrons ✓' : 'Me notifier si un trajet apparaît'}
-              </Text>
-            </TouchableOpacity>
+            {tier && tier !== 'exact' ? (
+              <TouchableOpacity
+                style={[
+                  styles.notifyButton,
+                  {
+                    borderColor: theme.outline,
+                    opacity: isNotifying || notified ? 0.6 : 1,
+                  },
+                ]}
+                onPress={() => void handleNotifyMe()}
+                disabled={isNotifying || notified}
+                accessibilityRole="button"
+                accessibilityLabel={
+                  notified ? 'Nous vous préviendrons' : 'Me notifier si un trajet apparaît'
+                }
+              >
+                <Text variant="label" color={theme.ink} align="center">
+                  {notified ? 'Nous vous préviendrons ✓' : "Me notifier si un trajet apparaît à l'heure exacte"}
+                </Text>
+              </TouchableOpacity>
+            ) : null}
           </>
         ) : (
           <View style={styles.emptyWrap}>

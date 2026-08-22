@@ -32,6 +32,13 @@ export interface DriverListCardData {
   /** Real already-accepted fellow passengers on this ride (public,
    *  first-name-only) — omitted/empty renders the seat-count text instead. */
   passengers?: DriverListCardPassenger[];
+  /** Set only for a route-passthrough match (Phase 13, docs/roadmap/
+   *  phase-13-search-engine.md) — this driver isn't starting or ending at
+   *  the rider's points, their route just runs through them. A genuinely
+   *  different kind of result the rider should recognize at a glance, not
+   *  just a lower score, so it renders as a distinct badge rather than
+   *  folding into `timeOffsetNote`. */
+  routeBadgeLabel?: string;
 }
 
 interface DriverListCardProps {
@@ -122,6 +129,15 @@ export function DriverListCard({ data, bestMatch, onPress, theme }: DriverListCa
               {data.priceLabel}
             </Text>
           </View>
+
+          {data.routeBadgeLabel ? (
+            <View style={[styles.routeBadge, { backgroundColor: theme.accentGlow + '40' }]}>
+              <Icon name="git-network-outline" size="xs" color={theme.accentStrong} />
+              <Text variant="caption" color={theme.accentStrong} style={styles.routeBadgeLabel}>
+                {data.routeBadgeLabel}
+              </Text>
+            </View>
+          ) : null}
 
           {data.timeOffsetNote ? (
             <View style={[styles.noteBox, { backgroundColor: theme.background }]}>
@@ -223,6 +239,18 @@ const styles = StyleSheet.create({
   noteBox: {
     borderRadius: radii.sm,
     padding: spacing.sm,
+  },
+  routeBadge: {
+    flexDirection: 'row',
+    alignSelf: 'flex-start',
+    alignItems: 'center',
+    gap: 4,
+    borderRadius: radii.full,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 3,
+  },
+  routeBadgeLabel: {
+    fontWeight: '600',
   },
   routeBlock: {
     gap: 0,

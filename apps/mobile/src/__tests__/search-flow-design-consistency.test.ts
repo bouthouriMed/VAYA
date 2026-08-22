@@ -76,31 +76,44 @@ describe('search screens are fully on useAppTheme(), not the legacy static color
   });
 });
 
-describe('search/results.tsx: the no-exact-match fallback matches the Stitch reference', () => {
+// Phase 13 (docs/roadmap/phase-13-search-engine.md) replaced the old
+// client-orchestrated two-endpoint (matching/search + matching/
+// corridor-fallback) pair — a separate `fallbackSorted` list with its own
+// hardcoded banner text and a `fallbackBestMatchId` — with one server-tiered
+// `useMatchingSearchQuery` response (`{tier, candidates, message}`) and a
+// single rendering path. These assertions were rewritten for that
+// architecture rather than deleted, so a future regression back toward a
+// second hardcoded fallback list/banner still gets caught here.
+describe('search/results.tsx: non-exact tiers render through the same list, server-driven banner', () => {
   const source = readScreen('search/results.tsx');
 
-  it('shows the same "no exact time match" info banner the exact-match branch shows', () => {
-    expect(source).toContain('Aucun trajet exactement à');
-    expect(source).toContain('information-circle-outline');
+  it('renders the banner from the server-provided message, not a hardcoded client string', () => {
+    expect(source).toContain('searchResult?.message');
+    expect(source).not.toMatch(/Aucun trajet exactement à l['’]heure demandée[^`]*proches\./);
   });
 
-  it('computes a real best-match id for the fallback list from candidate score, not a hardcoded false', () => {
-    expect(source).toContain('fallbackBestMatchId');
+  it('computes a single best-match id from candidate score, not a hardcoded false', () => {
+    expect(source).toContain('bestMatchId');
     expect(source).toMatch(/sort\(\(a, b\) => b\.score - a\.score\)\[0\]\?\.rideId/);
-    expect(source).toContain('bestMatch={candidate.rideId === fallbackBestMatchId}');
+    expect(source).toContain('bestMatch={candidate.rideId === bestMatchId}');
     expect(source).not.toContain('bestMatch={false}');
   });
 
-  it('reserves EmptyState for the genuine zero-results case, not for wrapping real ride cards', () => {
+  it('reserves EmptyState for the genuine zero-results (tier "none") case, not for wrapping real ride cards', () => {
     const emptyStateBlock = /<EmptyState[\s\S]*?\/>/.exec(source)?.[0] ?? '';
     expect(emptyStateBlock).not.toContain('RideResultCard');
-    expect(emptyStateBlock).not.toContain('fallbackSorted.map');
+    expect(emptyStateBlock).not.toContain('.map');
   });
 
-  it('renders the fallback ride list through the same themed DriverListCard-backed component as exact matches', () => {
-    const fallbackBranch = /fallbackSorted\.length > 0 \? \([\s\S]*?\) : \(/.exec(source)?.[0] ?? '';
-    expect(fallbackBranch).toContain('RideResultCard');
-    expect(fallbackBranch).toContain('theme={theme}');
+  it('renders every tier\'s ride list through the same themed DriverListCard-backed component', () => {
+    const listBranch = /sorted\.length > 0 \? \([\s\S]*?\) : \(/.exec(source)?.[0] ?? '';
+    expect(listBranch).toContain('RideResultCard');
+    expect(listBranch).toContain('theme={theme}');
+  });
+
+  it('badges a route-passthrough match distinctly instead of folding it into the score alone', () => {
+    expect(source).toContain("candidate.matchType === 'route_passthrough'");
+    expect(source).toContain('routeBadgeLabel');
   });
 });
 

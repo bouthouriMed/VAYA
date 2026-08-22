@@ -20,6 +20,7 @@ export default function SearchLayout(): React.JSX.Element {
       <Stack.Screen name="reviews" options={{ headerShown: false, presentation: 'modal' }} />
       <Stack.Screen name="composer" options={{ headerShown: false, presentation: 'modal' }} />
       <Stack.Screen name="pickup-point" options={{ headerShown: false, presentation: 'modal' }} />
+      <Stack.Screen name="dropoff-point" options={{ headerShown: false, presentation: 'modal' }} />
     </Stack>
   );
 }

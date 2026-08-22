@@ -2,7 +2,7 @@ import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
 import { renderJSON } from './test-utils/renderJSON';
 import type { RootState } from '../state/store';
-import type { MatchCandidate } from '../state/api';
+import type { MatchCandidate, SearchResult } from '../state/api';
 import type ResultsScreenComponent from '../../app/search/results';
 import type { ToastProvider as ToastProviderComponent } from '@vaya/design-system';
 
@@ -28,10 +28,10 @@ async function loadScreen(): Promise<{
 /**
  * Real react-test-renderer snapshots of search/results.tsx (Stitch
  * reference: "Ride Results - Cleaned Nav", project "Vaya Passenger Journey
- * UX") across its four states — loading, exact match, the no-exact-match
- * fallback (the state that regressed: see the fix in this same commit —
- * fallback cards were hardcoding `bestMatch={false}` and skipping the
- * "no exact match" banner the Stitch reference always shows there), and
+ * UX") across its states — loading, exact match, the no-exact-match
+ * wide_corridor fallback (the server-tiered cascade, Phase 13, docs/
+ * roadmap/phase-13-search-engine.md — replaces the old two-endpoint
+ * matching/corridor-fallback pair this suite used to mock separately), and
  * the genuine zero-results empty state.
  */
 
@@ -49,6 +49,7 @@ const searchState: RootState['search'] = {
   searchAt: '2026-08-21T21:00:00.000Z',
   desiredDepartureAt: null,
   selectedStop: null,
+  selectedDropoffStop: null,
   passengers: 1,
 };
 
@@ -80,28 +81,24 @@ function candidate(overrides: Partial<MatchCandidate>): MatchCandidate {
     destinationLng: 10.18,
     routePolyline: null,
     rankedStops: [],
+    rankedDropoffStops: [],
     pickupViable: true,
+    dropoffViable: true,
+    matchType: 'endpoint',
     ...overrides,
   };
 }
 
-const fallbackCandidates: MatchCandidate[] = [
+const candidates: MatchCandidate[] = [
   candidate({ rideId: 'ride-1', driverFullName: 'Mehdi Gharbi', ratingAvg: 4.7, score: 0.9, departureAt: '2026-08-21T21:28:00.000Z' }),
   candidate({ rideId: 'ride-2', driverUserId: 'user-2', driverFullName: 'Youssef Trabelsi', ratingAvg: 4.8, score: 0.6, departureAt: '2026-08-21T21:58:00.000Z' }),
 ];
 
-function mockApi(state: {
-  matching?: { data?: MatchCandidate[]; isLoading?: boolean };
-  fallback?: { data?: { nearbyRides: MatchCandidate[]; demandSignalCount: number }; isFetching?: boolean };
-}): void {
+function mockApi(state: { matching?: { data?: SearchResult; isLoading?: boolean } }): void {
   vi.doMock('../state/api', () => ({
     useMatchingSearchQuery: () => ({
       data: state.matching?.data,
       isLoading: state.matching?.isLoading ?? false,
-    }),
-    useCorridorFallbackQuery: () => ({
-      data: state.fallback?.data,
-      isFetching: state.fallback?.isFetching ?? false,
     }),
     useNotifyMeMutation: () => [vi.fn(), { isLoading: false, isSuccess: false }],
     useListFellowPassengersQuery: () => ({ data: [] }),
@@ -126,7 +123,7 @@ describe('search/results.tsx snapshots', () => {
   it('renders exact matches with the top card flagged best-match', async () => {
     vi.resetModules();
     mockStore();
-    mockApi({ matching: { data: fallbackCandidates } });
+    mockApi({ matching: { data: { tier: 'exact', candidates, message: null } } });
     const { ResultsScreen, ToastProvider } = await loadScreen();
     const tree = renderJSON(
       <ToastProvider>
@@ -136,12 +133,18 @@ describe('search/results.tsx snapshots', () => {
     expect(tree).toMatchSnapshot();
   });
 
-  it('renders the no-exact-match fallback: banner + best-match tag on the top nearby card', async () => {
+  it('renders the wide_corridor fallback: server banner + best-match tag on the top card', async () => {
     vi.resetModules();
     mockStore();
     mockApi({
-      matching: { data: [] },
-      fallback: { data: { nearbyRides: fallbackCandidates, demandSignalCount: 0 } },
+      matching: {
+        data: {
+          tier: 'wide_corridor',
+          candidates,
+          message:
+            "Aucun trajet exactement à l'heure demandée près de vous. Voici les correspondances les plus proches.",
+        },
+      },
     });
     const { ResultsScreen, ToastProvider } = await loadScreen();
     const tree = renderJSON(
@@ -155,10 +158,7 @@ describe('search/results.tsx snapshots', () => {
   it('renders the genuine empty state with a notify-me action', async () => {
     vi.resetModules();
     mockStore();
-    mockApi({
-      matching: { data: [] },
-      fallback: { data: { nearbyRides: [], demandSignalCount: 0 } },
-    });
+    mockApi({ matching: { data: { tier: 'none', candidates: [], message: null } } });
     const { ResultsScreen, ToastProvider } = await loadScreen();
     const tree = renderJSON(
       <ToastProvider>
