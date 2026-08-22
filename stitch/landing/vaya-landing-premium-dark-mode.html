@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Vaya - Premium Mobility</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-container": "#001a42",
+                        "on-secondary-fixed-variant": "#005236",
+                        "secondary-fixed-dim": "#4edea3",
+                        "on-tertiary-fixed-variant": "#004395",
+                        "on-primary-fixed": "#131b2e",
+                        "on-secondary": "#ffffff",
+                        "surface-variant": "#d3e4fe",
+                        "error-container": "#ffdad6",
+                        "surface-container-low": "#eff4ff",
+                        "on-error": "#ffffff",
+                        "on-primary-container": "#7c839b",
+                        "tertiary-fixed-dim": "#adc6ff",
+                        "on-primary-fixed-variant": "#3f465c",
+                        "surface-tint": "#565e74",
+                        "inverse-on-surface": "#eaf1ff",
+                        "surface-container-high": "#dce9ff",
+                        "primary": "#000000",
+                        "on-secondary-container": "#00714d",
+                        "background": "#f8f9ff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-primary": "#ffffff",
+                        "surface-dim": "#cbdbf5",
+                        "secondary-fixed": "#6ffbbe",
+                        "on-error-container": "#93000a",
+                        "tertiary": "#000000",
+                        "on-secondary-fixed": "#002113",
+                        "on-background": "#0b1c30",
+                        "on-surface": "#0b1c30",
+                        "outline": "#76777d",
+                        "secondary": "#006c49",
+                        "on-surface-variant": "#45464d",
+                        "outline-variant": "#c6c6cd",
+                        "secondary-container": "#6cf8bb",
+                        "inverse-surface": "#213145",
+                        "inverse-primary": "#bec6e0",
+                        "primary-container": "#131b2e",
+                        "on-tertiary-fixed": "#001a42",
+                        "on-tertiary-container": "#3980f4",
+                        "surface": "#f8f9ff",
+                        "surface-bright": "#f8f9ff",
+                        "on-tertiary": "#ffffff",
+                        "error": "#ba1a1a",
+                        "surface-container": "#e5eeff",
+                        "primary-fixed-dim": "#bec6e0",
+                        "tertiary-fixed": "#d8e2ff",
+                        "surface-container-highest": "#d3e4fe",
+                        "primary-fixed": "#dae2fd"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-lg": "24px",
+                        "stack-sm": "8px",
+                        "touch-target": "48px",
+                        "gutter-grid": "16px",
+                        "stack-md": "16px",
+                        "margin-main": "20px"
+                    },
+                    "fontFamily": {
+                        "label-md": ["Inter"],
+                        "label-lg": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "headline-sm": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "body-md": ["Inter"],
+                        "body-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "label-md": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+                        "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "headline-lg": ["30px", { "lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "headline-sm": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "headline-lg-mobile": ["26px", { "lineHeight": "32px", "fontWeight": "700" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .bg-glass {
+            background: rgba(19, 27, 46, 0.4);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .glow-text {
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+        }
+    </style>
+</head>
+<body class="bg-primary-container text-on-primary-fixed min-h-screen flex flex-col relative overflow-hidden font-sans">
+<div class="absolute inset-0 z-0">
+<img class="w-full h-full object-cover opacity-80 mix-blend-overlay" data-alt="Cinematic, moody interior shot of a luxury electric vehicle at dusk, focusing on premium materials, dark leather, and subtle ambient lighting, reflecting a sophisticated, high-end mobility experience in a modern urban setting." src="https://lh3.googleusercontent.com/aida/AEtjO1VZ9HuGkoFdHdGuBPDZKn4am3eOlmKFEFba9g1VL5ZniwypP4_X4cQSXdcLTMVbjWjiz6J16wjcqBTSwXhu9mjM8xHxtDAIy5vld2yfjflPSCEBV59nbE57eg5OwUrG19zOWMbIEzcycvQA9NrsetafWUwAGMBuS2wVUCUFJt8TJWjLpgvdf59JdcfFgIztckP0E8urmYEnWeY_JVGzSz-S2Yj6x3pICb0SIBzvPF5m85RIaIwuXqaRfn4"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary-container via-primary-container/80 to-transparent"></div>
+<div class="absolute inset-0 bg-gradient-to-b from-primary-container/50 to-transparent"></div>
+</div>
+<div class="relative z-10 flex-1 flex flex-col justify-between px-margin-main pb-safe pt-12">
+<header class="flex justify-center w-full mt-8 animate-fade-in-up">
+<h1 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-secondary tracking-wider uppercase font-extrabold glow-text">
+                Vaya
+            </h1>
+</header>
+<main class="w-full max-w-md mx-auto flex flex-col gap-stack-lg mb-8 animate-fade-in-up" style="animation-delay: 0.2s;">
+<div class="text-center mb-4">
+<h2 class="font-headline-md text-headline-md text-on-secondary mb-2">Elevate Your Journey.</h2>
+<p class="font-body-md text-body-md text-primary-fixed-dim">Experience seamless, premium mobility at your fingertips.</p>
+</div>
+<div class="bg-glass rounded-xl p-stack-lg flex flex-col gap-stack-md shadow-2xl">
+<button class="w-full h-touch-target flex items-center justify-center gap-3 bg-surface-container-lowest/10 hover:bg-surface-container-lowest/20 transition-colors border border-outline/30 rounded-lg text-on-secondary font-label-lg text-label-lg active:scale-95 duration-150">
+<span class="material-symbols-outlined text-on-secondary">login</span>
+                    Continue with Google
+                </button>
+<button class="w-full h-touch-target flex items-center justify-center gap-3 bg-surface-container-lowest/10 hover:bg-surface-container-lowest/20 transition-colors border border-outline/30 rounded-lg text-on-secondary font-label-lg text-label-lg active:scale-95 duration-150">
+<span class="material-symbols-outlined text-on-secondary">qr_code_2</span>
+                    Continue with Facebook
+                </button>
+<div class="flex items-center gap-4 my-2 opacity-50">
+<div class="h-px bg-outline-variant flex-1"></div>
+<span class="font-label-md text-label-md text-inverse-primary uppercase tracking-widest">or</span>
+<div class="h-px bg-outline-variant flex-1"></div>
+</div>
+<button class="w-full h-touch-target bg-inverse-primary text-primary-container font-label-lg text-label-lg rounded-lg hover:opacity-90 transition-opacity active:scale-95 duration-150 shadow-[0_4px_14px_0_rgba(190,198,224,0.39)]">
+                    Sign In with Email
+                </button>
+</div>
+<div class="text-center mt-4">
+<p class="font-body-sm text-body-sm text-primary-fixed-dim">
+                    New to Vaya? <a class="text-secondary-fixed-dim font-medium hover:underline underline-offset-4 transition-all" href="#">Create an account</a>
+</p>
+</div>
+</main>
+</div>
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const elements = document.querySelectorAll('.animate-fade-in-up');
+            elements.forEach((el, index) => {
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(20px)';
+                el.style.transition = `opacity 0.6s ease-out ${index * 0.15}s, transform 0.6s ease-out ${index * 0.15}s`;
+                
+                setTimeout(() => {
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateY(0)';
+                }, 50);
+            });
+        });
+    </script>
+</body></html>

@@ -14,6 +14,7 @@ import {
   Text,
   Icon,
   GlassSurface,
+  StepProgress,
   useAppTheme,
   spacing,
   radii,
@@ -225,9 +226,7 @@ export default function SelfieCaptureScreen(): React.JSX.Element {
           </Text>
           <View style={styles.headerSpacer} />
         </View>
-        <View style={[styles.progressTrack, { backgroundColor: theme.outlineVariant }]}>
-          <View style={[styles.progressFill, { backgroundColor: theme.ink }]} />
-        </View>
+        <StepProgress currentStep={4} totalSteps={4} theme={theme} />
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
@@ -325,15 +324,6 @@ const styles = StyleSheet.create({
   },
   headerSpacer: {
     width: spacing.xl,
-  },
-  progressTrack: {
-    height: 2,
-    borderRadius: radii.full,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    width: '100%',
   },
   content: {
     padding: spacing.lg,

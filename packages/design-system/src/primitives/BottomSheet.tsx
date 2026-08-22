@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Dimensions, KeyboardAvoidingView, Platform, StyleSheet, TouchableWithoutFeedback, View, Modal as RNModal } from 'react-native';
+import { BackHandler, Dimensions, KeyboardAvoidingView, Platform, StyleSheet, TouchableWithoutFeedback, View, Modal as RNModal } from 'react-native';
 import { GestureDetector, Gesture, GestureHandlerRootView } from 'react-native-gesture-handler';
 import type { PanGesture } from 'react-native-gesture-handler';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring, withTiming, runOnJS } from 'react-native-reanimated';
@@ -36,6 +36,33 @@ interface BottomSheetProps {
 
 const DISMISS_DRAG_PX = 100;
 const DISMISS_VELOCITY = 800;
+
+/**
+ * Whether a finished pan is a genuine dismiss gesture. Vertical intent must
+ * DOMINATE on both position and velocity — not merely clear the thresholds.
+ *
+ * This is the fix for the calendar-sheets regression: DateCalendarSheet's
+ * month-swipe (failOffsetY 15) and this sheet's dismiss drag (activeOffsetY
+ * 10) race on every touch, and a rightward month-swipe with slight downward
+ * drift can cross dy>10 first — the month gesture then FAILS (its own
+ * failOffsetY), which unblocks ours via requireExternalGestureToFail, and a
+ * long diagonal accumulates >100px of translationY even though the user's
+ * intent was horizontal. Thresholds alone closed the whole sheet on that
+ * swipe; requiring |ty|>|tx| (and |vy|>|vx| for flicks) makes dismissal
+ * impossible unless the gesture was really vertical.
+ */
+export function isDismissalDrag(e: {
+  translationX: number;
+  translationY: number;
+  velocityX: number;
+  velocityY: number;
+}): boolean {
+  const verticalDrag =
+    e.translationY > DISMISS_DRAG_PX && Math.abs(e.translationY) > Math.abs(e.translationX);
+  const verticalFlick =
+    e.velocityY > DISMISS_VELOCITY && Math.abs(e.velocityY) > Math.abs(e.velocityX);
+  return verticalDrag || verticalFlick;
+}
 // damping must be >= ~2*sqrt(stiffness) (here ~26.8) to be critically damped;
 // the previous {18, 180} was well underdamped, so the open animation flew
 // past translateY 0 and visibly bounced back down into place instead of
@@ -92,6 +119,24 @@ export function BottomSheet({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible]);
 
+  // While the sheet is open, hardware/system back (including Android's
+  // edge-swipe back gesture) must close THIS sheet and nothing else —
+  // returning true consumes the event so it can never reach react
+  // navigation's handler and pop the screen (or tab stack) underneath.
+  // BackHandler dispatch is LIFO, so this later-registered subscription
+  // always wins over the navigator's. The RNModal's own onRequestClose is
+  // kept as a second net; this explicit handler is the one that actually
+  // guarantees exclusivity on predictive-back devices.
+  useEffect(() => {
+    if (!visible) return;
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      close();
+      return true;
+    });
+    return () => sub.remove();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visible]);
+
   function close(): void {
     'worklet';
     translateY.value = withTiming(sheetHeight, { duration: 220 }, (finished) => {
@@ -111,7 +156,12 @@ export function BottomSheet({
     .activeOffsetY(10)
     .failOffsetX([-15, 15])
     .onUpdate((e) => {
-      if (e.translationY > 0) translateY.value = e.translationY;
+      // Only follow the finger while vertical intent dominates — a
+      // horizontal-leaning touch (calendar month-swipe with drift, see
+      // isDismissalDrag) must never drag the sheet down even visually.
+      if (e.translationY > 0 && Math.abs(e.translationY) > Math.abs(e.translationX)) {
+        translateY.value = e.translationY;
+      }
     })
     .onEnd((e, success) => {
       // gesture-handler still invokes onEnd when a gesture never actually
@@ -122,7 +172,7 @@ export function BottomSheet({
       // swipe) were still evaluated against the dismiss thresholds, closing
       // the sheet on a drag that was never a vertical drag at all.
       if (!success) return;
-      if (e.translationY > DISMISS_DRAG_PX || e.velocityY > DISMISS_VELOCITY) {
+      if (isDismissalDrag(e)) {
         close();
       } else {
         translateY.value = withSpring(0, SPRING_CONFIG);

@@ -313,7 +313,7 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
   footer: {
-    marginTop: spacing.md,
+    marginTop: spacing['4xl'],
   },
   confirmBtn: {
     height: 48,

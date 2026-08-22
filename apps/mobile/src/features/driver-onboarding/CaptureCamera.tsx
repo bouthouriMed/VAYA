@@ -4,7 +4,7 @@ import { CameraView, useCameraPermissions, type CameraType } from 'expo-camera';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Svg, { Circle, Path } from 'react-native-svg';
-import { Text, Icon, useAppTheme, spacing, radii, type IconName } from '@vaya/design-system';
+import { Text, Icon, StepProgress, useAppTheme, spacing, radii, type IconName } from '@vaya/design-system';
 
 export type CaptureGuideShape = 'document' | 'face';
 
@@ -223,14 +223,7 @@ export function CaptureCamera({
           </Text>
           <View style={styles.headerSpacer} />
         </View>
-        <View style={[styles.progressTrack, { backgroundColor: theme.outlineVariant }]}>
-          <View
-            style={[
-              styles.progressFill,
-              { backgroundColor: theme.ink, width: `${(currentStep / totalSteps) * 100}%` },
-            ]}
-          />
-        </View>
+        <StepProgress currentStep={currentStep} totalSteps={totalSteps} theme={theme} />
       </View>
 
       <View style={styles.body}>
@@ -352,14 +345,6 @@ const styles = StyleSheet.create({
   },
   headerSpacer: {
     width: spacing.xl,
-  },
-  progressTrack: {
-    height: 2,
-    borderRadius: radii.full,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
   },
   body: {
     flex: 1,

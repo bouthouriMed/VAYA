@@ -22,6 +22,8 @@ interface InputProps extends Omit<TextInputProps, 'style'> {
    *  regardless of the surrounding screen's theme. Unused (and defaulting
    *  to the legacy look) anywhere this primitive hasn't been migrated yet. */
   theme?: AppPalette;
+  /** Style applied to the underlying TextInput (last, so callers win). */
+  style?: StyleProp<TextStyle>;
 }
 
 export function Input({
@@ -32,7 +34,6 @@ export function Input({
   theme,
   onFocus,
   onBlur,
-  theme,
   ...props
 }: InputProps): React.JSX.Element {
   const [isFocused, setIsFocused] = useState(false);
@@ -60,6 +61,7 @@ export function Input({
           !theme && isFocused && styles.inputFocused,
           !theme && error ? styles.inputError : null,
           theme && error ? { borderColor: errorColor } : null,
+          style,
         ]}
         placeholderTextColor={placeholderColor}
         onFocus={(e) => {

@@ -10,7 +10,16 @@ import {
   AccessibilityInfo,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Text, Icon, Input, GlassSurface, useAppTheme, spacing, radii } from '@vaya/design-system';
+import {
+  Text,
+  Icon,
+  Input,
+  GlassSurface,
+  StepProgress,
+  useAppTheme,
+  spacing,
+  radii,
+} from '@vaya/design-system';
 import { router } from 'expo-router';
 import { useAppDispatch, useAppSelector } from '../../../src/state/store';
 import { setVehicleDraft } from '../../../src/state/driverOnboardingSlice';
@@ -77,19 +86,12 @@ export default function VehicleStepScreen(): React.JSX.Element {
           >
             <Icon name="arrow-back" size="sm" color={theme.ink} />
           </TouchableOpacity>
-          <Text variant="h3" color={theme.ink} style={styles.headerTitle}>
+          <Text variant="caption" color={theme.inkFaint} style={styles.headerStepLabel}>
             Étape 1 sur {TOTAL_STEPS}
           </Text>
           <View style={styles.headerSpacer} />
         </View>
-        <View style={[styles.progressTrack, { backgroundColor: theme.outlineVariant }]}>
-          <View
-            style={[
-              styles.progressFill,
-              { backgroundColor: theme.ink, width: `${(1 / TOTAL_STEPS) * 100}%` },
-            ]}
-          />
-        </View>
+        <StepProgress currentStep={1} totalSteps={TOTAL_STEPS} theme={theme} />
       </View>
 
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
@@ -205,20 +207,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  headerTitle: {
+  headerStepLabel: {
     flex: 1,
     textAlign: 'center',
+    textTransform: 'uppercase',
+    letterSpacing: 1.5,
   },
   headerSpacer: {
     width: spacing.xl,
-  },
-  progressTrack: {
-    height: 2,
-    borderRadius: radii.full,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
   },
   content: {
     padding: spacing.lg,

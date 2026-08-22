@@ -281,7 +281,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   footer: {
-    marginTop: spacing.lg,
+    marginTop: spacing['4xl'],
   },
   confirmBtn: {
     height: 52,

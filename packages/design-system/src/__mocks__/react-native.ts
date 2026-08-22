@@ -25,13 +25,17 @@ const I18nManager = {
 // nothing has opted into AppThemeProvider's device-scheme following.
 const useColorScheme = (): 'light' | 'dark' | null => null;
 
-// Skeleton.tsx is the only consumer — a real animated value isn't needed
-// for a snapshot (which captures one static frame), just something that
-// doesn't throw when `.setValue`/interpolation-adjacent code touches it.
+// Skeleton.tsx / StepProgress.tsx are the consumers — a real animated
+// value isn't needed for a snapshot (which captures one static frame),
+// just something that doesn't throw when `.setValue`/`.interpolate`
+// code touches it.
 class AnimatedValue {
   constructor(private value: number) {}
   setValue(value: number): void {
     this.value = value;
+  }
+  interpolate(): string {
+    return '0%';
   }
 }
 const Animated = {
@@ -42,6 +46,26 @@ const Animated = {
   sequence: () => ({ start: () => {}, stop: () => {} }),
   parallel: () => ({ start: () => {}, stop: () => {} }),
   loop: () => ({ start: () => {}, stop: () => {} }),
+};
+
+// Identity-style stand-ins — configs only ever pass through timing() stubs.
+const Easing = {
+  out: <T,>(easing: T): T => easing,
+  in: <T,>(easing: T): T => easing,
+  inOut: <T,>(easing: T): T => easing,
+  cubic: 'cubic' as const,
+};
+
+// StepProgress.tsx checks the OS reduce-motion setting to skip its wipe.
+const AccessibilityInfo = {
+  isReduceMotionEnabled: async (): Promise<boolean> => false,
+};
+
+// BottomSheet.tsx registers a hardware-back consumer while open. No back
+// events are ever dispatched in tests; the subscription just needs to
+// exist and be removable.
+const BackHandler = {
+  addEventListener: () => ({ remove: () => {} }),
 };
 
 const Text = 'Text';
@@ -106,6 +130,9 @@ export {
   StyleSheet,
   I18nManager,
   Animated,
+  Easing,
+  AccessibilityInfo,
+  BackHandler,
   useColorScheme,
   Text,
   View,
