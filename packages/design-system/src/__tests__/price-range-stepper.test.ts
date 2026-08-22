@@ -41,6 +41,24 @@ describe('PriceRangeStepper', () => {
     expect(track.props.accessibilityValue).toEqual({ min: 5, max: 10, now: 6 });
   });
 
+  it('rounds accessibilityValue to integers for a fractional DT price — a non-integer here crashes Fabric', () => {
+    // Real-world case: a long route's server-computed bounds/recommendation
+    // can legitimately be fractional DT (e.g. 176.5), unlike this test
+    // suite's other round-number fixtures.
+    const element = PriceRangeStepper({
+      min: 150.5,
+      max: 210,
+      recommended: 176.5,
+      value: 176.5,
+      onChange: vi.fn(),
+    });
+    const track = element.props.children[2];
+    expect(track.props.accessibilityValue).toEqual({ min: 151, max: 210, now: 177 });
+    expect(Number.isInteger(track.props.accessibilityValue.min)).toBe(true);
+    expect(Number.isInteger(track.props.accessibilityValue.max)).toBe(true);
+    expect(Number.isInteger(track.props.accessibilityValue.now)).toBe(true);
+  });
+
   it('disables the decrement button at the min bound and the increment button at the max bound', () => {
     const atMin = PriceRangeStepper({ min: 5, max: 10, recommended: 7, value: 5, onChange: vi.fn() });
     const atMinRow = atMin.props.children[1];

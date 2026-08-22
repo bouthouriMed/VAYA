@@ -110,7 +110,13 @@ export function PriceRangeStepper({
         accessible
         accessibilityRole="adjustable"
         accessibilityLabel={label}
-        accessibilityValue={{ min, max, now: clamped }}
+        // React Native's accessibilityValue bridges min/max/now to a native
+        // integer type — a fractional DT amount here (e.g. a recommended
+        // price of 176.5) crashes Fabric's prop conversion with "Loss of
+        // precision during arithmetic conversion". Rounding is accessibility
+        // metadata only; the real (possibly fractional) price is still what
+        // renders and what's submitted.
+        accessibilityValue={{ min: Math.round(min), max: Math.round(max), now: Math.round(clamped) }}
       >
         <View style={[styles.recommendedMarker, { left: `${recommendedRatio * 100}%` }]} />
         <View style={[styles.fill, { width: `${ratio * 100}%` }]} />
