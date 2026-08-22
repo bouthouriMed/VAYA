@@ -169,11 +169,17 @@ function checkInnerCall(callNode, localFns, context) {
   }
 }
 
-function inspectWorkletCallbacks(context, callNode, filterArgs) {
+function inspectWorkletCallbacks(context, reportedCalls, callNode, filterArgs) {
   const args = filterArgs(callNode);
   const localFns = collectLocalFunctions(context.sourceCode.ast);
   for (const arg of args) {
-    walkCalls(arg.body, (inner) => checkInnerCall(inner, localFns, context));
+    walkCalls(arg.body, (inner) => {
+      // A call can sit inside several nested worklet contexts (e.g. a
+      // withTiming completion inside an .onEnd handler) — report once.
+      if (reportedCalls.has(inner)) return;
+      reportedCalls.add(inner);
+      checkInnerCall(inner, localFns, context);
+    });
   }
 }
 
@@ -187,6 +193,7 @@ export default {
     },
   },
   create(context) {
+    const reportedCalls = new Set();
     return {
       CallExpression(node) {
         const callee = node.callee;
@@ -198,7 +205,12 @@ export default {
           callee.property.type === 'Identifier' &&
           GESTURE_CALLBACK_METHODS.has(callee.property.name)
         ) {
-          inspectWorkletCallbacks(context, node, (call) => call.arguments.filter(isFunctionNode));
+          inspectWorkletCallbacks(
+            context,
+            reportedCalls,
+            node,
+            (call) => call.arguments.filter(isFunctionNode)
+          );
           return;
         }
 
@@ -206,13 +218,23 @@ export default {
 
         // Case 2: reanimated hooks taking worklet function arguments
         if (WORKLET_HOOK_NAMES.has(callee.name)) {
-          inspectWorkletCallbacks(context, node, (call) => call.arguments.filter(isFunctionNode));
+          inspectWorkletCallbacks(
+            context,
+            reportedCalls,
+            node,
+            (call) => call.arguments.filter(isFunctionNode)
+          );
           return;
         }
 
         // Case 3: animation builders whose completion callback is a worklet
         if (ANIMATION_BUILDER_NAMES.has(callee.name)) {
-          inspectWorkletCallbacks(context, node, (call) => call.arguments.filter(isFunctionNode));
+          inspectWorkletCallbacks(
+            context,
+            reportedCalls,
+            node,
+            (call) => call.arguments.filter(isFunctionNode)
+          );
         }
       },
     };
