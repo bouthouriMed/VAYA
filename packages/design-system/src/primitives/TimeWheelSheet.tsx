@@ -29,7 +29,7 @@ export interface TimeWheelSheetProps {
   title?: string;
 }
 
-const ITEM_HEIGHT = 56;
+const ITEM_HEIGHT = 50;
 const VISIBLE_COUNT = 3;
 const WHEEL_HEIGHT = ITEM_HEIGHT * VISIBLE_COUNT;
 const PADDING = ITEM_HEIGHT * Math.floor(VISIBLE_COUNT / 2);
@@ -230,7 +230,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.xs,
     paddingVertical: spacing.md,
-    marginBottom: spacing.md,
   },
   summaryValue: {
     textAlign: 'center',

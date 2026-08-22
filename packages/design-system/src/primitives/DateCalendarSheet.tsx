@@ -1,7 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { GestureDetector, Gesture } from 'react-native-gesture-handler';
-import Animated, { useSharedValue, useAnimatedStyle, withTiming, runOnJS } from 'react-native-reanimated';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  runOnJS,
+} from 'react-native-reanimated';
 import { BottomSheet } from './BottomSheet';
 import { Text } from './Text';
 import { Icon } from './Icon';
@@ -37,11 +42,14 @@ export function DateCalendarSheet({
 }: DateCalendarSheetProps): React.JSX.Element {
   const { colors: theme } = useAppTheme();
   const now = useMemo(() => new Date(), []);
-  const [monthAnchor, setMonthAnchor] = useState(() => new Date(value.getFullYear(), value.getMonth(), 1));
+  const [monthAnchor, setMonthAnchor] = useState(
+    () => new Date(value.getFullYear(), value.getMonth(), 1),
+  );
   const [selected, setSelected] = useState(() => startOfDay(value));
 
   const grid = useMemo(() => buildMonthGrid(monthAnchor, now), [monthAnchor, now]);
-  const isCurrentMonth = monthAnchor.getFullYear() === now.getFullYear() && monthAnchor.getMonth() === now.getMonth();
+  const isCurrentMonth =
+    monthAnchor.getFullYear() === now.getFullYear() && monthAnchor.getMonth() === now.getMonth();
 
   // Re-syncs to the live `value` every time the sheet opens — `selected`/
   // `monthAnchor`'s useState initializers only run once, at this
@@ -149,99 +157,110 @@ export function DateCalendarSheet({
       }
     >
       <View style={styles.monthRow}>
-            <Text variant="h2" color={theme.ink}>
-              {formatMonthLabel(monthAnchor)}
-            </Text>
-            <View style={styles.monthNav}>
+        <Text variant="h2" color={theme.ink}>
+          {formatMonthLabel(monthAnchor)}
+        </Text>
+        <View style={styles.monthNav}>
+          <TouchableOpacity
+            onPress={() => goToMonth(-1)}
+            disabled={isCurrentMonth}
+            style={[
+              styles.navBtn,
+              { borderColor: theme.outlineVariant },
+              isCurrentMonth && styles.navBtnDisabled,
+            ]}
+            accessibilityRole="button"
+            accessibilityLabel="Mois précédent"
+          >
+            <Icon
+              name="chevron-back"
+              size="sm"
+              color={isCurrentMonth ? theme.outlineVariant : theme.inkMuted}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => goToMonth(1)}
+            style={[styles.navBtn, { borderColor: theme.outlineVariant }]}
+            accessibilityRole="button"
+            accessibilityLabel="Mois suivant"
+          >
+            <Icon name="chevron-forward" size="sm" color={theme.ink} />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <View style={styles.weekdayRow}>
+        {['L', 'M', 'M', 'J', 'V', 'S', 'D'].map((label, i) => (
+          <Text
+            key={`${label}-${i}`}
+            variant="caption"
+            color={theme.inkFaint}
+            style={[styles.weekdayCell, i >= 5 && styles.weekendLabel]}
+          >
+            {label}
+          </Text>
+        ))}
+      </View>
+
+      <GestureDetector gesture={monthSwipeGesture}>
+        <Animated.View style={[styles.grid, gridAnimatedStyle]}>
+          {grid.map((cell) => {
+            if (!cell.isCurrentMonth) {
+              return <View key={cell.date.toISOString()} style={styles.cell} />;
+            }
+            const isSelected = isSameDay(cell.date, selected);
+            return (
               <TouchableOpacity
-                onPress={() => goToMonth(-1)}
-                disabled={isCurrentMonth}
+                key={cell.date.toISOString()}
+                disabled={cell.isPast}
+                onPress={() => setSelected(startOfDay(cell.date))}
                 style={[
-                  styles.navBtn,
-                  { borderColor: theme.outlineVariant },
-                  isCurrentMonth && styles.navBtnDisabled,
+                  styles.cell,
+                  isSelected
+                    ? { backgroundColor: theme.ink }
+                    : cell.isToday
+                      ? {
+                          backgroundColor: theme.outlineVariant,
+                          borderWidth: 2,
+                          borderColor: theme.outlineVariant,
+                        }
+                      : null,
                 ]}
                 accessibilityRole="button"
-                accessibilityLabel="Mois précédent"
+                accessibilityLabel={cell.date.toLocaleDateString('fr-FR', {
+                  day: 'numeric',
+                  month: 'long',
+                })}
+                accessibilityState={{ selected: isSelected, disabled: cell.isPast }}
               >
-                <Icon name="chevron-back" size="sm" color={isCurrentMonth ? theme.outlineVariant : theme.inkMuted} />
+                <Text
+                  variant="body"
+                  color={isSelected ? theme.onInk : cell.isPast ? theme.outlineVariant : theme.ink}
+                  style={(isSelected || cell.isToday) && styles.cellTextBold}
+                >
+                  {cell.date.getDate()}
+                </Text>
+                {cell.isToday && !isSelected ? (
+                  <View style={[styles.todayDot, { backgroundColor: theme.ink }]} />
+                ) : null}
               </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => goToMonth(1)}
-                style={[styles.navBtn, { borderColor: theme.outlineVariant }]}
-                accessibilityRole="button"
-                accessibilityLabel="Mois suivant"
-              >
-                <Icon name="chevron-forward" size="sm" color={theme.ink} />
-              </TouchableOpacity>
-            </View>
-          </View>
+            );
+          })}
+        </Animated.View>
+      </GestureDetector>
 
-          <View style={styles.weekdayRow}>
-            {['L', 'M', 'M', 'J', 'V', 'S', 'D'].map((label, i) => (
-              <Text
-                key={`${label}-${i}`}
-                variant="caption"
-                color={theme.inkFaint}
-                style={[styles.weekdayCell, i >= 5 && styles.weekendLabel]}
-              >
-                {label}
-              </Text>
-            ))}
-          </View>
-
-          <GestureDetector gesture={monthSwipeGesture}>
-            <Animated.View style={[styles.grid, gridAnimatedStyle]}>
-              {grid.map((cell) => {
-                if (!cell.isCurrentMonth) {
-                  return <View key={cell.date.toISOString()} style={styles.cell} />;
-                }
-                const isSelected = isSameDay(cell.date, selected);
-                return (
-                  <TouchableOpacity
-                    key={cell.date.toISOString()}
-                    disabled={cell.isPast}
-                    onPress={() => setSelected(startOfDay(cell.date))}
-                    style={[
-                      styles.cell,
-                      isSelected
-                        ? { backgroundColor: theme.ink }
-                        : cell.isToday
-                          ? { backgroundColor: theme.outlineVariant, borderWidth: 2, borderColor: theme.outlineVariant }
-                          : null,
-                    ]}
-                    accessibilityRole="button"
-                    accessibilityLabel={cell.date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}
-                    accessibilityState={{ selected: isSelected, disabled: cell.isPast }}
-                  >
-                    <Text
-                      variant="body"
-                      color={isSelected ? theme.onInk : cell.isPast ? theme.outlineVariant : theme.ink}
-                      style={(isSelected || cell.isToday) && styles.cellTextBold}
-                    >
-                      {cell.date.getDate()}
-                    </Text>
-                    {cell.isToday && !isSelected ? (
-                      <View style={[styles.todayDot, { backgroundColor: theme.ink }]} />
-                    ) : null}
-                  </TouchableOpacity>
-                );
-              })}
-            </Animated.View>
-          </GestureDetector>
-
-          <View style={styles.footer}>
-            <TouchableOpacity
-              onPress={confirm}
-              style={[styles.confirmBtn, { backgroundColor: theme.ink }]}
-              accessibilityRole="button"
-              accessibilityLabel="Confirmer la date"
-            >
-              <Text variant="label" color={theme.onInk}>
-                Confirmer la date
-              </Text>
-            </TouchableOpacity>
-          </View>
+      <View style={styles.footer}>
+        <TouchableOpacity
+          onPress={confirm}
+          style={[styles.confirmBtn, { backgroundColor: theme.ink }]}
+          accessibilityRole="button"
+          accessibilityLabel="Confirmer la date"
+        >
+          <Text variant="label" color={theme.onInk}>
+            Confirmer la date
+          </Text>
+        </TouchableOpacity>
+      </View>
     </BottomSheet>
   );
 }
@@ -253,6 +272,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     width: '100%',
     paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.md
   },
   headerSpacer: {
     width: 32,
@@ -272,6 +292,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingVertical: spacing.sm,
+    paddingLeft: spacing.lg,
     marginBottom: spacing.sm,
   },
   monthNav: {

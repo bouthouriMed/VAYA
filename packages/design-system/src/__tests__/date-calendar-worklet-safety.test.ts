@@ -52,3 +52,30 @@ describe('DateCalendarSheet month-swipe UI-thread safety', () => {
     expect(codeOnly).not.toMatch(/goToMonth\(/);
   });
 });
+
+describe('BottomSheet drag-dismiss UI-thread safety', () => {
+  it("isDismissalDrag carries a 'worklet' directive (called from dragGesture.onEnd)", () => {
+    // Second incident of the same crash class: extracting this helper out
+    // of .onEnd for testability dropped its worklet directive, so swipe-
+    // down-to-dismiss killed the process silently on iOS.
+    const source = read('BottomSheet.tsx');
+    const fnIndex = source.indexOf('export function isDismissalDrag(');
+    expect(fnIndex).toBeGreaterThan(-1);
+    const bodyStart = source.indexOf('{', fnIndex);
+    const body = source.slice(bodyStart, bodyStart + 200);
+    expect(body).toMatch(/'worklet'/);
+  });
+
+  it('dragGesture.onEnd only calls worklets or runOnJS targets', () => {
+    const source = read('BottomSheet.tsx');
+    const onEndIndex = source.indexOf('.onEnd((e, success)');
+    expect(onEndIndex).toBeGreaterThan(-1);
+    const blockEnd = source.indexOf('const sheetAnimatedStyle', onEndIndex);
+    const gestureBlock = source.slice(onEndIndex, blockEnd);
+    // The only locally-declared functions reachable from onEnd are
+    // isDismissalDrag and close — both must be invoked by name here (so the
+    // other guard's directive check applies to what actually runs).
+    expect(gestureBlock).toMatch(/isDismissalDrag\(e\)/);
+    expect(gestureBlock).toMatch(/close\(\)/);
+  });
+});

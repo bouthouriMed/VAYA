@@ -1,8 +1,23 @@
 import React, { useEffect } from 'react';
-import { BackHandler, Dimensions, KeyboardAvoidingView, Platform, StyleSheet, TouchableWithoutFeedback, View, Modal as RNModal } from 'react-native';
+import {
+  BackHandler,
+  Dimensions,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+  TouchableWithoutFeedback,
+  View,
+  Modal as RNModal,
+} from 'react-native';
 import { GestureDetector, Gesture, GestureHandlerRootView } from 'react-native-gesture-handler';
 import type { PanGesture } from 'react-native-gesture-handler';
-import Animated, { useSharedValue, useAnimatedStyle, withSpring, withTiming, runOnJS } from 'react-native-reanimated';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withTiming,
+  runOnJS,
+} from 'react-native-reanimated';
 import { BlurView } from 'expo-blur';
 import { Text } from './Text';
 import { colors, radii, spacing, elevation } from '../tokens/index';
@@ -215,7 +230,12 @@ export function BottomSheet({
              *  Android has no real compositor blur without this flag; the
              *  tinted `backdrop` background underneath is what carries the
              *  effect there instead. */}
-            <BlurView intensity={30} tint="dark" experimentalBlurMethod="dimezisBlurView" style={StyleSheet.absoluteFillObject} />
+            <BlurView
+              intensity={30}
+              tint="dark"
+              experimentalBlurMethod="dimezisBlurView"
+              style={StyleSheet.absoluteFillObject}
+            />
           </Animated.View>
         </TouchableWithoutFeedback>
         <KeyboardAvoidingView
@@ -239,7 +259,9 @@ export function BottomSheet({
               ]}
             >
               <View style={styles.handleArea}>
-                <View style={[styles.handle, theme ? { backgroundColor: theme.outlineVariant } : null]} />
+                <View
+                  style={[styles.handle, theme ? { backgroundColor: theme.outlineVariant } : null]}
+                />
                 {headerContent ??
                   (title ? (
                     <Text variant="h3" color={theme?.ink} style={styles.title}>

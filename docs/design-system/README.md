@@ -84,7 +84,13 @@ Platform-branched (iOS shadow props vs. Android `elevation`), 5 levels none→xl
 
 ## Motion & haptics
 
-`haptics` (`utils/haptics.ts`, exported from the package root) wraps `expo-haptics` with four semantic calls — `haptics.success()`, `.selection()`, `.warning()`, `.error()` — each fire-and-forget (haptic hardware absence is not an error). Wired into OTP verification, booking requests, and ride publishing (both their success and error paths) as of Phase 2; extend to new mutation flows as they're built rather than calling `expo-haptics` directly. `react-native-reanimated`/`react-native-gesture-handler` remain unused by the design system — `BottomSheet`, `Modal`, `Toast`, and `Skeleton`'s animations all use core RN `Animated`/`PanResponder` instead (see Component inventory above for why).
+`haptics` (`utils/haptics.ts`, exported from the package root) wraps `expo-haptics` with four semantic calls — `haptics.success()`, `.selection()`, `.warning()`, `.error()` — each fire-and-forget (haptic hardware absence is not an error). Wired into OTP verification, booking requests, and ride publishing (both their success and error paths) as of Phase 2; extend to new mutation flows as they're built rather than calling `expo-haptics` directly. *(Historical note corrected 2026-08: this section previously claimed reanimated/gesture-handler were unused by the design system — true when written, false since `BottomSheet` was rebuilt on RNGH + reanimated, with `DateCalendarSheet`'s month swipe following the same stack.)*
+
+## Gesture & worklet contract
+
+`react-native-gesture-handler` gesture-builder callbacks (`.onBegin/.onStart/.onUpdate/.onEnd/.onFinalize/.onTouches*`) and `react-native-reanimated` worklet contexts (`useAnimatedStyle`, `useDerivedValue`, `useAnimatedReaction`, `useFrameCallback`, plus the completion callbacks of `withTiming`/`withSpring`/...) are auto-workletized by babel and execute **on the UI thread**. Inside them you may only touch shared values, call reanimated injectables (`withTiming`, `interpolate`, ...), call platform builtins, call another `'worklet'`-marked function, or hand off to the JS thread via `runOnJS(fn)(...)`.
+
+This is enforced statically: `@vaya/eslint-config` ships `vaya/no-non-worklet-calls-in-gesture-callbacks` (**error**) which flags any locally-declared function called from a worklet context without a `'worklet'` directive. Respect it absolutely: a violation throws on the UI thread where there is no redbox — on iOS/Fabric the process dies and the app silently bounces to the home screen, with nothing in Metro logs. This exact failure shipped twice (calendar month-swipe, sheet drag-to-dismiss); both times the code passed every unit/snapshot test because those run on the JS thread and never drive real gestures. Extracting a helper out of a gesture callback for testability is the known trap — add the directive or wrap with `runOnJS`, and let lint tell you if you forgot.
 
 ## Accessibility
 
