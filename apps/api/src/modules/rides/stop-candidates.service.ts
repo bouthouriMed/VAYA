@@ -458,6 +458,79 @@ export async function updateDriverStopSelection(
   });
 }
 
+export interface CustomStopInput {
+  label: string;
+  lat: number;
+  lng: number;
+  /** A pickup pin sits near the ride's origin, so it must sort before
+   *  every generated candidate; a dropoff pin sits near the destination,
+   *  so it sorts after all of them — sequence is what listSelectedRideStops'
+   *  route-order-based consumers (ride-details.tsx's timeline, the
+   *  driver's own stop list) rely on for correct ordering. */
+  role: 'pickup' | 'dropoff';
+}
+
+/** Pure so the ordering rule is directly unit-testable without a DB —
+ *  a pickup pin always sorts before every existing stop, a dropoff pin
+ *  always sorts after, regardless of how many candidates exist or
+ *  whether this is the first custom stop added for the ride. */
+export function computeCustomStopSequence(
+  existingSequences: number[],
+  role: 'pickup' | 'dropoff',
+): number {
+  return role === 'pickup'
+    ? (existingSequences.length > 0 ? Math.min(...existingSequences) : 0) - 1
+    : (existingSequences.length > 0 ? Math.max(...existingSequences) : 0) + 1;
+}
+
+/**
+ * Persists a freehand pickup/dropoff pin that didn't match any generated
+ * route_stop candidate — Publish Explorer spec §7's "place it yourself"
+ * path. Without this, a custom pin was display-only local state that
+ * vanished the moment the driver left the publish screen: absent from the
+ * ride's own stop list, invisible to the passenger matching/booking flow
+ * (which reads route_stops, not the driver's ephemeral publish-screen
+ * state), and absent from the driver's own ride-hub screen. Marked
+ * `isDriverSelected: true` immediately — a custom pin the driver just
+ * placed and confirmed IS the offer, there's no separate "generated, not
+ * yet chosen" state for it the way there is for route-sampled candidates.
+ */
+export async function addCustomStop(
+  db: Database,
+  rideId: string,
+  userId: string,
+  input: CustomStopInput,
+): Promise<RouteStopRow> {
+  await getDriverOwnedRideOrThrow(db, rideId, userId);
+
+  const existing = await db.query.routeStops.findMany({
+    where: eq(routeStops.rideId, rideId),
+  });
+  const sequence = computeCustomStopSequence(
+    existing.map((s) => s.sequence),
+    input.role,
+  );
+
+  const [inserted] = await db
+    .insert(routeStops)
+    .values({
+      rideId,
+      sequence,
+      label: input.label,
+      lat: input.lat,
+      lng: input.lng,
+      roadSnapped: false,
+      deviationMeters: 0,
+      deviationSeconds: 0,
+      suitabilityScore: 1,
+      roadClass: null,
+      isDriverSelected: true,
+    })
+    .returning();
+  if (!inserted) throw new Error('Failed to insert custom stop');
+  return inserted;
+}
+
 /** Public/passenger-facing shape: only the driver's actually-selected
  *  stops (docs/domain/ride-engine.md's API surface). */
 export async function listSelectedRideStops(db: Database, rideId: string): Promise<RouteStopRow[]> {

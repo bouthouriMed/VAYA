@@ -9,6 +9,8 @@ import {
   Icon,
   Avatar,
   MapCanvas,
+  PickupPin,
+  DropoffPin,
   useAppTheme,
   spacing,
   radii,
@@ -128,14 +130,23 @@ export default function RideDetailsScreen(): React.JSX.Element {
   const pickupLabel = pickupStop?.label ?? selectedStop?.label ?? candidate?.rankedStops[0]?.label ?? ride?.originLabel;
   const pickupWalkMinutes = candidate?.pickupWalkMinutes;
   // A route-passthrough match (Phase 13, docs/roadmap/phase-13-search-engine.md)
-  // may have a dropoff stop chosen on search/dropoff-point.tsx instead of
-  // riding all the way to the ride's own destination — falls back to the
-  // ride's real destination exactly as every booking behaved before dropoff
+  // may have a dropoff stop the passenger explicitly chose on
+  // search/dropoff-point.tsx. For a plain endpoint match there's no such
+  // passenger choice to make, but the RIDE itself may still have a real
+  // driver-confirmed dropoff stop (the second of the pickup/dropoff pair
+  // Publish's map-selection flow persists) — falling back straight to
+  // ride.destinationLabel skipped that real, more precise point entirely.
+  // Only once neither exists does this fall back to the ride's own
+  // general destination, exactly as every booking behaved before dropoff
   // stops existed.
-  const dropoffStopId = selectedDropoffStop?.stopId;
-  const dropoffLabel = selectedDropoffStop?.label ?? ride?.destinationLabel;
-  const dropoffLat = selectedDropoffStop?.lat ?? ride?.destinationLat;
-  const dropoffLng = selectedDropoffStop?.lng ?? ride?.destinationLng;
+  const rideDropoffStop = useMemo(() => {
+    if (!stops || stops.length === 0) return undefined;
+    return [...stops].sort((a, b) => b.sequence - a.sequence)[0];
+  }, [stops]);
+  const dropoffStopId = selectedDropoffStop?.stopId ?? rideDropoffStop?.id;
+  const dropoffLabel = selectedDropoffStop?.label ?? rideDropoffStop?.label ?? ride?.destinationLabel;
+  const dropoffLat = selectedDropoffStop?.lat ?? rideDropoffStop?.lat ?? ride?.destinationLat;
+  const dropoffLng = selectedDropoffStop?.lng ?? rideDropoffStop?.lng ?? ride?.destinationLng;
 
   // Driver-selected stops that come after the passenger's pickup point (and
   // before their dropoff point, when one is chosen) on the route and aren't
@@ -279,10 +290,25 @@ export default function RideDetailsScreen(): React.JSX.Element {
             {routeCoordinates.length > 1 ? (
               <Polyline coordinates={routeCoordinates} strokeColor={theme.ink} strokeWidth={4} />
             ) : null}
-            <Marker coordinate={{ latitude: ride.originLat, longitude: ride.originLng }} anchor={{ x: 0.5, y: 0.5 }}>
-              <View style={[styles.originDot, { backgroundColor: theme.accent, borderColor: theme.surface }]} />
-            </Marker>
-            {stops?.map((stop) => (
+            {/* The real pickup point when one is resolved (a driver-
+             *  confirmed route_stop) — the premium PickupPin, same as
+             *  everywhere else this concept renders. Falls back to a plain
+             *  origin dot only when no real stop exists yet. */}
+            {pickupStop ? (
+              <Marker
+                coordinate={{ latitude: pickupStop.lat, longitude: pickupStop.lng }}
+                anchor={{ x: 0.5, y: 0.5 }}
+              >
+                <PickupPin theme={theme} />
+              </Marker>
+            ) : (
+              <Marker coordinate={{ latitude: ride.originLat, longitude: ride.originLng }} anchor={{ x: 0.5, y: 0.5 }}>
+                <View style={[styles.originDot, { backgroundColor: theme.accent, borderColor: theme.surface }]} />
+              </Marker>
+            )}
+            {/* Genuine pass-through waypoints only — pickup/dropoff get
+             *  their own dedicated pins below, not this neutral dot. */}
+            {intermediateStops.map((stop) => (
               <Marker
                 key={stop.id}
                 coordinate={{ latitude: stop.lat, longitude: stop.lng }}
@@ -295,7 +321,11 @@ export default function RideDetailsScreen(): React.JSX.Element {
               coordinate={{ latitude: dropoffLat ?? ride.destinationLat, longitude: dropoffLng ?? ride.destinationLng }}
               anchor={{ x: 0.5, y: 0.5 }}
             >
-              <View style={[styles.destDot, { backgroundColor: theme.ink, borderColor: theme.surface }]} />
+              {dropoffStop || selectedDropoffStop ? (
+                <DropoffPin theme={theme} />
+              ) : (
+                <View style={[styles.destDot, { backgroundColor: theme.ink, borderColor: theme.surface }]} />
+              )}
             </Marker>
           </MapCanvas>
 
@@ -478,11 +508,38 @@ export default function RideDetailsScreen(): React.JSX.Element {
       >
         <View style={[styles.routeModal, { backgroundColor: theme.background }]}>
           <MapCanvas region={routeRegion} style={styles.routeModalMap}>
-            <Marker coordinate={{ latitude: ride.originLat, longitude: ride.originLng }} anchor={{ x: 0.5, y: 0.5 }}>
-              <View style={[styles.originDot, { backgroundColor: theme.accent, borderColor: theme.surface }]} />
+            <Marker
+              coordinate={
+                pickupStop
+                  ? { latitude: pickupStop.lat, longitude: pickupStop.lng }
+                  : { latitude: ride.originLat, longitude: ride.originLng }
+              }
+              anchor={{ x: 0.5, y: 0.5 }}
+            >
+              {pickupStop ? (
+                <PickupPin theme={theme} />
+              ) : (
+                <View style={[styles.originDot, { backgroundColor: theme.accent, borderColor: theme.surface }]} />
+              )}
             </Marker>
-            <Marker coordinate={{ latitude: ride.destinationLat, longitude: ride.destinationLng }} anchor={{ x: 0.5, y: 0.5 }}>
-              <View style={[styles.destDot, { backgroundColor: theme.ink, borderColor: theme.surface }]} />
+            {intermediateStops.map((stop) => (
+              <Marker
+                key={stop.id}
+                coordinate={{ latitude: stop.lat, longitude: stop.lng }}
+                anchor={{ x: 0.5, y: 0.5 }}
+              >
+                <View style={[styles.stopDot, { backgroundColor: theme.surface, borderColor: theme.ink }]} />
+              </Marker>
+            ))}
+            <Marker
+              coordinate={{ latitude: dropoffLat ?? ride.destinationLat, longitude: dropoffLng ?? ride.destinationLng }}
+              anchor={{ x: 0.5, y: 0.5 }}
+            >
+              {dropoffStop || selectedDropoffStop ? (
+                <DropoffPin theme={theme} />
+              ) : (
+                <View style={[styles.destDot, { backgroundColor: theme.ink, borderColor: theme.surface }]} />
+              )}
             </Marker>
             {routeCoordinates.length > 1 ? (
               <Polyline coordinates={routeCoordinates} strokeColor={theme.ink} strokeWidth={4} />

@@ -173,6 +173,13 @@ export default function DriverRideHubScreen(): React.JSX.Element {
   // nothing to show here then).
   const selectedStops = [...(stops ?? [])].sort((a, b) => a.sequence - b.sequence);
   const arrivalLabel = ride ? estimateArrivalLabel(ride.departureAt, ride.estimatedDurationSec) : null;
+  // The map's premium pickup/dropoff pins only make sense for the normal
+  // exactly-2-stops shape (same rule the "Points de rendez-vous" section
+  // below uses for role labels) — anything else falls back to MapPreview's
+  // plain origin/destination dots rather than guessing which of >2 stops
+  // is "the" pickup or dropoff.
+  const pickupStop = selectedStops.length === 2 ? selectedStops[0] : undefined;
+  const dropoffStop = selectedStops.length === 2 ? selectedStops[1] : undefined;
 
   if (isRideLoading) {
     return (
@@ -218,6 +225,9 @@ export default function DriverRideHubScreen(): React.JSX.Element {
           badge={badge.label}
           origin={{ latitude: ride.originLat, longitude: ride.originLng }}
           destination={{ latitude: ride.destinationLat, longitude: ride.destinationLng }}
+          pickup={pickupStop ? { latitude: pickupStop.lat, longitude: pickupStop.lng } : undefined}
+          dropoff={dropoffStop ? { latitude: dropoffStop.lat, longitude: dropoffStop.lng } : undefined}
+          theme={theme}
           routeCoordinates={routeCoordinates}
           style={styles.map}
         />

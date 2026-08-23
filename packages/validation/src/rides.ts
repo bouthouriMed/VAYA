@@ -52,3 +52,16 @@ export const updateRideStopsSchema = z
   )
   .max(50);
 export type UpdateRideStopsInput = z.infer<typeof updateRideStopsSchema>;
+
+// A freehand pickup/dropoff pin that didn't match any generated route_stop
+// candidate — publish.tsx's map-selection flow (Publish Explorer spec §7).
+// Persisted as a real route_stop (roadSnapped: false, isDriverSelected:
+// true immediately — see stop-candidates.service.ts's addCustomStop) so it
+// shows up everywhere a real stop does: the driver's own ride hub, the
+// passenger's matching/booking flow. Previously these were display-only
+// and vanished the moment the driver left the publish screen.
+export const addCustomStopSchema = z.object({
+  ...pointSchema,
+  role: z.enum(['pickup', 'dropoff']),
+});
+export type AddCustomStopInput = z.infer<typeof addCustomStopSchema>;

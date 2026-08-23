@@ -1,7 +1,12 @@
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
-import { createRideSchema, updateRideSchema, updateRideStopsSchema } from '@vaya/validation';
+import {
+  createRideSchema,
+  updateRideSchema,
+  updateRideStopsSchema,
+  addCustomStopSchema,
+} from '@vaya/validation';
 import { RIDE_STATUSES } from '@vaya/domain';
 import { getDatabase } from '../../lib/database.js';
 import { getUserId } from '../../lib/auth-context.js';
@@ -18,6 +23,7 @@ import {
   updateDriverStopSelection,
   listSelectedRideStops,
   listRideStopsForDriver,
+  addCustomStop,
 } from './stop-candidates.service.js';
 
 const rideSchema = z.object({
@@ -208,6 +214,27 @@ export async function ridesRoutes(fastify: FastifyInstance): Promise<void> {
         request.body,
       );
       reply.send(stops);
+    },
+  );
+
+  // A freehand pickup/dropoff pin that didn't match any generated
+  // candidate — persists it as a real, immediately-selected route_stop
+  // (stop-candidates.service.ts's addCustomStop) rather than leaving it as
+  // display-only publish-screen state that vanishes once the driver
+  // navigates away.
+  app.post(
+    '/rides/:rideId/stops/custom',
+    {
+      onRequest: [fastify.authenticate],
+      schema: {
+        params: rideIdParamSchema,
+        body: addCustomStopSchema,
+        response: { 200: routeStopSchema },
+      },
+    },
+    async (request, reply) => {
+      const stop = await addCustomStop(db, request.params.rideId, getUserId(request), request.body);
+      reply.send(stop);
     },
   );
 

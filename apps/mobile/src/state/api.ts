@@ -559,6 +559,7 @@ export const api = createApi({
     'Me',
     'DriverProfile',
     'MyRides',
+    'RideStops',
     'MyBookings',
     'RideRequests',
     'Notifications',
@@ -710,12 +711,30 @@ export const api = createApi({
         method: 'PATCH',
         body: selections,
       }),
+      invalidatesTags: (result, error, { rideId }) => [{ type: 'RideStops', id: rideId }],
+    }),
+    // A freehand pickup/dropoff pin that didn't match any generated
+    // candidate (publish.tsx's map-selection flow) — persists it as a
+    // real, immediately-selected route_stop instead of leaving it as
+    // display-only screen state that vanishes on navigation. See
+    // rides.service.ts's addCustomStop doc comment for the full reasoning.
+    addCustomStop: builder.mutation<
+      RouteStop,
+      { rideId: string; label: string; lat: number; lng: number; role: 'pickup' | 'dropoff' }
+    >({
+      query: ({ rideId, ...body }) => ({
+        url: `/rides/${rideId}/stops/custom`,
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: (result, error, { rideId }) => [{ type: 'RideStops', id: rideId }],
     }),
     // Public, passenger-facing: only the driver-selected stops (no `?all=true`),
     // for the ride-details.tsx stop timeline — the same list a passenger's
     // pickup selection is drawn from, just for a single already-chosen ride.
     getRideStops: builder.query<RouteStop[], string>({
       query: (rideId) => `/rides/${rideId}/stops`,
+      providesTags: (result, error, rideId) => [{ type: 'RideStops', id: rideId }],
     }),
 
     createBooking: builder.mutation<Booking, { rideId: string; input: CreateBookingInput }>({
@@ -890,6 +909,7 @@ export const {
   usePublishRideMutation,
   useGenerateCandidateStopsMutation,
   useUpdateRideStopsMutation,
+  useAddCustomStopMutation,
   useGetRideStopsQuery,
   useCreateBookingMutation,
   useListFellowPassengersQuery,
