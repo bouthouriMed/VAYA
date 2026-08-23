@@ -74,6 +74,12 @@ const TUNIS_REGION: MapRegion = {
   latitudeDelta: 0.045,
   longitudeDelta: 0.045,
 };
+// The card's height while pickup/dropoff selection is active — just tall
+// enough for its handle + confirm row + CTA (title/instructions moved to
+// the map overlay, see the selection top bar below). The map takes
+// everything above this, never the full screen — leaving zero room here
+// was the bug that made the confirm bar invisible.
+const SELECTION_CARD_HEIGHT = 168;
 
 type Step = 'form' | 'price' | 'review';
 
@@ -403,7 +409,10 @@ export default function PublishTabScreen(): React.JSX.Element {
   const effectiveHeight = containerHeight || windowHeight;
   const mapHeight = mapAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [effectiveHeight * MAP_HEIGHT_RATIO, effectiveHeight],
+    outputRange: [
+      effectiveHeight * MAP_HEIGHT_RATIO,
+      Math.max(effectiveHeight - SELECTION_CARD_HEIGHT, effectiveHeight * MAP_HEIGHT_RATIO),
+    ],
   });
 
   function focusMapOn(point: { lat: number; lng: number }): void {
@@ -494,6 +503,19 @@ export default function PublishTabScreen(): React.JSX.Element {
     if (destination && !dropoff) points.push({ lat: destination.lat, lng: destination.lng });
     return regionForPoints(points);
   }, [routeCoordinates, pickup, dropoff, origin, destination]);
+
+  // Camera control for the collapsed/preview state is imperative (ref +
+  // animateToRegion), same as the pickup/dropoff phase's own camera moves
+  // — never the declarative `region` prop. react-native-maps doesn't
+  // reliably let go of control when a controlled `region` prop flips to
+  // undefined (switching modes), which is what made the map ignore user
+  // panning during selection: it kept snapping back toward the last
+  // controlled value instead of following the drag.
+  useEffect(() => {
+    if (mapMode !== 'none' || !journeyMapRegion) return;
+    isProgrammaticMapMove.current = true;
+    mapRef.current?.animateToRegion(journeyMapRegion, 400);
+  }, [journeyMapRegion, mapMode]);
   // Recommended points for each map-selection phase (§6/§10): the real,
   // road-snapped candidates nearest the relevant anchor, plus the anchor
   // itself — never fabricated. Recomputes live as `candidates` streams in
@@ -1170,7 +1192,7 @@ export default function PublishTabScreen(): React.JSX.Element {
           ref={mapRef}
           provider={PROVIDER_DEFAULT}
           style={StyleSheet.absoluteFillObject}
-          region={isMapExpanded ? undefined : (journeyMapRegion ?? TUNIS_REGION)}
+          initialRegion={journeyMapRegion ?? TUNIS_REGION}
           scrollEnabled={isMapExpanded}
           zoomEnabled={isMapExpanded}
           pitchEnabled={false}
@@ -1234,6 +1256,37 @@ export default function PublishTabScreen(): React.JSX.Element {
 
         <StatusBarBlend theme={theme} scheme={scheme} height={insets.top - spacing.sm} />
 
+        {isMapExpanded ? (
+          // World-class-map-app convention (Google Maps/Uber's own pin-drop
+          // screens): a small back button + a short, glanceable instruction
+          // pill sit ON the map near the top, right where the user is
+          // already looking while they drag — not buried in the card below,
+          // which is reserved for the confirm action alone.
+          <View style={[styles.selectionTopBar, { paddingTop: insets.top + spacing.sm }]} pointerEvents="box-none">
+            <TouchableOpacity
+              onPress={() => setMapMode(mapMode === 'dropoff' ? 'pickup' : 'none')}
+              hitSlop={12}
+              style={[styles.roundBtn, { backgroundColor: theme.surface, shadowColor: theme.ink }]}
+              accessibilityRole="button"
+              accessibilityLabel="Retour"
+            >
+              <Icon name="arrow-back" size="sm" color={theme.ink} />
+            </TouchableOpacity>
+            <GlassSurface theme={theme} scheme={scheme} radius="lg" style={styles.selectionInstructionCard}>
+              <Text variant="label" color={theme.ink}>
+                {mapMode === 'pickup' ? 'Point de rendez-vous' : 'Point de dépose'}
+              </Text>
+              <Text variant="caption" color={theme.inkMuted}>
+                {isGeneratingStops
+                  ? 'Recherche de suggestions…'
+                  : osrmUnavailable
+                    ? 'Suggestions indisponibles — placez le point vous-même.'
+                    : 'Choisissez un point suggéré ou placez-le vous-même.'}
+              </Text>
+            </GlassSurface>
+          </View>
+        ) : null}
+
         {isMapExpanded ? null : (
           // Same dissolve-into-page fade explore.tsx uses, minus the "Vaya"
           // wordmark (that's home-tab brand chrome, not part of the map+
@@ -1263,32 +1316,6 @@ export default function PublishTabScreen(): React.JSX.Element {
 
       {isMapExpanded ? (
         <View style={styles.selectionCardContent}>
-          <View style={styles.selectionHeaderRow}>
-            <TouchableOpacity
-              onPress={() => setMapMode(mapMode === 'dropoff' ? 'pickup' : 'none')}
-              hitSlop={12}
-              accessibilityRole="button"
-              accessibilityLabel="Retour"
-            >
-              <Icon name="arrow-back" size="sm" color={theme.ink} />
-            </TouchableOpacity>
-            <Text variant="label" color={theme.ink} style={styles.selectionHeaderTitle}>
-              {mapMode === 'pickup' ? 'Point de rendez-vous' : 'Point de dépose'}
-            </Text>
-          </View>
-          <Text variant="caption" color={theme.inkMuted}>
-            Choisissez un point suggéré ou placez-le vous-même.
-          </Text>
-          {isGeneratingStops ? (
-            <Text variant="caption" color={theme.inkFaint}>
-              Recherche de suggestions…
-            </Text>
-          ) : osrmUnavailable ? (
-            <Text variant="caption" color={theme.inkFaint}>
-              Suggestions indisponibles pour le moment — placez le point vous-même.
-            </Text>
-          ) : null}
-
           <View style={[styles.selectionConfirmRow, { borderColor: theme.outlineVariant }]}>
             <View style={[styles.confirmIcon, { backgroundColor: theme.surfaceMuted }]}>
               {isResolvingPointLabel ? (
@@ -1525,6 +1552,35 @@ const styles = StyleSheet.create({
     bottom: 0,
     height: 32,
   },
+  // The pickup/dropoff phase's own top overlay — back button + a short
+  // instruction pill, both riding on the map itself (§7: guidance belongs
+  // near where the user is already looking, not buried in the card).
+  selectionTopBar: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.sm,
+    paddingHorizontal: spacing.md,
+  },
+  roundBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  selectionInstructionCard: {
+    flex: 1,
+    padding: spacing.md,
+    gap: 2,
+  },
   card: {
     borderTopLeftRadius: radii['2xl'],
     borderTopRightRadius: radii['2xl'],
@@ -1559,14 +1615,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.sm,
     gap: spacing.sm,
-  },
-  selectionHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  selectionHeaderTitle: {
-    flex: 1,
   },
   selectionConfirmRow: {
     flexDirection: 'row',
