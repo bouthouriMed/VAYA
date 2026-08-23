@@ -10,6 +10,7 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import MapView, { Marker, Polyline, PROVIDER_DEFAULT, type Region } from 'react-native-maps';
+import Reanimated, { useSharedValue, useAnimatedStyle, withTiming, runOnJS } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -266,7 +267,12 @@ export default function PublishTabScreen(): React.JSX.Element {
   // screen/component. Driven purely by `mapMode` (no pan gesture on the
   // sheet itself — that's what broke last time: a draggable sheet that
   // could get stuck collapsed). `mapAnim` 0 = collapsed, 1 = expanded.
-  const mapAnim = useRef(new Animated.Value(0)).current;
+  // Reanimated (UI-thread-driven), not RN core Animated — animating layout
+  // height via the JS bridge on a view that hosts a native MapView is a
+  // real iOS crash source (Apple Maps' own layout fighting bridge-driven
+  // relayout every frame); Android tolerates it, iOS doesn't. Matches
+  // BottomSheet.tsx's own proven Reanimated pattern.
+  const mapAnim = useSharedValue(0);
   const [containerHeight, setContainerHeight] = useState(0);
   const mapRef = useRef<MapView>(null);
   const isProgrammaticMapMove = useRef(false);
@@ -380,20 +386,18 @@ export default function PublishTabScreen(): React.JSX.Element {
   // animation needed on the card itself.
   useEffect(() => {
     if (mapMode === 'none') {
-      Animated.timing(mapAnim, { toValue: 0, duration: 380, useNativeDriver: false }).start();
+      mapAnim.value = withTiming(0, { duration: 380 });
       return;
     }
     if (!activeAnchor) return;
     setSelectedPointId('anchor');
     setSelectionCenter({ lat: activeAnchor.lat, lng: activeAnchor.lng });
     setCustomPointLabel(null);
-    Animated.timing(mapAnim, { toValue: 1, duration: 380, useNativeDriver: false }).start(({ finished }) => {
+    const anchor = activeAnchor;
+    mapAnim.value = withTiming(1, { duration: 380 }, (finished) => {
+      'worklet';
       if (!finished) return;
-      isProgrammaticMapMove.current = true;
-      mapRef.current?.animateToRegion(
-        { latitude: activeAnchor.lat, longitude: activeAnchor.lng, latitudeDelta: 0.01, longitudeDelta: 0.01 },
-        350,
-      );
+      runOnJS(focusMapOn)(anchor);
     });
     // Only re-runs when the phase itself changes, not on every unrelated
     // re-render (activeAnchor is derived from origin/destination, which
@@ -407,13 +411,11 @@ export default function PublishTabScreen(): React.JSX.Element {
   // device window, or the map would overshoot past the tab bar. Falls back
   // to windowHeight only for the brief instant before the first onLayout.
   const effectiveHeight = containerHeight || windowHeight;
-  const mapHeight = mapAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [
-      effectiveHeight * MAP_HEIGHT_RATIO,
-      Math.max(effectiveHeight - SELECTION_CARD_HEIGHT, effectiveHeight * MAP_HEIGHT_RATIO),
-    ],
-  });
+  const collapsedMapHeight = effectiveHeight * MAP_HEIGHT_RATIO;
+  const expandedMapHeight = Math.max(effectiveHeight - SELECTION_CARD_HEIGHT, collapsedMapHeight);
+  const mapSectionAnimatedStyle = useAnimatedStyle(() => ({
+    height: collapsedMapHeight + (expandedMapHeight - collapsedMapHeight) * mapAnim.value,
+  }));
 
   function focusMapOn(point: { lat: number; lng: number }): void {
     isProgrammaticMapMove.current = true;
@@ -741,6 +743,39 @@ export default function PublishTabScreen(): React.JSX.Element {
     setStep('review');
   }
 
+  // Publishing leaves this whole local state stack behind for the driver's
+  // NEXT ride — the tab screen stays mounted (Expo Router keeps tab
+  // screens alive), so without this a driver returning to Publier saw the
+  // just-published ride's review screen instead of a clean form. Mirrors
+  // the origin/destination-change invalidation effect's reset, plus
+  // everything that effect doesn't touch (step/seats/departureAt/etc).
+  function resetWizard(): void {
+    dispatch(resetSearch());
+    setDepartureAt(new Date(Date.now() + 30 * 60_000));
+    setSeats(3);
+    setErrorMessage(undefined);
+    setStep('form');
+    setRideId(null);
+    setRidePolyline(null);
+    setPricing(null);
+    setRouteIsEstimate(false);
+    setEstimatedDurationSec(null);
+    setPrice(0);
+    setCandidates([]);
+    setIsGeneratingStops(false);
+    setOsrmUnavailable(false);
+    setMapMode('none');
+    setPickup(null);
+    setDropoff(null);
+    setSelectedPointId('anchor');
+    setSelectionCenter(null);
+    setCustomPointLabel(null);
+    setIsDraggingPin(false);
+    setIsVerificationPromptVisible(false);
+    rideBuiltFromRef.current = null;
+    mapAnim.value = 0;
+  }
+
   async function publishNow(): Promise<void> {
     if (!rideId) return;
     if (!pickup?.stopId && !dropoff?.stopId) {
@@ -753,6 +788,7 @@ export default function PublishTabScreen(): React.JSX.Element {
       // a driver's first published ride is a real reason to ask — never
       // blocks navigation, and is a silent no-op after the first prompt.
       void requestPushPermissionAndRegister((args) => registerPushToken(args).unwrap());
+      resetWizard();
       router.replace('/(tabs)/trips');
     } catch {
       haptics.error();
@@ -1187,7 +1223,7 @@ export default function PublishTabScreen(): React.JSX.Element {
        *  component/screen. Interactive (scroll/zoom/pan) only while a
        *  selection phase is active; a static, non-interactive preview the
        *  rest of the time, exactly like explore.tsx's map. */}
-      <Animated.View style={[styles.mapSection, { height: mapHeight }]}>
+      <Reanimated.View style={[styles.mapSection, mapSectionAnimatedStyle]}>
         <MapView
           ref={mapRef}
           provider={PROVIDER_DEFAULT}
@@ -1298,7 +1334,7 @@ export default function PublishTabScreen(): React.JSX.Element {
             style={styles.mapFade}
           />
         )}
-      </Animated.View>
+      </Reanimated.View>
 
       <View
         style={[
