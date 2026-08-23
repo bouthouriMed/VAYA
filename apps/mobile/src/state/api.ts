@@ -864,6 +864,7 @@ export const {
   useGeocodePlaceDetailsQuery,
   useLazyGeocodePlaceDetailsQuery,
   useGeocodeReverseQuery,
+  useLazyGeocodeReverseQuery,
   useMatchingSearchQuery,
   useLazyMatchingSearchQuery,
   useNotifyMeMutation,

@@ -8,18 +8,16 @@ import {
   Animated,
   AccessibilityInfo,
 } from 'react-native';
-import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps';
+import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Text,
-  DriverMapPin,
   MapRoute,
   BottomSheet,
+  ExplorerSheet,
   DateCalendarSheet,
   TimeWheelSheet,
   GlassSurface,
-  EmptyState,
-  SkeletonBlock,
   PriceRangeStepper,
   Icon,
   useAppTheme,
@@ -53,12 +51,11 @@ import {
 import { decodePolyline } from '../../src/utils/polyline';
 import { trackEvent } from '../../src/services/analytics/analytics';
 import { requestPushPermissionAndRegister } from '../../src/services/notifications/registerForPushNotifications';
-import {
-  toggleStopSelection,
-  buildStopSelectionPayload,
-} from '../../src/features/driver-publish/stopSelection';
+import { buildStopSelectionPayload } from '../../src/features/driver-publish/stopSelection';
 import { resolveInitialPrice } from '../../src/features/driver-publish/priceSelection';
 import { isVerifiedDriver } from '../../src/features/driver-publish/verificationGate';
+import { buildRecommendedPoints } from '../../src/features/driver-publish/nearestStops';
+import { MapSelectionMode, type ConfirmedPoint } from '../../src/features/driver-publish/MapSelectionMode';
 
 const DEPARTURE_PRESETS = [
   { label: 'Dans 15 min', minutes: 15 },
@@ -67,15 +64,25 @@ const DEPARTURE_PRESETS = [
   { label: 'Dans 2h', minutes: 120 },
 ];
 
-const ROAD_CLASS_LABELS: Record<string, string> = {
-  primary: 'Route principale',
-  secondary: 'Route secondaire',
-  residential: 'Rue résidentielle',
-  motorway: 'Autoroute',
-  unknown: 'Route',
-};
+type Step = 'form' | 'price' | 'review';
 
-type Step = 'form' | 'price' | 'stops' | 'review';
+// Explicit journey-configuration vs. presentation state (Publish Explorer
+// spec §18) — kept as two separate small state pieces rather than one
+// combined enum: mapMode drives WHICH map-selection workspace is on screen
+// (never destroys pickup/dropoff already confirmed), pickup/dropoff are the
+// actual data. "Ready for price" is derived (`Boolean(pickup && dropoff)`),
+// not stored, so it can never drift out of sync with the two points it
+// depends on.
+type MapMode = 'none' | 'pickup' | 'dropoff';
+
+interface PublishPoint {
+  label: string;
+  lat: number;
+  lng: number;
+  /** The real route_stop id this resolves to, or null for a freehand pin —
+   *  see MapSelectionMode's doc comment. */
+  stopId: string | null;
+}
 
 // --- Local, theme-aware building blocks -----------------------------------
 // Mirrors the pattern the rider search flow's Stitch rebuild established
@@ -224,10 +231,22 @@ export default function PublishTabScreen(): React.JSX.Element {
   const [estimatedDurationSec, setEstimatedDurationSec] = useState<number | null>(null);
   const [price, setPrice] = useState(0);
   const [candidates, setCandidates] = useState<RouteStop[]>([]);
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [activeStop, setActiveStop] = useState<RouteStop | null>(null);
   const [isGeneratingStops, setIsGeneratingStops] = useState(false);
   const [osrmUnavailable, setOsrmUnavailable] = useState(false);
+
+  // Pickup/dropoff selection (Publish Explorer spec §5-11): mapMode drives
+  // which full-map workspace (if any) is on screen; pickup/dropoff are the
+  // driver's confirmed precise meeting points, independent of `origin`/
+  // `destination` (the general searched place each was refined from).
+  const [mapMode, setMapMode] = useState<MapMode>('none');
+  const [pickup, setPickup] = useState<PublishPoint | null>(null);
+  const [dropoff, setDropoff] = useState<PublishPoint | null>(null);
+  const [isSheetExpanded, setIsSheetExpanded] = useState(true);
+  // The origin/destination a real ride (rideId) was actually created
+  // against — lets an origin/destination edit be detected and invalidate
+  // exactly what depends on it (§17), without over-invalidating on every
+  // unrelated re-render (departureAt/seats edits must NOT trigger this).
+  const rideBuiltFromRef = useRef<{ originKey: string; destinationKey: string } | null>(null);
   // Review step (stitch/verification/publish-verification-requirement-prompt.html):
   // shown over the review screen when the driver isn't verified yet — the
   // ride is already saved as a draft by this point (createRide below).
@@ -254,6 +273,41 @@ export default function PublishTabScreen(): React.JSX.Element {
     // shouldn't bleed into "where does my ride start/end".
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Origin/destination invalidation (Publish Explorer spec §17): a real ride
+  // can't have its origin/destination patched server-side (PATCH /rides
+  // only ever accepted departureAt/seatsTotal/contributionPerSeat — see
+  // rides.ts's updateRideSchema), so editing either field after the ride
+  // was created means the ride, its route, and every one of its
+  // route_stops (pickup and dropoff both point into that set) must all be
+  // rebuilt from scratch — there is no "just re-attach the old dropoff"
+  // option, its underlying route_stop row belonged to a ride that no
+  // longer exists. Both points are therefore cleared on EITHER change, not
+  // only the one the field visually corresponds to — the spec's per-field
+  // wording describes the user-visible effect, not a claim that the other
+  // point can safely survive a full ride recreation underneath it.
+  // Compares against `rideBuiltFromRef` (set only when a ride is actually
+  // created) rather than the previous render's origin/destination, so this
+  // never fires on ordinary first-time form filling — only on a genuine
+  // edit of an already-built ride's origin/destination.
+  useEffect(() => {
+    const builtFrom = rideBuiltFromRef.current;
+    if (!builtFrom) return;
+    const originChanged = !origin || `${origin.lat},${origin.lng}` !== builtFrom.originKey;
+    const destinationChanged =
+      !destination || `${destination.lat},${destination.lng}` !== builtFrom.destinationKey;
+    if (!originChanged && !destinationChanged) return;
+
+    rideBuiltFromRef.current = null;
+    setRideId(null);
+    setRidePolyline(null);
+    setPricing(null);
+    setCandidates([]);
+    setMapMode('none');
+    setIsSheetExpanded(true);
+    setPickup(null);
+    setDropoff(null);
+  }, [origin, destination]);
 
   // Cross-fade + slight rise between the three steps instead of an instant
   // cut — the step body (everything below the persistent header) re-plays
@@ -303,19 +357,36 @@ export default function PublishTabScreen(): React.JSX.Element {
     () => (ridePolyline ? decodePolyline(ridePolyline) : []),
     [ridePolyline],
   );
-  const mapRegion = useMemo(() => {
-    const points = candidates.map((c) => ({ lat: c.lat, lng: c.lng }));
-    if (origin) points.push({ lat: origin.lat, lng: origin.lng });
-    if (destination) points.push({ lat: destination.lat, lng: destination.lng });
+  // The persistent form-step background map's camera: fits the real route
+  // once both precise points are confirmed, falls back to the general
+  // origin/destination anchors before that (§13 — "camera fits the route
+  // naturally... isn't excessively zoomed out").
+  const journeyMapRegion = useMemo(() => {
+    const points =
+      routeCoordinates.length > 1
+        ? routeCoordinates.map((c) => ({ lat: c.latitude, lng: c.longitude }))
+        : [];
+    if (pickup) points.push({ lat: pickup.lat, lng: pickup.lng });
+    if (dropoff) points.push({ lat: dropoff.lat, lng: dropoff.lng });
+    if (points.length === 0 && origin) points.push({ lat: origin.lat, lng: origin.lng });
+    if (points.length === 0 && destination) points.push({ lat: destination.lat, lng: destination.lng });
+    if (origin && !pickup) points.push({ lat: origin.lat, lng: origin.lng });
+    if (destination && !dropoff) points.push({ lat: destination.lat, lng: destination.lng });
     return regionForPoints(points);
-  }, [candidates, origin, destination]);
-  // Review step (stitch/publish_ride/publish-final-review.html)'s itinerary
-  // timeline — driver-selected stops only, in route order.
-  const selectedStops = useMemo(
-    () =>
-      candidates.filter((c) => selectedIds.has(c.id)).sort((a, b) => a.sequence - b.sequence),
-    [candidates, selectedIds],
+  }, [routeCoordinates, pickup, dropoff, origin, destination]);
+  // Recommended points for each map-selection phase (§6/§10): the real,
+  // road-snapped candidates nearest the relevant anchor, plus the anchor
+  // itself — never fabricated. Recomputes live as `candidates` streams in
+  // from the background generation call.
+  const pickupRecommended = useMemo(
+    () => (origin ? buildRecommendedPoints(origin, candidates) : []),
+    [origin, candidates],
   );
+  const dropoffRecommended = useMemo(
+    () => (destination ? buildRecommendedPoints(destination, candidates) : []),
+    [destination, candidates],
+  );
+  const readyForPrice = Boolean(pickup && dropoff);
   // No per-stop ETA exists anywhere in this codebase (only the whole
   // route's total duration) — showing one here for the destination only is
   // real data; inventing per-stop times would violate the "never fabricate"
@@ -353,7 +424,13 @@ export default function PublishTabScreen(): React.JSX.Element {
     }
   }
 
-  async function continueToPrice(vehicleId: string): Promise<void> {
+  /** Creates the real server-side ride (route + candidate stops) and enters
+   *  pickup-selection mode — the map-selection workspace needs a real route
+   *  to source recommended points from (§6/§7), which only exists once a
+   *  ride does. Safe to call again after a form-only edit (date/time/seats)
+   *  without recreating anything — see the invalidation effect below, which
+   *  is what actually clears `rideId` when origin/destination change. */
+  async function createRideAndEnterPickup(vehicleId: string): Promise<void> {
     if (!origin || !destination) return;
     setErrorMessage(undefined);
 
@@ -376,7 +453,7 @@ export default function PublishTabScreen(): React.JSX.Element {
         // there's nothing meaningful to submit. The server computes the
         // route, derives {min, recommended, max}, and defaults
         // contributionPerSeat to `recommended`; the driver adjusts it on
-        // the next step, once real bounds exist.
+        // the price step, once real bounds exist.
       }).unwrap();
     } catch {
       haptics.error();
@@ -390,7 +467,10 @@ export default function PublishTabScreen(): React.JSX.Element {
     setRouteIsEstimate(ride.routeIsEstimate);
     setEstimatedDurationSec(ride.estimatedDurationSec);
     setPrice(resolveInitialPrice(ride.pricing.min, ride.pricing.recommended, ride.pricing.max));
-    setStep('price');
+    rideBuiltFromRef.current = {
+      originKey: `${origin.lat},${origin.lng}`,
+      destinationKey: `${destination.lat},${destination.lng}`,
+    };
     trackEvent('ride_price_suggested', {
       rideId: ride.id,
       min: ride.pricing.min,
@@ -400,27 +480,88 @@ export default function PublishTabScreen(): React.JSX.Element {
     });
 
     void generateStopsInBackground(ride.id);
+    setIsSheetExpanded(false);
+    setMapMode('pickup');
   }
 
-  /** The form step's "Continuer" — gated by requireAuth (a guest fills the
-   *  form freely; sign-in only interrupts the tap itself). Always re-fetches
-   *  the driver profile fresh rather than trusting `vehicle` from this
-   *  render's closure: for a guest who just signed in via the contextual
-   *  sheet, `driverProfile` was skip-gated (no token yet) at the time this
-   *  render happened, so the stale closure would incorrectly read "no
-   *  vehicle" even for an existing driver's account. */
+  /** The form step's "Suivant"/"Choisir le prix" — gated by requireAuth (a
+   *  guest fills the form freely; sign-in only interrupts the tap itself).
+   *  Always re-fetches the driver profile fresh rather than trusting
+   *  `vehicle` from this render's closure: for a guest who just signed in
+   *  via the contextual sheet, `driverProfile` was skip-gated (no token yet)
+   *  at the time this render happened, so the stale closure would
+   *  incorrectly read "no vehicle" even for an existing driver's account. */
   async function proceedFromForm(): Promise<void> {
     if (!origin || !destination) return;
+    if (readyForPrice) {
+      await goToPrice();
+      return;
+    }
+    if (rideId) {
+      // Already created against the current origin/destination (e.g. the
+      // driver backed out of pickup selection and tapped "Suivant" again) —
+      // re-enter the map workspace without recreating the ride.
+      setIsSheetExpanded(false);
+      setMapMode('pickup');
+      return;
+    }
     const { data: freshProfile } = await refetchDriverProfile();
     const freshVehicle = freshProfile?.vehicles[0];
     if (freshVehicle) {
-      await continueToPrice(freshVehicle.id);
+      await createRideAndEnterPickup(freshVehicle.id);
     } else {
       setStep('review');
     }
   }
 
-  async function continueToStopsFromPrice(): Promise<void> {
+  function confirmPickup(point: ConfirmedPoint): void {
+    setPickup(point);
+    trackEvent('ride_pickup_point_confirmed', { rideId: rideId ?? undefined, isCustom: point.stopId === null });
+    setMapMode('dropoff');
+  }
+
+  function confirmDropoff(point: ConfirmedPoint): void {
+    setDropoff(point);
+    trackEvent('ride_dropoff_point_confirmed', { rideId: rideId ?? undefined, isCustom: point.stopId === null });
+    setMapMode('none');
+    setIsSheetExpanded(true);
+  }
+
+  /** Persists whichever of pickup/dropoff resolved to a real route_stop via
+   *  the existing driver-stop-selection endpoint — reused exactly as the
+   *  old multi-select "stops" step used it, just with a selection of at
+   *  most two ids instead of an arbitrary set. A freehand/custom pin (no
+   *  `stopId`) has no route_stop row to mark selected — the ride's own
+   *  origin/destination (already precise, from Places autocomplete) remains
+   *  the meeting point for that end, same as before this pass. */
+  async function savePickupDropoffStops(): Promise<boolean> {
+    if (!rideId || candidates.length === 0) return true;
+    const selectedIds = new Set(
+      [pickup?.stopId, dropoff?.stopId].filter((id): id is string => Boolean(id)),
+    );
+    try {
+      await updateRideStops({
+        rideId,
+        selections: buildStopSelectionPayload(candidates, selectedIds),
+      }).unwrap();
+      return true;
+    } catch {
+      haptics.error();
+      setErrorMessage("Impossible d'enregistrer les points de rendez-vous. Réessayez.");
+      return false;
+    }
+  }
+
+  /** The normal Explorer's "Choisir le prix" CTA (§16) — only reachable once
+   *  `readyForPrice`. Persists the pickup/dropoff selection, then enters the
+   *  existing, unchanged price step. */
+  async function goToPrice(): Promise<void> {
+    const saved = await savePickupDropoffStops();
+    if (!saved) return;
+    setStep('price');
+  }
+
+  async function continueFromPriceToReview(): Promise<void> {
     if (!rideId || !pricing) return;
     setErrorMessage(undefined);
 
@@ -447,41 +588,12 @@ export default function PublishTabScreen(): React.JSX.Element {
       }
     }
 
-    setStep('stops');
-  }
-
-  function toggleStop(stop: RouteStop): void {
-    haptics.selection();
-    const wasSelected = selectedIds.has(stop.id);
-    setSelectedIds((prev) => toggleStopSelection(prev, stop.id));
-    trackEvent(wasSelected ? 'ride_stop_deselected' : 'ride_stop_selected', {
-      rideId: rideId ?? undefined,
-      stopId: stop.id,
-    });
-  }
-
-  // Persists the driver's stop selection — always safe to call before the
-  // ride is actually published, since it's just updating the draft.
-  async function saveStopSelection(): Promise<boolean> {
-    if (!rideId) return false;
-    try {
-      if (candidates.length > 0) {
-        await updateRideStops({
-          rideId,
-          selections: buildStopSelectionPayload(candidates, selectedIds),
-        }).unwrap();
-      }
-      return true;
-    } catch {
-      haptics.error();
-      setErrorMessage("Impossible d'enregistrer les arrêts. Réessayez.");
-      return false;
-    }
+    setStep('review');
   }
 
   async function publishNow(): Promise<void> {
     if (!rideId) return;
-    if (selectedIds.size === 0) {
+    if (!pickup?.stopId && !dropoff?.stopId) {
       trackEvent('ride_published_with_zero_stops', { rideId });
     }
     try {
@@ -513,7 +625,7 @@ export default function PublishTabScreen(): React.JSX.Element {
       return;
     }
 
-    const saved = await saveStopSelection();
+    const saved = await savePickupDropoffStops();
     if (!saved) return;
 
     if (!isVerifiedDriver(driverProfile)) {
@@ -555,17 +667,15 @@ export default function PublishTabScreen(): React.JSX.Element {
 
   const stepTitles: Record<Exclude<Step, 'form'>, string> = {
     price: 'Prix suggéré',
-    stops: 'Arrêts suggérés',
     review: 'Vérifier et publier',
   };
 
   // Steps beyond the form move locally within this same tab screen (never a
   // route change), so "back" here means "previous wizard step" — there's
-  // always somewhere to go for these three, unlike the form step itself
+  // always somewhere to go for these two, unlike the form step itself
   // (see the removed router.back() history note below).
   function handleWizardBack(): void {
-    if (step === 'review') setStep(vehicle ? 'stops' : 'form');
-    else if (step === 'stops') setStep('price');
+    if (step === 'review') setStep(vehicle ? 'price' : 'form');
     else if (step === 'price') setStep('form');
   }
 
@@ -576,6 +686,40 @@ export default function PublishTabScreen(): React.JSX.Element {
           <ActivityIndicator size="large" color={theme.accent} />
         </View>
       </View>
+    );
+  }
+
+  // §5-11: the map-selection workspace fully replaces the form-sheet
+  // composition below while active — never a route change (this is still
+  // the same (tabs)/publish screen, so the tab bar stays visible), just a
+  // presentation swap. Confirming/backing out of either phase always
+  // returns mapMode to 'none' or the other phase, never destroying
+  // rideId/candidates/pickup/dropoff already gathered.
+  if (mapMode !== 'none' && origin && destination) {
+    const isPickupPhase = mapMode === 'pickup';
+    return (
+      <Animated.View style={[styles.container, stepMotionStyle]}>
+        <MapSelectionMode
+          theme={theme}
+          scheme={scheme}
+          anchor={isPickupPhase ? origin : destination}
+          recommendedPoints={isPickupPhase ? pickupRecommended : dropoffRecommended}
+          title={isPickupPhase ? 'Choisissez votre point de rendez-vous' : 'Choisissez votre point de dépose'}
+          subtitle="Choisissez un point suggéré ou placez-le vous-même."
+          confirmLabel={isPickupPhase ? 'Confirmer le point de rendez-vous' : 'Confirmer le point de dépose'}
+          onConfirm={isPickupPhase ? confirmPickup : confirmDropoff}
+          isLoadingRecommended={isGeneratingStops}
+          recommendedUnavailable={!isGeneratingStops && osrmUnavailable}
+          onBack={() => {
+            if (isPickupPhase) {
+              setMapMode('none');
+              setIsSheetExpanded(true);
+            } else {
+              setMapMode('pickup');
+            }
+          }}
+        />
+      </Animated.View>
     );
   }
 
@@ -620,155 +764,9 @@ export default function PublishTabScreen(): React.JSX.Element {
             label="Continuer"
             loading={isUpdatingPrice}
             disabled={!pricing}
-            onPress={() => void continueToStopsFromPrice()}
+            onPress={() => void continueFromPriceToReview()}
           />
         </View>
-      </View>
-    );
-  }
-
-  if (step === 'stops') {
-    return (
-      <View style={[styles.container, { backgroundColor: theme.background }]}>
-        <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
-          <StepHeader theme={theme} title={stepTitles.stops} onBack={handleWizardBack} />
-        </View>
-
-        <Animated.View style={[styles.stopsBody, stepMotionStyle]}>
-          {isGeneratingStops ? (
-            <View style={styles.stopsLoading}>
-              <SkeletonBlock height={280} radius="xl" />
-              <Text variant="bodySmall" color={theme.inkFaint} align="center">
-                Recherche des meilleurs points d&apos;arrêt sur votre trajet…
-              </Text>
-            </View>
-          ) : candidates.length === 0 ? (
-            <EmptyState
-              title={
-                osrmUnavailable
-                  ? "Suggestions d'arrêts indisponibles pour le moment."
-                  : 'Aucun arrêt suggéré pour ce trajet.'
-              }
-              description="Vous pouvez publier avec uniquement le point de départ et d'arrivée — c'est un trajet valide."
-            />
-          ) : (
-            <>
-              <View style={styles.mapShadowWrap}>
-                <View style={styles.mapWrap}>
-                  {mapRegion ? (
-                    <MapView
-                      provider={PROVIDER_DEFAULT}
-                      style={styles.map}
-                      initialRegion={mapRegion}
-                    >
-                      {origin ? (
-                        <Marker
-                          coordinate={{ latitude: origin.lat, longitude: origin.lng }}
-                          anchor={{ x: 0.5, y: 0.5 }}
-                        >
-                          <View style={[styles.originDot, { backgroundColor: theme.accent, borderColor: theme.surface }]} />
-                        </Marker>
-                      ) : null}
-                      {destination ? (
-                        <Marker
-                          coordinate={{ latitude: destination.lat, longitude: destination.lng }}
-                          anchor={{ x: 0.5, y: 0.5 }}
-                        >
-                          <View style={[styles.destinationDot, { backgroundColor: theme.ink, borderColor: theme.surface }]} />
-                        </Marker>
-                      ) : null}
-                      {routeCoordinates.length > 1 ? (
-                        <MapRoute coordinates={routeCoordinates} showCorridor />
-                      ) : null}
-                      {candidates.map((stop) => (
-                        <Marker
-                          key={stop.id}
-                          coordinate={{ latitude: stop.lat, longitude: stop.lng }}
-                          onPress={() => setActiveStop(stop)}
-                        >
-                          <DriverMapPin
-                            variant="compact"
-                            data={{ id: stop.id, name: stop.label }}
-                            recommended={selectedIds.has(stop.id)}
-                            accentColor={theme.accent}
-                          />
-                        </Marker>
-                      ))}
-                    </MapView>
-                  ) : null}
-                </View>
-              </View>
-              <Text variant="bodySmall" color={theme.inkFaint} align="center" style={styles.hint}>
-                Touchez un point pour l&apos;inclure ou le retirer de votre offre.
-              </Text>
-              <Text variant="bodySmall" color={theme.inkMuted} align="center">
-                {selectedIds.size} arrêt(s) sélectionné(s) sur {candidates.length}
-              </Text>
-            </>
-          )}
-        </Animated.View>
-
-        {errorMessage ? (
-          <Text variant="bodySmall" color={theme.error} align="center">
-            {errorMessage}
-          </Text>
-        ) : null}
-
-        <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.md }]}>
-          <PrimaryButton
-            theme={theme}
-            label="Continuer"
-            disabled={isGeneratingStops}
-            onPress={() => setStep('review')}
-          />
-        </View>
-
-        <BottomSheet
-          theme={theme}
-          visible={activeStop !== null}
-          onClose={() => setActiveStop(null)}
-          title={activeStop?.label}
-        >
-          {activeStop ? (
-            <View style={styles.sheetContent}>
-              <View style={[styles.sheetRow, { borderBottomColor: theme.outlineVariant }]}>
-                <Text variant="bodySmall" color={theme.inkFaint}>
-                  Type de route
-                </Text>
-                <Text variant="label" color={theme.ink}>
-                  {ROAD_CLASS_LABELS[activeStop.roadClass ?? 'unknown'] ?? 'Route'}
-                </Text>
-              </View>
-              <View style={styles.sheetRow}>
-                <Text variant="bodySmall" color={theme.inkFaint}>
-                  Détour estimé
-                </Text>
-                <Text variant="label" color={theme.ink}>
-                  {activeStop.deviationMeters} m ·{' '}
-                  {Math.round(activeStop.deviationSeconds / 60) || 1} min
-                </Text>
-              </View>
-              {selectedIds.has(activeStop.id) ? (
-                <TouchableOpacity
-                  style={[styles.outlineBtn, { borderColor: theme.outline }]}
-                  onPress={() => toggleStop(activeStop)}
-                  accessibilityRole="button"
-                  accessibilityLabel="Retirer ce point"
-                >
-                  <Text variant="label" color={theme.ink}>
-                    Retirer ce point
-                  </Text>
-                </TouchableOpacity>
-              ) : (
-                <PrimaryButton
-                  theme={theme}
-                  label="Inclure ce point"
-                  onPress={() => toggleStop(activeStop)}
-                />
-              )}
-            </View>
-          ) : null}
-        </BottomSheet>
       </View>
     );
   }
@@ -811,7 +809,17 @@ export default function PublishTabScreen(): React.JSX.Element {
               <View style={styles.timeline}>
                 <View style={[styles.timelineLine, { backgroundColor: theme.outlineVariant }]} />
 
-                <View style={styles.timelineRow}>
+                <TouchableOpacity
+                  style={styles.timelineRow}
+                  disabled={!hasRideData}
+                  onPress={() => {
+                    setStep('form');
+                    setIsSheetExpanded(false);
+                    setMapMode('pickup');
+                  }}
+                  accessibilityRole={hasRideData ? 'button' : undefined}
+                  accessibilityLabel={hasRideData ? "Modifier le point de rendez-vous" : undefined}
+                >
                   <View
                     style={[
                       styles.timelineDot,
@@ -821,37 +829,29 @@ export default function PublishTabScreen(): React.JSX.Element {
                   <View style={styles.timelineRowContent}>
                     <View style={styles.timelineText}>
                       <Text variant="label" color={theme.ink} numberOfLines={2}>
-                        {origin?.label}
+                        {pickup?.label ?? origin?.label}
+                      </Text>
+                      <Text variant="bodySmall" color={theme.inkFaint}>
+                        Point de rendez-vous
                       </Text>
                     </View>
                     <Text variant="bodySmall" color={theme.inkMuted} style={styles.timelineTime}>
                       {formatTime(departureAt)}
                     </Text>
                   </View>
-                </View>
+                </TouchableOpacity>
 
-                {selectedStops.map((stop) => (
-                  <View key={stop.id} style={styles.timelineRow}>
-                    <View
-                      style={[
-                        styles.timelineDotStop,
-                        { backgroundColor: theme.surface, borderColor: theme.outline },
-                      ]}
-                    />
-                    <View style={styles.timelineRowContent}>
-                      <View style={styles.timelineText}>
-                        <Text variant="body" color={theme.ink} numberOfLines={2}>
-                          {stop.label}
-                        </Text>
-                        <Text variant="bodySmall" color={theme.inkFaint}>
-                          {ROAD_CLASS_LABELS[stop.roadClass ?? 'unknown'] ?? 'Route'}
-                        </Text>
-                      </View>
-                    </View>
-                  </View>
-                ))}
-
-                <View style={styles.timelineRow}>
+                <TouchableOpacity
+                  style={styles.timelineRow}
+                  disabled={!hasRideData}
+                  onPress={() => {
+                    setStep('form');
+                    setIsSheetExpanded(false);
+                    setMapMode('dropoff');
+                  }}
+                  accessibilityRole={hasRideData ? 'button' : undefined}
+                  accessibilityLabel={hasRideData ? 'Modifier le point de dépose' : undefined}
+                >
                   <View
                     style={[
                       styles.timelineDot,
@@ -864,7 +864,10 @@ export default function PublishTabScreen(): React.JSX.Element {
                   <View style={styles.timelineRowContent}>
                     <View style={styles.timelineText}>
                       <Text variant="label" color={theme.ink} numberOfLines={2}>
-                        {destination?.label}
+                        {dropoff?.label ?? destination?.label}
+                      </Text>
+                      <Text variant="bodySmall" color={theme.inkFaint}>
+                        Point de dépose
                       </Text>
                     </View>
                     {estimatedArrivalAt ? (
@@ -873,7 +876,7 @@ export default function PublishTabScreen(): React.JSX.Element {
                       </Text>
                     ) : null}
                   </View>
-                </View>
+                </TouchableOpacity>
               </View>
             </GlassSurface>
 
@@ -1051,9 +1054,68 @@ export default function PublishTabScreen(): React.JSX.Element {
     );
   }
 
+  const hasJourneyMap = Boolean(origin && destination);
+
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <ScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.md }]}>
+      {/* The Explorer's map layer (§12-15): a dashed origin/destination
+       *  preview before pickup/dropoff exist, the real road-route geometry
+       *  once both are confirmed. Always mounted (not just while the sheet
+       *  is collapsed) so dragging the sheet down never has to wait for the
+       *  map to spin up — see ExplorerSheet's own doc comment. */}
+      {hasJourneyMap ? (
+        <MapView
+          provider={PROVIDER_GOOGLE}
+          style={StyleSheet.absoluteFillObject}
+          region={journeyMapRegion ?? undefined}
+        >
+          {routeCoordinates.length > 1 ? <MapRoute coordinates={routeCoordinates} showCorridor /> : null}
+          {origin && !pickup ? (
+            <Marker coordinate={{ latitude: origin.lat, longitude: origin.lng }} anchor={{ x: 0.5, y: 0.5 }}>
+              <View style={[styles.originDot, { backgroundColor: theme.accent, borderColor: theme.surface }]} />
+            </Marker>
+          ) : null}
+          {destination && !dropoff ? (
+            <Marker coordinate={{ latitude: destination.lat, longitude: destination.lng }} anchor={{ x: 0.5, y: 0.5 }}>
+              <View style={[styles.destinationDot, { backgroundColor: theme.ink, borderColor: theme.surface }]} />
+            </Marker>
+          ) : null}
+          {pickup ? (
+            <Marker coordinate={{ latitude: pickup.lat, longitude: pickup.lng }} anchor={{ x: 0.5, y: 0.5 }}>
+              <View style={[styles.originDot, { backgroundColor: theme.accent, borderColor: theme.surface }]} />
+            </Marker>
+          ) : null}
+          {dropoff ? (
+            <Marker coordinate={{ latitude: dropoff.lat, longitude: dropoff.lng }} anchor={{ x: 0.5, y: 0.5 }}>
+              <View style={[styles.destinationDot, { backgroundColor: theme.ink, borderColor: theme.surface }]} />
+            </Marker>
+          ) : null}
+          {routeCoordinates.length <= 1 ? (
+            <MapRoute
+              coordinates={[
+                { latitude: origin!.lat, longitude: origin!.lng },
+                { latitude: destination!.lat, longitude: destination!.lng },
+              ]}
+              color={theme.accent}
+            />
+          ) : null}
+        </MapView>
+      ) : null}
+
+      <ExplorerSheet
+        expanded={isSheetExpanded}
+        onCollapse={() => setIsSheetExpanded(false)}
+        onExpand={() => setIsSheetExpanded(true)}
+        theme={theme}
+        collapsedContent={
+          <Text variant="bodySmall" color={theme.inkMuted} align="center">
+            {pickup && dropoff
+              ? `${pickup.label} → ${dropoff.label}`
+              : 'Glissez vers le haut pour continuer'}
+          </Text>
+        }
+      >
+      <ScrollView contentContainerStyle={[styles.content, { paddingTop: spacing.md }]}>
         <Animated.View style={[styles.formStack, stepMotionStyle]}>
           <Text variant="headlineDisplay" color={theme.ink}>
             Publier un trajet
@@ -1223,13 +1285,15 @@ export default function PublishTabScreen(): React.JSX.Element {
 
           <PrimaryButton
             theme={theme}
-            label="Continuer"
+            label={readyForPrice ? 'Choisir le prix' : 'Suivant'}
+            icon={readyForPrice ? 'pricetag-outline' : undefined}
             loading={isCreating}
             disabled={!canContinue}
             onPress={() => requireAuth(() => void proceedFromForm(), 'publishing')}
           />
         </Animated.View>
       </ScrollView>
+      </ExplorerSheet>
 
       <DateCalendarSheet
         visible={isDateSheetOpen}
