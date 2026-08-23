@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { mapGoogleTypesToLocationType } from '../google-places.provider.js';
+import { mapGoogleTypesToLocationType, pickBestGeocodeResult } from '../google-places.provider.js';
 import { mapNominatimTypeToLocationType } from '../nominatim.provider.js';
 
 // Pure classification functions — no network, no DB. These are the concrete
@@ -55,6 +55,49 @@ describe('mapGoogleTypesToLocationType', () => {
     expect(mapGoogleTypesToLocationType(['establishment', 'point_of_interest', 'locality'])).toBe(
       'poi',
     );
+  });
+});
+
+describe('pickBestGeocodeResult', () => {
+  // The concrete bug this guards: a reverse-geocode for a rooftop point can
+  // return a plus_code result ("V528+3RF, Ariana, Tunisia") ahead of a real
+  // street_address in Google's results array — picking results[0]
+  // unconditionally surfaced the plus code to drivers instead of a
+  // human-readable address.
+  it('prefers a street_address result even when it sorts after a plus_code', () => {
+    const results = [
+      { types: ['plus_code'], label: 'V528+3RF, Ariana, Tunisia' },
+      { types: ['street_address'], label: 'Avenue Habib Bourguiba, Ariana' },
+    ];
+    expect(pickBestGeocodeResult(results)?.label).toBe('Avenue Habib Bourguiba, Ariana');
+  });
+
+  it('falls back to premise when no street_address is present', () => {
+    const results = [
+      { types: ['plus_code'], label: 'V528+3RF' },
+      { types: ['premise'], label: 'Résidence El Menzah' },
+    ];
+    expect(pickBestGeocodeResult(results)?.label).toBe('Résidence El Menzah');
+  });
+
+  it('falls back to route when neither street_address nor premise is present', () => {
+    const results = [
+      { types: ['plus_code'], label: 'V528+3RF' },
+      { types: ['route'], label: 'Avenue de la Liberté' },
+    ];
+    expect(pickBestGeocodeResult(results)?.label).toBe('Avenue de la Liberté');
+  });
+
+  it('falls back to the first result when none of the preferred types are present', () => {
+    const results = [
+      { types: ['plus_code'], label: 'V528+3RF' },
+      { types: ['administrative_area_level_1'], label: 'Ariana Governorate' },
+    ];
+    expect(pickBestGeocodeResult(results)?.label).toBe('V528+3RF');
+  });
+
+  it('returns undefined for an empty results array', () => {
+    expect(pickBestGeocodeResult([])).toBeUndefined();
   });
 });
 

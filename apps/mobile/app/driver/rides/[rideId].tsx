@@ -17,6 +17,7 @@ import {
 } from '@vaya/design-system';
 import {
   useGetRideQuery,
+  useGetRideStopsQuery,
   useListRequestsForRideQuery,
   useAcceptBookingMutation,
   useDeclineBookingMutation,
@@ -27,6 +28,7 @@ import { decodePolyline } from '../../../src/utils/polyline';
 import { DriverBookingDetailSheet } from '../../../src/features/driver-rides/DriverBookingDetailSheet';
 import { ManageRideSheet } from '../../../src/features/driver-rides/ManageRideSheet';
 import { trackEvent } from '../../../src/services/analytics/analytics';
+import { estimateArrivalLabel } from '../../../src/features/driver-rides/myRidesHelpers';
 
 type ThemeColors = ReturnType<typeof useAppTheme>['colors'];
 
@@ -158,10 +160,19 @@ export default function DriverRideHubScreen(): React.JSX.Element {
 
   const { data: ride, isLoading: isRideLoading } = useGetRideQuery(rideId);
   const { data: requests, isLoading: isRequestsLoading } = useListRequestsForRideQuery(rideId);
+  const { data: stops } = useGetRideStopsQuery(rideId);
 
   const pending = (requests ?? []).filter((r) => r.status === 'pending');
   const answered = (requests ?? []).filter((r) => r.status !== 'pending');
   const routeCoordinates = ride?.routePolyline ? decodePolyline(ride.routePolyline) : [];
+  // Only the driver-selected stops (the endpoint already filters to these —
+  // see getRideStops's own comment), in route order. The publish flow
+  // confirms exactly a pickup then a dropoff, so 2 real stops is the normal
+  // case; older rides published before that flow existed may have more (or
+  // none, if the driver picked no additional stops at all — a valid ride,
+  // nothing to show here then).
+  const selectedStops = [...(stops ?? [])].sort((a, b) => a.sequence - b.sequence);
+  const arrivalLabel = ride ? estimateArrivalLabel(ride.departureAt, ride.estimatedDurationSec) : null;
 
   if (isRideLoading) {
     return (
@@ -221,7 +232,10 @@ export default function DriverRideHubScreen(): React.JSX.Element {
           <View style={styles.factRow}>
             <Icon name="time-outline" size="sm" color={theme.inkMuted} />
             <Text variant="bodySmall" color={theme.inkMuted}>
-              {formatWhen(ride.departureAt)}
+              {/* Real OSRM/Google-derived duration only — estimateArrivalLabel
+               *  returns null (nothing rendered) rather than inventing an
+               *  arrival time for a haversine-fallback route. */}
+              {arrivalLabel ? `${formatWhen(ride.departureAt)} · Arrivée ~${arrivalLabel}` : formatWhen(ride.departureAt)}
             </Text>
           </View>
           <View style={styles.factRow}>
@@ -237,6 +251,51 @@ export default function DriverRideHubScreen(): React.JSX.Element {
             </Text>
           </View>
         </View>
+
+        {selectedStops.length > 0 ? (
+          <View style={styles.section}>
+            <Text variant="label" color={theme.inkMuted} style={styles.sectionHeading}>
+              Points de rendez-vous
+            </Text>
+            <View style={[styles.glassRow, { backgroundColor: theme.surfaceMuted, borderColor: theme.outlineVariant }]}>
+              {selectedStops.map((stop, index) => {
+                const isFirst = index === 0;
+                const isLast = index === selectedStops.length - 1;
+                // Only the exactly-2-stops case (pickup then dropoff, the
+                // shape the current publish flow always produces) gets
+                // role labels — an older ride with a different stop count
+                // gets a plain sequence number instead of a guessed role.
+                const roleLabel =
+                  selectedStops.length === 2
+                    ? isFirst
+                      ? 'Point de rendez-vous'
+                      : 'Point de dépose'
+                    : `Arrêt ${index + 1}`;
+                return (
+                  <View
+                    key={stop.id}
+                    style={!isLast && [styles.stopRow, { borderBottomColor: theme.outlineVariant }]}
+                  >
+                    <View style={styles.stopRowHeader}>
+                      <View
+                        style={[
+                          styles.stopDot,
+                          { backgroundColor: isFirst ? theme.accent : theme.ink, borderColor: theme.surface },
+                        ]}
+                      />
+                      <Text variant="caption" color={theme.inkFaint}>
+                        {roleLabel}
+                      </Text>
+                    </View>
+                    <Text variant="bodySmall" color={theme.ink} style={styles.stopLabel}>
+                      {stop.label}
+                    </Text>
+                  </View>
+                );
+              })}
+            </View>
+          </View>
+        ) : null}
 
         <View style={styles.section}>
           <Text variant="label" color={theme.inkMuted} style={styles.sectionHeading}>
@@ -395,6 +454,26 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: spacing.md,
     gap: spacing.sm,
+  },
+  stopRow: {
+    marginBottom: spacing.sm,
+    paddingBottom: spacing.sm,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    gap: 2,
+  },
+  stopRowHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  stopDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    borderWidth: 1.5,
+  },
+  stopLabel: {
+    marginLeft: spacing.md + spacing.xs,
   },
   requestIdentityRow: {
     flexDirection: 'row',
