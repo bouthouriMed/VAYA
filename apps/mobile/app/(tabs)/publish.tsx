@@ -433,7 +433,17 @@ export default function PublishTabScreen(): React.JSX.Element {
     focusMapOn(point);
   }
 
-  function handleMapPanDrag(): void {
+  // `onRegionChange` (fires continuously during any region change, gesture
+  // or programmatic) instead of `onPanDrag` — react-native-maps' onPanDrag
+  // has a real history of being unreliable on iOS specifically, where its
+  // native wiring can end up competing with MKMapView's own built-in pan
+  // gesture recognizer and blocking user panning entirely. This callback
+  // is only ever used for bookkeeping (lift the pin, drop the numbered-
+  // marker selection) — the `isProgrammaticMapMove` guard already
+  // distinguishes our own animateToRegion calls from a real user drag, so
+  // switching events changes nothing about the logic, only which native
+  // hook triggers it.
+  function handleMapRegionChange(): void {
     if (mapMode === 'none' || isProgrammaticMapMove.current) return;
     if (!isDraggingPin) setIsDraggingPin(true);
     if (selectedPointId !== null) setSelectedPointId(null);
@@ -1233,8 +1243,7 @@ export default function PublishTabScreen(): React.JSX.Element {
           zoomEnabled={isMapExpanded}
           pitchEnabled={false}
           rotateEnabled={false}
-          pointerEvents={isMapExpanded ? 'auto' : 'none'}
-          onPanDrag={handleMapPanDrag}
+          onRegionChange={handleMapRegionChange}
           onRegionChangeComplete={handleMapRegionChangeComplete}
           customMapStyle={scheme === 'dark' ? darkMapStyle : lightMapStyle}
           userInterfaceStyle={scheme}
