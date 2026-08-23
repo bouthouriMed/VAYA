@@ -15,6 +15,15 @@ export interface PassengerSheetProps {
   onChange: (count: number) => void;
   min?: number;
   max?: number;
+  /** Sheet header — defaults to 'Passagers'. A driver publishing a ride
+   *  counts seats, not passengers, so Publish overrides this to 'Places
+   *  disponibles' rather than reusing rider copy on a driver screen. */
+  title?: string;
+  /** Live count label under the stepper — defaults to French passenger
+   *  pluralization. */
+  formatCount?: (count: number) => string;
+  /** Bound hint under the count — defaults to a passenger-count cap note. */
+  hint?: string;
 }
 
 /** Shared bound with searchSlice's clamp — kept here so the stepper's
@@ -43,6 +52,9 @@ export function PassengerSheet({
   onChange,
   min = PASSENGER_MIN,
   max = PASSENGER_MAX,
+  title = 'Passagers',
+  formatCount = formatPassengerCount,
+  hint,
 }: PassengerSheetProps): React.JSX.Element | null {
   // useAppTheme() hands back { colors, scheme } — the palette lives under
   // .colors (same destructure every other themed primitive uses).
@@ -70,7 +82,7 @@ export function PassengerSheet({
           {/* Same h3 header grammar as DateCalendarSheet/TimeWheelSheet —
            *  every sheet title in the system is h3, never a smaller label. */}
           <Text variant="h3" style={[styles.headerTitle, { color: theme.ink }]}>
-            Passagers
+            {title}
           </Text>
           <TouchableOpacity
             onPress={onClose}
@@ -155,10 +167,10 @@ export function PassengerSheet({
         </View>
 
         <Text variant="bodySmall" style={[styles.caption, { color: theme.inkMuted }]}>
-          {formatPassengerCount(draft)}
+          {formatCount(draft)}
         </Text>
         <Text variant="caption" style={[styles.hint, { color: theme.inkFaint }]}>
-          Jusqu&apos;à {max} passagers par trajet
+          {hint ?? `Jusqu'à ${max} passagers par trajet`}
         </Text>
       </View>
 
@@ -170,7 +182,7 @@ export function PassengerSheet({
         }}
         style={[styles.confirmButton, { backgroundColor: theme.ink }]}
         accessibilityRole="button"
-        accessibilityLabel={`Confirmer ${formatPassengerCount(draft)}`}
+        accessibilityLabel={`Confirmer ${formatCount(draft)}`}
         activeOpacity={0.85}
       >
         <Text variant="bodySmall" style={[styles.confirmLabel, { color: theme.background }]}>
