@@ -4,6 +4,8 @@ import MapView, { Marker, Polyline, PROVIDER_DEFAULT, type LatLng } from 'react-
 import { colors, radii, spacing, typography } from '../tokens/index';
 import { regionForPoints, type LatLngPoint, type MapRegion } from '../utils/mapGeometry';
 import { SkeletonBlock } from './Skeleton';
+import { PickupPin, DropoffPin } from './RideStopMarkers';
+import type { AppPalette } from '../theme/palette';
 
 const DEFAULT_REGION: MapRegion = {
   latitude: 36.8,
@@ -17,6 +19,18 @@ interface MapPreviewProps {
   badge?: string;
   origin?: LatLng;
   destination?: LatLng;
+  /** The ride's real, precise meeting points (a driver-confirmed
+   *  route_stop, not just the general origin/destination search result) —
+   *  when given (with `theme`), these render as the premium PickupPin/
+   *  DropoffPin pair INSTEAD of the plain origin/destination dots, since
+   *  they're the more accurate "where passengers actually meet" points.
+   *  Falls back to the origin/destination dots when either is absent, so
+   *  every existing caller without stop data keeps working unchanged. */
+  pickup?: LatLng;
+  dropoff?: LatLng;
+  /** Required to color PickupPin/DropoffPin — only needed when passing
+   *  `pickup`/`dropoff`. */
+  theme?: AppPalette;
   /** Decoded route geometry (see MapRoute's coordinates prop). */
   routeCoordinates?: LatLng[];
   style?: StyleProp<ViewStyle>;
@@ -33,15 +47,19 @@ export function MapPreview({
   badge,
   origin,
   destination,
+  pickup,
+  dropoff,
+  theme,
   routeCoordinates,
   style,
   children,
 }: MapPreviewProps): React.JSX.Element {
   const [isReady, setIsReady] = useState(false);
-  const points: LatLngPoint[] = [origin, destination]
+  const points: LatLngPoint[] = [pickup ?? origin, dropoff ?? destination]
     .filter((p): p is LatLng => Boolean(p))
     .map((p) => ({ lat: p.latitude, lng: p.longitude }));
   const region = regionForPoints(points) ?? DEFAULT_REGION;
+  const showPremiumPins = Boolean(pickup && dropoff && theme);
 
   return (
     <View style={[styles.wrap, { height }, style]}>
@@ -60,16 +78,29 @@ export function MapPreview({
         {routeCoordinates && routeCoordinates.length > 1 ? (
           <Polyline coordinates={routeCoordinates} strokeColor={colors.mapRouteLine} strokeWidth={3} />
         ) : null}
-        {origin ? (
-          <Marker coordinate={origin} anchor={{ x: 0.5, y: 0.5 }}>
-            <View style={[styles.markerDot, { backgroundColor: colors.mapUserMarker }]} />
-          </Marker>
-        ) : null}
-        {destination ? (
-          <Marker coordinate={destination} anchor={{ x: 0.5, y: 0.5 }}>
-            <View style={[styles.markerDot, { backgroundColor: colors.mapDriverMarker }]} />
-          </Marker>
-        ) : null}
+        {showPremiumPins && pickup && dropoff && theme ? (
+          <>
+            <Marker coordinate={pickup} anchor={{ x: 0.5, y: 0.5 }}>
+              <PickupPin theme={theme} />
+            </Marker>
+            <Marker coordinate={dropoff} anchor={{ x: 0.5, y: 0.5 }}>
+              <DropoffPin theme={theme} />
+            </Marker>
+          </>
+        ) : (
+          <>
+            {origin ? (
+              <Marker coordinate={origin} anchor={{ x: 0.5, y: 0.5 }}>
+                <View style={[styles.markerDot, { backgroundColor: colors.mapUserMarker }]} />
+              </Marker>
+            ) : null}
+            {destination ? (
+              <Marker coordinate={destination} anchor={{ x: 0.5, y: 0.5 }}>
+                <View style={[styles.markerDot, { backgroundColor: colors.mapDriverMarker }]} />
+              </Marker>
+            ) : null}
+          </>
+        )}
       </MapView>
       <View style={styles.tint} pointerEvents="none" />
       {!isReady ? <SkeletonBlock radius="none" style={StyleSheet.absoluteFillObject} /> : null}

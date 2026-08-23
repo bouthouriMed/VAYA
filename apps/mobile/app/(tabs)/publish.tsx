@@ -16,6 +16,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Text,
   MapRoute,
+  PickupPin,
+  DropoffPin,
   BottomSheet,
   DateCalendarSheet,
   TimeWheelSheet,
@@ -50,6 +52,7 @@ import {
   useUpdateRideMutation,
   useGenerateCandidateStopsMutation,
   useUpdateRideStopsMutation,
+  useAddCustomStopMutation,
   usePublishRideMutation,
   useRegisterPushTokenMutation,
   useLazyGeocodeReverseQuery,
@@ -302,6 +305,7 @@ export default function PublishTabScreen(): React.JSX.Element {
   const [updateRide, { isLoading: isUpdatingPrice }] = useUpdateRideMutation();
   const [generateCandidateStops] = useGenerateCandidateStopsMutation();
   const [updateRideStops, { isLoading: isSavingStops }] = useUpdateRideStopsMutation();
+  const [addCustomStop] = useAddCustomStopMutation();
   const [publishRide, { isLoading: isPublishingRide }] = usePublishRideMutation();
   const [registerPushToken] = useRegisterPushTokenMutation();
   const { requireAuth, isAuthSheetVisible, authTrigger, handleAuthenticated, cancelAuth } =
@@ -697,15 +701,51 @@ export default function PublishTabScreen(): React.JSX.Element {
    *  origin/destination (already precise, from Places autocomplete) remains
    *  the meeting point for that end, same as before this pass. */
   async function savePickupDropoffStops(): Promise<boolean> {
-    if (!rideId || candidates.length === 0) return true;
-    const selectedIds = new Set(
-      [pickup?.stopId, dropoff?.stopId].filter((id): id is string => Boolean(id)),
-    );
+    if (!rideId) return true;
     try {
-      await updateRideStops({
-        rideId,
-        selections: buildStopSelectionPayload(candidates, selectedIds),
-      }).unwrap();
+      // A freehand pin (dragged off any recommended point) has no real
+      // route_stop id yet — persist it now, before it's referenced by
+      // anything else, so the passenger matching/booking flow and this
+      // ride's own stop list see the real point the driver confirmed
+      // instead of nothing at all. Local vars (not `pickup.stopId`/
+      // `dropoff.stopId`) carry the freshly-created id forward within this
+      // function — the `setPickup`/`setDropoff` calls below won't be
+      // reflected in this render's closure until the next render.
+      let pickupStopId = pickup?.stopId ?? null;
+      let dropoffStopId = dropoff?.stopId ?? null;
+
+      if (pickup && pickupStopId === null) {
+        const inserted = await addCustomStop({
+          rideId,
+          label: pickup.label,
+          lat: pickup.lat,
+          lng: pickup.lng,
+          role: 'pickup',
+        }).unwrap();
+        pickupStopId = inserted.id;
+        setPickup({ label: inserted.label, lat: inserted.lat, lng: inserted.lng, stopId: inserted.id });
+      }
+      if (dropoff && dropoffStopId === null) {
+        const inserted = await addCustomStop({
+          rideId,
+          label: dropoff.label,
+          lat: dropoff.lat,
+          lng: dropoff.lng,
+          role: 'dropoff',
+        }).unwrap();
+        dropoffStopId = inserted.id;
+        setDropoff({ label: inserted.label, lat: inserted.lat, lng: inserted.lng, stopId: inserted.id });
+      }
+
+      if (candidates.length > 0) {
+        const selectedIds = new Set(
+          [pickupStopId, dropoffStopId].filter((id): id is string => Boolean(id)),
+        );
+        await updateRideStops({
+          rideId,
+          selections: buildStopSelectionPayload(candidates, selectedIds),
+        }).unwrap();
+      }
       return true;
     } catch {
       haptics.error();
@@ -1285,12 +1325,12 @@ export default function PublishTabScreen(): React.JSX.Element {
               ) : null}
               {pickup ? (
                 <Marker coordinate={{ latitude: pickup.lat, longitude: pickup.lng }} anchor={{ x: 0.5, y: 0.5 }}>
-                  <View style={[styles.originDot, { backgroundColor: theme.accent, borderColor: theme.surface }]} />
+                  <PickupPin theme={theme} />
                 </Marker>
               ) : null}
               {dropoff ? (
                 <Marker coordinate={{ latitude: dropoff.lat, longitude: dropoff.lng }} anchor={{ x: 0.5, y: 0.5 }}>
-                  <View style={[styles.destinationDot, { backgroundColor: theme.ink, borderColor: theme.surface }]} />
+                  <DropoffPin theme={theme} />
                 </Marker>
               ) : null}
             </>

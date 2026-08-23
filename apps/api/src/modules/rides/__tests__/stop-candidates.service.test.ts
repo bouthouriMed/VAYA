@@ -5,6 +5,7 @@ import {
   computeDeviationCost,
   scoreStopCandidate,
   clusterAndRank,
+  computeCustomStopSequence,
   MAX_DEVIATION_METERS,
   MAX_DEVIATION_SECONDS,
   type ScoredStopCandidate,
@@ -228,5 +229,33 @@ describe('clusterAndRank', () => {
     const result = clusterAndRank([a, b], 150, 8);
     expect(result.map((c) => c.label)).toEqual(['Earlier', 'Later']);
     expect(result.map((c) => c.sequence)).toEqual([0, 1]);
+  });
+});
+
+describe('computeCustomStopSequence', () => {
+  // The concrete bug this guards: a driver's freehand pickup/dropoff pin
+  // must always sort at the correct end of the ride's stop list regardless
+  // of how many generated candidates exist, so timelines (ride-details.tsx,
+  // the driver's own "Points de rendez-vous" list) never show it out of
+  // route order.
+  it('a pickup pin sorts before every existing generated candidate', () => {
+    expect(computeCustomStopSequence([0, 1, 2, 3], 'pickup')).toBe(-1);
+  });
+
+  it('a dropoff pin sorts after every existing generated candidate', () => {
+    expect(computeCustomStopSequence([0, 1, 2, 3], 'dropoff')).toBe(4);
+  });
+
+  it('a pickup pin still sorts before an already-added custom dropoff (negative sequences)', () => {
+    expect(computeCustomStopSequence([-1, 0, 1], 'pickup')).toBe(-2);
+  });
+
+  it('a dropoff pin still sorts after an already-added custom pickup', () => {
+    expect(computeCustomStopSequence([-1, 0, 1], 'dropoff')).toBe(2);
+  });
+
+  it('the first custom stop for a ride with zero generated candidates gets a sensible sequence', () => {
+    expect(computeCustomStopSequence([], 'pickup')).toBe(-1);
+    expect(computeCustomStopSequence([], 'dropoff')).toBe(1);
   });
 });

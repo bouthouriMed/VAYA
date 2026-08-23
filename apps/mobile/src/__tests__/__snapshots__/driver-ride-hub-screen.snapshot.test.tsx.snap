@@ -100,10 +100,10 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
         customMapStyle={[]}
         initialRegion={
           {
-            "latitude": 36.316050000000004,
-            "latitudeDelta": 1.5694399999999975,
-            "longitude": 10.4092,
-            "longitudeDelta": 0.7286400000000015,
+            "latitude": 36.31,
+            "latitudeDelta": 1.5679999999999952,
+            "longitude": 10.405000000000001,
+            "longitudeDelta": 0.7200000000000017,
           }
         }
         onMapReady={[Function]}
@@ -124,8 +124,8 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
           }
           coordinate={
             {
-              "latitude": 36.8065,
-              "longitude": 10.1815,
+              "latitude": 36.8,
+              "longitude": 10.18,
             }
           }
         >
@@ -133,18 +133,54 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
             style={
               [
                 {
-                  "borderColor": "#FFFFFF",
-                  "borderRadius": 6,
-                  "borderWidth": 2,
-                  "height": 12,
-                  "width": 12,
+                  "alignItems": "center",
+                  "borderBottomLeftRadius": 2,
+                  "borderRadius": 13,
+                  "borderWidth": 2.5,
+                  "elevation": 3,
+                  "height": 26,
+                  "justifyContent": "center",
+                  "shadowColor": "#000",
+                  "shadowOffset": {
+                    "height": 2,
+                    "width": 0,
+                  },
+                  "shadowOpacity": 0.2,
+                  "shadowRadius": 4,
+                  "transform": [
+                    {
+                      "rotate": "-45deg",
+                    },
+                  ],
+                  "width": 26,
                 },
                 {
-                  "backgroundColor": "#7FA491",
+                  "backgroundColor": "#2E9E6C",
+                  "borderColor": "#FFFFFF",
                 },
               ]
             }
-          />
+          >
+            <View
+              style={
+                [
+                  {
+                    "borderRadius": 3.5,
+                    "height": 7,
+                    "transform": [
+                      {
+                        "rotate": "45deg",
+                      },
+                    ],
+                    "width": 7,
+                  },
+                  {
+                    "backgroundColor": "#0D1512",
+                  },
+                ]
+              }
+            />
+          </View>
         </Marker>
         <Marker
           anchor={
@@ -155,8 +191,8 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
           }
           coordinate={
             {
-              "latitude": 35.8256,
-              "longitude": 10.6369,
+              "latitude": 35.82,
+              "longitude": 10.63,
             }
           }
         >
@@ -164,18 +200,54 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
             style={
               [
                 {
-                  "borderColor": "#FFFFFF",
-                  "borderRadius": 6,
-                  "borderWidth": 2,
-                  "height": 12,
-                  "width": 12,
+                  "alignItems": "center",
+                  "borderBottomLeftRadius": 2,
+                  "borderRadius": 13,
+                  "borderWidth": 2.5,
+                  "elevation": 3,
+                  "height": 26,
+                  "justifyContent": "center",
+                  "shadowColor": "#000",
+                  "shadowOffset": {
+                    "height": 2,
+                    "width": 0,
+                  },
+                  "shadowOpacity": 0.2,
+                  "shadowRadius": 4,
+                  "transform": [
+                    {
+                      "rotate": "-45deg",
+                    },
+                  ],
+                  "width": 26,
                 },
                 {
-                  "backgroundColor": "#2E3B42",
+                  "backgroundColor": "#14201B",
+                  "borderColor": "#FFFFFF",
                 },
               ]
             }
-          />
+          >
+            <View
+              style={
+                [
+                  {
+                    "borderRadius": 3.5,
+                    "height": 7,
+                    "transform": [
+                      {
+                        "rotate": "45deg",
+                      },
+                    ],
+                    "width": 7,
+                  },
+                  {
+                    "backgroundColor": "#F7F3E8",
+                  },
+                ]
+              }
+            />
+          </View>
         </Marker>
       </MapView>
       <View
@@ -841,10 +913,10 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
         customMapStyle={[]}
         initialRegion={
           {
-            "latitude": 36.316050000000004,
-            "latitudeDelta": 1.5694399999999975,
-            "longitude": 10.4092,
-            "longitudeDelta": 0.7286400000000015,
+            "latitude": 36.31,
+            "latitudeDelta": 1.5679999999999952,
+            "longitude": 10.405000000000001,
+            "longitudeDelta": 0.7200000000000017,
           }
         }
         onMapReady={[Function]}
@@ -865,8 +937,8 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
           }
           coordinate={
             {
-              "latitude": 36.8065,
-              "longitude": 10.1815,
+              "latitude": 36.8,
+              "longitude": 10.18,
             }
           }
         >
@@ -874,18 +946,54 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
             style={
               [
                 {
-                  "borderColor": "#FFFFFF",
-                  "borderRadius": 6,
-                  "borderWidth": 2,
-                  "height": 12,
-                  "width": 12,
+                  "alignItems": "center",
+                  "borderBottomLeftRadius": 2,
+                  "borderRadius": 13,
+                  "borderWidth": 2.5,
+                  "elevation": 3,
+                  "height": 26,
+                  "justifyContent": "center",
+                  "shadowColor": "#000",
+                  "shadowOffset": {
+                    "height": 2,
+                    "width": 0,
+                  },
+                  "shadowOpacity": 0.2,
+                  "shadowRadius": 4,
+                  "transform": [
+                    {
+                      "rotate": "-45deg",
+                    },
+                  ],
+                  "width": 26,
                 },
                 {
-                  "backgroundColor": "#7FA491",
+                  "backgroundColor": "#2E9E6C",
+                  "borderColor": "#FFFFFF",
                 },
               ]
             }
-          />
+          >
+            <View
+              style={
+                [
+                  {
+                    "borderRadius": 3.5,
+                    "height": 7,
+                    "transform": [
+                      {
+                        "rotate": "45deg",
+                      },
+                    ],
+                    "width": 7,
+                  },
+                  {
+                    "backgroundColor": "#0D1512",
+                  },
+                ]
+              }
+            />
+          </View>
         </Marker>
         <Marker
           anchor={
@@ -896,8 +1004,8 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
           }
           coordinate={
             {
-              "latitude": 35.8256,
-              "longitude": 10.6369,
+              "latitude": 35.82,
+              "longitude": 10.63,
             }
           }
         >
@@ -905,18 +1013,54 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
             style={
               [
                 {
-                  "borderColor": "#FFFFFF",
-                  "borderRadius": 6,
-                  "borderWidth": 2,
-                  "height": 12,
-                  "width": 12,
+                  "alignItems": "center",
+                  "borderBottomLeftRadius": 2,
+                  "borderRadius": 13,
+                  "borderWidth": 2.5,
+                  "elevation": 3,
+                  "height": 26,
+                  "justifyContent": "center",
+                  "shadowColor": "#000",
+                  "shadowOffset": {
+                    "height": 2,
+                    "width": 0,
+                  },
+                  "shadowOpacity": 0.2,
+                  "shadowRadius": 4,
+                  "transform": [
+                    {
+                      "rotate": "-45deg",
+                    },
+                  ],
+                  "width": 26,
                 },
                 {
-                  "backgroundColor": "#2E3B42",
+                  "backgroundColor": "#14201B",
+                  "borderColor": "#FFFFFF",
                 },
               ]
             }
-          />
+          >
+            <View
+              style={
+                [
+                  {
+                    "borderRadius": 3.5,
+                    "height": 7,
+                    "transform": [
+                      {
+                        "rotate": "45deg",
+                      },
+                    ],
+                    "width": 7,
+                  },
+                  {
+                    "backgroundColor": "#F7F3E8",
+                  },
+                ]
+              }
+            />
+          </View>
         </Marker>
       </MapView>
       <View
