@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { View, StyleSheet, TextInput, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -8,7 +8,11 @@ import { useAppDispatch, useAppSelector } from '../../src/state/store';
 import { setOrigin, setDestination, type SearchLocation } from '../../src/state/searchSlice';
 import { PLACES, type MockPlace } from '../../src/mocks/seed-data';
 import { useCurrentPosition } from '../../src/services/location/useCurrentPosition';
-import { useLazyGeocodeSearchQuery } from '../../src/state/api';
+import {
+  useLazyGeocodeAutocompleteQuery,
+  useLazyGeocodePlaceDetailsQuery,
+  type LocationType,
+} from '../../src/state/api';
 
 const SEARCH_DEBOUNCE_MS = 400;
 
@@ -18,17 +22,46 @@ interface ResultRow {
   key: string;
   label: string;
   subLabel: string;
-  lat: number;
-  lng: number;
+  /** Absent for a pre-typed recent/mock row (PLACES) — those already carry
+   *  real lat/lng and skip the resolve step entirely. Present for a live
+   *  prediction, which must be resolved via Place Details before it has
+   *  coordinates at all (brief §6/§7 — Places API (New) never returns
+   *  coordinates from Autocomplete itself). */
+  placeId?: string;
+  type?: LocationType;
+  lat?: number;
+  lng?: number;
 }
 
-function splitLabel(fullLabel: string): { label: string; subLabel: string } {
-  const [first, ...rest] = fullLabel.split(',');
-  return { label: (first ?? fullLabel).trim(), subLabel: rest.join(',').trim() };
-}
+// French labels for the type badge — this is the concrete fix for the
+// brief's named complaint ("Sousse / Ville · Sousse Governorate / Sousse /
+// Gouvernorat" reading as confusing duplicated noise): every row shows
+// exactly one short, correct type word instead of the raw provider label
+// repeating the place name.
+const LOCATION_TYPE_LABEL: Partial<Record<LocationType, string>> = {
+  country: 'Pays',
+  governorate: 'Gouvernorat',
+  city: 'Ville',
+  neighborhood: 'Quartier',
+  poi: 'Lieu',
+  address: 'Adresse',
+};
 
 function placeToRow(place: MockPlace): ResultRow {
   return { key: place.id, label: place.label, subLabel: place.subLabel, lat: place.lat, lng: place.lng };
+}
+
+/** RFC-4122-shaped v4 UUID, good enough as a Places API (New) session-token
+ *  correlation id (brief §7) — not used for anything security-sensitive, so
+ *  a Math.random()-based generator avoids depending on a crypto.randomUUID
+ *  global this codebase hasn't otherwise confirmed is available across its
+ *  Hermes/RN runtime target. */
+function generateSessionToken(): string {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
 }
 
 /**
@@ -55,30 +88,47 @@ export default function SearchComposerScreen(): React.JSX.Element {
   const [query, setQuery] = useState('');
   const { status, position } = useCurrentPosition();
 
-  const [triggerSearch, { data: searchResults, isFetching }] = useLazyGeocodeSearchQuery();
+  // Places API (New) session-token lifecycle (brief §7): one UUID per
+  // search interaction, reused across every autocomplete keystroke AND the
+  // one Place Details call it leads to, then replaced — never reused across
+  // unrelated searches. A ref (not state) since regenerating it must never
+  // itself trigger a re-render/re-fetch the way a state update would.
+  const sessionTokenRef = useRef(generateSessionToken());
+  const [resolveError, setResolveError] = useState(false);
+
+  const [triggerAutocomplete, { data: predictions, isFetching }] = useLazyGeocodeAutocompleteQuery();
+  const [triggerDetails, { isFetching: isResolving }] = useLazyGeocodePlaceDetailsQuery();
 
   useEffect(() => {
     const trimmed = query.trim();
     if (trimmed.length < 2) return;
     const timer = setTimeout(() => {
-      void triggerSearch(trimmed);
+      void triggerAutocomplete({ input: trimmed, sessionToken: sessionTokenRef.current });
     }, SEARCH_DEBOUNCE_MS);
     return () => clearTimeout(timer);
-  }, [query, triggerSearch]);
+  }, [query, triggerAutocomplete]);
 
   const isSearching = query.trim().length >= 2;
   const rows: ResultRow[] = useMemo(() => {
     if (!isSearching) return PLACES.map(placeToRow);
-    if (!searchResults) return [];
-    return searchResults.map((r) => {
-      const { label, subLabel } = splitLabel(r.label);
-      return { key: `${r.lat},${r.lng}`, label, subLabel, lat: r.lat, lng: r.lng };
-    });
-  }, [isSearching, searchResults]);
+    if (!predictions) return [];
+    return predictions.map((p) => ({
+      key: p.placeId,
+      label: p.primaryText,
+      subLabel: p.secondaryText ?? '',
+      placeId: p.placeId,
+      type: p.type,
+    }));
+  }, [isSearching, predictions]);
 
   function activate(field: ActiveField): void {
     setActiveField(field);
     setQuery('');
+    setResolveError(false);
+    // A field switch is a genuinely new search interaction — never carry a
+    // session token across it (brief §7, step 5: "generate a fresh token
+    // for the next search session").
+    sessionTokenRef.current = generateSessionToken();
   }
 
   function choose(place: SearchLocation): void {
@@ -98,8 +148,36 @@ export default function SearchComposerScreen(): React.JSX.Element {
     router.back();
   }
 
-  function chooseRow(row: ResultRow): void {
-    choose({ label: row.label, subLabel: row.subLabel || undefined, lat: row.lat, lng: row.lng });
+  async function chooseRow(row: ResultRow): Promise<void> {
+    // A pre-typed recent/mock row already carries real coordinates — no
+    // resolve step needed (and no real session token to spend one on).
+    if (row.lat !== undefined && row.lng !== undefined) {
+      choose({ label: row.label, subLabel: row.subLabel || undefined, lat: row.lat, lng: row.lng });
+      return;
+    }
+    if (!row.placeId) return;
+
+    setResolveError(false);
+    const sessionToken = sessionTokenRef.current;
+    const result = await triggerDetails({ placeId: row.placeId, sessionToken }).unwrap().catch(() => null);
+    if (!result) {
+      // Places/Nominatim failure or an expired/mismatched session — brief
+      // §29/§14: never silently drop the user's search, keep the typed
+      // text and let them retry instead of navigating away on a null.
+      setResolveError(true);
+      return;
+    }
+    // The session that started with the first autocomplete keystroke ends
+    // here — a fresh token is required for whatever search happens next.
+    sessionTokenRef.current = generateSessionToken();
+    choose({
+      label: result.label,
+      subLabel: result.secondaryText ?? undefined,
+      lat: result.latitude,
+      lng: result.longitude,
+      placeId: result.placeId ?? undefined,
+      type: result.type,
+    });
   }
 
   function useMyPosition(): void {
@@ -150,10 +228,16 @@ export default function SearchComposerScreen(): React.JSX.Element {
             >
               <Icon name="close" size="sm" color={theme.inkMuted} />
             </TouchableOpacity>
-          ) : isFetching ? (
+          ) : isFetching || isResolving ? (
             <ActivityIndicator size="small" color={theme.inkFaint} />
           ) : null}
         </View>
+
+        {resolveError ? (
+          <Text variant="caption" color={theme.error} style={styles.errorText}>
+            Impossible de récupérer ce lieu. Réessayez.
+          </Text>
+        ) : null}
 
         {isOrigin && !isSearching ? (
           <TouchableOpacity
@@ -217,27 +301,50 @@ export default function SearchComposerScreen(): React.JSX.Element {
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"
           contentContainerStyle={styles.listContent}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={[styles.placeRow, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}
-              onPress={() => chooseRow(item)}
-              activeOpacity={0.7}
-            >
-              <View style={[styles.placeIconWrap, { backgroundColor: theme.surfaceMuted }]}>
-                <Icon name="location-outline" size="sm" color={theme.inkMuted} />
-              </View>
-              <View style={styles.placeTextCol}>
-                <Text variant="body" color={theme.ink} numberOfLines={1} style={styles.placeLabel}>
-                  {item.label}
-                </Text>
-                {item.subLabel ? (
-                  <Text variant="caption" color={theme.inkFaint} numberOfLines={1}>
-                    {item.subLabel}
-                  </Text>
-                ) : null}
-              </View>
-            </TouchableOpacity>
-          )}
+          renderItem={({ item }) => {
+            const typeLabel = item.type ? LOCATION_TYPE_LABEL[item.type] : undefined;
+            return (
+              <TouchableOpacity
+                style={[styles.placeRow, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}
+                onPress={() => void chooseRow(item)}
+                activeOpacity={0.7}
+              >
+                <View style={[styles.placeIconWrap, { backgroundColor: theme.surfaceMuted }]}>
+                  <Icon name="location-outline" size="sm" color={theme.inkMuted} />
+                </View>
+                <View style={styles.placeTextCol}>
+                  <View style={styles.placeLabelRow}>
+                    <Text
+                      variant="body"
+                      color={theme.ink}
+                      numberOfLines={1}
+                      style={[styles.placeLabel, styles.placeLabelFlex]}
+                    >
+                      {item.label}
+                    </Text>
+                    {/* One short, correct type word per row — the direct
+                        fix for the brief's named "Sousse / Ville · Sousse
+                        Governorate / Sousse / Gouvernorat" duplicated-noise
+                        complaint: a city and its governorate now read as
+                        two clearly distinct rows instead of a repeated
+                        label. */}
+                    {typeLabel ? (
+                      <View style={[styles.typeBadge, { backgroundColor: theme.surfaceMuted }]}>
+                        <Text variant="caption" color={theme.inkMuted}>
+                          {typeLabel}
+                        </Text>
+                      </View>
+                    ) : null}
+                  </View>
+                  {item.subLabel ? (
+                    <Text variant="caption" color={theme.inkFaint} numberOfLines={1}>
+                      {item.subLabel}
+                    </Text>
+                  ) : null}
+                </View>
+              </TouchableOpacity>
+            );
+          }}
           ListEmptyComponent={
             isSearching && !isFetching ? (
               <Text variant="body" color={theme.inkFaint} style={styles.empty}>
@@ -364,6 +471,22 @@ const styles = StyleSheet.create({
   },
   placeLabel: {
     fontWeight: '500',
+  },
+  placeLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  placeLabelFlex: {
+    flexShrink: 1,
+  },
+  typeBadge: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+    borderRadius: radii.sm,
+  },
+  errorText: {
+    marginTop: spacing.xs,
   },
   empty: {
     marginTop: spacing.xl,

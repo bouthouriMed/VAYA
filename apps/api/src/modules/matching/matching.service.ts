@@ -4,6 +4,10 @@ import { demandSignals, rides, routeStops } from '../../db/schema/index.js';
 import { haversineDistanceMeters } from '../../lib/geo.js';
 import { getRoute } from '../../lib/routing.js';
 import {
+  findCandidateRideIdsByCorridor,
+  findCandidateRideIdsByEndpoints,
+} from '../../lib/spatial.js';
+import {
   computeRouteOverlapFraction,
   decodePolyline,
   projectPointOntoRoute,
@@ -44,6 +48,17 @@ const MIN_ROUTE_FRACTION_GAP = 0.02;
 // query (docs/roadmap/phase-13-search-engine.md's business rules).
 const CLOSEST_DEPARTURE_LOOKAHEAD_DAYS = 14;
 const CLOSEST_DEPARTURE_LIMIT = 5;
+
+// Two-stage matching (Google/PostGIS location spec §13): the maximum
+// candidate set PostGIS's cheap spatial stage narrows a search down to,
+// before the existing application-level scoring/ranking (and, once built, a
+// precise per-candidate detour calculation) runs on it. Deliberately in the
+// 20-50 range the spec names as reasonable at Vaya's actual candidate-set
+// sizes — generous enough that a well-matched corridor essentially never
+// loses a real candidate to the cap, tight enough to keep the expensive
+// per-candidate work (route-overlap scoring today; routing-API detour calls
+// in a future phase) bounded regardless of how many rides exist DB-wide.
+const POSTGIS_CANDIDATE_CAP = 50;
 
 function clamp01(n: number): number {
   return Math.max(0, Math.min(1, n));
@@ -173,7 +188,30 @@ function buildReasons(params: {
   return reasons;
 }
 
-async function fetchPublishedRidesInWindow(db: Database, windowStart: Date, windowEnd: Date) {
+/**
+ * Fetches published, time-windowed rides. When `candidateIds` is provided
+ * (the PostGIS stage-1 filter already ran and returned a narrowed set —
+ * lib/spatial.ts), fetches exactly those rows instead of re-scanning the
+ * whole time window — the two-stage architecture's actual saving. When it's
+ * `undefined` (PostGIS disabled, or its query failed — spatial.ts returns
+ * `null` for either case, callers pass that through as `undefined` here),
+ * falls back to the original full time-windowed scan, unchanged — this is
+ * the exact pre-PostGIS behavior every existing test already exercises, so
+ * nothing about that path's semantics changes, only whether it runs at all.
+ */
+async function fetchPublishedRidesInWindow(
+  db: Database,
+  windowStart: Date,
+  windowEnd: Date,
+  candidateIds?: string[],
+) {
+  if (candidateIds) {
+    if (candidateIds.length === 0) return [];
+    return db.query.rides.findMany({
+      where: and(eq(rides.status, 'published'), inArray(rides.id, candidateIds)),
+      with: { driverProfile: { with: { user: true } } },
+    });
+  }
   return db.query.rides.findMany({
     where: and(
       eq(rides.status, 'published'),
@@ -301,10 +339,32 @@ async function scoreCandidates(
 ): Promise<MatchCandidate[]> {
   const windowStart = new Date(input.when.getTime() - timeWindowMin * 60_000);
   const windowEnd = new Date(input.when.getTime() + timeWindowMin * 60_000);
-  const candidateRides = await fetchPublishedRidesInWindow(db, windowStart, windowEnd);
 
   const origin = { lat: input.originLat, lng: input.originLng };
   const destination = { lat: input.destinationLat, lng: input.destinationLng };
+
+  // Two-stage matching, stage 1 (Google/PostGIS location spec §13): a cheap,
+  // GiST-indexed spatial query narrows the candidate set in the database
+  // before any application-level scoring runs. `null` (PostGIS disabled or
+  // the query failed) falls back to the pre-existing full time-windowed scan
+  // exactly as before — never a silent behavior change, only a performance
+  // one when it succeeds.
+  const candidateIds = await findCandidateRideIdsByEndpoints(
+    db,
+    origin,
+    destination,
+    pickupRadiusM,
+    dropoffRadiusM,
+    windowStart,
+    windowEnd,
+    POSTGIS_CANDIDATE_CAP,
+  );
+  const candidateRides = await fetchPublishedRidesInWindow(
+    db,
+    windowStart,
+    windowEnd,
+    candidateIds ?? undefined,
+  );
 
   // One OSRM call for the rider's own requested route (cached — cheap even
   // when called again from a different tier's pass).
@@ -358,10 +418,33 @@ async function scorePassThroughCandidates(
 ): Promise<MatchCandidate[]> {
   const windowStart = new Date(input.when.getTime() - timeWindowMin * 60_000);
   const windowEnd = new Date(input.when.getTime() + timeWindowMin * 60_000);
-  const candidateRides = await fetchPublishedRidesInWindow(db, windowStart, windowEnd);
 
   const origin = { lat: input.originLat, lng: input.originLng };
   const destination = { lat: input.destinationLat, lng: input.destinationLng };
+
+  // Two-stage matching, stage 1: PostGIS's route_geom (populated from the
+  // same routePolyline this tier already requires) lets the corridor
+  // proximity test itself run as a GiST-indexed SQL query instead of
+  // decoding+resampling+projecting every time-windowed ride's polyline in
+  // Node — this is the specific step v1/v2 of the search-engine audit
+  // flagged as the biggest architectural risk (an unbounded, synchronous,
+  // per-candidate CPU cost with no spatial pre-filter). Falls back to the
+  // full scan, unchanged, when PostGIS is unavailable.
+  const candidateIds = await findCandidateRideIdsByCorridor(
+    db,
+    origin,
+    destination,
+    corridorWidthM,
+    windowStart,
+    windowEnd,
+    POSTGIS_CANDIDATE_CAP,
+  );
+  const candidateRides = await fetchPublishedRidesInWindow(
+    db,
+    windowStart,
+    windowEnd,
+    candidateIds ?? undefined,
+  );
 
   const stopsByRide = await fetchStopsByRide(
     db,
@@ -462,10 +545,32 @@ async function findClosestDepartures(
     input.when.getTime() + CLOSEST_DEPARTURE_LOOKAHEAD_DAYS * 24 * 60 * 60_000,
   );
   const windowStart = now < input.when ? now : input.when;
-  const candidateRides = await fetchPublishedRidesInWindow(db, windowStart, lookaheadEnd);
 
   const origin = { lat: input.originLat, lng: input.originLng };
   const destination = { lat: input.destinationLat, lng: input.destinationLng };
+
+  // Two-stage matching, stage 1: this tier's 14-day lookahead is the widest
+  // time window of the whole cascade and previously had no database-level
+  // row bound at all (flagged directly by the prior search-engine audit,
+  // v2 §16 P2.2, as the single largest unbounded-fetch risk in the whole
+  // matching path) — the PostGIS spatial filter both narrows AND, via its
+  // own LIMIT, bounds this query the same way it does for the other tiers.
+  const candidateIds = await findCandidateRideIdsByEndpoints(
+    db,
+    origin,
+    destination,
+    WIDE_PICKUP_RADIUS_M,
+    WIDE_DROPOFF_RADIUS_M,
+    windowStart,
+    lookaheadEnd,
+    POSTGIS_CANDIDATE_CAP,
+  );
+  const candidateRides = await fetchPublishedRidesInWindow(
+    db,
+    windowStart,
+    lookaheadEnd,
+    candidateIds ?? undefined,
+  );
   const riderRoute = await getRoute(origin, destination);
   const riderRoutePoints = riderRoute.polyline ? decodePolyline(riderRoute.polyline) : [];
   const stopsByRide = await fetchStopsByRide(

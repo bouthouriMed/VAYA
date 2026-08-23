@@ -1,6 +1,12 @@
 services:
   postgres:
-    image: postgres:16-alpine
+    # PostGIS-enabled image (same Postgres 16 major version as before) so
+    # `CREATE EXTENSION postgis` in migration 0014 has something to enable —
+    # a plain postgres:16-alpine image has no PostGIS binaries at all.
+    # Existing named volume/env are unchanged, so a pre-existing dev volume
+    # keeps working; the extension itself is enabled by the migration, not
+    # by this image swap alone.
+    image: postgis/postgis:16-3.4-alpine
     container_name: vaya-postgres
     restart: unless-stopped
     ports:
@@ -29,7 +35,7 @@ services:
       test: ['CMD', 'redis-cli', 'ping']
       interval: 5s
       timeout: 5s
-      retries: 5n d,zaml b d;am,xb
+      retries: 5
 
   osrm:
     image: osrm/osrm-backend

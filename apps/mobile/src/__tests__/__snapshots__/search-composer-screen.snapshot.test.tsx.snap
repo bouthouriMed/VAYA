@@ -461,28 +461,43 @@ exports[`search/composer.tsx snapshots > renders the destination field active â€
             }
           }
         >
-          <Text
-            numberOfLines={1}
+          <View
             style={
-              [
-                {
-                  "fontSize": 16,
-                  "fontWeight": "400",
-                  "lineHeight": 24,
-                },
-                {
-                  "color": "#14201B",
-                  "textAlign": undefined,
-                  "writingDirection": "ltr",
-                },
-                {
-                  "fontWeight": "500",
-                },
-              ]
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+                "gap": 8,
+              }
             }
           >
-            El Menzah 5
-          </Text>
+            <Text
+              numberOfLines={1}
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  {
+                    "color": "#14201B",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  [
+                    {
+                      "fontWeight": "500",
+                    },
+                    {
+                      "flexShrink": 1,
+                    },
+                  ],
+                ]
+              }
+            >
+              El Menzah 5
+            </Text>
+          </View>
           <Text
             numberOfLines={1}
             style={
@@ -557,28 +572,43 @@ exports[`search/composer.tsx snapshots > renders the destination field active â€
             }
           }
         >
-          <Text
-            numberOfLines={1}
+          <View
             style={
-              [
-                {
-                  "fontSize": 16,
-                  "fontWeight": "400",
-                  "lineHeight": 24,
-                },
-                {
-                  "color": "#14201B",
-                  "textAlign": undefined,
-                  "writingDirection": "ltr",
-                },
-                {
-                  "fontWeight": "500",
-                },
-              ]
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+                "gap": 8,
+              }
             }
           >
-            Tunis Digital Center
-          </Text>
+            <Text
+              numberOfLines={1}
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  {
+                    "color": "#14201B",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  [
+                    {
+                      "fontWeight": "500",
+                    },
+                    {
+                      "flexShrink": 1,
+                    },
+                  ],
+                ]
+              }
+            >
+              Tunis Digital Center
+            </Text>
+          </View>
           <Text
             numberOfLines={1}
             style={
@@ -653,28 +683,43 @@ exports[`search/composer.tsx snapshots > renders the destination field active â€
             }
           }
         >
-          <Text
-            numberOfLines={1}
+          <View
             style={
-              [
-                {
-                  "fontSize": 16,
-                  "fontWeight": "400",
-                  "lineHeight": 24,
-                },
-                {
-                  "color": "#14201B",
-                  "textAlign": undefined,
-                  "writingDirection": "ltr",
-                },
-                {
-                  "fontWeight": "500",
-                },
-              ]
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+                "gap": 8,
+              }
             }
           >
-            Avenue Habib Bourguiba
-          </Text>
+            <Text
+              numberOfLines={1}
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  {
+                    "color": "#14201B",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  [
+                    {
+                      "fontWeight": "500",
+                    },
+                    {
+                      "flexShrink": 1,
+                    },
+                  ],
+                ]
+              }
+            >
+              Avenue Habib Bourguiba
+            </Text>
+          </View>
           <Text
             numberOfLines={1}
             style={
@@ -749,28 +794,43 @@ exports[`search/composer.tsx snapshots > renders the destination field active â€
             }
           }
         >
-          <Text
-            numberOfLines={1}
+          <View
             style={
-              [
-                {
-                  "fontSize": 16,
-                  "fontWeight": "400",
-                  "lineHeight": 24,
-                },
-                {
-                  "color": "#14201B",
-                  "textAlign": undefined,
-                  "writingDirection": "ltr",
-                },
-                {
-                  "fontWeight": "500",
-                },
-              ]
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+                "gap": 8,
+              }
             }
           >
-            La Marsa
-          </Text>
+            <Text
+              numberOfLines={1}
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  {
+                    "color": "#14201B",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  [
+                    {
+                      "fontWeight": "500",
+                    },
+                    {
+                      "flexShrink": 1,
+                    },
+                  ],
+                ]
+              }
+            >
+              La Marsa
+            </Text>
+          </View>
           <Text
             numberOfLines={1}
             style={
@@ -845,28 +905,43 @@ exports[`search/composer.tsx snapshots > renders the destination field active â€
             }
           }
         >
-          <Text
-            numberOfLines={1}
+          <View
             style={
-              [
-                {
-                  "fontSize": 16,
-                  "fontWeight": "400",
-                  "lineHeight": 24,
-                },
-                {
-                  "color": "#14201B",
-                  "textAlign": undefined,
-                  "writingDirection": "ltr",
-                },
-                {
-                  "fontWeight": "500",
-                },
-              ]
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+                "gap": 8,
+              }
             }
           >
-            Les Berges du Lac 1
-          </Text>
+            <Text
+              numberOfLines={1}
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  {
+                    "color": "#14201B",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  [
+                    {
+                      "fontWeight": "500",
+                    },
+                    {
+                      "flexShrink": 1,
+                    },
+                  ],
+                ]
+              }
+            >
+              Les Berges du Lac 1
+            </Text>
+          </View>
           <Text
             numberOfLines={1}
             style={
@@ -941,28 +1016,43 @@ exports[`search/composer.tsx snapshots > renders the destination field active â€
             }
           }
         >
-          <Text
-            numberOfLines={1}
+          <View
             style={
-              [
-                {
-                  "fontSize": 16,
-                  "fontWeight": "400",
-                  "lineHeight": 24,
-                },
-                {
-                  "color": "#14201B",
-                  "textAlign": undefined,
-                  "writingDirection": "ltr",
-                },
-                {
-                  "fontWeight": "500",
-                },
-              ]
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+                "gap": 8,
+              }
             }
           >
-            El Manar
-          </Text>
+            <Text
+              numberOfLines={1}
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  {
+                    "color": "#14201B",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  [
+                    {
+                      "fontWeight": "500",
+                    },
+                    {
+                      "flexShrink": 1,
+                    },
+                  ],
+                ]
+              }
+            >
+              El Manar
+            </Text>
+          </View>
           <Text
             numberOfLines={1}
             style={
@@ -1037,28 +1127,43 @@ exports[`search/composer.tsx snapshots > renders the destination field active â€
             }
           }
         >
-          <Text
-            numberOfLines={1}
+          <View
             style={
-              [
-                {
-                  "fontSize": 16,
-                  "fontWeight": "400",
-                  "lineHeight": 24,
-                },
-                {
-                  "color": "#14201B",
-                  "textAlign": undefined,
-                  "writingDirection": "ltr",
-                },
-                {
-                  "fontWeight": "500",
-                },
-              ]
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+                "gap": 8,
+              }
             }
           >
-            AÃ©roport Tunis-Carthage
-          </Text>
+            <Text
+              numberOfLines={1}
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  {
+                    "color": "#14201B",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  [
+                    {
+                      "fontWeight": "500",
+                    },
+                    {
+                      "flexShrink": 1,
+                    },
+                  ],
+                ]
+              }
+            >
+              AÃ©roport Tunis-Carthage
+            </Text>
+          </View>
           <Text
             numberOfLines={1}
             style={
@@ -1133,28 +1238,43 @@ exports[`search/composer.tsx snapshots > renders the destination field active â€
             }
           }
         >
-          <Text
-            numberOfLines={1}
+          <View
             style={
-              [
-                {
-                  "fontSize": 16,
-                  "fontWeight": "400",
-                  "lineHeight": 24,
-                },
-                {
-                  "color": "#14201B",
-                  "textAlign": undefined,
-                  "writingDirection": "ltr",
-                },
-                {
-                  "fontWeight": "500",
-                },
-              ]
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+                "gap": 8,
+              }
             }
           >
-            Ariana Centre
-          </Text>
+            <Text
+              numberOfLines={1}
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  {
+                    "color": "#14201B",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  [
+                    {
+                      "fontWeight": "500",
+                    },
+                    {
+                      "flexShrink": 1,
+                    },
+                  ],
+                ]
+              }
+            >
+              Ariana Centre
+            </Text>
+          </View>
           <Text
             numberOfLines={1}
             style={
@@ -1686,28 +1806,43 @@ exports[`search/composer.tsx snapshots > renders the origin field active â€” tit
             }
           }
         >
-          <Text
-            numberOfLines={1}
+          <View
             style={
-              [
-                {
-                  "fontSize": 16,
-                  "fontWeight": "400",
-                  "lineHeight": 24,
-                },
-                {
-                  "color": "#14201B",
-                  "textAlign": undefined,
-                  "writingDirection": "ltr",
-                },
-                {
-                  "fontWeight": "500",
-                },
-              ]
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+                "gap": 8,
+              }
             }
           >
-            El Menzah 5
-          </Text>
+            <Text
+              numberOfLines={1}
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  {
+                    "color": "#14201B",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  [
+                    {
+                      "fontWeight": "500",
+                    },
+                    {
+                      "flexShrink": 1,
+                    },
+                  ],
+                ]
+              }
+            >
+              El Menzah 5
+            </Text>
+          </View>
           <Text
             numberOfLines={1}
             style={
@@ -1782,28 +1917,43 @@ exports[`search/composer.tsx snapshots > renders the origin field active â€” tit
             }
           }
         >
-          <Text
-            numberOfLines={1}
+          <View
             style={
-              [
-                {
-                  "fontSize": 16,
-                  "fontWeight": "400",
-                  "lineHeight": 24,
-                },
-                {
-                  "color": "#14201B",
-                  "textAlign": undefined,
-                  "writingDirection": "ltr",
-                },
-                {
-                  "fontWeight": "500",
-                },
-              ]
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+                "gap": 8,
+              }
             }
           >
-            Tunis Digital Center
-          </Text>
+            <Text
+              numberOfLines={1}
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  {
+                    "color": "#14201B",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  [
+                    {
+                      "fontWeight": "500",
+                    },
+                    {
+                      "flexShrink": 1,
+                    },
+                  ],
+                ]
+              }
+            >
+              Tunis Digital Center
+            </Text>
+          </View>
           <Text
             numberOfLines={1}
             style={
@@ -1878,28 +2028,43 @@ exports[`search/composer.tsx snapshots > renders the origin field active â€” tit
             }
           }
         >
-          <Text
-            numberOfLines={1}
+          <View
             style={
-              [
-                {
-                  "fontSize": 16,
-                  "fontWeight": "400",
-                  "lineHeight": 24,
-                },
-                {
-                  "color": "#14201B",
-                  "textAlign": undefined,
-                  "writingDirection": "ltr",
-                },
-                {
-                  "fontWeight": "500",
-                },
-              ]
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+                "gap": 8,
+              }
             }
           >
-            Avenue Habib Bourguiba
-          </Text>
+            <Text
+              numberOfLines={1}
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  {
+                    "color": "#14201B",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  [
+                    {
+                      "fontWeight": "500",
+                    },
+                    {
+                      "flexShrink": 1,
+                    },
+                  ],
+                ]
+              }
+            >
+              Avenue Habib Bourguiba
+            </Text>
+          </View>
           <Text
             numberOfLines={1}
             style={
@@ -1974,28 +2139,43 @@ exports[`search/composer.tsx snapshots > renders the origin field active â€” tit
             }
           }
         >
-          <Text
-            numberOfLines={1}
+          <View
             style={
-              [
-                {
-                  "fontSize": 16,
-                  "fontWeight": "400",
-                  "lineHeight": 24,
-                },
-                {
-                  "color": "#14201B",
-                  "textAlign": undefined,
-                  "writingDirection": "ltr",
-                },
-                {
-                  "fontWeight": "500",
-                },
-              ]
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+                "gap": 8,
+              }
             }
           >
-            La Marsa
-          </Text>
+            <Text
+              numberOfLines={1}
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  {
+                    "color": "#14201B",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  [
+                    {
+                      "fontWeight": "500",
+                    },
+                    {
+                      "flexShrink": 1,
+                    },
+                  ],
+                ]
+              }
+            >
+              La Marsa
+            </Text>
+          </View>
           <Text
             numberOfLines={1}
             style={
@@ -2070,28 +2250,43 @@ exports[`search/composer.tsx snapshots > renders the origin field active â€” tit
             }
           }
         >
-          <Text
-            numberOfLines={1}
+          <View
             style={
-              [
-                {
-                  "fontSize": 16,
-                  "fontWeight": "400",
-                  "lineHeight": 24,
-                },
-                {
-                  "color": "#14201B",
-                  "textAlign": undefined,
-                  "writingDirection": "ltr",
-                },
-                {
-                  "fontWeight": "500",
-                },
-              ]
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+                "gap": 8,
+              }
             }
           >
-            Les Berges du Lac 1
-          </Text>
+            <Text
+              numberOfLines={1}
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  {
+                    "color": "#14201B",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  [
+                    {
+                      "fontWeight": "500",
+                    },
+                    {
+                      "flexShrink": 1,
+                    },
+                  ],
+                ]
+              }
+            >
+              Les Berges du Lac 1
+            </Text>
+          </View>
           <Text
             numberOfLines={1}
             style={
@@ -2166,28 +2361,43 @@ exports[`search/composer.tsx snapshots > renders the origin field active â€” tit
             }
           }
         >
-          <Text
-            numberOfLines={1}
+          <View
             style={
-              [
-                {
-                  "fontSize": 16,
-                  "fontWeight": "400",
-                  "lineHeight": 24,
-                },
-                {
-                  "color": "#14201B",
-                  "textAlign": undefined,
-                  "writingDirection": "ltr",
-                },
-                {
-                  "fontWeight": "500",
-                },
-              ]
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+                "gap": 8,
+              }
             }
           >
-            El Manar
-          </Text>
+            <Text
+              numberOfLines={1}
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  {
+                    "color": "#14201B",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  [
+                    {
+                      "fontWeight": "500",
+                    },
+                    {
+                      "flexShrink": 1,
+                    },
+                  ],
+                ]
+              }
+            >
+              El Manar
+            </Text>
+          </View>
           <Text
             numberOfLines={1}
             style={
@@ -2262,28 +2472,43 @@ exports[`search/composer.tsx snapshots > renders the origin field active â€” tit
             }
           }
         >
-          <Text
-            numberOfLines={1}
+          <View
             style={
-              [
-                {
-                  "fontSize": 16,
-                  "fontWeight": "400",
-                  "lineHeight": 24,
-                },
-                {
-                  "color": "#14201B",
-                  "textAlign": undefined,
-                  "writingDirection": "ltr",
-                },
-                {
-                  "fontWeight": "500",
-                },
-              ]
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+                "gap": 8,
+              }
             }
           >
-            AÃ©roport Tunis-Carthage
-          </Text>
+            <Text
+              numberOfLines={1}
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  {
+                    "color": "#14201B",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  [
+                    {
+                      "fontWeight": "500",
+                    },
+                    {
+                      "flexShrink": 1,
+                    },
+                  ],
+                ]
+              }
+            >
+              AÃ©roport Tunis-Carthage
+            </Text>
+          </View>
           <Text
             numberOfLines={1}
             style={
@@ -2358,28 +2583,43 @@ exports[`search/composer.tsx snapshots > renders the origin field active â€” tit
             }
           }
         >
-          <Text
-            numberOfLines={1}
+          <View
             style={
-              [
-                {
-                  "fontSize": 16,
-                  "fontWeight": "400",
-                  "lineHeight": 24,
-                },
-                {
-                  "color": "#14201B",
-                  "textAlign": undefined,
-                  "writingDirection": "ltr",
-                },
-                {
-                  "fontWeight": "500",
-                },
-              ]
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+                "gap": 8,
+              }
             }
           >
-            Ariana Centre
-          </Text>
+            <Text
+              numberOfLines={1}
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  {
+                    "color": "#14201B",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  [
+                    {
+                      "fontWeight": "500",
+                    },
+                    {
+                      "flexShrink": 1,
+                    },
+                  ],
+                ]
+              }
+            >
+              Ariana Centre
+            </Text>
+          </View>
           <Text
             numberOfLines={1}
             style={

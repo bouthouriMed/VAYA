@@ -34,6 +34,45 @@ export interface GeocodeResult {
   lng: number;
 }
 
+export type LocationType =
+  | 'country'
+  | 'governorate'
+  | 'city'
+  | 'neighborhood'
+  | 'poi'
+  | 'address'
+  | 'unknown';
+
+/** A predicted result from the autocomplete session — no coordinates yet
+ *  (Places API (New) never returns them from Autocomplete itself; only a
+ *  Place Details call does — see geocodePlaceDetails below). Mirrors
+ *  packages/validation/src/geocoding.ts's locationPredictionSchema. */
+export interface LocationPrediction {
+  placeId: string;
+  primaryText: string;
+  secondaryText: string | null;
+  type: LocationType;
+}
+
+/** The Vaya-owned normalized location shape every provider (Google or the
+ *  Nominatim fallback) resolves into — mirrors
+ *  packages/validation/src/geocoding.ts's locationPointSchema. Raw
+ *  Google/Nominatim response shapes never reach this file or any screen. */
+export interface LocationPoint {
+  placeId: string | null;
+  label: string;
+  primaryText: string;
+  secondaryText: string | null;
+  latitude: number;
+  longitude: number;
+  type: LocationType;
+  formattedAddress: string | null;
+  city: string | null;
+  governorate: string | null;
+  countryCode: string | null;
+  source: 'google' | 'nominatim' | 'device' | 'manual';
+}
+
 export interface RankedStop {
   stopId: string;
   label: string;
@@ -534,8 +573,20 @@ export const api = createApi({
       query: (body) => ({ url: '/auth/logout', method: 'POST', body }),
     }),
 
-    geocodeSearch: builder.query<GeocodeResult[], string>({
-      query: (q) => ({ url: '/geocoding/search', params: { q } }),
+    // Places API (New) session-token flow (docs/domain/location-
+    // architecture-spec-2026-08-23.md): predictions only, no coordinates —
+    // geocodePlaceDetails resolves the one the user actually picks.
+    geocodeAutocomplete: builder.query<
+      LocationPrediction[],
+      { input: string; sessionToken: string }
+    >({
+      query: (params) => ({ url: '/geocoding/autocomplete', params }),
+    }),
+    geocodePlaceDetails: builder.query<
+      LocationPoint | null,
+      { placeId: string; sessionToken: string }
+    >({
+      query: (params) => ({ url: '/geocoding/place-details', params }),
     }),
     geocodeReverse: builder.query<GeocodeResult, { lat: number; lng: number }>({
       query: (params) => ({ url: '/geocoding/reverse', params }),
@@ -794,8 +845,10 @@ export const {
   useVerifyPhoneOtpMutation,
   useVerifyOtpMutation,
   useLogoutMutation,
-  useGeocodeSearchQuery,
-  useLazyGeocodeSearchQuery,
+  useGeocodeAutocompleteQuery,
+  useLazyGeocodeAutocompleteQuery,
+  useGeocodePlaceDetailsQuery,
+  useLazyGeocodePlaceDetailsQuery,
   useGeocodeReverseQuery,
   useMatchingSearchQuery,
   useLazyMatchingSearchQuery,

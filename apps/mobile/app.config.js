@@ -2,6 +2,8 @@
 // populated from apps/mobile/.env at dev-server/build time (Expo's CLI
 // auto-loads .env into process.env before this file is evaluated) — a
 // physical device over LAN needs the host's LAN IP here, not localhost.
+const withGoogleMapsIOS = require('./plugins/withGoogleMapsIOS');
+
 module.exports = {
   expo: {
     name: 'VAYA',
@@ -24,15 +26,16 @@ module.exports = {
       // calendar) then pops the whole app instead of just the sheet.
       // Requires a native dev-client rebuild to take effect.
       enableOnBackInvokedCallback: false,
-      // react-native-maps needs its own Google Maps API key on Android
-      // (iOS uses Apple Maps by default, no key needed). Real key required
-      // for the map to render on a real Android build/device — set
-      // GOOGLE_MAPS_API_KEY in apps/mobile/.env, never commit the value
-      // itself. Without it, react-native-maps renders a blank gray tile
-      // area on Android but the app doesn't crash.
+      // react-native-maps' Google Maps SDK needs its own Android key,
+      // separate from the iOS key below and from the server-side
+      // GOOGLE_MAPS_SERVER_API_KEY in apps/api/.env.example — see
+      // apps/mobile/.env.example for the restriction each one needs. Real
+      // key required for the map to render on a real Android build/device;
+      // without it, react-native-maps renders a blank gray tile area on
+      // Android but the app doesn't crash.
       config: {
         googleMaps: {
-          apiKey: process.env.GOOGLE_MAPS_API_KEY,
+          apiKey: process.env.GOOGLE_MAPS_ANDROID_API_KEY,
         },
       },
     },
@@ -65,6 +68,7 @@ module.exports = {
             'VAYA utilise la caméra pour vérifier votre permis, votre assurance et votre identité en direct.',
         },
       ],
+      [withGoogleMapsIOS, { apiKey: process.env.GOOGLE_MAPS_IOS_API_KEY }],
     ],
     experiments: {
       typedRoutes: true,

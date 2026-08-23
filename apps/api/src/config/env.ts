@@ -25,6 +25,18 @@ const envSchema = z.object({
   // is a tunnel domain (e.g. https://*.trycloudflare.com, implicit port
   // 443) whose *local* target the tunnel process points at this port.
   GOOGLE_OAUTH_CALLBACK_PORT: z.coerce.number().default(4000),
+  // Location/routing (distinct from the GOOGLE_CLIENT_ID/SECRET pair above,
+  // which is Sign-in-with-Google OAuth — an unrelated Google product).
+  GOOGLE_MAPS_SERVER_API_KEY: z.string().optional(),
+  GOOGLE_PLACES_API_KEY: z.string().optional(),
+  GOOGLE_ROUTES_API_KEY: z.string().optional(),
+  GOOGLE_GEOCODING_API_KEY: z.string().optional(),
+  LOCATION_PROVIDER: z.enum(['auto', 'google', 'nominatim']).default('auto'),
+  ROUTING_PROVIDER: z.enum(['auto', 'google', 'osrm']).default('auto'),
+  POSTGIS_ENABLED: z
+    .string()
+    .optional()
+    .transform((v) => v !== 'false'),
 });
 
 export type Env = z.infer<typeof envSchema>;

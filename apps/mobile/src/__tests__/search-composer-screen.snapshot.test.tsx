@@ -37,7 +37,8 @@ function mockStore(search: Partial<RootState['search']>): void {
 
 function mockApi(): void {
   vi.doMock('../state/api', () => ({
-    useLazyGeocodeSearchQuery: () => [vi.fn(), { data: undefined, isFetching: false }],
+    useLazyGeocodeAutocompleteQuery: () => [vi.fn(), { data: undefined, isFetching: false }],
+    useLazyGeocodePlaceDetailsQuery: () => [vi.fn(), { isFetching: false }],
   }));
 }
 

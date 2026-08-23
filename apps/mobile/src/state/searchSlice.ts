@@ -6,6 +6,12 @@ export interface SearchLocation {
   lat: number;
   lng: number;
   isCurrentPosition?: boolean;
+  /** Set when this location was resolved through the Places/Nominatim
+   *  provider abstraction (search/composer.tsx) — absent for "Ma position
+   *  actuelle" and any location set outside that flow. Not required by any
+   *  existing consumer; purely additive. */
+  placeId?: string;
+  type?: 'country' | 'governorate' | 'city' | 'neighborhood' | 'poi' | 'address' | 'unknown';
 }
 
 /** A passenger's chosen pickup point from a matched ride's ranked
