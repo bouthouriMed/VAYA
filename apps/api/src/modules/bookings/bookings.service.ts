@@ -1,6 +1,6 @@
 import { and, eq, gte, sql } from 'drizzle-orm';
 import type { getDatabase } from '../../lib/database.js';
-import { bookings, rides, routeStops, trips, users } from '../../db/schema/index.js';
+import { bookings, rides, routeStops, riderProfiles, trips, users } from '../../db/schema/index.js';
 import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from '../../lib/errors.js';
 import {
   canReportNoShow,
@@ -63,6 +63,45 @@ async function getUserFullNameSafe(db: Database, userId: string): Promise<string
   try {
     const user = await db.query.users.findFirst({ where: eq(users.id, userId) });
     return user?.fullName;
+  } catch {
+    return undefined;
+  }
+}
+
+/** Notification-panel redesign (2026-08-23): the driver's booking_requested
+ *  card needs a real passenger mini-profile (avatar + rating), not just a
+ *  name string — best-effort, same posture as getUserFullNameSafe above.
+ *  Rider rating comes from `rider_profiles` (Phase 9), a separate lookup
+ *  from `users` since it's a one-to-one optional table, not a column on
+ *  `users` itself — a rider with no row yet (never rated) is honestly
+ *  `undefined`, not a fabricated 0-that-looks-like-a-real-score. */
+async function getRiderNotificationProfileSafe(
+  db: Database,
+  riderId: string,
+): Promise<{ fullName?: string; avatarUrl?: string; ratingAvg?: number }> {
+  try {
+    const [user, profile] = await Promise.all([
+      db.query.users.findFirst({ where: eq(users.id, riderId) }),
+      db.query.riderProfiles.findFirst({ where: eq(riderProfiles.userId, riderId) }),
+    ]);
+    return {
+      fullName: user?.fullName,
+      avatarUrl: user?.avatarUrl ?? undefined,
+      ratingAvg: profile?.ratingAvg,
+    };
+  } catch {
+    return {};
+  }
+}
+
+/** Driver-side mirror for the rider's booking_accepted/booking_declined
+ *  cards — the driver's rating is already loaded on `booking.ride.
+ *  driverProfile` at every call site below, so this only needs the
+ *  avatar (not on driverProfile, lives on `users`). */
+async function getDriverAvatarSafe(db: Database, driverUserId: string): Promise<string | undefined> {
+  try {
+    const user = await db.query.users.findFirst({ where: eq(users.id, driverUserId) });
+    return user?.avatarUrl ?? undefined;
   } catch {
     return undefined;
   }
@@ -178,12 +217,19 @@ export async function createBooking(
     .returning();
   if (!booking) throw new Error('Failed to create booking');
 
+  const riderProfileForNotif = await getRiderNotificationProfileSafe(db, riderId);
   await notifyBestEffort(db, ride.driverProfile.userId, 'booking_requested', {
     bookingId: booking.id,
     rideId,
     riderId,
-    riderName: await getUserFullNameSafe(db, riderId),
+    riderName: riderProfileForNotif.fullName,
+    riderAvatarUrl: riderProfileForNotif.avatarUrl,
+    riderRatingAvg: riderProfileForNotif.ratingAvg,
     seatsRequested: booking.seatsRequested,
+    pickupLabel: booking.pickupLabel,
+    originLabel: ride.originLabel,
+    destinationLabel: ride.destinationLabel,
+    departureAt: ride.departureAt.toISOString(),
   });
 
   return booking;
@@ -206,6 +252,7 @@ export async function listMyBookings(db: Database, riderId: string) {
       departureAt: ride.departureAt,
       contributionPerSeat: ride.contributionPerSeat,
       driverFullName: ride.driverProfile.user?.fullName ?? null,
+      driverUserId: ride.driverProfile.userId,
     },
   }));
 }
@@ -302,6 +349,11 @@ export async function acceptBooking(db: Database, bookingId: string, requestingU
     bookingId: booking.id,
     rideId: booking.rideId,
     driverName: await getUserFullNameSafe(db, booking.ride.driverProfile.userId),
+    driverAvatarUrl: await getDriverAvatarSafe(db, booking.ride.driverProfile.userId),
+    driverRatingAvg: booking.ride.driverProfile.ratingAvg,
+    originLabel: booking.ride.originLabel,
+    destinationLabel: booking.ride.destinationLabel,
+    departureAt: booking.ride.departureAt.toISOString(),
   });
 
   // Phase 8: one conversation per booking, opened the moment it's
@@ -332,6 +384,8 @@ export async function declineBooking(db: Database, bookingId: string, requesting
     bookingId: booking.id,
     rideId: booking.rideId,
     driverName: await getUserFullNameSafe(db, booking.ride.driverProfile.userId),
+    originLabel: booking.ride.originLabel,
+    destinationLabel: booking.ride.destinationLabel,
   });
 
   return updated;

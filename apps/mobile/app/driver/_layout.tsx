@@ -9,6 +9,7 @@ export default function DriverLayout(): React.JSX.Element {
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="onboarding" />
+      <Stack.Screen name="rides/[rideId]" />
     </Stack>
   );
 }

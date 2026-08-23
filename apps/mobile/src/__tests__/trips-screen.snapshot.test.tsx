@@ -100,12 +100,17 @@ const ACCEPTED_BOOKING: Booking = {
     departureAt: FUTURE_DEPARTURE,
     contributionPerSeat: 10.5,
     driverFullName: 'Amine Ben Salah',
+    driverUserId: 'driver-amine',
   },
 };
 
 type QueryResult<T> = { data?: T; isLoading?: boolean; isError?: boolean };
-type MutationTuple = [unknown, { isLoading: boolean }];
 
+// 2026-08-23 redesign: trips.tsx no longer wires CancellationSheet /
+// RideRequestsSheet / ManageRideSheet / DriverBookingDetailSheet directly —
+// tapping a trip card now navigates to a real pushed screen instead
+// (bookings/[bookingId].tsx, driver/rides/[rideId].tsx), so those sheets'
+// transitive hooks are no longer part of this screen's render tree at all.
 function mockApi({
   bookings = [],
   driverProfile = null,
@@ -123,16 +128,6 @@ function mockApi({
     useListMyRidesQuery: (): QueryResult<Ride[]> => ({ data: myRides }),
     // Header notification bell — same query the explore tab's bell uses.
     useListNotificationsQuery: (): QueryResult<unknown[]> => ({ data: [] }),
-    // Transitive hooks from CancellationSheet / RideRequestsSheet /
-    // ManageRideSheet / DriverBookingDetailSheet — all rendered closed
-    // (visible=false → no-op), so inert stubs suffice; they just have to exist.
-    useCancelBookingMutation: (): MutationTuple => [vi.fn(), { isLoading: false }],
-    useGetCancellationPreviewQuery: (): QueryResult<unknown> => ({}),
-    useListRequestsForRideQuery: (): QueryResult<Booking[]> => ({}),
-    useAcceptBookingMutation: (): MutationTuple => [vi.fn(), { isLoading: false }],
-    useDeclineBookingMutation: (): MutationTuple => [vi.fn(), { isLoading: false }],
-    useCancelRideMutation: (): MutationTuple => [vi.fn(), { isLoading: false }],
-    useReportNoShowMutation: (): MutationTuple => [vi.fn(), { isLoading: false }],
   }));
 }
 
@@ -162,6 +157,16 @@ describe('trips.tsx snapshots', () => {
 
   it('first run — no bookings, no profile, rider empty state', async () => {
     mockApi({});
+    expect(await renderTrips()).toMatchSnapshot();
+  });
+
+  // A pure rider (no driverProfile) with a real accepted booking — exercises
+  // the world-class TripCard's person-counterpart branch (driver avatar +
+  // name + price tag over the dot→line→pin timeline), which the
+  // driver-dashboard fixture above never renders since its driverProfile
+  // makes the segmented control default to "Conducteur" instead.
+  it('rider view — booking card shows the real driver as counterpart', async () => {
+    mockApi({ bookings: [ACCEPTED_BOOKING] });
     expect(await renderTrips()).toMatchSnapshot();
   });
 });

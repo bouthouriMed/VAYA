@@ -91,7 +91,7 @@ export function CancellationSheet({
           </Text>
         ) : (
           <>
-            <Badge label={badge!.label} variant={badge!.variant} />
+            <Badge label={badge!.label} variant={badge!.variant} theme={theme} />
             <Text variant="body" color={theme.ink}>
               {preview.consequence}
             </Text>

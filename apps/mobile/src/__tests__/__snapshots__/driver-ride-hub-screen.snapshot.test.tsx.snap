@@ -1,0 +1,1451 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty state, not a fabricated list 1`] = `
+<View
+  style={
+    [
+      {
+        "flex": 1,
+      },
+      {
+        "backgroundColor": "#F7F3E8",
+      },
+    ]
+  }
+>
+  <ScrollView
+    contentContainerStyle={
+      {
+        "paddingBottom": 20,
+      }
+    }
+    showsVerticalScrollIndicator={false}
+  >
+    <View
+      style={
+        [
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "paddingBottom": 8,
+            "paddingHorizontal": 16,
+          },
+          {
+            "paddingTop": 8,
+          },
+        ]
+      }
+    >
+      <TouchableOpacity
+        accessibilityLabel="Retour"
+        accessibilityRole="button"
+        hitSlop={12}
+        onPress={[Function]}
+      >
+        <Ionicons
+          color="#14201B"
+          name="chevron-back"
+          size={24}
+        />
+      </TouchableOpacity>
+      <Text
+        style={
+          [
+            {
+              "fontSize": 24,
+              "fontWeight": "600",
+              "lineHeight": 28.799999999999997,
+            },
+            {
+              "color": "#14201B",
+              "textAlign": undefined,
+              "writingDirection": "ltr",
+            },
+            {
+              "flex": 1,
+              "textAlign": "center",
+            },
+          ]
+        }
+      >
+        Mon trajet
+      </Text>
+      <View
+        style={
+          {
+            "width": 24,
+          }
+        }
+      />
+    </View>
+    <View
+      style={
+        [
+          {
+            "backgroundColor": "#EDEBE1",
+            "borderRadius": 16,
+            "overflow": "hidden",
+            "position": "relative",
+          },
+          {
+            "height": 160,
+          },
+          {
+            "marginHorizontal": 16,
+          },
+        ]
+      }
+    >
+      <MapView
+        customMapStyle={[]}
+        initialRegion={
+          {
+            "latitude": 36.316050000000004,
+            "latitudeDelta": 1.5694399999999975,
+            "longitude": 10.4092,
+            "longitudeDelta": 0.7286400000000015,
+          }
+        }
+        onMapReady={[Function]}
+        pitchEnabled={false}
+        pointerEvents="none"
+        provider="default"
+        rotateEnabled={false}
+        scrollEnabled={false}
+        style={{}}
+        zoomEnabled={false}
+      >
+        <Marker
+          anchor={
+            {
+              "x": 0.5,
+              "y": 0.5,
+            }
+          }
+          coordinate={
+            {
+              "latitude": 36.8065,
+              "longitude": 10.1815,
+            }
+          }
+        >
+          <View
+            style={
+              [
+                {
+                  "borderColor": "#FFFFFF",
+                  "borderRadius": 6,
+                  "borderWidth": 2,
+                  "height": 12,
+                  "width": 12,
+                },
+                {
+                  "backgroundColor": "#7FA491",
+                },
+              ]
+            }
+          />
+        </Marker>
+        <Marker
+          anchor={
+            {
+              "x": 0.5,
+              "y": 0.5,
+            }
+          }
+          coordinate={
+            {
+              "latitude": 35.8256,
+              "longitude": 10.6369,
+            }
+          }
+        >
+          <View
+            style={
+              [
+                {
+                  "borderColor": "#FFFFFF",
+                  "borderRadius": 6,
+                  "borderWidth": 2,
+                  "height": 12,
+                  "width": 12,
+                },
+                {
+                  "backgroundColor": "#2E3B42",
+                },
+              ]
+            }
+          />
+        </Marker>
+      </MapView>
+      <View
+        pointerEvents="none"
+        style={
+          {
+            "backgroundColor": "#EDEBE1",
+            "opacity": 0.18,
+          }
+        }
+      />
+      <Animated.View
+        accessibilityElementsHidden={true}
+        importantForAccessibility="no-hide-descendants"
+        style={
+          [
+            {
+              "backgroundColor": "#EAE7DC",
+            },
+            {
+              "borderRadius": 0,
+              "height": 16,
+              "opacity": AnimatedValue {
+                "value": 0.45,
+              },
+              "width": "100%",
+            },
+            {},
+          ]
+        }
+      />
+      <View
+        style={
+          {
+            "backgroundColor": "#2E3B42",
+            "borderRadius": 9999,
+            "left": 8,
+            "paddingHorizontal": 8,
+            "paddingVertical": 4,
+            "position": "absolute",
+            "top": 8,
+          }
+        }
+      >
+        <Text
+          style={
+            {
+              "color": "#F3F1E9",
+              "fontSize": 12,
+              "fontWeight": "600",
+            }
+          }
+        >
+          Publié
+        </Text>
+      </View>
+    </View>
+    <View
+      style={
+        [
+          {
+            "borderRadius": 16,
+            "borderWidth": 1,
+            "gap": 8,
+            "marginHorizontal": 16,
+            "marginTop": 12,
+            "padding": 12,
+          },
+          {
+            "backgroundColor": "#FFFFFF",
+            "borderColor": "#EDE6D4",
+          },
+        ]
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "flex-start",
+            "flexDirection": "row",
+            "gap": 8,
+            "justifyContent": "space-between",
+          }
+        }
+      >
+        <Text
+          numberOfLines={2}
+          style={
+            [
+              {
+                "fontSize": 24,
+                "fontWeight": "600",
+                "lineHeight": 28.799999999999997,
+              },
+              {
+                "color": "#14201B",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              {
+                "flex": 1,
+              },
+            ]
+          }
+        >
+          Tunis → Sousse
+        </Text>
+        <View
+          accessibilityLabel="Publié"
+          accessibilityRole="text"
+          accessible={true}
+          style={
+            [
+              {
+                "alignSelf": "flex-start",
+                "borderRadius": 9999,
+                "paddingHorizontal": 8,
+                "paddingVertical": 4,
+              },
+              {
+                "backgroundColor": "#8FD9B4",
+              },
+              undefined,
+            ]
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                  "fontWeight": "500",
+                },
+                {
+                  "color": "#22794F",
+                },
+              ]
+            }
+          >
+            Publié
+          </Text>
+        </View>
+      </View>
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "gap": 8,
+          }
+        }
+      >
+        <Ionicons
+          accessibilityElementsHidden={true}
+          color="#5C5748"
+          importantForAccessibility="no-hide-descendants"
+          name="time-outline"
+          size={20}
+        />
+        <Text
+          style={
+            [
+              {
+                "fontSize": 14,
+                "fontWeight": "400",
+                "lineHeight": 21,
+              },
+              {
+                "color": "#5C5748",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              undefined,
+            ]
+          }
+        >
+          mar. 25 août · 08:30
+        </Text>
+      </View>
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "gap": 8,
+          }
+        }
+      >
+        <Ionicons
+          accessibilityElementsHidden={true}
+          color="#5C5748"
+          importantForAccessibility="no-hide-descendants"
+          name="people-outline"
+          size={20}
+        />
+        <Text
+          style={
+            [
+              {
+                "fontSize": 14,
+                "fontWeight": "400",
+                "lineHeight": 21,
+              },
+              {
+                "color": "#5C5748",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              undefined,
+            ]
+          }
+        >
+          2/4 places disponibles
+        </Text>
+      </View>
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "gap": 8,
+          }
+        }
+      >
+        <Ionicons
+          accessibilityElementsHidden={true}
+          color="#5C5748"
+          importantForAccessibility="no-hide-descendants"
+          name="cash-outline"
+          size={20}
+        />
+        <Text
+          style={
+            [
+              {
+                "fontSize": 14,
+                "fontWeight": "400",
+                "lineHeight": 21,
+              },
+              {
+                "color": "#5C5748",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              undefined,
+            ]
+          }
+        >
+          12.5 DT par place
+        </Text>
+      </View>
+    </View>
+    <View
+      style={
+        {
+          "gap": 8,
+          "marginTop": 16,
+          "paddingHorizontal": 16,
+        }
+      }
+    >
+      <Text
+        style={
+          [
+            {
+              "fontSize": 14,
+              "fontWeight": "500",
+              "lineHeight": 21,
+            },
+            {
+              "color": "#5C5748",
+              "textAlign": undefined,
+              "writingDirection": "ltr",
+            },
+            {
+              "letterSpacing": 0.4,
+              "textTransform": "uppercase",
+            },
+          ]
+        }
+      >
+        À répondre (0)
+      </Text>
+      <Text
+        style={
+          [
+            {
+              "fontSize": 14,
+              "fontWeight": "400",
+              "lineHeight": 21,
+            },
+            {
+              "color": "#8C8674",
+              "textAlign": undefined,
+              "writingDirection": "ltr",
+            },
+            {
+              "paddingVertical": 8,
+            },
+          ]
+        }
+      >
+        Aucune demande en attente.
+      </Text>
+    </View>
+    <View
+      style={
+        {
+          "height": 32,
+        }
+      }
+    />
+  </ScrollView>
+  <View
+    style={
+      [
+        {
+          "borderTopWidth": 1,
+          "paddingHorizontal": 16,
+          "paddingTop": 8,
+        },
+        {
+          "backgroundColor": "#F7F3E8",
+          "borderTopColor": "#EDE6D4",
+          "paddingBottom": 12,
+        },
+      ]
+    }
+  >
+    <Pressable
+      accessibilityLabel="Annuler le trajet"
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": false,
+          "disabled": false,
+        }
+      }
+      disabled={false}
+      onPress={[Function]}
+      style={[Function]}
+    >
+      <Text
+        style={
+          [
+            {
+              "fontWeight": "600",
+            },
+            {
+              "fontSize": 16,
+            },
+            {
+              "color": "#14201B",
+            },
+          ]
+        }
+      >
+        Annuler le trajet
+      </Text>
+    </Pressable>
+  </View>
+</View>
+`;
+
+exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accepter/Refuser) and one confirmed passenger 1`] = `
+<View
+  style={
+    [
+      {
+        "flex": 1,
+      },
+      {
+        "backgroundColor": "#F7F3E8",
+      },
+    ]
+  }
+>
+  <ScrollView
+    contentContainerStyle={
+      {
+        "paddingBottom": 20,
+      }
+    }
+    showsVerticalScrollIndicator={false}
+  >
+    <View
+      style={
+        [
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "paddingBottom": 8,
+            "paddingHorizontal": 16,
+          },
+          {
+            "paddingTop": 8,
+          },
+        ]
+      }
+    >
+      <TouchableOpacity
+        accessibilityLabel="Retour"
+        accessibilityRole="button"
+        hitSlop={12}
+        onPress={[Function]}
+      >
+        <Ionicons
+          color="#14201B"
+          name="chevron-back"
+          size={24}
+        />
+      </TouchableOpacity>
+      <Text
+        style={
+          [
+            {
+              "fontSize": 24,
+              "fontWeight": "600",
+              "lineHeight": 28.799999999999997,
+            },
+            {
+              "color": "#14201B",
+              "textAlign": undefined,
+              "writingDirection": "ltr",
+            },
+            {
+              "flex": 1,
+              "textAlign": "center",
+            },
+          ]
+        }
+      >
+        Mon trajet
+      </Text>
+      <View
+        style={
+          {
+            "width": 24,
+          }
+        }
+      />
+    </View>
+    <View
+      style={
+        [
+          {
+            "backgroundColor": "#EDEBE1",
+            "borderRadius": 16,
+            "overflow": "hidden",
+            "position": "relative",
+          },
+          {
+            "height": 160,
+          },
+          {
+            "marginHorizontal": 16,
+          },
+        ]
+      }
+    >
+      <MapView
+        customMapStyle={[]}
+        initialRegion={
+          {
+            "latitude": 36.316050000000004,
+            "latitudeDelta": 1.5694399999999975,
+            "longitude": 10.4092,
+            "longitudeDelta": 0.7286400000000015,
+          }
+        }
+        onMapReady={[Function]}
+        pitchEnabled={false}
+        pointerEvents="none"
+        provider="default"
+        rotateEnabled={false}
+        scrollEnabled={false}
+        style={{}}
+        zoomEnabled={false}
+      >
+        <Marker
+          anchor={
+            {
+              "x": 0.5,
+              "y": 0.5,
+            }
+          }
+          coordinate={
+            {
+              "latitude": 36.8065,
+              "longitude": 10.1815,
+            }
+          }
+        >
+          <View
+            style={
+              [
+                {
+                  "borderColor": "#FFFFFF",
+                  "borderRadius": 6,
+                  "borderWidth": 2,
+                  "height": 12,
+                  "width": 12,
+                },
+                {
+                  "backgroundColor": "#7FA491",
+                },
+              ]
+            }
+          />
+        </Marker>
+        <Marker
+          anchor={
+            {
+              "x": 0.5,
+              "y": 0.5,
+            }
+          }
+          coordinate={
+            {
+              "latitude": 35.8256,
+              "longitude": 10.6369,
+            }
+          }
+        >
+          <View
+            style={
+              [
+                {
+                  "borderColor": "#FFFFFF",
+                  "borderRadius": 6,
+                  "borderWidth": 2,
+                  "height": 12,
+                  "width": 12,
+                },
+                {
+                  "backgroundColor": "#2E3B42",
+                },
+              ]
+            }
+          />
+        </Marker>
+      </MapView>
+      <View
+        pointerEvents="none"
+        style={
+          {
+            "backgroundColor": "#EDEBE1",
+            "opacity": 0.18,
+          }
+        }
+      />
+      <Animated.View
+        accessibilityElementsHidden={true}
+        importantForAccessibility="no-hide-descendants"
+        style={
+          [
+            {
+              "backgroundColor": "#EAE7DC",
+            },
+            {
+              "borderRadius": 0,
+              "height": 16,
+              "opacity": AnimatedValue {
+                "value": 0.45,
+              },
+              "width": "100%",
+            },
+            {},
+          ]
+        }
+      />
+      <View
+        style={
+          {
+            "backgroundColor": "#2E3B42",
+            "borderRadius": 9999,
+            "left": 8,
+            "paddingHorizontal": 8,
+            "paddingVertical": 4,
+            "position": "absolute",
+            "top": 8,
+          }
+        }
+      >
+        <Text
+          style={
+            {
+              "color": "#F3F1E9",
+              "fontSize": 12,
+              "fontWeight": "600",
+            }
+          }
+        >
+          Publié
+        </Text>
+      </View>
+    </View>
+    <View
+      style={
+        [
+          {
+            "borderRadius": 16,
+            "borderWidth": 1,
+            "gap": 8,
+            "marginHorizontal": 16,
+            "marginTop": 12,
+            "padding": 12,
+          },
+          {
+            "backgroundColor": "#FFFFFF",
+            "borderColor": "#EDE6D4",
+          },
+        ]
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "flex-start",
+            "flexDirection": "row",
+            "gap": 8,
+            "justifyContent": "space-between",
+          }
+        }
+      >
+        <Text
+          numberOfLines={2}
+          style={
+            [
+              {
+                "fontSize": 24,
+                "fontWeight": "600",
+                "lineHeight": 28.799999999999997,
+              },
+              {
+                "color": "#14201B",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              {
+                "flex": 1,
+              },
+            ]
+          }
+        >
+          Tunis → Sousse
+        </Text>
+        <View
+          accessibilityLabel="Publié"
+          accessibilityRole="text"
+          accessible={true}
+          style={
+            [
+              {
+                "alignSelf": "flex-start",
+                "borderRadius": 9999,
+                "paddingHorizontal": 8,
+                "paddingVertical": 4,
+              },
+              {
+                "backgroundColor": "#8FD9B4",
+              },
+              undefined,
+            ]
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                  "fontWeight": "500",
+                },
+                {
+                  "color": "#22794F",
+                },
+              ]
+            }
+          >
+            Publié
+          </Text>
+        </View>
+      </View>
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "gap": 8,
+          }
+        }
+      >
+        <Ionicons
+          accessibilityElementsHidden={true}
+          color="#5C5748"
+          importantForAccessibility="no-hide-descendants"
+          name="time-outline"
+          size={20}
+        />
+        <Text
+          style={
+            [
+              {
+                "fontSize": 14,
+                "fontWeight": "400",
+                "lineHeight": 21,
+              },
+              {
+                "color": "#5C5748",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              undefined,
+            ]
+          }
+        >
+          mar. 25 août · 08:30
+        </Text>
+      </View>
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "gap": 8,
+          }
+        }
+      >
+        <Ionicons
+          accessibilityElementsHidden={true}
+          color="#5C5748"
+          importantForAccessibility="no-hide-descendants"
+          name="people-outline"
+          size={20}
+        />
+        <Text
+          style={
+            [
+              {
+                "fontSize": 14,
+                "fontWeight": "400",
+                "lineHeight": 21,
+              },
+              {
+                "color": "#5C5748",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              undefined,
+            ]
+          }
+        >
+          2/4 places disponibles
+        </Text>
+      </View>
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "gap": 8,
+          }
+        }
+      >
+        <Ionicons
+          accessibilityElementsHidden={true}
+          color="#5C5748"
+          importantForAccessibility="no-hide-descendants"
+          name="cash-outline"
+          size={20}
+        />
+        <Text
+          style={
+            [
+              {
+                "fontSize": 14,
+                "fontWeight": "400",
+                "lineHeight": 21,
+              },
+              {
+                "color": "#5C5748",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              undefined,
+            ]
+          }
+        >
+          12.5 DT par place
+        </Text>
+      </View>
+    </View>
+    <View
+      style={
+        {
+          "gap": 8,
+          "marginTop": 16,
+          "paddingHorizontal": 16,
+        }
+      }
+    >
+      <Text
+        style={
+          [
+            {
+              "fontSize": 14,
+              "fontWeight": "500",
+              "lineHeight": 21,
+            },
+            {
+              "color": "#5C5748",
+              "textAlign": undefined,
+              "writingDirection": "ltr",
+            },
+            {
+              "letterSpacing": 0.4,
+              "textTransform": "uppercase",
+            },
+          ]
+        }
+      >
+        À répondre (1)
+      </Text>
+      <View
+        style={
+          [
+            {
+              "borderRadius": 16,
+              "borderWidth": 1,
+              "gap": 8,
+              "padding": 12,
+            },
+            {
+              "backgroundColor": "#EDE6D4",
+              "borderColor": "#EDE6D4",
+            },
+          ]
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "gap": 8,
+            }
+          }
+        >
+          <View
+            accessibilityLabel="Photo de Dinara Kochakajeva"
+            accessibilityRole="image"
+            accessible={true}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "justifyContent": "center",
+                },
+                {
+                  "backgroundColor": "#FFFFFF",
+                  "borderRadius": 20,
+                  "height": 40,
+                  "width": 40,
+                },
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "color": "#FFFFFF",
+                    "fontWeight": "600",
+                  },
+                  {
+                    "color": "#14201B",
+                    "fontSize": 16,
+                  },
+                ]
+              }
+            >
+              DK
+            </Text>
+          </View>
+          <View
+            style={
+              {
+                "flex": 1,
+                "gap": 1,
+              }
+            }
+          >
+            <Text
+              numberOfLines={1}
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  {
+                    "color": "#14201B",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              Dinara Kochakajeva
+            </Text>
+            <Text
+              numberOfLines={1}
+              style={
+                [
+                  {
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "lineHeight": 18,
+                  },
+                  {
+                    "color": "#5C5748",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              1 place · Angle Rue de Kairouan
+            </Text>
+          </View>
+        </View>
+        <View
+          style={
+            {
+              "flexDirection": "row",
+              "gap": 8,
+            }
+          }
+        >
+          <TouchableOpacity
+            accessibilityLabel="Refuser la demande de Dinara Kochakajeva"
+            accessibilityRole="button"
+            activeOpacity={0.7}
+            disabled={false}
+            onPress={[Function]}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "borderRadius": 9999,
+                  "flex": 1,
+                  "justifyContent": "center",
+                  "paddingVertical": 8,
+                },
+                {
+                  "borderWidth": 1,
+                },
+                {
+                  "borderColor": "#DDD4BC",
+                },
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 14,
+                    "fontWeight": "500",
+                    "lineHeight": 21,
+                  },
+                  {
+                    "color": "#B5503C",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              Refuser
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            accessibilityLabel="Accepter la demande de Dinara Kochakajeva"
+            accessibilityRole="button"
+            activeOpacity={0.85}
+            disabled={false}
+            onPress={[Function]}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "borderRadius": 9999,
+                  "flex": 1,
+                  "justifyContent": "center",
+                  "paddingVertical": 8,
+                },
+                {
+                  "backgroundColor": "#2E9E6C",
+                },
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 14,
+                    "fontWeight": "500",
+                    "lineHeight": 21,
+                  },
+                  {
+                    "color": "#0D1512",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              Accepter
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </View>
+    <View
+      style={
+        {
+          "gap": 8,
+          "marginTop": 16,
+          "paddingHorizontal": 16,
+        }
+      }
+    >
+      <Text
+        style={
+          [
+            {
+              "fontSize": 14,
+              "fontWeight": "500",
+              "lineHeight": 21,
+            },
+            {
+              "color": "#5C5748",
+              "textAlign": undefined,
+              "writingDirection": "ltr",
+            },
+            {
+              "letterSpacing": 0.4,
+              "textTransform": "uppercase",
+            },
+          ]
+        }
+      >
+        Passagers
+      </Text>
+      <TouchableOpacity
+        accessibilityLabel="Gérer la réservation de Karim Fassi"
+        accessibilityRole="button"
+        activeOpacity={0.7}
+        disabled={false}
+        onPress={[Function]}
+        style={
+          [
+            {
+              "borderRadius": 16,
+              "borderWidth": 1,
+              "gap": 8,
+              "padding": 12,
+            },
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "gap": 8,
+            },
+            {
+              "backgroundColor": "#EDE6D4",
+              "borderColor": "#EDE6D4",
+            },
+          ]
+        }
+      >
+        <View
+          accessibilityLabel="Photo de Karim Fassi"
+          accessibilityRole="image"
+          accessible={true}
+          style={
+            [
+              {
+                "alignItems": "center",
+                "justifyContent": "center",
+              },
+              {
+                "backgroundColor": "#FFFFFF",
+                "borderRadius": 18,
+                "height": 36,
+                "width": 36,
+              },
+            ]
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "color": "#FFFFFF",
+                  "fontWeight": "600",
+                },
+                {
+                  "color": "#14201B",
+                  "fontSize": 14,
+                },
+              ]
+            }
+          >
+            KF
+          </Text>
+        </View>
+        <View
+          style={
+            {
+              "flex": 1,
+              "gap": 1,
+            }
+          }
+        >
+          <Text
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "lineHeight": 21,
+                },
+                {
+                  "color": "#14201B",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            Karim Fassi
+          </Text>
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "lineHeight": 18,
+                },
+                {
+                  "color": "#5C5748",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            1 place
+          </Text>
+        </View>
+        <View
+          accessibilityLabel="Confirmé"
+          accessibilityRole="text"
+          accessible={true}
+          style={
+            [
+              {
+                "alignSelf": "flex-start",
+                "borderRadius": 9999,
+                "paddingHorizontal": 8,
+                "paddingVertical": 4,
+              },
+              {
+                "backgroundColor": "#8FD9B4",
+              },
+              undefined,
+            ]
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                  "fontWeight": "500",
+                },
+                {
+                  "color": "#22794F",
+                },
+              ]
+            }
+          >
+            Confirmé
+          </Text>
+        </View>
+        <Ionicons
+          accessibilityElementsHidden={true}
+          color="#DDD4BC"
+          importantForAccessibility="no-hide-descendants"
+          name="chevron-forward"
+          size={16}
+        />
+      </TouchableOpacity>
+    </View>
+    <View
+      style={
+        {
+          "height": 32,
+        }
+      }
+    />
+  </ScrollView>
+  <View
+    style={
+      [
+        {
+          "borderTopWidth": 1,
+          "paddingHorizontal": 16,
+          "paddingTop": 8,
+        },
+        {
+          "backgroundColor": "#F7F3E8",
+          "borderTopColor": "#EDE6D4",
+          "paddingBottom": 12,
+        },
+      ]
+    }
+  >
+    <Pressable
+      accessibilityLabel="Annuler le trajet"
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": false,
+          "disabled": false,
+        }
+      }
+      disabled={false}
+      onPress={[Function]}
+      style={[Function]}
+    >
+      <Text
+        style={
+          [
+            {
+              "fontWeight": "600",
+            },
+            {
+              "fontSize": 16,
+            },
+            {
+              "color": "#14201B",
+            },
+          ]
+        }
+      >
+        Annuler le trajet
+      </Text>
+    </Pressable>
+  </View>
+</View>
+`;

@@ -478,6 +478,7 @@ export interface Booking {
     departureAt: string;
     contributionPerSeat: number;
     driverFullName: string | null;
+    driverUserId: string;
   };
   /** Only present on driver-facing results from listRequestsForRide —
    *  who is asking, so a request sheet isn't a list of opaque UUIDs. */

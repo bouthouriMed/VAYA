@@ -48,6 +48,11 @@ const bookingResponseSchema = z.object({
       departureAt: z.date(),
       contributionPerSeat: z.number(),
       driverFullName: z.string().nullable(),
+      // 2026-08-23 trip-hub redesign: the rider's own bookings list needs
+      // the driver's real userId to fetch their public profile (rating,
+      // vehicle) for the booking detail screen — driverFullName alone
+      // wasn't enough to look anything else up.
+      driverUserId: z.string().uuid(),
     })
     .optional(),
 });
