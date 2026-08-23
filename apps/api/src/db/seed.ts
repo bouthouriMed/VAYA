@@ -1,9 +1,11 @@
 /* eslint-disable no-console -- CLI seed script; console output is the intended interface */
 import 'dotenv/config';
 import { drizzle } from 'drizzle-orm/node-postgres';
+import { isNotNull } from 'drizzle-orm';
 import { Pool } from 'pg';
 import * as schema from './schema/index.js';
 import { getRoute } from '../lib/routing.js';
+import { upsertRouteGeometry } from '../lib/spatial.js';
 import { generateCandidateStopsForRide, updateDriverStopSelection } from '../modules/rides/stop-candidates.service.js';
 import {
   computeSuggestedPrice,
@@ -1629,6 +1631,23 @@ async function main(): Promise<void> {
     { userId: sarra.id, type: 'booking_requested', payload: {}, readAt: null },
     { userId: nourSafe(), type: 'demand_signal_matched', payload: {}, readAt: null },
   ]);
+
+  // ── PostGIS route_geom backfill ─────────────────────────────────────
+  // Rides above were inserted directly (bulk db.insert), bypassing
+  // rides.service.ts's createRide — the only real-app path that calls
+  // upsertRouteGeometry today. Without this, every seeded ride's route_geom
+  // stays NULL, and findCandidateRideIdsByCorridor (lib/spatial.ts) filters
+  // on `route_geom IS NOT NULL`, so the route_passthrough/detour_match
+  // tiers would silently return zero candidates against demo data even
+  // though they work correctly for rides created through the real API.
+  const ridesWithPolyline = await db
+    .select({ id: rides.id, routePolyline: rides.routePolyline })
+    .from(rides)
+    .where(isNotNull(rides.routePolyline));
+  for (const r of ridesWithPolyline) {
+    await upsertRouteGeometry(db, r.id, r.routePolyline);
+  }
+  console.log(`Backfilled route_geom for ${ridesWithPolyline.length} seeded rides.`);
 
   console.log('Seed complete.');
   console.log(
