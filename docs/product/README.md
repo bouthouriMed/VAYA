@@ -20,6 +20,7 @@ The product must earn trust through two things it already does unusually well fo
 | [`docs/domain/model.md`](../domain/model.md) | The verified domain model — every table, every field, source-of-truth mapping, state machines. |
 | [`docs/domain/ride-engine.md`](../domain/ride-engine.md) | The route→candidate-stops→validation→ranking→selection system design. |
 | [`docs/domain/pricing.md`](../domain/pricing.md) | The bounded, computed pricing architecture. |
+| [`docs/domain/location-architecture-spec-2026-08-23.md`](../domain/location-architecture-spec-2026-08-23.md) | Specification (not implemented) for a canonical-location resolution layer between Nominatim and matching — fixes the "same city, different coordinates" liquidity problem for search-area locations while leaving pickup-point (`route_stops`) handling untouched. |
 | [`docs/architecture/overview.md`](../architecture/overview.md) | System architecture, what infrastructure already exists, NOW/NEXT/SCALE scalability strategy. |
 | [`docs/roadmap/README.md`](../roadmap/README.md) | The phased implementation roadmap, status tracker, open decisions, blockers. |
 
