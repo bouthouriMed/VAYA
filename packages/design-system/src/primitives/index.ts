@@ -27,6 +27,7 @@ export { EmptyState } from './EmptyState';
 export { Modal } from './Modal';
 export { ToastProvider, useToast } from './Toast';
 export { BottomSheet } from './BottomSheet';
+export { ExplorerSheet } from './ExplorerSheet';
 export { MessageBubble } from './MessageBubble';
 export { StarRatingInput } from './StarRatingInput';
 export { ScreenHeader } from './ScreenHeader';
