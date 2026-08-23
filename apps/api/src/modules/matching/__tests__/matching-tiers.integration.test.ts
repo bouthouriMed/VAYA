@@ -4,6 +4,7 @@ import { getDatabase, closeDatabase } from '../../../lib/database.js';
 import { users, driverProfiles, vehicles, rides, routeStops } from '../../../db/schema/index.js';
 import { getRoute } from '../../../lib/routing.js';
 import { decodePolyline } from '../../../lib/polyline.js';
+import { upsertRouteGeometry } from '../../../lib/spatial.js';
 import { searchRides } from '../matching.service.js';
 
 /**
@@ -100,6 +101,13 @@ describe('matching.service — tier cascade, real Postgres (+ real OSRM for rout
         } as typeof rides.$inferInsert)
         .returning();
       rideIds.push(ride!.id);
+      // Mirrors rides.service.ts's createRide, which real ride creation goes
+      // through — a raw insert() here (unlike the production path) never
+      // populates route_geom on its own, and route_passthrough's PostGIS
+      // stage-1 filter (findCandidateRideIdsByCorridor) requires it non-null.
+      if (values.routePolyline) {
+        await upsertRouteGeometry(db, ride!.id, values.routePolyline);
+      }
       return ride!.id;
     }
 

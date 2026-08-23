@@ -81,9 +81,14 @@ interface GeocodingApiResponse {
  *  Location Architecture Spec §4/§5[C]) — checked most-specific-first so a
  *  point that is technically inside a locality (nearly everything) still
  *  classifies by its own real type rather than always falling through to
- *  "city". This exact mapping is written from Google's documented type
- *  list, not verified against a live response — flagged as a real
- *  verification task once a key is available (see file header). */
+ *  "city". Verified live against real Google Places API (New) responses for
+ *  Tunisia queries (2026-08-23): `administrative_area_level_2` is Tunisia's
+ *  delegation/معتمدية level (e.g. "Sousse Médina") — the location-architecture
+ *  spec's own §4 calls for collapsing delegation into 'city' since this
+ *  taxonomy has no separate 'delegation' value, so it's treated as 'city'
+ *  here, not left unmapped. `neighborhood` is also a real, literal type
+ *  Google returns (e.g. "Sousse Riadh") distinct from the `sublocality*`
+ *  family this mapping originally checked for only. */
 export function mapGoogleTypesToLocationType(types: string[] | undefined): LocationType {
   const set = new Set(types ?? []);
   if (set.has('country')) return 'country';
@@ -98,10 +103,16 @@ export function mapGoogleTypesToLocationType(types: string[] | undefined): Locat
   if (set.has('establishment') || set.has('point_of_interest') || set.has('transit_station')) {
     return 'poi';
   }
-  if (set.has('sublocality') || Array.from(set).some((t) => t.startsWith('sublocality_'))) {
+  if (
+    set.has('neighborhood') ||
+    set.has('sublocality') ||
+    Array.from(set).some((t) => t.startsWith('sublocality_'))
+  ) {
     return 'neighborhood';
   }
-  if (set.has('locality') || set.has('postal_town')) return 'city';
+  if (set.has('locality') || set.has('postal_town') || set.has('administrative_area_level_2')) {
+    return 'city';
+  }
   return 'unknown';
 }
 
