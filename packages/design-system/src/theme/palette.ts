@@ -78,6 +78,15 @@ export interface AppPalette {
   /** Tertiary "used elsewhere in the flow but not accent/error" moments,
    *  like the results list's "Best Match" label. Not for CTAs. */
   info: string;
+  /** Pending/awaiting-response states (a booking request not yet answered,
+   *  a ride not yet confirmed) — a third semantic tone alongside accent
+   *  (confirmed/success) and error (cancelled/destructive), added for the
+   *  2026-08-23 notifications/trips redesign once "pending" needed its own
+   *  real token instead of borrowing inkMuted or accent. A warm amber/gold,
+   *  deliberately distinct from both the emerald accent and the rust error
+   *  hue. */
+  warning: string;
+  warningMuted: string;
 }
 
 export const lightPalette: AppPalette = {
@@ -102,6 +111,8 @@ export const lightPalette: AppPalette = {
   error: '#B5503C',
   errorMuted: '#F3D9CE',
   info: '#4A7C8C',
+  warning: '#B58A2E',
+  warningMuted: '#F3E8CE',
 };
 
 export const darkPalette: AppPalette = {
@@ -126,6 +137,8 @@ export const darkPalette: AppPalette = {
   error: '#E08672',
   errorMuted: '#5C2E24',
   info: '#8FB8C7',
+  warning: '#E0BB72',
+  warningMuted: '#5C4A24',
 };
 
 export type ColorScheme = 'light' | 'dark';

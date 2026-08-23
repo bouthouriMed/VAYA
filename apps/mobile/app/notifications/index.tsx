@@ -1,18 +1,33 @@
+import { useState } from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router, Redirect } from 'expo-router';
-import { Text, Icon, EmptyState, SkeletonBlock, useAppTheme, spacing, radii } from '@vaya/design-system';
+import {
+  Text,
+  Icon,
+  Avatar,
+  Badge,
+  EmptyState,
+  SkeletonBlock,
+  useAppTheme,
+  spacing,
+  radii,
+  haptics,
+} from '@vaya/design-system';
 import { useAppSelector } from '../../src/state/store';
 import {
   useListNotificationsQuery,
   useMarkNotificationReadMutation,
+  useAcceptBookingMutation,
+  useDeclineBookingMutation,
   type AppNotification,
 } from '../../src/state/api';
 import {
   notificationTypeMeta,
   notificationTone,
   notificationDescription,
+  readNotificationCounterpartPayload,
   type NotificationTone,
 } from '../../src/services/notifications/notificationCopy';
 import { resolveNotificationDeepLink } from '../../src/services/notifications/deepLink';
@@ -29,11 +44,16 @@ function formatWhen(iso: string): string {
   return `${date.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })} · ${time}`;
 }
 
+function formatPickupTime(iso?: string): string | undefined {
+  if (!iso) return undefined;
+  return new Date(iso).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+}
+
 /**
  * A tone maps to a real AppPalette role, not a hand-picked hex — this
  * screen has no colors of its own, only VAYA's existing brand tokens
- * (accent/error/info + the ink family for the neutral default), matching
- * every other Stitch-rebuilt screen's discipline in this codebase.
+ * (accent/error/info/warning + the ink family for the neutral default),
+ * matching every other Stitch-rebuilt screen's discipline in this codebase.
  */
 function toneColors(
   tone: NotificationTone,
@@ -53,14 +73,246 @@ function toneColors(
 }
 
 /**
- * Notifications inbox (docs/roadmap/phase-07-notifications.md), rebuilt onto
- * useAppTheme() — the original was the one screen in this flow still on
- * flat static `colors` next to every Stitch-matched screen around it. Real
- * content throughout: each row's preview line is derived from the actual
- * notification payload (notificationCopy.ts's notificationDescription),
- * never a placeholder, and booking_requested rows carry a "Répondre"
- * affordance that (via deepLink.ts) opens the exact ride's request sheet —
- * not just a generic "go check your trips" tap-through.
+ * The driver's actionable request card (2026-08-23 notifications redesign):
+ * a real passenger mini-profile (avatar/name/rating), a route pill, a seats
+ * badge, the ride's departure time, and an inline Accepter/Refuser action
+ * bar that resolves the request without leaving the inbox — the same
+ * `useAcceptBookingMutation`/`useDeclineBookingMutation` RideRequestsSheet
+ * already uses, not a parallel mutation path. Tapping the card body (not
+ * the action buttons) opens the full request in Mes trajets, same
+ * destination `resolveNotificationDeepLink` already resolves to.
+ */
+function DriverRequestCard({
+  notification,
+  theme,
+}: {
+  notification: AppNotification;
+  theme: ReturnType<typeof useAppTheme>['colors'];
+}): React.JSX.Element {
+  const info = readNotificationCounterpartPayload(notification.type, notification.payload);
+  const [acceptBooking, acceptState] = useAcceptBookingMutation();
+  const [declineBooking, declineState] = useDeclineBookingMutation();
+  const [resolvedAs, setResolvedAs] = useState<'accepted' | 'declined' | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+
+  async function respond(action: 'accept' | 'decline'): Promise<void> {
+    if (!info.bookingId) return;
+    setActionError(null);
+    try {
+      if (action === 'accept') {
+        await acceptBooking(info.bookingId).unwrap();
+        setResolvedAs('accepted');
+      } else {
+        await declineBooking(info.bookingId).unwrap();
+        setResolvedAs('declined');
+      }
+      haptics.success();
+      trackEvent('driver_request_response', { action, source: 'notifications' });
+    } catch {
+      haptics.error();
+      setActionError(
+        'Cette demande a peut-être déjà été traitée. Consultez Mes trajets pour vérifier.',
+      );
+    }
+  }
+
+  function openInTrips(): void {
+    trackEvent('notification_tapped', { type: notification.type, source: 'inbox' });
+    const destination = resolveNotificationDeepLink(notification.type, notification.payload);
+    if (destination) router.push(destination as Parameters<typeof router.push>[0]);
+  }
+
+  const isBusy = acceptState.isLoading || declineState.isLoading;
+  const hasRoute = Boolean(info.originLabel && info.destinationLabel);
+  const pickupTime = formatPickupTime(info.departureAt);
+
+  return (
+    <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
+      <TouchableOpacity
+        onPress={openInTrips}
+        activeOpacity={0.7}
+        accessibilityRole="button"
+        accessibilityLabel={`Demande de ${info.counterpartName ?? 'un passager'}`}
+      >
+        <View style={styles.requestHeaderRow}>
+          <Avatar
+            uri={info.counterpartAvatarUrl}
+            name={info.counterpartName ?? '?'}
+            sizePx={44}
+            fallbackBackgroundColor={theme.surfaceMuted}
+            fallbackTextColor={theme.ink}
+          />
+          <View style={styles.requestIdentityText}>
+            <Text variant="label" color={theme.ink} numberOfLines={1}>
+              {info.counterpartName ?? 'Passager'}
+            </Text>
+            {info.counterpartRatingAvg ? (
+              <View style={styles.ratingRow}>
+                <Icon name="star" size="xs" color={theme.accent} />
+                <Text variant="caption" color={theme.inkMuted}>
+                  {info.counterpartRatingAvg.toFixed(1)}
+                </Text>
+              </View>
+            ) : (
+              <Text variant="caption" color={theme.inkFaint}>
+                Nouveau sur VAYA
+              </Text>
+            )}
+          </View>
+          {!notification.readAt ? (
+            <View style={[styles.unreadDot, { backgroundColor: theme.accent }]} />
+          ) : null}
+        </View>
+
+        {hasRoute ? (
+          <View style={[styles.routePill, { backgroundColor: theme.surfaceMuted }]}>
+            <Icon name="navigate-outline" size="xs" color={theme.inkMuted} />
+            <Text variant="bodySmall" color={theme.ink} numberOfLines={1} style={styles.routePillText}>
+              {`${info.originLabel} → ${info.destinationLabel}`}
+            </Text>
+          </View>
+        ) : (
+          <Text variant="bodySmall" color={theme.inkMuted} style={styles.fallbackBody}>
+            {notificationDescription(notification.type, notification.payload)}
+          </Text>
+        )}
+
+        <View style={styles.metaRow}>
+          <Badge
+            label={`${info.seatsRequested ?? 1} place${(info.seatsRequested ?? 1) > 1 ? 's' : ''}`}
+            variant="default"
+            theme={theme}
+          />
+          {pickupTime ? <Badge label={pickupTime} variant="default" theme={theme} /> : null}
+        </View>
+      </TouchableOpacity>
+
+      {resolvedAs ? (
+        <View style={[styles.resolvedRow, { borderTopColor: theme.outlineVariant }]}>
+          <Icon
+            name={resolvedAs === 'accepted' ? 'checkmark-circle' : 'close-circle'}
+            size="sm"
+            color={resolvedAs === 'accepted' ? theme.accent : theme.error}
+          />
+          <Text variant="bodySmall" color={resolvedAs === 'accepted' ? theme.accent : theme.error}>
+            {resolvedAs === 'accepted' ? 'Demande acceptée' : 'Demande refusée'}
+          </Text>
+        </View>
+      ) : (
+        <>
+          <View style={[styles.actionBar, { borderTopColor: theme.outlineVariant }]}>
+            <TouchableOpacity
+              style={[styles.actionButton, styles.declineButton, { borderColor: theme.outline }]}
+              onPress={() => void respond('decline')}
+              disabled={isBusy}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel="Refuser cette demande"
+            >
+              <Text variant="label" color={theme.error}>
+                Refuser
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.actionButton, { backgroundColor: theme.accent }]}
+              onPress={() => void respond('accept')}
+              disabled={isBusy}
+              activeOpacity={0.85}
+              accessibilityRole="button"
+              accessibilityLabel="Accepter cette demande"
+            >
+              <Text variant="label" color={theme.onAccent}>
+                Accepter
+              </Text>
+            </TouchableOpacity>
+          </View>
+          {actionError ? (
+            <Text variant="caption" color={theme.error} style={styles.actionErrorText}>
+              {actionError}
+            </Text>
+          ) : null}
+        </>
+      )}
+
+      <Text variant="caption" color={theme.inkFaint} style={styles.timestamp}>
+        {formatWhen(notification.createdAt)}
+      </Text>
+    </View>
+  );
+}
+
+/**
+ * Passenger-facing (and generic informational) card: a status-tinted icon,
+ * the real per-payload description, and — for any type
+ * `resolveNotificationDeepLink` actually knows how to route — a direct
+ * "Voir les détails du trajet" CTA instead of relying on the whole row
+ * being an implicit tap target.
+ */
+function StatusCard({
+  notification,
+  theme,
+  onOpen,
+}: {
+  notification: AppNotification;
+  theme: ReturnType<typeof useAppTheme>['colors'];
+  onOpen: (notification: AppNotification) => void;
+}): React.JSX.Element {
+  const meta = notificationTypeMeta(notification.type);
+  const tone = toneColors(notificationTone(notification.type), theme);
+  const isUnread = !notification.readAt;
+  const destination = resolveNotificationDeepLink(notification.type, notification.payload);
+
+  return (
+    <TouchableOpacity
+      style={[
+        styles.card,
+        { backgroundColor: theme.surface, borderColor: theme.outlineVariant },
+        isUnread && { borderColor: theme.accent },
+      ]}
+      activeOpacity={0.7}
+      onPress={() => onOpen(notification)}
+      accessibilityRole="button"
+      accessibilityLabel={`${meta.title}${isUnread ? ', non lu' : ''}`}
+    >
+      <View style={styles.rowTop}>
+        <View style={[styles.iconWrap, { backgroundColor: tone.bg }]}>
+          <Icon name={meta.icon} size="sm" color={tone.fg} />
+        </View>
+        <View style={styles.rowText}>
+          <View style={styles.titleRow}>
+            <Text variant="label" color={theme.ink} numberOfLines={1} style={styles.titleText}>
+              {meta.title}
+            </Text>
+            {isUnread ? <View style={[styles.unreadDot, { backgroundColor: theme.accent }]} /> : null}
+          </View>
+          <Text variant="bodySmall" color={theme.inkMuted} numberOfLines={2}>
+            {notificationDescription(notification.type, notification.payload)}
+          </Text>
+          <Text variant="caption" color={theme.inkFaint} style={styles.timestamp}>
+            {formatWhen(notification.createdAt)}
+          </Text>
+        </View>
+      </View>
+
+      {destination ? (
+        <View style={[styles.actionRow, { borderTopColor: theme.outlineVariant }]}>
+          <Text variant="bodySmall" color={theme.accent} style={styles.actionLabel}>
+            Voir les détails du trajet
+          </Text>
+          <Icon name="chevron-forward" size="xs" color={theme.accent} />
+        </View>
+      ) : null}
+    </TouchableOpacity>
+  );
+}
+
+/**
+ * Notifications inbox (docs/roadmap/phase-07-notifications.md), redesigned
+ * 2026-08-23 into an actionable component library rather than static text
+ * blocks: `booking_requested` renders as `DriverRequestCard` (real
+ * passenger profile + inline Accepter/Refuser, no forced navigation),
+ * everything else as `StatusCard` (status-tinted icon + a direct
+ * "Voir les détails" CTA when there's somewhere real to go).
  */
 export default function NotificationsScreen(): React.JSX.Element {
   const insets = useSafeAreaInsets();
@@ -78,7 +330,7 @@ export default function NotificationsScreen(): React.JSX.Element {
     return <Redirect href="/sign-in" />;
   }
 
-  function handlePress(notification: AppNotification): void {
+  function handleOpen(notification: AppNotification): void {
     if (!notification.readAt) {
       void markRead(notification.id);
     }
@@ -119,7 +371,7 @@ export default function NotificationsScreen(): React.JSX.Element {
       {isLoading ? (
         <View style={styles.loadingList}>
           {[0, 1, 2].map((i) => (
-            <SkeletonBlock key={i} height={80} radius="xl" />
+            <SkeletonBlock key={i} height={100} radius="xl" />
           ))}
         </View>
       ) : !notifications || notifications.length === 0 ? (
@@ -132,55 +384,18 @@ export default function NotificationsScreen(): React.JSX.Element {
         </View>
       ) : (
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.list}>
-          {notifications.map((notification) => {
-            const meta = notificationTypeMeta(notification.type);
-            const tone = toneColors(notificationTone(notification.type), theme);
-            const isUnread = !notification.readAt;
-            const isActionable = notification.type === 'booking_requested';
-            return (
-              <TouchableOpacity
+          {notifications.map((notification) =>
+            notification.type === 'booking_requested' ? (
+              <DriverRequestCard key={notification.id} notification={notification} theme={theme} />
+            ) : (
+              <StatusCard
                 key={notification.id}
-                style={[
-                  styles.row,
-                  { backgroundColor: theme.surface, borderColor: theme.outlineVariant },
-                  isUnread && { borderColor: theme.accent },
-                ]}
-                activeOpacity={0.7}
-                onPress={() => handlePress(notification)}
-                accessibilityRole="button"
-                accessibilityLabel={`${meta.title}${isUnread ? ', non lu' : ''}`}
-              >
-                <View style={styles.rowTop}>
-                  <View style={[styles.iconWrap, { backgroundColor: tone.bg }]}>
-                    <Icon name={meta.icon} size="sm" color={tone.fg} />
-                  </View>
-                  <View style={styles.rowText}>
-                    <View style={styles.titleRow}>
-                      <Text variant="label" color={theme.ink} numberOfLines={1} style={styles.titleText}>
-                        {meta.title}
-                      </Text>
-                      {isUnread ? <View style={[styles.unreadDot, { backgroundColor: theme.accent }]} /> : null}
-                    </View>
-                    <Text variant="bodySmall" color={theme.inkMuted} numberOfLines={2}>
-                      {notificationDescription(notification.type, notification.payload)}
-                    </Text>
-                    <Text variant="caption" color={theme.inkFaint} style={styles.timestamp}>
-                      {formatWhen(notification.createdAt)}
-                    </Text>
-                  </View>
-                </View>
-
-                {isActionable ? (
-                  <View style={[styles.actionRow, { borderTopColor: theme.outlineVariant }]}>
-                    <Text variant="bodySmall" color={theme.accent} style={styles.actionLabel}>
-                      Répondre
-                    </Text>
-                    <Icon name="chevron-forward" size="xs" color={theme.accent} />
-                  </View>
-                ) : null}
-              </TouchableOpacity>
-            );
-          })}
+                notification={notification}
+                theme={theme}
+                onOpen={handleOpen}
+              />
+            ),
+          )}
         </ScrollView>
       )}
     </View>
@@ -222,7 +437,7 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     paddingBottom: spacing['3xl'],
   },
-  row: {
+  card: {
     borderRadius: radii.xl,
     borderWidth: 1,
     padding: spacing.md,
@@ -269,5 +484,66 @@ const styles = StyleSheet.create({
   },
   actionLabel: {
     fontWeight: '600',
+  },
+  requestHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  requestIdentityText: {
+    flex: 1,
+    gap: 1,
+  },
+  ratingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+  },
+  routePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    borderRadius: radii.md,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.sm,
+    marginTop: spacing.xs,
+  },
+  routePillText: {
+    flex: 1,
+    fontWeight: '600',
+  },
+  fallbackBody: {
+    marginTop: spacing.xs,
+  },
+  metaRow: {
+    flexDirection: 'row',
+    gap: spacing.xs,
+    marginTop: spacing.xs,
+  },
+  actionBar: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    paddingTop: spacing.sm,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  actionButton: {
+    flex: 1,
+    borderRadius: radii.full,
+    paddingVertical: spacing.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  declineButton: {
+    borderWidth: 1,
+  },
+  actionErrorText: {
+    textAlign: 'center',
+  },
+  resolvedRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    paddingTop: spacing.sm,
+    borderTopWidth: StyleSheet.hairlineWidth,
   },
 });

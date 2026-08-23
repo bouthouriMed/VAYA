@@ -5,6 +5,20 @@ export interface ExpoPushMessage {
   title: string;
   body: string;
   data?: Record<string, unknown>;
+  /** iOS notification-category identifier (Expo's push API field name) —
+   *  pre-architecture for OS-level quick actions (2026-08-23 redesign):
+   *  when set, and when the client has registered a matching category via
+   *  `Notifications.setNotificationCategoryAsync`, iOS renders that
+   *  category's action buttons directly on the notification/lock screen.
+   *  Structure only for now — see notificationCopy.ts on the mobile side
+   *  for what's actually wired vs. deliberately deferred (a background
+   *  handler that can fire an authenticated accept/decline call without
+   *  opening the app is real, separate work, same category as this
+   *  codebase's already-documented "on-device push delivery unverified"
+   *  gap). Android quick actions need a distinct native mechanism
+   *  (notification channels + a JS response handler) not covered by this
+   *  field at all. */
+  categoryId?: string;
 }
 
 interface ExpoPushTicket {

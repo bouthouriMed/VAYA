@@ -1,17 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
-import {
-  View,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  ActivityIndicator,
-} from 'react-native';
+import { View, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import {
   Text,
   Button,
   Icon,
+  Avatar,
+  Badge,
   EmptyState,
   MapPreview,
   useAppTheme,
@@ -28,10 +24,6 @@ import {
   type Booking,
   type Ride,
 } from '../../src/state/api';
-import { CancellationSheet } from '../../src/features/bookings/CancellationSheet';
-import { RideRequestsSheet } from '../../src/features/driver-rides/RideRequestsSheet';
-import { ManageRideSheet } from '../../src/features/driver-rides/ManageRideSheet';
-import { DriverBookingDetailSheet } from '../../src/features/driver-rides/DriverBookingDetailSheet';
 import {
   pickNextUpcomingRide,
   orderRemainingRides,
@@ -39,6 +31,7 @@ import {
 } from '../../src/features/driver-rides/myRidesHelpers';
 import { decodePolyline } from '../../src/utils/polyline';
 
+type ThemeColors = ReturnType<typeof useAppTheme>['colors'];
 type BadgeVariant = 'default' | 'success' | 'warning' | 'error' | 'info';
 
 const BOOKING_STATUS: Record<Booking['status'], { label: string; variant: BadgeVariant }> = {
@@ -72,20 +65,114 @@ function formatWhen(iso: string): string {
   return `${date.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })} · ${time}`;
 }
 
-function formatRowDate(iso: string): string {
-  const date = new Date(iso);
-  const time = date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-  return `${date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}, ${time}`;
-}
+type CardCounterpart =
+  | { kind: 'person'; name: string; avatarUrl?: string | null }
+  | { kind: 'text'; label: string };
 
-type Segment = 'rider' | 'driver';
+/**
+ * World-class trip card (2026-08-23 redesign): a status pill up top, a real
+ * dot→line→pin timeline connecting origin and destination, and a bottom
+ * row pairing the counter-party (driver for a rider's booking, seat
+ * availability for a driver's own ride — no per-row passenger-profile
+ * fetch, see the driver-rides section below for why) with the price. The
+ * whole card is the tap target; there is no standalone "Annuler" link on
+ * the card root any more — cancelling now lives inside the pushed detail
+ * screen (bookings/[bookingId].tsx / driver/rides/[rideId].tsx).
+ */
+function TripCard({
+  theme,
+  dateTimeLabel,
+  badge,
+  originLabel,
+  destinationLabel,
+  counterpart,
+  priceLabel,
+  onPress,
+  dimmed,
+}: {
+  theme: ThemeColors;
+  dateTimeLabel: string;
+  badge: { label: string; variant: BadgeVariant };
+  originLabel: string;
+  destinationLabel: string;
+  counterpart: CardCounterpart;
+  priceLabel: string;
+  onPress: () => void;
+  dimmed?: boolean;
+}): React.JSX.Element {
+  return (
+    <TouchableOpacity
+      style={[
+        styles.tripCard,
+        { backgroundColor: theme.surface, borderColor: theme.outlineVariant },
+        dimmed && styles.tripCardDimmed,
+      ]}
+      onPress={onPress}
+      activeOpacity={0.7}
+      accessibilityRole="button"
+      accessibilityLabel={`${originLabel} vers ${destinationLabel}, ${dateTimeLabel}, ${badge.label}`}
+    >
+      <View style={styles.tripCardTopRow}>
+        <Text variant="label" color={theme.ink} style={styles.tripCardDate}>
+          {dateTimeLabel}
+        </Text>
+        <Badge label={badge.label} variant={badge.variant} theme={theme} />
+      </View>
+
+      <View style={styles.timeline}>
+        <View style={styles.timelineDots}>
+          <View style={[styles.dotOutline, { borderColor: theme.ink }]} />
+          <View style={[styles.dotConnector, { backgroundColor: theme.outlineVariant }]} />
+          <View style={[styles.dotFilled, { backgroundColor: theme.accent }]} />
+        </View>
+        <View style={styles.timelineEntries}>
+          <Text variant="body" color={theme.ink} numberOfLines={1}>
+            {originLabel}
+          </Text>
+          <Text variant="body" color={theme.ink} numberOfLines={1}>
+            {destinationLabel}
+          </Text>
+        </View>
+      </View>
+
+      <View style={[styles.tripCardBottomRow, { borderTopColor: theme.outlineVariant }]}>
+        {counterpart.kind === 'person' ? (
+          <View style={styles.counterpartRow}>
+            <Avatar
+              uri={counterpart.avatarUrl}
+              name={counterpart.name}
+              sizePx={28}
+              fallbackBackgroundColor={theme.surfaceMuted}
+              fallbackTextColor={theme.ink}
+            />
+            <Text variant="bodySmall" color={theme.inkMuted} numberOfLines={1} style={styles.counterpartName}>
+              {counterpart.name}
+            </Text>
+          </View>
+        ) : (
+          <View style={styles.counterpartRow}>
+            <Icon name="people-outline" size="xs" color={theme.inkMuted} />
+            <Text variant="bodySmall" color={theme.inkMuted} numberOfLines={1}>
+              {counterpart.label}
+            </Text>
+          </View>
+        )}
+        <Text variant="label" color={theme.ink}>
+          {priceLabel}
+        </Text>
+      </View>
+    </TouchableOpacity>
+  );
+}
 
 /** Stitch's "My Rides" driver dashboard (stitch/publish_ride/
  * my-rides-driver-dashboard.html) — hero card for the next upcoming drive
  * (real map thumbnail, real seats/price), a Passager/Conducteur segmented
- * control over the two lists, and the hero's two actions backed by real
- * surfaces: "Demandes" opens the per-ride requests sheet (accept/decline),
- * "Gérer" opens ride management (facts + two-step cancel). */
+ * control over the two lists, and one consolidated "Gérer ce trajet" action
+ * that opens the real trip hub (driver/rides/[rideId].tsx — replaces what
+ * used to be two separate bottom sheets, RideRequestsSheet and
+ * ManageRideSheet, with one real screen that shows requests, passengers,
+ * and cancellation together). */
 export default function TripsScreen(): React.JSX.Element {
   const theme = useAppTheme().colors;
   const { openRequestsForRide } = useLocalSearchParams<{ openRequestsForRide?: string }>();
@@ -95,13 +182,11 @@ export default function TripsScreen(): React.JSX.Element {
   });
   const { data: driverProfile } = useGetMyDriverProfileQuery(undefined, { skip: !accessToken });
   const { data: myRides } = useListMyRidesQuery(undefined, { skip: !driverProfile });
-  // Defaults to rider; flips to driver once we know there IS a driver
-  // profile — never shows an empty driving list to someone who can't drive.
+  // Defaults to rider; flips once we know which role actually HAS trips —
+  // never leaves a driver staring at an empty "Passager" tab when their
+  // real activity is on the "Conducteur" side, or vice versa.
   const [segment, setSegment] = useState<Segment>('rider');
-  const [cancellingBookingId, setCancellingBookingId] = useState<string | null>(null);
-  const [requestsRideId, setRequestsRideId] = useState<string | null>(null);
-  const [managedRide, setManagedRide] = useState<Ride | null>(null);
-  const [managedBooking, setManagedBooking] = useState<Booking | null>(null);
+  const [segmentTouched, setSegmentTouched] = useState(false);
 
   // Same query/poll the explore tab's header bell and the notifications
   // inbox itself already use — no new endpoint, just a second reader of the
@@ -112,25 +197,39 @@ export default function TripsScreen(): React.JSX.Element {
   });
   const hasUnreadNotifications = notifications?.some((n) => !n.readAt) ?? false;
 
-  useEffect(() => {
-    if (driverProfile) setSegment('driver');
-  }, [driverProfile]);
-
-  // A "new request" notification tap (deepLink.ts) lands here with the
-  // specific ride already known — opens straight to the request instead of
-  // making the driver find it themselves on the dashboard below.
-  useEffect(() => {
-    if (openRequestsForRide) {
-      setSegment('driver');
-      setRequestsRideId(openRequestsForRide);
-    }
-  }, [openRequestsForRide]);
-
   const heroRide = useMemo(() => pickNextUpcomingRide(myRides ?? []), [myRides]);
   const remainingRides = useMemo(
     () => orderRemainingRides(myRides ?? [], heroRide?.id ?? null),
     [myRides, heroRide],
   );
+  const upcomingBookings = (bookings ?? []).filter((booking) =>
+    ['pending', 'accepted'].includes(booking.status),
+  );
+  const pastBookings = (bookings ?? []).filter(
+    (booking) => !['pending', 'accepted'].includes(booking.status),
+  );
+
+  useEffect(() => {
+    if (segmentTouched) return;
+    if (!driverProfile) {
+      setSegment('rider');
+      return;
+    }
+    const driverHasTrips = Boolean(heroRide) || remainingRides.length > 0;
+    const riderHasTrips = upcomingBookings.length > 0;
+    if (riderHasTrips && !driverHasTrips) setSegment('rider');
+    else setSegment('driver');
+  }, [driverProfile, heroRide, remainingRides.length, upcomingBookings.length, segmentTouched]);
+
+  // A "new request" notification tap (deepLink.ts) lands here with the
+  // specific ride already known — opens the real trip hub for it directly,
+  // same destination the dashboard's own "Gérer ce trajet" button uses.
+  useEffect(() => {
+    if (openRequestsForRide) {
+      router.push({ pathname: '/driver/rides/[rideId]', params: { rideId: openRequestsForRide } });
+    }
+  }, [openRequestsForRide]);
+
   const heroPolyline = useMemo(
     () => (heroRide?.routePolyline ? decodePolyline(heroRide.routePolyline) : []),
     [heroRide],
@@ -143,12 +242,10 @@ export default function TripsScreen(): React.JSX.Element {
     router.push(driverProfile ? '/(tabs)/publish' : '/driver/onboarding/vehicle');
   }
 
-  const upcomingBookings = (bookings ?? []).filter((booking) =>
-    ['pending', 'accepted'].includes(booking.status),
-  );
-  const pastBookings = (bookings ?? []).filter(
-    (booking) => !['pending', 'accepted'].includes(booking.status),
-  );
+  function selectSegment(next: Segment): void {
+    setSegmentTouched(true);
+    setSegment(next);
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top']}>
@@ -188,25 +285,32 @@ export default function TripsScreen(): React.JSX.Element {
           </View>
         ) : (
           <>
-            <TouchableOpacity style={[styles.publishCard, { backgroundColor: theme.surface }]} onPress={goToDriverFlow} activeOpacity={0.8}>
-          <View style={[styles.publishIcon, { backgroundColor: theme.accent }]}>
-            <Ionicons name="add" size={22} color={theme.onAccent} />
-          </View>
-          <View style={styles.publishTextCol}>
-            <Text style={[styles.publishTitle, { color: theme.ink }]}>
-              {driverProfile ? 'Publier un trajet' : 'Devenir conducteur'}
-            </Text>
-            <Text variant="bodySmall" color={theme.inkMuted}>
-              {driverProfile
-                ? 'Proposez des places et gagnez de la contribution'
-                : 'Ajoutez votre véhicule pour commencer à conduire'}
-            </Text>
-          </View>
-          <Icon name="chevron-forward" size="sm" color={theme.inkFaint} />
-        </TouchableOpacity>
+            {/* Driver-onboarding entry point only ever shown once the driver
+                role is actually the active context here — a pure passenger
+                never sees this banner competing for space with their real
+                upcoming trips; driver onboarding stays discoverable from
+                Profile's own existing CTA instead (unchanged). */}
+            {driverProfile || segment === 'driver' ? (
+              <TouchableOpacity style={[styles.publishCard, { backgroundColor: theme.surface }]} onPress={goToDriverFlow} activeOpacity={0.8}>
+                <View style={[styles.publishIcon, { backgroundColor: theme.accent }]}>
+                  <Ionicons name="add" size={22} color={theme.onAccent} />
+                </View>
+                <View style={styles.publishTextCol}>
+                  <Text style={[styles.publishTitle, { color: theme.ink }]}>
+                    {driverProfile ? 'Publier un trajet' : 'Devenir conducteur'}
+                  </Text>
+                  <Text variant="bodySmall" color={theme.inkMuted}>
+                    {driverProfile
+                      ? 'Proposez des places et gagnez de la contribution'
+                      : 'Ajoutez votre véhicule pour commencer à conduire'}
+                  </Text>
+                </View>
+                <Icon name="chevron-forward" size="sm" color={theme.inkFaint} />
+              </TouchableOpacity>
+            ) : null}
 
         {/* Upcoming ride hero */}
-        {heroRide ? (
+        {heroRide && segment === 'driver' ? (
           <View style={styles.heroSection}>
             <Text variant="label" color={theme.inkMuted} style={styles.sectionHeading}>
               Prochain trajet
@@ -268,21 +372,14 @@ export default function TripsScreen(): React.JSX.Element {
                   </View>
                 </View>
 
-                <View style={styles.heroActions}>
-                  <Button
-                    label="Gérer"
-                    variant="secondary"
-                    theme={theme}
-                    onPress={() => setManagedRide(heroRide)}
-                    style={styles.heroButton}
-                  />
-                  <Button
-                    label="Demandes"
-                    theme={theme}
-                    onPress={() => setRequestsRideId(heroRide.id)}
-                    style={styles.heroButton}
-                  />
-                </View>
+                <Button
+                  label="Gérer ce trajet"
+                  theme={theme}
+                  onPress={() =>
+                    router.push({ pathname: '/driver/rides/[rideId]', params: { rideId: heroRide.id } })
+                  }
+                  style={styles.heroButton}
+                />
               </View>
             </View>
           </View>
@@ -302,7 +399,7 @@ export default function TripsScreen(): React.JSX.Element {
                 styles.segmentItem,
                 segment === key ? { backgroundColor: theme.surface } : null,
               ]}
-              onPress={() => setSegment(key)}
+              onPress={() => selectSegment(key)}
               accessibilityRole="tab"
               accessibilityState={{ selected: segment === key }}
               accessibilityLabel={label}
@@ -338,36 +435,25 @@ export default function TripsScreen(): React.JSX.Element {
               />
             ) : (
               remainingRides.map((ride) => {
-                const meta = RIDE_STATUS[ride.status];
-                const cancellable =
-                  UPCOMING_RIDE_STATUSES.includes(ride.status) &&
-                  new Date(ride.departureAt).getTime() > Date.now();
+                const past = !UPCOMING_RIDE_STATUSES.includes(ride.status);
                 return (
-                  <View key={ride.id} style={[styles.historyCard, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
-                    <View style={[styles.historyTile, { backgroundColor: theme.surfaceMuted }]}>
-                      <Icon name="car-outline" size="md" color={theme.inkMuted} />
-                    </View>
-                    <View style={styles.historyText}>
-                      <Text variant="body" color={theme.ink} numberOfLines={1}>
-                        {`${ride.originLabel} → ${ride.destinationLabel}`}
-                      </Text>
-                      <Text variant="caption" color={theme.inkMuted}>
-                        {`${formatRowDate(ride.departureAt)} • ${meta.label}`}
-                      </Text>
-                    </View>
-                    <View style={styles.historyRight}>
-                      <Text variant="body" color={theme.ink}>
-                        {`${ride.contributionPerSeat} DT`}
-                      </Text>
-                      {cancellable ? (
-                        <TouchableOpacity onPress={() => setManagedRide(ride)} hitSlop={8}>
-                          <Text variant="caption" color={theme.error}>
-                            Annuler
-                          </Text>
-                        </TouchableOpacity>
-                      ) : null}
-                    </View>
-                  </View>
+                  <TripCard
+                    key={ride.id}
+                    theme={theme}
+                    dateTimeLabel={formatWhen(ride.departureAt)}
+                    badge={RIDE_STATUS[ride.status]}
+                    originLabel={ride.originLabel}
+                    destinationLabel={ride.destinationLabel}
+                    counterpart={{
+                      kind: 'text',
+                      label: `${ride.seatsTotal - ride.seatsAvailable}/${ride.seatsTotal} places réservées`,
+                    }}
+                    priceLabel={`${ride.contributionPerSeat} DT`}
+                    onPress={() =>
+                      router.push({ pathname: '/driver/rides/[rideId]', params: { rideId: ride.id } })
+                    }
+                    dimmed={past}
+                  />
                 );
               })
             )}
@@ -386,64 +472,42 @@ export default function TripsScreen(): React.JSX.Element {
               />
             ) : (
               <>
-                {upcomingBookings.map((booking) => {
-                  const meta = BOOKING_STATUS[booking.status];
-                  return (
-                    <View key={booking.id} style={[styles.historyCard, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
-                      <View style={[styles.historyTile, { backgroundColor: theme.surfaceMuted }]}>
-                        <Icon name="person-outline" size="md" color={theme.inkMuted} />
-                      </View>
-                      <View style={styles.historyText}>
-                        <Text variant="body" color={theme.ink} numberOfLines={1}>
-                          {booking.ride
-                            ? `${booking.ride.originLabel} → ${booking.ride.destinationLabel}`
-                            : 'Trajet'}
-                        </Text>
-                        <Text variant="caption" color={theme.inkMuted} numberOfLines={1}>
-                          {booking.ride
-                            ? `${formatWhen(booking.ride.departureAt)} · ${meta.label}`
-                            : meta.label}
-                        </Text>
-                      </View>
-                      <View style={styles.historyRight}>
-                        {CANCELLABLE_BOOKING_STATUSES.includes(booking.status) ? (
-                          <TouchableOpacity onPress={() => setCancellingBookingId(booking.id)} hitSlop={8}>
-                            <Text variant="caption" color={theme.error}>
-                              Annuler
-                            </Text>
-                          </TouchableOpacity>
-                        ) : null}
-                      </View>
-                    </View>
-                  );
-                })}
+                {upcomingBookings.map((booking) => (
+                  <TripCard
+                    key={booking.id}
+                    theme={theme}
+                    dateTimeLabel={booking.ride ? formatWhen(booking.ride.departureAt) : ''}
+                    badge={BOOKING_STATUS[booking.status]}
+                    originLabel={booking.ride?.originLabel ?? 'Départ'}
+                    destinationLabel={booking.ride?.destinationLabel ?? 'Arrivée'}
+                    counterpart={{ kind: 'person', name: booking.ride?.driverFullName ?? 'Conducteur' }}
+                    priceLabel={`${booking.contributionTotal} DT`}
+                    onPress={() =>
+                      router.push({ pathname: '/bookings/[bookingId]', params: { bookingId: booking.id } })
+                    }
+                  />
+                ))}
                 {pastBookings.length > 0 ? (
                   <>
                     <Text variant="label" color={theme.inkMuted} style={[styles.sectionHeading, styles.pastHeading]}>
                       Passés
                     </Text>
-                    {pastBookings.map((booking) => {
-                      const meta = BOOKING_STATUS[booking.status];
-                      return (
-                        <View key={booking.id} style={[styles.historyCard, styles.pastCard, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
-                          <View style={[styles.historyTile, { backgroundColor: theme.surfaceMuted }]}>
-                            <Icon name="checkmark-circle-outline" size="md" color={theme.inkFaint} />
-                          </View>
-                          <View style={styles.historyText}>
-                            <Text variant="body" color={theme.ink} numberOfLines={1}>
-                              {booking.ride
-                                ? `${booking.ride.originLabel} → ${booking.ride.destinationLabel}`
-                                : 'Trajet'}
-                            </Text>
-                            <Text variant="caption" color={theme.inkMuted} numberOfLines={1}>
-                              {booking.ride
-                                ? `${formatRowDate(booking.ride.departureAt)} • ${meta.label}`
-                                : meta.label}
-                            </Text>
-                          </View>
-                        </View>
-                      );
-                    })}
+                    {pastBookings.map((booking) => (
+                      <TripCard
+                        key={booking.id}
+                        theme={theme}
+                        dateTimeLabel={booking.ride ? formatWhen(booking.ride.departureAt) : ''}
+                        badge={BOOKING_STATUS[booking.status]}
+                        originLabel={booking.ride?.originLabel ?? 'Départ'}
+                        destinationLabel={booking.ride?.destinationLabel ?? 'Arrivée'}
+                        counterpart={{ kind: 'person', name: booking.ride?.driverFullName ?? 'Conducteur' }}
+                        priceLabel={`${booking.contributionTotal} DT`}
+                        onPress={() =>
+                      router.push({ pathname: '/bookings/[bookingId]', params: { bookingId: booking.id } })
+                    }
+                        dimmed
+                      />
+                    ))}
                   </>
                 ) : null}
               </>
@@ -453,40 +517,11 @@ export default function TripsScreen(): React.JSX.Element {
           </>
         )}
       </ScrollView>
-
-      <CancellationSheet
-        visible={!!cancellingBookingId}
-        bookingId={cancellingBookingId ?? ''}
-        role="rider"
-        onClose={() => setCancellingBookingId(null)}
-      />
-      <RideRequestsSheet
-        visible={!!requestsRideId}
-        rideId={requestsRideId ?? ''}
-        onClose={() => setRequestsRideId(null)}
-        onManageBooking={(booking) => {
-          // Sequential, not stacked: closing the requests sheet before
-          // opening the booking detail one avoids two overlapping sheet
-          // backdrops/animations at once.
-          setRequestsRideId(null);
-          setManagedBooking(booking);
-        }}
-      />
-      <ManageRideSheet
-        visible={!!managedRide}
-        ride={managedRide}
-        onClose={() => setManagedRide(null)}
-      />
-      <DriverBookingDetailSheet
-        visible={!!managedBooking}
-        booking={managedBooking}
-        onClose={() => setManagedBooking(null)}
-      />
     </SafeAreaView>
   );
 }
 
-const CANCELLABLE_BOOKING_STATUSES: Booking['status'][] = ['pending', 'accepted'];
+type Segment = 'rider' | 'driver';
 
 const styles = StyleSheet.create({
   container: {
@@ -592,7 +627,7 @@ const styles = StyleSheet.create({
   },
   dotConnector: {
     flex: 1,
-    minHeight: 24,
+    minHeight: 20,
     width: 2,
     marginVertical: 2,
   },
@@ -604,16 +639,13 @@ const styles = StyleSheet.create({
   timelineEntries: {
     flex: 1,
     gap: spacing.sm,
+    justifyContent: 'center',
   },
   timelineEntry: {
     gap: 1,
   },
-  heroActions: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-  },
   heroButton: {
-    flex: 1,
+    width: '100%',
   },
   segmentTrack: {
     flexDirection: 'row',
@@ -636,36 +668,45 @@ const styles = StyleSheet.create({
   pastHeading: {
     marginTop: spacing.xs,
   },
-  historyCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    borderRadius: radii.xl,
-    borderWidth: 1,
-    padding: spacing.md,
-  },
-  pastCard: {
-    opacity: 0.75,
-  },
-  historyTile: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  historyText: {
-    flex: 1,
-    gap: 1,
-  },
-  historyRight: {
-    alignItems: 'flex-end',
-    gap: spacing.xs,
-  },
   loading: {
     marginTop: spacing.md,
   },
   guestEmptyWrap: {
     paddingTop: spacing['3xl'],
+  },
+  tripCard: {
+    borderRadius: radii.xl,
+    borderWidth: 1,
+    padding: spacing.md,
+    gap: spacing.sm,
+  },
+  tripCardDimmed: {
+    opacity: 0.75,
+  },
+  tripCardTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.sm,
+  },
+  tripCardDate: {
+    fontWeight: '700',
+  },
+  tripCardBottomRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.sm,
+    paddingTop: spacing.sm,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  counterpartRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    flexShrink: 1,
+  },
+  counterpartName: {
+    flexShrink: 1,
   },
 });

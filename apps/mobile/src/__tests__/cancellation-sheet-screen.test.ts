@@ -72,10 +72,22 @@ describe('NoShowReportSheet enforces guidance-not-gate contact copy and real ser
 });
 
 describe('trip-day and pre-trip screens wire the Phase 10 affordances', () => {
-  it('(tabs)/trips.tsx opens CancellationSheet instead of firing cancelBooking directly on tap', () => {
+  // 2026-08-23 redesign: (tabs)/trips.tsx no longer wires CancellationSheet
+  // directly — cancelling a booking now lives inside the pushed detail
+  // screen (bookings/[bookingId].tsx), reached by tapping the trip card,
+  // per the redesign's explicit "remove the standalone Annuler link from
+  // the card root" requirement. trips.tsx itself must never fire
+  // cancelBooking directly on a card tap either way.
+  it('(tabs)/trips.tsx navigates to the booking detail screen instead of firing cancelBooking directly on tap', () => {
     const source = readSource(path.join(appDir, '(tabs)'), 'trips.tsx');
-    expect(source).toContain('CancellationSheet');
+    expect(source).toContain("pathname: '/bookings/[bookingId]'");
+    expect(source).not.toContain('useCancelBookingMutation');
     expect(source).not.toMatch(/onPress=\{\(\) => void cancelBooking\(booking\.id\)\}/);
+  });
+
+  it('bookings/[bookingId].tsx (the pushed detail screen) opens CancellationSheet', () => {
+    const source = readSource(path.join(appDir, 'bookings'), '[bookingId].tsx');
+    expect(source).toContain('CancellationSheet');
   });
 
   it('bookings/live.tsx offers both cancellation and no-show reporting', () => {

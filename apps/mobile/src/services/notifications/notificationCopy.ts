@@ -101,3 +101,54 @@ export function notificationDescription(
       return notificationTypeMeta(type).title;
   }
 }
+
+function str(v: unknown): string | undefined {
+  return typeof v === 'string' ? v : undefined;
+}
+function num(v: unknown): number | undefined {
+  return typeof v === 'number' ? v : undefined;
+}
+
+/** Route/counterpart fields a notification card actually renders (2026-08-23
+ *  redesign: passenger mini-profile, route pill, seats badge, pickup time)
+ *  — always optional, since a field missing from the raw payload is a real,
+ *  honest possibility (an older notification row predating this shape, a
+ *  best-effort lookup that failed server-side) and must render as "omitted"
+ *  never as fabricated placeholder text. `booking_requested`'s counterpart
+ *  is the rider (bookings.service.ts's createBooking payload);
+ *  `booking_accepted`/`booking_declined`'s counterpart is the driver — same
+ *  shape either direction, so one reader serves both card kinds. */
+export interface NotificationCounterpartPayload {
+  bookingId?: string;
+  rideId?: string;
+  counterpartName?: string;
+  counterpartAvatarUrl?: string;
+  counterpartRatingAvg?: number;
+  seatsRequested?: number;
+  pickupLabel?: string;
+  originLabel?: string;
+  destinationLabel?: string;
+  departureAt?: string;
+}
+
+export function readNotificationCounterpartPayload(
+  type: NotificationEventType,
+  payload: Record<string, unknown>,
+): NotificationCounterpartPayload {
+  const isDriverFacing = type === 'booking_requested';
+  const nameKey = isDriverFacing ? 'riderName' : 'driverName';
+  const avatarKey = isDriverFacing ? 'riderAvatarUrl' : 'driverAvatarUrl';
+  const ratingKey = isDriverFacing ? 'riderRatingAvg' : 'driverRatingAvg';
+  return {
+    bookingId: str(payload.bookingId),
+    rideId: str(payload.rideId),
+    counterpartName: str(payload[nameKey]),
+    counterpartAvatarUrl: str(payload[avatarKey]),
+    counterpartRatingAvg: num(payload[ratingKey]),
+    seatsRequested: num(payload.seatsRequested),
+    pickupLabel: str(payload.pickupLabel),
+    originLabel: str(payload.originLabel),
+    destinationLabel: str(payload.destinationLabel),
+    departureAt: str(payload.departureAt),
+  };
+}

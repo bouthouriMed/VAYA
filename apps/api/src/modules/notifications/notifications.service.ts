@@ -141,6 +141,19 @@ function titleFor(type: NotificationEventType): string {
   return TITLES[type] ?? 'VAYA';
 }
 
+/** OS-level quick-action pre-architecture (2026-08-23 redesign) — see
+ *  ExpoPushMessage.categoryId's doc comment in expo-push.ts for the full
+ *  scope note. `booking_requested` is the only event type with a real
+ *  binary Accepter/Refuser action a driver could take straight from the
+ *  notification; every other type is informational only. */
+const NOTIFICATION_CATEGORIES: Partial<Record<NotificationEventType, string>> = {
+  booking_requested: 'RIDE_REQUEST',
+};
+
+function categoryFor(type: NotificationEventType): string | undefined {
+  return NOTIFICATION_CATEGORIES[type];
+}
+
 function bodyFor(type: NotificationEventType, payload: Record<string, unknown>): string {
   switch (type) {
     case 'booking_requested':
@@ -215,11 +228,13 @@ export async function dispatchPushForNotification(db: Database, notificationId: 
   if (tokens.length === 0) return;
 
   const payload = (notification.payload ?? {}) as Record<string, unknown>;
+  const categoryId = categoryFor(notification.type);
   const messages = tokens.map((t) => ({
     to: t.token,
     title: titleFor(notification.type),
     body: bodyFor(notification.type, payload),
     data: { notificationId: notification.id, type: notification.type, ...payload },
+    ...(categoryId ? { categoryId } : {}),
   }));
 
   await sendExpoPushMessages(messages);

@@ -19,6 +19,32 @@ Notifications.setNotificationHandler({
   }),
 });
 
+// OS-level quick-action pre-architecture (2026-08-23 redesign): registers
+// the category so a booking_requested push (server sets categoryId:
+// 'RIDE_REQUEST', expo-push.ts) can render Accepter/Refuser buttons
+// directly on the notification. Deliberately `opensAppToForeground: true`
+// on both actions rather than a true background quick-action — actually
+// accepting/declining without opening the app needs a background handler
+// that can fire an authenticated API call on its own, which is real,
+// separate work this pass doesn't build (same category as this codebase's
+// already-documented "on-device push delivery unverified" gap). Tapping
+// either button today just opens the app to the request, same as tapping
+// the notification body — the category exists so the buttons are visually
+// present and wired for that real handler to slot in later without
+// touching this registration again.
+void Notifications.setNotificationCategoryAsync('RIDE_REQUEST', [
+  {
+    identifier: 'ACCEPT_RIDE',
+    buttonTitle: 'Accepter',
+    options: { opensAppToForeground: true },
+  },
+  {
+    identifier: 'DECLINE_RIDE',
+    buttonTitle: 'Refuser',
+    options: { opensAppToForeground: true, isDestructive: true },
+  },
+]);
+
 export function currentDevicePlatform(): 'ios' | 'android' | null {
   if (Platform.OS === 'ios') return 'ios';
   if (Platform.OS === 'android') return 'android';
