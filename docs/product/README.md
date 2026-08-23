@@ -12,6 +12,7 @@ The product must earn trust through two things it already does unusually well fo
 |---|---|
 | [`docs/product/audit.md`](audit.md) | Full current-state audit: every area of the codebase classified KEEP/IMPROVE/REFACTOR/REPLACE/MISSING, with file-level evidence. Read this first. |
 | [`docs/product/benchmark.md`](benchmark.md) | BlaBlaCar and world-class carpooling research, labeled FACT/ESTIMATE/ASSUMPTION/HYPOTHESIS. |
+| [`docs/product/search-engine-audit-2026-08-23.md`](search-engine-audit-2026-08-23.md) | Deep audit of `matching.service.ts`'s search/matching engine against publicly documented BlaBlaCar architecture — gap analysis, edge-case matrix, and a prioritized (P0-P4) roadmap. Read-only audit, no code changed. |
 | [`docs/ux/principles.md`](../ux/principles.md) | The UX rules every future screen follows, and explicit anti-patterns to reject. |
 | [`docs/ux/driver-journey.md`](../ux/driver-journey.md) / [`passenger-journey.md`](../ux/passenger-journey.md) | Target end-to-end experiences, with today's gaps noted inline. |
 | [`docs/design-system/README.md`](../design-system/README.md) | The formal VAYA design system: actual token values, component inventory, what's missing, enforcement rules. |
