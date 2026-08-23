@@ -33,19 +33,22 @@ interface ResultRow {
   lng?: number;
 }
 
-// French labels for the type badge — this is the concrete fix for the
-// brief's named complaint ("Sousse / Ville · Sousse Governorate / Sousse /
-// Gouvernorat" reading as confusing duplicated noise): every row shows
-// exactly one short, correct type word instead of the raw provider label
-// repeating the place name.
-const LOCATION_TYPE_LABEL: Partial<Record<LocationType, string>> = {
-  country: 'Pays',
-  governorate: 'Gouvernorat',
-  city: 'Ville',
-  neighborhood: 'Quartier',
-  poi: 'Lieu',
-  address: 'Adresse',
+// A meaningful icon per location type, replacing the old generic pin +
+// right-aligned text badge ("Ville"/"Pays"/"Lieu") — the icon itself now
+// carries the type instead of a separate label competing with the place
+// name for space. A precise coordinate (address) keeps the pin, since a pin
+// is the one shape that genuinely means "exact point" — every broader type
+// gets its own real icon instead.
+const LOCATION_TYPE_ICON: Partial<Record<LocationType, React.ComponentProps<typeof Icon>['name']>> = {
+  country: 'earth-outline',
+  governorate: 'map-outline',
+  city: 'business-outline',
+  neighborhood: 'grid-outline',
+  poi: 'storefront-outline',
+  address: 'location-outline',
 };
+const DEFAULT_RESULT_ICON: React.ComponentProps<typeof Icon>['name'] = 'location-outline';
+const RECENT_ICON: React.ComponentProps<typeof Icon>['name'] = 'time-outline';
 
 function placeToRow(place: MockPlace): ResultRow {
   return { key: place.id, label: place.label, subLabel: place.subLabel, lat: place.lat, lng: place.lng };
@@ -295,64 +298,54 @@ export default function SearchComposerScreen(): React.JSX.Element {
           {isSearching ? 'RÉSULTATS' : 'RÉCENTS'}
         </Text>
 
-        <FlatList
-          data={rows}
-          keyExtractor={(row) => row.key}
-          keyboardShouldPersistTaps="handled"
-          keyboardDismissMode="on-drag"
-          contentContainerStyle={styles.listContent}
-          renderItem={({ item }) => {
-            const typeLabel = item.type ? LOCATION_TYPE_LABEL[item.type] : undefined;
-            return (
-              <TouchableOpacity
-                style={[styles.placeRow, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}
-                onPress={() => void chooseRow(item)}
-                activeOpacity={0.7}
-              >
-                <View style={[styles.placeIconWrap, { backgroundColor: theme.surfaceMuted }]}>
-                  <Icon name="location-outline" size="sm" color={theme.inkMuted} />
-                </View>
-                <View style={styles.placeTextCol}>
-                  <View style={styles.placeLabelRow}>
-                    <Text
-                      variant="body"
-                      color={theme.ink}
-                      numberOfLines={1}
-                      style={[styles.placeLabel, styles.placeLabelFlex]}
-                    >
+        {/* One continuous white panel instead of a per-row bordered/grey
+         *  box — matches the flat, divided list every premium map app uses
+         *  for search results (Google Maps, Apple Maps, Uber), rather than
+         *  a stack of individually-carded rows. */}
+        <View style={[styles.listCard, { backgroundColor: theme.surface }]}>
+          <FlatList
+            data={rows}
+            keyExtractor={(row) => row.key}
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="on-drag"
+            contentContainerStyle={styles.listContent}
+            scrollEnabled={rows.length > 0}
+            renderItem={({ item, index }) => {
+              const rowIcon = !isSearching
+                ? RECENT_ICON
+                : (item.type && LOCATION_TYPE_ICON[item.type]) || DEFAULT_RESULT_ICON;
+              const isLast = index === rows.length - 1;
+              return (
+                <TouchableOpacity
+                  style={[styles.placeRow, !isLast && { borderBottomColor: theme.outlineVariant, borderBottomWidth: 1 }]}
+                  onPress={() => void chooseRow(item)}
+                  activeOpacity={0.6}
+                >
+                  <View style={[styles.placeIconWrap, { backgroundColor: theme.accentGlow + '2E' }]}>
+                    <Icon name={rowIcon} size="sm" color={theme.accentStrong} />
+                  </View>
+                  <View style={styles.placeTextCol}>
+                    <Text variant="body" color={theme.ink} numberOfLines={1} style={styles.placeLabel}>
                       {item.label}
                     </Text>
-                    {/* One short, correct type word per row — the direct
-                        fix for the brief's named "Sousse / Ville · Sousse
-                        Governorate / Sousse / Gouvernorat" duplicated-noise
-                        complaint: a city and its governorate now read as
-                        two clearly distinct rows instead of a repeated
-                        label. */}
-                    {typeLabel ? (
-                      <View style={[styles.typeBadge, { backgroundColor: theme.surfaceMuted }]}>
-                        <Text variant="caption" color={theme.inkMuted}>
-                          {typeLabel}
-                        </Text>
-                      </View>
+                    {item.subLabel ? (
+                      <Text variant="caption" color={theme.inkFaint} numberOfLines={1}>
+                        {item.subLabel}
+                      </Text>
                     ) : null}
                   </View>
-                  {item.subLabel ? (
-                    <Text variant="caption" color={theme.inkFaint} numberOfLines={1}>
-                      {item.subLabel}
-                    </Text>
-                  ) : null}
-                </View>
-              </TouchableOpacity>
-            );
-          }}
-          ListEmptyComponent={
-            isSearching && !isFetching ? (
-              <Text variant="body" color={theme.inkFaint} style={styles.empty}>
-                Aucun résultat
-              </Text>
-            ) : null
-          }
-        />
+                </TouchableOpacity>
+              );
+            }}
+            ListEmptyComponent={
+              isSearching && !isFetching ? (
+                <Text variant="body" color={theme.inkFaint} style={styles.empty}>
+                  Aucun résultat
+                </Text>
+              ) : null
+            }
+          />
+        </View>
       </View>
     </View>
   );
@@ -446,22 +439,25 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
     letterSpacing: 0.6,
   },
+  listCard: {
+    flex: 1,
+    borderRadius: radii.xl,
+    overflow: 'hidden',
+  },
   listContent: {
-    gap: spacing.sm,
     paddingBottom: spacing['3xl'],
   },
   placeRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
-    padding: spacing.md,
-    borderRadius: radii.lg,
-    borderWidth: 1,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
   },
   placeIconWrap: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -471,19 +467,6 @@ const styles = StyleSheet.create({
   },
   placeLabel: {
     fontWeight: '500',
-  },
-  placeLabelRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  placeLabelFlex: {
-    flexShrink: 1,
-  },
-  typeBadge: {
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
-    borderRadius: radii.sm,
   },
   errorText: {
     marginTop: spacing.xs,
