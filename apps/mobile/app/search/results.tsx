@@ -124,7 +124,12 @@ function RideResultCard({
     seatsAvailable: candidate.seatsAvailable,
     timeOffsetNote,
     passengers: passengers?.map((p) => ({ userId: p.userId, name: p.firstName, avatarUrl: p.avatarUrl })),
-    routeBadgeLabel: candidate.matchType === 'route_passthrough' ? 'Sur votre trajet' : undefined,
+    routeBadgeLabel:
+      candidate.matchType === 'route_passthrough'
+        ? 'Sur votre trajet'
+        : candidate.matchType === 'detour' && candidate.detour
+          ? `Détour +${Math.round(candidate.detour.extraDurationSeconds / 60)} min`
+          : undefined,
   };
 
   return <DriverListCard theme={theme} bestMatch={bestMatch} data={data} onPress={onPress} />;

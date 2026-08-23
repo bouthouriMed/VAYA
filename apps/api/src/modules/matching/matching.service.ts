@@ -60,6 +60,66 @@ const CLOSEST_DEPARTURE_LIMIT = 5;
 // in a future phase) bounded regardless of how many rides exist DB-wide.
 const POSTGIS_CANDIDATE_CAP = 50;
 
+// --- Detour matching (Google/PostGIS location spec §7) ---------------------
+// Real routing-engine detour calculation, distinct from route_passthrough's
+// polyline-proximity test: a candidate here is a ride whose route does NOT
+// already pass near the rider, but a real multi-waypoint routing call shows
+// the driver could reach them within a small, bounded extra cost. Every
+// threshold below is a reasoned starting point, explicitly not a measured
+// fact — labeled per the location-architecture spec's own instruction not
+// to reuse stop-candidates.service.ts's 300m/120s driver-side thresholds
+// (a different purpose: that pair gates a driver's OWN stop placement at
+// publish time; these gate whether a specific rider's request is worth
+// inserting into an already-published route at search time) and to
+// recalibrate once real booking-acceptance data exists — see
+// docs/product/search-engine-audit-v2-active-trip-2026-08-23.md §7 for the
+// full reasoning.
+
+// Cheap PostGIS stage-1 radius (lib/spatial.ts's findCandidateRideIdsByCorridor,
+// reused with a wider width than route_passthrough's 150m): a ride whose
+// route runs further than this from the rider is not worth an expensive
+// per-candidate routing call at all, regardless of how small its eventual
+// computed detour might be. ASSUMPTION.
+const DETOUR_SEARCH_RADIUS_M = 2500;
+
+// The hard cap on how many candidates ever reach a real routing-API call —
+// the single most important number in this tier, since it's what prevents
+// the "N candidates x N routing calls" cost explosion the brief explicitly
+// warns against (§14). Deliberately smaller than POSTGIS_CANDIDATE_CAP:
+// this tier's per-candidate cost is a real network call, not a
+// microseconds-cheap in-memory scoring pass. ASSUMPTION, reasoned from the
+// audit's 1,000-user-scale candidate-set modeling, not measured.
+const DETOUR_CANDIDATE_CAP = 15;
+
+// Detour tolerance as a fraction of the ride's own baseline duration — a
+// fixed-minutes bound would be simultaneously too loose on a 10-minute
+// urban hop and too tight on a 3-hour intercity trip. HYPOTHESIS: no usage
+// data exists yet to calibrate this precisely.
+const MAX_DETOUR_RATIO = 0.25;
+// Absolute floor/ceiling so the ratio math can't produce a nonsensically
+// tiny allowance on a very short trip or an unreasonably large one on a
+// very long trip. ASSUMPTION.
+const MIN_DETOUR_ALLOWANCE_SEC = 3 * 60;
+const MAX_DETOUR_ALLOWANCE_SEC = 12 * 60;
+
+export function detourAllowanceSec(baselineDurationSec: number): number {
+  const ratioAllowance = baselineDurationSec * MAX_DETOUR_RATIO;
+  return Math.min(MAX_DETOUR_ALLOWANCE_SEC, Math.max(MIN_DETOUR_ALLOWANCE_SEC, ratioAllowance));
+}
+
+/** Cheap, local approximation of a decoded route's total length — used only
+ *  for the informational `extraDistanceMeters` figure (never for the actual
+ *  hard-rejection gate, which runs entirely on real routing-engine duration
+ *  numbers). No network call: this just sums consecutive-point haversine
+ *  distances over the ride's already-stored, already-decoded polyline. */
+export function polylineLengthMeters(points: LatLng[]): number {
+  let total = 0;
+  for (let i = 0; i < points.length - 1; i++) {
+    total += haversineDistanceMeters(points[i]!, points[i + 1]!);
+  }
+  return total;
+}
+
 function clamp01(n: number): number {
   return Math.max(0, Math.min(1, n));
 }
@@ -72,7 +132,7 @@ export interface RankedStop {
   walkMinutes: number;
 }
 
-export type MatchType = 'endpoint' | 'route_passthrough';
+export type MatchType = 'endpoint' | 'route_passthrough' | 'detour';
 
 export interface MatchCandidate {
   rideId: string;
@@ -118,8 +178,30 @@ export interface MatchCandidate {
   /** 'route_passthrough' for a ride found because its route runs through
    *  the rider's corridor (the driver's own origin/destination are
    *  elsewhere) rather than because its own endpoints matched — lets the
-   *  UI badge these distinctly (docs/roadmap/phase-13-search-engine.md). */
+   *  UI badge these distinctly (docs/roadmap/phase-13-search-engine.md).
+   *  'detour' (Google/PostGIS location spec §7): a ride whose route does
+   *  NOT already pass near the rider, but a real routing-engine calculation
+   *  (origin -> pickup -> dropoff -> destination, via the active
+   *  RoutingProvider) shows the driver could reach them within a small,
+   *  bounded extra cost. */
   matchType: MatchType;
+  /** Populated only for matchType: 'detour' — the real, routing-engine-
+   *  calculated cost of inserting this rider's pickup/dropoff into the
+   *  driver's route, vs. the ride's own already-computed baseline. Never
+   *  estimated from straight-line distance (CLAUDE.md: never show
+   *  fabricated numbers) — null whenever the precise calculation itself
+   *  wasn't run for this candidate. */
+  detour: {
+    extraDurationSeconds: number;
+    extraDistanceMeters: number;
+    /** extraDurationSeconds / the ride's own baseline duration — the
+     *  normalized figure the hard-rejection bound is actually expressed in
+     *  (a fixed detour-minutes bound means very different things on a
+     *  5-minute hop vs. a 3-hour intercity trip — see MAX_DETOUR_RATIO). */
+    detourRatio: number;
+    pickupEtaSeconds: number;
+    dropoffEtaSeconds: number;
+  } | null;
 }
 
 /**
@@ -320,6 +402,7 @@ function buildEndpointCandidate(
     pickupViable,
     dropoffViable,
     matchType: 'endpoint',
+    detour: null,
     reasons: buildReasons({
       pickupWalkMinutes,
       timeDeltaMin,
@@ -509,6 +592,7 @@ async function scorePassThroughCandidates(
       pickupViable: true,
       dropoffViable: true,
       matchType: 'route_passthrough',
+      detour: null,
       reasons: [
         ...buildReasons({
           pickupWalkMinutes,
@@ -518,6 +602,153 @@ async function scorePassThroughCandidates(
         }),
         'Sur votre trajet',
       ],
+      clusterLabel: buildClusterLabel(timeDeltaMin),
+    });
+  }
+
+  return results.sort((a, b) => b.score - a.score);
+}
+
+/**
+ * The detour-match tier (Google/PostGIS location spec §7): for rides whose
+ * route does NOT already pass within OVERLAP_CORRIDOR_WIDTH_M of the rider
+ * (route_passthrough already found those), ask the active RoutingProvider
+ * what it would actually cost — in real road-network time, not straight-
+ * line distance — to insert the rider's pickup and dropoff into the
+ * driver's route. Two-stage, cost-bounded exactly per the brief's own
+ * warning against an N-candidates x N-routing-calls architecture:
+ *
+ *   PostGIS cheap radius filter (DETOUR_SEARCH_RADIUS_M, wider than
+ *   route_passthrough's tight corridor)
+ *     -> capped to DETOUR_CANDIDATE_CAP candidates
+ *     -> exactly one real getRoute(...) call per surviving candidate
+ *
+ * A candidate only survives when the real computed extra duration fits
+ * within detourAllowanceSec(baseline) — never a raw distance/proximity
+ * proxy. Every returned candidate is `pickupViable: false` /
+ * `dropoffViable: false`: this tier surfaces a real, calculated
+ * possibility, not a bookable stop — see MatchCandidate.detour's doc
+ * comment for why turning this into an actual booking is deliberately out
+ * of this pass's scope.
+ */
+async function scoreDetourCandidates(
+  db: Database,
+  input: MatchingSearchInput,
+  timeWindowMin: number,
+): Promise<MatchCandidate[]> {
+  const windowStart = new Date(input.when.getTime() - timeWindowMin * 60_000);
+  const windowEnd = new Date(input.when.getTime() + timeWindowMin * 60_000);
+
+  const origin = { lat: input.originLat, lng: input.originLng };
+  const destination = { lat: input.destinationLat, lng: input.destinationLng };
+
+  const candidateIds = await findCandidateRideIdsByCorridor(
+    db,
+    origin,
+    destination,
+    DETOUR_SEARCH_RADIUS_M,
+    windowStart,
+    windowEnd,
+    DETOUR_CANDIDATE_CAP,
+  );
+  // Unlike the other tiers, a null (PostGIS disabled/unavailable) result
+  // here means "skip this tier entirely" rather than "fall back to a full
+  // scan" — running a real routing-API call against every time-windowed
+  // ride with no spatial pre-filter at all is exactly the cost explosion
+  // this whole two-stage design exists to prevent. Search still works
+  // correctly without PostGIS (route_passthrough/closest_departure still
+  // run); it just doesn't get this specific tier.
+  if (!candidateIds || candidateIds.length === 0) return [];
+
+  const candidateRides = await db.query.rides.findMany({
+    where: and(eq(rides.status, 'published'), inArray(rides.id, candidateIds)),
+    with: { driverProfile: { with: { user: true } } },
+  });
+
+  const results: MatchCandidate[] = [];
+  for (const ride of candidateRides) {
+    if (ride.seatsAvailable < 1) continue;
+    if (!ride.routePolyline || !ride.estimatedDurationSec) continue; // No real baseline to compare against.
+
+    // The route-passthrough tier already covers "already on the route" —
+    // re-testing the tight corridor here would just duplicate it (and
+    // waste a routing call on a candidate that tier already handles
+    // better, with a real 100% overlap rather than an approximate detour).
+    const routePoints = decodePolyline(ride.routePolyline);
+    const originProj = projectPointOntoRoute(origin, routePoints);
+    const destProj = projectPointOntoRoute(destination, routePoints);
+    const alreadyOnRoute =
+      originProj.distanceM <= OVERLAP_CORRIDOR_WIDTH_M &&
+      destProj.distanceM <= OVERLAP_CORRIDOR_WIDTH_M &&
+      destProj.fraction - originProj.fraction >= MIN_ROUTE_FRACTION_GAP;
+    if (alreadyOnRoute) continue;
+
+    // The one real routing-API call this candidate costs: origin -> pickup
+    // -> dropoff -> destination, in that order (pickup must precede
+    // dropoff — never left to the routing engine to reorder).
+    const withInsertion = await getRoute(
+      { lat: ride.originLat, lng: ride.originLng },
+      { lat: ride.destinationLat, lng: ride.destinationLng },
+      [origin, destination],
+    );
+    if (withInsertion.isEstimate) continue; // No real routing engine reachable — never fabricate a detour number from a haversine fallback.
+
+    const extraDurationSeconds = Math.max(0, withInsertion.durationSec - ride.estimatedDurationSec);
+    const allowanceSec = detourAllowanceSec(ride.estimatedDurationSec);
+    if (extraDurationSeconds > allowanceSec) continue;
+
+    const baselineDistanceM = polylineLengthMeters(routePoints);
+    const extraDistanceMeters = Math.max(0, Math.round(withInsertion.distanceM - baselineDistanceM));
+    const detourRatio = clamp01(extraDurationSeconds / ride.estimatedDurationSec);
+
+    // ETA to pickup/dropoff along the WITH-INSERTION route — approximated
+    // from that route's total duration split proportionally by distance to
+    // each waypoint along the ride's own baseline path, since neither
+    // RoutingProvider.computeRoute's return shape (kept intentionally
+    // minimal, matching computeRoute's existing single-leg contract) nor a
+    // second per-leg call is available here without doubling the routing
+    // cost this tier exists to bound. A real per-leg breakdown (from the
+    // provider's own leg/step data) is a reasonable future refinement, not
+    // built here — flagged, not silently approximated as if it were exact.
+    const pickupFraction = clamp01(originProj.fraction);
+    const dropoffFraction = clamp01(destProj.fraction);
+    const pickupEtaSeconds = Math.round(withInsertion.durationSec * pickupFraction);
+    const dropoffEtaSeconds = Math.round(withInsertion.durationSec * dropoffFraction);
+
+    const timeDeltaMin = Math.abs(ride.departureAt.getTime() - input.when.getTime()) / 60_000;
+    const pickupWalkMinutes = 0; // No walk — this tier's whole point is the driver detouring TO the rider, not the rider walking to the route.
+
+    const score =
+      clamp01(1 - detourRatio / (MAX_DETOUR_RATIO * 1.2)) * 0.5 +
+      clamp01(1 - timeDeltaMin / TIGHT_TIME_WINDOW_MIN) * 0.3 +
+      clamp01(1 - extraDurationSeconds / MAX_DETOUR_ALLOWANCE_SEC) * 0.2;
+
+    results.push({
+      rideId: ride.id,
+      driverUserId: ride.driverProfile.userId,
+      driverFullName: ride.driverProfile.user?.fullName ?? null,
+      ratingAvg: ride.driverProfile.ratingAvg,
+      tripCount: ride.driverProfile.tripCount,
+      departureAt: ride.departureAt,
+      seatsAvailable: ride.seatsAvailable,
+      contributionPerSeat: ride.contributionPerSeat,
+      pickupWalkMinutes,
+      routeOverlapPercent: 0,
+      score,
+      originLat: ride.originLat,
+      originLng: ride.originLng,
+      destinationLat: ride.destinationLat,
+      destinationLng: ride.destinationLng,
+      routePolyline: ride.routePolyline,
+      rankedStops: [],
+      rankedDropoffStops: [],
+      // Deliberately false — see MatchCandidate.detour's doc comment. This
+      // tier surfaces a real, calculated possibility, not a bookable stop.
+      pickupViable: false,
+      dropoffViable: false,
+      matchType: 'detour',
+      detour: { extraDurationSeconds, extraDistanceMeters, detourRatio, pickupEtaSeconds, dropoffEtaSeconds },
+      reasons: [`+${Math.round(extraDurationSeconds / 60)} min de détour pour le conducteur`],
       clusterLabel: buildClusterLabel(timeDeltaMin),
     });
   }
@@ -600,7 +831,13 @@ async function findClosestDepartures(
     .slice(0, CLOSEST_DEPARTURE_LIMIT);
 }
 
-export type SearchTier = 'exact' | 'wide_corridor' | 'route_passthrough' | 'closest_departure' | 'none';
+export type SearchTier =
+  | 'exact'
+  | 'wide_corridor'
+  | 'route_passthrough'
+  | 'detour_match'
+  | 'closest_departure'
+  | 'none';
 
 export interface SearchResult {
   tier: SearchTier;
@@ -615,10 +852,15 @@ export interface SearchResult {
   message: string | null;
 }
 
-const TIER_MESSAGES: Record<'wide_corridor' | 'route_passthrough' | 'closest_departure', string> = {
+const TIER_MESSAGES: Record<
+  'wide_corridor' | 'route_passthrough' | 'detour_match' | 'closest_departure',
+  string
+> = {
   wide_corridor:
     "Aucun trajet exactement à l'heure demandée près de vous. Voici les correspondances les plus proches.",
   route_passthrough: 'Ces conducteurs passent par votre trajet en cours de route.',
+  detour_match:
+    'Ces conducteurs pourraient vous prendre avec un léger détour — demande à confirmer avec le conducteur.',
   closest_departure:
     "Aucun trajet sur cet itinéraire à l'heure demandée. Voici le départ le plus proche.",
 };
@@ -664,6 +906,11 @@ export async function searchRides(db: Database, input: MatchingSearchInput): Pro
       candidates: passThrough,
       message: TIER_MESSAGES.route_passthrough,
     };
+  }
+
+  const detour = await scoreDetourCandidates(db, input, WIDE_TIME_WINDOW_MIN);
+  if (detour.length > 0) {
+    return { tier: 'detour_match', candidates: detour, message: TIER_MESSAGES.detour_match };
   }
 
   const closest = await findClosestDepartures(db, input);

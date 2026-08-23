@@ -3,6 +3,14 @@ import { getLogger } from '../config/logger.js';
 import { getRedis } from './redis.js';
 import { haversineDistanceMeters } from './geo.js';
 import { decodePolyline } from './polyline.js';
+import { getRoutingProvider, type RoutePoint, type RouteResult } from './routing-providers/index.js';
+
+// Re-exported so every existing call site (matching.service.ts,
+// rides.service.ts, stop-candidates.service.ts) keeps importing these types
+// from lib/routing.js unchanged — the canonical definition now lives in
+// lib/routing-providers/routing-provider.types.ts, shared by both provider
+// adapters and this file.
+export type { RoutePoint, RouteResult };
 
 const CACHE_TTL_SEC = 3600;
 // Short-lived: a fallback estimate shouldn't keep being served for a full
@@ -13,25 +21,6 @@ const FETCH_TIMEOUT_MS = 4000;
 // straight-line fallback when OSRM is unavailable, never shown as if it
 // came from a real routing engine.
 const FALLBACK_AVG_SPEED_M_PER_S = 11; // ~40 km/h
-
-export interface RoutePoint {
-  lat: number;
-  lng: number;
-}
-
-export interface RouteResult {
-  /** Google/OSRM polyline-format encoded geometry, precision 5. */
-  polyline: string;
-  distanceM: number;
-  durationSec: number;
-  /** False when this came from the haversine fallback, not real OSRM routing. */
-  isEstimate: boolean;
-}
-
-interface OsrmRouteResponse {
-  code: string;
-  routes: Array<{ geometry: string; distance: number; duration: number }>;
-}
 
 export interface NearestRoadResult {
   lat: number;
@@ -156,8 +145,17 @@ export async function getRouteWithSpeedProfile(
   }
 }
 
-function fallbackRoute(origin: RoutePoint, destination: RoutePoint): RouteResult {
-  const distanceM = haversineDistanceMeters(origin, destination);
+/** Straight-line estimate when no routing provider is reachable — sums
+ *  consecutive-leg haversine distances so a multi-waypoint request (a
+ *  detour-insertion calculation, e.g.) still degrades to a sane, if
+ *  approximate, total rather than only handling the plain origin-
+ *  destination case. Never shown as if it came from a real routing engine
+ *  (isEstimate: true) — matches this function's pre-existing contract. */
+function fallbackRoute(points: RoutePoint[]): RouteResult {
+  let distanceM = 0;
+  for (let i = 0; i < points.length - 1; i++) {
+    distanceM += haversineDistanceMeters(points[i]!, points[i + 1]!);
+  }
   return {
     polyline: '',
     distanceM,
@@ -166,8 +164,26 @@ function fallbackRoute(origin: RoutePoint, destination: RoutePoint): RouteResult
   };
 }
 
-export async function getRoute(origin: RoutePoint, destination: RoutePoint): Promise<RouteResult> {
-  const key = `route:${origin.lat.toFixed(5)},${origin.lng.toFixed(5)}:${destination.lat.toFixed(5)},${destination.lng.toFixed(5)}`;
+/**
+ * Computes a route via the active RoutingProvider (Google Routes when
+ * GOOGLE_MAPS_SERVER_API_KEY is configured, self-hosted OSRM otherwise —
+ * lib/routing-providers/index.ts) with a straight-line haversine fallback
+ * when the provider is unreachable, cached in Redis exactly as before this
+ * refactor (same TTLs, same isEstimate-gated short TTL for a fallback
+ * result). `waypoints`, when given, are visited in order between origin and
+ * destination — the primitive a future detour-insertion calculation
+ * ("current position -> pickup -> dropoff -> destination") reuses directly
+ * rather than needing a second routing function.
+ */
+export async function getRoute(
+  origin: RoutePoint,
+  destination: RoutePoint,
+  waypoints: RoutePoint[] = [],
+): Promise<RouteResult> {
+  const waypointKey = waypoints.map((w) => `${w.lat.toFixed(5)},${w.lng.toFixed(5)}`).join(';');
+  const key =
+    `route:${origin.lat.toFixed(5)},${origin.lng.toFixed(5)}:${destination.lat.toFixed(5)},${destination.lng.toFixed(5)}` +
+    (waypointKey ? `:via:${waypointKey}` : '');
   const redis = getRedis();
 
   if (redis) {
@@ -175,34 +191,9 @@ export async function getRoute(origin: RoutePoint, destination: RoutePoint): Pro
     if (hit) return JSON.parse(hit) as RouteResult;
   }
 
-  const env = getEnv();
-  const url = `${env.OSRM_URL}/route/v1/driving/${origin.lng},${origin.lat};${destination.lng},${destination.lat}?overview=full&geometries=polyline`;
-
-  let result: RouteResult;
-  try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
-    const response = await fetch(url, { signal: controller.signal });
-    clearTimeout(timeout);
-
-    if (!response.ok) throw new Error(`OSRM responded ${response.status}`);
-    const data = (await response.json()) as OsrmRouteResponse;
-    const route = data.routes[0];
-    if (data.code !== 'Ok' || !route) throw new Error(`OSRM returned no route (${data.code})`);
-
-    result = {
-      polyline: route.geometry,
-      distanceM: route.distance,
-      durationSec: Math.round(route.duration),
-      isEstimate: false,
-    };
-  } catch (err) {
-    getLogger().warn(
-      { err, origin, destination },
-      'OSRM unreachable or failed — falling back to straight-line estimate',
-    );
-    result = fallbackRoute(origin, destination);
-  }
+  const result =
+    (await getRoutingProvider().computeRoute(origin, destination, waypoints)) ??
+    fallbackRoute([origin, ...waypoints, destination]);
 
   if (redis) {
     await redis.set(
