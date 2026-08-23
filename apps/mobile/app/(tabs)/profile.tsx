@@ -117,10 +117,8 @@ export default function ProfileScreen(): React.JSX.Element {
       skip: !me,
     },
   );
-  const { data: realDriverProfile, isLoading: isDriverProfileLoading } = useGetMyDriverProfileQuery(
-    undefined,
-    { skip: !accessToken },
-  );
+  const { data: realDriverProfile, isLoading: isDriverProfileLoading } =
+    useGetMyDriverProfileQuery();
 
   const [logout] = useLogoutMutation();
   const [updateMe] = useUpdateMeMutation();
@@ -480,6 +478,26 @@ export default function ProfileScreen(): React.JSX.Element {
                   Nouveau sur Vaya
                 </Text>
               </View>
+            ) : null}
+
+            {!isMeLoading && me ? (
+              <TouchableOpacity
+                onPress={handleChangePhoto}
+                disabled={isUploadingPhoto}
+                accessibilityRole="button"
+                accessibilityLabel={
+                  me.avatarUrl ? 'Modifier la photo de profil' : 'Ajoutez une photo de profil'
+                }
+                style={styles.photoCta}
+              >
+                {isUploadingPhoto ? (
+                  <ActivityIndicator size="small" color={theme.accent} />
+                ) : (
+                  <Text variant="bodySmall" color={theme.inkFaint}>
+                    {me.avatarUrl ? 'Modifier la photo de profil' : 'Ajoutez une photo de profil'}
+                  </Text>
+                )}
+              </TouchableOpacity>
             ) : null}
           </View>
         </View>
