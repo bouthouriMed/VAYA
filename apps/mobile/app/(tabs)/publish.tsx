@@ -39,7 +39,7 @@ import {
 } from '@vaya/design-system';
 import { router } from 'expo-router';
 import { useAppDispatch, useAppSelector } from '../../src/state/store';
-import { resetSearch } from '../../src/state/searchSlice';
+import { resetSearch, swapOriginDestination } from '../../src/state/searchSlice';
 import { setPendingRide, setPendingRideDraft } from '../../src/state/driverOnboardingSlice';
 import { useContextualAuth } from '../../src/features/auth/useContextualAuth';
 import { ContextualAuthSheet } from '../../src/features/auth/ContextualAuthSheet';
@@ -1321,57 +1321,77 @@ export default function PublishTabScreen(): React.JSX.Element {
             Publier un trajet
           </Text>
 
-          {/* Flat structure matching (tabs)/explore.tsx exactly — no
-           *  section eyebrows, no wrapping card around Date/Heure/Places,
-           *  no quick-preset chip row (Search has none either) — so this
-           *  card fits in the same space Search's does, without scrolling. */}
-          <GlassSurface theme={theme} scheme={scheme} radius="xl" style={styles.fieldCard}>
+          {/* Exact copy of (tabs)/explore.tsx's locationBlock — same
+           *  bordered plain surface, dashed connector, icon-circle
+           *  treatment and swap button, not the translucent GlassSurface
+           *  card this used before. Only the copy below (headline/CTA)
+           *  differs between Search and Publish. */}
+          <View
+            style={[
+              styles.locationBlock,
+              { backgroundColor: theme.surface, borderColor: theme.outlineVariant, shadowColor: theme.ink },
+            ]}
+          >
+            <View pointerEvents="none" style={styles.connectorCol}>
+              <View style={[styles.connectorLine, { borderColor: theme.outlineVariant }]} />
+            </View>
+
             <TouchableOpacity
-              style={styles.fieldRow}
+              style={styles.locationRow}
               onPress={() =>
                 router.push({ pathname: '/search/composer', params: { field: 'origin' } })
               }
+              activeOpacity={0.7}
               accessibilityRole="button"
-              accessibilityLabel={`Départ, ${origin?.label ?? 'non choisi'}`}
+              accessibilityLabel={`Départ, ${origin?.label ?? 'Point de départ'}`}
             >
-              <View style={[styles.fieldDot, { backgroundColor: theme.accent }]} />
-              <View style={styles.fieldTextCol}>
+              <View style={[styles.locationIconWrap, { backgroundColor: theme.accentGlow + '33' }]}>
+                <Icon name="locate" size="sm" color={theme.accent} />
+              </View>
+              <View style={styles.locationTextCol}>
                 <Text variant="caption" color={theme.inkFaint}>
                   Départ
                 </Text>
-                <Text
-                  variant="label"
-                  color={origin ? theme.ink : theme.inkFaint}
-                  numberOfLines={1}
-                >
-                  {origin?.label ?? 'Choisir un point de départ'}
+                <Text variant="body" numberOfLines={1} color={origin ? theme.ink : theme.inkFaint}>
+                  {origin?.label ?? 'Point de départ'}
                 </Text>
               </View>
             </TouchableOpacity>
-            <View style={[styles.fieldDivider, { backgroundColor: theme.outlineVariant }]} />
+
             <TouchableOpacity
-              style={styles.fieldRow}
+              style={styles.locationRow}
               onPress={() =>
                 router.push({ pathname: '/search/composer', params: { field: 'destination' } })
               }
+              activeOpacity={0.7}
               accessibilityRole="button"
-              accessibilityLabel={`Arrivée, ${destination?.label ?? 'non choisie'}`}
+              accessibilityLabel={`Arrivée, ${destination?.label ?? 'Où allez-vous ?'}`}
             >
-              <View style={[styles.fieldDot, styles.fieldDotOutline, { borderColor: theme.ink }]} />
-              <View style={styles.fieldTextCol}>
+              <View style={[styles.locationIconWrap, { backgroundColor: theme.surfaceMuted }]}>
+                <Icon name="location" size="sm" color={theme.inkMuted} />
+              </View>
+              <View style={styles.locationTextCol}>
                 <Text variant="caption" color={theme.inkFaint}>
                   Arrivée
                 </Text>
-                <Text
-                  variant="label"
-                  color={destination ? theme.ink : theme.inkFaint}
-                  numberOfLines={1}
-                >
+                <Text variant="body" numberOfLines={1} color={destination ? theme.ink : theme.inkFaint}>
                   {destination?.label ?? 'Où allez-vous ?'}
                 </Text>
               </View>
             </TouchableOpacity>
-          </GlassSurface>
+
+            {origin && destination ? (
+              <TouchableOpacity
+                style={[styles.swapBtn, { backgroundColor: theme.surfaceMuted, borderColor: theme.outlineVariant }]}
+                onPress={() => dispatch(swapOriginDestination())}
+                hitSlop={8}
+                accessibilityRole="button"
+                accessibilityLabel="Inverser départ et arrivée"
+              >
+                <Icon name="swap-vertical" size="sm" color={theme.inkMuted} />
+              </TouchableOpacity>
+            ) : null}
+          </View>
 
           <View style={styles.paramsGrid}>
             <TouchableOpacity
@@ -1594,8 +1614,12 @@ const styles = StyleSheet.create({
   formStack: {
     gap: spacing.sm,
   },
+  // Matches (tabs)/explore.tsx's headline style exactly — centered, no
+  // extra top margin (the formStack's own gap already spaces it from the
+  // handle above).
   headline: {
     marginTop: 0,
+    textAlign: 'center',
   },
   eyebrow: {
     fontWeight: typography.fontWeight.semibold,
@@ -1603,31 +1627,61 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
     marginTop: spacing.sm,
   },
-  fieldCard: {
-    marginBottom: spacing.md,
-    paddingHorizontal: spacing.md,
+  // Exact copy of explore.tsx's locationBlock/connectorCol/connectorLine/
+  // locationRow/locationIconWrap/locationTextCol/swapBtn — same values,
+  // same names, so a future Search style change is easy to notice should
+  // stay in sync here too.
+  locationBlock: {
+    position: 'relative',
+    borderRadius: radii.xl,
+    borderWidth: 1,
+    padding: spacing.md,
+    gap: spacing.md,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.08,
+    shadowRadius: 18,
+    elevation: 3,
   },
-  fieldRow: {
+  connectorCol: {
+    position: 'absolute',
+    left: spacing.md + 15,
+    top: spacing.md + 40,
+    bottom: spacing.md + 8,
+    width: 2,
+  },
+  connectorLine: {
+    flex: 1,
+    width: 0,
+    borderLeftWidth: 2,
+    borderStyle: 'dashed',
+  },
+  locationRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm,
-    paddingVertical: spacing.md,
+    gap: spacing.md,
   },
-  fieldDivider: {
-    height: 1,
+  locationIconWrap: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  fieldDot: {
-    width: 9,
-    height: 9,
-    borderRadius: 5,
-  },
-  fieldDotOutline: {
-    backgroundColor: 'transparent',
-    borderWidth: 2,
-  },
-  fieldTextCol: {
+  locationTextCol: {
     flex: 1,
     gap: 1,
+  },
+  swapBtn: {
+    position: 'absolute',
+    right: spacing.md,
+    top: '50%',
+    marginTop: -19,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   formError: {
     marginBottom: spacing.xs,
