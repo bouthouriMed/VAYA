@@ -7,14 +7,15 @@ import {
   ActivityIndicator,
   Animated,
   AccessibilityInfo,
+  useWindowDimensions,
 } from 'react-native';
-import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+import MapView, { Marker, Polyline, PROVIDER_DEFAULT } from 'react-native-maps';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Text,
   MapRoute,
   BottomSheet,
-  ExplorerSheet,
   DateCalendarSheet,
   TimeWheelSheet,
   GlassSurface,
@@ -27,9 +28,13 @@ import {
   colors,
   haptics,
   regionForPoints,
+  lightMapStyle,
+  darkMapStyle,
+  StatusBarBlend,
   formatDepartureLabel,
   formatTime,
   type AppPalette,
+  type MapRegion,
 } from '@vaya/design-system';
 import { router } from 'expo-router';
 import { useAppDispatch, useAppSelector } from '../../src/state/store';
@@ -63,6 +68,17 @@ const DEPARTURE_PRESETS = [
   { label: 'Dans 1h', minutes: 60 },
   { label: 'Dans 2h', minutes: 120 },
 ];
+
+// Mirrors (tabs)/explore.tsx's map section exactly (same ratio, same
+// fallback region) — the Publish Explorer's normal state must read as the
+// same product as Search's, not a second visual language.
+const MAP_HEIGHT_RATIO = 0.35;
+const TUNIS_REGION: MapRegion = {
+  latitude: 36.8065,
+  longitude: 10.1815,
+  latitudeDelta: 0.045,
+  longitudeDelta: 0.045,
+};
 
 type Step = 'form' | 'price' | 'review';
 
@@ -198,6 +214,7 @@ function GhostButton({
 // a ride first.
 export default function PublishTabScreen(): React.JSX.Element {
   const insets = useSafeAreaInsets();
+  const { height: windowHeight } = useWindowDimensions();
   const { colors: theme, scheme } = useAppTheme();
   const dispatch = useAppDispatch();
   const origin = useAppSelector((s) => s.search.origin);
@@ -241,7 +258,6 @@ export default function PublishTabScreen(): React.JSX.Element {
   const [mapMode, setMapMode] = useState<MapMode>('none');
   const [pickup, setPickup] = useState<PublishPoint | null>(null);
   const [dropoff, setDropoff] = useState<PublishPoint | null>(null);
-  const [isSheetExpanded, setIsSheetExpanded] = useState(true);
   // The origin/destination a real ride (rideId) was actually created
   // against — lets an origin/destination edit be detected and invalidate
   // exactly what depends on it (§17), without over-invalidating on every
@@ -304,7 +320,6 @@ export default function PublishTabScreen(): React.JSX.Element {
     setPricing(null);
     setCandidates([]);
     setMapMode('none');
-    setIsSheetExpanded(true);
     setPickup(null);
     setDropoff(null);
   }, [origin, destination]);
@@ -480,7 +495,6 @@ export default function PublishTabScreen(): React.JSX.Element {
     });
 
     void generateStopsInBackground(ride.id);
-    setIsSheetExpanded(false);
     setMapMode('pickup');
   }
 
@@ -501,7 +515,6 @@ export default function PublishTabScreen(): React.JSX.Element {
       // Already created against the current origin/destination (e.g. the
       // driver backed out of pickup selection and tapped "Suivant" again) —
       // re-enter the map workspace without recreating the ride.
-      setIsSheetExpanded(false);
       setMapMode('pickup');
       return;
     }
@@ -524,7 +537,6 @@ export default function PublishTabScreen(): React.JSX.Element {
     setDropoff(point);
     trackEvent('ride_dropoff_point_confirmed', { rideId: rideId ?? undefined, isCustom: point.stopId === null });
     setMapMode('none');
-    setIsSheetExpanded(true);
   }
 
   /** Persists whichever of pickup/dropoff resolved to a real route_stop via
@@ -713,7 +725,6 @@ export default function PublishTabScreen(): React.JSX.Element {
           onBack={() => {
             if (isPickupPhase) {
               setMapMode('none');
-              setIsSheetExpanded(true);
             } else {
               setMapMode('pickup');
             }
@@ -814,7 +825,6 @@ export default function PublishTabScreen(): React.JSX.Element {
                   disabled={!hasRideData}
                   onPress={() => {
                     setStep('form');
-                    setIsSheetExpanded(false);
                     setMapMode('pickup');
                   }}
                   accessibilityRole={hasRideData ? 'button' : undefined}
@@ -846,7 +856,6 @@ export default function PublishTabScreen(): React.JSX.Element {
                   disabled={!hasRideData}
                   onPress={() => {
                     setStep('form');
-                    setIsSheetExpanded(false);
                     setMapMode('dropoff');
                   }}
                   accessibilityRole={hasRideData ? 'button' : undefined}
@@ -1054,22 +1063,39 @@ export default function PublishTabScreen(): React.JSX.Element {
     );
   }
 
-  const hasJourneyMap = Boolean(origin && destination);
-
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      {/* The Explorer's map layer (§12-15): a dashed origin/destination
-       *  preview before pickup/dropoff exist, the real road-route geometry
-       *  once both are confirmed. Always mounted (not just while the sheet
-       *  is collapsed) so dragging the sheet down never has to wait for the
-       *  map to spin up — see ExplorerSheet's own doc comment. */}
-      {hasJourneyMap ? (
+      {/* Mirrors (tabs)/explore.tsx's map section exactly: a fixed, non-
+       *  interactive 35vh strip (never the full screen, never draggable —
+       *  that gesture lives only in the dedicated MapSelectionMode
+       *  workspace pickup/dropoff selection opens into), a dashed origin/
+       *  destination preview before both are confirmed, the real road-route
+       *  geometry once they are. */}
+      <View style={[styles.mapSection, { height: windowHeight * MAP_HEIGHT_RATIO }]}>
         <MapView
-          provider={PROVIDER_GOOGLE}
+          provider={PROVIDER_DEFAULT}
           style={StyleSheet.absoluteFillObject}
-          region={journeyMapRegion ?? undefined}
+          region={journeyMapRegion ?? TUNIS_REGION}
+          scrollEnabled={false}
+          zoomEnabled={false}
+          pitchEnabled={false}
+          rotateEnabled={false}
+          pointerEvents="none"
+          customMapStyle={scheme === 'dark' ? darkMapStyle : lightMapStyle}
+          userInterfaceStyle={scheme}
         >
           {routeCoordinates.length > 1 ? <MapRoute coordinates={routeCoordinates} showCorridor /> : null}
+          {origin && destination && routeCoordinates.length <= 1 ? (
+            <Polyline
+              coordinates={[
+                { latitude: origin.lat, longitude: origin.lng },
+                { latitude: destination.lat, longitude: destination.lng },
+              ]}
+              strokeColor={theme.accent}
+              strokeWidth={2}
+              lineDashPattern={[6, 6]}
+            />
+          ) : null}
           {origin && !pickup ? (
             <Marker coordinate={{ latitude: origin.lat, longitude: origin.lng }} anchor={{ x: 0.5, y: 0.5 }}>
               <View style={[styles.originDot, { backgroundColor: theme.accent, borderColor: theme.surface }]} />
@@ -1090,32 +1116,31 @@ export default function PublishTabScreen(): React.JSX.Element {
               <View style={[styles.destinationDot, { backgroundColor: theme.ink, borderColor: theme.surface }]} />
             </Marker>
           ) : null}
-          {routeCoordinates.length <= 1 ? (
-            <MapRoute
-              coordinates={[
-                { latitude: origin!.lat, longitude: origin!.lng },
-                { latitude: destination!.lat, longitude: destination!.lng },
-              ]}
-              color={theme.accent}
-            />
-          ) : null}
         </MapView>
-      ) : null}
 
-      <ExplorerSheet
-        expanded={isSheetExpanded}
-        onCollapse={() => setIsSheetExpanded(false)}
-        onExpand={() => setIsSheetExpanded(true)}
-        theme={theme}
-        collapsedContent={
-          <Text variant="bodySmall" color={theme.inkMuted} align="center">
-            {pickup && dropoff
-              ? `${pickup.label} → ${dropoff.label}`
-              : 'Glissez vers le haut pour continuer'}
-          </Text>
-        }
+        <StatusBarBlend theme={theme} scheme={scheme} height={insets.top - spacing.sm} />
+
+        {/* Same dissolve-into-page fade explore.tsx uses, minus the "Vaya"
+         *  wordmark (that's home-tab brand chrome, not part of the map+card
+         *  structural pattern this screen is matching). */}
+        <LinearGradient
+          colors={[`${theme.background}00`, `${theme.background}8C`, `${theme.background}EB`, theme.background]}
+          locations={[0, 0.45, 0.78, 1]}
+          style={styles.mapFade}
+        />
+      </View>
+
+      <View
+        style={[
+          styles.card,
+          { backgroundColor: theme.surface, shadowColor: theme.ink, paddingBottom: insets.bottom + spacing.md },
+        ]}
       >
-      <ScrollView contentContainerStyle={[styles.content, { paddingTop: spacing.md }]}>
+        <View style={styles.handle}>
+          <View style={[styles.handleBar, { backgroundColor: theme.outlineVariant }]} />
+        </View>
+
+      <ScrollView style={styles.cardScroll} contentContainerStyle={styles.content}>
         <Animated.View style={[styles.formStack, stepMotionStyle]}>
           <Text variant="headlineDisplay" color={theme.ink}>
             Publier un trajet
@@ -1293,7 +1318,7 @@ export default function PublishTabScreen(): React.JSX.Element {
           />
         </Animated.View>
       </ScrollView>
-      </ExplorerSheet>
+      </View>
 
       <DateCalendarSheet
         visible={isDateSheetOpen}
@@ -1328,6 +1353,40 @@ export default function PublishTabScreen(): React.JSX.Element {
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+  },
+  // Mirrors (tabs)/explore.tsx's mapSection/card/handle styles exactly —
+  // same structural pattern, not a second visual language for Publish.
+  mapSection: {
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  mapFade: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: 32,
+  },
+  card: {
+    borderTopLeftRadius: radii['2xl'],
+    borderTopRightRadius: radii['2xl'],
+    flex: 1,
+    shadowOffset: { width: 0, height: -8 },
+    shadowOpacity: 0.08,
+    shadowRadius: 24,
+    elevation: 8,
+  },
+  handle: {
+    alignItems: 'center',
+    paddingTop: spacing.sm,
+  },
+  handleBar: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+  },
+  cardScroll: {
     flex: 1,
   },
   header: {
