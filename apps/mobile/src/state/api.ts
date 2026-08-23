@@ -34,6 +34,45 @@ export interface GeocodeResult {
   lng: number;
 }
 
+export type LocationType =
+  | 'country'
+  | 'governorate'
+  | 'city'
+  | 'neighborhood'
+  | 'poi'
+  | 'address'
+  | 'unknown';
+
+/** A predicted result from the autocomplete session — no coordinates yet
+ *  (Places API (New) never returns them from Autocomplete itself; only a
+ *  Place Details call does — see geocodePlaceDetails below). Mirrors
+ *  packages/validation/src/geocoding.ts's locationPredictionSchema. */
+export interface LocationPrediction {
+  placeId: string;
+  primaryText: string;
+  secondaryText: string | null;
+  type: LocationType;
+}
+
+/** The Vaya-owned normalized location shape every provider (Google or the
+ *  Nominatim fallback) resolves into — mirrors
+ *  packages/validation/src/geocoding.ts's locationPointSchema. Raw
+ *  Google/Nominatim response shapes never reach this file or any screen. */
+export interface LocationPoint {
+  placeId: string | null;
+  label: string;
+  primaryText: string;
+  secondaryText: string | null;
+  latitude: number;
+  longitude: number;
+  type: LocationType;
+  formattedAddress: string | null;
+  city: string | null;
+  governorate: string | null;
+  countryCode: string | null;
+  source: 'google' | 'nominatim' | 'device' | 'manual';
+}
+
 export interface RankedStop {
   stopId: string;
   label: string;
@@ -79,8 +118,21 @@ export interface MatchCandidate {
   dropoffViable: boolean;
   /** 'route_passthrough' when this ride was found because its route runs
    *  through the rider's corridor (the driver's own origin/destination are
-   *  elsewhere), not because its own endpoints matched. */
-  matchType: 'endpoint' | 'route_passthrough';
+   *  elsewhere), not because its own endpoints matched. 'detour' (Google/
+   *  PostGIS location spec §7): a real routing-engine-calculated detour
+   *  match — always pickupViable/dropoffViable: false, since no real
+   *  driver-approved stop backs it yet (see `detour`'s own doc comment). */
+  matchType: 'endpoint' | 'route_passthrough' | 'detour';
+  /** Populated only for matchType: 'detour' — the real calculated cost of
+   *  inserting this rider into the driver's route. Never a display-only
+   *  estimate: every number here came from an actual routing-engine call. */
+  detour: {
+    extraDurationSeconds: number;
+    extraDistanceMeters: number;
+    detourRatio: number;
+    pickupEtaSeconds: number;
+    dropoffEtaSeconds: number;
+  } | null;
 }
 
 /** Phase 13 (docs/roadmap/phase-13-search-engine.md): one search response
@@ -90,7 +142,7 @@ export interface MatchCandidate {
  *  the pre-Phase-13 UI used to build its own "why these results" banner
  *  copy from a local time-diff heuristic. */
 export interface SearchResult {
-  tier: 'exact' | 'wide_corridor' | 'route_passthrough' | 'closest_departure' | 'none';
+  tier: 'exact' | 'wide_corridor' | 'route_passthrough' | 'detour_match' | 'closest_departure' | 'none';
   candidates: MatchCandidate[];
   message: string | null;
 }
@@ -534,8 +586,20 @@ export const api = createApi({
       query: (body) => ({ url: '/auth/logout', method: 'POST', body }),
     }),
 
-    geocodeSearch: builder.query<GeocodeResult[], string>({
-      query: (q) => ({ url: '/geocoding/search', params: { q } }),
+    // Places API (New) session-token flow (docs/domain/location-
+    // architecture-spec-2026-08-23.md): predictions only, no coordinates —
+    // geocodePlaceDetails resolves the one the user actually picks.
+    geocodeAutocomplete: builder.query<
+      LocationPrediction[],
+      { input: string; sessionToken: string }
+    >({
+      query: (params) => ({ url: '/geocoding/autocomplete', params }),
+    }),
+    geocodePlaceDetails: builder.query<
+      LocationPoint | null,
+      { placeId: string; sessionToken: string }
+    >({
+      query: (params) => ({ url: '/geocoding/place-details', params }),
     }),
     geocodeReverse: builder.query<GeocodeResult, { lat: number; lng: number }>({
       query: (params) => ({ url: '/geocoding/reverse', params }),
@@ -794,8 +858,10 @@ export const {
   useVerifyPhoneOtpMutation,
   useVerifyOtpMutation,
   useLogoutMutation,
-  useGeocodeSearchQuery,
-  useLazyGeocodeSearchQuery,
+  useGeocodeAutocompleteQuery,
+  useLazyGeocodeAutocompleteQuery,
+  useGeocodePlaceDetailsQuery,
+  useLazyGeocodePlaceDetailsQuery,
   useGeocodeReverseQuery,
   useMatchingSearchQuery,
   useLazyMatchingSearchQuery,

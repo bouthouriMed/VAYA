@@ -1,0 +1,240 @@
+import type { LocationPoint, LocationPrediction, LocationType } from '@vaya/validation';
+import { getLogger } from '../../../config/logger.js';
+import type { LocationProvider } from './location-provider.types.js';
+
+/**
+ * Google Places API (New) + Geocoding API adapter — the primary
+ * LocationProvider once GOOGLE_MAPS_SERVER_API_KEY is configured (see
+ * providers/index.ts for the auto/google/nominatim selection logic).
+ *
+ * NOT exercised against a live Google endpoint in this environment: this
+ * sandbox's outbound proxy returns 403 for external hosts outside a fixed
+ * allowlist (confirmed directly against nominatim.openstreetmap.org in an
+ * earlier pass of this same work — Google's Places/Geocoding hosts were not
+ * tested but are not on that allowlist either), and no real API key was
+ * provided (per this task's explicit instruction not to ask for one before
+ * implementing). Every request/response shape below is written directly
+ * against Google's current, documented Places API (New) and Geocoding API
+ * contracts — not fabricated — but has not been confirmed against a live
+ * response in this session. Verify with a real key + reachable network
+ * before relying on this in production.
+ */
+
+const PLACES_BASE_URL = 'https://places.googleapis.com/v1';
+const GEOCODING_BASE_URL = 'https://maps.googleapis.com/maps/api/geocode/json';
+const FETCH_TIMEOUT_MS = 4000;
+// Tunisia only, per this whole codebase's existing scope (Nominatim's
+// TUNISIA_VIEWBOX in the fallback provider plays the identical role).
+const TUNISIA_REGION_CODE = 'tn';
+
+// Only the fields this app actually renders/stores — Google bills Place
+// Details by field-mask "SKU tier", so requesting fewer/cheaper fields is a
+// real cost control, not just tidiness (brief §7/§23).
+const PLACE_DETAILS_FIELD_MASK = [
+  'id',
+  'displayName',
+  'formattedAddress',
+  'location',
+  'addressComponents',
+  'types',
+  'primaryType',
+].join(',');
+
+interface PlacesAutocompleteResponse {
+  suggestions?: Array<{
+    placePrediction?: {
+      placeId: string;
+      text?: { text: string };
+      structuredFormat?: {
+        mainText?: { text: string };
+        secondaryText?: { text: string };
+      };
+      types?: string[];
+    };
+  }>;
+}
+
+interface PlaceDetailsResponse {
+  id: string;
+  displayName?: { text: string };
+  formattedAddress?: string;
+  location?: { latitude: number; longitude: number };
+  addressComponents?: Array<{ longText: string; shortText: string; types: string[] }>;
+  types?: string[];
+  primaryType?: string;
+}
+
+interface GeocodingApiResponse {
+  status: string;
+  results: Array<{
+    formatted_address: string;
+    geometry: { location: { lat: number; lng: number } };
+    address_components: Array<{ long_name: string; short_name: string; types: string[] }>;
+    place_id: string;
+    types: string[];
+  }>;
+}
+
+/** Maps Google's `types[]` array (documented at
+ *  developers.google.com/maps/documentation/places/web-service/place-types)
+ *  onto Vaya's own LocationType taxonomy (packages/validation/geocoding.ts,
+ *  Location Architecture Spec §4/§5[C]) — checked most-specific-first so a
+ *  point that is technically inside a locality (nearly everything) still
+ *  classifies by its own real type rather than always falling through to
+ *  "city". This exact mapping is written from Google's documented type
+ *  list, not verified against a live response — flagged as a real
+ *  verification task once a key is available (see file header). */
+export function mapGoogleTypesToLocationType(types: string[] | undefined): LocationType {
+  const set = new Set(types ?? []);
+  if (set.has('country')) return 'country';
+  if (set.has('administrative_area_level_1')) return 'governorate';
+  if (set.has('street_address') || set.has('premise') || set.has('subpremise')) return 'address';
+  if (
+    set.has('route') ||
+    Array.from(set).some((t) => t.startsWith('street_')) // e.g. street_number
+  ) {
+    return 'address';
+  }
+  if (set.has('establishment') || set.has('point_of_interest') || set.has('transit_station')) {
+    return 'poi';
+  }
+  if (set.has('sublocality') || Array.from(set).some((t) => t.startsWith('sublocality_'))) {
+    return 'neighborhood';
+  }
+  if (set.has('locality') || set.has('postal_town')) return 'city';
+  return 'unknown';
+}
+
+function findAddressComponent(
+  components: Array<{ longText: string; types: string[] }> | undefined,
+  type: string,
+): string | null {
+  return components?.find((c) => c.types.includes(type))?.longText ?? null;
+}
+
+async function fetchWithTimeout(url: string, init: RequestInit): Promise<Response> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+  try {
+    return await fetch(url, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+export class GooglePlacesProvider implements LocationProvider {
+  readonly name = 'google' as const;
+
+  constructor(private readonly apiKey: string) {}
+
+  async autocomplete(input: string, sessionToken: string): Promise<LocationPrediction[]> {
+    try {
+      const response = await fetchWithTimeout(`${PLACES_BASE_URL}/places:autocomplete`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Goog-Api-Key': this.apiKey,
+          // Minimal field mask — Autocomplete predictions never need more
+          // than the id/text fields this app actually shows in the list.
+          'X-Goog-FieldMask':
+            'suggestions.placePrediction.placeId,suggestions.placePrediction.text,suggestions.placePrediction.structuredFormat,suggestions.placePrediction.types',
+        },
+        body: JSON.stringify({
+          input,
+          sessionToken,
+          includedRegionCodes: [TUNISIA_REGION_CODE],
+        }),
+      });
+      if (!response.ok) {
+        throw new Error(`Places Autocomplete responded ${response.status}`);
+      }
+      const data = (await response.json()) as PlacesAutocompleteResponse;
+      return (data.suggestions ?? [])
+        .map((s) => s.placePrediction)
+        .filter((p): p is NonNullable<typeof p> => Boolean(p))
+        .map((p) => ({
+          placeId: p.placeId,
+          primaryText: p.structuredFormat?.mainText?.text ?? p.text?.text ?? '',
+          secondaryText: p.structuredFormat?.secondaryText?.text ?? null,
+          type: mapGoogleTypesToLocationType(p.types),
+        }));
+    } catch (err) {
+      getLogger().warn({ err, provider: 'google' }, 'Places Autocomplete request failed');
+      return [];
+    }
+  }
+
+  async resolveLocation(placeId: string, sessionToken: string): Promise<LocationPoint | null> {
+    try {
+      const url = new URL(`${PLACES_BASE_URL}/places/${encodeURIComponent(placeId)}`);
+      url.searchParams.set('sessionToken', sessionToken);
+      const response = await fetchWithTimeout(url.toString(), {
+        headers: {
+          'X-Goog-Api-Key': this.apiKey,
+          'X-Goog-FieldMask': PLACE_DETAILS_FIELD_MASK,
+        },
+      });
+      if (!response.ok) {
+        throw new Error(`Place Details responded ${response.status}`);
+      }
+      const data = (await response.json()) as PlaceDetailsResponse;
+      if (!data.location) return null;
+
+      const type = mapGoogleTypesToLocationType(data.types);
+      return {
+        placeId: data.id,
+        label: data.formattedAddress ?? data.displayName?.text ?? '',
+        primaryText: data.displayName?.text ?? data.formattedAddress ?? '',
+        secondaryText: data.formattedAddress ?? null,
+        latitude: data.location.latitude,
+        longitude: data.location.longitude,
+        type,
+        formattedAddress: data.formattedAddress ?? null,
+        city: findAddressComponent(data.addressComponents, 'locality'),
+        governorate: findAddressComponent(data.addressComponents, 'administrative_area_level_1'),
+        countryCode:
+          data.addressComponents?.find((c) => c.types.includes('country'))?.shortText ?? null,
+        source: 'google',
+      };
+    } catch (err) {
+      getLogger().warn({ err, provider: 'google', placeId }, 'Place Details request failed');
+      return null;
+    }
+  }
+
+  async reverseGeocode(lat: number, lng: number): Promise<LocationPoint | null> {
+    try {
+      const url = new URL(GEOCODING_BASE_URL);
+      url.searchParams.set('latlng', `${lat},${lng}`);
+      url.searchParams.set('key', this.apiKey);
+      const response = await fetchWithTimeout(url.toString(), {});
+      if (!response.ok) throw new Error(`Geocoding API responded ${response.status}`);
+      const data = (await response.json()) as GeocodingApiResponse;
+      const result = data.results[0];
+      if (data.status !== 'OK' || !result) return null;
+
+      const components = result.address_components.map((c) => ({
+        longText: c.long_name,
+        types: c.types,
+      }));
+      return {
+        placeId: result.place_id,
+        label: result.formatted_address,
+        primaryText: result.formatted_address,
+        secondaryText: null,
+        latitude: result.geometry.location.lat,
+        longitude: result.geometry.location.lng,
+        type: mapGoogleTypesToLocationType(result.types),
+        formattedAddress: result.formatted_address,
+        city: findAddressComponent(components, 'locality'),
+        governorate: findAddressComponent(components, 'administrative_area_level_1'),
+        countryCode:
+          result.address_components.find((c) => c.types.includes('country'))?.short_name ?? null,
+        source: 'google',
+      };
+    } catch (err) {
+      getLogger().warn({ err, provider: 'google', lat, lng }, 'Reverse geocode request failed');
+      return null;
+    }
+  }
+}

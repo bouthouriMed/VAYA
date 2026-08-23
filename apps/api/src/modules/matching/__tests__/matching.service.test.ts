@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { rankStopsByWalkDistance, isPickupViable, isDropoffViable } from '../matching.service.js';
+import {
+  rankStopsByWalkDistance,
+  isPickupViable,
+  isDropoffViable,
+  detourAllowanceSec,
+  polylineLengthMeters,
+} from '../matching.service.js';
 
 // Pure functions, no DB/OSRM dependency — exercised the same way
 // stop-candidates.service.test.ts exercises its own pure scoring/
@@ -82,5 +88,59 @@ describe('isDropoffViable', () => {
 
   it('is not viable when the ride has stops but none rank within range of the destination', () => {
     expect(isDropoffViable(3, 0)).toBe(false);
+  });
+});
+
+// Detour-match tier (Google/PostGIS location spec §7) — pure math only, no
+// DB/OSRM/Google dependency. The routing-API-calling half of this tier
+// (scoreDetourCandidates itself) needs a real Postgres+PostGIS+routing
+// provider to exercise end-to-end and isn't covered here — see the
+// accompanying implementation report for what remains to verify with real
+// infrastructure.
+describe('detourAllowanceSec', () => {
+  it('scales with the ratio for a mid-length trip, within the floor/ceiling', () => {
+    // 20-minute baseline * 0.25 ratio = 5 minutes, comfortably between the
+    // 3-minute floor and 12-minute ceiling.
+    expect(detourAllowanceSec(20 * 60)).toBeCloseTo(5 * 60, 0);
+  });
+
+  it('clamps to the floor for a very short trip', () => {
+    // A 2-minute trip's 25% ratio allowance (30s) is below the 3-minute
+    // floor — the floor wins, so a short hop isn't punished with an
+    // unusably tiny detour budget.
+    expect(detourAllowanceSec(2 * 60)).toBe(3 * 60);
+  });
+
+  it('clamps to the ceiling for a very long trip', () => {
+    // A 3-hour intercity trip's 25% ratio allowance (45 min) is far above
+    // the 12-minute ceiling — the ceiling wins, so a long trip can't be
+    // asked to absorb an unreasonably large absolute detour.
+    expect(detourAllowanceSec(3 * 3600)).toBe(12 * 60);
+  });
+
+  it('is monotonically non-decreasing in baseline duration inside the ratio-dominant range', () => {
+    const shortAllowance = detourAllowanceSec(15 * 60);
+    const longerAllowance = detourAllowanceSec(30 * 60);
+    expect(longerAllowance).toBeGreaterThanOrEqual(shortAllowance);
+  });
+});
+
+describe('polylineLengthMeters', () => {
+  it('sums consecutive-point distances along a route', () => {
+    // Three points ~0.01 lat apart each (~1113m per step, same
+    // easy-to-reason-about spacing the file's other tests already use).
+    const points = [
+      { lat: 36.8, lng: 10.18 },
+      { lat: 36.81, lng: 10.18 },
+      { lat: 36.82, lng: 10.18 },
+    ];
+    const length = polylineLengthMeters(points);
+    expect(length).toBeGreaterThan(2000);
+    expect(length).toBeLessThan(2300);
+  });
+
+  it('returns 0 for a degenerate single-point or empty route', () => {
+    expect(polylineLengthMeters([{ lat: 36.8, lng: 10.18 }])).toBe(0);
+    expect(polylineLengthMeters([])).toBe(0);
   });
 });

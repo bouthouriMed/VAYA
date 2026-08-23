@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
-import MapView, { PROVIDER_DEFAULT } from 'react-native-maps';
+import MapView, { PROVIDER_GOOGLE } from 'react-native-maps';
 import { colors, radii } from '../tokens/index';
 import { SkeletonBlock } from './Skeleton';
 import type { MapRegion } from '../utils/mapGeometry';
@@ -38,7 +38,13 @@ export function MapCanvas({ height, region, style, children }: MapCanvasProps): 
   return (
     <View style={[styles.wrap, height !== undefined ? { height } : styles.flexFill, style]}>
       <MapView
-        provider={PROVIDER_DEFAULT}
+        // Explicit Google Maps SDK on both platforms (was PROVIDER_DEFAULT,
+        // which meant Apple Maps on iOS) — every VAYA map goes through this
+        // one shared primitive, so this single line is the entire app's
+        // Maps-SDK-provider selection. iOS additionally needs the native
+        // GMSServices API key wired via the withGoogleMapsIOS config plugin
+        // (apps/mobile/plugins/) — see apps/mobile/.env.example.
+        provider={PROVIDER_GOOGLE}
         style={StyleSheet.absoluteFillObject}
         initialRegion={region ?? DEFAULT_REGION}
         onMapReady={() => setIsReady(true)}

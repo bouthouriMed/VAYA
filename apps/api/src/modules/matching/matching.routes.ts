@@ -14,6 +14,15 @@ const rankedStopSchema = z.object({
   walkMinutes: z.number(),
 });
 
+// Google/PostGIS location spec §7 — populated only for matchType: 'detour'.
+const detourInfoSchema = z.object({
+  extraDurationSeconds: z.number(),
+  extraDistanceMeters: z.number(),
+  detourRatio: z.number(),
+  pickupEtaSeconds: z.number(),
+  dropoffEtaSeconds: z.number(),
+});
+
 const matchCandidateSchema = z.object({
   rideId: z.string().uuid(),
   driverUserId: z.string().uuid(),
@@ -37,7 +46,8 @@ const matchCandidateSchema = z.object({
   rankedDropoffStops: z.array(rankedStopSchema),
   pickupViable: z.boolean(),
   dropoffViable: z.boolean(),
-  matchType: z.enum(['endpoint', 'route_passthrough']),
+  matchType: z.enum(['endpoint', 'route_passthrough', 'detour']),
+  detour: detourInfoSchema.nullable(),
 });
 
 // Phase 13 (docs/roadmap/phase-13-search-engine.md): one search response now
@@ -47,7 +57,14 @@ const matchCandidateSchema = z.object({
 // trip that never silently returns nothing while a looser tier still has
 // results.
 const searchResultSchema = z.object({
-  tier: z.enum(['exact', 'wide_corridor', 'route_passthrough', 'closest_departure', 'none']),
+  tier: z.enum([
+    'exact',
+    'wide_corridor',
+    'route_passthrough',
+    'detour_match',
+    'closest_departure',
+    'none',
+  ]),
   candidates: z.array(matchCandidateSchema),
   message: z.string().nullable(),
 });

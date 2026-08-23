@@ -4,6 +4,7 @@ import { driverProfiles, recurringPatterns, rides, vehicles } from '../../db/sch
 import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from '../../lib/errors.js';
 import { canTransitionRideStatus, computeSuggestedPrice, type SuggestedPrice } from '@vaya/domain';
 import { getRoute, type RouteResult } from '../../lib/routing.js';
+import { upsertRouteGeometry } from '../../lib/spatial.js';
 import { getActivePricingConfig } from '../pricing/pricing.service.js';
 import type { CreateRideInput, UpdateRideInput } from '@vaya/validation';
 
@@ -142,6 +143,12 @@ export async function createRide(
     })
     .returning();
   if (!ride) throw new Error('Failed to create ride');
+
+  // PostGIS spatial layer (migration 0014): populates route_geom from the
+  // same polyline just stored — best-effort, never blocks ride creation
+  // (see upsertRouteGeometry's own doc comment).
+  await upsertRouteGeometry(db, ride.id, ride.routePolyline);
+
   return { ...ride, pricing, routeIsEstimate: route.isEstimate };
 }
 

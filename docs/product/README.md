@@ -12,12 +12,16 @@ The product must earn trust through two things it already does unusually well fo
 |---|---|
 | [`docs/product/audit.md`](audit.md) | Full current-state audit: every area of the codebase classified KEEP/IMPROVE/REFACTOR/REPLACE/MISSING, with file-level evidence. Read this first. |
 | [`docs/product/benchmark.md`](benchmark.md) | BlaBlaCar and world-class carpooling research, labeled FACT/ESTIMATE/ASSUMPTION/HYPOTHESIS. |
+| [`docs/product/search-engine-audit-2026-08-23.md`](search-engine-audit-2026-08-23.md) | Deep audit of `matching.service.ts`'s search/matching engine against publicly documented BlaBlaCar architecture — gap analysis, edge-case matrix, and a prioritized (P0-P4) roadmap. Read-only audit, no code changed. |
+| [`docs/product/search-engine-audit-v2-active-trip-2026-08-23.md`](search-engine-audit-v2-active-trip-2026-08-23.md) | Second, independently-verified audit + implementation spec: active-trip/live-GPS-route state (found to be entirely unbuilt), booking concurrency (verified atomic and safe, with two real gaps found), detour-matching algorithm design, 1,000-user scale modeling, and a single recommended P0-P4 build order. Read-only, no code changed. |
+| [`docs/product/google-maps-platform-implementation-report-2026-08-23.md`](google-maps-platform-implementation-report-2026-08-23.md) | Implementation report for the Google Maps Platform + PostGIS migration (Phases 1-4 of 8: provider abstraction for location/routing, PostGIS spatial layer, a real routing-engine-calculated detour-match tier). Files changed, migrations, env vars, API keys/restrictions, test results, and — honestly — everything Phases 5-8 (active-trip/live-journey, driver detour UX) still leave open. |
 | [`docs/ux/principles.md`](../ux/principles.md) | The UX rules every future screen follows, and explicit anti-patterns to reject. |
 | [`docs/ux/driver-journey.md`](../ux/driver-journey.md) / [`passenger-journey.md`](../ux/passenger-journey.md) | Target end-to-end experiences, with today's gaps noted inline. |
 | [`docs/design-system/README.md`](../design-system/README.md) | The formal VAYA design system: actual token values, component inventory, what's missing, enforcement rules. |
 | [`docs/domain/model.md`](../domain/model.md) | The verified domain model — every table, every field, source-of-truth mapping, state machines. |
 | [`docs/domain/ride-engine.md`](../domain/ride-engine.md) | The route→candidate-stops→validation→ranking→selection system design. |
 | [`docs/domain/pricing.md`](../domain/pricing.md) | The bounded, computed pricing architecture. |
+| [`docs/domain/location-architecture-spec-2026-08-23.md`](../domain/location-architecture-spec-2026-08-23.md) | Specification (not implemented) for a canonical-location resolution layer between Nominatim and matching — fixes the "same city, different coordinates" liquidity problem for search-area locations while leaving pickup-point (`route_stops`) handling untouched. |
 | [`docs/architecture/overview.md`](../architecture/overview.md) | System architecture, what infrastructure already exists, NOW/NEXT/SCALE scalability strategy. |
 | [`docs/roadmap/README.md`](../roadmap/README.md) | The phased implementation roadmap, status tracker, open decisions, blockers. |
 
