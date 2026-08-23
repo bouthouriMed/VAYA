@@ -18,6 +18,7 @@ import {
   BottomSheet,
   DateCalendarSheet,
   TimeWheelSheet,
+  PassengerSheet,
   GlassSurface,
   PriceRangeStepper,
   Icon,
@@ -62,13 +63,6 @@ import { resolveInitialPrice } from '../../src/features/driver-publish/priceSele
 import { isVerifiedDriver } from '../../src/features/driver-publish/verificationGate';
 import { buildRecommendedPoints, type RecommendedPoint } from '../../src/features/driver-publish/nearestStops';
 import { CenterPin, RecommendedPointMarker } from '../../src/features/driver-publish/MapSelectionMode';
-
-const DEPARTURE_PRESETS = [
-  { label: 'Dans 15 min', minutes: 15 },
-  { label: 'Dans 30 min', minutes: 30 },
-  { label: 'Dans 1h', minutes: 60 },
-  { label: 'Dans 2h', minutes: 120 },
-];
 
 // Mirrors (tabs)/explore.tsx's map section exactly (same ratio, same
 // fallback region) — the Publish Explorer's normal state must read as the
@@ -220,15 +214,15 @@ export default function PublishTabScreen(): React.JSX.Element {
   const dispatch = useAppDispatch();
   const origin = useAppSelector((s) => s.search.origin);
   const destination = useAppSelector((s) => s.search.destination);
-  // Departure is a real date/time (any day, any half-hour slot), not just a
-  // relative-minutes offset — DEPARTURE_PRESETS below stay as fast one-tap
-  // shortcuts for the common "leaving soon" case, but a driver publishing a
-  // ride for tomorrow or next week needs `departureAt` to hold an arbitrary
-  // instant, which `selectedPresetMinutes` (highlighting only) can't express.
+  // Departure is a real date/time (any day, any half-hour slot) — defaults
+  // to 30 minutes out, matching this form's old default even though the
+  // quick-preset chips that used to set it explicitly are gone (Search's
+  // own Date/Heure fields have no such presets either — see the Date/Heure
+  // paramBtn row below, which mirrors explore.tsx's exactly).
   const [departureAt, setDepartureAt] = useState(() => new Date(Date.now() + 30 * 60_000));
-  const [selectedPresetMinutes, setSelectedPresetMinutes] = useState<number | null>(30);
   const [isDateSheetOpen, setIsDateSheetOpen] = useState(false);
   const [isTimeSheetOpen, setIsTimeSheetOpen] = useState(false);
+  const [isSeatsSheetOpen, setIsSeatsSheetOpen] = useState(false);
   const [seats, setSeats] = useState(3);
   const [errorMessage, setErrorMessage] = useState<string | undefined>();
 
@@ -1306,13 +1300,14 @@ export default function PublishTabScreen(): React.JSX.Element {
       ) : (
       <ScrollView style={styles.cardScroll} contentContainerStyle={styles.content}>
         <Animated.View style={[styles.formStack, stepMotionStyle]}>
-          <Text variant="headlineDisplay" color={theme.ink}>
+          <Text variant="headlineDisplay" color={theme.ink} style={styles.headline}>
             Publier un trajet
           </Text>
 
-          <Text variant="label" color={theme.inkFaint} style={styles.eyebrow}>
-            ITINÉRAIRE
-          </Text>
+          {/* Flat structure matching (tabs)/explore.tsx exactly — no
+           *  section eyebrows, no wrapping card around Date/Heure/Places,
+           *  no quick-preset chip row (Search has none either) — so this
+           *  card fits in the same space Search's does, without scrolling. */}
           <GlassSurface theme={theme} scheme={scheme} radius="xl" style={styles.fieldCard}>
             <TouchableOpacity
               style={styles.fieldRow}
@@ -1361,110 +1356,65 @@ export default function PublishTabScreen(): React.JSX.Element {
             </TouchableOpacity>
           </GlassSurface>
 
-          <Text variant="label" color={theme.inkFaint} style={styles.eyebrow}>
-            DÉTAILS DU TRAJET
-          </Text>
-          <GlassSurface theme={theme} scheme={scheme} radius="2xl" style={styles.detailsCard}>
-            <View style={styles.section}>
-              <Text variant="label" color={theme.inkMuted}>
-                Départ
-              </Text>
-              <View style={styles.chipRow}>
-                {DEPARTURE_PRESETS.map((preset) => (
-                  <TouchableOpacity
-                    key={preset.minutes}
-                    style={[
-                      styles.chip,
-                      selectedPresetMinutes === preset.minutes
-                        ? { backgroundColor: theme.ink }
-                        : { backgroundColor: theme.surfaceMuted },
-                    ]}
-                    onPress={() => {
-                      setDepartureAt(new Date(Date.now() + preset.minutes * 60_000));
-                      setSelectedPresetMinutes(preset.minutes);
-                    }}
-                    accessibilityRole="button"
-                    accessibilityLabel={preset.label}
-                    accessibilityState={{ selected: selectedPresetMinutes === preset.minutes }}
-                  >
-                    <Text
-                      variant="caption"
-                      color={selectedPresetMinutes === preset.minutes ? theme.onInk : theme.inkMuted}
-                    >
-                      {preset.label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
+          <View style={styles.paramsGrid}>
+            <TouchableOpacity
+              style={[styles.paramBtn, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}
+              onPress={() => setIsDateSheetOpen(true)}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel={`Date de départ, ${formatDepartureLabel(departureAt)}`}
+            >
+              <Icon name="calendar-outline" size="sm" color={theme.inkFaint} />
+              <View>
+                <Text variant="caption" color={theme.inkFaint}>
+                  Date
+                </Text>
+                <Text variant="bodySmall" color={theme.ink}>
+                  {formatDepartureLabel(departureAt).split(' · ')[0]}
+                </Text>
               </View>
-              <View style={styles.paramsGrid}>
-                <TouchableOpacity
-                  style={[styles.paramBtn, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}
-                  onPress={() => setIsDateSheetOpen(true)}
-                  activeOpacity={0.7}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Date de départ, ${formatDepartureLabel(departureAt)}`}
-                >
-                  <Icon name="calendar-outline" size="sm" color={theme.inkFaint} />
-                  <View>
-                    <Text variant="caption" color={theme.inkFaint}>
-                      Date
-                    </Text>
-                    <Text variant="bodySmall" color={theme.ink}>
-                      {formatDepartureLabel(departureAt).split(' · ')[0]}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.paramBtn, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}
-                  onPress={() => setIsTimeSheetOpen(true)}
-                  activeOpacity={0.7}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Heure de départ, ${formatTime(departureAt)}`}
-                >
-                  <Icon name="time-outline" size="sm" color={theme.inkFaint} />
-                  <View>
-                    <Text variant="caption" color={theme.inkFaint}>
-                      Heure
-                    </Text>
-                    <Text variant="bodySmall" color={theme.ink}>
-                      {formatTime(departureAt)}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.paramBtn, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}
+              onPress={() => setIsTimeSheetOpen(true)}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel={`Heure de départ, ${formatTime(departureAt)}`}
+            >
+              <Icon name="time-outline" size="sm" color={theme.inkFaint} />
+              <View>
+                <Text variant="caption" color={theme.inkFaint}>
+                  Heure
+                </Text>
+                <Text variant="bodySmall" color={theme.ink}>
+                  {formatTime(departureAt)}
+                </Text>
               </View>
-            </View>
+            </TouchableOpacity>
+          </View>
 
-            <View style={[styles.section, styles.sectionDivider, { borderTopColor: theme.outlineVariant }]}>
-              <Text variant="label" color={theme.inkMuted}>
+          {/* Same tap-to-open sheet grammar as Date/Heure and as Search's
+           *  own Passagers row — no inline counter/stepper on the form
+           *  itself, the count is edited in the sheet only. */}
+          <TouchableOpacity
+            style={[styles.paramBtnWide, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}
+            onPress={() => setIsSeatsSheetOpen(true)}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={`Places disponibles, ${seats}`}
+          >
+            <View style={[styles.seatsIconWrap, { backgroundColor: theme.surfaceMuted }]}>
+              <Icon name="person-outline" size="sm" color={theme.inkFaint} />
+            </View>
+            <View>
+              <Text variant="caption" color={theme.inkFaint}>
                 Places disponibles
               </Text>
-              <View style={styles.stepperRow}>
-                <TouchableOpacity
-                  style={[styles.stepperBtn, { backgroundColor: theme.surface }]}
-                  onPress={() => setSeats((s) => Math.max(1, s - 1))}
-                  accessibilityRole="button"
-                  accessibilityLabel="Retirer une place"
-                >
-                  <Text variant="h3" color={theme.ink}>
-                    −
-                  </Text>
-                </TouchableOpacity>
-                <Text variant="h3" color={theme.ink} style={styles.stepperValue}>
-                  {seats}
-                </Text>
-                <TouchableOpacity
-                  style={[styles.stepperBtn, { backgroundColor: theme.surface }]}
-                  onPress={() => setSeats((s) => Math.min(8, s + 1))}
-                  accessibilityRole="button"
-                  accessibilityLabel="Ajouter une place"
-                >
-                  <Text variant="h3" color={theme.ink}>
-                    +
-                  </Text>
-                </TouchableOpacity>
-              </View>
+              <Text variant="bodySmall" color={theme.ink}>
+                {seats} place{seats > 1 ? 's' : ''}
+              </Text>
             </View>
-          </GlassSurface>
+          </TouchableOpacity>
 
           {errorMessage ? (
             <Text variant="bodySmall" color={theme.error} style={styles.formError}>
@@ -1489,21 +1439,26 @@ export default function PublishTabScreen(): React.JSX.Element {
         visible={isDateSheetOpen}
         onClose={() => setIsDateSheetOpen(false)}
         value={departureAt}
-        onChange={(date) => {
-          setDepartureAt(date);
-          setSelectedPresetMinutes(null);
-        }}
+        onChange={setDepartureAt}
         title="Date de départ"
       />
       <TimeWheelSheet
         visible={isTimeSheetOpen}
         onClose={() => setIsTimeSheetOpen(false)}
         value={departureAt}
-        onChange={(date) => {
-          setDepartureAt(date);
-          setSelectedPresetMinutes(null);
-        }}
+        onChange={setDepartureAt}
         title="Heure de départ"
+      />
+      <PassengerSheet
+        visible={isSeatsSheetOpen}
+        onClose={() => setIsSeatsSheetOpen(false)}
+        value={seats}
+        onChange={setSeats}
+        min={1}
+        max={8}
+        title="Places disponibles"
+        formatCount={(n) => `${n} place${n > 1 ? 's' : ''} disponible${n > 1 ? 's' : ''}`}
+        hint="Jusqu'à 8 places par trajet"
       />
 
       <ContextualAuthSheet
@@ -1618,6 +1573,9 @@ const styles = StyleSheet.create({
   formStack: {
     gap: spacing.sm,
   },
+  headline: {
+    marginTop: 0,
+  },
   eyebrow: {
     fontWeight: typography.fontWeight.semibold,
     letterSpacing: 1.5,
@@ -1650,36 +1608,16 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: 1,
   },
-  detailsCard: {
-    padding: spacing.lg,
-    marginBottom: spacing.md,
-  },
-  section: {
-    gap: spacing.sm,
-  },
-  sectionDivider: {
-    marginTop: spacing.md,
-    paddingTop: spacing.md,
-    borderTopWidth: 1,
-  },
   formError: {
     marginBottom: spacing.xs,
   },
-  chipRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
-  },
-  chip: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    borderRadius: radii.full,
-  },
+  // Matches explore.tsx's paramsGrid/paramBtn/paramBtnWide exactly (§14.1
+  // guidance above) — Date/Heure sit side by side, Places disponibles is a
+  // full-width row beneath, none of them wrapped in a second card.
   paramsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: spacing.sm,
-    marginTop: spacing.sm,
   },
   paramBtn: {
     flexBasis: '47%',
@@ -1691,21 +1629,20 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: spacing.md,
   },
-  stepperRow: {
+  paramBtnWide: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.lg,
+    gap: spacing.sm,
+    borderRadius: radii.xl,
+    borderWidth: 1,
+    padding: spacing.md,
   },
-  stepperBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+  seatsIconWrap: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  stepperValue: {
-    minWidth: 56,
-    textAlign: 'center',
   },
   primaryBtn: {
     width: '100%',
