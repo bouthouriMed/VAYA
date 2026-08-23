@@ -60,7 +60,10 @@ import { buildStopSelectionPayload } from '../../src/features/driver-publish/sto
 import { resolveInitialPrice } from '../../src/features/driver-publish/priceSelection';
 import { isVerifiedDriver } from '../../src/features/driver-publish/verificationGate';
 import { buildRecommendedPoints } from '../../src/features/driver-publish/nearestStops';
-import { MapSelectionMode, type ConfirmedPoint } from '../../src/features/driver-publish/MapSelectionMode';
+import {
+  MapSelectionMode,
+  type ConfirmedPoint,
+} from '../../src/features/driver-publish/MapSelectionMode';
 
 const DEPARTURE_PRESETS = [
   { label: 'Dans 15 min', minutes: 15 },
@@ -384,7 +387,8 @@ export default function PublishTabScreen(): React.JSX.Element {
     if (pickup) points.push({ lat: pickup.lat, lng: pickup.lng });
     if (dropoff) points.push({ lat: dropoff.lat, lng: dropoff.lng });
     if (points.length === 0 && origin) points.push({ lat: origin.lat, lng: origin.lng });
-    if (points.length === 0 && destination) points.push({ lat: destination.lat, lng: destination.lng });
+    if (points.length === 0 && destination)
+      points.push({ lat: destination.lat, lng: destination.lng });
     if (origin && !pickup) points.push({ lat: origin.lat, lng: origin.lng });
     if (destination && !dropoff) points.push({ lat: destination.lat, lng: destination.lng });
     return regionForPoints(points);
@@ -529,13 +533,19 @@ export default function PublishTabScreen(): React.JSX.Element {
 
   function confirmPickup(point: ConfirmedPoint): void {
     setPickup(point);
-    trackEvent('ride_pickup_point_confirmed', { rideId: rideId ?? undefined, isCustom: point.stopId === null });
+    trackEvent('ride_pickup_point_confirmed', {
+      rideId: rideId ?? undefined,
+      isCustom: point.stopId === null,
+    });
     setMapMode('dropoff');
   }
 
   function confirmDropoff(point: ConfirmedPoint): void {
     setDropoff(point);
-    trackEvent('ride_dropoff_point_confirmed', { rideId: rideId ?? undefined, isCustom: point.stopId === null });
+    trackEvent('ride_dropoff_point_confirmed', {
+      rideId: rideId ?? undefined,
+      isCustom: point.stopId === null,
+    });
     setMapMode('none');
   }
 
@@ -716,9 +726,15 @@ export default function PublishTabScreen(): React.JSX.Element {
           scheme={scheme}
           anchor={isPickupPhase ? origin : destination}
           recommendedPoints={isPickupPhase ? pickupRecommended : dropoffRecommended}
-          title={isPickupPhase ? 'Choisissez votre point de rendez-vous' : 'Choisissez votre point de dépose'}
+          title={
+            isPickupPhase
+              ? 'Choisissez votre point de rendez-vous'
+              : 'Choisissez votre point de dépose'
+          }
           subtitle="Choisissez un point suggéré ou placez-le vous-même."
-          confirmLabel={isPickupPhase ? 'Confirmer le point de rendez-vous' : 'Confirmer le point de dépose'}
+          confirmLabel={
+            isPickupPhase ? 'Confirmer le point de rendez-vous' : 'Confirmer le point de dépose'
+          }
           onConfirm={isPickupPhase ? confirmPickup : confirmDropoff}
           isLoadingRecommended={isGeneratingStops}
           recommendedUnavailable={!isGeneratingStops && osrmUnavailable}
@@ -828,7 +844,7 @@ export default function PublishTabScreen(): React.JSX.Element {
                     setMapMode('pickup');
                   }}
                   accessibilityRole={hasRideData ? 'button' : undefined}
-                  accessibilityLabel={hasRideData ? "Modifier le point de rendez-vous" : undefined}
+                  accessibilityLabel={hasRideData ? 'Modifier le point de rendez-vous' : undefined}
                 >
                   <View
                     style={[
@@ -868,7 +884,9 @@ export default function PublishTabScreen(): React.JSX.Element {
                       { backgroundColor: theme.surface, borderColor: theme.ink },
                     ]}
                   >
-                    <View style={[styles.timelineDotDestinationInner, { backgroundColor: theme.ink }]} />
+                    <View
+                      style={[styles.timelineDotDestinationInner, { backgroundColor: theme.ink }]}
+                    />
                   </View>
                   <View style={styles.timelineRowContent}>
                     <View style={styles.timelineText}>
@@ -966,7 +984,9 @@ export default function PublishTabScreen(): React.JSX.Element {
                   VÉHICULE
                 </Text>
                 <View style={styles.vehicleSummaryRow}>
-                  <View style={[styles.vehicleSummaryIcon, { backgroundColor: theme.surfaceMuted }]}>
+                  <View
+                    style={[styles.vehicleSummaryIcon, { backgroundColor: theme.surfaceMuted }]}
+                  >
                     <Icon name="car-sport-outline" size="md" color={theme.ink} />
                   </View>
                   <View>
@@ -985,7 +1005,9 @@ export default function PublishTabScreen(): React.JSX.Element {
                   VÉHICULE
                 </Text>
                 <View style={styles.vehicleSummaryRow}>
-                  <View style={[styles.vehicleSummaryIcon, { backgroundColor: theme.surfaceMuted }]}>
+                  <View
+                    style={[styles.vehicleSummaryIcon, { backgroundColor: theme.surfaceMuted }]}
+                  >
                     <Icon name="lock-closed-outline" size="sm" color={theme.inkFaint} />
                   </View>
                   <Text
@@ -1038,8 +1060,8 @@ export default function PublishTabScreen(): React.JSX.Element {
             </Text>
             <Text variant="body" color={theme.inkMuted} align="center">
               Pour publier votre premier trajet, nous devons vérifier votre profil de conducteur.
-              Votre trajet est enregistré et sera publié automatiquement dès que votre
-              vérification sera validée.
+              Votre trajet est enregistré et sera publié automatiquement dès que votre vérification
+              sera validée.
             </Text>
             <View style={styles.verificationPill}>
               <Icon name="hourglass-outline" size="xs" color={colors.warningDark} />
@@ -1084,7 +1106,9 @@ export default function PublishTabScreen(): React.JSX.Element {
           customMapStyle={scheme === 'dark' ? darkMapStyle : lightMapStyle}
           userInterfaceStyle={scheme}
         >
-          {routeCoordinates.length > 1 ? <MapRoute coordinates={routeCoordinates} showCorridor /> : null}
+          {routeCoordinates.length > 1 ? (
+            <MapRoute coordinates={routeCoordinates} showCorridor />
+          ) : null}
           {origin && destination && routeCoordinates.length <= 1 ? (
             <Polyline
               coordinates={[
@@ -1097,23 +1121,55 @@ export default function PublishTabScreen(): React.JSX.Element {
             />
           ) : null}
           {origin && !pickup ? (
-            <Marker coordinate={{ latitude: origin.lat, longitude: origin.lng }} anchor={{ x: 0.5, y: 0.5 }}>
-              <View style={[styles.originDot, { backgroundColor: theme.accent, borderColor: theme.surface }]} />
+            <Marker
+              coordinate={{ latitude: origin.lat, longitude: origin.lng }}
+              anchor={{ x: 0.5, y: 0.5 }}
+            >
+              <View
+                style={[
+                  styles.originDot,
+                  { backgroundColor: theme.accent, borderColor: theme.surface },
+                ]}
+              />
             </Marker>
           ) : null}
           {destination && !dropoff ? (
-            <Marker coordinate={{ latitude: destination.lat, longitude: destination.lng }} anchor={{ x: 0.5, y: 0.5 }}>
-              <View style={[styles.destinationDot, { backgroundColor: theme.ink, borderColor: theme.surface }]} />
+            <Marker
+              coordinate={{ latitude: destination.lat, longitude: destination.lng }}
+              anchor={{ x: 0.5, y: 0.5 }}
+            >
+              <View
+                style={[
+                  styles.destinationDot,
+                  { backgroundColor: theme.ink, borderColor: theme.surface },
+                ]}
+              />
             </Marker>
           ) : null}
           {pickup ? (
-            <Marker coordinate={{ latitude: pickup.lat, longitude: pickup.lng }} anchor={{ x: 0.5, y: 0.5 }}>
-              <View style={[styles.originDot, { backgroundColor: theme.accent, borderColor: theme.surface }]} />
+            <Marker
+              coordinate={{ latitude: pickup.lat, longitude: pickup.lng }}
+              anchor={{ x: 0.5, y: 0.5 }}
+            >
+              <View
+                style={[
+                  styles.originDot,
+                  { backgroundColor: theme.accent, borderColor: theme.surface },
+                ]}
+              />
             </Marker>
           ) : null}
           {dropoff ? (
-            <Marker coordinate={{ latitude: dropoff.lat, longitude: dropoff.lng }} anchor={{ x: 0.5, y: 0.5 }}>
-              <View style={[styles.destinationDot, { backgroundColor: theme.ink, borderColor: theme.surface }]} />
+            <Marker
+              coordinate={{ latitude: dropoff.lat, longitude: dropoff.lng }}
+              anchor={{ x: 0.5, y: 0.5 }}
+            >
+              <View
+                style={[
+                  styles.destinationDot,
+                  { backgroundColor: theme.ink, borderColor: theme.surface },
+                ]}
+              />
             </Marker>
           ) : null}
         </MapView>
@@ -1124,7 +1180,12 @@ export default function PublishTabScreen(): React.JSX.Element {
          *  wordmark (that's home-tab brand chrome, not part of the map+card
          *  structural pattern this screen is matching). */}
         <LinearGradient
-          colors={[`${theme.background}00`, `${theme.background}8C`, `${theme.background}EB`, theme.background]}
+          colors={[
+            `${theme.background}00`,
+            `${theme.background}8C`,
+            `${theme.background}EB`,
+            theme.background,
+          ]}
           locations={[0, 0.45, 0.78, 1]}
           style={styles.mapFade}
         />
@@ -1133,191 +1194,211 @@ export default function PublishTabScreen(): React.JSX.Element {
       <View
         style={[
           styles.card,
-          { backgroundColor: theme.surface, shadowColor: theme.ink, paddingBottom: insets.bottom + spacing.md },
+          {
+            backgroundColor: theme.surface,
+            shadowColor: theme.ink,
+            paddingBottom: insets.bottom + spacing.md,
+          },
         ]}
       >
         <View style={styles.handle}>
           <View style={[styles.handleBar, { backgroundColor: theme.outlineVariant }]} />
         </View>
 
-      <ScrollView style={styles.cardScroll} contentContainerStyle={styles.content}>
-        <Animated.View style={[styles.formStack, stepMotionStyle]}>
-          <Text variant="headlineDisplay" color={theme.ink}>
-            Publier un trajet
-          </Text>
+        <ScrollView style={styles.cardScroll} contentContainerStyle={styles.content}>
+          <Animated.View style={[styles.formStack, stepMotionStyle]}>
+            <Text variant="headlineDisplay" color={theme.ink} style={styles.headline}>
+              Publier un trajet
+            </Text>
 
-          <Text variant="label" color={theme.inkFaint} style={styles.eyebrow}>
-            ITINÉRAIRE
-          </Text>
-          <GlassSurface theme={theme} scheme={scheme} radius="xl" style={styles.fieldCard}>
-            <TouchableOpacity
-              style={styles.fieldRow}
-              onPress={() =>
-                router.push({ pathname: '/search/composer', params: { field: 'origin' } })
-              }
-              accessibilityRole="button"
-              accessibilityLabel={`Départ, ${origin?.label ?? 'non choisi'}`}
-            >
-              <View style={[styles.fieldDot, { backgroundColor: theme.accent }]} />
-              <View style={styles.fieldTextCol}>
-                <Text variant="caption" color={theme.inkFaint}>
+            <Text variant="label" color={theme.inkFaint} style={styles.eyebrow}>
+              ITINÉRAIRE
+            </Text>
+            <GlassSurface theme={theme} scheme={scheme} radius="xl" style={styles.fieldCard}>
+              <TouchableOpacity
+                style={styles.fieldRow}
+                onPress={() =>
+                  router.push({ pathname: '/search/composer', params: { field: 'origin' } })
+                }
+                accessibilityRole="button"
+                accessibilityLabel={`Départ, ${origin?.label ?? 'non choisi'}`}
+              >
+                <View style={[styles.fieldDot, { backgroundColor: theme.accent }]} />
+                <View style={styles.fieldTextCol}>
+                  <Text variant="caption" color={theme.inkFaint}>
+                    Départ
+                  </Text>
+                  <Text
+                    variant="label"
+                    color={origin ? theme.ink : theme.inkFaint}
+                    numberOfLines={1}
+                  >
+                    {origin?.label ?? 'Choisir un point de départ'}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+              <View style={[styles.fieldDivider, { backgroundColor: theme.outlineVariant }]} />
+              <TouchableOpacity
+                style={styles.fieldRow}
+                onPress={() =>
+                  router.push({ pathname: '/search/composer', params: { field: 'destination' } })
+                }
+                accessibilityRole="button"
+                accessibilityLabel={`Arrivée, ${destination?.label ?? 'non choisie'}`}
+              >
+                <View
+                  style={[styles.fieldDot, styles.fieldDotOutline, { borderColor: theme.ink }]}
+                />
+                <View style={styles.fieldTextCol}>
+                  <Text variant="caption" color={theme.inkFaint}>
+                    Arrivée
+                  </Text>
+                  <Text
+                    variant="label"
+                    color={destination ? theme.ink : theme.inkFaint}
+                    numberOfLines={1}
+                  >
+                    {destination?.label ?? 'Où allez-vous ?'}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </GlassSurface>
+
+            <Text variant="label" color={theme.inkFaint} style={styles.eyebrow}>
+              DÉTAILS DU TRAJET
+            </Text>
+            <GlassSurface theme={theme} scheme={scheme} radius="2xl" style={styles.detailsCard}>
+              <View style={styles.section}>
+                <Text variant="label" color={theme.inkMuted}>
                   Départ
                 </Text>
-                <Text
-                  variant="label"
-                  color={origin ? theme.ink : theme.inkFaint}
-                  numberOfLines={1}
-                >
-                  {origin?.label ?? 'Choisir un point de départ'}
-                </Text>
-              </View>
-            </TouchableOpacity>
-            <View style={[styles.fieldDivider, { backgroundColor: theme.outlineVariant }]} />
-            <TouchableOpacity
-              style={styles.fieldRow}
-              onPress={() =>
-                router.push({ pathname: '/search/composer', params: { field: 'destination' } })
-              }
-              accessibilityRole="button"
-              accessibilityLabel={`Arrivée, ${destination?.label ?? 'non choisie'}`}
-            >
-              <View style={[styles.fieldDot, styles.fieldDotOutline, { borderColor: theme.ink }]} />
-              <View style={styles.fieldTextCol}>
-                <Text variant="caption" color={theme.inkFaint}>
-                  Arrivée
-                </Text>
-                <Text
-                  variant="label"
-                  color={destination ? theme.ink : theme.inkFaint}
-                  numberOfLines={1}
-                >
-                  {destination?.label ?? 'Où allez-vous ?'}
-                </Text>
-              </View>
-            </TouchableOpacity>
-          </GlassSurface>
-
-          <Text variant="label" color={theme.inkFaint} style={styles.eyebrow}>
-            DÉTAILS DU TRAJET
-          </Text>
-          <GlassSurface theme={theme} scheme={scheme} radius="2xl" style={styles.detailsCard}>
-            <View style={styles.section}>
-              <Text variant="label" color={theme.inkMuted}>
-                Départ
-              </Text>
-              <View style={styles.chipRow}>
-                {DEPARTURE_PRESETS.map((preset) => (
-                  <TouchableOpacity
-                    key={preset.minutes}
-                    style={[
-                      styles.chip,
-                      selectedPresetMinutes === preset.minutes
-                        ? { backgroundColor: theme.ink }
-                        : { backgroundColor: theme.surfaceMuted },
-                    ]}
-                    onPress={() => {
-                      setDepartureAt(new Date(Date.now() + preset.minutes * 60_000));
-                      setSelectedPresetMinutes(preset.minutes);
-                    }}
-                    accessibilityRole="button"
-                    accessibilityLabel={preset.label}
-                    accessibilityState={{ selected: selectedPresetMinutes === preset.minutes }}
-                  >
-                    <Text
-                      variant="caption"
-                      color={selectedPresetMinutes === preset.minutes ? theme.onInk : theme.inkMuted}
+                <View style={styles.chipRow}>
+                  {DEPARTURE_PRESETS.map((preset) => (
+                    <TouchableOpacity
+                      key={preset.minutes}
+                      style={[
+                        styles.chip,
+                        selectedPresetMinutes === preset.minutes
+                          ? { backgroundColor: theme.ink }
+                          : { backgroundColor: theme.surfaceMuted },
+                      ]}
+                      onPress={() => {
+                        setDepartureAt(new Date(Date.now() + preset.minutes * 60_000));
+                        setSelectedPresetMinutes(preset.minutes);
+                      }}
+                      accessibilityRole="button"
+                      accessibilityLabel={preset.label}
+                      accessibilityState={{ selected: selectedPresetMinutes === preset.minutes }}
                     >
-                      {preset.label}
+                      <Text
+                        variant="caption"
+                        color={
+                          selectedPresetMinutes === preset.minutes ? theme.onInk : theme.inkMuted
+                        }
+                      >
+                        {preset.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+                <View style={styles.paramsGrid}>
+                  <TouchableOpacity
+                    style={[
+                      styles.paramBtn,
+                      { backgroundColor: theme.surface, borderColor: theme.outlineVariant },
+                    ]}
+                    onPress={() => setIsDateSheetOpen(true)}
+                    activeOpacity={0.7}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Date de départ, ${formatDepartureLabel(departureAt)}`}
+                  >
+                    <Icon name="calendar-outline" size="sm" color={theme.inkFaint} />
+                    <View>
+                      <Text variant="caption" color={theme.inkFaint}>
+                        Date
+                      </Text>
+                      <Text variant="bodySmall" color={theme.ink}>
+                        {formatDepartureLabel(departureAt).split(' · ')[0]}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[
+                      styles.paramBtn,
+                      { backgroundColor: theme.surface, borderColor: theme.outlineVariant },
+                    ]}
+                    onPress={() => setIsTimeSheetOpen(true)}
+                    activeOpacity={0.7}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Heure de départ, ${formatTime(departureAt)}`}
+                  >
+                    <Icon name="time-outline" size="sm" color={theme.inkFaint} />
+                    <View>
+                      <Text variant="caption" color={theme.inkFaint}>
+                        Heure
+                      </Text>
+                      <Text variant="bodySmall" color={theme.ink}>
+                        {formatTime(departureAt)}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              <View
+                style={[
+                  styles.section,
+                  styles.sectionDivider,
+                  { borderTopColor: theme.outlineVariant },
+                ]}
+              >
+                <Text variant="label" color={theme.inkMuted}>
+                  Places disponibles
+                </Text>
+                <View style={styles.stepperRow}>
+                  <TouchableOpacity
+                    style={[styles.stepperBtn, { backgroundColor: theme.surface }]}
+                    onPress={() => setSeats((s) => Math.max(1, s - 1))}
+                    accessibilityRole="button"
+                    accessibilityLabel="Retirer une place"
+                  >
+                    <Text variant="h3" color={theme.ink}>
+                      −
                     </Text>
                   </TouchableOpacity>
-                ))}
+                  <Text variant="h3" color={theme.ink} style={styles.stepperValue}>
+                    {seats}
+                  </Text>
+                  <TouchableOpacity
+                    style={[styles.stepperBtn, { backgroundColor: theme.surface }]}
+                    onPress={() => setSeats((s) => Math.min(8, s + 1))}
+                    accessibilityRole="button"
+                    accessibilityLabel="Ajouter une place"
+                  >
+                    <Text variant="h3" color={theme.ink}>
+                      +
+                    </Text>
+                  </TouchableOpacity>
+                </View>
               </View>
-              <View style={styles.paramsGrid}>
-                <TouchableOpacity
-                  style={[styles.paramBtn, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}
-                  onPress={() => setIsDateSheetOpen(true)}
-                  activeOpacity={0.7}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Date de départ, ${formatDepartureLabel(departureAt)}`}
-                >
-                  <Icon name="calendar-outline" size="sm" color={theme.inkFaint} />
-                  <View>
-                    <Text variant="caption" color={theme.inkFaint}>
-                      Date
-                    </Text>
-                    <Text variant="bodySmall" color={theme.ink}>
-                      {formatDepartureLabel(departureAt).split(' · ')[0]}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.paramBtn, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}
-                  onPress={() => setIsTimeSheetOpen(true)}
-                  activeOpacity={0.7}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Heure de départ, ${formatTime(departureAt)}`}
-                >
-                  <Icon name="time-outline" size="sm" color={theme.inkFaint} />
-                  <View>
-                    <Text variant="caption" color={theme.inkFaint}>
-                      Heure
-                    </Text>
-                    <Text variant="bodySmall" color={theme.ink}>
-                      {formatTime(departureAt)}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              </View>
-            </View>
+            </GlassSurface>
 
-            <View style={[styles.section, styles.sectionDivider, { borderTopColor: theme.outlineVariant }]}>
-              <Text variant="label" color={theme.inkMuted}>
-                Places disponibles
+            {errorMessage ? (
+              <Text variant="bodySmall" color={theme.error} style={styles.formError}>
+                {errorMessage}
               </Text>
-              <View style={styles.stepperRow}>
-                <TouchableOpacity
-                  style={[styles.stepperBtn, { backgroundColor: theme.surface }]}
-                  onPress={() => setSeats((s) => Math.max(1, s - 1))}
-                  accessibilityRole="button"
-                  accessibilityLabel="Retirer une place"
-                >
-                  <Text variant="h3" color={theme.ink}>
-                    −
-                  </Text>
-                </TouchableOpacity>
-                <Text variant="h3" color={theme.ink} style={styles.stepperValue}>
-                  {seats}
-                </Text>
-                <TouchableOpacity
-                  style={[styles.stepperBtn, { backgroundColor: theme.surface }]}
-                  onPress={() => setSeats((s) => Math.min(8, s + 1))}
-                  accessibilityRole="button"
-                  accessibilityLabel="Ajouter une place"
-                >
-                  <Text variant="h3" color={theme.ink}>
-                    +
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </GlassSurface>
+            ) : null}
 
-          {errorMessage ? (
-            <Text variant="bodySmall" color={theme.error} style={styles.formError}>
-              {errorMessage}
-            </Text>
-          ) : null}
-
-          <PrimaryButton
-            theme={theme}
-            label={readyForPrice ? 'Choisir le prix' : 'Suivant'}
-            icon={readyForPrice ? 'pricetag-outline' : undefined}
-            loading={isCreating}
-            disabled={!canContinue}
-            onPress={() => requireAuth(() => void proceedFromForm(), 'publishing')}
-          />
-        </Animated.View>
-      </ScrollView>
+            <PrimaryButton
+              theme={theme}
+              label={readyForPrice ? 'Choisir le prix' : 'Suivant'}
+              icon={readyForPrice ? 'pricetag-outline' : undefined}
+              loading={isCreating}
+              disabled={!canContinue}
+              onPress={() => requireAuth(() => void proceedFromForm(), 'publishing')}
+            />
+          </Animated.View>
+        </ScrollView>
       </View>
 
       <DateCalendarSheet
@@ -1376,6 +1457,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 24,
     elevation: 8,
+  },
+  headline: {
+    marginTop: 0,
+    textAlign: 'center',
   },
   handle: {
     alignItems: 'center',

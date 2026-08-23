@@ -214,12 +214,7 @@ export default function HomeSearchScreen(): React.JSX.Element {
           colors={[`${theme.background}00`, `${theme.background}8C`, `${theme.background}EB`, theme.background]}
           locations={[0, 0.45, 0.78, 1]}
           style={styles.brandBar}
-        >
-          <Text variant="headlineDisplay" color={theme.ink}>
-            Vaya
-          </Text>
-        </LinearGradient>
-
+        />
         <TouchableOpacity
           onPress={() => router.push(accessToken ? '/notifications' : '/sign-in')}
           accessibilityRole="button"
@@ -516,7 +511,6 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
   headline: {
-    marginTop: 0,
     textAlign: 'center'
   },
   locationBlock: {
