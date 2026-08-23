@@ -116,6 +116,24 @@ export function mapGoogleTypesToLocationType(types: string[] | undefined): Locat
   return 'unknown';
 }
 
+/** Google's reverse-geocode response is an array of alternate
+ *  interpretations of the same coordinate (street_address, route, premise,
+ *  plus_code, admin levels, ...), not ranked by human-readability — a
+ *  `plus_code` entry (e.g. "V528+3RF, Ariana, Tunisia") can legitimately
+ *  sort first for a rooftop point Google can't precisely match to a named
+ *  street. Prefers the most specific real-address type before falling back
+ *  to whichever result the API happened to put first. */
+export function pickBestGeocodeResult<T extends { types: string[] }>(
+  results: T[],
+): T | undefined {
+  return (
+    results.find((r) => r.types.includes('street_address')) ??
+    results.find((r) => r.types.includes('premise')) ??
+    results.find((r) => r.types.includes('route')) ??
+    results[0]
+  );
+}
+
 function findAddressComponent(
   components: Array<{ longText: string; types: string[] }> | undefined,
   type: string,
@@ -221,7 +239,7 @@ export class GooglePlacesProvider implements LocationProvider {
       const response = await fetchWithTimeout(url.toString(), {});
       if (!response.ok) throw new Error(`Geocoding API responded ${response.status}`);
       const data = (await response.json()) as GeocodingApiResponse;
-      const result = data.results[0];
+      const result = pickBestGeocodeResult(data.results);
       if (data.status !== 'OK' || !result) return null;
 
       const components = result.address_components.map((c) => ({

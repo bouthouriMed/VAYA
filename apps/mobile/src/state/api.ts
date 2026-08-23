@@ -674,22 +674,29 @@ export const api = createApi({
     // the bound independently (rides.service.ts's updateRide).
     updateRide: builder.mutation<RideWithPricing, { rideId: string; input: UpdateRideInput }>({
       query: ({ rideId, input }) => ({ url: `/rides/${rideId}`, method: 'PATCH', body: input }),
-      invalidatesTags: ['MyRides'],
+      invalidatesTags: (result, error, { rideId }) => ['MyRides', { type: 'MyRides', id: rideId }],
     }),
     listMyRides: builder.query<Ride[], void>({
       query: () => '/rides/mine',
       providesTags: ['MyRides'],
     }),
+    // Was missing providesTags entirely, so publishRide/cancelRide/
+    // updateRide's invalidatesTags never reached this query's own cache
+    // entry — a driver publishing a ride and immediately reopening its
+    // detail screen (or another screen that pre-warmed this same query)
+    // could keep serving the pre-publish 'draft' row for up to the
+    // 30s refetchOnMountOrArgChange window. Tagging it per-id closes that.
     getRide: builder.query<Ride, string>({
       query: (rideId) => `/rides/${rideId}`,
+      providesTags: (result, error, rideId) => [{ type: 'MyRides', id: rideId }],
     }),
     cancelRide: builder.mutation<Ride, string>({
       query: (rideId) => ({ url: `/rides/${rideId}/cancel`, method: 'POST' }),
-      invalidatesTags: ['MyRides'],
+      invalidatesTags: (result, error, rideId) => ['MyRides', { type: 'MyRides', id: rideId }],
     }),
     publishRide: builder.mutation<Ride, string>({
       query: (rideId) => ({ url: `/rides/${rideId}/publish`, method: 'POST' }),
-      invalidatesTags: ['MyRides'],
+      invalidatesTags: (result, error, rideId) => ['MyRides', { type: 'MyRides', id: rideId }],
     }),
     generateCandidateStops: builder.mutation<GenerateStopsResult, string>({
       query: (rideId) => ({ url: `/rides/${rideId}/candidate-stops`, method: 'POST' }),

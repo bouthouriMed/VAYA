@@ -1,7 +1,7 @@
 import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
 import { renderJSON } from './test-utils/renderJSON';
-import type { Booking, Ride } from '../state/api';
+import type { Booking, Ride, RouteStop } from '../state/api';
 
 /**
  * Real react-test-renderer snapshots of driver/rides/[rideId].tsx
@@ -57,6 +57,39 @@ const PENDING_REQUEST: Booking = {
   rider: { id: 'u-rider-1', fullName: 'Dinara Kochakajeva', avatarUrl: null },
 };
 
+// The pickup + dropoff points confirmed via the driver publish flow's map
+// selection — the getRideStops endpoint returns only driver-selected
+// stops (see its own doc comment in state/api.ts), so this fixture models
+// exactly that shape rather than the full generated-candidates set.
+const RIDE_STOPS: RouteStop[] = [
+  {
+    id: 'stop-pickup',
+    rideId: 'ride-1',
+    sequence: 0,
+    label: 'Avenue Habib Bourguiba, Tunis',
+    lat: 36.8, lng: 10.18,
+    roadSnapped: true,
+    deviationMeters: 20,
+    deviationSeconds: 10,
+    suitabilityScore: 0.9,
+    roadClass: 'primary',
+    isDriverSelected: true,
+  },
+  {
+    id: 'stop-dropoff',
+    rideId: 'ride-1',
+    sequence: 5,
+    label: 'Boulevard Hedi Chaker, Sousse',
+    lat: 35.82, lng: 10.63,
+    roadSnapped: true,
+    deviationMeters: 15,
+    deviationSeconds: 8,
+    suitabilityScore: 0.85,
+    roadClass: 'primary',
+    isDriverSelected: true,
+  },
+];
+
 const ACCEPTED_REQUEST: Booking = {
   ...PENDING_REQUEST,
   id: 'booking-accepted',
@@ -72,6 +105,7 @@ type MutationTuple = [unknown, { isLoading: boolean }];
 function mockApi(requests: Booking[]): void {
   vi.doMock('../state/api', () => ({
     useGetRideQuery: (): QueryResult<Ride> => ({ data: RIDE }),
+    useGetRideStopsQuery: (): QueryResult<RouteStop[]> => ({ data: RIDE_STOPS }),
     useListRequestsForRideQuery: (): QueryResult<Booking[]> => ({ data: requests }),
     useAcceptBookingMutation: (): MutationTuple => [vi.fn(), { isLoading: false }],
     useDeclineBookingMutation: (): MutationTuple => [vi.fn(), { isLoading: false }],
