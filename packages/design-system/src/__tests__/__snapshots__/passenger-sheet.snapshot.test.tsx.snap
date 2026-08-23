@@ -385,9 +385,7 @@ exports[`PassengerSheet snapshots > renders the stepper stage with the given val
                 ]
               }
             >
-              Jusqu'à 
-              8
-               passagers par trajet
+              Jusqu'à 8 passagers par trajet
             </Text>
           </View>
           <TouchableOpacity

@@ -9,7 +9,7 @@ import {
   AccessibilityInfo,
   useWindowDimensions,
 } from 'react-native';
-import MapView, { Marker, Polyline, PROVIDER_DEFAULT } from 'react-native-maps';
+import MapView, { Marker, Polyline, PROVIDER_DEFAULT, type Region } from 'react-native-maps';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -18,6 +18,7 @@ import {
   BottomSheet,
   DateCalendarSheet,
   TimeWheelSheet,
+  PassengerSheet,
   GlassSurface,
   PriceRangeStepper,
   Icon,
@@ -50,6 +51,7 @@ import {
   useUpdateRideStopsMutation,
   usePublishRideMutation,
   useRegisterPushTokenMutation,
+  useLazyGeocodeReverseQuery,
   type RouteStop,
   type SuggestedPrice,
 } from '../../src/state/api';
@@ -59,18 +61,8 @@ import { requestPushPermissionAndRegister } from '../../src/services/notificatio
 import { buildStopSelectionPayload } from '../../src/features/driver-publish/stopSelection';
 import { resolveInitialPrice } from '../../src/features/driver-publish/priceSelection';
 import { isVerifiedDriver } from '../../src/features/driver-publish/verificationGate';
-import { buildRecommendedPoints } from '../../src/features/driver-publish/nearestStops';
-import {
-  MapSelectionMode,
-  type ConfirmedPoint,
-} from '../../src/features/driver-publish/MapSelectionMode';
-
-const DEPARTURE_PRESETS = [
-  { label: 'Dans 15 min', minutes: 15 },
-  { label: 'Dans 30 min', minutes: 30 },
-  { label: 'Dans 1h', minutes: 60 },
-  { label: 'Dans 2h', minutes: 120 },
-];
+import { buildRecommendedPoints, type RecommendedPoint } from '../../src/features/driver-publish/nearestStops';
+import { CenterPin, RecommendedPointMarker } from '../../src/features/driver-publish/MapSelectionMode';
 
 // Mirrors (tabs)/explore.tsx's map section exactly (same ratio, same
 // fallback region) — the Publish Explorer's normal state must read as the
@@ -222,15 +214,15 @@ export default function PublishTabScreen(): React.JSX.Element {
   const dispatch = useAppDispatch();
   const origin = useAppSelector((s) => s.search.origin);
   const destination = useAppSelector((s) => s.search.destination);
-  // Departure is a real date/time (any day, any half-hour slot), not just a
-  // relative-minutes offset — DEPARTURE_PRESETS below stay as fast one-tap
-  // shortcuts for the common "leaving soon" case, but a driver publishing a
-  // ride for tomorrow or next week needs `departureAt` to hold an arbitrary
-  // instant, which `selectedPresetMinutes` (highlighting only) can't express.
+  // Departure is a real date/time (any day, any half-hour slot) — defaults
+  // to 30 minutes out, matching this form's old default even though the
+  // quick-preset chips that used to set it explicitly are gone (Search's
+  // own Date/Heure fields have no such presets either — see the Date/Heure
+  // paramBtn row below, which mirrors explore.tsx's exactly).
   const [departureAt, setDepartureAt] = useState(() => new Date(Date.now() + 30 * 60_000));
-  const [selectedPresetMinutes, setSelectedPresetMinutes] = useState<number | null>(30);
   const [isDateSheetOpen, setIsDateSheetOpen] = useState(false);
   const [isTimeSheetOpen, setIsTimeSheetOpen] = useState(false);
+  const [isSeatsSheetOpen, setIsSeatsSheetOpen] = useState(false);
   const [seats, setSeats] = useState(3);
   const [errorMessage, setErrorMessage] = useState<string | undefined>();
 
@@ -261,6 +253,23 @@ export default function PublishTabScreen(): React.JSX.Element {
   const [mapMode, setMapMode] = useState<MapMode>('none');
   const [pickup, setPickup] = useState<PublishPoint | null>(null);
   const [dropoff, setDropoff] = useState<PublishPoint | null>(null);
+
+  // The map-expansion transformation itself (§5): one persistent MapView
+  // that grows from the 35vh strip to fill the screen while the card
+  // shrinks to a compact confirm bar — never a hard cut to a different
+  // screen/component. Driven purely by `mapMode` (no pan gesture on the
+  // sheet itself — that's what broke last time: a draggable sheet that
+  // could get stuck collapsed). `mapAnim` 0 = collapsed, 1 = expanded.
+  const mapAnim = useRef(new Animated.Value(0)).current;
+  const [containerHeight, setContainerHeight] = useState(0);
+  const mapRef = useRef<MapView>(null);
+  const isProgrammaticMapMove = useRef(false);
+  const [selectedPointId, setSelectedPointId] = useState<string | null>('anchor');
+  const [selectionCenter, setSelectionCenter] = useState<{ lat: number; lng: number } | null>(null);
+  const [customPointLabel, setCustomPointLabel] = useState<string | null>(null);
+  const [isDraggingPin, setIsDraggingPin] = useState(false);
+  const [fetchReverseGeocode, { isFetching: isResolvingPointLabel }] = useLazyGeocodeReverseQuery();
+
   // The origin/destination a real ride (rideId) was actually created
   // against — lets an origin/destination edit be detected and invalidate
   // exactly what depends on it (§17), without over-invalidating on every
@@ -355,6 +364,98 @@ export default function PublishTabScreen(): React.JSX.Element {
   }, [step]);
   const stepMotionStyle = { opacity: stepFade, transform: [{ translateY: stepRise }] };
 
+  // Drives the map-expansion transformation itself (§5-11): entering
+  // pickup/dropoff mode grows the map (mapAnim -> 1) while resetting the
+  // selection to the phase's anchor and animating the camera to it once
+  // the growth finishes; leaving it (mapMode 'none') shrinks the map back
+  // to the 35vh strip. Height, not flex, is what's animated — flex can't be
+  // interpolated, and animating a real height keeps the card (a flex:1
+  // sibling) shrinking/growing in lockstep for free, with no separate
+  // animation needed on the card itself.
+  useEffect(() => {
+    if (mapMode === 'none') {
+      Animated.timing(mapAnim, { toValue: 0, duration: 380, useNativeDriver: false }).start();
+      return;
+    }
+    if (!activeAnchor) return;
+    setSelectedPointId('anchor');
+    setSelectionCenter({ lat: activeAnchor.lat, lng: activeAnchor.lng });
+    setCustomPointLabel(null);
+    Animated.timing(mapAnim, { toValue: 1, duration: 380, useNativeDriver: false }).start(({ finished }) => {
+      if (!finished) return;
+      isProgrammaticMapMove.current = true;
+      mapRef.current?.animateToRegion(
+        { latitude: activeAnchor.lat, longitude: activeAnchor.lng, latitudeDelta: 0.01, longitudeDelta: 0.01 },
+        350,
+      );
+    });
+    // Only re-runs when the phase itself changes, not on every unrelated
+    // re-render (activeAnchor is derived from origin/destination, which
+    // are stable references between renders here).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mapMode]);
+
+  // `containerHeight` is this screen's own render area (already excludes
+  // the tab bar, since onLayout measures the actual View inside the tab
+  // navigator) — expanding "full height" must target that, not the raw
+  // device window, or the map would overshoot past the tab bar. Falls back
+  // to windowHeight only for the brief instant before the first onLayout.
+  const effectiveHeight = containerHeight || windowHeight;
+  const mapHeight = mapAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [effectiveHeight * MAP_HEIGHT_RATIO, effectiveHeight],
+  });
+
+  function focusMapOn(point: { lat: number; lng: number }): void {
+    isProgrammaticMapMove.current = true;
+    mapRef.current?.animateToRegion(
+      { latitude: point.lat, longitude: point.lng, latitudeDelta: 0.01, longitudeDelta: 0.01 },
+      350,
+    );
+  }
+
+  function pickRecommendedPoint(point: RecommendedPoint): void {
+    haptics.selection();
+    setSelectedPointId(point.id);
+    setSelectionCenter({ lat: point.lat, lng: point.lng });
+    setCustomPointLabel(null);
+    focusMapOn(point);
+  }
+
+  function handleMapPanDrag(): void {
+    if (mapMode === 'none' || isProgrammaticMapMove.current) return;
+    if (!isDraggingPin) setIsDraggingPin(true);
+    if (selectedPointId !== null) setSelectedPointId(null);
+  }
+
+  function handleMapRegionChangeComplete(region: Region): void {
+    setIsDraggingPin(false);
+    if (isProgrammaticMapMove.current) {
+      isProgrammaticMapMove.current = false;
+      return;
+    }
+    if (mapMode === 'none' || selectedPointId !== null) return;
+    const next = { lat: region.latitude, lng: region.longitude };
+    setSelectionCenter(next);
+    void fetchReverseGeocode(next)
+      .unwrap()
+      .then((result) => setCustomPointLabel(result.label))
+      .catch(() => setCustomPointLabel('Position personnalisée'));
+  }
+
+  function confirmActivePoint(): void {
+    if (!resolvedPointLabel || !selectionCenter) return;
+    haptics.success();
+    const point: PublishPoint = {
+      label: resolvedPointLabel,
+      lat: selectionCenter.lat,
+      lng: selectionCenter.lng,
+      stopId: selectedRecommendedPoint?.stopId ?? null,
+    };
+    if (mapMode === 'pickup') confirmPickup(point);
+    else if (mapMode === 'dropoff') confirmDropoff(point);
+  }
+
   const vehicle = driverProfile?.vehicles[0];
   // No driver profile at all is now a fully supported path through this
   // wizard, not a dead end — the publish tab opens this screen regardless.
@@ -406,6 +507,11 @@ export default function PublishTabScreen(): React.JSX.Element {
     [destination, candidates],
   );
   const readyForPrice = Boolean(pickup && dropoff);
+  const activeAnchor = mapMode === 'pickup' ? origin : mapMode === 'dropoff' ? destination : null;
+  const activeRecommended: RecommendedPoint[] =
+    mapMode === 'pickup' ? pickupRecommended : mapMode === 'dropoff' ? dropoffRecommended : [];
+  const selectedRecommendedPoint = activeRecommended.find((p) => p.id === selectedPointId) ?? null;
+  const resolvedPointLabel = selectedRecommendedPoint?.label ?? customPointLabel;
   // No per-stop ETA exists anywhere in this codebase (only the whole
   // route's total duration) — showing one here for the destination only is
   // real data; inventing per-stop times would violate the "never fabricate"
@@ -531,7 +637,7 @@ export default function PublishTabScreen(): React.JSX.Element {
     }
   }
 
-  function confirmPickup(point: ConfirmedPoint): void {
+  function confirmPickup(point: PublishPoint): void {
     setPickup(point);
     trackEvent('ride_pickup_point_confirmed', {
       rideId: rideId ?? undefined,
@@ -540,7 +646,7 @@ export default function PublishTabScreen(): React.JSX.Element {
     setMapMode('dropoff');
   }
 
-  function confirmDropoff(point: ConfirmedPoint): void {
+  function confirmDropoff(point: PublishPoint): void {
     setDropoff(point);
     trackEvent('ride_dropoff_point_confirmed', {
       rideId: rideId ?? undefined,
@@ -708,45 +814,6 @@ export default function PublishTabScreen(): React.JSX.Element {
           <ActivityIndicator size="large" color={theme.accent} />
         </View>
       </View>
-    );
-  }
-
-  // §5-11: the map-selection workspace fully replaces the form-sheet
-  // composition below while active — never a route change (this is still
-  // the same (tabs)/publish screen, so the tab bar stays visible), just a
-  // presentation swap. Confirming/backing out of either phase always
-  // returns mapMode to 'none' or the other phase, never destroying
-  // rideId/candidates/pickup/dropoff already gathered.
-  if (mapMode !== 'none' && origin && destination) {
-    const isPickupPhase = mapMode === 'pickup';
-    return (
-      <Animated.View style={[styles.container, stepMotionStyle]}>
-        <MapSelectionMode
-          theme={theme}
-          scheme={scheme}
-          anchor={isPickupPhase ? origin : destination}
-          recommendedPoints={isPickupPhase ? pickupRecommended : dropoffRecommended}
-          title={
-            isPickupPhase
-              ? 'Choisissez votre point de rendez-vous'
-              : 'Choisissez votre point de dépose'
-          }
-          subtitle="Choisissez un point suggéré ou placez-le vous-même."
-          confirmLabel={
-            isPickupPhase ? 'Confirmer le point de rendez-vous' : 'Confirmer le point de dépose'
-          }
-          onConfirm={isPickupPhase ? confirmPickup : confirmDropoff}
-          isLoadingRecommended={isGeneratingStops}
-          recommendedUnavailable={!isGeneratingStops && osrmUnavailable}
-          onBack={() => {
-            if (isPickupPhase) {
-              setMapMode('none');
-            } else {
-              setMapMode('pickup');
-            }
-          }}
-        />
-      </Animated.View>
     );
   }
 
@@ -1085,111 +1152,100 @@ export default function PublishTabScreen(): React.JSX.Element {
     );
   }
 
+  const isMapExpanded = mapMode !== 'none';
+
   return (
-    <View style={[styles.container, { backgroundColor: theme.background }]}>
-      {/* Mirrors (tabs)/explore.tsx's map section exactly: a fixed, non-
-       *  interactive 35vh strip (never the full screen, never draggable —
-       *  that gesture lives only in the dedicated MapSelectionMode
-       *  workspace pickup/dropoff selection opens into), a dashed origin/
-       *  destination preview before both are confirmed, the real road-route
-       *  geometry once they are. */}
-      <View style={[styles.mapSection, { height: windowHeight * MAP_HEIGHT_RATIO }]}>
+    <View
+      style={[styles.container, { backgroundColor: theme.background }]}
+      onLayout={(e) => setContainerHeight(e.nativeEvent.layout.height)}
+    >
+      {/* One persistent map (§5): it GROWS from explore.tsx's fixed 35vh
+       *  strip to fill the screen when pickup/dropoff selection opens, and
+       *  shrinks back when it closes — never a hard cut to a different
+       *  component/screen. Interactive (scroll/zoom/pan) only while a
+       *  selection phase is active; a static, non-interactive preview the
+       *  rest of the time, exactly like explore.tsx's map. */}
+      <Animated.View style={[styles.mapSection, { height: mapHeight }]}>
         <MapView
+          ref={mapRef}
           provider={PROVIDER_DEFAULT}
           style={StyleSheet.absoluteFillObject}
-          region={journeyMapRegion ?? TUNIS_REGION}
-          scrollEnabled={false}
-          zoomEnabled={false}
+          region={isMapExpanded ? undefined : (journeyMapRegion ?? TUNIS_REGION)}
+          scrollEnabled={isMapExpanded}
+          zoomEnabled={isMapExpanded}
           pitchEnabled={false}
           rotateEnabled={false}
-          pointerEvents="none"
+          pointerEvents={isMapExpanded ? 'auto' : 'none'}
+          onPanDrag={handleMapPanDrag}
+          onRegionChangeComplete={handleMapRegionChangeComplete}
           customMapStyle={scheme === 'dark' ? darkMapStyle : lightMapStyle}
           userInterfaceStyle={scheme}
         >
-          {routeCoordinates.length > 1 ? (
-            <MapRoute coordinates={routeCoordinates} showCorridor />
-          ) : null}
-          {origin && destination && routeCoordinates.length <= 1 ? (
-            <Polyline
-              coordinates={[
-                { latitude: origin.lat, longitude: origin.lng },
-                { latitude: destination.lat, longitude: destination.lng },
-              ]}
-              strokeColor={theme.accent}
-              strokeWidth={2}
-              lineDashPattern={[6, 6]}
-            />
-          ) : null}
-          {origin && !pickup ? (
-            <Marker
-              coordinate={{ latitude: origin.lat, longitude: origin.lng }}
-              anchor={{ x: 0.5, y: 0.5 }}
-            >
-              <View
-                style={[
-                  styles.originDot,
-                  { backgroundColor: theme.accent, borderColor: theme.surface },
-                ]}
+          {isMapExpanded ? (
+            activeRecommended.map((point, index) => (
+              <RecommendedPointMarker
+                key={point.id}
+                point={point}
+                index={index}
+                isSelected={point.id === selectedPointId}
+                theme={theme}
+                onPress={() => pickRecommendedPoint(point)}
               />
-            </Marker>
-          ) : null}
-          {destination && !dropoff ? (
-            <Marker
-              coordinate={{ latitude: destination.lat, longitude: destination.lng }}
-              anchor={{ x: 0.5, y: 0.5 }}
-            >
-              <View
-                style={[
-                  styles.destinationDot,
-                  { backgroundColor: theme.ink, borderColor: theme.surface },
-                ]}
-              />
-            </Marker>
-          ) : null}
-          {pickup ? (
-            <Marker
-              coordinate={{ latitude: pickup.lat, longitude: pickup.lng }}
-              anchor={{ x: 0.5, y: 0.5 }}
-            >
-              <View
-                style={[
-                  styles.originDot,
-                  { backgroundColor: theme.accent, borderColor: theme.surface },
-                ]}
-              />
-            </Marker>
-          ) : null}
-          {dropoff ? (
-            <Marker
-              coordinate={{ latitude: dropoff.lat, longitude: dropoff.lng }}
-              anchor={{ x: 0.5, y: 0.5 }}
-            >
-              <View
-                style={[
-                  styles.destinationDot,
-                  { backgroundColor: theme.ink, borderColor: theme.surface },
-                ]}
-              />
-            </Marker>
-          ) : null}
+            ))
+          ) : (
+            <>
+              {routeCoordinates.length > 1 ? <MapRoute coordinates={routeCoordinates} showCorridor /> : null}
+              {origin && destination && routeCoordinates.length <= 1 ? (
+                <Polyline
+                  coordinates={[
+                    { latitude: origin.lat, longitude: origin.lng },
+                    { latitude: destination.lat, longitude: destination.lng },
+                  ]}
+                  strokeColor={theme.accent}
+                  strokeWidth={2}
+                  lineDashPattern={[6, 6]}
+                />
+              ) : null}
+              {origin && !pickup ? (
+                <Marker coordinate={{ latitude: origin.lat, longitude: origin.lng }} anchor={{ x: 0.5, y: 0.5 }}>
+                  <View style={[styles.originDot, { backgroundColor: theme.accent, borderColor: theme.surface }]} />
+                </Marker>
+              ) : null}
+              {destination && !dropoff ? (
+                <Marker coordinate={{ latitude: destination.lat, longitude: destination.lng }} anchor={{ x: 0.5, y: 0.5 }}>
+                  <View style={[styles.destinationDot, { backgroundColor: theme.ink, borderColor: theme.surface }]} />
+                </Marker>
+              ) : null}
+              {pickup ? (
+                <Marker coordinate={{ latitude: pickup.lat, longitude: pickup.lng }} anchor={{ x: 0.5, y: 0.5 }}>
+                  <View style={[styles.originDot, { backgroundColor: theme.accent, borderColor: theme.surface }]} />
+                </Marker>
+              ) : null}
+              {dropoff ? (
+                <Marker coordinate={{ latitude: dropoff.lat, longitude: dropoff.lng }} anchor={{ x: 0.5, y: 0.5 }}>
+                  <View style={[styles.destinationDot, { backgroundColor: theme.ink, borderColor: theme.surface }]} />
+                </Marker>
+              ) : null}
+            </>
+          )}
         </MapView>
+
+        {isMapExpanded ? <CenterPin theme={theme} isDragging={isDraggingPin} /> : null}
 
         <StatusBarBlend theme={theme} scheme={scheme} height={insets.top - spacing.sm} />
 
-        {/* Same dissolve-into-page fade explore.tsx uses, minus the "Vaya"
-         *  wordmark (that's home-tab brand chrome, not part of the map+card
-         *  structural pattern this screen is matching). */}
-        <LinearGradient
-          colors={[
-            `${theme.background}00`,
-            `${theme.background}8C`,
-            `${theme.background}EB`,
-            theme.background,
-          ]}
-          locations={[0, 0.45, 0.78, 1]}
-          style={styles.mapFade}
-        />
-      </View>
+        {isMapExpanded ? null : (
+          // Same dissolve-into-page fade explore.tsx uses, minus the "Vaya"
+          // wordmark (that's home-tab brand chrome, not part of the map+
+          // card structural pattern this screen is matching). Hidden while
+          // expanded so it never washes out the interactive map/pins.
+          <LinearGradient
+            colors={[`${theme.background}00`, `${theme.background}8C`, `${theme.background}EB`, theme.background]}
+            locations={[0, 0.45, 0.78, 1]}
+            style={styles.mapFade}
+          />
+        )}
+      </Animated.View>
 
       <View
         style={[
@@ -1205,183 +1261,177 @@ export default function PublishTabScreen(): React.JSX.Element {
           <View style={[styles.handleBar, { backgroundColor: theme.outlineVariant }]} />
         </View>
 
-        <ScrollView style={styles.cardScroll} contentContainerStyle={styles.content}>
-          <Animated.View style={[styles.formStack, stepMotionStyle]}>
-            <Text variant="headlineDisplay" color={theme.ink} style={styles.headline}>
-              Publier un trajet
+      {isMapExpanded ? (
+        <View style={styles.selectionCardContent}>
+          <View style={styles.selectionHeaderRow}>
+            <TouchableOpacity
+              onPress={() => setMapMode(mapMode === 'dropoff' ? 'pickup' : 'none')}
+              hitSlop={12}
+              accessibilityRole="button"
+              accessibilityLabel="Retour"
+            >
+              <Icon name="arrow-back" size="sm" color={theme.ink} />
+            </TouchableOpacity>
+            <Text variant="label" color={theme.ink} style={styles.selectionHeaderTitle}>
+              {mapMode === 'pickup' ? 'Point de rendez-vous' : 'Point de dépose'}
             </Text>
+          </View>
+          <Text variant="caption" color={theme.inkMuted}>
+            Choisissez un point suggéré ou placez-le vous-même.
+          </Text>
+          {isGeneratingStops ? (
+            <Text variant="caption" color={theme.inkFaint}>
+              Recherche de suggestions…
+            </Text>
+          ) : osrmUnavailable ? (
+            <Text variant="caption" color={theme.inkFaint}>
+              Suggestions indisponibles pour le moment — placez le point vous-même.
+            </Text>
+          ) : null}
 
-            <Text variant="label" color={theme.inkFaint} style={styles.eyebrow}>
-              ITINÉRAIRE
-            </Text>
-            <GlassSurface theme={theme} scheme={scheme} radius="xl" style={styles.fieldCard}>
-              <TouchableOpacity
-                style={styles.fieldRow}
-                onPress={() =>
-                  router.push({ pathname: '/search/composer', params: { field: 'origin' } })
-                }
-                accessibilityRole="button"
-                accessibilityLabel={`Départ, ${origin?.label ?? 'non choisi'}`}
-              >
-                <View style={[styles.fieldDot, { backgroundColor: theme.accent }]} />
-                <View style={styles.fieldTextCol}>
-                  <Text variant="caption" color={theme.inkFaint}>
-                    Départ
-                  </Text>
-                  <Text
-                    variant="label"
-                    color={origin ? theme.ink : theme.inkFaint}
-                    numberOfLines={1}
-                  >
-                    {origin?.label ?? 'Choisir un point de départ'}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-              <View style={[styles.fieldDivider, { backgroundColor: theme.outlineVariant }]} />
-              <TouchableOpacity
-                style={styles.fieldRow}
-                onPress={() =>
-                  router.push({ pathname: '/search/composer', params: { field: 'destination' } })
-                }
-                accessibilityRole="button"
-                accessibilityLabel={`Arrivée, ${destination?.label ?? 'non choisie'}`}
-              >
-                <View
-                  style={[styles.fieldDot, styles.fieldDotOutline, { borderColor: theme.ink }]}
-                />
-                <View style={styles.fieldTextCol}>
-                  <Text variant="caption" color={theme.inkFaint}>
-                    Arrivée
-                  </Text>
-                  <Text
-                    variant="label"
-                    color={destination ? theme.ink : theme.inkFaint}
-                    numberOfLines={1}
-                  >
-                    {destination?.label ?? 'Où allez-vous ?'}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            </GlassSurface>
+          <View style={[styles.selectionConfirmRow, { borderColor: theme.outlineVariant }]}>
+            <View style={[styles.confirmIcon, { backgroundColor: theme.surfaceMuted }]}>
+              {isResolvingPointLabel ? (
+                <ActivityIndicator size="small" color={theme.ink} />
+              ) : (
+                <Icon name="pin" size="sm" color={theme.ink} />
+              )}
+            </View>
+            <View style={styles.confirmTextCol}>
+              <Text variant="caption" color={theme.inkFaint}>
+                Point sélectionné
+              </Text>
+              <Text variant="label" color={theme.ink} numberOfLines={1}>
+                {isResolvingPointLabel ? 'Résolution du lieu…' : (resolvedPointLabel ?? 'Déplacez la carte')}
+              </Text>
+            </View>
+          </View>
 
-            <Text variant="label" color={theme.inkFaint} style={styles.eyebrow}>
-              DÉTAILS DU TRAJET
-            </Text>
-            <GlassSurface theme={theme} scheme={scheme} radius="2xl" style={styles.detailsCard}>
-              <View style={styles.section}>
-                <Text variant="label" color={theme.inkMuted}>
+          <PrimaryButton
+            theme={theme}
+            label={mapMode === 'pickup' ? 'Confirmer le point de rendez-vous' : 'Confirmer le point de dépose'}
+            onPress={confirmActivePoint}
+            disabled={!resolvedPointLabel || isResolvingPointLabel}
+          />
+        </View>
+      ) : (
+      <ScrollView style={styles.cardScroll} contentContainerStyle={styles.content}>
+        <Animated.View style={[styles.formStack, stepMotionStyle]}>
+          <Text variant="headlineDisplay" color={theme.ink} style={styles.headline}>
+            Publier un trajet
+          </Text>
+
+          {/* Flat structure matching (tabs)/explore.tsx exactly — no
+           *  section eyebrows, no wrapping card around Date/Heure/Places,
+           *  no quick-preset chip row (Search has none either) — so this
+           *  card fits in the same space Search's does, without scrolling. */}
+          <GlassSurface theme={theme} scheme={scheme} radius="xl" style={styles.fieldCard}>
+            <TouchableOpacity
+              style={styles.fieldRow}
+              onPress={() =>
+                router.push({ pathname: '/search/composer', params: { field: 'origin' } })
+              }
+              accessibilityRole="button"
+              accessibilityLabel={`Départ, ${origin?.label ?? 'non choisi'}`}
+            >
+              <View style={[styles.fieldDot, { backgroundColor: theme.accent }]} />
+              <View style={styles.fieldTextCol}>
+                <Text variant="caption" color={theme.inkFaint}>
                   Départ
                 </Text>
-                <View style={styles.chipRow}>
-                  {DEPARTURE_PRESETS.map((preset) => (
-                    <TouchableOpacity
-                      key={preset.minutes}
-                      style={[
-                        styles.chip,
-                        selectedPresetMinutes === preset.minutes
-                          ? { backgroundColor: theme.ink }
-                          : { backgroundColor: theme.surfaceMuted },
-                      ]}
-                      onPress={() => {
-                        setDepartureAt(new Date(Date.now() + preset.minutes * 60_000));
-                        setSelectedPresetMinutes(preset.minutes);
-                      }}
-                      accessibilityRole="button"
-                      accessibilityLabel={preset.label}
-                      accessibilityState={{ selected: selectedPresetMinutes === preset.minutes }}
-                    >
-                      <Text
-                        variant="caption"
-                        color={
-                          selectedPresetMinutes === preset.minutes ? theme.onInk : theme.inkMuted
-                        }
-                      >
-                        {preset.label}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-                <View style={styles.paramsGrid}>
-                  <TouchableOpacity
-                    style={[
-                      styles.paramBtn,
-                      { backgroundColor: theme.surface, borderColor: theme.outlineVariant },
-                    ]}
-                    onPress={() => setIsDateSheetOpen(true)}
-                    activeOpacity={0.7}
-                    accessibilityRole="button"
-                    accessibilityLabel={`Date de départ, ${formatDepartureLabel(departureAt)}`}
-                  >
-                    <Icon name="calendar-outline" size="sm" color={theme.inkFaint} />
-                    <View>
-                      <Text variant="caption" color={theme.inkFaint}>
-                        Date
-                      </Text>
-                      <Text variant="bodySmall" color={theme.ink}>
-                        {formatDepartureLabel(departureAt).split(' · ')[0]}
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[
-                      styles.paramBtn,
-                      { backgroundColor: theme.surface, borderColor: theme.outlineVariant },
-                    ]}
-                    onPress={() => setIsTimeSheetOpen(true)}
-                    activeOpacity={0.7}
-                    accessibilityRole="button"
-                    accessibilityLabel={`Heure de départ, ${formatTime(departureAt)}`}
-                  >
-                    <Icon name="time-outline" size="sm" color={theme.inkFaint} />
-                    <View>
-                      <Text variant="caption" color={theme.inkFaint}>
-                        Heure
-                      </Text>
-                      <Text variant="bodySmall" color={theme.ink}>
-                        {formatTime(departureAt)}
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
-                </View>
-              </View>
-
-              <View
-                style={[
-                  styles.section,
-                  styles.sectionDivider,
-                  { borderTopColor: theme.outlineVariant },
-                ]}
-              >
-                <Text variant="label" color={theme.inkMuted}>
-                  Places disponibles
+                <Text
+                  variant="label"
+                  color={origin ? theme.ink : theme.inkFaint}
+                  numberOfLines={1}
+                >
+                  {origin?.label ?? 'Choisir un point de départ'}
                 </Text>
-                <View style={styles.stepperRow}>
-                  <TouchableOpacity
-                    style={[styles.stepperBtn, { backgroundColor: theme.surface }]}
-                    onPress={() => setSeats((s) => Math.max(1, s - 1))}
-                    accessibilityRole="button"
-                    accessibilityLabel="Retirer une place"
-                  >
-                    <Text variant="h3" color={theme.ink}>
-                      −
-                    </Text>
-                  </TouchableOpacity>
-                  <Text variant="h3" color={theme.ink} style={styles.stepperValue}>
-                    {seats}
-                  </Text>
-                  <TouchableOpacity
-                    style={[styles.stepperBtn, { backgroundColor: theme.surface }]}
-                    onPress={() => setSeats((s) => Math.min(8, s + 1))}
-                    accessibilityRole="button"
-                    accessibilityLabel="Ajouter une place"
-                  >
-                    <Text variant="h3" color={theme.ink}>
-                      +
-                    </Text>
-                  </TouchableOpacity>
-                </View>
               </View>
-            </GlassSurface>
+            </TouchableOpacity>
+            <View style={[styles.fieldDivider, { backgroundColor: theme.outlineVariant }]} />
+            <TouchableOpacity
+              style={styles.fieldRow}
+              onPress={() =>
+                router.push({ pathname: '/search/composer', params: { field: 'destination' } })
+              }
+              accessibilityRole="button"
+              accessibilityLabel={`Arrivée, ${destination?.label ?? 'non choisie'}`}
+            >
+              <View style={[styles.fieldDot, styles.fieldDotOutline, { borderColor: theme.ink }]} />
+              <View style={styles.fieldTextCol}>
+                <Text variant="caption" color={theme.inkFaint}>
+                  Arrivée
+                </Text>
+                <Text
+                  variant="label"
+                  color={destination ? theme.ink : theme.inkFaint}
+                  numberOfLines={1}
+                >
+                  {destination?.label ?? 'Où allez-vous ?'}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          </GlassSurface>
+
+          <View style={styles.paramsGrid}>
+            <TouchableOpacity
+              style={[styles.paramBtn, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}
+              onPress={() => setIsDateSheetOpen(true)}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel={`Date de départ, ${formatDepartureLabel(departureAt)}`}
+            >
+              <Icon name="calendar-outline" size="sm" color={theme.inkFaint} />
+              <View>
+                <Text variant="caption" color={theme.inkFaint}>
+                  Date
+                </Text>
+                <Text variant="bodySmall" color={theme.ink}>
+                  {formatDepartureLabel(departureAt).split(' · ')[0]}
+                </Text>
+              </View>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.paramBtn, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}
+              onPress={() => setIsTimeSheetOpen(true)}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel={`Heure de départ, ${formatTime(departureAt)}`}
+            >
+              <Icon name="time-outline" size="sm" color={theme.inkFaint} />
+              <View>
+                <Text variant="caption" color={theme.inkFaint}>
+                  Heure
+                </Text>
+                <Text variant="bodySmall" color={theme.ink}>
+                  {formatTime(departureAt)}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+
+          {/* Same tap-to-open sheet grammar as Date/Heure and as Search's
+           *  own Passagers row — no inline counter/stepper on the form
+           *  itself, the count is edited in the sheet only. */}
+          <TouchableOpacity
+            style={[styles.paramBtnWide, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}
+            onPress={() => setIsSeatsSheetOpen(true)}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={`Places disponibles, ${seats}`}
+          >
+            <View style={[styles.seatsIconWrap, { backgroundColor: theme.surfaceMuted }]}>
+              <Icon name="person-outline" size="sm" color={theme.inkFaint} />
+            </View>
+            <View>
+              <Text variant="caption" color={theme.inkFaint}>
+                Places disponibles
+              </Text>
+              <Text variant="bodySmall" color={theme.ink}>
+                {seats} place{seats > 1 ? 's' : ''}
+              </Text>
+            </View>
+          </TouchableOpacity>
 
             {errorMessage ? (
               <Text variant="bodySmall" color={theme.error} style={styles.formError}>
@@ -1389,37 +1439,43 @@ export default function PublishTabScreen(): React.JSX.Element {
               </Text>
             ) : null}
 
-            <PrimaryButton
-              theme={theme}
-              label={readyForPrice ? 'Choisir le prix' : 'Suivant'}
-              icon={readyForPrice ? 'pricetag-outline' : undefined}
-              loading={isCreating}
-              disabled={!canContinue}
-              onPress={() => requireAuth(() => void proceedFromForm(), 'publishing')}
-            />
-          </Animated.View>
-        </ScrollView>
+          <PrimaryButton
+            theme={theme}
+            label={readyForPrice ? 'Choisir le prix' : 'Suivant'}
+            icon={readyForPrice ? 'pricetag-outline' : undefined}
+            loading={isCreating}
+            disabled={!canContinue}
+            onPress={() => requireAuth(() => void proceedFromForm(), 'publishing')}
+          />
+        </Animated.View>
+      </ScrollView>
+      )}
       </View>
 
       <DateCalendarSheet
         visible={isDateSheetOpen}
         onClose={() => setIsDateSheetOpen(false)}
         value={departureAt}
-        onChange={(date) => {
-          setDepartureAt(date);
-          setSelectedPresetMinutes(null);
-        }}
+        onChange={setDepartureAt}
         title="Date de départ"
       />
       <TimeWheelSheet
         visible={isTimeSheetOpen}
         onClose={() => setIsTimeSheetOpen(false)}
         value={departureAt}
-        onChange={(date) => {
-          setDepartureAt(date);
-          setSelectedPresetMinutes(null);
-        }}
+        onChange={setDepartureAt}
         title="Heure de départ"
+      />
+      <PassengerSheet
+        visible={isSeatsSheetOpen}
+        onClose={() => setIsSeatsSheetOpen(false)}
+        value={seats}
+        onChange={setSeats}
+        min={1}
+        max={8}
+        title="Places disponibles"
+        formatCount={(n) => `${n} place${n > 1 ? 's' : ''} disponible${n > 1 ? 's' : ''}`}
+        hint="Jusqu'à 8 places par trajet"
       />
 
       <ContextualAuthSheet
@@ -1474,6 +1530,42 @@ const styles = StyleSheet.create({
   cardScroll: {
     flex: 1,
   },
+  // The compact confirm bar shown in the card while pickup/dropoff
+  // selection is active — deliberately small (§8: "a compact confirmation
+  // control that does not unnecessarily obstruct the map"), since the map
+  // above it has just grown to fill nearly the whole screen.
+  selectionCardContent: {
+    flex: 1,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.sm,
+    gap: spacing.sm,
+  },
+  selectionHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  selectionHeaderTitle: {
+    flex: 1,
+  },
+  selectionConfirmRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    borderWidth: 1,
+    borderRadius: radii.lg,
+    padding: spacing.sm,
+  },
+  confirmIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  confirmTextCol: {
+    flex: 1,
+  },
   header: {
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.sm,
@@ -1501,6 +1593,9 @@ const styles = StyleSheet.create({
   },
   formStack: {
     gap: spacing.sm,
+  },
+  headline: {
+    marginTop: 0,
   },
   eyebrow: {
     fontWeight: typography.fontWeight.semibold,
@@ -1534,36 +1629,16 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: 1,
   },
-  detailsCard: {
-    padding: spacing.lg,
-    marginBottom: spacing.md,
-  },
-  section: {
-    gap: spacing.sm,
-  },
-  sectionDivider: {
-    marginTop: spacing.md,
-    paddingTop: spacing.md,
-    borderTopWidth: 1,
-  },
   formError: {
     marginBottom: spacing.xs,
   },
-  chipRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
-  },
-  chip: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    borderRadius: radii.full,
-  },
+  // Matches explore.tsx's paramsGrid/paramBtn/paramBtnWide exactly (§14.1
+  // guidance above) — Date/Heure sit side by side, Places disponibles is a
+  // full-width row beneath, none of them wrapped in a second card.
   paramsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: spacing.sm,
-    marginTop: spacing.sm,
   },
   paramBtn: {
     flexBasis: '47%',
@@ -1575,21 +1650,20 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: spacing.md,
   },
-  stepperRow: {
+  paramBtnWide: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.lg,
+    gap: spacing.sm,
+    borderRadius: radii.xl,
+    borderWidth: 1,
+    padding: spacing.md,
   },
-  stepperBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+  seatsIconWrap: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  stepperValue: {
-    minWidth: 56,
-    textAlign: 'center',
   },
   primaryBtn: {
     width: '100%',
