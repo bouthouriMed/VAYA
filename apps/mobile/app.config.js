@@ -15,6 +15,21 @@ module.exports = {
     ios: {
       supportsTablet: true,
       bundleIdentifier: 'com.vaya.app',
+      // The API (apps/api/.env.example's default, and every LAN-IP dev
+      // setup CLAUDE.md documents) serves over plain http, not https — no
+      // production HTTPS backend exists yet. Android has no equivalent
+      // restriction in this setup, but iOS's App Transport Security blocks
+      // any non-https request by default outside Expo Go's own permissive
+      // Info.plist, which is exactly why a real iOS build/dev-client shows
+      // real uploaded avatar photos as broken images (silently falling back
+      // to initials via Avatar's onError) while the same photo loads fine
+      // on Android. Requires a native prebuild/rebuild to take effect —
+      // same category as this file's other native-config notes.
+      infoPlist: {
+        NSAppTransportSecurity: {
+          NSAllowsArbitraryLoads: true,
+        },
+      },
     },
     android: {
       package: 'com.vaya.app',
