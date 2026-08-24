@@ -1043,6 +1043,11 @@ const styles = StyleSheet.create({
     borderRadius: radii.full,
     borderWidth: 1,
   },
+  photoCta: {
+    marginTop: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+  },
   driverCard: {
     flexDirection: 'row',
     alignItems: 'center',

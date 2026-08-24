@@ -9,6 +9,7 @@ import {
   Icon,
   DriverListCard,
   DriverMapPin,
+  PickupPin,
   EmptyState,
   SkeletonBlock,
   useToast,
@@ -268,7 +269,7 @@ export default function ResultsScreen(): React.JSX.Element {
             <MapView provider={PROVIDER_DEFAULT} style={styles.map} initialRegion={mapRegion} customMapStyle={[]}>
               {origin ? (
                 <Marker coordinate={{ latitude: origin.lat, longitude: origin.lng }} anchor={{ x: 0.5, y: 0.5 }}>
-                  <View style={[styles.originDot, { backgroundColor: theme.accent, borderColor: theme.surface }]} />
+                  <PickupPin theme={theme} />
                 </Marker>
               ) : null}
               {sorted.map((candidate) => (
@@ -411,12 +412,6 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  originDot: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    borderWidth: 2,
   },
   subheader: {
     flexDirection: 'row',

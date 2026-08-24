@@ -7,9 +7,10 @@ import type { InboxConversation } from '../features/conversations/inboxHelpers';
  * Real react-test-renderer snapshots of (tabs)/messages.tsx (Stitch
  * reference: "Inbox / trip-centric overview",
  * stitch/message/inbox-trip-centric-overview.html) — pins the tab-root
- * headline treatment (headlineDisplay, centered per that reference)
- * across all four designed states: loading skeletons, fetch error,
- * genuinely-empty inbox, and a populated two-section list.
+ * page-header treatment (left-aligned "Vos conversations" headlineDisplay,
+ * matching the sibling tabs' idiom) across all four designed states:
+ * loading skeletons, fetch error, genuinely-empty inbox, and a populated
+ * two-section list.
  *
  * System time is pinned (Date only — timers/network stay real) because
  * the inbox's day-bucket labels ("Aujourd'hui"/"Hier") and relative row

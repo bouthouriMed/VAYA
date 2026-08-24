@@ -12,7 +12,7 @@ export { Meter } from './Meter';
 export { PriceRangeStepper, clampPrice } from './PriceRangeStepper';
 export { Chip } from './Chip';
 export { MapPreview } from './MapPreview';
-export { PickupPin, DropoffPin } from './RideStopMarkers';
+export { PickupPin, DropoffPin, StopPin } from './RideStopMarkers';
 export { MapCanvas } from './MapCanvas';
 export { MapRoute } from './MapRoute';
 export { DriverMapPin } from './DriverMapPin';

@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Marker } from 'react-native-maps';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring, withTiming } from 'react-native-reanimated';
-import { Text, Icon, type AppPalette } from '@vaya/design-system';
+import { StopPin, type AppPalette } from '@vaya/design-system';
 import type { RecommendedPoint } from './nearestStops';
 
 const SPRING_CONFIG = { damping: 20, stiffness: 220 };
@@ -44,7 +44,8 @@ export function CenterPin({ theme, isDragging }: { theme: AppPalette; isDragging
 /** One real, road-snapped (or anchor) recommended point on the map — a
  *  flag for the anchor itself, a number for every other candidate, filled
  *  solid when selected. Kept as one shared piece so pickup and drop-off
- *  render identically. */
+ *  render identically. The circle/label visual itself is the design-system
+ *  StopPin, shared with the passenger stop-selection maps. */
 export function RecommendedPointMarker({
   point,
   index,
@@ -65,21 +66,7 @@ export function RecommendedPointMarker({
       accessibilityLabel={point.label}
       zIndex={isSelected ? 10 : 1}
     >
-      <View
-        style={[
-          styles.stopPin,
-          { borderColor: theme.outline, backgroundColor: theme.surface },
-          isSelected && { backgroundColor: theme.ink, borderColor: theme.ink },
-        ]}
-      >
-        {point.isAnchor ? (
-          <Icon name="flag" size="xs" color={isSelected ? theme.onInk : theme.ink} />
-        ) : (
-          <Text variant="caption" color={isSelected ? theme.onInk : theme.ink} style={styles.stopPinLabel}>
-            {index}
-          </Text>
-        )}
-      </View>
+      <StopPin theme={theme} index={index} selected={isSelected} flag={point.isAnchor} />
     </Marker>
   );
 }
@@ -120,21 +107,5 @@ const styles = StyleSheet.create({
     borderRadius: 9,
     backgroundColor: '#000',
     marginTop: 2,
-  },
-  stopPin: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    borderWidth: 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  stopPinLabel: {
-    fontWeight: '700',
   },
 });

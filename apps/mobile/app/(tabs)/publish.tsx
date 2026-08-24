@@ -513,7 +513,8 @@ export default function PublishTabScreen(): React.JSX.Element {
     if (pickup) points.push({ lat: pickup.lat, lng: pickup.lng });
     if (dropoff) points.push({ lat: dropoff.lat, lng: dropoff.lng });
     if (points.length === 0 && origin) points.push({ lat: origin.lat, lng: origin.lng });
-    if (points.length === 0 && destination) points.push({ lat: destination.lat, lng: destination.lng });
+    if (points.length === 0 && destination)
+      points.push({ lat: destination.lat, lng: destination.lng });
     if (origin && !pickup) points.push({ lat: origin.lat, lng: origin.lng });
     if (destination && !dropoff) points.push({ lat: destination.lat, lng: destination.lng });
     return regionForPoints(points);
@@ -676,13 +677,19 @@ export default function PublishTabScreen(): React.JSX.Element {
 
   function confirmPickup(point: PublishPoint): void {
     setPickup(point);
-    trackEvent('ride_pickup_point_confirmed', { rideId: rideId ?? undefined, isCustom: point.stopId === null });
+    trackEvent('ride_pickup_point_confirmed', {
+      rideId: rideId ?? undefined,
+      isCustom: point.stopId === null,
+    });
     setMapMode('dropoff');
   }
 
   function confirmDropoff(point: PublishPoint): void {
     setDropoff(point);
-    trackEvent('ride_dropoff_point_confirmed', { rideId: rideId ?? undefined, isCustom: point.stopId === null });
+    trackEvent('ride_dropoff_point_confirmed', {
+      rideId: rideId ?? undefined,
+      isCustom: point.stopId === null,
+    });
     setMapMode('none');
   }
 
@@ -1012,7 +1019,7 @@ export default function PublishTabScreen(): React.JSX.Element {
                     setMapMode('pickup');
                   }}
                   accessibilityRole={hasRideData ? 'button' : undefined}
-                  accessibilityLabel={hasRideData ? "Modifier le point de rendez-vous" : undefined}
+                  accessibilityLabel={hasRideData ? 'Modifier le point de rendez-vous' : undefined}
                 >
                   <View
                     style={[
@@ -1052,7 +1059,9 @@ export default function PublishTabScreen(): React.JSX.Element {
                       { backgroundColor: theme.surface, borderColor: theme.ink },
                     ]}
                   >
-                    <View style={[styles.timelineDotDestinationInner, { backgroundColor: theme.ink }]} />
+                    <View
+                      style={[styles.timelineDotDestinationInner, { backgroundColor: theme.ink }]}
+                    />
                   </View>
                   <View style={styles.timelineRowContent}>
                     <View style={styles.timelineText}>
@@ -1150,7 +1159,9 @@ export default function PublishTabScreen(): React.JSX.Element {
                   VÉHICULE
                 </Text>
                 <View style={styles.vehicleSummaryRow}>
-                  <View style={[styles.vehicleSummaryIcon, { backgroundColor: theme.surfaceMuted }]}>
+                  <View
+                    style={[styles.vehicleSummaryIcon, { backgroundColor: theme.surfaceMuted }]}
+                  >
                     <Icon name="car-sport-outline" size="md" color={theme.ink} />
                   </View>
                   <View>
@@ -1169,7 +1180,9 @@ export default function PublishTabScreen(): React.JSX.Element {
                   VÉHICULE
                 </Text>
                 <View style={styles.vehicleSummaryRow}>
-                  <View style={[styles.vehicleSummaryIcon, { backgroundColor: theme.surfaceMuted }]}>
+                  <View
+                    style={[styles.vehicleSummaryIcon, { backgroundColor: theme.surfaceMuted }]}
+                  >
                     <Icon name="lock-closed-outline" size="sm" color={theme.inkFaint} />
                   </View>
                   <Text
@@ -1222,8 +1235,8 @@ export default function PublishTabScreen(): React.JSX.Element {
             </Text>
             <Text variant="body" color={theme.inkMuted} align="center">
               Pour publier votre premier trajet, nous devons vérifier votre profil de conducteur.
-              Votre trajet est enregistré et sera publié automatiquement dès que votre
-              vérification sera validée.
+              Votre trajet est enregistré et sera publié automatiquement dès que votre vérification
+              sera validée.
             </Text>
             <View style={styles.verificationPill}>
               <Icon name="hourglass-outline" size="xs" color={colors.warningDark} />
@@ -1375,7 +1388,11 @@ export default function PublishTabScreen(): React.JSX.Element {
       <View
         style={[
           styles.card,
-          { backgroundColor: theme.surface, shadowColor: theme.ink, paddingBottom: insets.bottom + spacing.md },
+          {
+            backgroundColor: theme.surface,
+            shadowColor: theme.ink,
+            paddingBottom: insets.bottom + spacing.md,
+          },
         ]}
       >
         <View style={styles.handle}>
@@ -1548,11 +1565,11 @@ export default function PublishTabScreen(): React.JSX.Element {
             </View>
           </TouchableOpacity>
 
-          {errorMessage ? (
-            <Text variant="bodySmall" color={theme.error} style={styles.formError}>
-              {errorMessage}
-            </Text>
-          ) : null}
+            {errorMessage ? (
+              <Text variant="bodySmall" color={theme.error} style={styles.formError}>
+                {errorMessage}
+              </Text>
+            ) : null}
 
           <PrimaryButton
             theme={theme}

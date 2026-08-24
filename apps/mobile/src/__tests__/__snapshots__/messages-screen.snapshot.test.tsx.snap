@@ -21,61 +21,12 @@ exports[`messages.tsx snapshots > empty inbox — headline, filter-less, first-r
   <View
     style={
       {
-        "alignItems": "center",
-        "flexDirection": "row",
-        "justifyContent": "space-between",
-        "paddingBottom": 8,
+        "gap": 17,
+        "paddingBottom": 12,
         "paddingHorizontal": 16,
       }
     }
   >
-    <TouchableOpacity
-      accessibilityLabel="Ouvrir mon profil"
-      accessibilityRole="button"
-      onPress={[Function]}
-      style={
-        {
-          "alignItems": "center",
-          "height": 32,
-          "justifyContent": "center",
-          "width": 32,
-        }
-      }
-    >
-      <View
-        accessibilityRole="image"
-        accessible={true}
-        style={
-          [
-            {
-              "alignItems": "center",
-              "justifyContent": "center",
-            },
-            {
-              "backgroundColor": "#2E3B42",
-              "borderRadius": 16,
-              "height": 32,
-              "width": 32,
-            },
-          ]
-        }
-      >
-        <Text
-          style={
-            [
-              {
-                "color": "#FFFFFF",
-                "fontWeight": "600",
-              },
-              {
-                "color": undefined,
-                "fontSize": 13,
-              },
-            ]
-          }
-        />
-      </View>
-    </TouchableOpacity>
     <Text
       style={
         [
@@ -90,26 +41,56 @@ exports[`messages.tsx snapshots > empty inbox — headline, filter-less, first-r
             "textAlign": undefined,
             "writingDirection": "ltr",
           },
+          {
+            "marginTop": 20,
+            "textAlign": "center",
+          },
+        ]
+      }
+    >
+      Vos conversations
+    </Text>
+    <Text
+      style={
+        [
+          {
+            "fontSize": 14,
+            "fontWeight": "400",
+            "lineHeight": 21,
+          },
+          {
+            "color": "#5C5748",
+            "textAlign": undefined,
+            "writingDirection": "ltr",
+          },
           undefined,
         ]
       }
     >
-      Messages
+      Retrouvez les échanges liés à vos trajets partagés.
     </Text>
+  </View>
+  <View
+    style={
+      {
+        "flexDirection": "row",
+        "justifyContent": "flex-end",
+        "paddingBottom": 4,
+        "paddingHorizontal": 16,
+      }
+    }
+  >
     <TouchableOpacity
       accessibilityLabel="Rechercher une conversation"
       accessibilityRole="button"
       onPress={[Function]}
       style={
-        [
-          {
-            "alignItems": "center",
-            "height": 32,
-            "justifyContent": "center",
-            "width": 32,
-          },
-          {},
-        ]
+        {
+          "alignItems": "center",
+          "height": 32,
+          "justifyContent": "center",
+          "width": 32,
+        }
       }
     >
       <Ionicons
@@ -242,6 +223,58 @@ exports[`messages.tsx snapshots > error — full-screen retry EmptyState 1`] = `
   }
 >
   <View
+    style={
+      {
+        "gap": 17,
+        "paddingBottom": 12,
+        "paddingHorizontal": 16,
+      }
+    }
+  >
+    <Text
+      style={
+        [
+          {
+            "fontFamily": "Fraunces_600SemiBold",
+            "fontSize": 27,
+            "letterSpacing": -0.3,
+            "lineHeight": 31.049999999999997,
+          },
+          {
+            "color": "#14201B",
+            "textAlign": undefined,
+            "writingDirection": "ltr",
+          },
+          {
+            "marginTop": 20,
+            "textAlign": "center",
+          },
+        ]
+      }
+    >
+      Vos conversations
+    </Text>
+    <Text
+      style={
+        [
+          {
+            "fontSize": 14,
+            "fontWeight": "400",
+            "lineHeight": 21,
+          },
+          {
+            "color": "#5C5748",
+            "textAlign": undefined,
+            "writingDirection": "ltr",
+          },
+          undefined,
+        ]
+      }
+    >
+      Retrouvez les échanges liés à vos trajets partagés.
+    </Text>
+  </View>
+  <View
     accessibilityRole="text"
     accessible={true}
     style={
@@ -361,30 +394,13 @@ exports[`messages.tsx snapshots > loading — headline over conversation-row ske
 >
   <View
     style={
-      [
-        {
-          "alignItems": "center",
-          "flexDirection": "row",
-          "justifyContent": "space-between",
-          "paddingBottom": 8,
-          "paddingHorizontal": 16,
-        },
-        {
-          "paddingTop": 12,
-        },
-      ]
+      {
+        "gap": 17,
+        "paddingBottom": 12,
+        "paddingHorizontal": 16,
+      }
     }
   >
-    <View
-      style={
-        {
-          "alignItems": "center",
-          "height": 32,
-          "justifyContent": "center",
-          "width": 32,
-        }
-      }
-    />
     <Text
       style={
         [
@@ -399,347 +415,123 @@ exports[`messages.tsx snapshots > loading — headline over conversation-row ske
             "textAlign": undefined,
             "writingDirection": "ltr",
           },
+          {
+            "marginTop": 20,
+            "textAlign": "center",
+          },
+        ]
+      }
+    >
+      Vos conversations
+    </Text>
+    <Text
+      style={
+        [
+          {
+            "fontSize": 14,
+            "fontWeight": "400",
+            "lineHeight": 21,
+          },
+          {
+            "color": "#5C5748",
+            "textAlign": undefined,
+            "writingDirection": "ltr",
+          },
           undefined,
         ]
       }
     >
-      Messages
+      Retrouvez les échanges liés à vos trajets partagés.
     </Text>
-    <View
-      style={
-        {
-          "alignItems": "center",
-          "height": 32,
-          "justifyContent": "center",
-          "width": 32,
-        }
-      }
-    />
   </View>
   <View
     style={
       {
-        "gap": 16,
+        "gap": 8,
         "padding": 16,
       }
     }
   >
-    <View
+    <Animated.View
+      accessibilityElementsHidden={true}
+      importantForAccessibility="no-hide-descendants"
       style={
-        {
-          "alignItems": "center",
-          "flexDirection": "row",
-          "gap": 8,
-        }
-      }
-    >
-      <Animated.View
-        accessibilityElementsHidden={true}
-        importantForAccessibility="no-hide-descendants"
-        style={
-          [
-            {
-              "backgroundColor": "#EAE7DC",
-            },
-            {
-              "borderRadius": 9999,
-              "height": 48,
-              "opacity": AnimatedValue {
-                "value": 0.45,
-              },
-              "width": 48,
-            },
-            undefined,
-          ]
-        }
-      />
-      <View
-        style={
+        [
           {
-            "flex": 1,
-            "gap": 4,
-          }
-        }
-      >
-        <Animated.View
-          accessibilityElementsHidden={true}
-          importantForAccessibility="no-hide-descendants"
-          style={
-            [
-              {
-                "backgroundColor": "#EAE7DC",
-              },
-              {
-                "borderRadius": 4,
-                "height": 8.4,
-                "opacity": AnimatedValue {
-                  "value": 0.45,
-                },
-                "width": "55%",
-              },
-              undefined,
-            ]
-          }
-        />
-        <Animated.View
-          accessibilityElementsHidden={true}
-          importantForAccessibility="no-hide-descendants"
-          style={
-            [
-              {
-                "backgroundColor": "#EAE7DC",
-              },
-              {
-                "borderRadius": 4,
-                "height": 7.199999999999999,
-                "opacity": AnimatedValue {
-                  "value": 0.45,
-                },
-                "width": "80%",
-              },
-              undefined,
-            ]
-          }
-        />
-      </View>
-    </View>
-    <View
+            "backgroundColor": "#EAE7DC",
+          },
+          {
+            "borderRadius": 16,
+            "height": 92,
+            "opacity": AnimatedValue {
+              "value": 0.45,
+            },
+            "width": "100%",
+          },
+          undefined,
+        ]
+      }
+    />
+    <Animated.View
+      accessibilityElementsHidden={true}
+      importantForAccessibility="no-hide-descendants"
       style={
-        {
-          "alignItems": "center",
-          "flexDirection": "row",
-          "gap": 8,
-        }
-      }
-    >
-      <Animated.View
-        accessibilityElementsHidden={true}
-        importantForAccessibility="no-hide-descendants"
-        style={
-          [
-            {
-              "backgroundColor": "#EAE7DC",
-            },
-            {
-              "borderRadius": 9999,
-              "height": 48,
-              "opacity": AnimatedValue {
-                "value": 0.45,
-              },
-              "width": 48,
-            },
-            undefined,
-          ]
-        }
-      />
-      <View
-        style={
+        [
           {
-            "flex": 1,
-            "gap": 4,
-          }
-        }
-      >
-        <Animated.View
-          accessibilityElementsHidden={true}
-          importantForAccessibility="no-hide-descendants"
-          style={
-            [
-              {
-                "backgroundColor": "#EAE7DC",
-              },
-              {
-                "borderRadius": 4,
-                "height": 8.4,
-                "opacity": AnimatedValue {
-                  "value": 0.45,
-                },
-                "width": "55%",
-              },
-              undefined,
-            ]
-          }
-        />
-        <Animated.View
-          accessibilityElementsHidden={true}
-          importantForAccessibility="no-hide-descendants"
-          style={
-            [
-              {
-                "backgroundColor": "#EAE7DC",
-              },
-              {
-                "borderRadius": 4,
-                "height": 7.199999999999999,
-                "opacity": AnimatedValue {
-                  "value": 0.45,
-                },
-                "width": "80%",
-              },
-              undefined,
-            ]
-          }
-        />
-      </View>
-    </View>
-    <View
+            "backgroundColor": "#EAE7DC",
+          },
+          {
+            "borderRadius": 16,
+            "height": 92,
+            "opacity": AnimatedValue {
+              "value": 0.45,
+            },
+            "width": "100%",
+          },
+          undefined,
+        ]
+      }
+    />
+    <Animated.View
+      accessibilityElementsHidden={true}
+      importantForAccessibility="no-hide-descendants"
       style={
-        {
-          "alignItems": "center",
-          "flexDirection": "row",
-          "gap": 8,
-        }
-      }
-    >
-      <Animated.View
-        accessibilityElementsHidden={true}
-        importantForAccessibility="no-hide-descendants"
-        style={
-          [
-            {
-              "backgroundColor": "#EAE7DC",
-            },
-            {
-              "borderRadius": 9999,
-              "height": 48,
-              "opacity": AnimatedValue {
-                "value": 0.45,
-              },
-              "width": 48,
-            },
-            undefined,
-          ]
-        }
-      />
-      <View
-        style={
+        [
           {
-            "flex": 1,
-            "gap": 4,
-          }
-        }
-      >
-        <Animated.View
-          accessibilityElementsHidden={true}
-          importantForAccessibility="no-hide-descendants"
-          style={
-            [
-              {
-                "backgroundColor": "#EAE7DC",
-              },
-              {
-                "borderRadius": 4,
-                "height": 8.4,
-                "opacity": AnimatedValue {
-                  "value": 0.45,
-                },
-                "width": "55%",
-              },
-              undefined,
-            ]
-          }
-        />
-        <Animated.View
-          accessibilityElementsHidden={true}
-          importantForAccessibility="no-hide-descendants"
-          style={
-            [
-              {
-                "backgroundColor": "#EAE7DC",
-              },
-              {
-                "borderRadius": 4,
-                "height": 7.199999999999999,
-                "opacity": AnimatedValue {
-                  "value": 0.45,
-                },
-                "width": "80%",
-              },
-              undefined,
-            ]
-          }
-        />
-      </View>
-    </View>
-    <View
+            "backgroundColor": "#EAE7DC",
+          },
+          {
+            "borderRadius": 16,
+            "height": 92,
+            "opacity": AnimatedValue {
+              "value": 0.45,
+            },
+            "width": "100%",
+          },
+          undefined,
+        ]
+      }
+    />
+    <Animated.View
+      accessibilityElementsHidden={true}
+      importantForAccessibility="no-hide-descendants"
       style={
-        {
-          "alignItems": "center",
-          "flexDirection": "row",
-          "gap": 8,
-        }
-      }
-    >
-      <Animated.View
-        accessibilityElementsHidden={true}
-        importantForAccessibility="no-hide-descendants"
-        style={
-          [
-            {
-              "backgroundColor": "#EAE7DC",
-            },
-            {
-              "borderRadius": 9999,
-              "height": 48,
-              "opacity": AnimatedValue {
-                "value": 0.45,
-              },
-              "width": 48,
-            },
-            undefined,
-          ]
-        }
-      />
-      <View
-        style={
+        [
           {
-            "flex": 1,
-            "gap": 4,
-          }
-        }
-      >
-        <Animated.View
-          accessibilityElementsHidden={true}
-          importantForAccessibility="no-hide-descendants"
-          style={
-            [
-              {
-                "backgroundColor": "#EAE7DC",
-              },
-              {
-                "borderRadius": 4,
-                "height": 8.4,
-                "opacity": AnimatedValue {
-                  "value": 0.45,
-                },
-                "width": "55%",
-              },
-              undefined,
-            ]
-          }
-        />
-        <Animated.View
-          accessibilityElementsHidden={true}
-          importantForAccessibility="no-hide-descendants"
-          style={
-            [
-              {
-                "backgroundColor": "#EAE7DC",
-              },
-              {
-                "borderRadius": 4,
-                "height": 7.199999999999999,
-                "opacity": AnimatedValue {
-                  "value": 0.45,
-                },
-                "width": "80%",
-              },
-              undefined,
-            ]
-          }
-        />
-      </View>
-    </View>
+            "backgroundColor": "#EAE7DC",
+          },
+          {
+            "borderRadius": 16,
+            "height": 92,
+            "opacity": AnimatedValue {
+              "value": 0.45,
+            },
+            "width": "100%",
+          },
+          undefined,
+        ]
+      }
+    />
   </View>
 </SafeAreaView>
 `;
@@ -765,61 +557,12 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
   <View
     style={
       {
-        "alignItems": "center",
-        "flexDirection": "row",
-        "justifyContent": "space-between",
-        "paddingBottom": 8,
+        "gap": 17,
+        "paddingBottom": 12,
         "paddingHorizontal": 16,
       }
     }
   >
-    <TouchableOpacity
-      accessibilityLabel="Ouvrir mon profil"
-      accessibilityRole="button"
-      onPress={[Function]}
-      style={
-        {
-          "alignItems": "center",
-          "height": 32,
-          "justifyContent": "center",
-          "width": 32,
-        }
-      }
-    >
-      <View
-        accessibilityRole="image"
-        accessible={true}
-        style={
-          [
-            {
-              "alignItems": "center",
-              "justifyContent": "center",
-            },
-            {
-              "backgroundColor": "#2E3B42",
-              "borderRadius": 16,
-              "height": 32,
-              "width": 32,
-            },
-          ]
-        }
-      >
-        <Text
-          style={
-            [
-              {
-                "color": "#FFFFFF",
-                "fontWeight": "600",
-              },
-              {
-                "color": undefined,
-                "fontSize": 13,
-              },
-            ]
-          }
-        />
-      </View>
-    </TouchableOpacity>
     <Text
       style={
         [
@@ -834,26 +577,56 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
             "textAlign": undefined,
             "writingDirection": "ltr",
           },
+          {
+            "marginTop": 20,
+            "textAlign": "center",
+          },
+        ]
+      }
+    >
+      Vos conversations
+    </Text>
+    <Text
+      style={
+        [
+          {
+            "fontSize": 14,
+            "fontWeight": "400",
+            "lineHeight": 21,
+          },
+          {
+            "color": "#5C5748",
+            "textAlign": undefined,
+            "writingDirection": "ltr",
+          },
           undefined,
         ]
       }
     >
-      Messages
+      Retrouvez les échanges liés à vos trajets partagés.
     </Text>
+  </View>
+  <View
+    style={
+      {
+        "flexDirection": "row",
+        "justifyContent": "flex-end",
+        "paddingBottom": 4,
+        "paddingHorizontal": 16,
+      }
+    }
+  >
     <TouchableOpacity
       accessibilityLabel="Rechercher une conversation"
       accessibilityRole="button"
       onPress={[Function]}
       style={
-        [
-          {
-            "alignItems": "center",
-            "height": 32,
-            "justifyContent": "center",
-            "width": 32,
-          },
-          {},
-        ]
+        {
+          "alignItems": "center",
+          "height": 32,
+          "justifyContent": "center",
+          "width": 32,
+        }
       }
     >
       <Ionicons
@@ -898,6 +671,8 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
           },
           {
             "backgroundColor": "#2E9E6C",
+            "borderColor": "transparent",
+            "borderWidth": 1,
           },
           undefined,
         ]
@@ -940,7 +715,9 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
             "paddingVertical": 4,
           },
           {
-            "backgroundColor": "#2E9E6C",
+            "backgroundColor": "#FFFFFF",
+            "borderColor": "#EDE6D4",
+            "borderWidth": 1,
           },
           undefined,
         ]
@@ -954,7 +731,7 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
               "fontWeight": "600",
             },
             {
-              "color": "#0D1512",
+              "color": "#5C5748",
             },
           ]
         }
@@ -983,7 +760,9 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
             "paddingVertical": 4,
           },
           {
-            "backgroundColor": "#2E9E6C",
+            "backgroundColor": "#FFFFFF",
+            "borderColor": "#EDE6D4",
+            "borderWidth": 1,
           },
           undefined,
         ]
@@ -997,7 +776,7 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
               "fontWeight": "600",
             },
             {
-              "color": "#0D1512",
+              "color": "#5C5748",
             },
           ]
         }
@@ -1026,7 +805,9 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
             "paddingVertical": 4,
           },
           {
-            "backgroundColor": "#2E9E6C",
+            "backgroundColor": "#FFFFFF",
+            "borderColor": "#EDE6D4",
+            "borderWidth": 1,
           },
           undefined,
         ]
@@ -1040,7 +821,7 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
               "fontWeight": "600",
             },
             {
-              "color": "#0D1512",
+              "color": "#5C5748",
             },
           ]
         }
@@ -1095,9 +876,17 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
         [
           {
             "alignItems": "center",
+            "borderRadius": 16,
+            "borderWidth": 1,
             "flexDirection": "row",
             "gap": 8,
-            "paddingVertical": 8,
+            "marginBottom": 8,
+            "paddingHorizontal": 12,
+            "paddingVertical": 12,
+          },
+          {
+            "backgroundColor": "#FFFFFF",
+            "borderColor": "#EDE6D4",
           },
           false,
         ]
@@ -1423,12 +1212,20 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
         [
           {
             "alignItems": "center",
+            "borderRadius": 16,
+            "borderWidth": 1,
             "flexDirection": "row",
             "gap": 8,
-            "paddingVertical": 8,
+            "marginBottom": 8,
+            "paddingHorizontal": 12,
+            "paddingVertical": 12,
           },
           {
-            "opacity": 0.6,
+            "backgroundColor": "#FFFFFF",
+            "borderColor": "#EDE6D4",
+          },
+          {
+            "opacity": 0.55,
           },
         ]
       }

@@ -39,6 +39,27 @@ function isPast(conversation: InboxConversation, now: Date): boolean {
   return new Date(conversation.departureAt).getTime() < now.getTime();
 }
 
+/** The live bucket a single thread sits in — the same mutually-exclusive,
+ *  total partition `filterConversations` applies, exposed per-row so the
+ *  inbox UI can render each card's real state (a live "En cours" marker,
+ *  a closed checkmark) from the exact same source of truth as the filters,
+ *  never from a second diverging interpretation. */
+export type ConversationState = 'upcoming' | 'active' | 'past';
+
+export function getConversationState(
+  conversation: InboxConversation,
+  now: Date = new Date(),
+): ConversationState {
+  if (isPast(conversation, now)) return 'past';
+  if (
+    conversation.tripStatus !== null &&
+    ACTIVE_TRIP_STATUSES.has(conversation.tripStatus)
+  ) {
+    return 'active';
+  }
+  return 'upcoming';
+}
+
 /**
  * Filters the raw server list into one of the four Stitch filter pills.
  * The buckets are mutually exclusive and total (every conversation lands
@@ -51,16 +72,7 @@ export function filterConversations(
   now: Date = new Date(),
 ): InboxConversation[] {
   if (filter === 'all') return conversations;
-  return conversations.filter((conversation) => {
-    if (isPast(conversation, now)) return filter === 'past';
-    if (
-      conversation.tripStatus !== null &&
-      ACTIVE_TRIP_STATUSES.has(conversation.tripStatus)
-    ) {
-      return filter === 'active';
-    }
-    return filter === 'upcoming';
-  });
+  return conversations.filter((conversation) => getConversationState(conversation, now) === filter);
 }
 
 function isSameCalendarDay(a: Date, b: Date): boolean {

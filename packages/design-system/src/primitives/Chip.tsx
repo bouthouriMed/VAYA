@@ -17,13 +17,43 @@ interface ChipProps {
    * into the primitive instead (CLAUDE.md's design-system rule).
    */
   onPress?: () => void;
-  /** Only meaningful together with `onPress` — announced as a toggle state. */
+  /** Only meaningful together with `onPress` — announced as a toggle state,
+   *  and — on themed chips — actually rendered: selected = one solid-accent
+   *  pill, unselected = quiet outlined sibling. Before this, `selected`
+   *  was visually inert (it only ever reached accessibilityState), so a
+   *  themed filter row like messages.tsx's Tous/À venir/En cours/Passés
+   *  rendered every option solid green at once. */
   selected?: boolean;
   /** Optional `useAppTheme()` override (Stitch migration) — when given,
-   *  `tone: 'default'` renders solid-accent instead of the legacy static
-   *  mint tint. Unused (and defaulting to the legacy colors) anywhere this
-   *  primitive hasn't been migrated yet. */
+   *  tones follow the live theme instead of the legacy static colors.
+   *  Unused (and defaulting to the legacy look) anywhere this primitive
+   *  hasn't been migrated yet. */
   theme?: AppPalette;
+}
+
+/** A themed pressable chip is a real toggle/filter control: exactly one
+ *  option in the row should carry weight. Selected = solid jewel accent
+ *  (the brand's single loudest fill); unselected = the app's established
+ *  "quiet button" idiom — surface fill + hairline outlineVariant border +
+ *  muted ink, matching explore.tsx's paramBtn grid. Both states carry a
+ *  1px border (transparent when filled) so switching never shifts metrics. */
+function themedSelectableChip(
+  theme: AppPalette,
+  isSelected: boolean,
+): { chip: ViewStyle; color: string } {
+  return isSelected
+    ? {
+        chip: { backgroundColor: theme.accent, borderWidth: 1, borderColor: 'transparent' },
+        color: theme.onAccent,
+      }
+    : {
+        chip: {
+          backgroundColor: theme.surface,
+          borderWidth: 1,
+          borderColor: theme.outlineVariant,
+        },
+        color: theme.inkMuted,
+      };
 }
 
 export function Chip({
@@ -36,8 +66,18 @@ export function Chip({
   theme,
 }: ChipProps): React.JSX.Element {
   const isDefault = tone === 'default';
-  const chipBackground = theme ? (isDefault ? theme.accent : theme.surfaceMuted) : undefined;
-  const textColor = theme ? (isDefault ? theme.onAccent : theme.inkMuted) : undefined;
+  // Themed + pressable → selection-driven rendering; `selected ?? isDefault`
+  // keeps callers that predate the prop (tone-flipping instead) working.
+  const selectable =
+    theme && onPress ? themedSelectableChip(theme, selected ?? isDefault) : null;
+
+  const textColor = selectable
+    ? selectable.color
+    : theme
+      ? isDefault
+        ? theme.onAccent
+        : theme.inkMuted
+      : undefined;
 
   const content = (
     <>
@@ -45,7 +85,7 @@ export function Chip({
       <Text
         style={[
           styles.text,
-          theme ? { color: textColor } : isDefault ? styles.textDefault : styles.textDim,
+          selectable || theme ? { color: textColor } : isDefault ? styles.textDefault : styles.textDim,
         ]}
       >
         {label}
@@ -55,7 +95,13 @@ export function Chip({
 
   const chipStyle = [
     styles.chip,
-    theme ? { backgroundColor: chipBackground } : isDefault ? styles.chipDefault : styles.chipDim,
+    selectable
+      ? selectable.chip
+      : theme
+        ? { backgroundColor: isDefault ? theme.accent : theme.surfaceMuted }
+        : isDefault
+          ? styles.chipDefault
+          : styles.chipDim,
     style,
   ];
 

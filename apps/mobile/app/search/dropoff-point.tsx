@@ -10,7 +10,9 @@ import {
   MapCanvas,
   BottomSheet,
   EmptyState,
+  StopPin,
   colors,
+  lightPalette,
   spacing,
   radii,
   typography,
@@ -164,11 +166,10 @@ export default function DropoffPointScreen(): React.JSX.Element {
               onPress={() => pickStop(stop)}
               accessibilityLabel={`${stop.label}, ${Math.round(stop.walkMinutes)} min à pied`}
             >
-              <View style={[styles.stopPin, isSelected && styles.stopPinSelected]}>
-                <Text style={[styles.stopPinLabel, isSelected && styles.stopPinLabelSelected]}>
-                  {index + 1}
-                </Text>
-              </View>
+              {/* Same numbered pin as the driver publish map (design-system
+               *  StopPin); this screen's chrome is still legacy-light, so it
+               *  pins the fixed light palette rather than useAppTheme(). */}
+              <StopPin theme={lightPalette} index={index + 1} selected={isSelected} />
             </Marker>
           );
         })}
@@ -277,33 +278,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     borderWidth: 2,
     borderColor: colors.white,
-  },
-  stopPin: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: colors.white,
-    borderWidth: 2,
-    borderColor: colors.gray300,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: colors.gray900,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  stopPinSelected: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
-  stopPinLabel: {
-    fontSize: typography.fontSize.xs,
-    fontWeight: typography.fontWeight.bold,
-    color: colors.gray700,
-  },
-  stopPinLabelSelected: {
-    color: colors.white,
   },
   topBar: {
     position: 'absolute',

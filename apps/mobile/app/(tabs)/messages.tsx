@@ -12,17 +12,17 @@ import {
   Icon,
   Input,
   EmptyState,
-  SkeletonCircle,
-  SkeletonText,
+  SkeletonBlock,
   useAppTheme,
   spacing,
   radii,
 } from '@vaya/design-system';
-import { useListConversationsQuery, useGetMeQuery } from '../../src/state/api';
+import { useListConversationsQuery } from '../../src/state/api';
 import {
   filterConversations,
   formatDepartureLabel,
   formatInboxTimestamp,
+  getConversationState,
   groupConversationsByDay,
   roleLabel,
   searchConversations,
@@ -37,6 +37,30 @@ const FILTERS: { key: InboxFilter; label: string }[] = [
   { key: 'past', label: 'Passés' },
 ];
 
+/**
+ * One page-header treatment shared by every render path (guest, loading,
+ * error, inbox) so the screen never changes chrome mid-state. Left-aligned
+ * per the sibling-tab idiom (trips.tsx's "Mes trajets"), titled "Vos
+ * conversations" rather than "Messages" — the tab bar directly below
+ * already says "Messages", and repeating it verbatim was pure redundancy.
+ */
+function InboxHeader({
+  theme,
+}: {
+  theme: ReturnType<typeof useAppTheme>['colors'];
+}): React.JSX.Element {
+  return (
+    <View style={styles.header}>
+      <Text variant="headlineDisplay" color={theme.ink} style={styles.heading}>
+        Vos conversations
+      </Text>
+      <Text variant="bodySmall" color={theme.inkMuted}>
+        Retrouvez les échanges liés à vos trajets partagés.
+      </Text>
+    </View>
+  );
+}
+
 /** Stitch's "Inbox / trip-centric overview" — one thread per booking, the
  *  other party + trip context enriched server-side (GET /conversations), so
  *  the inbox is a real index over real conversations and never guesses
@@ -45,12 +69,12 @@ export default function MessagesScreen(): React.JSX.Element {
   const theme = useAppTheme().colors;
   const accessToken = useAppSelector((s) => s.auth.accessToken);
   const [filter, setFilter] = useState<InboxFilter>('all');
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const { data: conversations, isLoading, isError, refetch } = useListConversationsQuery(undefined, {
     skip: !accessToken,
   });
-  const { data: me } = useGetMeQuery(undefined, { skip: !accessToken });
   const { requireAuth, isAuthSheetVisible, authTrigger, handleAuthenticated, cancelAuth } =
     useContextualAuth();
 
@@ -76,6 +100,15 @@ export default function MessagesScreen(): React.JSX.Element {
     void router.push(`/conversations/${conversation.bookingId}`);
   }
 
+  async function handleRefresh(): Promise<void> {
+    setIsRefreshing(true);
+    try {
+      await refetch();
+    } finally {
+      setIsRefreshing(false);
+    }
+  }
+
   // Messaging is booking-scoped and identity-scoped end to end — nothing
   // here exists for a guest, but browsing this tab is still allowed
   // (per the guest-browsing model). A friendly EmptyState replaces the
@@ -84,13 +117,7 @@ export default function MessagesScreen(): React.JSX.Element {
   if (!accessToken) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top']}>
-        <View style={styles.header}>
-          <View style={styles.headerSlot} />
-          <Text variant="headlineDisplay" color={theme.ink}>
-            Messages
-          </Text>
-          <View style={styles.headerSlot} />
-        </View>
+        <InboxHeader theme={theme} />
         <EmptyState
           icon={<Icon name="chatbubble-ellipses-outline" size="lg" color={theme.inkFaint} />}
           title="Vos trajets, au même endroit."
@@ -111,22 +138,10 @@ export default function MessagesScreen(): React.JSX.Element {
   if (isLoading) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top']}>
-        <View style={[styles.header, { paddingTop: spacing.md }]}>
-          <View style={styles.headerSlot} />
-          <Text variant="headlineDisplay" color={theme.ink}>
-            Messages
-          </Text>
-          <View style={styles.headerSlot} />
-        </View>
+        <InboxHeader theme={theme} />
         <View style={styles.skeletonWrap}>
           {[0, 1, 2, 3].map((i) => (
-            <View key={i} style={styles.skeletonRow}>
-              <SkeletonCircle size={48} />
-              <View style={styles.skeletonLines}>
-                <SkeletonText variant="bodySmall" width="55%" />
-                <SkeletonText variant="caption" width="80%" />
-              </View>
-            </View>
+            <SkeletonBlock key={i} height={92} radius="xl" />
           ))}
         </View>
       </SafeAreaView>
@@ -136,6 +151,7 @@ export default function MessagesScreen(): React.JSX.Element {
   if (isError) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top']}>
+        <InboxHeader theme={theme} />
         <EmptyState
           icon={<Icon name="cloud-offline-outline" size="lg" color={theme.inkFaint} />}
           title="Impossible de charger vos messages"
@@ -149,23 +165,14 @@ export default function MessagesScreen(): React.JSX.Element {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top']}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => router.push('/(tabs)/profile')}
-          accessibilityRole="button"
-          accessibilityLabel="Ouvrir mon profil"
-          style={styles.headerSlot}
-        >
-          <Avatar uri={me?.avatarUrl ?? null} name={me?.fullName ?? ''} sizePx={32} />
-        </TouchableOpacity>
-        <Text variant="headlineDisplay" color={theme.ink}>
-          Messages
-        </Text>
+      <InboxHeader theme={theme} />
+
+      <View style={styles.searchToggleRow}>
         <TouchableOpacity
           onPress={toggleSearch}
           accessibilityRole="button"
           accessibilityLabel={searchOpen ? 'Fermer la recherche' : 'Rechercher une conversation'}
-          style={[styles.headerSlot, styles.headerSlotEnd]}
+          style={styles.searchIconBtn}
         >
           <Icon
             name={searchOpen ? 'close-outline' : 'search-outline'}
@@ -205,10 +212,11 @@ export default function MessagesScreen(): React.JSX.Element {
       <SectionList
         sections={sections}
         keyExtractor={(conversation) => conversation.id}
-        onRefresh={() => void refetch()}
-        refreshing={false}
+        onRefresh={() => void handleRefresh()}
+        refreshing={isRefreshing}
         contentContainerStyle={sections.length === 0 ? styles.listEmpty : styles.listContent}
         stickySectionHeadersEnabled
+        showsVerticalScrollIndicator={false}
         renderSectionHeader={({ section }) => (
           <View style={[styles.sectionHeaderWrap, { backgroundColor: theme.background }]}>
             <Text variant="label" color={theme.inkFaint} style={styles.sectionHeader}>
@@ -221,15 +229,21 @@ export default function MessagesScreen(): React.JSX.Element {
           const preview =
             item.lastMessage?.body ??
             (item.status === 'closed' ? 'Conversation terminée.' : 'Aucun message pour le moment.');
-          const isClosed = item.status === 'closed';
+          const state = getConversationState(item);
+          const isActive = state === 'active';
+          const isClosed = state === 'past';
           const departureLabel = isClosed ? null : formatDepartureLabel(item.departureAt);
           return (
             <TouchableOpacity
-              style={[styles.row, isClosed && styles.rowClosed]}
+              style={[
+                styles.card,
+                { backgroundColor: theme.surface, borderColor: theme.outlineVariant },
+                isClosed && styles.cardClosed,
+              ]}
               onPress={() => openConversation(item)}
               activeOpacity={0.7}
               accessibilityRole="button"
-              accessibilityLabel={`Conversation avec ${item.otherParty.fullName}, ${item.originLabel} vers ${item.destinationLabel}`}
+              accessibilityLabel={`Conversation avec ${item.otherParty.fullName}, ${item.originLabel} vers ${item.destinationLabel}${isActive ? ', trajet en cours' : ''}`}
             >
               <View style={styles.unreadDotSlot}>
                 {item.hasUnread ? (
@@ -270,6 +284,14 @@ export default function MessagesScreen(): React.JSX.Element {
                   </Text>
                 </View>
                 <View style={styles.metaRow}>
+                  {isActive ? (
+                    <>
+                      <View style={[styles.liveDot, { backgroundColor: theme.accent }]} />
+                      <Text variant="caption" color={theme.accent} style={styles.metaState}>
+                        En cours
+                      </Text>
+                    </>
+                  ) : null}
                   <View style={[styles.rolePill, { backgroundColor: theme.surfaceMuted }]}>
                     <Text variant="caption" color={theme.inkMuted} style={styles.rolePillText}>
                       {roleLabel(item.otherPartyRole)}
@@ -331,19 +353,26 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.sm,
+    paddingBottom: spacing.md,
+    gap: 17,
   },
-  headerSlot: {
+  heading: {
+    textAlign: 'center',
+    marginTop: spacing.xl,
+  },
+  searchToggleRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.xs,
+  },
+  searchIconBtn: {
     width: 32,
     height: 32,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  headerSlotEnd: {},
   searchWrap: {
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.sm,
@@ -371,18 +400,27 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     paddingBottom: spacing.xs,
   },
-  row: {
+  card: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
-    paddingVertical: spacing.sm,
+    borderRadius: radii.xl,
+    borderWidth: 1,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+    marginBottom: spacing.sm,
+  },
+  cardClosed: {
+    opacity: 0.55,
   },
   unreadDotSlot: {
     width: 8,
     alignItems: 'center',
   },
-  rowClosed: {
-    opacity: 0.6,
+  unreadDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
   },
   avatarWrap: {
     position: 'relative',
@@ -415,11 +453,6 @@ const styles = StyleSheet.create({
   nameUnread: {
     fontWeight: '800',
   },
-  unreadDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
   timestampUnread: {
     fontWeight: '700',
   },
@@ -427,6 +460,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
+  },
+  liveDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  metaState: {
+    fontWeight: '600',
   },
   rolePill: {
     paddingHorizontal: spacing.xs,
@@ -444,15 +485,6 @@ const styles = StyleSheet.create({
   },
   skeletonWrap: {
     padding: spacing.lg,
-    gap: spacing.lg,
-  },
-  skeletonRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
     gap: spacing.sm,
-  },
-  skeletonLines: {
-    flex: 1,
-    gap: spacing.xs,
   },
 });
