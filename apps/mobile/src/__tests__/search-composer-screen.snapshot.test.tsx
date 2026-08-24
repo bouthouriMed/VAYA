@@ -20,6 +20,14 @@ vi.mock('../services/location/useCurrentPosition', () => ({
   useCurrentPosition: () => ({ status: 'granted', position: { lat: 36.8, lng: 10.18 } }),
 }));
 
+// renderJSON's synchronous act() captures the tree before this promise's
+// microtask resolves, so whatever it resolves to never reaches the
+// snapshot — only that it resolves (never throws) matters here.
+vi.mock('../services/search/recentPlacesStorage', () => ({
+  loadRecentPlaces: () => Promise.resolve([]),
+  addRecentPlace: vi.fn(() => Promise.resolve([])),
+}));
+
 function mockRouteParams(field?: 'origin' | 'destination'): void {
   vi.doMock('expo-router', () => ({
     router: { back: vi.fn(), push: vi.fn() },
