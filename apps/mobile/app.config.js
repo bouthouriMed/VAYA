@@ -18,6 +18,12 @@ module.exports = {
     },
     android: {
       package: 'com.vaya.app',
+      // Local-only, gitignored — see apps/mobile/README or ask whoever set
+      // up the Firebase project (console.firebase.google.com, project
+      // vaya-f3eaa) for a copy. Required for FCM-backed push notifications
+      // to work on an Android build; the app still builds/runs fine
+      // without it, push token registration just silently fails.
+      googleServicesFile: './google-services.json',
       // Keep hardware/system back on the classic onBackPressed pipeline
       // instead of Android 13+'s predictive-back OnBackInvokedCallback.
       // With predictive back enabled, an edge-starting swipe can be
@@ -47,6 +53,16 @@ module.exports = {
       'expo-font',
       'expo-localization',
       'expo-secure-store',
+      [
+        'expo-notifications',
+        {
+          // No custom icon asset exists yet — Android falls back to a
+          // silhouette generated from the app icon, which is functional
+          // but not final. color is the accent an Android notification
+          // icon/badge renders in, set to the brand sage token.
+          color: '#7FA491',
+        },
+      ],
       [
         'expo-location',
         {

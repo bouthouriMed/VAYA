@@ -27,6 +27,11 @@ android/
 ios/
 web-build/
 
+# Firebase — restricted by package name + SHA fingerprint, but kept local
+# per this project's "no secrets in git" rule (same as every API key here).
+apps/mobile/google-services.json
+apps/mobile/GoogleService-Info.plist
+
 # IDE
 .vscode/
 .idea/
