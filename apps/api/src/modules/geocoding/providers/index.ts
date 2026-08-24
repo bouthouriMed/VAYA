@@ -21,16 +21,19 @@ export function getLocationProvider(): LocationProvider {
 
   const env = getEnv();
   const googleKey = env.GOOGLE_PLACES_API_KEY ?? env.GOOGLE_MAPS_SERVER_API_KEY;
+  const restrictToTunisia = env.LOCATION_RESTRICT_TO_TUNISIA;
 
   if (env.LOCATION_PROVIDER === 'nominatim') {
-    _provider = new NominatimProvider();
+    _provider = new NominatimProvider(restrictToTunisia);
   } else if (env.LOCATION_PROVIDER === 'google') {
     if (!googleKey) {
       throw new Error('LOCATION_PROVIDER=google but no GOOGLE_MAPS_SERVER_API_KEY/GOOGLE_PLACES_API_KEY is set');
     }
-    _provider = new GooglePlacesProvider(googleKey);
+    _provider = new GooglePlacesProvider(googleKey, restrictToTunisia);
   } else {
-    _provider = googleKey ? new GooglePlacesProvider(googleKey) : new NominatimProvider();
+    _provider = googleKey
+      ? new GooglePlacesProvider(googleKey, restrictToTunisia)
+      : new NominatimProvider(restrictToTunisia);
   }
   return _provider;
 }

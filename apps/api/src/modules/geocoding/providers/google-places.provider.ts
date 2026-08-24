@@ -24,7 +24,8 @@ const PLACES_BASE_URL = 'https://places.googleapis.com/v1';
 const GEOCODING_BASE_URL = 'https://maps.googleapis.com/maps/api/geocode/json';
 const FETCH_TIMEOUT_MS = 4000;
 // Tunisia only, per this whole codebase's existing scope (Nominatim's
-// TUNISIA_VIEWBOX in the fallback provider plays the identical role).
+// TUNISIA_VIEWBOX in the fallback provider plays the identical role) —
+// toggled by env.LOCATION_RESTRICT_TO_TUNISIA, see providers/index.ts.
 const TUNISIA_REGION_CODE = 'tn';
 
 // Only the fields this app actually renders/stores — Google bills Place
@@ -165,7 +166,10 @@ async function fetchWithTimeout(url: string, init: RequestInit): Promise<Respons
 export class GooglePlacesProvider implements LocationProvider {
   readonly name = 'google' as const;
 
-  constructor(private readonly apiKey: string) {}
+  constructor(
+    private readonly apiKey: string,
+    private readonly restrictToTunisia: boolean = true,
+  ) {}
 
   async autocomplete(input: string, sessionToken: string): Promise<LocationPrediction[]> {
     try {
@@ -182,7 +186,7 @@ export class GooglePlacesProvider implements LocationProvider {
         body: JSON.stringify({
           input,
           sessionToken,
-          includedRegionCodes: [TUNISIA_REGION_CODE],
+          ...(this.restrictToTunisia ? { includedRegionCodes: [TUNISIA_REGION_CODE] } : {}),
         }),
       });
       if (!response.ok) {
