@@ -75,7 +75,14 @@ export function MessageBubble({
       accessibilityLabel={`${isOwn ? 'Vous' : 'Autre participant'}, ${timestamp}: ${body}`}
     >
       {showAvatar ? (
-        <Avatar uri={avatarUrl ?? null} name={avatarName ?? ''} sizePx={28} style={styles.avatar} />
+        <Avatar
+          uri={avatarUrl ?? null}
+          name={avatarName ?? ''}
+          sizePx={28}
+          style={styles.avatar}
+          fallbackBackgroundColor={theme ? theme.surfaceMuted : undefined}
+          fallbackTextColor={theme ? theme.ink : undefined}
+        />
       ) : null}
       <View style={themed.bubble}>
         <Text variant="body" color={themed.bodyColor}>

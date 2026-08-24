@@ -1,4 +1,4 @@
-﻿import React from 'react';
+﻿import React, { useState } from 'react';
 import { View, Text, Image, StyleSheet, type ImageStyle, type StyleProp } from 'react-native';
 import { colors, typography } from '../tokens/index';
 
@@ -68,13 +68,19 @@ export function Avatar({
 }: AvatarProps): React.JSX.Element {
   const dimension = sizePx ?? sizeMap[size];
   const fontSize = sizePx ? Math.round(sizePx * 0.4) : fontSizeMap[size];
+  // A broken/unreachable avatarUrl (dead link, offline device) must not
+  // render as a blank box — Image has no built-in fallback, so a failed
+  // load drops straight through to the same initials treatment as a
+  // missing uri.
+  const [failedToLoad, setFailedToLoad] = useState(false);
 
-  if (uri) {
+  if (uri && !failedToLoad) {
     return (
       <Image
         source={{ uri }}
         accessibilityRole="image"
         accessibilityLabel={name ? `Photo de ${name}` : undefined}
+        onError={() => setFailedToLoad(true)}
         style={[
           {
             width: dimension,
