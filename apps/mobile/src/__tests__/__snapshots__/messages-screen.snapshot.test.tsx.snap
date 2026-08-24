@@ -21,20 +21,60 @@ exports[`messages.tsx snapshots > empty inbox — headline, filter-less, first-r
   <View
     style={
       {
-        "gap": 17,
-        "paddingBottom": 12,
+        "alignItems": "center",
+        "flexDirection": "row",
+        "justifyContent": "space-between",
         "paddingHorizontal": 16,
+        "paddingVertical": 8,
       }
     }
   >
+    <TouchableOpacity
+      accessibilityLabel="Ouvrir mon profil"
+      accessibilityRole="button"
+      disabled={false}
+      onPress={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "height": 32,
+          "justifyContent": "center",
+          "width": 32,
+        }
+      }
+    >
+      <View
+        style={
+          [
+            {
+              "alignItems": "center",
+              "borderRadius": 9999,
+              "height": 32,
+              "justifyContent": "center",
+              "width": 32,
+            },
+            {
+              "backgroundColor": "#EDE6D4",
+            },
+          ]
+        }
+      >
+        <Ionicons
+          accessibilityElementsHidden={true}
+          color="#5C5748"
+          importantForAccessibility="no-hide-descendants"
+          name="person-outline"
+          size={20}
+        />
+      </View>
+    </TouchableOpacity>
     <Text
       style={
         [
           {
-            "fontFamily": "Fraunces_600SemiBold",
-            "fontSize": 27,
-            "letterSpacing": -0.3,
-            "lineHeight": 31.049999999999997,
+            "fontSize": 24,
+            "fontWeight": "600",
+            "lineHeight": 28.799999999999997,
           },
           {
             "color": "#14201B",
@@ -42,44 +82,14 @@ exports[`messages.tsx snapshots > empty inbox — headline, filter-less, first-r
             "writingDirection": "ltr",
           },
           {
-            "marginTop": 20,
+            "flex": 1,
             "textAlign": "center",
           },
         ]
       }
     >
-      Vos conversations
+      Messages
     </Text>
-    <Text
-      style={
-        [
-          {
-            "fontSize": 14,
-            "fontWeight": "400",
-            "lineHeight": 21,
-          },
-          {
-            "color": "#5C5748",
-            "textAlign": undefined,
-            "writingDirection": "ltr",
-          },
-          undefined,
-        ]
-      }
-    >
-      Retrouvez les échanges liés à vos trajets partagés.
-    </Text>
-  </View>
-  <View
-    style={
-      {
-        "flexDirection": "row",
-        "justifyContent": "flex-end",
-        "paddingBottom": 4,
-        "paddingHorizontal": 16,
-      }
-    }
-  >
     <TouchableOpacity
       accessibilityLabel="Rechercher une conversation"
       accessibilityRole="button"
@@ -104,25 +114,53 @@ exports[`messages.tsx snapshots > empty inbox — headline, filter-less, first-r
   </View>
   <SectionList>
     <View
-      accessibilityRole="text"
-      accessible={true}
       style={
         {
           "alignItems": "center",
-          "gap": 8,
-          "padding": 20,
+          "paddingHorizontal": 20,
+          "paddingTop": 32,
         }
       }
     >
       <View
-        accessibilityElementsHidden={true}
-        importantForAccessibility="no-hide-descendants"
+        style={
+          [
+            {
+              "borderRadius": 90,
+              "height": 180,
+              "opacity": 0.5,
+              "position": "absolute",
+              "top": 0,
+              "width": 180,
+            },
+            {
+              "backgroundColor": "#8FD9B4",
+            },
+          ]
+        }
+      />
+      <View
+        style={
+          [
+            {
+              "alignItems": "center",
+              "borderRadius": 48,
+              "height": 96,
+              "justifyContent": "center",
+              "marginBottom": 16,
+              "width": 96,
+            },
+            {
+              "backgroundColor": "#EDE6D4",
+            },
+          ]
+        }
       >
         <Ionicons
           accessibilityElementsHidden={true}
-          color="#8C8674"
+          color="#14201B"
           importantForAccessibility="no-hide-descendants"
-          name="chatbubble-ellipses-outline"
+          name="chatbubbles-outline"
           size={32}
         />
       </View>
@@ -135,12 +173,13 @@ exports[`messages.tsx snapshots > empty inbox — headline, filter-less, first-r
               "lineHeight": 28.799999999999997,
             },
             {
-              "color": "#26333A",
-              "textAlign": "center",
+              "color": "#14201B",
+              "textAlign": undefined,
               "writingDirection": "ltr",
             },
             {
-              "marginTop": 4,
+              "marginBottom": 4,
+              "textAlign": "center",
             },
           ]
         }
@@ -156,17 +195,18 @@ exports[`messages.tsx snapshots > empty inbox — headline, filter-less, first-r
               "lineHeight": 24,
             },
             {
-              "color": "#7A8288",
-              "textAlign": "center",
+              "color": "#5C5748",
+              "textAlign": undefined,
               "writingDirection": "ltr",
             },
             {
-              "marginBottom": 4,
+              "marginBottom": 16,
+              "textAlign": "center",
             },
           ]
         }
       >
-        Retrouvez ici les conversations liées à vos trajets partagés — avant, pendant et après le départ.
+        Les conversations avec vos conducteurs et passagers apparaîtront ici.
       </Text>
       <Pressable
         accessibilityLabel="Trouver un trajet"
@@ -191,7 +231,7 @@ exports[`messages.tsx snapshots > empty inbox — headline, filter-less, first-r
                 "fontSize": 16,
               },
               {
-                "color": "#2E3B42",
+                "color": "#0D1512",
               },
             ]
           }
@@ -225,20 +265,59 @@ exports[`messages.tsx snapshots > error — full-screen retry EmptyState 1`] = `
   <View
     style={
       {
-        "gap": 17,
-        "paddingBottom": 12,
+        "alignItems": "center",
+        "flexDirection": "row",
+        "justifyContent": "space-between",
         "paddingHorizontal": 16,
+        "paddingVertical": 8,
       }
     }
   >
+    <TouchableOpacity
+      accessibilityLabel="Ouvrir mon profil"
+      accessibilityRole="button"
+      disabled={true}
+      style={
+        {
+          "alignItems": "center",
+          "height": 32,
+          "justifyContent": "center",
+          "width": 32,
+        }
+      }
+    >
+      <View
+        style={
+          [
+            {
+              "alignItems": "center",
+              "borderRadius": 9999,
+              "height": 32,
+              "justifyContent": "center",
+              "width": 32,
+            },
+            {
+              "backgroundColor": "#EDE6D4",
+            },
+          ]
+        }
+      >
+        <Ionicons
+          accessibilityElementsHidden={true}
+          color="#5C5748"
+          importantForAccessibility="no-hide-descendants"
+          name="person-outline"
+          size={20}
+        />
+      </View>
+    </TouchableOpacity>
     <Text
       style={
         [
           {
-            "fontFamily": "Fraunces_600SemiBold",
-            "fontSize": 27,
-            "letterSpacing": -0.3,
-            "lineHeight": 31.049999999999997,
+            "fontSize": 24,
+            "fontWeight": "600",
+            "lineHeight": 28.799999999999997,
           },
           {
             "color": "#14201B",
@@ -246,33 +325,24 @@ exports[`messages.tsx snapshots > error — full-screen retry EmptyState 1`] = `
             "writingDirection": "ltr",
           },
           {
-            "marginTop": 20,
+            "flex": 1,
             "textAlign": "center",
           },
         ]
       }
     >
-      Vos conversations
+      Messages
     </Text>
-    <Text
+    <View
       style={
-        [
-          {
-            "fontSize": 14,
-            "fontWeight": "400",
-            "lineHeight": 21,
-          },
-          {
-            "color": "#5C5748",
-            "textAlign": undefined,
-            "writingDirection": "ltr",
-          },
-          undefined,
-        ]
+        {
+          "alignItems": "center",
+          "height": 32,
+          "justifyContent": "center",
+          "width": 32,
+        }
       }
-    >
-      Retrouvez les échanges liés à vos trajets partagés.
-    </Text>
+    />
   </View>
   <View
     accessibilityRole="text"
@@ -395,20 +465,59 @@ exports[`messages.tsx snapshots > loading — headline over conversation-row ske
   <View
     style={
       {
-        "gap": 17,
-        "paddingBottom": 12,
+        "alignItems": "center",
+        "flexDirection": "row",
+        "justifyContent": "space-between",
         "paddingHorizontal": 16,
+        "paddingVertical": 8,
       }
     }
   >
+    <TouchableOpacity
+      accessibilityLabel="Ouvrir mon profil"
+      accessibilityRole="button"
+      disabled={true}
+      style={
+        {
+          "alignItems": "center",
+          "height": 32,
+          "justifyContent": "center",
+          "width": 32,
+        }
+      }
+    >
+      <View
+        style={
+          [
+            {
+              "alignItems": "center",
+              "borderRadius": 9999,
+              "height": 32,
+              "justifyContent": "center",
+              "width": 32,
+            },
+            {
+              "backgroundColor": "#EDE6D4",
+            },
+          ]
+        }
+      >
+        <Ionicons
+          accessibilityElementsHidden={true}
+          color="#5C5748"
+          importantForAccessibility="no-hide-descendants"
+          name="person-outline"
+          size={20}
+        />
+      </View>
+    </TouchableOpacity>
     <Text
       style={
         [
           {
-            "fontFamily": "Fraunces_600SemiBold",
-            "fontSize": 27,
-            "letterSpacing": -0.3,
-            "lineHeight": 31.049999999999997,
+            "fontSize": 24,
+            "fontWeight": "600",
+            "lineHeight": 28.799999999999997,
           },
           {
             "color": "#14201B",
@@ -416,33 +525,24 @@ exports[`messages.tsx snapshots > loading — headline over conversation-row ske
             "writingDirection": "ltr",
           },
           {
-            "marginTop": 20,
+            "flex": 1,
             "textAlign": "center",
           },
         ]
       }
     >
-      Vos conversations
+      Messages
     </Text>
-    <Text
+    <View
       style={
-        [
-          {
-            "fontSize": 14,
-            "fontWeight": "400",
-            "lineHeight": 21,
-          },
-          {
-            "color": "#5C5748",
-            "textAlign": undefined,
-            "writingDirection": "ltr",
-          },
-          undefined,
-        ]
+        {
+          "alignItems": "center",
+          "height": 32,
+          "justifyContent": "center",
+          "width": 32,
+        }
       }
-    >
-      Retrouvez les échanges liés à vos trajets partagés.
-    </Text>
+    />
   </View>
   <View
     style={
@@ -557,20 +657,60 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
   <View
     style={
       {
-        "gap": 17,
-        "paddingBottom": 12,
+        "alignItems": "center",
+        "flexDirection": "row",
+        "justifyContent": "space-between",
         "paddingHorizontal": 16,
+        "paddingVertical": 8,
       }
     }
   >
+    <TouchableOpacity
+      accessibilityLabel="Ouvrir mon profil"
+      accessibilityRole="button"
+      disabled={false}
+      onPress={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "height": 32,
+          "justifyContent": "center",
+          "width": 32,
+        }
+      }
+    >
+      <View
+        style={
+          [
+            {
+              "alignItems": "center",
+              "borderRadius": 9999,
+              "height": 32,
+              "justifyContent": "center",
+              "width": 32,
+            },
+            {
+              "backgroundColor": "#EDE6D4",
+            },
+          ]
+        }
+      >
+        <Ionicons
+          accessibilityElementsHidden={true}
+          color="#5C5748"
+          importantForAccessibility="no-hide-descendants"
+          name="person-outline"
+          size={20}
+        />
+      </View>
+    </TouchableOpacity>
     <Text
       style={
         [
           {
-            "fontFamily": "Fraunces_600SemiBold",
-            "fontSize": 27,
-            "letterSpacing": -0.3,
-            "lineHeight": 31.049999999999997,
+            "fontSize": 24,
+            "fontWeight": "600",
+            "lineHeight": 28.799999999999997,
           },
           {
             "color": "#14201B",
@@ -578,44 +718,14 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
             "writingDirection": "ltr",
           },
           {
-            "marginTop": 20,
+            "flex": 1,
             "textAlign": "center",
           },
         ]
       }
     >
-      Vos conversations
+      Messages
     </Text>
-    <Text
-      style={
-        [
-          {
-            "fontSize": 14,
-            "fontWeight": "400",
-            "lineHeight": 21,
-          },
-          {
-            "color": "#5C5748",
-            "textAlign": undefined,
-            "writingDirection": "ltr",
-          },
-          undefined,
-        ]
-      }
-    >
-      Retrouvez les échanges liés à vos trajets partagés.
-    </Text>
-  </View>
-  <View
-    style={
-      {
-        "flexDirection": "row",
-        "justifyContent": "flex-end",
-        "paddingBottom": 4,
-        "paddingHorizontal": 16,
-      }
-    }
-  >
     <TouchableOpacity
       accessibilityLabel="Rechercher une conversation"
       accessibilityRole="button"
@@ -638,16 +748,17 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
       />
     </TouchableOpacity>
   </View>
-  <View
-    style={
+  <ScrollView
+    contentContainerStyle={
       {
         "flexDirection": "row",
-        "flexWrap": "wrap",
         "gap": 4,
         "paddingBottom": 8,
         "paddingHorizontal": 16,
       }
     }
+    horizontal={true}
+    showsHorizontalScrollIndicator={false}
   >
     <TouchableOpacity
       accessibilityLabel="Tous"
@@ -829,7 +940,7 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
         Passés
       </Text>
     </TouchableOpacity>
-  </View>
+  </ScrollView>
   <SectionList>
     <View
       style={

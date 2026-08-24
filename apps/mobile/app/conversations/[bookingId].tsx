@@ -281,6 +281,8 @@ export default function ConversationScreen(): React.JSX.Element {
                   isOwn={Boolean(me && isOwnMessage(message, me.id))}
                   timestamp={formatMessageTimestamp(message.createdAt)}
                   theme={theme}
+                  avatarUrl={conversation.otherParty.avatarUrl}
+                  avatarName={conversation.otherParty.fullName}
                 />
               ))}
             </View>

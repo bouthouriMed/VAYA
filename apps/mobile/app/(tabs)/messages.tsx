@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { SectionList, View, StyleSheet, TouchableOpacity } from 'react-native';
+import { SectionList, View, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useAppSelector } from '../../src/state/store';
@@ -8,6 +8,7 @@ import { ContextualAuthSheet } from '../../src/features/auth/ContextualAuthSheet
 import {
   Text,
   Avatar,
+  Button,
   Chip,
   Icon,
   Input,
@@ -17,7 +18,7 @@ import {
   spacing,
   radii,
 } from '@vaya/design-system';
-import { useListConversationsQuery } from '../../src/state/api';
+import { useListConversationsQuery, useGetMeQuery } from '../../src/state/api';
 import {
   filterConversations,
   formatDepartureLabel,
@@ -38,25 +39,66 @@ const FILTERS: { key: InboxFilter; label: string }[] = [
 ];
 
 /**
- * One page-header treatment shared by every render path (guest, loading,
- * error, inbox) so the screen never changes chrome mid-state. Left-aligned
- * per the sibling-tab idiom (trips.tsx's "Mes trajets"), titled "Vos
- * conversations" rather than "Messages" — the tab bar directly below
- * already says "Messages", and repeating it verbatim was pure redundancy.
+ * Top app bar shared by every render path (guest, loading, error, inbox) —
+ * Stitch's "Inbox / trip-centric overview" reference exactly: a leading
+ * tappable profile avatar, a centered "Messages" title, and a trailing
+ * search toggle. The search slot only renders when `onToggleSearch` is
+ * given (the populated, authenticated view) — a guest has nothing to
+ * search, and an empty trailing spacer keeps the title centered anyway.
  */
 function InboxHeader({
   theme,
+  avatarUrl,
+  avatarName,
+  onAvatarPress,
+  searchOpen,
+  onToggleSearch,
 }: {
   theme: ReturnType<typeof useAppTheme>['colors'];
+  avatarUrl?: string | null;
+  avatarName?: string;
+  onAvatarPress?: () => void;
+  searchOpen?: boolean;
+  onToggleSearch?: () => void;
 }): React.JSX.Element {
   return (
     <View style={styles.header}>
-      <Text variant="headlineDisplay" color={theme.ink} style={styles.heading}>
-        Vos conversations
+      <TouchableOpacity
+        onPress={onAvatarPress}
+        disabled={!onAvatarPress}
+        accessibilityRole="button"
+        accessibilityLabel="Ouvrir mon profil"
+        style={styles.headerSlot}
+      >
+        {avatarName ? (
+          <Avatar uri={avatarUrl ?? null} name={avatarName} sizePx={32} />
+        ) : (
+          <View style={[styles.headerAvatarPlaceholder, { backgroundColor: theme.surfaceMuted }]}>
+            <Icon name="person-outline" size="sm" color={theme.inkMuted} />
+          </View>
+        )}
+      </TouchableOpacity>
+
+      <Text variant="h3" color={theme.ink} style={styles.headerTitle}>
+        Messages
       </Text>
-      <Text variant="bodySmall" color={theme.inkMuted}>
-        Retrouvez les échanges liés à vos trajets partagés.
-      </Text>
+
+      {onToggleSearch ? (
+        <TouchableOpacity
+          onPress={onToggleSearch}
+          accessibilityRole="button"
+          accessibilityLabel={searchOpen ? 'Fermer la recherche' : 'Rechercher une conversation'}
+          style={styles.headerSlot}
+        >
+          <Icon
+            name={searchOpen ? 'close-outline' : 'search-outline'}
+            size="sm"
+            color={theme.inkMuted}
+          />
+        </TouchableOpacity>
+      ) : (
+        <View style={styles.headerSlot} />
+      )}
     </View>
   );
 }
@@ -75,6 +117,7 @@ export default function MessagesScreen(): React.JSX.Element {
   const { data: conversations, isLoading, isError, refetch } = useListConversationsQuery(undefined, {
     skip: !accessToken,
   });
+  const { data: me } = useGetMeQuery(undefined, { skip: !accessToken });
   const { requireAuth, isAuthSheetVisible, authTrigger, handleAuthenticated, cancelAuth } =
     useContextualAuth();
 
@@ -125,6 +168,7 @@ export default function MessagesScreen(): React.JSX.Element {
           actionLabel="Se connecter"
           onAction={() => requireAuth(() => {}, 'messages')}
         />
+
         <ContextualAuthSheet
           visible={isAuthSheetVisible}
           trigger={authTrigger}
@@ -138,7 +182,7 @@ export default function MessagesScreen(): React.JSX.Element {
   if (isLoading) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top']}>
-        <InboxHeader theme={theme} />
+        <InboxHeader theme={theme} avatarUrl={me?.avatarUrl} avatarName={me?.fullName} />
         <View style={styles.skeletonWrap}>
           {[0, 1, 2, 3].map((i) => (
             <SkeletonBlock key={i} height={92} radius="xl" />
@@ -151,7 +195,7 @@ export default function MessagesScreen(): React.JSX.Element {
   if (isError) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top']}>
-        <InboxHeader theme={theme} />
+        <InboxHeader theme={theme} avatarUrl={me?.avatarUrl} avatarName={me?.fullName} />
         <EmptyState
           icon={<Icon name="cloud-offline-outline" size="lg" color={theme.inkFaint} />}
           title="Impossible de charger vos messages"
@@ -165,22 +209,14 @@ export default function MessagesScreen(): React.JSX.Element {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top']}>
-      <InboxHeader theme={theme} />
-
-      <View style={styles.searchToggleRow}>
-        <TouchableOpacity
-          onPress={toggleSearch}
-          accessibilityRole="button"
-          accessibilityLabel={searchOpen ? 'Fermer la recherche' : 'Rechercher une conversation'}
-          style={styles.searchIconBtn}
-        >
-          <Icon
-            name={searchOpen ? 'close-outline' : 'search-outline'}
-            size="sm"
-            color={theme.inkMuted}
-          />
-        </TouchableOpacity>
-      </View>
+      <InboxHeader
+        theme={theme}
+        avatarUrl={me?.avatarUrl}
+        avatarName={me?.fullName}
+        onAvatarPress={() => router.push('/(tabs)/profile')}
+        searchOpen={searchOpen}
+        onToggleSearch={toggleSearch}
+      />
 
       {searchOpen ? (
         <View style={styles.searchWrap}>
@@ -196,7 +232,11 @@ export default function MessagesScreen(): React.JSX.Element {
       ) : null}
 
       {(conversations?.length ?? 0) > 0 ? (
-        <View style={styles.filters}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filters}
+        >
           {FILTERS.map(({ key, label }) => (
             <Chip
               key={key}
@@ -206,7 +246,7 @@ export default function MessagesScreen(): React.JSX.Element {
               theme={theme}
             />
           ))}
-        </View>
+        </ScrollView>
       ) : null}
 
       <SectionList
@@ -328,13 +368,25 @@ export default function MessagesScreen(): React.JSX.Element {
         }}
         ListEmptyComponent={
           filter === 'all' ? (
-            <EmptyState
-              icon={<Icon name="chatbubble-ellipses-outline" size="lg" color={theme.inkFaint} />}
-              title="Vos trajets, au même endroit."
-              description="Retrouvez ici les conversations liées à vos trajets partagés — avant, pendant et après le départ."
-              actionLabel="Trouver un trajet"
-              onAction={() => router.navigate('/(tabs)/explore')}
-            />
+            <View style={styles.emptyHero}>
+              <View style={[styles.emptyGlow, { backgroundColor: theme.accentGlow }]} />
+              <View style={[styles.emptyIconRing, { backgroundColor: theme.surfaceMuted }]}>
+                <Icon name="chatbubbles-outline" size="lg" color={theme.ink} />
+              </View>
+              <Text variant="h3" color={theme.ink} style={styles.emptyTitle}>
+                Vos trajets, au même endroit.
+              </Text>
+              <Text variant="body" color={theme.inkMuted} style={styles.emptyDescription}>
+                Les conversations avec vos conducteurs et passagers apparaîtront ici.
+              </Text>
+              <Button
+                label="Trouver un trajet"
+                variant="primary"
+                theme={theme}
+                onPress={() => router.navigate('/(tabs)/explore')}
+                style={styles.emptyAction}
+              />
+            </View>
           ) : (
             <EmptyState
               icon={<Icon name="funnel-outline" size="lg" color={theme.inkFaint} />}
@@ -353,25 +405,28 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.md,
-    gap: 17,
-  },
-  heading: {
-    textAlign: 'center',
-    marginTop: spacing.xl,
-  },
-  searchToggleRow: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.xs,
+    paddingVertical: spacing.sm,
   },
-  searchIconBtn: {
+  headerSlot: {
     width: 32,
     height: 32,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  headerAvatarPlaceholder: {
+    width: 32,
+    height: 32,
+    borderRadius: radii.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerTitle: {
+    flex: 1,
+    textAlign: 'center',
   },
   searchWrap: {
     paddingHorizontal: spacing.lg,
@@ -379,7 +434,6 @@ const styles = StyleSheet.create({
   },
   filters: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     gap: spacing.xs,
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.sm,
@@ -486,5 +540,37 @@ const styles = StyleSheet.create({
   skeletonWrap: {
     padding: spacing.lg,
     gap: spacing.sm,
+  },
+  emptyHero: {
+    alignItems: 'center',
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing['3xl'],
+  },
+  emptyGlow: {
+    position: 'absolute',
+    top: 0,
+    width: 180,
+    height: 180,
+    borderRadius: 90,
+    opacity: 0.5,
+  },
+  emptyIconRing: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.lg,
+  },
+  emptyTitle: {
+    textAlign: 'center',
+    marginBottom: spacing.xs,
+  },
+  emptyDescription: {
+    textAlign: 'center',
+    marginBottom: spacing.lg,
+  },
+  emptyAction: {
+    width: '100%',
   },
 });
