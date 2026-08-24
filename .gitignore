@@ -31,6 +31,12 @@ web-build/
 # per this project's "no secrets in git" rule (same as every API key here).
 apps/mobile/google-services.json
 apps/mobile/GoogleService-Info.plist
+# Firebase Admin SDK service account key — far more sensitive than the two
+# above (broad admin access to the whole Firebase project, not just push).
+# Never committed; consumed once via `eas credentials`, then safe to
+# delete locally.
+apps/mobile/*firebase-adminsdk*.json
+apps/mobile/*serviceAccount*.json
 
 # IDE
 .vscode/
