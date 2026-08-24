@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { SectionList, View, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { SectionList, View, StyleSheet, TouchableOpacity, ScrollView, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useAppSelector } from '../../src/state/store';
@@ -11,7 +11,6 @@ import {
   Button,
   Chip,
   Icon,
-  Input,
   EmptyState,
   SkeletonBlock,
   useAppTheme,
@@ -191,14 +190,34 @@ export default function MessagesScreen(): React.JSX.Element {
 
       {searchOpen ? (
         <View style={styles.searchWrap}>
-          <Input
-            theme={theme}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            placeholder="Nom, ville de départ ou d'arrivée…"
-            autoFocus
-            returnKeyType="search"
-          />
+          <View
+            style={[
+              styles.searchField,
+              { backgroundColor: theme.surface, borderColor: theme.outlineVariant },
+            ]}
+          >
+            <Icon name="search" size="sm" color={theme.inkMuted} />
+            <TextInput
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              placeholder="Nom, ville de départ ou d'arrivée…"
+              placeholderTextColor={theme.inkFaint}
+              style={[styles.searchInput, { color: theme.ink }]}
+              autoFocus
+              returnKeyType="search"
+              accessibilityLabel="Rechercher une conversation"
+            />
+            {searchQuery.length > 0 ? (
+              <TouchableOpacity
+                onPress={() => setSearchQuery('')}
+                hitSlop={8}
+                accessibilityRole="button"
+                accessibilityLabel="Effacer la recherche"
+              >
+                <Icon name="close-circle" size="sm" color={theme.inkFaint} />
+              </TouchableOpacity>
+            ) : null}
+          </View>
         </View>
       ) : null}
 
@@ -388,6 +407,20 @@ const styles = StyleSheet.create({
   searchWrap: {
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.sm,
+  },
+  searchField: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    height: 52,
+    borderRadius: radii.lg,
+    borderWidth: 1,
+    paddingHorizontal: spacing.md,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    padding: 0,
   },
   filters: {
     flexDirection: 'row',
