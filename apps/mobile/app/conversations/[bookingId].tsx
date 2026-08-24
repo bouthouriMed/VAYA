@@ -213,7 +213,11 @@ export default function ConversationScreen(): React.JSX.Element {
             </Text>
           </View>
           <TouchableOpacity
-            onPress={() => router.navigate('/(tabs)/trips')}
+            onPress={() =>
+              conversation.viewerRole === 'driver'
+                ? router.push(`/driver/rides/${conversation.rideId}`)
+                : router.push(`/bookings/${conversation.bookingId}`)
+            }
             hitSlop={8}
             accessibilityRole="button"
             accessibilityLabel="Voir le trajet"
@@ -292,9 +296,20 @@ export default function ConversationScreen(): React.JSX.Element {
         )}
       </ScrollView>
 
-      {/* Composer */}
+      {/* Composer — bottom padding clears the device's own home
+       *  indicator/gesture bar (iOS) or 3-button nav bar (Android) instead
+       *  of sitting flush against it; KeyboardAvoidingView's iOS `padding`
+       *  behavior already shifts this whole view above the keyboard when
+       *  focused, so this is purely the at-rest safe-area clearance. */}
       <View
-        style={[styles.composer, { backgroundColor: theme.surface, borderTopColor: theme.outlineVariant }]}
+        style={[
+          styles.composer,
+          {
+            backgroundColor: theme.surface,
+            borderTopColor: theme.outlineVariant,
+            paddingBottom: Math.max(insets.bottom, spacing.md),
+          },
+        ]}
       >
         <View style={styles.inputWrap}>
           <Input

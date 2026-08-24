@@ -145,6 +145,10 @@ export interface ConversationSummary {
    *  approved — riders have no verification pipeline to be "verified" in.
    *  Drives the inbox row's badge; never inferred from anything else. */
   isOtherPartyVerified: boolean;
+  /** The underlying ride's id — lets a "Voir le trajet" link route the
+   *  driver straight to their own ride-management screen (which needs a
+   *  rideId, not a bookingId) instead of a generic trips-tab fallback. */
+  rideId: string;
   originLabel: string;
   destinationLabel: string;
   departureAt: Date;
@@ -209,6 +213,7 @@ function toSummary(
     otherPartyRole: viewerIsDriver ? 'rider' : 'driver',
     isOtherPartyVerified:
       !viewerIsDriver && booking.ride.driverProfile.verificationStatus === 'approved',
+    rideId: booking.ride.id,
     originLabel: booking.ride.originLabel,
     destinationLabel: booking.ride.destinationLabel,
     departureAt: booking.ride.departureAt,
