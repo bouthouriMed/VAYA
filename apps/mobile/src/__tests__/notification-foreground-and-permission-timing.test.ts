@@ -17,12 +17,17 @@ function read(base: string, relativePath: string): string {
  * same gap booking-screens-real-data.test.ts documents), and
  * useNotificationSetup.ts calls useToast()/useEffect, which needs a real
  * React tree to execute meaningfully. This is a source-level regression
- * guard instead, encoding the two behavioral requirements
- * docs/roadmap/phase-07-notifications.md is explicit about:
+ * guard instead, encoding the current behavioral requirements:
  *  1. foreground notification delivery renders via Toast, not the native
  *     banner (which notificationClient.ts's handler suppresses);
- *  2. push permission is requested contextually (first ride publish /
- *     first booking), never on cold start.
+ *  2. push permission is requested as soon as the user is authenticated
+ *     (PushPermissionBridge.tsx, mounted at the app root) — phase-07's
+ *     original "contextual only, never on cold start" timing has been
+ *     superseded by explicit product direction to ask upfront. The two
+ *     original contextual call sites (driver/publish.tsx,
+ *     search/ride-details.tsx) remain as harmless fallbacks — the
+ *     once-per-install guard in pushPermissionStorage.ts means whichever
+ *     fires first wins.
  */
 describe('notification foreground display and permission-prompt timing', () => {
   it('useNotificationSetup shows a Toast and tracks notification_delivered on foreground delivery', () => {
@@ -45,14 +50,24 @@ describe('notification foreground display and permission-prompt timing', () => {
     expect(source).toContain('shouldShowBanner: false');
   });
 
-  it('root layout never requests push permission on cold start', () => {
+  it('root layout mounts PushPermissionBridge to request push permission on cold start', () => {
     const source = read(appDir, '_layout.tsx');
-    expect(source).not.toContain('requestPermissionsAsync');
-    expect(source).not.toContain('requestPushPermissionAndRegister');
-    // The listener bridge (foreground Toast + tap deep-link) is mounted
-    // unconditionally — that's fine, since listening alone never triggers
-    // an OS permission dialog.
+    expect(source).toContain('PushPermissionBridge');
+    // The listener bridge (foreground Toast + tap deep-link) stays mounted
+    // unconditionally too — listening alone never triggers an OS dialog,
+    // PushPermissionBridge is the one that actually requests permission.
     expect(source).toContain('NotificationBridge');
+  });
+
+  it('PushPermissionBridge requests permission as soon as the user is authenticated, at most once', () => {
+    const source = read(srcDir, 'services/notifications/PushPermissionBridge.tsx');
+    expect(source).toContain('requestPushPermissionAndRegister(');
+    expect(source).toContain('s.auth.accessToken');
+    // Guards against re-firing on every re-render once authenticated —
+    // requestPushPermissionAndRegister's own once-per-install SecureStore
+    // flag is the real dedup, this ref just avoids redundant calls within
+    // a single session.
+    expect(source).toContain('attempted.current');
   });
 
   it('(tabs)/publish.tsx requests push permission only after a successful publish, not before', () => {

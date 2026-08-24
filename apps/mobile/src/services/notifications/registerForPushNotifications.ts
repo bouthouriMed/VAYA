@@ -16,15 +16,17 @@ export interface RegisterPushTokenArgs {
 export type RegisterPushTokenFn = (args: RegisterPushTokenArgs) => Promise<unknown>;
 
 /**
- * Contextual push-permission request + token registration. Call this only
- * from a moment that already gives the user a reason (a driver's first
- * ride publish, a passenger's first booking request) — never on cold
- * start, per docs/roadmap/phase-07-notifications.md's UX behavior section.
+ * Push-permission request + token registration. Called from
+ * PushPermissionBridge.tsx as soon as the user is authenticated — the
+ * app's current, explicit timing choice, prompting upfront rather than
+ * waiting for a contextual moment (this function's original design,
+ * documented in phase-07-notifications.md's UX behavior section — now
+ * superseded by product direction).
  *
  * Prompts at most once per install: the SecureStore flag in
- * pushPermissionStorage.ts remembers the outcome, so whichever of the two
- * trigger points (driver/publish.tsx, search/trust.tsx) fires first "wins"
- * and the other becomes a silent no-op.
+ * pushPermissionStorage.ts remembers the outcome, so whichever trigger
+ * point fires first "wins" and the rest (PushPermissionBridge,
+ * driver/publish.tsx, search/ride-details.tsx) become silent no-ops.
  *
  * `registerPushToken` is injected (the RTK Query mutation trigger from
  * state/api.ts) rather than imported directly, keeping this function
