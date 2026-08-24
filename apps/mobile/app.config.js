@@ -91,6 +91,11 @@ module.exports = {
     },
     extra: {
       apiBaseUrl: process.env.API_BASE_URL ?? 'http://localhost:3000/api/v1',
+      eas: {
+        // @bouthourimohamed/vaya — https://expo.dev/accounts/bouthourimohamed/projects/vaya
+        projectId: '180c4be1-2a3c-438f-899a-68371c0635e4',
+      },
     },
+    owner: 'bouthourimohamed',
   },
 };
