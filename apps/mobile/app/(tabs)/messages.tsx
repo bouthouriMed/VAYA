@@ -94,6 +94,7 @@ function FilterPill({
         accessibilityRole="button"
         accessibilityLabel={label}
         accessibilityState={{ selected: true }}
+        style={styles.filterPillWrap}
       >
         <LinearGradient
           colors={theme.inkGradient}
@@ -501,12 +502,12 @@ const styles = StyleSheet.create({
   },
   ambientGlow: {
     position: 'absolute',
-    top: -120,
+    top: -190,
     alignSelf: 'center',
-    width: 320,
-    height: 320,
-    borderRadius: 160,
-    opacity: 0.22,
+    width: 260,
+    height: 260,
+    borderRadius: 130,
+    opacity: 0.14,
   },
   container: {
     flex: 1,
@@ -552,11 +553,16 @@ const styles = StyleSheet.create({
   },
   filters: {
     flexDirection: 'row',
+    alignItems: 'center',
     gap: spacing.sm,
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.md,
   },
+  filterPillWrap: {
+    alignSelf: 'flex-start',
+  },
   filterPill: {
+    alignSelf: 'flex-start',
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm + 2,
     borderRadius: radii.full,
