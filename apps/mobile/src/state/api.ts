@@ -22,6 +22,34 @@ function getBaseUrl(): string {
   return extra?.apiBaseUrl ?? 'http://localhost:3000/api/v1';
 }
 
+// POST /uploads returns a relative `/uploads/<file>` path rather than an
+// absolute URL (see apps/api/src/modules/uploads/uploads.routes.ts for why:
+// an absolute URL baked from the uploading device's own request can be
+// unreachable from a different device/platform viewing it later — the real,
+// confirmed cause of a real uploaded avatar photo rendering on Android but
+// silently falling back to initials on iOS). Every response is resolved
+// against *this* device's own known-working API origin below, so whichever
+// device is actually viewing the media always gets a URL it can reach,
+// regardless of which device uploaded it.
+const mediaOrigin = new URL(getBaseUrl()).origin;
+
+function resolveMediaUrls<T>(value: T): T {
+  if (typeof value === 'string') {
+    return (value.startsWith('/uploads/') ? `${mediaOrigin}${value}` : value) as T;
+  }
+  if (Array.isArray(value)) {
+    return value.map(resolveMediaUrls) as T;
+  }
+  if (value && typeof value === 'object') {
+    const out: Record<string, unknown> = {};
+    for (const [key, val] of Object.entries(value)) {
+      out[key] = resolveMediaUrls(val);
+    }
+    return out as T;
+  }
+  return value;
+}
+
 // Narrow slice of RootState — avoids a circular import with store.ts, which
 // needs `api` (this module's default export) to build RootState itself.
 interface AuthPartialState {
@@ -537,6 +565,10 @@ const baseQueryWithReauth: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQue
     } else {
       queryApi.dispatch(clearAuth());
     }
+  }
+
+  if (result.data !== undefined) {
+    result = { ...result, data: resolveMediaUrls(result.data) };
   }
 
   return result;
