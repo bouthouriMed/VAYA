@@ -117,108 +117,6 @@ exports[`trips.tsx snapshots > driver dashboard — hero ride card over segmente
         />
       </TouchableOpacity>
     </View>
-    <TouchableOpacity
-      activeOpacity={0.8}
-      onPress={[Function]}
-      style={
-        [
-          {
-            "alignItems": "center",
-            "borderRadius": 16,
-            "flexDirection": "row",
-            "gap": 8,
-            "padding": 12,
-          },
-          {
-            "backgroundColor": "#FFFFFF",
-          },
-        ]
-      }
-    >
-      <View
-        style={
-          [
-            {
-              "alignItems": "center",
-              "borderRadius": 20,
-              "height": 40,
-              "justifyContent": "center",
-              "width": 40,
-            },
-            {
-              "backgroundColor": "#2E9E6C",
-            },
-          ]
-        }
-      >
-        <Ionicons
-          color="#0D1512"
-          name="add"
-          size={22}
-        />
-      </View>
-      <View
-        style={
-          {
-            "flex": 1,
-          }
-        }
-      >
-        <Text
-          style={
-            [
-              {
-                "fontSize": 16,
-                "fontWeight": "400",
-                "lineHeight": 24,
-              },
-              {
-                "color": "#26333A",
-                "textAlign": undefined,
-                "writingDirection": "ltr",
-              },
-              [
-                {
-                  "fontSize": 16,
-                  "fontWeight": "700",
-                },
-                {
-                  "color": "#14201B",
-                },
-              ],
-            ]
-          }
-        >
-          Publier un trajet
-        </Text>
-        <Text
-          style={
-            [
-              {
-                "fontSize": 14,
-                "fontWeight": "400",
-                "lineHeight": 21,
-              },
-              {
-                "color": "#5C5748",
-                "textAlign": undefined,
-                "writingDirection": "ltr",
-              },
-              undefined,
-            ]
-          }
-        >
-          Proposez des places et gagnez de la contribution
-        </Text>
-      </View>
-      <Ionicons
-        accessibilityElementsHidden={true}
-        color="#8C8674"
-        importantForAccessibility="no-hide-descendants"
-        name="chevron-forward"
-        size={20}
-      />
-    </TouchableOpacity>
     <View
       style={
         {
@@ -732,105 +630,138 @@ exports[`trips.tsx snapshots > driver dashboard — hero ride card over segmente
     </View>
     <View
       style={
-        [
-          {
-            "borderRadius": 12,
-            "flexDirection": "row",
-            "marginTop": 4,
-            "padding": 4,
-          },
-          {
-            "backgroundColor": "#EDE6D4",
-          },
-        ]
+        {
+          "alignItems": "center",
+          "flexDirection": "row",
+          "gap": 8,
+          "justifyContent": "space-between",
+          "marginTop": 4,
+        }
       }
     >
-      <TouchableOpacity
-        accessibilityLabel="Conducteur"
-        accessibilityRole="tab"
-        accessibilityState={
-          {
-            "selected": true,
-          }
-        }
-        onPress={[Function]}
+      <Text
         style={
           [
             {
-              "alignItems": "center",
-              "borderRadius": 8,
-              "flex": 1,
-              "paddingVertical": 6,
+              "fontSize": 14,
+              "fontWeight": "500",
+              "lineHeight": 21,
             },
             {
-              "backgroundColor": "#FFFFFF",
+              "color": "#5C5748",
+              "textAlign": undefined,
+              "writingDirection": "ltr",
+            },
+            {
+              "letterSpacing": 0.4,
+              "textTransform": "uppercase",
             },
           ]
         }
       >
-        <Text
-          style={
-            [
-              {
-                "fontSize": 14,
-                "fontWeight": "400",
-                "lineHeight": 21,
-              },
-              {
-                "color": "#14201B",
-                "textAlign": undefined,
-                "writingDirection": "ltr",
-              },
-              {
-                "fontWeight": "600",
-              },
-            ]
-          }
-        >
-          Conducteur
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        accessibilityLabel="Passager"
-        accessibilityRole="tab"
-        accessibilityState={
-          {
-            "selected": false,
-          }
-        }
-        onPress={[Function]}
+        Trajets récents
+      </Text>
+      <View
         style={
           [
             {
-              "alignItems": "center",
-              "borderRadius": 8,
-              "flex": 1,
-              "paddingVertical": 6,
+              "borderRadius": 12,
+              "flexDirection": "row",
+              "padding": 4,
             },
-            null,
+            {
+              "backgroundColor": "#EDE6D4",
+            },
           ]
         }
       >
-        <Text
+        <TouchableOpacity
+          accessibilityLabel="Conducteur"
+          accessibilityRole="tab"
+          accessibilityState={
+            {
+              "selected": true,
+            }
+          }
+          onPress={[Function]}
           style={
             [
               {
-                "fontSize": 14,
-                "fontWeight": "400",
-                "lineHeight": 21,
+                "alignItems": "center",
+                "borderRadius": 8,
+                "paddingHorizontal": 8,
+                "paddingVertical": 4,
               },
               {
-                "color": "#5C5748",
-                "textAlign": undefined,
-                "writingDirection": "ltr",
+                "backgroundColor": "#FFFFFF",
               },
-              undefined,
             ]
           }
         >
-          Passager
-        </Text>
-      </TouchableOpacity>
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "lineHeight": 21,
+                },
+                {
+                  "color": "#14201B",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                {
+                  "fontWeight": "600",
+                },
+              ]
+            }
+          >
+            Conducteur
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          accessibilityLabel="Passager"
+          accessibilityRole="tab"
+          accessibilityState={
+            {
+              "selected": false,
+            }
+          }
+          onPress={[Function]}
+          style={
+            [
+              {
+                "alignItems": "center",
+                "borderRadius": 8,
+                "paddingHorizontal": 8,
+                "paddingVertical": 4,
+              },
+              null,
+            ]
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "lineHeight": 21,
+                },
+                {
+                  "color": "#5C5748",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            Passager
+          </Text>
+        </TouchableOpacity>
+      </View>
     </View>
     <View
       style={
@@ -1241,105 +1172,138 @@ exports[`trips.tsx snapshots > first run — no bookings, no profile, rider empt
     </View>
     <View
       style={
-        [
-          {
-            "borderRadius": 12,
-            "flexDirection": "row",
-            "marginTop": 4,
-            "padding": 4,
-          },
-          {
-            "backgroundColor": "#EDE6D4",
-          },
-        ]
+        {
+          "alignItems": "center",
+          "flexDirection": "row",
+          "gap": 8,
+          "justifyContent": "space-between",
+          "marginTop": 4,
+        }
       }
     >
-      <TouchableOpacity
-        accessibilityLabel="Conducteur"
-        accessibilityRole="tab"
-        accessibilityState={
-          {
-            "selected": false,
-          }
-        }
-        onPress={[Function]}
+      <Text
         style={
           [
             {
-              "alignItems": "center",
-              "borderRadius": 8,
-              "flex": 1,
-              "paddingVertical": 6,
-            },
-            null,
-          ]
-        }
-      >
-        <Text
-          style={
-            [
-              {
-                "fontSize": 14,
-                "fontWeight": "400",
-                "lineHeight": 21,
-              },
-              {
-                "color": "#5C5748",
-                "textAlign": undefined,
-                "writingDirection": "ltr",
-              },
-              undefined,
-            ]
-          }
-        >
-          Conducteur
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        accessibilityLabel="Passager"
-        accessibilityRole="tab"
-        accessibilityState={
-          {
-            "selected": true,
-          }
-        }
-        onPress={[Function]}
-        style={
-          [
-            {
-              "alignItems": "center",
-              "borderRadius": 8,
-              "flex": 1,
-              "paddingVertical": 6,
+              "fontSize": 14,
+              "fontWeight": "500",
+              "lineHeight": 21,
             },
             {
-              "backgroundColor": "#FFFFFF",
+              "color": "#5C5748",
+              "textAlign": undefined,
+              "writingDirection": "ltr",
+            },
+            {
+              "letterSpacing": 0.4,
+              "textTransform": "uppercase",
             },
           ]
         }
       >
-        <Text
+        Trajets récents
+      </Text>
+      <View
+        style={
+          [
+            {
+              "borderRadius": 12,
+              "flexDirection": "row",
+              "padding": 4,
+            },
+            {
+              "backgroundColor": "#EDE6D4",
+            },
+          ]
+        }
+      >
+        <TouchableOpacity
+          accessibilityLabel="Conducteur"
+          accessibilityRole="tab"
+          accessibilityState={
+            {
+              "selected": false,
+            }
+          }
+          onPress={[Function]}
           style={
             [
               {
-                "fontSize": 14,
-                "fontWeight": "400",
-                "lineHeight": 21,
+                "alignItems": "center",
+                "borderRadius": 8,
+                "paddingHorizontal": 8,
+                "paddingVertical": 4,
+              },
+              null,
+            ]
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "lineHeight": 21,
+                },
+                {
+                  "color": "#5C5748",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            Conducteur
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          accessibilityLabel="Passager"
+          accessibilityRole="tab"
+          accessibilityState={
+            {
+              "selected": true,
+            }
+          }
+          onPress={[Function]}
+          style={
+            [
+              {
+                "alignItems": "center",
+                "borderRadius": 8,
+                "paddingHorizontal": 8,
+                "paddingVertical": 4,
               },
               {
-                "color": "#14201B",
-                "textAlign": undefined,
-                "writingDirection": "ltr",
-              },
-              {
-                "fontWeight": "600",
+                "backgroundColor": "#FFFFFF",
               },
             ]
           }
         >
-          Passager
-        </Text>
-      </TouchableOpacity>
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "lineHeight": 21,
+                },
+                {
+                  "color": "#14201B",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                {
+                  "fontWeight": "600",
+                },
+              ]
+            }
+          >
+            Passager
+          </Text>
+        </TouchableOpacity>
+      </View>
     </View>
     <View
       style={
@@ -1569,105 +1533,138 @@ exports[`trips.tsx snapshots > rider view — booking card shows the real driver
     </View>
     <View
       style={
-        [
-          {
-            "borderRadius": 12,
-            "flexDirection": "row",
-            "marginTop": 4,
-            "padding": 4,
-          },
-          {
-            "backgroundColor": "#EDE6D4",
-          },
-        ]
+        {
+          "alignItems": "center",
+          "flexDirection": "row",
+          "gap": 8,
+          "justifyContent": "space-between",
+          "marginTop": 4,
+        }
       }
     >
-      <TouchableOpacity
-        accessibilityLabel="Conducteur"
-        accessibilityRole="tab"
-        accessibilityState={
-          {
-            "selected": false,
-          }
-        }
-        onPress={[Function]}
+      <Text
         style={
           [
             {
-              "alignItems": "center",
-              "borderRadius": 8,
-              "flex": 1,
-              "paddingVertical": 6,
-            },
-            null,
-          ]
-        }
-      >
-        <Text
-          style={
-            [
-              {
-                "fontSize": 14,
-                "fontWeight": "400",
-                "lineHeight": 21,
-              },
-              {
-                "color": "#5C5748",
-                "textAlign": undefined,
-                "writingDirection": "ltr",
-              },
-              undefined,
-            ]
-          }
-        >
-          Conducteur
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        accessibilityLabel="Passager"
-        accessibilityRole="tab"
-        accessibilityState={
-          {
-            "selected": true,
-          }
-        }
-        onPress={[Function]}
-        style={
-          [
-            {
-              "alignItems": "center",
-              "borderRadius": 8,
-              "flex": 1,
-              "paddingVertical": 6,
+              "fontSize": 14,
+              "fontWeight": "500",
+              "lineHeight": 21,
             },
             {
-              "backgroundColor": "#FFFFFF",
+              "color": "#5C5748",
+              "textAlign": undefined,
+              "writingDirection": "ltr",
+            },
+            {
+              "letterSpacing": 0.4,
+              "textTransform": "uppercase",
             },
           ]
         }
       >
-        <Text
+        Trajets récents
+      </Text>
+      <View
+        style={
+          [
+            {
+              "borderRadius": 12,
+              "flexDirection": "row",
+              "padding": 4,
+            },
+            {
+              "backgroundColor": "#EDE6D4",
+            },
+          ]
+        }
+      >
+        <TouchableOpacity
+          accessibilityLabel="Conducteur"
+          accessibilityRole="tab"
+          accessibilityState={
+            {
+              "selected": false,
+            }
+          }
+          onPress={[Function]}
           style={
             [
               {
-                "fontSize": 14,
-                "fontWeight": "400",
-                "lineHeight": 21,
+                "alignItems": "center",
+                "borderRadius": 8,
+                "paddingHorizontal": 8,
+                "paddingVertical": 4,
+              },
+              null,
+            ]
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "lineHeight": 21,
+                },
+                {
+                  "color": "#5C5748",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            Conducteur
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          accessibilityLabel="Passager"
+          accessibilityRole="tab"
+          accessibilityState={
+            {
+              "selected": true,
+            }
+          }
+          onPress={[Function]}
+          style={
+            [
+              {
+                "alignItems": "center",
+                "borderRadius": 8,
+                "paddingHorizontal": 8,
+                "paddingVertical": 4,
               },
               {
-                "color": "#14201B",
-                "textAlign": undefined,
-                "writingDirection": "ltr",
-              },
-              {
-                "fontWeight": "600",
+                "backgroundColor": "#FFFFFF",
               },
             ]
           }
         >
-          Passager
-        </Text>
-      </TouchableOpacity>
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "lineHeight": 21,
+                },
+                {
+                  "color": "#14201B",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                {
+                  "fontWeight": "600",
+                },
+              ]
+            }
+          >
+            Passager
+          </Text>
+        </TouchableOpacity>
+      </View>
     </View>
     <View
       style={

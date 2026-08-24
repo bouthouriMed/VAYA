@@ -14,6 +14,25 @@ const DEFAULT_REGION: MapRegion = {
   longitudeDelta: 0.5,
 };
 
+/** Standard, widely-used dark Google Maps style JSON — without this,
+ *  customMapStyle={[]} (Google's default) always renders light tiles
+ *  regardless of the app's own theme, which reads as a bright, jarring
+ *  rectangle dropped into an otherwise dark-themed card. Only applied
+ *  when `isDark` is explicitly passed true; every existing caller that
+ *  doesn't pass it keeps the unchanged default light style. */
+const DARK_MAP_STYLE = [
+  { elementType: 'geometry', stylers: [{ color: '#1a2226' }] },
+  { elementType: 'labels.text.stroke', stylers: [{ color: '#1a2226' }] },
+  { elementType: 'labels.text.fill', stylers: [{ color: '#8ba0a6' }] },
+  { featureType: 'administrative', elementType: 'geometry', stylers: [{ color: '#3a4750' }] },
+  { featureType: 'poi', stylers: [{ visibility: 'off' }] },
+  { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#2c3841' }] },
+  { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#212a31' }] },
+  { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#3a4750' }] },
+  { featureType: 'transit', stylers: [{ visibility: 'off' }] },
+  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#101a1f' }] },
+];
+
 interface MapPreviewProps {
   height?: number;
   badge?: string;
@@ -31,6 +50,11 @@ interface MapPreviewProps {
   /** Required to color PickupPin/DropoffPin — only needed when passing
    *  `pickup`/`dropoff`. */
   theme?: AppPalette;
+  /** Applies DARK_MAP_STYLE instead of Google's default light tiles.
+   *  Defaults to false (unchanged behavior) — pass `scheme === 'dark'`
+   *  from useAppTheme() wherever this preview sits inside a themed,
+   *  dark-capable screen. */
+  isDark?: boolean;
   /** Decoded route geometry (see MapRoute's coordinates prop). */
   routeCoordinates?: LatLng[];
   style?: StyleProp<ViewStyle>;
@@ -50,6 +74,7 @@ export function MapPreview({
   pickup,
   dropoff,
   theme,
+  isDark = false,
   routeCoordinates,
   style,
   children,
@@ -73,7 +98,7 @@ export function MapPreview({
         rotateEnabled={false}
         pointerEvents="none"
         onMapReady={() => setIsReady(true)}
-        customMapStyle={[]}
+        customMapStyle={isDark ? DARK_MAP_STYLE : []}
       >
         {routeCoordinates && routeCoordinates.length > 1 ? (
           <Polyline coordinates={routeCoordinates} strokeColor={colors.mapRouteLine} strokeWidth={3} />
