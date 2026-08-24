@@ -11,6 +11,8 @@ import {
   DateCalendarSheet,
   TimeWheelSheet,
   PassengerSheet,
+  PickupPin,
+  DropoffPin,
   formatPassengerCount,
   formatDepartureLabel,
   useAppTheme,
@@ -180,17 +182,12 @@ export default function HomeSearchScreen(): React.JSX.Element {
           ) : null}
           {origin ? (
             <Marker coordinate={{ latitude: origin.lat, longitude: origin.lng }} anchor={{ x: 0.5, y: 0.5 }}>
-              <View style={[styles.originDot, { backgroundColor: theme.accent, borderColor: theme.surface }]} />
+              <PickupPin theme={theme} />
             </Marker>
           ) : null}
           {destination ? (
-            // A teardrop, not the default red pin or a plain circle: a
-            // square rotated -45° with three square corners rounded leaves
-            // the fourth as the point, anchored at the marker coordinate.
-            <Marker coordinate={{ latitude: destination.lat, longitude: destination.lng }} anchor={{ x: 0.5, y: 1 }}>
-              <View style={[styles.destPin, { backgroundColor: theme.ink, borderColor: theme.surface }]}>
-                <View style={[styles.destPinDot, { backgroundColor: theme.surface }]} />
-              </View>
+            <Marker coordinate={{ latitude: destination.lat, longitude: destination.lng }} anchor={{ x: 0.5, y: 0.5 }}>
+              <DropoffPin theme={theme} />
             </Marker>
           ) : null}
         </MapView>
@@ -464,31 +461,6 @@ const styles = StyleSheet.create({
     height: 9,
     borderRadius: 5,
     borderWidth: 1.5,
-  },
-  originDot: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    borderWidth: 2,
-  },
-  // A teardrop: three corners rounded, the fourth square, rotated -45° so
-  // that square corner points straight down at the coordinate.
-  destPin: {
-    width: 26,
-    height: 26,
-    borderTopLeftRadius: 13,
-    borderTopRightRadius: 13,
-    borderBottomLeftRadius: 13,
-    borderBottomRightRadius: 0,
-    borderWidth: 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-    transform: [{ rotate: '-45deg' }],
-  },
-  destPinDot: {
-    width: 7,
-    height: 7,
-    borderRadius: 3.5,
   },
   card: {
     borderTopLeftRadius: radii['2xl'],

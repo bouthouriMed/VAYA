@@ -193,6 +193,39 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
               Confiance
             </Text>
           </View>
+          <TouchableOpacity
+            accessibilityLabel="Ajoutez une photo de profil"
+            accessibilityRole="button"
+            disabled={false}
+            onPress={[Function]}
+            style={
+              {
+                "marginTop": 4,
+                "paddingHorizontal": 8,
+                "paddingVertical": 4,
+              }
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "lineHeight": 21,
+                  },
+                  {
+                    "color": "#8C8674",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              Ajoutez une photo de profil
+            </Text>
+          </TouchableOpacity>
         </View>
       </View>
       <TouchableOpacity
@@ -360,7 +393,11 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
           <View
             style={
               [
-                {},
+                {
+                  "borderRadius": 12,
+                  "borderWidth": 1,
+                  "overflow": "hidden",
+                },
                 {
                   "backgroundColor": "#FFFFFF",
                   "borderColor": "#EDE6D4",
@@ -462,7 +499,11 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
           <View
             style={
               [
-                {},
+                {
+                  "borderRadius": 12,
+                  "borderWidth": 1,
+                  "overflow": "hidden",
+                },
                 {
                   "backgroundColor": "#FFFFFF",
                   "borderColor": "#EDE6D4",
@@ -723,7 +764,11 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
           <View
             style={
               [
-                {},
+                {
+                  "borderRadius": 12,
+                  "borderWidth": 1,
+                  "overflow": "hidden",
+                },
                 {
                   "backgroundColor": "#FFFFFF",
                   "borderColor": "#EDE6D4",
@@ -921,7 +966,11 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
           <View
             style={
               [
-                {},
+                {
+                  "borderRadius": 12,
+                  "borderWidth": 1,
+                  "overflow": "hidden",
+                },
                 {
                   "backgroundColor": "#FFFFFF",
                   "borderColor": "#EDE6D4",
@@ -1185,7 +1234,6 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
           onPress={[Function]}
           style={
             [
-              {},
               {
                 "alignItems": "center",
                 "flexDirection": "row",
@@ -1621,6 +1669,39 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
               Nouveau
             </Text>
           </View>
+          <TouchableOpacity
+            accessibilityLabel="Ajoutez une photo de profil"
+            accessibilityRole="button"
+            disabled={false}
+            onPress={[Function]}
+            style={
+              {
+                "marginTop": 4,
+                "paddingHorizontal": 8,
+                "paddingVertical": 4,
+              }
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "lineHeight": 21,
+                  },
+                  {
+                    "color": "#8C8674",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              Ajoutez une photo de profil
+            </Text>
+          </TouchableOpacity>
         </View>
       </View>
       <View
@@ -1749,7 +1830,11 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
           <View
             style={
               [
-                {},
+                {
+                  "borderRadius": 12,
+                  "borderWidth": 1,
+                  "overflow": "hidden",
+                },
                 {
                   "backgroundColor": "#FFFFFF",
                   "borderColor": "#EDE6D4",
@@ -1851,7 +1936,11 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
           <View
             style={
               [
-                {},
+                {
+                  "borderRadius": 12,
+                  "borderWidth": 1,
+                  "overflow": "hidden",
+                },
                 {
                   "backgroundColor": "#FFFFFF",
                   "borderColor": "#EDE6D4",
@@ -2112,7 +2201,11 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
           <View
             style={
               [
-                {},
+                {
+                  "borderRadius": 12,
+                  "borderWidth": 1,
+                  "overflow": "hidden",
+                },
                 {
                   "backgroundColor": "#FFFFFF",
                   "borderColor": "#EDE6D4",
@@ -2310,7 +2403,11 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
           <View
             style={
               [
-                {},
+                {
+                  "borderRadius": 12,
+                  "borderWidth": 1,
+                  "overflow": "hidden",
+                },
                 {
                   "backgroundColor": "#FFFFFF",
                   "borderColor": "#EDE6D4",
@@ -2574,7 +2671,6 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
           onPress={[Function]}
           style={
             [
-              {},
               {
                 "alignItems": "center",
                 "flexDirection": "row",
@@ -3010,6 +3106,39 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
               Nouveau
             </Text>
           </View>
+          <TouchableOpacity
+            accessibilityLabel="Ajoutez une photo de profil"
+            accessibilityRole="button"
+            disabled={false}
+            onPress={[Function]}
+            style={
+              {
+                "marginTop": 4,
+                "paddingHorizontal": 8,
+                "paddingVertical": 4,
+              }
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "lineHeight": 21,
+                  },
+                  {
+                    "color": "#8C8674",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              Ajoutez une photo de profil
+            </Text>
+          </TouchableOpacity>
         </View>
       </View>
       <TouchableOpacity
@@ -3154,7 +3283,11 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
           <View
             style={
               [
-                {},
+                {
+                  "borderRadius": 12,
+                  "borderWidth": 1,
+                  "overflow": "hidden",
+                },
                 {
                   "backgroundColor": "#FFFFFF",
                   "borderColor": "#EDE6D4",
@@ -3256,7 +3389,11 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
           <View
             style={
               [
-                {},
+                {
+                  "borderRadius": 12,
+                  "borderWidth": 1,
+                  "overflow": "hidden",
+                },
                 {
                   "backgroundColor": "#FFFFFF",
                   "borderColor": "#EDE6D4",
@@ -3517,7 +3654,11 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
           <View
             style={
               [
-                {},
+                {
+                  "borderRadius": 12,
+                  "borderWidth": 1,
+                  "overflow": "hidden",
+                },
                 {
                   "backgroundColor": "#FFFFFF",
                   "borderColor": "#EDE6D4",
@@ -3715,7 +3856,11 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
           <View
             style={
               [
-                {},
+                {
+                  "borderRadius": 12,
+                  "borderWidth": 1,
+                  "overflow": "hidden",
+                },
                 {
                   "backgroundColor": "#FFFFFF",
                   "borderColor": "#EDE6D4",
@@ -3979,7 +4124,6 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
           onPress={[Function]}
           style={
             [
-              {},
               {
                 "alignItems": "center",
                 "flexDirection": "row",
@@ -4415,6 +4559,39 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
               Nouveau
             </Text>
           </View>
+          <TouchableOpacity
+            accessibilityLabel="Ajoutez une photo de profil"
+            accessibilityRole="button"
+            disabled={false}
+            onPress={[Function]}
+            style={
+              {
+                "marginTop": 4,
+                "paddingHorizontal": 8,
+                "paddingVertical": 4,
+              }
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "lineHeight": 21,
+                  },
+                  {
+                    "color": "#8C8674",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              Ajoutez une photo de profil
+            </Text>
+          </TouchableOpacity>
         </View>
       </View>
       <View
@@ -4550,7 +4727,11 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
           <View
             style={
               [
-                {},
+                {
+                  "borderRadius": 12,
+                  "borderWidth": 1,
+                  "overflow": "hidden",
+                },
                 {
                   "backgroundColor": "#FFFFFF",
                   "borderColor": "#EDE6D4",
@@ -4652,7 +4833,11 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
           <View
             style={
               [
-                {},
+                {
+                  "borderRadius": 12,
+                  "borderWidth": 1,
+                  "overflow": "hidden",
+                },
                 {
                   "backgroundColor": "#FFFFFF",
                   "borderColor": "#EDE6D4",
@@ -4913,7 +5098,11 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
           <View
             style={
               [
-                {},
+                {
+                  "borderRadius": 12,
+                  "borderWidth": 1,
+                  "overflow": "hidden",
+                },
                 {
                   "backgroundColor": "#FFFFFF",
                   "borderColor": "#EDE6D4",
@@ -5111,7 +5300,11 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
           <View
             style={
               [
-                {},
+                {
+                  "borderRadius": 12,
+                  "borderWidth": 1,
+                  "overflow": "hidden",
+                },
                 {
                   "backgroundColor": "#FFFFFF",
                   "borderColor": "#EDE6D4",
@@ -5375,7 +5568,6 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
           onPress={[Function]}
           style={
             [
-              {},
               {
                 "alignItems": "center",
                 "flexDirection": "row",
@@ -5811,6 +6003,39 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
               Nouveau
             </Text>
           </View>
+          <TouchableOpacity
+            accessibilityLabel="Ajoutez une photo de profil"
+            accessibilityRole="button"
+            disabled={false}
+            onPress={[Function]}
+            style={
+              {
+                "marginTop": 4,
+                "paddingHorizontal": 8,
+                "paddingVertical": 4,
+              }
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "lineHeight": 21,
+                  },
+                  {
+                    "color": "#8C8674",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              Ajoutez une photo de profil
+            </Text>
+          </TouchableOpacity>
         </View>
       </View>
       <TouchableOpacity
@@ -5955,7 +6180,11 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
           <View
             style={
               [
-                {},
+                {
+                  "borderRadius": 12,
+                  "borderWidth": 1,
+                  "overflow": "hidden",
+                },
                 {
                   "backgroundColor": "#FFFFFF",
                   "borderColor": "#EDE6D4",
@@ -6057,7 +6286,11 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
           <View
             style={
               [
-                {},
+                {
+                  "borderRadius": 12,
+                  "borderWidth": 1,
+                  "overflow": "hidden",
+                },
                 {
                   "backgroundColor": "#FFFFFF",
                   "borderColor": "#EDE6D4",
@@ -6318,7 +6551,11 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
           <View
             style={
               [
-                {},
+                {
+                  "borderRadius": 12,
+                  "borderWidth": 1,
+                  "overflow": "hidden",
+                },
                 {
                   "backgroundColor": "#FFFFFF",
                   "borderColor": "#EDE6D4",
@@ -6516,7 +6753,11 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
           <View
             style={
               [
-                {},
+                {
+                  "borderRadius": 12,
+                  "borderWidth": 1,
+                  "overflow": "hidden",
+                },
                 {
                   "backgroundColor": "#FFFFFF",
                   "borderColor": "#EDE6D4",
@@ -6780,7 +7021,6 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
           onPress={[Function]}
           style={
             [
-              {},
               {
                 "alignItems": "center",
                 "flexDirection": "row",

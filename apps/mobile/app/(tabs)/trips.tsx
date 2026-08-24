@@ -253,7 +253,7 @@ export default function TripsScreen(): React.JSX.Element {
         {/* Page header */}
         <View style={styles.pageHeaderRow}>
           <View style={styles.pageHeader}>
-            <Text variant="headlineDisplay" color={theme.ink}>
+            <Text variant="headlineDisplay" color={theme.ink} style={styles.heading}>
               Mes trajets
             </Text>
             <Text variant="body" color={theme.inkMuted}>
@@ -537,10 +537,14 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     justifyContent: 'space-between',
     gap: spacing.sm,
+    marginTop: 5
   },
   pageHeader: {
     flex: 1,
-    gap: 2,
+    gap: 17,
+  },
+  heading: {
+    textAlign: 'center',
   },
   notificationButton: {
     width: 40,

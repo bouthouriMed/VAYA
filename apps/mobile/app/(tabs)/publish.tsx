@@ -1675,10 +1675,6 @@ const styles = StyleSheet.create({
     shadowRadius: 24,
     elevation: 8,
   },
-  headline: {
-    marginTop: 0,
-    textAlign: 'center',
-  },
   handle: {
     alignItems: 'center',
     paddingTop: spacing.sm,
