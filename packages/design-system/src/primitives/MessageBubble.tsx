@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Text } from './Text';
+import { Avatar } from './Avatar';
 import { colors, spacing, radii, typography } from '../tokens/index';
 import type { AppPalette } from '../theme/palette';
 
@@ -17,6 +18,13 @@ interface MessageBubbleProps {
    *  render solid-accent/onAccent, others on surfaceMuted with an
    *  outlineVariant hairline. Omit for the legacy static palette. */
   theme?: AppPalette;
+  /** The other party's real avatar (Stitch's "Conversation / active trip
+   *  coordination" shows a small avatar beside each of their bubbles) —
+   *  only ever rendered for `!isOwn` messages; own messages never show
+   *  one, matching the reference. Omit to render without one (unchanged
+   *  behavior for any caller not passing it). */
+  avatarUrl?: string | null;
+  avatarName?: string;
 }
 
 /**
@@ -31,7 +39,10 @@ export function MessageBubble({
   isOwn,
   timestamp,
   theme,
+  avatarUrl,
+  avatarName,
 }: MessageBubbleProps): React.JSX.Element {
+  const showAvatar = !isOwn && Boolean(avatarName);
   const themed = theme
     ? {
         row: [styles.row, isOwn ? styles.rowOwn : styles.rowOther],
@@ -63,6 +74,9 @@ export function MessageBubble({
       accessibilityRole="text"
       accessibilityLabel={`${isOwn ? 'Vous' : 'Autre participant'}, ${timestamp}: ${body}`}
     >
+      {showAvatar ? (
+        <Avatar uri={avatarUrl ?? null} name={avatarName ?? ''} sizePx={28} style={styles.avatar} />
+      ) : null}
       <View style={themed.bubble}>
         <Text variant="body" color={themed.bodyColor}>
           {body}
@@ -78,6 +92,7 @@ export function MessageBubble({
 const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
+    alignItems: 'flex-end',
     marginVertical: spacing.xs,
   },
   rowOwn: {
@@ -85,6 +100,10 @@ const styles = StyleSheet.create({
   },
   rowOther: {
     justifyContent: 'flex-start',
+  },
+  avatar: {
+    marginRight: spacing.xs,
+    marginBottom: 2,
   },
   bubble: {
     maxWidth: '80%',
