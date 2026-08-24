@@ -8,7 +8,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
         "flex": 1,
       },
       {
-        "backgroundColor": "#F7F3E8",
+        "backgroundColor": "#FFFFFF",
       },
     ]
   }
@@ -248,7 +248,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                       "width": 7,
                     },
                     {
-                      "backgroundColor": "#F7F3E8",
+                      "backgroundColor": "#FFFFFF",
                     },
                   ]
                 }
@@ -384,7 +384,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
           },
           {
             "backgroundColor": "#FFFFFF",
-            "borderColor": "#EDE6D4",
+            "borderColor": "#E4EDFB",
           },
         ]
       }
@@ -408,7 +408,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                 "lineHeight": 21,
               },
               {
-                "color": "#5C5748",
+                "color": "#5B6572",
                 "textAlign": undefined,
                 "writingDirection": "ltr",
               },
@@ -475,7 +475,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                 "paddingBottom": 8,
               },
               {
-                "borderBottomColor": "#EDE6D4",
+                "borderBottomColor": "#E4EDFB",
               },
             ]
           }
@@ -514,7 +514,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                     "lineHeight": 18,
                   },
                   {
-                    "color": "#8C8674",
+                    "color": "#8B93A3",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -558,7 +558,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                 "paddingBottom": 8,
               },
               {
-                "borderBottomColor": "#EDE6D4",
+                "borderBottomColor": "#E4EDFB",
               },
             ]
           }
@@ -582,7 +582,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                     "width": 8,
                   },
                   {
-                    "backgroundColor": "#EDE6D4",
+                    "backgroundColor": "#E4EDFB",
                     "borderColor": "#14201B",
                   },
                 ]
@@ -597,7 +597,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                     "lineHeight": 18,
                   },
                   {
-                    "color": "#8C8674",
+                    "color": "#8B93A3",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -641,7 +641,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                 "paddingBottom": 8,
               },
               {
-                "borderBottomColor": "#EDE6D4",
+                "borderBottomColor": "#E4EDFB",
               },
             ]
           }
@@ -665,7 +665,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                     "width": 8,
                   },
                   {
-                    "backgroundColor": "#EDE6D4",
+                    "backgroundColor": "#E4EDFB",
                     "borderColor": "#14201B",
                   },
                 ]
@@ -680,7 +680,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                     "lineHeight": 18,
                   },
                   {
-                    "color": "#8C8674",
+                    "color": "#8B93A3",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -751,7 +751,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                     "lineHeight": 18,
                   },
                   {
-                    "color": "#8C8674",
+                    "color": "#8B93A3",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -797,7 +797,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
       >
         <Ionicons
           accessibilityElementsHidden={true}
-          color="#5C5748"
+          color="#5B6572"
           importantForAccessibility="no-hide-descendants"
           name="time-outline"
           size={20}
@@ -811,7 +811,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                 "lineHeight": 21,
               },
               {
-                "color": "#5C5748",
+                "color": "#5B6572",
                 "textAlign": undefined,
                 "writingDirection": "ltr",
               },
@@ -833,7 +833,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
       >
         <Ionicons
           accessibilityElementsHidden={true}
-          color="#5C5748"
+          color="#5B6572"
           importantForAccessibility="no-hide-descendants"
           name="people-outline"
           size={20}
@@ -847,7 +847,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                 "lineHeight": 21,
               },
               {
-                "color": "#5C5748",
+                "color": "#5B6572",
                 "textAlign": undefined,
                 "writingDirection": "ltr",
               },
@@ -869,7 +869,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
       >
         <Ionicons
           accessibilityElementsHidden={true}
-          color="#5C5748"
+          color="#5B6572"
           importantForAccessibility="no-hide-descendants"
           name="cash-outline"
           size={20}
@@ -883,7 +883,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                 "lineHeight": 21,
               },
               {
-                "color": "#5C5748",
+                "color": "#5B6572",
                 "textAlign": undefined,
                 "writingDirection": "ltr",
               },
@@ -913,7 +913,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
               "lineHeight": 21,
             },
             {
-              "color": "#5C5748",
+              "color": "#5B6572",
               "textAlign": undefined,
               "writingDirection": "ltr",
             },
@@ -935,7 +935,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
               "lineHeight": 21,
             },
             {
-              "color": "#8C8674",
+              "color": "#8B93A3",
               "textAlign": undefined,
               "writingDirection": "ltr",
             },
@@ -965,8 +965,8 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
           "paddingTop": 8,
         },
         {
-          "backgroundColor": "#F7F3E8",
-          "borderTopColor": "#EDE6D4",
+          "backgroundColor": "#FFFFFF",
+          "borderTopColor": "#E4EDFB",
           "paddingBottom": 12,
         },
       ]
@@ -1016,7 +1016,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
             "flex": 1,
           },
           {
-            "backgroundColor": "#F7F3E8",
+            "backgroundColor": "#FFFFFF",
           },
         ]
       }
@@ -1180,7 +1180,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                       "width": 7,
                     },
                     {
-                      "backgroundColor": "#F7F3E8",
+                      "backgroundColor": "#FFFFFF",
                     },
                   ]
                 }
@@ -1268,7 +1268,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
         "flex": 1,
       },
       {
-        "backgroundColor": "#F7F3E8",
+        "backgroundColor": "#FFFFFF",
       },
     ]
   }
@@ -1508,7 +1508,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                       "width": 7,
                     },
                     {
-                      "backgroundColor": "#F7F3E8",
+                      "backgroundColor": "#FFFFFF",
                     },
                   ]
                 }
@@ -1644,7 +1644,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
           },
           {
             "backgroundColor": "#FFFFFF",
-            "borderColor": "#EDE6D4",
+            "borderColor": "#E4EDFB",
           },
         ]
       }
@@ -1668,7 +1668,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                 "lineHeight": 21,
               },
               {
-                "color": "#5C5748",
+                "color": "#5B6572",
                 "textAlign": undefined,
                 "writingDirection": "ltr",
               },
@@ -1735,7 +1735,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                 "paddingBottom": 8,
               },
               {
-                "borderBottomColor": "#EDE6D4",
+                "borderBottomColor": "#E4EDFB",
               },
             ]
           }
@@ -1774,7 +1774,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                     "lineHeight": 18,
                   },
                   {
-                    "color": "#8C8674",
+                    "color": "#8B93A3",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -1818,7 +1818,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                 "paddingBottom": 8,
               },
               {
-                "borderBottomColor": "#EDE6D4",
+                "borderBottomColor": "#E4EDFB",
               },
             ]
           }
@@ -1842,7 +1842,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                     "width": 8,
                   },
                   {
-                    "backgroundColor": "#EDE6D4",
+                    "backgroundColor": "#E4EDFB",
                     "borderColor": "#14201B",
                   },
                 ]
@@ -1857,7 +1857,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                     "lineHeight": 18,
                   },
                   {
-                    "color": "#8C8674",
+                    "color": "#8B93A3",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -1901,7 +1901,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                 "paddingBottom": 8,
               },
               {
-                "borderBottomColor": "#EDE6D4",
+                "borderBottomColor": "#E4EDFB",
               },
             ]
           }
@@ -1925,7 +1925,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                     "width": 8,
                   },
                   {
-                    "backgroundColor": "#EDE6D4",
+                    "backgroundColor": "#E4EDFB",
                     "borderColor": "#14201B",
                   },
                 ]
@@ -1940,7 +1940,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                     "lineHeight": 18,
                   },
                   {
-                    "color": "#8C8674",
+                    "color": "#8B93A3",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -2011,7 +2011,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                     "lineHeight": 18,
                   },
                   {
-                    "color": "#8C8674",
+                    "color": "#8B93A3",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -2057,7 +2057,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
       >
         <Ionicons
           accessibilityElementsHidden={true}
-          color="#5C5748"
+          color="#5B6572"
           importantForAccessibility="no-hide-descendants"
           name="time-outline"
           size={20}
@@ -2071,7 +2071,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                 "lineHeight": 21,
               },
               {
-                "color": "#5C5748",
+                "color": "#5B6572",
                 "textAlign": undefined,
                 "writingDirection": "ltr",
               },
@@ -2093,7 +2093,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
       >
         <Ionicons
           accessibilityElementsHidden={true}
-          color="#5C5748"
+          color="#5B6572"
           importantForAccessibility="no-hide-descendants"
           name="people-outline"
           size={20}
@@ -2107,7 +2107,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                 "lineHeight": 21,
               },
               {
-                "color": "#5C5748",
+                "color": "#5B6572",
                 "textAlign": undefined,
                 "writingDirection": "ltr",
               },
@@ -2129,7 +2129,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
       >
         <Ionicons
           accessibilityElementsHidden={true}
-          color="#5C5748"
+          color="#5B6572"
           importantForAccessibility="no-hide-descendants"
           name="cash-outline"
           size={20}
@@ -2143,7 +2143,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                 "lineHeight": 21,
               },
               {
-                "color": "#5C5748",
+                "color": "#5B6572",
                 "textAlign": undefined,
                 "writingDirection": "ltr",
               },
@@ -2173,7 +2173,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
               "lineHeight": 21,
             },
             {
-              "color": "#5C5748",
+              "color": "#5B6572",
               "textAlign": undefined,
               "writingDirection": "ltr",
             },
@@ -2196,8 +2196,8 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
               "padding": 12,
             },
             {
-              "backgroundColor": "#EDE6D4",
-              "borderColor": "#EDE6D4",
+              "backgroundColor": "#E4EDFB",
+              "borderColor": "#E4EDFB",
             },
           ]
         }
@@ -2285,7 +2285,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                     "lineHeight": 18,
                   },
                   {
-                    "color": "#5C5748",
+                    "color": "#5B6572",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -2324,7 +2324,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                   "borderWidth": 1,
                 },
                 {
-                  "borderColor": "#DDD4BC",
+                  "borderColor": "#D3E1F5",
                 },
               ]
             }
@@ -2411,7 +2411,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
               "lineHeight": 21,
             },
             {
-              "color": "#5C5748",
+              "color": "#5B6572",
               "textAlign": undefined,
               "writingDirection": "ltr",
             },
@@ -2444,8 +2444,8 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
               "gap": 8,
             },
             {
-              "backgroundColor": "#EDE6D4",
-              "borderColor": "#EDE6D4",
+              "backgroundColor": "#E4EDFB",
+              "borderColor": "#E4EDFB",
             },
           ]
         }
@@ -2523,7 +2523,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                   "lineHeight": 18,
                 },
                 {
-                  "color": "#5C5748",
+                  "color": "#5B6572",
                   "textAlign": undefined,
                   "writingDirection": "ltr",
                 },
@@ -2571,7 +2571,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
         </View>
         <Ionicons
           accessibilityElementsHidden={true}
-          color="#DDD4BC"
+          color="#D3E1F5"
           importantForAccessibility="no-hide-descendants"
           name="chevron-forward"
           size={16}
@@ -2595,8 +2595,8 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
           "paddingTop": 8,
         },
         {
-          "backgroundColor": "#F7F3E8",
-          "borderTopColor": "#EDE6D4",
+          "backgroundColor": "#FFFFFF",
+          "borderTopColor": "#E4EDFB",
           "paddingBottom": 12,
         },
       ]
@@ -2646,7 +2646,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
             "flex": 1,
           },
           {
-            "backgroundColor": "#F7F3E8",
+            "backgroundColor": "#FFFFFF",
           },
         ]
       }
@@ -2810,7 +2810,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                       "width": 7,
                     },
                     {
-                      "backgroundColor": "#F7F3E8",
+                      "backgroundColor": "#FFFFFF",
                     },
                   ]
                 }

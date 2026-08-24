@@ -8,7 +8,7 @@ exports[`search/composer.tsx snapshots > renders the destination field active â€
         "flex": 1,
       },
       {
-        "backgroundColor": "#F7F3E8",
+        "backgroundColor": "#FFFFFF",
       },
     ]
   }
@@ -116,14 +116,14 @@ exports[`search/composer.tsx snapshots > renders the destination field active â€
           },
           {
             "backgroundColor": "#FFFFFF",
-            "borderColor": "#EDE6D4",
+            "borderColor": "#E4EDFB",
           },
         ]
       }
     >
       <Ionicons
         accessibilityElementsHidden={true}
-        color="#5C5748"
+        color="#5B6572"
         importantForAccessibility="no-hide-descendants"
         name="search"
         size={20}
@@ -132,7 +132,7 @@ exports[`search/composer.tsx snapshots > renders the destination field active â€
         autoFocus={true}
         onChangeText={[Function]}
         placeholder="Rechercher une destination"
-        placeholderTextColor="#8C8674"
+        placeholderTextColor="#8B93A3"
         returnKeyType="search"
         style={
           [
@@ -165,7 +165,7 @@ exports[`search/composer.tsx snapshots > renders the destination field active â€
               "lineHeight": 18,
             },
             {
-              "color": "#8C8674",
+              "color": "#8B93A3",
               "textAlign": undefined,
               "writingDirection": "ltr",
             },
@@ -207,7 +207,7 @@ exports[`search/composer.tsx snapshots > renders the destination field active â€
               },
               {
                 "backgroundColor": "#FFFFFF",
-                "borderColor": "#EDE6D4",
+                "borderColor": "#E4EDFB",
               },
             ]
           }
@@ -223,14 +223,14 @@ exports[`search/composer.tsx snapshots > renders the destination field active â€
                   "width": 32,
                 },
                 {
-                  "backgroundColor": "#EDE6D4",
+                  "backgroundColor": "#E4EDFB",
                 },
               ]
             }
           >
             <Ionicons
               accessibilityElementsHidden={true}
-              color="#DDD4BC"
+              color="#D3E1F5"
               importantForAccessibility="no-hide-descendants"
               name="briefcase-outline"
               size={20}
@@ -254,7 +254,7 @@ exports[`search/composer.tsx snapshots > renders the destination field active â€
                     "lineHeight": 21,
                   },
                   {
-                    "color": "#8C8674",
+                    "color": "#8B93A3",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -273,7 +273,7 @@ exports[`search/composer.tsx snapshots > renders the destination field active â€
                     "lineHeight": 18,
                   },
                   {
-                    "color": "#8C8674",
+                    "color": "#8B93A3",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -305,7 +305,7 @@ exports[`search/composer.tsx snapshots > renders the destination field active â€
               },
               {
                 "backgroundColor": "#FFFFFF",
-                "borderColor": "#EDE6D4",
+                "borderColor": "#E4EDFB",
               },
             ]
           }
@@ -321,14 +321,14 @@ exports[`search/composer.tsx snapshots > renders the destination field active â€
                   "width": 32,
                 },
                 {
-                  "backgroundColor": "#EDE6D4",
+                  "backgroundColor": "#E4EDFB",
                 },
               ]
             }
           >
             <Ionicons
               accessibilityElementsHidden={true}
-              color="#DDD4BC"
+              color="#D3E1F5"
               importantForAccessibility="no-hide-descendants"
               name="home-outline"
               size={20}
@@ -352,7 +352,7 @@ exports[`search/composer.tsx snapshots > renders the destination field active â€
                     "lineHeight": 21,
                   },
                   {
-                    "color": "#8C8674",
+                    "color": "#8B93A3",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -371,7 +371,7 @@ exports[`search/composer.tsx snapshots > renders the destination field active â€
                     "lineHeight": 18,
                   },
                   {
-                    "color": "#8C8674",
+                    "color": "#8B93A3",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -394,7 +394,7 @@ exports[`search/composer.tsx snapshots > renders the destination field active â€
             "lineHeight": 18,
           },
           {
-            "color": "#8C8674",
+            "color": "#8B93A3",
             "textAlign": undefined,
             "writingDirection": "ltr",
           },
@@ -436,7 +436,7 @@ exports[`search/composer.tsx snapshots > renders the destination field active â€
                 "paddingVertical": 12,
               },
               {
-                "borderBottomColor": "#EDE6D4",
+                "borderBottomColor": "#E4EDFB",
                 "borderBottomWidth": 1,
               },
             ]
@@ -506,7 +506,7 @@ exports[`search/composer.tsx snapshots > renders the destination field active â€
                     "lineHeight": 18,
                   },
                   {
-                    "color": "#8C8674",
+                    "color": "#8B93A3",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -531,7 +531,7 @@ exports[`search/composer.tsx snapshots > renders the destination field active â€
                 "paddingVertical": 12,
               },
               {
-                "borderBottomColor": "#EDE6D4",
+                "borderBottomColor": "#E4EDFB",
                 "borderBottomWidth": 1,
               },
             ]
@@ -601,7 +601,7 @@ exports[`search/composer.tsx snapshots > renders the destination field active â€
                     "lineHeight": 18,
                   },
                   {
-                    "color": "#8C8674",
+                    "color": "#8B93A3",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -626,7 +626,7 @@ exports[`search/composer.tsx snapshots > renders the destination field active â€
                 "paddingVertical": 12,
               },
               {
-                "borderBottomColor": "#EDE6D4",
+                "borderBottomColor": "#E4EDFB",
                 "borderBottomWidth": 1,
               },
             ]
@@ -696,7 +696,7 @@ exports[`search/composer.tsx snapshots > renders the destination field active â€
                     "lineHeight": 18,
                   },
                   {
-                    "color": "#8C8674",
+                    "color": "#8B93A3",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -721,7 +721,7 @@ exports[`search/composer.tsx snapshots > renders the destination field active â€
                 "paddingVertical": 12,
               },
               {
-                "borderBottomColor": "#EDE6D4",
+                "borderBottomColor": "#E4EDFB",
                 "borderBottomWidth": 1,
               },
             ]
@@ -791,7 +791,7 @@ exports[`search/composer.tsx snapshots > renders the destination field active â€
                     "lineHeight": 18,
                   },
                   {
-                    "color": "#8C8674",
+                    "color": "#8B93A3",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -816,7 +816,7 @@ exports[`search/composer.tsx snapshots > renders the destination field active â€
                 "paddingVertical": 12,
               },
               {
-                "borderBottomColor": "#EDE6D4",
+                "borderBottomColor": "#E4EDFB",
                 "borderBottomWidth": 1,
               },
             ]
@@ -886,7 +886,7 @@ exports[`search/composer.tsx snapshots > renders the destination field active â€
                     "lineHeight": 18,
                   },
                   {
-                    "color": "#8C8674",
+                    "color": "#8B93A3",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -911,7 +911,7 @@ exports[`search/composer.tsx snapshots > renders the destination field active â€
                 "paddingVertical": 12,
               },
               {
-                "borderBottomColor": "#EDE6D4",
+                "borderBottomColor": "#E4EDFB",
                 "borderBottomWidth": 1,
               },
             ]
@@ -981,7 +981,7 @@ exports[`search/composer.tsx snapshots > renders the destination field active â€
                     "lineHeight": 18,
                   },
                   {
-                    "color": "#8C8674",
+                    "color": "#8B93A3",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -1006,7 +1006,7 @@ exports[`search/composer.tsx snapshots > renders the destination field active â€
                 "paddingVertical": 12,
               },
               {
-                "borderBottomColor": "#EDE6D4",
+                "borderBottomColor": "#E4EDFB",
                 "borderBottomWidth": 1,
               },
             ]
@@ -1076,7 +1076,7 @@ exports[`search/composer.tsx snapshots > renders the destination field active â€
                     "lineHeight": 18,
                   },
                   {
-                    "color": "#8C8674",
+                    "color": "#8B93A3",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -1168,7 +1168,7 @@ exports[`search/composer.tsx snapshots > renders the destination field active â€
                     "lineHeight": 18,
                   },
                   {
-                    "color": "#8C8674",
+                    "color": "#8B93A3",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -1194,7 +1194,7 @@ exports[`search/composer.tsx snapshots > renders the origin field active â€” tit
         "flex": 1,
       },
       {
-        "backgroundColor": "#F7F3E8",
+        "backgroundColor": "#FFFFFF",
       },
     ]
   }
@@ -1302,14 +1302,14 @@ exports[`search/composer.tsx snapshots > renders the origin field active â€” tit
           },
           {
             "backgroundColor": "#FFFFFF",
-            "borderColor": "#EDE6D4",
+            "borderColor": "#E4EDFB",
           },
         ]
       }
     >
       <Ionicons
         accessibilityElementsHidden={true}
-        color="#5C5748"
+        color="#5B6572"
         importantForAccessibility="no-hide-descendants"
         name="search"
         size={20}
@@ -1318,7 +1318,7 @@ exports[`search/composer.tsx snapshots > renders the origin field active â€” tit
         autoFocus={true}
         onChangeText={[Function]}
         placeholder="Rechercher un point de dÃ©part"
-        placeholderTextColor="#8C8674"
+        placeholderTextColor="#8B93A3"
         returnKeyType="search"
         style={
           [
@@ -1394,7 +1394,7 @@ exports[`search/composer.tsx snapshots > renders the origin field active â€” tit
               "lineHeight": 18,
             },
             {
-              "color": "#8C8674",
+              "color": "#8B93A3",
               "textAlign": undefined,
               "writingDirection": "ltr",
             },
@@ -1436,7 +1436,7 @@ exports[`search/composer.tsx snapshots > renders the origin field active â€” tit
               },
               {
                 "backgroundColor": "#FFFFFF",
-                "borderColor": "#EDE6D4",
+                "borderColor": "#E4EDFB",
               },
             ]
           }
@@ -1452,14 +1452,14 @@ exports[`search/composer.tsx snapshots > renders the origin field active â€” tit
                   "width": 32,
                 },
                 {
-                  "backgroundColor": "#EDE6D4",
+                  "backgroundColor": "#E4EDFB",
                 },
               ]
             }
           >
             <Ionicons
               accessibilityElementsHidden={true}
-              color="#DDD4BC"
+              color="#D3E1F5"
               importantForAccessibility="no-hide-descendants"
               name="briefcase-outline"
               size={20}
@@ -1483,7 +1483,7 @@ exports[`search/composer.tsx snapshots > renders the origin field active â€” tit
                     "lineHeight": 21,
                   },
                   {
-                    "color": "#8C8674",
+                    "color": "#8B93A3",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -1502,7 +1502,7 @@ exports[`search/composer.tsx snapshots > renders the origin field active â€” tit
                     "lineHeight": 18,
                   },
                   {
-                    "color": "#8C8674",
+                    "color": "#8B93A3",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -1534,7 +1534,7 @@ exports[`search/composer.tsx snapshots > renders the origin field active â€” tit
               },
               {
                 "backgroundColor": "#FFFFFF",
-                "borderColor": "#EDE6D4",
+                "borderColor": "#E4EDFB",
               },
             ]
           }
@@ -1550,14 +1550,14 @@ exports[`search/composer.tsx snapshots > renders the origin field active â€” tit
                   "width": 32,
                 },
                 {
-                  "backgroundColor": "#EDE6D4",
+                  "backgroundColor": "#E4EDFB",
                 },
               ]
             }
           >
             <Ionicons
               accessibilityElementsHidden={true}
-              color="#DDD4BC"
+              color="#D3E1F5"
               importantForAccessibility="no-hide-descendants"
               name="home-outline"
               size={20}
@@ -1581,7 +1581,7 @@ exports[`search/composer.tsx snapshots > renders the origin field active â€” tit
                     "lineHeight": 21,
                   },
                   {
-                    "color": "#8C8674",
+                    "color": "#8B93A3",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -1600,7 +1600,7 @@ exports[`search/composer.tsx snapshots > renders the origin field active â€” tit
                     "lineHeight": 18,
                   },
                   {
-                    "color": "#8C8674",
+                    "color": "#8B93A3",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -1623,7 +1623,7 @@ exports[`search/composer.tsx snapshots > renders the origin field active â€” tit
             "lineHeight": 18,
           },
           {
-            "color": "#8C8674",
+            "color": "#8B93A3",
             "textAlign": undefined,
             "writingDirection": "ltr",
           },
@@ -1665,7 +1665,7 @@ exports[`search/composer.tsx snapshots > renders the origin field active â€” tit
                 "paddingVertical": 12,
               },
               {
-                "borderBottomColor": "#EDE6D4",
+                "borderBottomColor": "#E4EDFB",
                 "borderBottomWidth": 1,
               },
             ]
@@ -1735,7 +1735,7 @@ exports[`search/composer.tsx snapshots > renders the origin field active â€” tit
                     "lineHeight": 18,
                   },
                   {
-                    "color": "#8C8674",
+                    "color": "#8B93A3",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -1760,7 +1760,7 @@ exports[`search/composer.tsx snapshots > renders the origin field active â€” tit
                 "paddingVertical": 12,
               },
               {
-                "borderBottomColor": "#EDE6D4",
+                "borderBottomColor": "#E4EDFB",
                 "borderBottomWidth": 1,
               },
             ]
@@ -1830,7 +1830,7 @@ exports[`search/composer.tsx snapshots > renders the origin field active â€” tit
                     "lineHeight": 18,
                   },
                   {
-                    "color": "#8C8674",
+                    "color": "#8B93A3",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -1855,7 +1855,7 @@ exports[`search/composer.tsx snapshots > renders the origin field active â€” tit
                 "paddingVertical": 12,
               },
               {
-                "borderBottomColor": "#EDE6D4",
+                "borderBottomColor": "#E4EDFB",
                 "borderBottomWidth": 1,
               },
             ]
@@ -1925,7 +1925,7 @@ exports[`search/composer.tsx snapshots > renders the origin field active â€” tit
                     "lineHeight": 18,
                   },
                   {
-                    "color": "#8C8674",
+                    "color": "#8B93A3",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -1950,7 +1950,7 @@ exports[`search/composer.tsx snapshots > renders the origin field active â€” tit
                 "paddingVertical": 12,
               },
               {
-                "borderBottomColor": "#EDE6D4",
+                "borderBottomColor": "#E4EDFB",
                 "borderBottomWidth": 1,
               },
             ]
@@ -2020,7 +2020,7 @@ exports[`search/composer.tsx snapshots > renders the origin field active â€” tit
                     "lineHeight": 18,
                   },
                   {
-                    "color": "#8C8674",
+                    "color": "#8B93A3",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -2045,7 +2045,7 @@ exports[`search/composer.tsx snapshots > renders the origin field active â€” tit
                 "paddingVertical": 12,
               },
               {
-                "borderBottomColor": "#EDE6D4",
+                "borderBottomColor": "#E4EDFB",
                 "borderBottomWidth": 1,
               },
             ]
@@ -2115,7 +2115,7 @@ exports[`search/composer.tsx snapshots > renders the origin field active â€” tit
                     "lineHeight": 18,
                   },
                   {
-                    "color": "#8C8674",
+                    "color": "#8B93A3",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -2140,7 +2140,7 @@ exports[`search/composer.tsx snapshots > renders the origin field active â€” tit
                 "paddingVertical": 12,
               },
               {
-                "borderBottomColor": "#EDE6D4",
+                "borderBottomColor": "#E4EDFB",
                 "borderBottomWidth": 1,
               },
             ]
@@ -2210,7 +2210,7 @@ exports[`search/composer.tsx snapshots > renders the origin field active â€” tit
                     "lineHeight": 18,
                   },
                   {
-                    "color": "#8C8674",
+                    "color": "#8B93A3",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -2235,7 +2235,7 @@ exports[`search/composer.tsx snapshots > renders the origin field active â€” tit
                 "paddingVertical": 12,
               },
               {
-                "borderBottomColor": "#EDE6D4",
+                "borderBottomColor": "#E4EDFB",
                 "borderBottomWidth": 1,
               },
             ]
@@ -2305,7 +2305,7 @@ exports[`search/composer.tsx snapshots > renders the origin field active â€” tit
                     "lineHeight": 18,
                   },
                   {
-                    "color": "#8C8674",
+                    "color": "#8B93A3",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -2397,7 +2397,7 @@ exports[`search/composer.tsx snapshots > renders the origin field active â€” tit
                     "lineHeight": 18,
                   },
                   {
-                    "color": "#8C8674",
+                    "color": "#8B93A3",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },

@@ -11,8 +11,8 @@ exports[`messages.tsx snapshots > empty inbox — headline, filter-less, first-r
   <LinearGradient
     colors={
       [
-        "#FBF8EF",
-        "#F0E9D3",
+        "#FFFFFF",
+        "#EEF4FC",
       ]
     }
     end={
@@ -123,7 +123,7 @@ exports[`messages.tsx snapshots > empty inbox — headline, filter-less, first-r
             },
             {
               "backgroundColor": "#FFFFFF",
-              "borderColor": "#EDE6D4",
+              "borderColor": "#E4EDFB",
             },
             {
               "elevation": 1,
@@ -182,7 +182,7 @@ exports[`messages.tsx snapshots > empty inbox — headline, filter-less, first-r
                 "width": 96,
               },
               {
-                "backgroundColor": "#EDE6D4",
+                "backgroundColor": "#E4EDFB",
               },
             ]
           }
@@ -226,7 +226,7 @@ exports[`messages.tsx snapshots > empty inbox — headline, filter-less, first-r
                 "lineHeight": 24,
               },
               {
-                "color": "#5C5748",
+                "color": "#5B6572",
                 "textAlign": undefined,
                 "writingDirection": "ltr",
               },
@@ -287,8 +287,8 @@ exports[`messages.tsx snapshots > error — full-screen retry EmptyState 1`] = `
   <LinearGradient
     colors={
       [
-        "#FBF8EF",
-        "#F0E9D3",
+        "#FFFFFF",
+        "#EEF4FC",
       ]
     }
     end={
@@ -409,7 +409,7 @@ exports[`messages.tsx snapshots > error — full-screen retry EmptyState 1`] = `
       >
         <Ionicons
           accessibilityElementsHidden={true}
-          color="#8C8674"
+          color="#8B93A3"
           importantForAccessibility="no-hide-descendants"
           name="cloud-offline-outline"
           size={32}
@@ -504,8 +504,8 @@ exports[`messages.tsx snapshots > loading — headline over conversation-row ske
   <LinearGradient
     colors={
       [
-        "#FBF8EF",
-        "#F0E9D3",
+        "#FFFFFF",
+        "#EEF4FC",
       ]
     }
     end={
@@ -713,8 +713,8 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
   <LinearGradient
     colors={
       [
-        "#FBF8EF",
-        "#F0E9D3",
+        "#FFFFFF",
+        "#EEF4FC",
       ]
     }
     end={
@@ -825,7 +825,7 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
             },
             {
               "backgroundColor": "#FFFFFF",
-              "borderColor": "#EDE6D4",
+              "borderColor": "#E4EDFB",
             },
             {
               "elevation": 1,
@@ -927,7 +927,7 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
                   "lineHeight": 21,
                 },
                 {
-                  "color": "#F7F3E8",
+                  "color": "#FFFFFF",
                   "textAlign": undefined,
                   "writingDirection": "ltr",
                 },
@@ -962,8 +962,8 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
               "paddingVertical": 10,
             },
             {
-              "backgroundColor": "#FFFFFF",
-              "borderColor": "#EDE6D4",
+              "backgroundColor": "#E4EDFB",
+              "borderColor": "#E4EDFB",
               "borderWidth": 1,
             },
           ]
@@ -978,7 +978,7 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
                 "lineHeight": 21,
               },
               {
-                "color": "#5C5748",
+                "color": "#5B6572",
                 "textAlign": undefined,
                 "writingDirection": "ltr",
               },
@@ -1012,8 +1012,8 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
               "paddingVertical": 10,
             },
             {
-              "backgroundColor": "#FFFFFF",
-              "borderColor": "#EDE6D4",
+              "backgroundColor": "#E4EDFB",
+              "borderColor": "#E4EDFB",
               "borderWidth": 1,
             },
           ]
@@ -1028,7 +1028,7 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
                 "lineHeight": 21,
               },
               {
-                "color": "#5C5748",
+                "color": "#5B6572",
                 "textAlign": undefined,
                 "writingDirection": "ltr",
               },
@@ -1062,8 +1062,8 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
               "paddingVertical": 10,
             },
             {
-              "backgroundColor": "#FFFFFF",
-              "borderColor": "#EDE6D4",
+              "backgroundColor": "#E4EDFB",
+              "borderColor": "#E4EDFB",
               "borderWidth": 1,
             },
           ]
@@ -1078,7 +1078,7 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
                 "lineHeight": 21,
               },
               {
-                "color": "#5C5748",
+                "color": "#5B6572",
                 "textAlign": undefined,
                 "writingDirection": "ltr",
               },
@@ -1100,7 +1100,7 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
               "paddingTop": 12,
             },
             {
-              "backgroundColor": "#F7F3E8",
+              "backgroundColor": "#FFFFFF",
             },
           ]
         }
@@ -1114,7 +1114,7 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
                 "lineHeight": 21,
               },
               {
-                "color": "#8C8674",
+                "color": "#8B93A3",
                 "textAlign": undefined,
                 "writingDirection": "ltr",
               },
@@ -1148,7 +1148,7 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
             },
             {
               "backgroundColor": "#FFFFFF",
-              "borderColor": "#EDE6D4",
+              "borderColor": "#E4EDFB",
             },
             {
               "elevation": 1,
@@ -1194,7 +1194,7 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
                 "justifyContent": "center",
               },
               {
-                "backgroundColor": "#EDE6D4",
+                "backgroundColor": "#E4EDFB",
                 "borderRadius": 24,
                 "height": 48,
                 "width": 48,
@@ -1305,7 +1305,7 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
                     "paddingVertical": 1,
                   },
                   {
-                    "backgroundColor": "#EDE6D4",
+                    "backgroundColor": "#E4EDFB",
                   },
                 ]
               }
@@ -1319,7 +1319,7 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
                       "lineHeight": 18,
                     },
                     {
-                      "color": "#5C5748",
+                      "color": "#5B6572",
                       "textAlign": undefined,
                       "writingDirection": "ltr",
                     },
@@ -1341,7 +1341,7 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
                     "lineHeight": 18,
                   },
                   {
-                    "color": "#8C8674",
+                    "color": "#8B93A3",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -1361,7 +1361,7 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
                     "lineHeight": 18,
                   },
                   {
-                    "color": "#5C5748",
+                    "color": "#5B6572",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -1405,7 +1405,7 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
               "paddingTop": 12,
             },
             {
-              "backgroundColor": "#F7F3E8",
+              "backgroundColor": "#FFFFFF",
             },
           ]
         }
@@ -1419,7 +1419,7 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
                 "lineHeight": 21,
               },
               {
-                "color": "#8C8674",
+                "color": "#8B93A3",
                 "textAlign": undefined,
                 "writingDirection": "ltr",
               },
@@ -1453,7 +1453,7 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
             },
             {
               "backgroundColor": "#FFFFFF",
-              "borderColor": "#EDE6D4",
+              "borderColor": "#E4EDFB",
             },
             {
               "elevation": 1,
@@ -1486,7 +1486,7 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
                 "justifyContent": "center",
               },
               {
-                "backgroundColor": "#EDE6D4",
+                "backgroundColor": "#E4EDFB",
                 "borderRadius": 24,
                 "height": 48,
                 "width": 48,
@@ -1564,7 +1564,7 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
                     "lineHeight": 18,
                   },
                   {
-                    "color": "#8C8674",
+                    "color": "#8B93A3",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -1593,7 +1593,7 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
                     "paddingVertical": 1,
                   },
                   {
-                    "backgroundColor": "#EDE6D4",
+                    "backgroundColor": "#E4EDFB",
                   },
                 ]
               }
@@ -1607,7 +1607,7 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
                       "lineHeight": 18,
                     },
                     {
-                      "color": "#5C5748",
+                      "color": "#5B6572",
                       "textAlign": undefined,
                       "writingDirection": "ltr",
                     },
@@ -1629,7 +1629,7 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
                     "lineHeight": 18,
                   },
                   {
-                    "color": "#8C8674",
+                    "color": "#8B93A3",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -1649,7 +1649,7 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
                     "lineHeight": 18,
                   },
                   {
-                    "color": "#5C5748",
+                    "color": "#5B6572",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -1679,7 +1679,7 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
                   "lineHeight": 21,
                 },
                 {
-                  "color": "#8C8674",
+                  "color": "#8B93A3",
                   "textAlign": undefined,
                   "writingDirection": "ltr",
                 },

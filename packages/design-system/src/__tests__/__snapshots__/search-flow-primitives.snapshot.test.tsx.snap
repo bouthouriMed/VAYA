@@ -15,7 +15,7 @@ exports[`DriverListCard snapshots > renders a regular (non-best-match) card in t
         },
         {
           "backgroundColor": "#FFFFFF",
-          "borderColor": "#EDE6D4",
+          "borderColor": "#E4EDFB",
         },
       ]
     }
@@ -124,7 +124,7 @@ exports[`DriverListCard snapshots > renders a regular (non-best-match) card in t
                     "width": 2,
                   },
                   {
-                    "backgroundColor": "#EDE6D4",
+                    "backgroundColor": "#E4EDFB",
                   },
                 ]
               }
@@ -216,7 +216,7 @@ exports[`DriverListCard snapshots > renders a regular (non-best-match) card in t
                     "lineHeight": 18,
                   },
                   {
-                    "color": "#5C5748",
+                    "color": "#5B6572",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -312,7 +312,7 @@ exports[`DriverListCard snapshots > renders a regular (non-best-match) card in t
               "height": 1,
             },
             {
-              "backgroundColor": "#EDE6D4",
+              "backgroundColor": "#E4EDFB",
             },
           ]
         }
@@ -418,7 +418,7 @@ exports[`DriverListCard snapshots > renders a regular (non-best-match) card in t
                       "lineHeight": 18,
                     },
                     {
-                      "color": "#5C5748",
+                      "color": "#5B6572",
                       "textAlign": undefined,
                       "writingDirection": "ltr",
                     },
@@ -440,7 +440,7 @@ exports[`DriverListCard snapshots > renders a regular (non-best-match) card in t
                 "lineHeight": 18,
               },
               {
-                "color": "#8C8674",
+                "color": "#8B93A3",
                 "textAlign": undefined,
                 "writingDirection": "ltr",
               },
@@ -1013,7 +1013,7 @@ exports[`DriverListCard snapshots > renders the "MEILLEURE CORRESPONDANCE" best-
         },
         {
           "backgroundColor": "#FFFFFF",
-          "borderColor": "#EDE6D4",
+          "borderColor": "#E4EDFB",
         },
       ]
     }
@@ -1122,7 +1122,7 @@ exports[`DriverListCard snapshots > renders the "MEILLEURE CORRESPONDANCE" best-
                     "width": 2,
                   },
                   {
-                    "backgroundColor": "#EDE6D4",
+                    "backgroundColor": "#E4EDFB",
                   },
                 ]
               }
@@ -1214,7 +1214,7 @@ exports[`DriverListCard snapshots > renders the "MEILLEURE CORRESPONDANCE" best-
                     "lineHeight": 18,
                   },
                   {
-                    "color": "#5C5748",
+                    "color": "#5B6572",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -1310,7 +1310,7 @@ exports[`DriverListCard snapshots > renders the "MEILLEURE CORRESPONDANCE" best-
               "height": 1,
             },
             {
-              "backgroundColor": "#EDE6D4",
+              "backgroundColor": "#E4EDFB",
             },
           ]
         }
@@ -1416,7 +1416,7 @@ exports[`DriverListCard snapshots > renders the "MEILLEURE CORRESPONDANCE" best-
                       "lineHeight": 18,
                     },
                     {
-                      "color": "#5C5748",
+                      "color": "#5B6572",
                       "textAlign": undefined,
                       "writingDirection": "ltr",
                     },
@@ -1438,7 +1438,7 @@ exports[`DriverListCard snapshots > renders the "MEILLEURE CORRESPONDANCE" best-
                 "lineHeight": 18,
               },
               {
-                "color": "#8C8674",
+                "color": "#8B93A3",
                 "textAlign": undefined,
                 "writingDirection": "ltr",
               },
@@ -1471,7 +1471,7 @@ exports[`DriverListCard snapshots > renders with a real dropoff place/walk label
         },
         {
           "backgroundColor": "#FFFFFF",
-          "borderColor": "#EDE6D4",
+          "borderColor": "#E4EDFB",
         },
       ]
     }
@@ -1540,7 +1540,7 @@ exports[`DriverListCard snapshots > renders with a real dropoff place/walk label
               "padding": 8,
             },
             {
-              "backgroundColor": "#F7F3E8",
+              "backgroundColor": "#FFFFFF",
             },
           ]
         }
@@ -1554,7 +1554,7 @@ exports[`DriverListCard snapshots > renders with a real dropoff place/walk label
                 "lineHeight": 18,
               },
               {
-                "color": "#5C5748",
+                "color": "#5B6572",
                 "textAlign": undefined,
                 "writingDirection": "ltr",
               },
@@ -1613,7 +1613,7 @@ exports[`DriverListCard snapshots > renders with a real dropoff place/walk label
                     "width": 2,
                   },
                   {
-                    "backgroundColor": "#EDE6D4",
+                    "backgroundColor": "#E4EDFB",
                   },
                 ]
               }
@@ -1705,7 +1705,7 @@ exports[`DriverListCard snapshots > renders with a real dropoff place/walk label
                     "lineHeight": 18,
                   },
                   {
-                    "color": "#5C5748",
+                    "color": "#5B6572",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -1835,7 +1835,7 @@ exports[`DriverListCard snapshots > renders with a real dropoff place/walk label
                     "lineHeight": 18,
                   },
                   {
-                    "color": "#5C5748",
+                    "color": "#5B6572",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -1855,7 +1855,7 @@ exports[`DriverListCard snapshots > renders with a real dropoff place/walk label
               "height": 1,
             },
             {
-              "backgroundColor": "#EDE6D4",
+              "backgroundColor": "#E4EDFB",
             },
           ]
         }
@@ -1961,7 +1961,7 @@ exports[`DriverListCard snapshots > renders with a real dropoff place/walk label
                       "lineHeight": 18,
                     },
                     {
-                      "color": "#5C5748",
+                      "color": "#5B6572",
                       "textAlign": undefined,
                       "writingDirection": "ltr",
                     },
@@ -1983,7 +1983,7 @@ exports[`DriverListCard snapshots > renders with a real dropoff place/walk label
                 "lineHeight": 18,
               },
               {
-                "color": "#8C8674",
+                "color": "#8B93A3",
                 "textAlign": undefined,
                 "writingDirection": "ltr",
               },
@@ -2016,7 +2016,7 @@ exports[`DriverListCard snapshots > renders with fellow-passenger avatars instea
         },
         {
           "backgroundColor": "#FFFFFF",
-          "borderColor": "#EDE6D4",
+          "borderColor": "#E4EDFB",
         },
       ]
     }
@@ -2125,7 +2125,7 @@ exports[`DriverListCard snapshots > renders with fellow-passenger avatars instea
                     "width": 2,
                   },
                   {
-                    "backgroundColor": "#EDE6D4",
+                    "backgroundColor": "#E4EDFB",
                   },
                 ]
               }
@@ -2217,7 +2217,7 @@ exports[`DriverListCard snapshots > renders with fellow-passenger avatars instea
                     "lineHeight": 18,
                   },
                   {
-                    "color": "#5C5748",
+                    "color": "#5B6572",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -2313,7 +2313,7 @@ exports[`DriverListCard snapshots > renders with fellow-passenger avatars instea
               "height": 1,
             },
             {
-              "backgroundColor": "#EDE6D4",
+              "backgroundColor": "#E4EDFB",
             },
           ]
         }
@@ -2419,7 +2419,7 @@ exports[`DriverListCard snapshots > renders with fellow-passenger avatars instea
                       "lineHeight": 18,
                     },
                     {
-                      "color": "#5C5748",
+                      "color": "#5B6572",
                       "textAlign": undefined,
                       "writingDirection": "ltr",
                     },
@@ -2670,7 +2670,7 @@ exports[`ReviewCard snapshots > renders a partial (non-5-star) rating themed 1`]
         "backgroundColor": "#FFFFFF",
       },
       {
-        "borderColor": "#EDE6D4",
+        "borderColor": "#E4EDFB",
         "borderWidth": 1,
       },
     ]
@@ -2750,7 +2750,7 @@ exports[`ReviewCard snapshots > renders a partial (non-5-star) rating themed 1`]
               "fontSize": 12,
             },
             {
-              "color": "#8C8674",
+              "color": "#8B93A3",
             },
           ]
         }
@@ -2816,7 +2816,7 @@ exports[`ReviewCard snapshots > renders a partial (non-5-star) rating themed 1`]
               "fontSize": 12,
             },
             {
-              "color": "#DDD4BC",
+              "color": "#D3E1F5",
             },
           ]
         }
@@ -2830,7 +2830,7 @@ exports[`ReviewCard snapshots > renders a partial (non-5-star) rating themed 1`]
               "fontSize": 12,
             },
             {
-              "color": "#DDD4BC",
+              "color": "#D3E1F5",
             },
           ]
         }
@@ -2847,7 +2847,7 @@ exports[`ReviewCard snapshots > renders a partial (non-5-star) rating themed 1`]
           "lineHeight": 19,
         },
         {
-          "color": "#5C5748",
+          "color": "#5B6572",
         },
       ]
     }
@@ -2874,7 +2874,7 @@ exports[`ReviewCard snapshots > renders themed (light palette) once a screen pas
         "backgroundColor": "#FFFFFF",
       },
       {
-        "borderColor": "#EDE6D4",
+        "borderColor": "#E4EDFB",
         "borderWidth": 1,
       },
     ]
@@ -2954,7 +2954,7 @@ exports[`ReviewCard snapshots > renders themed (light palette) once a screen pas
               "fontSize": 12,
             },
             {
-              "color": "#8C8674",
+              "color": "#8B93A3",
             },
           ]
         }
@@ -3051,7 +3051,7 @@ exports[`ReviewCard snapshots > renders themed (light palette) once a screen pas
           "lineHeight": 19,
         },
         {
-          "color": "#5C5748",
+          "color": "#5B6572",
         },
       ]
     }

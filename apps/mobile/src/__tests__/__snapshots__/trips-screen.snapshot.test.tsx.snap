@@ -13,7 +13,7 @@ exports[`trips.tsx snapshots > driver dashboard — hero ride card over segmente
         "flex": 1,
       },
       {
-        "backgroundColor": "#F7F3E8",
+        "backgroundColor": "#FFFFFF",
       },
     ]
   }
@@ -78,7 +78,7 @@ exports[`trips.tsx snapshots > driver dashboard — hero ride card over segmente
                 "lineHeight": 24,
               },
               {
-                "color": "#5C5748",
+                "color": "#5B6572",
                 "textAlign": undefined,
                 "writingDirection": "ltr",
               },
@@ -133,7 +133,7 @@ exports[`trips.tsx snapshots > driver dashboard — hero ride card over segmente
               "lineHeight": 21,
             },
             {
-              "color": "#5C5748",
+              "color": "#5B6572",
               "textAlign": undefined,
               "writingDirection": "ltr",
             },
@@ -156,7 +156,7 @@ exports[`trips.tsx snapshots > driver dashboard — hero ride card over segmente
             },
             {
               "backgroundColor": "#FFFFFF",
-              "borderColor": "#EDE6D4",
+              "borderColor": "#E4EDFB",
             },
           ]
         }
@@ -370,7 +370,7 @@ exports[`trips.tsx snapshots > driver dashboard — hero ride card over segmente
                       "lineHeight": 21,
                     },
                     {
-                      "color": "#5C5748",
+                      "color": "#5B6572",
                       "textAlign": undefined,
                       "writingDirection": "ltr",
                     },
@@ -416,7 +416,7 @@ exports[`trips.tsx snapshots > driver dashboard — hero ride card over segmente
                       "lineHeight": 18,
                     },
                     {
-                      "color": "#5C5748",
+                      "color": "#5B6572",
                       "textAlign": undefined,
                       "writingDirection": "ltr",
                     },
@@ -469,7 +469,7 @@ exports[`trips.tsx snapshots > driver dashboard — hero ride card over segmente
                       "width": 2,
                     },
                     {
-                      "backgroundColor": "#EDE6D4",
+                      "backgroundColor": "#E4EDFB",
                     },
                   ]
                 }
@@ -514,7 +514,7 @@ exports[`trips.tsx snapshots > driver dashboard — hero ride card over segmente
                         "lineHeight": 18,
                       },
                       {
-                        "color": "#5C5748",
+                        "color": "#5B6572",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -561,7 +561,7 @@ exports[`trips.tsx snapshots > driver dashboard — hero ride card over segmente
                         "lineHeight": 18,
                       },
                       {
-                        "color": "#5C5748",
+                        "color": "#5B6572",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -648,7 +648,7 @@ exports[`trips.tsx snapshots > driver dashboard — hero ride card over segmente
               "lineHeight": 21,
             },
             {
-              "color": "#5C5748",
+              "color": "#5B6572",
               "textAlign": undefined,
               "writingDirection": "ltr",
             },
@@ -670,7 +670,7 @@ exports[`trips.tsx snapshots > driver dashboard — hero ride card over segmente
               "padding": 4,
             },
             {
-              "backgroundColor": "#EDE6D4",
+              "backgroundColor": "#E4EDFB",
             },
           ]
         }
@@ -750,7 +750,7 @@ exports[`trips.tsx snapshots > driver dashboard — hero ride card over segmente
                   "lineHeight": 21,
                 },
                 {
-                  "color": "#5C5748",
+                  "color": "#5B6572",
                   "textAlign": undefined,
                   "writingDirection": "ltr",
                 },
@@ -785,7 +785,7 @@ exports[`trips.tsx snapshots > driver dashboard — hero ride card over segmente
             },
             {
               "backgroundColor": "#FFFFFF",
-              "borderColor": "#EDE6D4",
+              "borderColor": "#E4EDFB",
             },
             {
               "opacity": 0.75,
@@ -837,7 +837,7 @@ exports[`trips.tsx snapshots > driver dashboard — hero ride card over segmente
                   "paddingVertical": 4,
                 },
                 {
-                  "backgroundColor": "#EDE6D4",
+                  "backgroundColor": "#E4EDFB",
                 },
                 undefined,
               ]
@@ -901,7 +901,7 @@ exports[`trips.tsx snapshots > driver dashboard — hero ride card over segmente
                     "width": 2,
                   },
                   {
-                    "backgroundColor": "#EDE6D4",
+                    "backgroundColor": "#E4EDFB",
                   },
                 ]
               }
@@ -984,7 +984,7 @@ exports[`trips.tsx snapshots > driver dashboard — hero ride card over segmente
                 "paddingTop": 8,
               },
               {
-                "borderTopColor": "#EDE6D4",
+                "borderTopColor": "#E4EDFB",
               },
             ]
           }
@@ -1001,7 +1001,7 @@ exports[`trips.tsx snapshots > driver dashboard — hero ride card over segmente
           >
             <Ionicons
               accessibilityElementsHidden={true}
-              color="#5C5748"
+              color="#5B6572"
               importantForAccessibility="no-hide-descendants"
               name="people-outline"
               size={16}
@@ -1016,7 +1016,7 @@ exports[`trips.tsx snapshots > driver dashboard — hero ride card over segmente
                     "lineHeight": 21,
                   },
                   {
-                    "color": "#5C5748",
+                    "color": "#5B6572",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -1066,7 +1066,7 @@ exports[`trips.tsx snapshots > first run — no bookings, no profile, rider empt
         "flex": 1,
       },
       {
-        "backgroundColor": "#F7F3E8",
+        "backgroundColor": "#FFFFFF",
       },
     ]
   }
@@ -1131,7 +1131,7 @@ exports[`trips.tsx snapshots > first run — no bookings, no profile, rider empt
                 "lineHeight": 24,
               },
               {
-                "color": "#5C5748",
+                "color": "#5B6572",
                 "textAlign": undefined,
                 "writingDirection": "ltr",
               },
@@ -1190,7 +1190,7 @@ exports[`trips.tsx snapshots > first run — no bookings, no profile, rider empt
               "lineHeight": 21,
             },
             {
-              "color": "#5C5748",
+              "color": "#5B6572",
               "textAlign": undefined,
               "writingDirection": "ltr",
             },
@@ -1212,7 +1212,7 @@ exports[`trips.tsx snapshots > first run — no bookings, no profile, rider empt
               "padding": 4,
             },
             {
-              "backgroundColor": "#EDE6D4",
+              "backgroundColor": "#E4EDFB",
             },
           ]
         }
@@ -1247,7 +1247,7 @@ exports[`trips.tsx snapshots > first run — no bookings, no profile, rider empt
                   "lineHeight": 21,
                 },
                 {
-                  "color": "#5C5748",
+                  "color": "#5B6572",
                   "textAlign": undefined,
                   "writingDirection": "ltr",
                 },
@@ -1329,7 +1329,7 @@ exports[`trips.tsx snapshots > first run — no bookings, no profile, rider empt
         >
           <Ionicons
             accessibilityElementsHidden={true}
-            color="#8C8674"
+            color="#8B93A3"
             importantForAccessibility="no-hide-descendants"
             name="search-outline"
             size={32}
@@ -1427,7 +1427,7 @@ exports[`trips.tsx snapshots > rider view — booking card shows the real driver
         "flex": 1,
       },
       {
-        "backgroundColor": "#F7F3E8",
+        "backgroundColor": "#FFFFFF",
       },
     ]
   }
@@ -1492,7 +1492,7 @@ exports[`trips.tsx snapshots > rider view — booking card shows the real driver
                 "lineHeight": 24,
               },
               {
-                "color": "#5C5748",
+                "color": "#5B6572",
                 "textAlign": undefined,
                 "writingDirection": "ltr",
               },
@@ -1551,7 +1551,7 @@ exports[`trips.tsx snapshots > rider view — booking card shows the real driver
               "lineHeight": 21,
             },
             {
-              "color": "#5C5748",
+              "color": "#5B6572",
               "textAlign": undefined,
               "writingDirection": "ltr",
             },
@@ -1573,7 +1573,7 @@ exports[`trips.tsx snapshots > rider view — booking card shows the real driver
               "padding": 4,
             },
             {
-              "backgroundColor": "#EDE6D4",
+              "backgroundColor": "#E4EDFB",
             },
           ]
         }
@@ -1608,7 +1608,7 @@ exports[`trips.tsx snapshots > rider view — booking card shows the real driver
                   "lineHeight": 21,
                 },
                 {
-                  "color": "#5C5748",
+                  "color": "#5B6572",
                   "textAlign": undefined,
                   "writingDirection": "ltr",
                 },
@@ -1688,7 +1688,7 @@ exports[`trips.tsx snapshots > rider view — booking card shows the real driver
             },
             {
               "backgroundColor": "#FFFFFF",
-              "borderColor": "#EDE6D4",
+              "borderColor": "#E4EDFB",
             },
             undefined,
           ]
@@ -1802,7 +1802,7 @@ exports[`trips.tsx snapshots > rider view — booking card shows the real driver
                     "width": 2,
                   },
                   {
-                    "backgroundColor": "#EDE6D4",
+                    "backgroundColor": "#E4EDFB",
                   },
                 ]
               }
@@ -1885,7 +1885,7 @@ exports[`trips.tsx snapshots > rider view — booking card shows the real driver
                 "paddingTop": 8,
               },
               {
-                "borderTopColor": "#EDE6D4",
+                "borderTopColor": "#E4EDFB",
               },
             ]
           }
@@ -1911,7 +1911,7 @@ exports[`trips.tsx snapshots > rider view — booking card shows the real driver
                     "justifyContent": "center",
                   },
                   {
-                    "backgroundColor": "#EDE6D4",
+                    "backgroundColor": "#E4EDFB",
                     "borderRadius": 14,
                     "height": 28,
                     "width": 28,
@@ -1946,7 +1946,7 @@ exports[`trips.tsx snapshots > rider view — booking card shows the real driver
                     "lineHeight": 21,
                   },
                   {
-                    "color": "#5C5748",
+                    "color": "#5B6572",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
