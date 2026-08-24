@@ -129,8 +129,8 @@ async function getAuthorizedConversation(db: Database, conversationId: string, r
  * is genuinely derivable from existing rows: the other party (name/avatar
  * — already public via profiles), which side the viewer is on, the ride's
  * route/departure labels, live trip status, driver verification, and the
- * last message preview. Deliberately NOT here: unread counts — no
- * read-state is tracked anywhere in the schema, so none is reported.
+ * last message preview, and now (conversations.driverLastReadAt /
+ * riderLastReadAt) whether the viewer has unread messages.
  */
 export interface ConversationSummary {
   id: string;
@@ -155,6 +155,10 @@ export interface ConversationSummary {
     createdAt: Date;
     senderUserId: string;
   } | null;
+  /** True when the last message is from the other party and postdates
+   *  this viewer's own last read timestamp (null = never opened this
+   *  conversation). Never true for a message the viewer sent themselves. */
+  hasUnread: boolean;
 }
 
 type BookingWithContext = Awaited<ReturnType<typeof getBookingWithFullContextOrThrow>>;
@@ -180,6 +184,7 @@ function toSummary(
   lastMessage: typeof messages.$inferSelect | null,
 ): ConversationSummary {
   const viewerIsDriver = booking.ride.driverProfile.userId === requestingUserId;
+  const viewerLastReadAt = viewerIsDriver ? conversation.driverLastReadAt : conversation.riderLastReadAt;
 
   return {
     id: conversation.id,
@@ -216,6 +221,11 @@ function toSummary(
           senderUserId: lastMessage.senderUserId,
         }
       : null,
+    hasUnread: Boolean(
+      lastMessage &&
+        lastMessage.senderUserId !== requestingUserId &&
+        (!viewerLastReadAt || lastMessage.createdAt > viewerLastReadAt),
+    ),
   };
 }
 
@@ -314,20 +324,52 @@ export async function listConversations(
   return summaries;
 }
 
+/**
+ * Best-effort — mirrors notifyBestEffort's contract (a failure here must
+ * never fail the read the caller actually wants). Called every time
+ * listMessages runs, i.e. while the viewer has the conversation screen
+ * open and polling (docs/roadmap/phase-08-messaging.md's polling
+ * delivery model) — "opening/viewing the thread clears its unread
+ * state" is the same convention most inbox UIs use, and needs no
+ * separate "mark as read" endpoint or client-side call.
+ */
+async function markConversationReadBestEffort(
+  db: Database,
+  conversationId: string,
+  viewerIsDriver: boolean,
+): Promise<void> {
+  try {
+    await db
+      .update(conversations)
+      .set(viewerIsDriver ? { driverLastReadAt: new Date() } : { riderLastReadAt: new Date() })
+      .where(eq(conversations.id, conversationId));
+  } catch (err) {
+    getLogger().error({ err, conversationId }, 'Failed to mark conversation read');
+  }
+}
+
 export async function listMessages(
   db: Database,
   conversationId: string,
   requestingUserId: string,
   since?: Date,
 ) {
-  const { conversation } = await getAuthorizedConversation(db, conversationId, requestingUserId);
+  const { conversation, driverUserId } = await getAuthorizedConversation(
+    db,
+    conversationId,
+    requestingUserId,
+  );
 
-  return db.query.messages.findMany({
+  const rows = await db.query.messages.findMany({
     where: since
       ? and(eq(messages.conversationId, conversation.id), gt(messages.createdAt, since))
       : eq(messages.conversationId, conversation.id),
     orderBy: asc(messages.createdAt),
   });
+
+  await markConversationReadBestEffort(db, conversation.id, requestingUserId === driverUserId);
+
+  return rows;
 }
 
 export async function sendMessage(

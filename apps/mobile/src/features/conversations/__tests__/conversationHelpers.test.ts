@@ -37,6 +37,7 @@ function makeConversation(overrides: Partial<Conversation> = {}): Conversation {
     rideStatus: 'published',
     tripStatus: null,
     lastMessage: null,
+    hasUnread: false,
     ...overrides,
   };
 }

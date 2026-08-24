@@ -3,8 +3,10 @@ import {
   filterConversations,
   formatInboxTimestamp,
   formatDaySectionLabel,
+  formatDepartureLabel,
   groupConversationsByDay,
   roleLabel,
+  searchConversations,
   type InboxConversation,
 } from '../inboxHelpers.js';
 
@@ -30,6 +32,7 @@ function makeConversation(overrides: Partial<InboxConversation> = {}): InboxConv
       createdAt: new Date(2026, 0, 14, 9, 30).toISOString(),
       senderUserId: 'driver-1',
     },
+    hasUnread: false,
     ...overrides,
   };
 }
@@ -153,5 +156,60 @@ describe('roleLabel', () => {
   it('maps roles to neutral French labels', () => {
     expect(roleLabel('driver')).toBe('Conducteur');
     expect(roleLabel('rider')).toBe('Passager');
+  });
+});
+
+describe('formatDepartureLabel', () => {
+  it('shows clock time for a departure later today', () => {
+    const label = formatDepartureLabel(new Date(2026, 0, 14, 14, 30).toISOString(), NOW);
+    expect(label).toBe('14:30');
+  });
+
+  it('shows "Demain" for a departure tomorrow, regardless of time', () => {
+    const label = formatDepartureLabel(new Date(2026, 0, 15, 9, 0).toISOString(), NOW);
+    expect(label).toBe('Demain');
+  });
+
+  it('shows a short date beyond tomorrow', () => {
+    const label = formatDepartureLabel(new Date(2026, 0, 20, 9, 0).toISOString(), NOW);
+    expect(label).toContain('20');
+  });
+
+  it('returns an empty string for an invalid date', () => {
+    expect(formatDepartureLabel('not-a-date', NOW)).toBe('');
+  });
+});
+
+describe('searchConversations', () => {
+  const alice = makeConversation({
+    id: 'c-alice',
+    otherParty: { id: 'u-a', fullName: 'Alice Ben Salah', avatarUrl: null },
+    originLabel: 'Tunis',
+    destinationLabel: 'Sousse',
+  });
+  const bilel = makeConversation({
+    id: 'c-bilel',
+    otherParty: { id: 'u-b', fullName: 'Bilel Trabelsi', avatarUrl: null },
+    originLabel: 'Sfax',
+    destinationLabel: 'Gabès',
+  });
+  const list = [alice, bilel];
+
+  it('returns everything for an empty/whitespace query', () => {
+    expect(searchConversations(list, '')).toEqual(list);
+    expect(searchConversations(list, '   ')).toEqual(list);
+  });
+
+  it('matches by the other party name, case-insensitively', () => {
+    expect(searchConversations(list, 'alice')).toEqual([alice]);
+  });
+
+  it('matches by origin or destination label', () => {
+    expect(searchConversations(list, 'gabès')).toEqual([bilel]);
+    expect(searchConversations(list, 'Tunis')).toEqual([alice]);
+  });
+
+  it('returns nothing when no field matches', () => {
+    expect(searchConversations(list, 'zzz')).toEqual([]);
   });
 });

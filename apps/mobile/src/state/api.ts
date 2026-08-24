@@ -332,6 +332,10 @@ export interface Conversation {
     createdAt: string;
     senderUserId: string;
   } | null;
+  /** True when the last message is from the other party and postdates
+   *  this viewer's own last read timestamp — drives the Messages tab's
+   *  badge in (tabs)/_layout.tsx. Never true for the viewer's own message. */
+  hasUnread: boolean;
 }
 
 export interface ConversationMessage {

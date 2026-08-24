@@ -19,8 +19,7 @@ import {
 /**
  * The enriched conversation payload shared by both read endpoints — the
  * inbox row and the chat screen render from exactly this one shape (see
- * conversations.service.ts's ConversationSummary for what each field is
- * and why unread counts are deliberately absent).
+ * conversations.service.ts's ConversationSummary for what each field is).
  */
 const conversationSummarySchema = z.object({
   id: z.string().uuid(),
@@ -48,6 +47,7 @@ const conversationSummarySchema = z.object({
       senderUserId: z.string().uuid(),
     })
     .nullable(),
+  hasUnread: z.boolean(),
 });
 
 const messageResponseSchema = z.object({

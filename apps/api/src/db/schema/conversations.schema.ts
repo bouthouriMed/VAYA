@@ -24,6 +24,14 @@ export const conversations = pgTable(
       .notNull()
       .references(() => bookings.id, { onDelete: 'cascade' }),
     status: conversationStatusEnum('status').notNull().default('open'),
+    // Per-side read-state — a conversation has exactly two fixed parties
+    // (the booking's driver and rider), so two nullable columns are
+    // simpler and cheaper than a separate read-receipts table. null means
+    // "never opened this conversation," not "read at the epoch" — unread
+    // state is derived by comparing against lastMessage.createdAt in
+    // conversations.service.ts, never stored redundantly here.
+    driverLastReadAt: timestamp('driver_last_read_at', { withTimezone: true }),
+    riderLastReadAt: timestamp('rider_last_read_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },

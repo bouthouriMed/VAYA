@@ -19,6 +19,7 @@ export interface InboxConversation {
   departureAt: string;
   tripStatus: string | null;
   lastMessage: { body: string; createdAt: string; senderUserId: string } | null;
+  hasUnread: boolean;
 }
 
 export type InboxFilter = 'all' | 'upcoming' | 'active' | 'past';
@@ -142,4 +143,39 @@ export function groupConversationsByDay(
 /** Neutral role label for the row's context line — no gender guessing. */
 export function roleLabel(role: 'driver' | 'rider'): string {
   return role === 'driver' ? 'Conducteur' : 'Passager';
+}
+
+/** Short departure-time label for an inbox row's meta line — clock time
+ *  today, "Demain" tomorrow, a short date beyond that. Mirrors
+ *  formatInboxTimestamp's day logic but is forward-looking (a departure
+ *  is usually in the future, not the past a message timestamp implies). */
+export function formatDepartureLabel(iso: string, now: Date = new Date()): string {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return '';
+
+  if (isSameCalendarDay(date, now)) {
+    return date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  }
+  const tomorrow = new Date(now);
+  tomorrow.setDate(now.getDate() + 1);
+  if (isSameCalendarDay(date, tomorrow)) return 'Demain';
+
+  return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+}
+
+/** Client-side text filter over the already-fetched inbox — matches the
+ *  other party's name or the route labels. No backend search endpoint
+ *  exists (nor is one needed): the inbox is never large enough per user
+ *  to justify one, so this stays a pure, instant, offline filter. */
+export function searchConversations(
+  conversations: InboxConversation[],
+  query: string,
+): InboxConversation[] {
+  const q = query.trim().toLowerCase();
+  if (!q) return conversations;
+  return conversations.filter((c) =>
+    [c.otherParty.fullName, c.originLabel, c.destinationLabel].some((field) =>
+      field.toLowerCase().includes(q),
+    ),
+  );
 }
