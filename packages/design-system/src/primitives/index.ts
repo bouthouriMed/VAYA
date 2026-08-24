@@ -45,3 +45,5 @@ export { GlassSurface } from './GlassSurface';
 export { StatusBarBlend } from './StatusBarBlend';
 export { DriverListCard } from './DriverListCard';
 export type { DriverListCardData } from './DriverListCard';
+export { DraggableMapSheet } from './DraggableMapSheet';
+export type { DraggableMapSheetHandle } from './DraggableMapSheet';

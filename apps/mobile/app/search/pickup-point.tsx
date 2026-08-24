@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Marker, Polyline } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -6,18 +6,19 @@ import { Ionicons } from '@expo/vector-icons';
 import { skipToken } from '@reduxjs/toolkit/query/react';
 import {
   Text,
+  Icon,
   Button,
   MapCanvas,
   BottomSheet,
+  DraggableMapSheet,
   EmptyState,
   StopPin,
-  colors,
-  lightPalette,
+  useAppTheme,
   spacing,
   radii,
-  typography,
   regionForPoints,
   haptics,
+  type DraggableMapSheetHandle,
 } from '@vaya/design-system';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useAppDispatch, useAppSelector } from '../../src/state/store';
@@ -34,11 +35,27 @@ import { defaultStopId, rankedPosition } from '../../src/features/pickup-selecti
  * audit.md §4, the single worst finding of the audit). Every point
  * rendered here is a real `route_stops` row the driver actually selected —
  * no free pin placement (CLAUDE.md product principle #1).
+ *
+ * Rebuilt onto the live theme (was pinned to the static `lightPalette`/
+ * `colors` tokens — the one screen in the search flow still explicitly
+ * flagged "legacy-light" in its own code) and a full-bleed map: the region
+ * fitting every candidate stop used to be computed against the whole
+ * screen while a fixed-height footer quietly ate the bottom third of it,
+ * so stops near the bottom of the fitted region rendered outside the
+ * actually-visible map area — the map "needed a manual zoom-out" not
+ * because the fit math was wrong, but because the viewport it was fit
+ * against wasn't the real one. The footer is now a DraggableMapSheet
+ * instead: a floating, rounded panel the map renders fully behind, so the
+ * region math and the visible viewport finally agree, and it drags down to
+ * a peek (or springs back up on tap, or automatically when a new stop is
+ * picked while collapsed) instead of permanently occupying fixed space.
  */
 export default function PickupPointScreen(): React.JSX.Element {
   const { rideId, driverUserId } = useLocalSearchParams<{ rideId: string; driverUserId: string }>();
   const insets = useSafeAreaInsets();
   const dispatch = useAppDispatch();
+  const { colors: theme } = useAppTheme();
+  const sheetRef = useRef<DraggableMapSheetHandle>(null);
 
   const origin = useAppSelector((s) => s.search.origin);
   const destination = useAppSelector((s) => s.search.destination);
@@ -88,7 +105,11 @@ export default function PickupPointScreen(): React.JSX.Element {
   const region = useMemo(() => {
     const points = rankedStops.map((s) => ({ lat: s.lat, lng: s.lng }));
     if (origin) points.push({ lat: origin.lat, lng: origin.lng });
-    return regionForPoints(points) ?? undefined;
+    // A wider pad than the shared default (1.6x): the map is now genuinely
+    // full-bleed, but the floating sheet still visually covers its own
+    // bottom slice when expanded — the extra room keeps every stop clear of
+    // that area at first glance, not just technically inside the fit.
+    return regionForPoints(points, 2) ?? undefined;
   }, [rankedStops, origin]);
 
   const routeCoordinates = useMemo(
@@ -101,6 +122,10 @@ export default function PickupPointScreen(): React.JSX.Element {
   function pickStop(stop: RankedStop): void {
     haptics.selection();
     setSelectedStopId(stop.stopId);
+    // A pin tapped while the sheet is collapsed (dragged down to see the
+    // map) should bring the confirm action straight back into view — the
+    // user just made the decision the sheet exists to act on.
+    sheetRef.current?.expand();
   }
 
   function confirm(): void {
@@ -131,27 +156,27 @@ export default function PickupPointScreen(): React.JSX.Element {
 
   if (isLoading) {
     return (
-      <View style={styles.loadingWrap}>
-        <ActivityIndicator size="large" color={colors.secondary} />
+      <View style={[styles.loadingWrap, { backgroundColor: theme.background }]}>
+        <ActivityIndicator size="large" color={theme.accent} />
       </View>
     );
   }
 
   if (!candidate || rankedStops.length === 0) {
     return (
-      <View style={[styles.container, { paddingTop: insets.top }]}>
+      <View style={[styles.container, { backgroundColor: theme.background, paddingTop: insets.top }]}>
         <TouchableOpacity
           onPress={() => router.back()}
           hitSlop={12}
-          style={[styles.backBtn, styles.backBtnStandalone]}
+          style={[styles.backBtn, styles.backBtnStandalone, { backgroundColor: theme.surface, shadowColor: theme.ink }]}
           accessibilityRole="button"
           accessibilityLabel="Retour"
         >
-          <Ionicons name="chevron-back" size={24} color={colors.gray900} />
+          <Ionicons name="chevron-back" size={24} color={theme.ink} />
         </TouchableOpacity>
         <View style={styles.emptyWrap}>
           <EmptyState
-            icon={<Ionicons name="location-outline" size={40} color={colors.gray400} />}
+            icon={<Ionicons name="location-outline" size={40} color={theme.inkFaint} />}
             title="Aucun point de rendez-vous accessible"
             description="Aucun arrêt de ce trajet n'est assez proche de votre position pour être rejoint à pied. Essayez un autre trajet ou ajustez votre recherche."
             actionLabel="Retour à la recherche"
@@ -163,18 +188,15 @@ export default function PickupPointScreen(): React.JSX.Element {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       <MapCanvas region={region} style={styles.map}>
         {origin ? (
-          <Marker
-            coordinate={{ latitude: origin.lat, longitude: origin.lng }}
-            anchor={{ x: 0.5, y: 0.5 }}
-          >
-            <View style={styles.originDot} />
+          <Marker coordinate={{ latitude: origin.lat, longitude: origin.lng }} anchor={{ x: 0.5, y: 0.5 }}>
+            <View style={[styles.originDot, { backgroundColor: theme.accent, borderColor: theme.surface }]} />
           </Marker>
         ) : null}
         {routeCoordinates.length > 1 ? (
-          <Polyline coordinates={routeCoordinates} strokeColor={colors.mapRouteLine} strokeWidth={4} />
+          <Polyline coordinates={routeCoordinates} strokeColor={theme.ink} strokeWidth={4} />
         ) : null}
         {rankedStops.map((stop, index) => {
           const isSelected = stop.stopId === selectedStopId;
@@ -185,10 +207,7 @@ export default function PickupPointScreen(): React.JSX.Element {
               onPress={() => pickStop(stop)}
               accessibilityLabel={`${stop.label}, ${Math.round(stop.walkMinutes)} min à pied`}
             >
-              {/* Same numbered pin as the driver publish map (design-system
-               *  StopPin); this screen's chrome is still legacy-light, so it
-               *  pins the fixed light palette rather than useAppTheme(). */}
-              <StopPin theme={lightPalette} index={index + 1} selected={isSelected} />
+              <StopPin theme={theme} index={index + 1} selected={isSelected} />
             </Marker>
           );
         })}
@@ -198,70 +217,73 @@ export default function PickupPointScreen(): React.JSX.Element {
         <TouchableOpacity
           onPress={() => router.back()}
           hitSlop={12}
-          style={styles.backBtn}
+          style={[styles.backBtn, { backgroundColor: theme.surface, shadowColor: theme.ink }]}
           accessibilityRole="button"
           accessibilityLabel="Retour"
         >
-          <Ionicons name="chevron-back" size={24} color={colors.gray900} />
+          <Ionicons name="chevron-back" size={24} color={theme.ink} />
         </TouchableOpacity>
-        <View style={styles.hint}>
-          <Text variant="bodySmall" color={colors.gray700}>
+        <View style={[styles.hint, { backgroundColor: theme.surface, shadowColor: theme.ink }]}>
+          <Text variant="bodySmall" color={theme.inkMuted}>
             {rankedStops.length} point{rankedStops.length > 1 ? 's' : ''} sur ce trajet
           </Text>
         </View>
       </View>
 
-      <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.md }]}>
-        {selectedStop ? (
-          <TouchableOpacity
-            style={styles.footerRow}
-            onPress={() => setDetailStop(selectedStop)}
-            activeOpacity={0.75}
-            accessibilityRole="button"
-            accessibilityLabel={`Détails du point ${selectedStop.label}`}
-          >
-            <View style={styles.footerIcon}>
-              <Ionicons name="pin" size={16} color={colors.white} />
-            </View>
-            <View style={styles.footerTextCol}>
-              <Text style={styles.footerLabel}>{selectedStop.label}</Text>
-              <Text variant="bodySmall" color={colors.gray500} numberOfLines={1}>
-                {Math.round(selectedStop.walkMinutes)} min à pied
-              </Text>
-            </View>
-            <Ionicons name="information-circle-outline" size={22} color={colors.gray400} />
-          </TouchableOpacity>
-        ) : null}
-        <Button
-          label="Confirmer ce point de rendez-vous"
-          size="lg"
-          onPress={confirm}
-          disabled={!selectedStop}
-          style={styles.cta}
-        />
+      <View style={styles.sheetWrap} pointerEvents="box-none">
+        <DraggableMapSheet ref={sheetRef} theme={theme} bottomInset={insets.bottom}>
+          {selectedStop ? (
+            <TouchableOpacity
+              style={styles.footerRow}
+              onPress={() => setDetailStop(selectedStop)}
+              activeOpacity={0.75}
+              accessibilityRole="button"
+              accessibilityLabel={`Détails du point ${selectedStop.label}`}
+            >
+              <View style={[styles.footerIcon, { backgroundColor: theme.accent }]}>
+                <Icon name="pin" size="sm" color={theme.onAccent} />
+              </View>
+              <View style={styles.footerTextCol}>
+                <Text variant="label" color={theme.ink} numberOfLines={1}>
+                  {selectedStop.label}
+                </Text>
+                <Text variant="bodySmall" color={theme.inkMuted} numberOfLines={1}>
+                  {Math.round(selectedStop.walkMinutes)} min à pied
+                </Text>
+              </View>
+              <Icon name="information-circle-outline" size="md" color={theme.inkFaint} />
+            </TouchableOpacity>
+          ) : null}
+          <Button
+            label="Confirmer ce point de rendez-vous"
+            size="lg"
+            theme={theme}
+            onPress={confirm}
+            disabled={!selectedStop}
+            style={styles.cta}
+          />
+        </DraggableMapSheet>
       </View>
 
       <BottomSheet
         visible={detailStop !== null}
         onClose={() => setDetailStop(null)}
         title={detailStop?.label}
+        theme={theme}
       >
         {detailStop ? (
           <View style={styles.sheetContent}>
-            <Text variant="body" color={colors.gray700}>
+            <Text variant="body" color={theme.inkMuted}>
               {Math.round(detailStop.walkMinutes)} min à pied depuis votre position de départ.
             </Text>
-            <Text variant="bodySmall" color={colors.gray500}>
+            <Text variant="bodySmall" color={theme.inkFaint}>
               Ce point a été validé par le conducteur comme arrêt sur son trajet.
             </Text>
             <Button
-              label={
-                detailStop.stopId === selectedStopId
-                  ? 'Point sélectionné'
-                  : 'Choisir ce point'
-              }
+              label={detailStop.stopId === selectedStopId ? 'Point sélectionné' : 'Choisir ce point'}
               variant={detailStop.stopId === selectedStopId ? 'outline' : 'primary'}
               size="lg"
+              theme={theme}
               disabled={detailStop.stopId === selectedStopId}
               onPress={() => {
                 pickStop(detailStop);
@@ -279,28 +301,25 @@ export default function PickupPointScreen(): React.JSX.Element {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.gray100,
   },
   loadingWrap: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.gray100,
   },
   emptyWrap: {
     flex: 1,
     justifyContent: 'center',
   },
   map: {
-    flex: 1,
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: 0,
   },
   originDot: {
     width: 16,
     height: 16,
     borderRadius: 8,
-    backgroundColor: colors.secondary,
     borderWidth: 2,
-    borderColor: colors.white,
   },
   topBar: {
     position: 'absolute',
@@ -316,10 +335,8 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: colors.white,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: colors.gray900,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 6,
@@ -329,27 +346,19 @@ const styles = StyleSheet.create({
     margin: spacing.md,
   },
   hint: {
-    backgroundColor: colors.white,
     borderRadius: radii.full,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    shadowColor: colors.gray900,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 6,
     elevation: 2,
   },
-  footer: {
-    backgroundColor: colors.white,
-    borderTopLeftRadius: radii['2xl'],
-    borderTopRightRadius: radii['2xl'],
-    padding: spacing.lg,
-    gap: spacing.md,
-    shadowColor: colors.gray900,
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
+  sheetWrap: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
   footerRow: {
     flexDirection: 'row',
@@ -360,17 +369,11 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
   footerTextCol: {
     flex: 1,
-  },
-  footerLabel: {
-    fontSize: typography.fontSize.md,
-    fontWeight: typography.fontWeight.bold,
-    color: colors.gray900,
   },
   cta: {
     width: '100%',
