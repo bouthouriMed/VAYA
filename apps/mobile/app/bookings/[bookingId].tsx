@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Modal } from 'react-native';
+import { Marker, Polyline } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -10,15 +11,29 @@ import {
   Badge,
   Button,
   MapPreview,
+  MapCanvas,
+  PickupPin,
+  DropoffPin,
   useAppTheme,
   spacing,
   radii,
   haptics,
+  regionForPoints,
 } from '@vaya/design-system';
-import { useListMyBookingsQuery, useGetRideQuery, useGetUserPublicProfileQuery, type Booking } from '../../src/state/api';
-import { decodePolyline } from '../../src/utils/polyline';
+import {
+  useListMyBookingsQuery,
+  useGetRideQuery,
+  useGetUserPublicProfileQuery,
+  useGetUserTrustSummaryQuery,
+  type Booking,
+  type TrustTier,
+} from '../../src/state/api';
+import { decodePolyline, estimateWalkMinutes, haversineKm } from '../../src/utils/polyline';
 import { CancellationSheet } from '../../src/features/bookings/CancellationSheet';
 import { trackEvent } from '../../src/services/analytics/analytics';
+import { trustTierBadge } from '../../src/features/ratings/ratingHelpers';
+import { useCurrentPosition } from '../../src/services/location/useCurrentPosition';
+import { RouteTimeline, type RouteTimelineEntry } from '../../src/features/trip-shared/RouteTimeline';
 
 type ThemeColors = ReturnType<typeof useAppTheme>['colors'];
 
@@ -34,6 +49,10 @@ const BOOKING_BADGE: Record<Booking['status'], { label: string; variant: 'defaul
 };
 
 const CANCELLABLE_STATUSES: Booking['status'][] = ['pending', 'accepted'];
+// Only an upcoming, still-live booking has a meaningful "distance to
+// pickup right now" — showing it on a completed/cancelled booking would be
+// either stale or meaningless.
+const LIVE_DISTANCE_STATUSES: Booking['status'][] = ['pending', 'accepted'];
 
 function formatWhen(iso: string): string {
   const date = new Date(iso);
@@ -42,19 +61,28 @@ function formatWhen(iso: string): string {
   return `${date.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })} · ${time}`;
 }
 
+function formatDistance(km: number): string {
+  return km < 1 ? `${Math.round(km * 1000)} m` : `${km.toFixed(1)} km`;
+}
+
 function DriverCard({
   theme,
   fullName,
   avatarUrl,
   ratingAvg,
+  tripCount,
+  trustTier,
   onOpenConversation,
 }: {
   theme: ThemeColors;
   fullName: string;
   avatarUrl: string | null;
   ratingAvg?: number;
+  tripCount?: number;
+  trustTier?: TrustTier;
   onOpenConversation: () => void;
 }): React.JSX.Element {
+  const tierMeta = trustTier ? trustTierBadge(trustTier) : null;
   return (
     <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
       <View style={styles.driverRow}>
@@ -75,6 +103,11 @@ function DriverCard({
               <Text variant="caption" color={theme.inkMuted}>
                 {ratingAvg.toFixed(1)}
               </Text>
+              {tripCount ? (
+                <Text variant="caption" color={theme.inkFaint}>
+                  {`· ${tripCount} trajet${tripCount > 1 ? 's' : ''}`}
+                </Text>
+              ) : null}
             </View>
           ) : (
             <Text variant="caption" color={theme.inkFaint}>
@@ -82,6 +115,7 @@ function DriverCard({
             </Text>
           )}
         </View>
+        {tierMeta ? <Badge label={tierMeta.label} variant={tierMeta.variant} theme={theme} /> : null}
       </View>
       <View style={styles.quickActionsRow}>
         <TouchableOpacity
@@ -114,17 +148,34 @@ function DriverCard({
  * The passenger's own booking — post-request trip hub (2026-08-23 redesign),
  * reusing search/ride-details.tsx's visual language (map header, driver
  * card, timeline) but for viewing an *existing* booking instead of a search
- * candidate: real driver public profile (rating, vehicle) resolved from
- * `booking.ride.driverUserId` (Phase-13-era addition to listMyBookings),
- * a sticky "Annuler ma réservation" footer instead of "Demander une place".
- * The specific booking is read from the already-cached listMyBookings
- * result — no new single-booking endpoint needed.
+ * candidate: real driver public profile (rating, vehicle, trust tier)
+ * resolved from `booking.ride.driverUserId`, a sticky "Annuler ma
+ * réservation" footer instead of "Demander une place". The specific booking
+ * is read from the already-cached listMyBookings result — no new
+ * single-booking endpoint needed.
+ *
+ * Route display shares RouteTimeline with the driver's own trip hub
+ * (driver/rides/[rideId].tsx) so "Point de rendez-vous"/"Point de dépose"
+ * mean the same thing on both sides of the same booking — this screen shows
+ * THIS passenger's actual pickup/dropoff (booking.pickupLabel/dropoffLabel),
+ * which on a route-passthrough match can differ from the ride's own default
+ * stops the driver's card highlights.
+ *
+ * The map is a real, tappable way into a fullscreen route view (mirroring
+ * the driver's "Voir l'itinéraire" pattern) instead of a flat, dead
+ * thumbnail — and while a booking is still upcoming, a live "distance to
+ * pickup" is computed from the device's current position (never a fabricated
+ * or search-time-stale figure, since a booking doesn't persist the
+ * passenger's original search origin) at the same walk pace the server uses
+ * everywhere else (utils/polyline.ts's estimateWalkMinutes).
  */
 export default function BookingDetailScreen(): React.JSX.Element {
   const { bookingId } = useLocalSearchParams<{ bookingId: string }>();
   const insets = useSafeAreaInsets();
   const { colors: theme } = useAppTheme();
   const [cancelling, setCancelling] = useState(false);
+  const [routeModalOpen, setRouteModalOpen] = useState(false);
+  const { position } = useCurrentPosition();
 
   const { data: bookings, isLoading: isBookingsLoading } = useListMyBookingsQuery();
   const booking = useMemo(() => bookings?.find((b) => b.id === bookingId), [bookings, bookingId]);
@@ -133,6 +184,9 @@ export default function BookingDetailScreen(): React.JSX.Element {
     skip: !booking,
   });
   const { data: driverProfile } = useGetUserPublicProfileQuery(booking?.ride?.driverUserId ?? '', {
+    skip: !booking?.ride?.driverUserId,
+  });
+  const { data: trustSummary } = useGetUserTrustSummaryQuery(booking?.ride?.driverUserId ?? '', {
     skip: !booking?.ride?.driverUserId,
   });
 
@@ -152,7 +206,7 @@ export default function BookingDetailScreen(): React.JSX.Element {
     );
   }
 
-  if (!booking || !booking.ride) {
+  if (!booking || !booking.ride || !ride) {
     return (
       <View style={[styles.loadingWrap, { backgroundColor: theme.background }]}>
         <Text variant="body" color={theme.inkFaint}>
@@ -164,6 +218,52 @@ export default function BookingDetailScreen(): React.JSX.Element {
 
   const badge = BOOKING_BADGE[booking.status];
   const cancellable = CANCELLABLE_STATUSES.includes(booking.status);
+  const dropoffPoint =
+    booking.dropoffLat != null && booking.dropoffLng != null
+      ? { latitude: booking.dropoffLat, longitude: booking.dropoffLng }
+      : { latitude: ride.destinationLat, longitude: ride.destinationLng };
+  const hasDropoffStop = booking.dropoffLat != null && booking.dropoffLng != null;
+
+  // This booking's own pickup/dropoff, not just the ride's own endpoints —
+  // a route-passthrough match's pickup/dropoff can sit well inside the
+  // ride's origin/destination, and the driver's own default stops (shown on
+  // driver/rides/[rideId].tsx) may not be exactly this passenger's stops.
+  const timelineEntries: RouteTimelineEntry[] = [
+    { key: 'origin', roleLabel: 'Départ', placeLabel: booking.ride.originLabel, isEndpoint: true },
+    { key: 'pickup', roleLabel: 'Point de rendez-vous', placeLabel: booking.pickupLabel, isEndpoint: false },
+    ...(booking.dropoffLabel
+      ? [{ key: 'dropoff', roleLabel: 'Point de dépose', placeLabel: booking.dropoffLabel, isEndpoint: false }]
+      : []),
+    { key: 'destination', roleLabel: 'Arrivée', placeLabel: booking.ride.destinationLabel, isEndpoint: true },
+  ];
+
+  const showLiveDistance = LIVE_DISTANCE_STATUSES.includes(booking.status) && position != null;
+  const distanceToPickupKm = position
+    ? haversineKm(
+        { latitude: position.lat, longitude: position.lng },
+        { latitude: booking.pickupLat, longitude: booking.pickupLng },
+      )
+    : null;
+  const walkToPickupMin =
+    position != null
+      ? Math.max(
+          1,
+          Math.round(
+            estimateWalkMinutes(
+              { latitude: position.lat, longitude: position.lng },
+              { latitude: booking.pickupLat, longitude: booking.pickupLng },
+            ),
+          ),
+        )
+      : null;
+
+  const fullRouteRegion =
+    regionForPoints([
+      { lat: ride.originLat, lng: ride.originLng },
+      { lat: booking.pickupLat, lng: booking.pickupLng },
+      { lat: dropoffPoint.latitude, lng: dropoffPoint.longitude },
+      { lat: ride.destinationLat, lng: ride.destinationLng },
+    ]) ?? undefined;
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -183,16 +283,36 @@ export default function BookingDetailScreen(): React.JSX.Element {
           <View style={styles.headerSpacer} />
         </View>
 
-        {ride ? (
+        <View style={styles.mapCard}>
           <MapPreview
             height={160}
             badge={badge.label}
             origin={{ latitude: ride.originLat, longitude: ride.originLng }}
             destination={{ latitude: ride.destinationLat, longitude: ride.destinationLng }}
+            pickup={{ latitude: booking.pickupLat, longitude: booking.pickupLng }}
+            dropoff={dropoffPoint}
+            theme={theme}
             routeCoordinates={routeCoordinates}
             style={styles.map}
           />
-        ) : null}
+          {/* The preview thumbnail is deliberately non-interactive — this is
+           *  the way in to a real, pannable/zoomable view of the whole
+           *  route, mirroring the driver's own ride hub "Voir l'itinéraire"
+           *  pattern so both sides get an equally useful map, not a dead
+           *  static image on one side only. */}
+          <TouchableOpacity
+            style={[styles.viewRouteBtn, { backgroundColor: theme.surface }]}
+            onPress={() => setRouteModalOpen(true)}
+            activeOpacity={0.85}
+            accessibilityRole="button"
+            accessibilityLabel="Voir l'itinéraire en plein écran"
+          >
+            <Icon name="expand-outline" size="xs" color={theme.ink} />
+            <Text variant="caption" color={theme.ink}>
+              Voir l&apos;itinéraire
+            </Text>
+          </TouchableOpacity>
+        </View>
 
         <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
           <View style={styles.infoTitleRow}>
@@ -201,18 +321,23 @@ export default function BookingDetailScreen(): React.JSX.Element {
             </Text>
             <Badge label={badge.label} variant={badge.variant} theme={theme} />
           </View>
+
+          <RouteTimeline entries={timelineEntries} theme={theme} />
+
           <View style={styles.factRow}>
             <Icon name="time-outline" size="sm" color={theme.inkMuted} />
             <Text variant="bodySmall" color={theme.inkMuted}>
               {formatWhen(booking.ride.departureAt)}
             </Text>
           </View>
-          <View style={styles.factRow}>
-            <Icon name="location-outline" size="sm" color={theme.inkMuted} />
-            <Text variant="bodySmall" color={theme.inkMuted} numberOfLines={2} style={styles.factTextFlex}>
-              {booking.pickupLabel}
-            </Text>
-          </View>
+          {showLiveDistance && distanceToPickupKm !== null && walkToPickupMin !== null ? (
+            <View style={styles.factRow}>
+              <Icon name="walk-outline" size="sm" color={theme.inkMuted} />
+              <Text variant="bodySmall" color={theme.inkMuted}>
+                {`${formatDistance(distanceToPickupKm)} de votre position · ≈ ${walkToPickupMin} min à pied jusqu'au point de rendez-vous`}
+              </Text>
+            </View>
+          ) : null}
           <View style={styles.factRow}>
             <Icon name="cash-outline" size="sm" color={theme.inkMuted} />
             <Text variant="bodySmall" color={theme.inkMuted}>
@@ -226,6 +351,8 @@ export default function BookingDetailScreen(): React.JSX.Element {
           fullName={driverProfile?.fullName ?? booking.ride.driverFullName ?? 'Conducteur'}
           avatarUrl={driverProfile?.avatarUrl ?? null}
           ratingAvg={driverProfile?.driver?.ratingAvg}
+          tripCount={driverProfile?.driver?.tripCount}
+          trustTier={trustSummary?.driver?.tier}
           onOpenConversation={openConversation}
         />
 
@@ -262,6 +389,46 @@ export default function BookingDetailScreen(): React.JSX.Element {
           />
         </View>
       ) : null}
+
+      <Modal
+        visible={routeModalOpen}
+        animationType="slide"
+        onRequestClose={() => setRouteModalOpen(false)}
+      >
+        <View style={[styles.routeModal, { backgroundColor: theme.background }]}>
+          <MapCanvas region={fullRouteRegion} style={styles.routeModalMap}>
+            {routeCoordinates.length > 1 ? (
+              <Polyline coordinates={routeCoordinates} strokeColor={theme.ink} strokeWidth={4} />
+            ) : null}
+            <Marker coordinate={{ latitude: booking.pickupLat, longitude: booking.pickupLng }} anchor={{ x: 0.5, y: 0.5 }}>
+              <PickupPin theme={theme} />
+            </Marker>
+            <Marker coordinate={dropoffPoint} anchor={{ x: 0.5, y: 0.5 }}>
+              {hasDropoffStop ? (
+                <DropoffPin theme={theme} />
+              ) : (
+                <View style={[styles.destDot, { backgroundColor: theme.ink, borderColor: theme.surface }]} />
+              )}
+            </Marker>
+            {position ? (
+              <Marker coordinate={{ latitude: position.lat, longitude: position.lng }} anchor={{ x: 0.5, y: 0.5 }}>
+                <View style={[styles.youAreHereOuter, { backgroundColor: theme.accent, borderColor: theme.surface }]}>
+                  <View style={[styles.youAreHereInner, { backgroundColor: theme.surface }]} />
+                </View>
+              </Marker>
+            ) : null}
+          </MapCanvas>
+          <TouchableOpacity
+            style={[styles.routeModalClose, { top: insets.top + spacing.sm, backgroundColor: theme.surface }]}
+            onPress={() => setRouteModalOpen(false)}
+            hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel="Fermer"
+          >
+            <Ionicons name="close" size={22} color={theme.ink} />
+          </TouchableOpacity>
+        </View>
+      </Modal>
 
       <CancellationSheet
         visible={cancelling}
@@ -300,8 +467,65 @@ const styles = StyleSheet.create({
   headerSpacer: {
     width: 24,
   },
-  map: {
+  mapCard: {
+    position: 'relative',
     marginHorizontal: spacing.lg,
+  },
+  map: {},
+  viewRouteBtn: {
+    position: 'absolute',
+    right: spacing.sm,
+    bottom: spacing.sm,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    borderRadius: radii.full,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  routeModal: {
+    flex: 1,
+  },
+  routeModalMap: {
+    flex: 1,
+  },
+  routeModalClose: {
+    position: 'absolute',
+    right: spacing.lg,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  destDot: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    borderWidth: 2,
+  },
+  youAreHereOuter: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 3,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  youAreHereInner: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
   },
   card: {
     marginHorizontal: spacing.lg,
@@ -323,9 +547,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
-  },
-  factTextFlex: {
-    flex: 1,
   },
   driverRow: {
     flexDirection: 'row',

@@ -33,6 +33,7 @@ const matchCandidateSchema = z.object({
   seatsAvailable: z.number(),
   contributionPerSeat: z.number(),
   pickupWalkMinutes: z.number(),
+  dropoffWalkMinutes: z.number(),
   routeOverlapPercent: z.number(),
   score: z.number(),
   reasons: z.array(z.string()),

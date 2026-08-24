@@ -2154,6 +2154,42 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
           12.5 DT par place
         </Text>
       </View>
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "gap": 8,
+          }
+        }
+      >
+        <Ionicons
+          accessibilityElementsHidden={true}
+          color="#5B6572"
+          importantForAccessibility="no-hide-descendants"
+          name="wallet-outline"
+          size={20}
+        />
+        <Text
+          style={
+            [
+              {
+                "fontSize": 14,
+                "fontWeight": "400",
+                "lineHeight": 21,
+              },
+              {
+                "color": "#5B6572",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              undefined,
+            ]
+          }
+        >
+          12.5 DT confirmés · 1 passager
+        </Text>
+      </View>
     </View>
     <View
       style={
@@ -2294,6 +2330,26 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
               }
             >
               1 place · Angle Rue de Kairouan
+            </Text>
+            <Text
+              numberOfLines={1}
+              style={
+                [
+                  {
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "lineHeight": 18,
+                  },
+                  {
+                    "color": "#8B93A3",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              → Sousse
             </Text>
           </View>
         </View>

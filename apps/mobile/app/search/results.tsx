@@ -27,11 +27,9 @@ import {
   useMatchingSearchQuery,
   useNotifyMeMutation,
   useListFellowPassengersQuery,
-  useGetRideStopsQuery,
   type MatchCandidate,
 } from '../../src/state/api';
 import { useOpenDriver } from '../../src/features/search/useOpenDriver';
-import { estimateWalkMinutes } from '../../src/utils/polyline';
 
 function toPinData(candidate: MatchCandidate): {
   id: string;
@@ -57,10 +55,9 @@ function splitLocationLabel(label: string): { city: string; place?: string } {
   return { city: first || label, place: remainder || (first !== label ? label : undefined) };
 }
 
-/** Fetches this one candidate's real fellow-passengers + route stops (both
- *  already-existing endpoints, RTK-Query-cached per rideId) so the card can
- *  show real overlapping avatars and a real dropoff-walk estimate instead
- *  of inventing either. */
+/** Fetches this one candidate's real fellow-passengers (an already-existing
+ *  endpoint, RTK-Query-cached per rideId) so the card can show real
+ *  overlapping avatars instead of inventing them. */
 function RideResultCard({
   candidate,
   bestMatch,
@@ -79,7 +76,6 @@ function RideResultCard({
   onPress: () => void;
 }): React.JSX.Element {
   const { data: passengers } = useListFellowPassengersQuery(candidate.rideId);
-  const { data: stops } = useGetRideStopsQuery(candidate.rideId);
 
   const time = new Date(candidate.departureAt).toLocaleTimeString('fr-FR', {
     hour: '2-digit',
@@ -99,16 +95,6 @@ function RideResultCard({
   }
 
   const dropoffSplit = destination ? splitLocationLabel(destination.label) : { city: 'Destination' };
-  // Real geometry, not fabricated: the driver's furthest real route_stop
-  // past the pickup, distance to the actual destination coordinates.
-  const lastStop = stops && stops.length > 0 ? stops[stops.length - 1] : undefined;
-  const dropoffWalkMinutes =
-    lastStop && destination
-      ? estimateWalkMinutes(
-          { latitude: lastStop.lat, longitude: lastStop.lng },
-          { latitude: destination.lat, longitude: destination.lng },
-        )
-      : undefined;
 
   const data: DriverListCardData = {
     driverName: candidate.driverFullName ?? 'Conducteur',
@@ -120,8 +106,7 @@ function RideResultCard({
     pickupWalkLabel: `${Math.round(candidate.pickupWalkMinutes)} min`,
     dropoffCityLabel: dropoffSplit.city,
     dropoffPlaceLabel: dropoffSplit.place,
-    dropoffWalkLabel:
-      dropoffWalkMinutes !== undefined ? `${Math.max(1, Math.round(dropoffWalkMinutes))} min à pied` : undefined,
+    dropoffWalkLabel: `${Math.max(1, Math.round(candidate.dropoffWalkMinutes))} min à pied`,
     seatsAvailable: candidate.seatsAvailable,
     timeOffsetNote,
     passengers: passengers?.map((p) => ({ userId: p.userId, name: p.firstName, avatarUrl: p.avatarUrl })),

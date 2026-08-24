@@ -580,6 +580,40 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                       >
                         Avenue Habib Bourguiba
                       </Text>
+                      <View
+                        style={
+                          [
+                            {
+                              "borderRadius": 9999,
+                              "paddingHorizontal": 8,
+                              "paddingVertical": 2,
+                            },
+                            {
+                              "backgroundColor": "#8FD9B440",
+                            },
+                          ]
+                        }
+                      >
+                        <Text
+                          style={
+                            [
+                              {
+                                "fontSize": 12,
+                                "fontWeight": "400",
+                                "lineHeight": 18,
+                              },
+                              {
+                                "color": "#22794F",
+                                "textAlign": undefined,
+                                "writingDirection": "ltr",
+                              },
+                              undefined,
+                            ]
+                          }
+                        >
+                          1 min à pied
+                        </Text>
+                      </View>
                     </View>
                     <Text
                       numberOfLines={1}
@@ -1089,6 +1123,40 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                       >
                         Avenue Habib Bourguiba
                       </Text>
+                      <View
+                        style={
+                          [
+                            {
+                              "borderRadius": 9999,
+                              "paddingHorizontal": 8,
+                              "paddingVertical": 2,
+                            },
+                            {
+                              "backgroundColor": "#8FD9B440",
+                            },
+                          ]
+                        }
+                      >
+                        <Text
+                          style={
+                            [
+                              {
+                                "fontSize": 12,
+                                "fontWeight": "400",
+                                "lineHeight": 18,
+                              },
+                              {
+                                "color": "#22794F",
+                                "textAlign": undefined,
+                                "writingDirection": "ltr",
+                              },
+                              undefined,
+                            ]
+                          }
+                        >
+                          1 min à pied
+                        </Text>
+                      </View>
                     </View>
                     <Text
                       numberOfLines={1}
@@ -2485,6 +2553,40 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                       >
                         Avenue Habib Bourguiba
                       </Text>
+                      <View
+                        style={
+                          [
+                            {
+                              "borderRadius": 9999,
+                              "paddingHorizontal": 8,
+                              "paddingVertical": 2,
+                            },
+                            {
+                              "backgroundColor": "#8FD9B440",
+                            },
+                          ]
+                        }
+                      >
+                        <Text
+                          style={
+                            [
+                              {
+                                "fontSize": 12,
+                                "fontWeight": "400",
+                                "lineHeight": 18,
+                              },
+                              {
+                                "color": "#22794F",
+                                "textAlign": undefined,
+                                "writingDirection": "ltr",
+                              },
+                              undefined,
+                            ]
+                          }
+                        >
+                          1 min à pied
+                        </Text>
+                      </View>
                     </View>
                     <Text
                       numberOfLines={1}
@@ -2994,6 +3096,40 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                       >
                         Avenue Habib Bourguiba
                       </Text>
+                      <View
+                        style={
+                          [
+                            {
+                              "borderRadius": 9999,
+                              "paddingHorizontal": 8,
+                              "paddingVertical": 2,
+                            },
+                            {
+                              "backgroundColor": "#8FD9B440",
+                            },
+                          ]
+                        }
+                      >
+                        <Text
+                          style={
+                            [
+                              {
+                                "fontSize": 12,
+                                "fontWeight": "400",
+                                "lineHeight": 18,
+                              },
+                              {
+                                "color": "#22794F",
+                                "textAlign": undefined,
+                                "writingDirection": "ltr",
+                              },
+                              undefined,
+                            ]
+                          }
+                        >
+                          1 min à pied
+                        </Text>
+                      </View>
                     </View>
                     <Text
                       numberOfLines={1}
