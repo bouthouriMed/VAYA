@@ -70,6 +70,38 @@ exports[`messages.tsx snapshots > empty inbox — headline, filter-less, first-r
       Retrouvez les échanges liés à vos trajets partagés.
     </Text>
   </View>
+  <View
+    style={
+      {
+        "flexDirection": "row",
+        "justifyContent": "flex-end",
+        "paddingBottom": 4,
+        "paddingHorizontal": 16,
+      }
+    }
+  >
+    <TouchableOpacity
+      accessibilityLabel="Rechercher une conversation"
+      accessibilityRole="button"
+      onPress={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "height": 32,
+          "justifyContent": "center",
+          "width": 32,
+        }
+      }
+    >
+      <Ionicons
+        accessibilityElementsHidden={true}
+        color="#5C5748"
+        importantForAccessibility="no-hide-descendants"
+        name="search-outline"
+        size={20}
+      />
+    </TouchableOpacity>
+  </View>
   <SectionList>
     <View
       accessibilityRole="text"
@@ -578,6 +610,38 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
     style={
       {
         "flexDirection": "row",
+        "justifyContent": "flex-end",
+        "paddingBottom": 4,
+        "paddingHorizontal": 16,
+      }
+    }
+  >
+    <TouchableOpacity
+      accessibilityLabel="Rechercher une conversation"
+      accessibilityRole="button"
+      onPress={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "height": 32,
+          "justifyContent": "center",
+          "width": 32,
+        }
+      }
+    >
+      <Ionicons
+        accessibilityElementsHidden={true}
+        color="#5C5748"
+        importantForAccessibility="no-hide-descendants"
+        name="search-outline"
+        size={20}
+      />
+    </TouchableOpacity>
+  </View>
+  <View
+    style={
+      {
+        "flexDirection": "row",
         "flexWrap": "wrap",
         "gap": 4,
         "paddingBottom": 8,
@@ -767,28 +831,42 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
     </TouchableOpacity>
   </View>
   <SectionList>
-    <Text
+    <View
       style={
         [
           {
-            "fontSize": 14,
-            "fontWeight": "500",
-            "lineHeight": 21,
-          },
-          {
-            "color": "#8C8674",
-            "textAlign": undefined,
-            "writingDirection": "ltr",
-          },
-          {
-            "paddingBottom": 4,
             "paddingTop": 12,
+          },
+          {
+            "backgroundColor": "#F7F3E8",
           },
         ]
       }
     >
-      Aujourd'hui
-    </Text>
+      <Text
+        style={
+          [
+            {
+              "fontSize": 14,
+              "fontWeight": "500",
+              "lineHeight": 21,
+            },
+            {
+              "color": "#8C8674",
+              "textAlign": undefined,
+              "writingDirection": "ltr",
+            },
+            {
+              "letterSpacing": 0.5,
+              "paddingBottom": 4,
+              "textTransform": "uppercase",
+            },
+          ]
+        }
+      >
+        Aujourd'hui
+      </Text>
+    </View>
     <TouchableOpacity
       accessibilityLabel="Conversation avec Amine Ben Salah, Tunis vers Sousse"
       accessibilityRole="button"
@@ -814,6 +892,29 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
         ]
       }
     >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "width": 8,
+          }
+        }
+      >
+        <View
+          style={
+            [
+              {
+                "borderRadius": 4,
+                "height": 8,
+                "width": 8,
+              },
+              {
+                "backgroundColor": "#2E9E6C",
+              },
+            ]
+          }
+        />
+      </View>
       <View
         style={
           {
@@ -919,15 +1020,87 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
                   "textAlign": undefined,
                   "writingDirection": "ltr",
                 },
-                {
-                  "flexShrink": 1,
-                  "fontWeight": "600",
-                },
+                [
+                  {
+                    "flexShrink": 1,
+                    "fontWeight": "600",
+                  },
+                  {
+                    "fontWeight": "800",
+                  },
+                ],
               ]
             }
           >
             Amine Ben Salah
           </Text>
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "lineHeight": 18,
+                },
+                {
+                  "color": "#2E9E6C",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                {
+                  "fontWeight": "700",
+                },
+              ]
+            }
+          >
+            09:41
+          </Text>
+        </View>
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "gap": 4,
+            }
+          }
+        >
+          <View
+            style={
+              [
+                {
+                  "borderRadius": 4,
+                  "paddingHorizontal": 4,
+                  "paddingVertical": 1,
+                },
+                {
+                  "backgroundColor": "#EDE6D4",
+                },
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "lineHeight": 18,
+                  },
+                  {
+                    "color": "#5C5748",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  {
+                    "fontSize": 10,
+                  },
+                ]
+              }
+            >
+              Conducteur
+            </Text>
+          </View>
           <Text
             style={
               [
@@ -945,18 +1118,8 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
               ]
             }
           >
-            09:41
+            •
           </Text>
-        </View>
-        <View
-          style={
-            {
-              "alignItems": "center",
-              "flexDirection": "row",
-              "gap": 4,
-            }
-          }
-        >
           <Text
             numberOfLines={1}
             style={
@@ -972,12 +1135,12 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
                   "writingDirection": "ltr",
                 },
                 {
-                  "flexShrink": 1,
+                  "flex": 1,
                 },
               ]
             }
           >
-            Conducteur · Tunis → Sousse
+            Tunis → Sousse (Demain)
           </Text>
         </View>
         <Text
@@ -990,11 +1153,13 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
                 "lineHeight": 21,
               },
               {
-                "color": "#5C5748",
+                "color": "#14201B",
                 "textAlign": undefined,
                 "writingDirection": "ltr",
               },
-              undefined,
+              {
+                "fontWeight": "600",
+              },
             ]
           }
         >
@@ -1002,28 +1167,42 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
         </Text>
       </View>
     </TouchableOpacity>
-    <Text
+    <View
       style={
         [
           {
-            "fontSize": 14,
-            "fontWeight": "500",
-            "lineHeight": 21,
-          },
-          {
-            "color": "#8C8674",
-            "textAlign": undefined,
-            "writingDirection": "ltr",
-          },
-          {
-            "paddingBottom": 4,
             "paddingTop": 12,
+          },
+          {
+            "backgroundColor": "#F7F3E8",
           },
         ]
       }
     >
-      Hier
-    </Text>
+      <Text
+        style={
+          [
+            {
+              "fontSize": 14,
+              "fontWeight": "500",
+              "lineHeight": 21,
+            },
+            {
+              "color": "#8C8674",
+              "textAlign": undefined,
+              "writingDirection": "ltr",
+            },
+            {
+              "letterSpacing": 0.5,
+              "paddingBottom": 4,
+              "textTransform": "uppercase",
+            },
+          ]
+        }
+      >
+        Hier
+      </Text>
+    </View>
     <TouchableOpacity
       accessibilityLabel="Conversation avec Salma Trabelsi, Tunis vers Hammamet"
       accessibilityRole="button"
@@ -1051,6 +1230,14 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
         ]
       }
     >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "width": 8,
+          }
+        }
+      />
       <View
         style={
           {
@@ -1127,10 +1314,13 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
                   "textAlign": undefined,
                   "writingDirection": "ltr",
                 },
-                {
-                  "flexShrink": 1,
-                  "fontWeight": "600",
-                },
+                [
+                  {
+                    "flexShrink": 1,
+                    "fontWeight": "600",
+                  },
+                  false,
+                ],
               ]
             }
           >
@@ -1149,7 +1339,7 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
                   "textAlign": undefined,
                   "writingDirection": "ltr",
                 },
-                undefined,
+                false,
               ]
             }
           >
@@ -1165,6 +1355,61 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
             }
           }
         >
+          <View
+            style={
+              [
+                {
+                  "borderRadius": 4,
+                  "paddingHorizontal": 4,
+                  "paddingVertical": 1,
+                },
+                {
+                  "backgroundColor": "#EDE6D4",
+                },
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "lineHeight": 18,
+                  },
+                  {
+                    "color": "#5C5748",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  {
+                    "fontSize": 10,
+                  },
+                ]
+              }
+            >
+              Conducteur
+            </Text>
+          </View>
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "lineHeight": 18,
+                },
+                {
+                  "color": "#8C8674",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            •
+          </Text>
           <Text
             numberOfLines={1}
             style={
@@ -1180,13 +1425,20 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
                   "writingDirection": "ltr",
                 },
                 {
-                  "flexShrink": 1,
+                  "flex": 1,
                 },
               ]
             }
           >
-            Conducteur · Tunis → Hammamet
+            Tunis → Hammamet
           </Text>
+          <Ionicons
+            accessibilityElementsHidden={true}
+            color="#2E9E6C"
+            importantForAccessibility="no-hide-descendants"
+            name="checkmark-circle"
+            size={16}
+          />
         </View>
         <Text
           numberOfLines={1}
@@ -1202,20 +1454,13 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
                 "textAlign": undefined,
                 "writingDirection": "ltr",
               },
-              undefined,
+              false,
             ]
           }
         >
           Conversation terminée.
         </Text>
       </View>
-      <Ionicons
-        accessibilityElementsHidden={true}
-        color="#2E9E6C"
-        importantForAccessibility="no-hide-descendants"
-        name="checkmark-circle"
-        size={20}
-      />
     </TouchableOpacity>
   </SectionList>
 </SafeAreaView>

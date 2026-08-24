@@ -3,11 +3,25 @@ import { Tabs, useNavigation } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppTheme } from '@vaya/design-system';
 import { useAppSelector } from '../../src/state/store';
+import { useListConversationsQuery } from '../../src/state/api';
+
+// Matches explore.tsx/trips.tsx's own background-polling cadence — this is
+// a tab-bar badge, not an open chat screen, so it doesn't need
+// conversations/[bookingId].tsx's tighter POLL_INTERVAL_MS.
+const UNREAD_POLL_MS = 30_000;
 
 export default function TabLayout(): React.JSX.Element {
   const accessToken = useAppSelector((s) => s.auth.accessToken);
   const navigation = useNavigation();
   const { colors: theme } = useAppTheme();
+
+  // messages.tsx guards itself for guests (see the comment below), so this
+  // query is skipped the same way rather than firing for a signed-out user.
+  const { data: conversations } = useListConversationsQuery(undefined, {
+    skip: !accessToken,
+    pollingInterval: UNREAD_POLL_MS,
+  });
+  const unreadCount = conversations?.filter((c) => c.hasUnread).length ?? 0;
 
   // Last-line-of-defense against "swiping right dismisses the entire app":
   // a swipe that starts near the screen edge can be delivered as a system
@@ -63,6 +77,8 @@ export default function TabLayout(): React.JSX.Element {
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="chatbubble-outline" size={size} color={color} />
           ),
+          tabBarBadge: unreadCount > 0 ? unreadCount : undefined,
+          tabBarBadgeStyle: { backgroundColor: theme.accent },
         }}
       />
       <Tabs.Screen

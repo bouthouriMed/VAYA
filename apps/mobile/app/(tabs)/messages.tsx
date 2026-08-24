@@ -10,6 +10,7 @@ import {
   Avatar,
   Chip,
   Icon,
+  Input,
   EmptyState,
   SkeletonBlock,
   useAppTheme,
@@ -19,10 +20,12 @@ import {
 import { useListConversationsQuery } from '../../src/state/api';
 import {
   filterConversations,
+  formatDepartureLabel,
   formatInboxTimestamp,
   getConversationState,
   groupConversationsByDay,
   roleLabel,
+  searchConversations,
   type InboxConversation,
   type InboxFilter,
 } from '../../src/features/conversations/inboxHelpers';
@@ -67,6 +70,8 @@ export default function MessagesScreen(): React.JSX.Element {
   const accessToken = useAppSelector((s) => s.auth.accessToken);
   const [filter, setFilter] = useState<InboxFilter>('all');
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const { data: conversations, isLoading, isError, refetch } = useListConversationsQuery(undefined, {
     skip: !accessToken,
   });
@@ -74,12 +79,22 @@ export default function MessagesScreen(): React.JSX.Element {
     useContextualAuth();
 
   const sections = useMemo(() => {
-    const filtered = filterConversations(conversations ?? [], filter);
+    const filtered = searchConversations(
+      filterConversations(conversations ?? [], filter),
+      searchQuery,
+    );
     return groupConversationsByDay(filtered).map((section) => ({
       title: section.label,
       data: section.conversations,
     }));
-  }, [conversations, filter]);
+  }, [conversations, filter, searchQuery]);
+
+  function toggleSearch(): void {
+    setSearchOpen((open) => {
+      if (open) setSearchQuery('');
+      return !open;
+    });
+  }
 
   function openConversation(conversation: InboxConversation): void {
     void router.push(`/conversations/${conversation.bookingId}`);
@@ -152,6 +167,34 @@ export default function MessagesScreen(): React.JSX.Element {
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top']}>
       <InboxHeader theme={theme} />
 
+      <View style={styles.searchToggleRow}>
+        <TouchableOpacity
+          onPress={toggleSearch}
+          accessibilityRole="button"
+          accessibilityLabel={searchOpen ? 'Fermer la recherche' : 'Rechercher une conversation'}
+          style={styles.searchIconBtn}
+        >
+          <Icon
+            name={searchOpen ? 'close-outline' : 'search-outline'}
+            size="sm"
+            color={theme.inkMuted}
+          />
+        </TouchableOpacity>
+      </View>
+
+      {searchOpen ? (
+        <View style={styles.searchWrap}>
+          <Input
+            theme={theme}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            placeholder="Nom, ville de départ ou d'arrivée…"
+            autoFocus
+            returnKeyType="search"
+          />
+        </View>
+      ) : null}
+
       {(conversations?.length ?? 0) > 0 ? (
         <View style={styles.filters}>
           {FILTERS.map(({ key, label }) => (
@@ -172,12 +215,14 @@ export default function MessagesScreen(): React.JSX.Element {
         onRefresh={() => void handleRefresh()}
         refreshing={isRefreshing}
         contentContainerStyle={sections.length === 0 ? styles.listEmpty : styles.listContent}
-        stickySectionHeadersEnabled={false}
+        stickySectionHeadersEnabled
         showsVerticalScrollIndicator={false}
         renderSectionHeader={({ section }) => (
-          <Text variant="label" color={theme.inkFaint} style={styles.sectionHeader}>
-            {section.title}
-          </Text>
+          <View style={[styles.sectionHeaderWrap, { backgroundColor: theme.background }]}>
+            <Text variant="label" color={theme.inkFaint} style={styles.sectionHeader}>
+              {section.title}
+            </Text>
+          </View>
         )}
         renderItem={({ item }) => {
           const timestamp = formatInboxTimestamp(item.lastMessage?.createdAt ?? item.updatedAt);
@@ -187,6 +232,7 @@ export default function MessagesScreen(): React.JSX.Element {
           const state = getConversationState(item);
           const isActive = state === 'active';
           const isClosed = state === 'past';
+          const departureLabel = isClosed ? null : formatDepartureLabel(item.departureAt);
           return (
             <TouchableOpacity
               style={[
@@ -199,6 +245,12 @@ export default function MessagesScreen(): React.JSX.Element {
               accessibilityRole="button"
               accessibilityLabel={`Conversation avec ${item.otherParty.fullName}, ${item.originLabel} vers ${item.destinationLabel}${isActive ? ', trajet en cours' : ''}`}
             >
+              <View style={styles.unreadDotSlot}>
+                {item.hasUnread ? (
+                  <View style={[styles.unreadDot, { backgroundColor: theme.accent }]} />
+                ) : null}
+              </View>
+
               <View style={styles.avatarWrap}>
                 <Avatar uri={item.otherParty.avatarUrl} name={item.otherParty.fullName} sizePx={48} />
                 {item.isOtherPartyVerified ? (
@@ -215,10 +267,19 @@ export default function MessagesScreen(): React.JSX.Element {
 
               <View style={styles.rowBody}>
                 <View style={styles.nameRow}>
-                  <Text variant="body" color={theme.ink} numberOfLines={1} style={styles.name}>
+                  <Text
+                    variant="body"
+                    color={theme.ink}
+                    numberOfLines={1}
+                    style={[styles.name, item.hasUnread && styles.nameUnread]}
+                  >
                     {item.otherParty.fullName}
                   </Text>
-                  <Text variant="caption" color={theme.inkFaint}>
+                  <Text
+                    variant="caption"
+                    color={item.hasUnread ? theme.accent : theme.inkFaint}
+                    style={item.hasUnread && styles.timestampUnread}
+                  >
                     {timestamp}
                   </Text>
                 </View>
@@ -231,22 +292,37 @@ export default function MessagesScreen(): React.JSX.Element {
                       </Text>
                     </>
                   ) : null}
-                  <Text variant="caption" color={theme.inkMuted} numberOfLines={1} style={styles.metaRoute}>
-                    {`${roleLabel(item.otherPartyRole)} · ${item.originLabel} → ${item.destinationLabel}`}
+                  <View style={[styles.rolePill, { backgroundColor: theme.surfaceMuted }]}>
+                    <Text variant="caption" color={theme.inkMuted} style={styles.rolePillText}>
+                      {roleLabel(item.otherPartyRole)}
+                    </Text>
+                  </View>
+                  <Text variant="caption" color={theme.inkFaint}>
+                    •
                   </Text>
+                  <Text
+                    variant="caption"
+                    color={theme.inkMuted}
+                    numberOfLines={1}
+                    style={styles.routeText}
+                  >
+                    {departureLabel
+                      ? `${item.originLabel} → ${item.destinationLabel} (${departureLabel})`
+                      : `${item.originLabel} → ${item.destinationLabel}`}
+                  </Text>
+                  {isClosed ? (
+                    <Icon name="checkmark-circle" size="xs" color={theme.accent} />
+                  ) : null}
                 </View>
                 <Text
                   variant="bodySmall"
-                  color={isClosed ? theme.inkFaint : theme.inkMuted}
+                  color={isClosed ? theme.inkFaint : item.hasUnread ? theme.ink : theme.inkMuted}
                   numberOfLines={1}
+                  style={item.hasUnread && styles.previewUnread}
                 >
                   {preview}
                 </Text>
               </View>
-
-              {isClosed ? (
-                <Icon name="checkmark-circle" size="sm" color={theme.accent} />
-              ) : null}
             </TouchableOpacity>
           );
         }}
@@ -283,7 +359,23 @@ const styles = StyleSheet.create({
   },
   heading: {
     textAlign: 'center',
-    marginTop: spacing.xl
+    marginTop: spacing.xl,
+  },
+  searchToggleRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.xs,
+  },
+  searchIconBtn: {
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  searchWrap: {
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.sm,
   },
   filters: {
     flexDirection: 'row',
@@ -300,8 +392,12 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'center',
   },
-  sectionHeader: {
+  sectionHeaderWrap: {
     paddingTop: spacing.md,
+  },
+  sectionHeader: {
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
     paddingBottom: spacing.xs,
   },
   card: {
@@ -316,6 +412,15 @@ const styles = StyleSheet.create({
   },
   cardClosed: {
     opacity: 0.55,
+  },
+  unreadDotSlot: {
+    width: 8,
+    alignItems: 'center',
+  },
+  unreadDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
   },
   avatarWrap: {
     position: 'relative',
@@ -345,6 +450,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     flexShrink: 1,
   },
+  nameUnread: {
+    fontWeight: '800',
+  },
+  timestampUnread: {
+    fontWeight: '700',
+  },
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -358,8 +469,19 @@ const styles = StyleSheet.create({
   metaState: {
     fontWeight: '600',
   },
-  metaRoute: {
-    flexShrink: 1,
+  rolePill: {
+    paddingHorizontal: spacing.xs,
+    paddingVertical: 1,
+    borderRadius: radii.sm,
+  },
+  rolePillText: {
+    fontSize: 10,
+  },
+  routeText: {
+    flex: 1,
+  },
+  previewUnread: {
+    fontWeight: '600',
   },
   skeletonWrap: {
     padding: spacing.lg,

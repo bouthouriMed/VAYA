@@ -70,7 +70,13 @@ function makeBooking(overrides: Partial<FakeBooking> = {}): FakeBooking {
  * -> read-only) is covered separately by conversations.integration.test.ts.
  */
 function makeFakeDb(options: {
-  conversation?: { id: string; bookingId: string; status: 'open' | 'closed' };
+  conversation?: {
+    id: string;
+    bookingId: string;
+    status: 'open' | 'closed';
+    driverLastReadAt?: Date | null;
+    riderLastReadAt?: Date | null;
+  };
   booking?: FakeBooking;
   lastMessage?: unknown;
   messages?: unknown[];
@@ -236,6 +242,95 @@ describe('conversations.service — read-only enforcement', () => {
     });
     const message = await sendMessage(db, CONVERSATION_ID, RIDER_ID, { body: 'still going' });
     expect(message).toEqual(insertedMessage);
+  });
+});
+
+describe('conversations.service — unread state', () => {
+  it('reports hasUnread when the other party sent the last message and the viewer never read it', async () => {
+    const { db } = makeFakeDb({
+      conversation: { id: CONVERSATION_ID, bookingId: BOOKING_ID, status: 'open' },
+      booking: makeBooking(),
+      lastMessage: {
+        id: 'm1',
+        conversationId: CONVERSATION_ID,
+        senderUserId: DRIVER_USER_ID,
+        body: 'hi',
+        createdAt: new Date('2026-01-02T00:00:00Z'),
+      },
+    });
+    const conversation = await getConversationByBookingId(db, BOOKING_ID, RIDER_ID);
+    expect(conversation.hasUnread).toBe(true);
+  });
+
+  it('reports no unread once the viewer has read past the last message', async () => {
+    const { db } = makeFakeDb({
+      conversation: {
+        id: CONVERSATION_ID,
+        bookingId: BOOKING_ID,
+        status: 'open',
+        riderLastReadAt: new Date('2026-01-03T00:00:00Z'),
+      },
+      booking: makeBooking(),
+      lastMessage: {
+        id: 'm1',
+        conversationId: CONVERSATION_ID,
+        senderUserId: DRIVER_USER_ID,
+        body: 'hi',
+        createdAt: new Date('2026-01-02T00:00:00Z'),
+      },
+    });
+    const conversation = await getConversationByBookingId(db, BOOKING_ID, RIDER_ID);
+    expect(conversation.hasUnread).toBe(false);
+  });
+
+  it('never reports unread for a message the viewer sent themselves', async () => {
+    const { db } = makeFakeDb({
+      conversation: { id: CONVERSATION_ID, bookingId: BOOKING_ID, status: 'open' },
+      booking: makeBooking(),
+      lastMessage: {
+        id: 'm1',
+        conversationId: CONVERSATION_ID,
+        senderUserId: RIDER_ID,
+        body: 'my own message',
+        createdAt: new Date('2026-01-02T00:00:00Z'),
+      },
+    });
+    const conversation = await getConversationByBookingId(db, BOOKING_ID, RIDER_ID);
+    expect(conversation.hasUnread).toBe(false);
+  });
+
+  it('reports no unread when there are no messages at all yet', async () => {
+    const { db } = makeFakeDb({
+      conversation: { id: CONVERSATION_ID, bookingId: BOOKING_ID, status: 'open' },
+      booking: makeBooking(),
+      lastMessage: null,
+    });
+    const conversation = await getConversationByBookingId(db, BOOKING_ID, RIDER_ID);
+    expect(conversation.hasUnread).toBe(false);
+  });
+
+  it('listMessages marks the conversation read for whichever side is requesting', async () => {
+    const { db, updateCalls } = makeFakeDb({
+      conversation: { id: CONVERSATION_ID, bookingId: BOOKING_ID, status: 'open' },
+      booking: makeBooking(),
+      messages: [],
+    });
+    await listMessages(db, CONVERSATION_ID, RIDER_ID);
+    expect(updateCalls).toContainEqual(
+      expect.objectContaining({ riderLastReadAt: expect.any(Date) }),
+    );
+  });
+
+  it('listMessages marks the driver side read when the driver is requesting', async () => {
+    const { db, updateCalls } = makeFakeDb({
+      conversation: { id: CONVERSATION_ID, bookingId: BOOKING_ID, status: 'open' },
+      booking: makeBooking(),
+      messages: [],
+    });
+    await listMessages(db, CONVERSATION_ID, DRIVER_USER_ID);
+    expect(updateCalls).toContainEqual(
+      expect.objectContaining({ driverLastReadAt: expect.any(Date) }),
+    );
   });
 });
 

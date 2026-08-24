@@ -73,6 +73,7 @@ const OPEN_TODAY: InboxConversation = {
     createdAt: '2026-08-22T09:41:00',
     senderUserId: 'u-1',
   },
+  hasUnread: true,
 };
 
 const CLOSED_YESTERDAY: InboxConversation = {
@@ -89,6 +90,7 @@ const CLOSED_YESTERDAY: InboxConversation = {
   departureAt: '2026-08-20T14:00:00',
   tripStatus: 'completed',
   lastMessage: null,
+  hasUnread: false,
 };
 
 type QueryResult = {
@@ -101,6 +103,7 @@ type QueryResult = {
 function mockApi(result: QueryResult): void {
   vi.doMock('../state/api', () => ({
     useListConversationsQuery: () => result,
+    useGetMeQuery: () => ({ data: undefined, isLoading: false }),
   }));
 }
 
