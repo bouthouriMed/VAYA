@@ -118,7 +118,11 @@ function FilterPill({
       accessibilityState={{ selected: false }}
       style={[
         styles.filterPill,
-        { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.outlineVariant },
+        // The unselected pill's fill is the palette's secondary surface —
+        // a clean light blue in light mode (Stitch's surface-container
+        // token) — not the plain white `surface` card fill, so the
+        // filter row actually reads as its own tinted secondary group.
+        { backgroundColor: theme.surfaceMuted, borderWidth: 1, borderColor: theme.outlineVariant },
       ]}
     >
       <Text variant="label" color={theme.inkMuted} style={styles.filterPillText}>

@@ -9,7 +9,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
           "flex": 1,
         },
         {
-          "backgroundColor": "#F7F3E8",
+          "backgroundColor": "#FFFFFF",
         },
       ]
     }
@@ -27,7 +27,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
           },
           {
             "backgroundColor": "#FFFFFF",
-            "borderBottomColor": "#EDE6D4",
+            "borderBottomColor": "#E4EDFB",
             "paddingTop": 8,
           },
         ]
@@ -95,7 +95,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
           },
           {
             "backgroundColor": "#FFFFFF",
-            "borderBottomColor": "#EDE6D4",
+            "borderBottomColor": "#E4EDFB",
           },
         ]
       }
@@ -111,7 +111,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
       >
         <Ionicons
           accessibilityElementsHidden={true}
-          color="#8C8674"
+          color="#8B93A3"
           importantForAccessibility="no-hide-descendants"
           name="calendar-outline"
           size={16}
@@ -125,7 +125,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                 "lineHeight": 21,
               },
               {
-                "color": "#8C8674",
+                "color": "#8B93A3",
                 "textAlign": undefined,
                 "writingDirection": "ltr",
               },
@@ -153,7 +153,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
               "paddingVertical": 8,
             },
             {
-              "backgroundColor": "#EDE6D4",
+              "backgroundColor": "#E4EDFB",
             },
           ]
         }
@@ -261,7 +261,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                 },
                 {
                   "backgroundColor": "#FFFFFF",
-                  "borderColor": "#EDE6D4",
+                  "borderColor": "#E4EDFB",
                 },
               ]
             }
@@ -330,7 +330,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                       "padding": 8,
                     },
                     {
-                      "backgroundColor": "#F7F3E8",
+                      "backgroundColor": "#FFFFFF",
                     },
                   ]
                 }
@@ -344,7 +344,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                         "lineHeight": 18,
                       },
                       {
-                        "color": "#5C5748",
+                        "color": "#5B6572",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -403,7 +403,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                             "width": 2,
                           },
                           {
-                            "backgroundColor": "#EDE6D4",
+                            "backgroundColor": "#E4EDFB",
                           },
                         ]
                       }
@@ -495,7 +495,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                             "lineHeight": 18,
                           },
                           {
-                            "color": "#5C5748",
+                            "color": "#5B6572",
                             "textAlign": undefined,
                             "writingDirection": "ltr",
                           },
@@ -591,7 +591,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                             "lineHeight": 18,
                           },
                           {
-                            "color": "#5C5748",
+                            "color": "#5B6572",
                             "textAlign": undefined,
                             "writingDirection": "ltr",
                           },
@@ -611,7 +611,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                       "height": 1,
                     },
                     {
-                      "backgroundColor": "#EDE6D4",
+                      "backgroundColor": "#E4EDFB",
                     },
                   ]
                 }
@@ -717,7 +717,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                               "lineHeight": 18,
                             },
                             {
-                              "color": "#5C5748",
+                              "color": "#5B6572",
                               "textAlign": undefined,
                               "writingDirection": "ltr",
                             },
@@ -739,7 +739,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                         "lineHeight": 18,
                       },
                       {
-                        "color": "#8C8674",
+                        "color": "#8B93A3",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -770,7 +770,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                 },
                 {
                   "backgroundColor": "#FFFFFF",
-                  "borderColor": "#EDE6D4",
+                  "borderColor": "#E4EDFB",
                 },
               ]
             }
@@ -839,7 +839,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                       "padding": 8,
                     },
                     {
-                      "backgroundColor": "#F7F3E8",
+                      "backgroundColor": "#FFFFFF",
                     },
                   ]
                 }
@@ -853,7 +853,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                         "lineHeight": 18,
                       },
                       {
-                        "color": "#5C5748",
+                        "color": "#5B6572",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -912,7 +912,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                             "width": 2,
                           },
                           {
-                            "backgroundColor": "#EDE6D4",
+                            "backgroundColor": "#E4EDFB",
                           },
                         ]
                       }
@@ -1004,7 +1004,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                             "lineHeight": 18,
                           },
                           {
-                            "color": "#5C5748",
+                            "color": "#5B6572",
                             "textAlign": undefined,
                             "writingDirection": "ltr",
                           },
@@ -1100,7 +1100,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                             "lineHeight": 18,
                           },
                           {
-                            "color": "#5C5748",
+                            "color": "#5B6572",
                             "textAlign": undefined,
                             "writingDirection": "ltr",
                           },
@@ -1120,7 +1120,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                       "height": 1,
                     },
                     {
-                      "backgroundColor": "#EDE6D4",
+                      "backgroundColor": "#E4EDFB",
                     },
                   ]
                 }
@@ -1226,7 +1226,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                               "lineHeight": 18,
                             },
                             {
-                              "color": "#5C5748",
+                              "color": "#5B6572",
                               "textAlign": undefined,
                               "writingDirection": "ltr",
                             },
@@ -1248,7 +1248,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                         "lineHeight": 18,
                       },
                       {
-                        "color": "#8C8674",
+                        "color": "#8B93A3",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -1291,7 +1291,7 @@ exports[`search/results.tsx snapshots > renders the genuine empty state with a n
           "flex": 1,
         },
         {
-          "backgroundColor": "#F7F3E8",
+          "backgroundColor": "#FFFFFF",
         },
       ]
     }
@@ -1309,7 +1309,7 @@ exports[`search/results.tsx snapshots > renders the genuine empty state with a n
           },
           {
             "backgroundColor": "#FFFFFF",
-            "borderBottomColor": "#EDE6D4",
+            "borderBottomColor": "#E4EDFB",
             "paddingTop": 8,
           },
         ]
@@ -1377,7 +1377,7 @@ exports[`search/results.tsx snapshots > renders the genuine empty state with a n
           },
           {
             "backgroundColor": "#FFFFFF",
-            "borderBottomColor": "#EDE6D4",
+            "borderBottomColor": "#E4EDFB",
           },
         ]
       }
@@ -1393,7 +1393,7 @@ exports[`search/results.tsx snapshots > renders the genuine empty state with a n
       >
         <Ionicons
           accessibilityElementsHidden={true}
-          color="#8C8674"
+          color="#8B93A3"
           importantForAccessibility="no-hide-descendants"
           name="calendar-outline"
           size={16}
@@ -1407,7 +1407,7 @@ exports[`search/results.tsx snapshots > renders the genuine empty state with a n
                 "lineHeight": 21,
               },
               {
-                "color": "#8C8674",
+                "color": "#8B93A3",
                 "textAlign": undefined,
                 "writingDirection": "ltr",
               },
@@ -1435,7 +1435,7 @@ exports[`search/results.tsx snapshots > renders the genuine empty state with a n
               "paddingVertical": 8,
             },
             {
-              "backgroundColor": "#EDE6D4",
+              "backgroundColor": "#E4EDFB",
             },
           ]
         }
@@ -1578,7 +1578,7 @@ exports[`search/results.tsx snapshots > renders the loading skeleton 1`] = `
           "flex": 1,
         },
         {
-          "backgroundColor": "#F7F3E8",
+          "backgroundColor": "#FFFFFF",
         },
       ]
     }
@@ -1596,7 +1596,7 @@ exports[`search/results.tsx snapshots > renders the loading skeleton 1`] = `
           },
           {
             "backgroundColor": "#FFFFFF",
-            "borderBottomColor": "#EDE6D4",
+            "borderBottomColor": "#E4EDFB",
             "paddingTop": 8,
           },
         ]
@@ -1664,7 +1664,7 @@ exports[`search/results.tsx snapshots > renders the loading skeleton 1`] = `
           },
           {
             "backgroundColor": "#FFFFFF",
-            "borderBottomColor": "#EDE6D4",
+            "borderBottomColor": "#E4EDFB",
           },
         ]
       }
@@ -1680,7 +1680,7 @@ exports[`search/results.tsx snapshots > renders the loading skeleton 1`] = `
       >
         <Ionicons
           accessibilityElementsHidden={true}
-          color="#8C8674"
+          color="#8B93A3"
           importantForAccessibility="no-hide-descendants"
           name="calendar-outline"
           size={16}
@@ -1694,7 +1694,7 @@ exports[`search/results.tsx snapshots > renders the loading skeleton 1`] = `
                 "lineHeight": 21,
               },
               {
-                "color": "#8C8674",
+                "color": "#8B93A3",
                 "textAlign": undefined,
                 "writingDirection": "ltr",
               },
@@ -1722,7 +1722,7 @@ exports[`search/results.tsx snapshots > renders the loading skeleton 1`] = `
               "paddingVertical": 8,
             },
             {
-              "backgroundColor": "#EDE6D4",
+              "backgroundColor": "#E4EDFB",
             },
           ]
         }
@@ -1867,7 +1867,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
           "flex": 1,
         },
         {
-          "backgroundColor": "#F7F3E8",
+          "backgroundColor": "#FFFFFF",
         },
       ]
     }
@@ -1885,7 +1885,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
           },
           {
             "backgroundColor": "#FFFFFF",
-            "borderBottomColor": "#EDE6D4",
+            "borderBottomColor": "#E4EDFB",
             "paddingTop": 8,
           },
         ]
@@ -1953,7 +1953,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
           },
           {
             "backgroundColor": "#FFFFFF",
-            "borderBottomColor": "#EDE6D4",
+            "borderBottomColor": "#E4EDFB",
           },
         ]
       }
@@ -1969,7 +1969,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
       >
         <Ionicons
           accessibilityElementsHidden={true}
-          color="#8C8674"
+          color="#8B93A3"
           importantForAccessibility="no-hide-descendants"
           name="calendar-outline"
           size={16}
@@ -1983,7 +1983,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                 "lineHeight": 21,
               },
               {
-                "color": "#8C8674",
+                "color": "#8B93A3",
                 "textAlign": undefined,
                 "writingDirection": "ltr",
               },
@@ -2011,7 +2011,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
               "paddingVertical": 8,
             },
             {
-              "backgroundColor": "#EDE6D4",
+              "backgroundColor": "#E4EDFB",
             },
           ]
         }
@@ -2068,15 +2068,15 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
               "padding": 12,
             },
             {
-              "backgroundColor": "#F7F3E8",
-              "borderColor": "#EDE6D4",
+              "backgroundColor": "#FFFFFF",
+              "borderColor": "#E4EDFB",
             },
           ]
         }
       >
         <Ionicons
           accessibilityElementsHidden={true}
-          color="#8C8674"
+          color="#8B93A3"
           importantForAccessibility="no-hide-descendants"
           name="information-circle-outline"
           size={20}
@@ -2090,7 +2090,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                 "lineHeight": 21,
               },
               {
-                "color": "#5C5748",
+                "color": "#5B6572",
                 "textAlign": undefined,
                 "writingDirection": "ltr",
               },
@@ -2166,7 +2166,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                 },
                 {
                   "backgroundColor": "#FFFFFF",
-                  "borderColor": "#EDE6D4",
+                  "borderColor": "#E4EDFB",
                 },
               ]
             }
@@ -2235,7 +2235,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                       "padding": 8,
                     },
                     {
-                      "backgroundColor": "#F7F3E8",
+                      "backgroundColor": "#FFFFFF",
                     },
                   ]
                 }
@@ -2249,7 +2249,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                         "lineHeight": 18,
                       },
                       {
-                        "color": "#5C5748",
+                        "color": "#5B6572",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -2308,7 +2308,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                             "width": 2,
                           },
                           {
-                            "backgroundColor": "#EDE6D4",
+                            "backgroundColor": "#E4EDFB",
                           },
                         ]
                       }
@@ -2400,7 +2400,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                             "lineHeight": 18,
                           },
                           {
-                            "color": "#5C5748",
+                            "color": "#5B6572",
                             "textAlign": undefined,
                             "writingDirection": "ltr",
                           },
@@ -2496,7 +2496,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                             "lineHeight": 18,
                           },
                           {
-                            "color": "#5C5748",
+                            "color": "#5B6572",
                             "textAlign": undefined,
                             "writingDirection": "ltr",
                           },
@@ -2516,7 +2516,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                       "height": 1,
                     },
                     {
-                      "backgroundColor": "#EDE6D4",
+                      "backgroundColor": "#E4EDFB",
                     },
                   ]
                 }
@@ -2622,7 +2622,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                               "lineHeight": 18,
                             },
                             {
-                              "color": "#5C5748",
+                              "color": "#5B6572",
                               "textAlign": undefined,
                               "writingDirection": "ltr",
                             },
@@ -2644,7 +2644,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                         "lineHeight": 18,
                       },
                       {
-                        "color": "#8C8674",
+                        "color": "#8B93A3",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -2675,7 +2675,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                 },
                 {
                   "backgroundColor": "#FFFFFF",
-                  "borderColor": "#EDE6D4",
+                  "borderColor": "#E4EDFB",
                 },
               ]
             }
@@ -2744,7 +2744,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                       "padding": 8,
                     },
                     {
-                      "backgroundColor": "#F7F3E8",
+                      "backgroundColor": "#FFFFFF",
                     },
                   ]
                 }
@@ -2758,7 +2758,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                         "lineHeight": 18,
                       },
                       {
-                        "color": "#5C5748",
+                        "color": "#5B6572",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -2817,7 +2817,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                             "width": 2,
                           },
                           {
-                            "backgroundColor": "#EDE6D4",
+                            "backgroundColor": "#E4EDFB",
                           },
                         ]
                       }
@@ -2909,7 +2909,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                             "lineHeight": 18,
                           },
                           {
-                            "color": "#5C5748",
+                            "color": "#5B6572",
                             "textAlign": undefined,
                             "writingDirection": "ltr",
                           },
@@ -3005,7 +3005,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                             "lineHeight": 18,
                           },
                           {
-                            "color": "#5C5748",
+                            "color": "#5B6572",
                             "textAlign": undefined,
                             "writingDirection": "ltr",
                           },
@@ -3025,7 +3025,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                       "height": 1,
                     },
                     {
-                      "backgroundColor": "#EDE6D4",
+                      "backgroundColor": "#E4EDFB",
                     },
                   ]
                 }
@@ -3131,7 +3131,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                               "lineHeight": 18,
                             },
                             {
-                              "color": "#5C5748",
+                              "color": "#5B6572",
                               "textAlign": undefined,
                               "writingDirection": "ltr",
                             },
@@ -3153,7 +3153,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                         "lineHeight": 18,
                       },
                       {
-                        "color": "#8C8674",
+                        "color": "#8B93A3",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -3185,7 +3185,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
               "paddingVertical": 12,
             },
             {
-              "borderColor": "#DDD4BC",
+              "borderColor": "#D3E1F5",
               "opacity": 1,
             },
           ]

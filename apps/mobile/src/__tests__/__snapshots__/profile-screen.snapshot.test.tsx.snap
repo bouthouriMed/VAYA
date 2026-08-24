@@ -9,7 +9,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
           "flex": 1,
         },
         {
-          "backgroundColor": "#F7F3E8",
+          "backgroundColor": "#FFFFFF",
         },
       ]
     }
@@ -53,7 +53,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                   "justifyContent": "center",
                 },
                 {
-                  "backgroundColor": "#EDE6D4",
+                  "backgroundColor": "#E4EDFB",
                   "borderRadius": 48,
                   "height": 96,
                   "width": 96,
@@ -99,14 +99,14 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                 },
                 {
                   "backgroundColor": "#FFFFFF",
-                  "borderColor": "#EDE6D4",
+                  "borderColor": "#E4EDFB",
                 },
               ]
             }
           >
             <Ionicons
               accessibilityElementsHidden={true}
-              color="#5C5748"
+              color="#5B6572"
               importantForAccessibility="no-hide-descendants"
               name="camera-outline"
               size={16}
@@ -160,8 +160,8 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                   "paddingVertical": 6,
                 },
                 {
-                  "backgroundColor": "#EDE6D4",
-                  "borderColor": "#EDE6D4",
+                  "backgroundColor": "#E4EDFB",
+                  "borderColor": "#E4EDFB",
                 },
               ]
             }
@@ -182,7 +182,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                     "lineHeight": 21,
                   },
                   {
-                    "color": "#5C5748",
+                    "color": "#5B6572",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -215,7 +215,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                     "lineHeight": 21,
                   },
                   {
-                    "color": "#8C8674",
+                    "color": "#8B93A3",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -249,7 +249,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
               "borderWidth": 1.5,
             },
             {
-              "backgroundColor": "#EDE6D4",
+              "backgroundColor": "#E4EDFB",
               "borderColor": "#2E9E6C",
             },
           ]
@@ -318,7 +318,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                   "lineHeight": 21,
                 },
                 {
-                  "color": "#5C5748",
+                  "color": "#5B6572",
                   "textAlign": undefined,
                   "writingDirection": "ltr",
                 },
@@ -337,7 +337,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                   "lineHeight": 18,
                 },
                 {
-                  "color": "#8C8674",
+                  "color": "#8B93A3",
                   "textAlign": undefined,
                   "writingDirection": "ltr",
                 },
@@ -350,7 +350,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
         </View>
         <Ionicons
           accessibilityElementsHidden={true}
-          color="#DDD4BC"
+          color="#D3E1F5"
           importantForAccessibility="no-hide-descendants"
           name="arrow-forward"
           size={20}
@@ -375,7 +375,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                   "lineHeight": 18,
                 },
                 {
-                  "color": "#8C8674",
+                  "color": "#8B93A3",
                   "textAlign": undefined,
                   "writingDirection": "ltr",
                 },
@@ -400,7 +400,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                 },
                 {
                   "backgroundColor": "#FFFFFF",
-                  "borderColor": "#EDE6D4",
+                  "borderColor": "#E4EDFB",
                 },
                 {
                   "elevation": 1,
@@ -433,7 +433,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                 <View>
                   <Ionicons
                     accessibilityElementsHidden={true}
-                    color="#5C5748"
+                    color="#5B6572"
                     importantForAccessibility="no-hide-descendants"
                     name="person-outline"
                     size={20}
@@ -462,7 +462,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                 </Text>
                 <Ionicons
                   accessibilityElementsHidden={true}
-                  color="#DDD4BC"
+                  color="#D3E1F5"
                   importantForAccessibility="no-hide-descendants"
                   name="chevron-forward"
                   size={16}
@@ -481,7 +481,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                   "lineHeight": 18,
                 },
                 {
-                  "color": "#8C8674",
+                  "color": "#8B93A3",
                   "textAlign": undefined,
                   "writingDirection": "ltr",
                 },
@@ -506,7 +506,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                 },
                 {
                   "backgroundColor": "#FFFFFF",
-                  "borderColor": "#EDE6D4",
+                  "borderColor": "#E4EDFB",
                 },
                 {
                   "elevation": 1,
@@ -538,7 +538,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                 <View>
                   <Ionicons
                     accessibilityElementsHidden={true}
-                    color="#DDD4BC"
+                    color="#D3E1F5"
                     importantForAccessibility="no-hide-descendants"
                     name="card-outline"
                     size={20}
@@ -553,7 +553,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                         "lineHeight": 24,
                       },
                       {
-                        "color": "#8C8674",
+                        "color": "#8B93A3",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -574,7 +574,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                         "lineHeight": 18,
                       },
                       {
-                        "color": "#8C8674",
+                        "color": "#8B93A3",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -595,7 +595,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                       "marginHorizontal": 16,
                     },
                     {
-                      "backgroundColor": "#EDE6D4",
+                      "backgroundColor": "#E4EDFB",
                     },
                   ]
                 }
@@ -624,7 +624,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                 <View>
                   <Ionicons
                     accessibilityElementsHidden={true}
-                    color="#5C5748"
+                    color="#5B6572"
                     importantForAccessibility="no-hide-descendants"
                     name="notifications-outline"
                     size={20}
@@ -653,7 +653,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                 </Text>
                 <Ionicons
                   accessibilityElementsHidden={true}
-                  color="#DDD4BC"
+                  color="#D3E1F5"
                   importantForAccessibility="no-hide-descendants"
                   name="chevron-forward"
                   size={16}
@@ -669,7 +669,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                       "marginHorizontal": 16,
                     },
                     {
-                      "backgroundColor": "#EDE6D4",
+                      "backgroundColor": "#E4EDFB",
                     },
                   ]
                 }
@@ -698,7 +698,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                 <View>
                   <Ionicons
                     accessibilityElementsHidden={true}
-                    color="#5C5748"
+                    color="#5B6572"
                     importantForAccessibility="no-hide-descendants"
                     name="time-outline"
                     size={20}
@@ -727,7 +727,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                 </Text>
                 <Ionicons
                   accessibilityElementsHidden={true}
-                  color="#DDD4BC"
+                  color="#D3E1F5"
                   importantForAccessibility="no-hide-descendants"
                   name="chevron-forward"
                   size={16}
@@ -746,7 +746,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                   "lineHeight": 18,
                 },
                 {
-                  "color": "#8C8674",
+                  "color": "#8B93A3",
                   "textAlign": undefined,
                   "writingDirection": "ltr",
                 },
@@ -771,7 +771,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                 },
                 {
                   "backgroundColor": "#FFFFFF",
-                  "borderColor": "#EDE6D4",
+                  "borderColor": "#E4EDFB",
                 },
                 {
                   "elevation": 1,
@@ -803,7 +803,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                 <View>
                   <Ionicons
                     accessibilityElementsHidden={true}
-                    color="#DDD4BC"
+                    color="#D3E1F5"
                     importantForAccessibility="no-hide-descendants"
                     name="lock-closed-outline"
                     size={20}
@@ -818,7 +818,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                         "lineHeight": 24,
                       },
                       {
-                        "color": "#8C8674",
+                        "color": "#8B93A3",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -839,7 +839,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                         "lineHeight": 18,
                       },
                       {
-                        "color": "#8C8674",
+                        "color": "#8B93A3",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -860,7 +860,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                       "marginHorizontal": 16,
                     },
                     {
-                      "backgroundColor": "#EDE6D4",
+                      "backgroundColor": "#E4EDFB",
                     },
                   ]
                 }
@@ -888,7 +888,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                 <View>
                   <Ionicons
                     accessibilityElementsHidden={true}
-                    color="#DDD4BC"
+                    color="#D3E1F5"
                     importantForAccessibility="no-hide-descendants"
                     name="shield-checkmark-outline"
                     size={20}
@@ -903,7 +903,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                         "lineHeight": 24,
                       },
                       {
-                        "color": "#8C8674",
+                        "color": "#8B93A3",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -924,7 +924,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                         "lineHeight": 18,
                       },
                       {
-                        "color": "#8C8674",
+                        "color": "#8B93A3",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -948,7 +948,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                   "lineHeight": 18,
                 },
                 {
-                  "color": "#8C8674",
+                  "color": "#8B93A3",
                   "textAlign": undefined,
                   "writingDirection": "ltr",
                 },
@@ -973,7 +973,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                 },
                 {
                   "backgroundColor": "#FFFFFF",
-                  "borderColor": "#EDE6D4",
+                  "borderColor": "#E4EDFB",
                 },
                 {
                   "elevation": 1,
@@ -1005,7 +1005,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                 <View>
                   <Ionicons
                     accessibilityElementsHidden={true}
-                    color="#DDD4BC"
+                    color="#D3E1F5"
                     importantForAccessibility="no-hide-descendants"
                     name="options-outline"
                     size={20}
@@ -1020,7 +1020,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                         "lineHeight": 24,
                       },
                       {
-                        "color": "#8C8674",
+                        "color": "#8B93A3",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -1041,7 +1041,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                         "lineHeight": 18,
                       },
                       {
-                        "color": "#8C8674",
+                        "color": "#8B93A3",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -1062,7 +1062,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                       "marginHorizontal": 16,
                     },
                     {
-                      "backgroundColor": "#EDE6D4",
+                      "backgroundColor": "#E4EDFB",
                     },
                   ]
                 }
@@ -1091,7 +1091,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                 <View>
                   <Ionicons
                     accessibilityElementsHidden={true}
-                    color="#5C5748"
+                    color="#5B6572"
                     importantForAccessibility="no-hide-descendants"
                     name="language-outline"
                     size={20}
@@ -1127,7 +1127,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                         "lineHeight": 18,
                       },
                       {
-                        "color": "#8C8674",
+                        "color": "#8B93A3",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -1148,7 +1148,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                       "marginHorizontal": 16,
                     },
                     {
-                      "backgroundColor": "#EDE6D4",
+                      "backgroundColor": "#E4EDFB",
                     },
                   ]
                 }
@@ -1177,7 +1177,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                 <View>
                   <Ionicons
                     accessibilityElementsHidden={true}
-                    color="#5C5748"
+                    color="#5B6572"
                     importantForAccessibility="no-hide-descendants"
                     name="color-palette-outline"
                     size={20}
@@ -1213,7 +1213,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                         "lineHeight": 18,
                       },
                       {
-                        "color": "#8C8674",
+                        "color": "#8B93A3",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -1372,7 +1372,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                     "lineHeight": 24,
                   },
                   {
-                    "color": "#5C5748",
+                    "color": "#5B6572",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -1413,7 +1413,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                         "lineHeight": 21,
                       },
                       {
-                        "color": "#5C5748",
+                        "color": "#5B6572",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -1485,7 +1485,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
           "flex": 1,
         },
         {
-          "backgroundColor": "#F7F3E8",
+          "backgroundColor": "#FFFFFF",
         },
       ]
     }
@@ -1529,7 +1529,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                   "justifyContent": "center",
                 },
                 {
-                  "backgroundColor": "#EDE6D4",
+                  "backgroundColor": "#E4EDFB",
                   "borderRadius": 48,
                   "height": 96,
                   "width": 96,
@@ -1575,14 +1575,14 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                 },
                 {
                   "backgroundColor": "#FFFFFF",
-                  "borderColor": "#EDE6D4",
+                  "borderColor": "#E4EDFB",
                 },
               ]
             }
           >
             <Ionicons
               accessibilityElementsHidden={true}
-              color="#5C5748"
+              color="#5B6572"
               importantForAccessibility="no-hide-descendants"
               name="camera-outline"
               size={16}
@@ -1636,8 +1636,8 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                   "paddingVertical": 6,
                 },
                 {
-                  "backgroundColor": "#EDE6D4",
-                  "borderColor": "#EDE6D4",
+                  "backgroundColor": "#E4EDFB",
+                  "borderColor": "#E4EDFB",
                 },
               ]
             }
@@ -1658,7 +1658,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                     "lineHeight": 21,
                   },
                   {
-                    "color": "#5C5748",
+                    "color": "#5B6572",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -1691,7 +1691,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                     "lineHeight": 21,
                   },
                   {
-                    "color": "#8C8674",
+                    "color": "#8B93A3",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -1718,8 +1718,8 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
               "padding": 16,
             },
             {
-              "backgroundColor": "#EDE6D4",
-              "borderColor": "#EDE6D4",
+              "backgroundColor": "#E4EDFB",
+              "borderColor": "#E4EDFB",
             },
           ]
         }
@@ -1812,7 +1812,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                   "lineHeight": 18,
                 },
                 {
-                  "color": "#8C8674",
+                  "color": "#8B93A3",
                   "textAlign": undefined,
                   "writingDirection": "ltr",
                 },
@@ -1837,7 +1837,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                 },
                 {
                   "backgroundColor": "#FFFFFF",
-                  "borderColor": "#EDE6D4",
+                  "borderColor": "#E4EDFB",
                 },
                 {
                   "elevation": 1,
@@ -1870,7 +1870,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                 <View>
                   <Ionicons
                     accessibilityElementsHidden={true}
-                    color="#5C5748"
+                    color="#5B6572"
                     importantForAccessibility="no-hide-descendants"
                     name="person-outline"
                     size={20}
@@ -1899,7 +1899,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                 </Text>
                 <Ionicons
                   accessibilityElementsHidden={true}
-                  color="#DDD4BC"
+                  color="#D3E1F5"
                   importantForAccessibility="no-hide-descendants"
                   name="chevron-forward"
                   size={16}
@@ -1918,7 +1918,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                   "lineHeight": 18,
                 },
                 {
-                  "color": "#8C8674",
+                  "color": "#8B93A3",
                   "textAlign": undefined,
                   "writingDirection": "ltr",
                 },
@@ -1943,7 +1943,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                 },
                 {
                   "backgroundColor": "#FFFFFF",
-                  "borderColor": "#EDE6D4",
+                  "borderColor": "#E4EDFB",
                 },
                 {
                   "elevation": 1,
@@ -1975,7 +1975,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                 <View>
                   <Ionicons
                     accessibilityElementsHidden={true}
-                    color="#DDD4BC"
+                    color="#D3E1F5"
                     importantForAccessibility="no-hide-descendants"
                     name="card-outline"
                     size={20}
@@ -1990,7 +1990,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                         "lineHeight": 24,
                       },
                       {
-                        "color": "#8C8674",
+                        "color": "#8B93A3",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -2011,7 +2011,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                         "lineHeight": 18,
                       },
                       {
-                        "color": "#8C8674",
+                        "color": "#8B93A3",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -2032,7 +2032,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                       "marginHorizontal": 16,
                     },
                     {
-                      "backgroundColor": "#EDE6D4",
+                      "backgroundColor": "#E4EDFB",
                     },
                   ]
                 }
@@ -2061,7 +2061,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                 <View>
                   <Ionicons
                     accessibilityElementsHidden={true}
-                    color="#5C5748"
+                    color="#5B6572"
                     importantForAccessibility="no-hide-descendants"
                     name="notifications-outline"
                     size={20}
@@ -2090,7 +2090,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                 </Text>
                 <Ionicons
                   accessibilityElementsHidden={true}
-                  color="#DDD4BC"
+                  color="#D3E1F5"
                   importantForAccessibility="no-hide-descendants"
                   name="chevron-forward"
                   size={16}
@@ -2106,7 +2106,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                       "marginHorizontal": 16,
                     },
                     {
-                      "backgroundColor": "#EDE6D4",
+                      "backgroundColor": "#E4EDFB",
                     },
                   ]
                 }
@@ -2135,7 +2135,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                 <View>
                   <Ionicons
                     accessibilityElementsHidden={true}
-                    color="#5C5748"
+                    color="#5B6572"
                     importantForAccessibility="no-hide-descendants"
                     name="time-outline"
                     size={20}
@@ -2164,7 +2164,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                 </Text>
                 <Ionicons
                   accessibilityElementsHidden={true}
-                  color="#DDD4BC"
+                  color="#D3E1F5"
                   importantForAccessibility="no-hide-descendants"
                   name="chevron-forward"
                   size={16}
@@ -2183,7 +2183,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                   "lineHeight": 18,
                 },
                 {
-                  "color": "#8C8674",
+                  "color": "#8B93A3",
                   "textAlign": undefined,
                   "writingDirection": "ltr",
                 },
@@ -2208,7 +2208,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                 },
                 {
                   "backgroundColor": "#FFFFFF",
-                  "borderColor": "#EDE6D4",
+                  "borderColor": "#E4EDFB",
                 },
                 {
                   "elevation": 1,
@@ -2240,7 +2240,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                 <View>
                   <Ionicons
                     accessibilityElementsHidden={true}
-                    color="#DDD4BC"
+                    color="#D3E1F5"
                     importantForAccessibility="no-hide-descendants"
                     name="lock-closed-outline"
                     size={20}
@@ -2255,7 +2255,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                         "lineHeight": 24,
                       },
                       {
-                        "color": "#8C8674",
+                        "color": "#8B93A3",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -2276,7 +2276,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                         "lineHeight": 18,
                       },
                       {
-                        "color": "#8C8674",
+                        "color": "#8B93A3",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -2297,7 +2297,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                       "marginHorizontal": 16,
                     },
                     {
-                      "backgroundColor": "#EDE6D4",
+                      "backgroundColor": "#E4EDFB",
                     },
                   ]
                 }
@@ -2325,7 +2325,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                 <View>
                   <Ionicons
                     accessibilityElementsHidden={true}
-                    color="#DDD4BC"
+                    color="#D3E1F5"
                     importantForAccessibility="no-hide-descendants"
                     name="shield-checkmark-outline"
                     size={20}
@@ -2340,7 +2340,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                         "lineHeight": 24,
                       },
                       {
-                        "color": "#8C8674",
+                        "color": "#8B93A3",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -2361,7 +2361,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                         "lineHeight": 18,
                       },
                       {
-                        "color": "#8C8674",
+                        "color": "#8B93A3",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -2385,7 +2385,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                   "lineHeight": 18,
                 },
                 {
-                  "color": "#8C8674",
+                  "color": "#8B93A3",
                   "textAlign": undefined,
                   "writingDirection": "ltr",
                 },
@@ -2410,7 +2410,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                 },
                 {
                   "backgroundColor": "#FFFFFF",
-                  "borderColor": "#EDE6D4",
+                  "borderColor": "#E4EDFB",
                 },
                 {
                   "elevation": 1,
@@ -2442,7 +2442,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                 <View>
                   <Ionicons
                     accessibilityElementsHidden={true}
-                    color="#DDD4BC"
+                    color="#D3E1F5"
                     importantForAccessibility="no-hide-descendants"
                     name="options-outline"
                     size={20}
@@ -2457,7 +2457,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                         "lineHeight": 24,
                       },
                       {
-                        "color": "#8C8674",
+                        "color": "#8B93A3",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -2478,7 +2478,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                         "lineHeight": 18,
                       },
                       {
-                        "color": "#8C8674",
+                        "color": "#8B93A3",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -2499,7 +2499,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                       "marginHorizontal": 16,
                     },
                     {
-                      "backgroundColor": "#EDE6D4",
+                      "backgroundColor": "#E4EDFB",
                     },
                   ]
                 }
@@ -2528,7 +2528,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                 <View>
                   <Ionicons
                     accessibilityElementsHidden={true}
-                    color="#5C5748"
+                    color="#5B6572"
                     importantForAccessibility="no-hide-descendants"
                     name="language-outline"
                     size={20}
@@ -2564,7 +2564,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                         "lineHeight": 18,
                       },
                       {
-                        "color": "#8C8674",
+                        "color": "#8B93A3",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -2585,7 +2585,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                       "marginHorizontal": 16,
                     },
                     {
-                      "backgroundColor": "#EDE6D4",
+                      "backgroundColor": "#E4EDFB",
                     },
                   ]
                 }
@@ -2614,7 +2614,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                 <View>
                   <Ionicons
                     accessibilityElementsHidden={true}
-                    color="#5C5748"
+                    color="#5B6572"
                     importantForAccessibility="no-hide-descendants"
                     name="color-palette-outline"
                     size={20}
@@ -2650,7 +2650,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                         "lineHeight": 18,
                       },
                       {
-                        "color": "#8C8674",
+                        "color": "#8B93A3",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -2809,7 +2809,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                     "lineHeight": 24,
                   },
                   {
-                    "color": "#5C5748",
+                    "color": "#5B6572",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -2850,7 +2850,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                         "lineHeight": 21,
                       },
                       {
-                        "color": "#5C5748",
+                        "color": "#5B6572",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -2922,7 +2922,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
           "flex": 1,
         },
         {
-          "backgroundColor": "#F7F3E8",
+          "backgroundColor": "#FFFFFF",
         },
       ]
     }
@@ -2966,7 +2966,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                   "justifyContent": "center",
                 },
                 {
-                  "backgroundColor": "#EDE6D4",
+                  "backgroundColor": "#E4EDFB",
                   "borderRadius": 48,
                   "height": 96,
                   "width": 96,
@@ -3012,14 +3012,14 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                 },
                 {
                   "backgroundColor": "#FFFFFF",
-                  "borderColor": "#EDE6D4",
+                  "borderColor": "#E4EDFB",
                 },
               ]
             }
           >
             <Ionicons
               accessibilityElementsHidden={true}
-              color="#5C5748"
+              color="#5B6572"
               importantForAccessibility="no-hide-descendants"
               name="camera-outline"
               size={16}
@@ -3073,8 +3073,8 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                   "paddingVertical": 6,
                 },
                 {
-                  "backgroundColor": "#EDE6D4",
-                  "borderColor": "#EDE6D4",
+                  "backgroundColor": "#E4EDFB",
+                  "borderColor": "#E4EDFB",
                 },
               ]
             }
@@ -3095,7 +3095,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                     "lineHeight": 21,
                   },
                   {
-                    "color": "#5C5748",
+                    "color": "#5B6572",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -3128,7 +3128,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                     "lineHeight": 21,
                   },
                   {
-                    "color": "#8C8674",
+                    "color": "#8B93A3",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -3159,8 +3159,8 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
               "padding": 16,
             },
             {
-              "backgroundColor": "#EDE6D4",
-              "borderColor": "#EDE6D4",
+              "backgroundColor": "#E4EDFB",
+              "borderColor": "#E4EDFB",
             },
           ]
         }
@@ -3227,7 +3227,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                   "lineHeight": 21,
                 },
                 {
-                  "color": "#5C5748",
+                  "color": "#5B6572",
                   "textAlign": undefined,
                   "writingDirection": "ltr",
                 },
@@ -3240,7 +3240,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
         </View>
         <Ionicons
           accessibilityElementsHidden={true}
-          color="#DDD4BC"
+          color="#D3E1F5"
           importantForAccessibility="no-hide-descendants"
           name="arrow-forward"
           size={20}
@@ -3265,7 +3265,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                   "lineHeight": 18,
                 },
                 {
-                  "color": "#8C8674",
+                  "color": "#8B93A3",
                   "textAlign": undefined,
                   "writingDirection": "ltr",
                 },
@@ -3290,7 +3290,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                 },
                 {
                   "backgroundColor": "#FFFFFF",
-                  "borderColor": "#EDE6D4",
+                  "borderColor": "#E4EDFB",
                 },
                 {
                   "elevation": 1,
@@ -3323,7 +3323,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                 <View>
                   <Ionicons
                     accessibilityElementsHidden={true}
-                    color="#5C5748"
+                    color="#5B6572"
                     importantForAccessibility="no-hide-descendants"
                     name="person-outline"
                     size={20}
@@ -3352,7 +3352,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                 </Text>
                 <Ionicons
                   accessibilityElementsHidden={true}
-                  color="#DDD4BC"
+                  color="#D3E1F5"
                   importantForAccessibility="no-hide-descendants"
                   name="chevron-forward"
                   size={16}
@@ -3371,7 +3371,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                   "lineHeight": 18,
                 },
                 {
-                  "color": "#8C8674",
+                  "color": "#8B93A3",
                   "textAlign": undefined,
                   "writingDirection": "ltr",
                 },
@@ -3396,7 +3396,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                 },
                 {
                   "backgroundColor": "#FFFFFF",
-                  "borderColor": "#EDE6D4",
+                  "borderColor": "#E4EDFB",
                 },
                 {
                   "elevation": 1,
@@ -3428,7 +3428,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                 <View>
                   <Ionicons
                     accessibilityElementsHidden={true}
-                    color="#DDD4BC"
+                    color="#D3E1F5"
                     importantForAccessibility="no-hide-descendants"
                     name="card-outline"
                     size={20}
@@ -3443,7 +3443,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                         "lineHeight": 24,
                       },
                       {
-                        "color": "#8C8674",
+                        "color": "#8B93A3",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -3464,7 +3464,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                         "lineHeight": 18,
                       },
                       {
-                        "color": "#8C8674",
+                        "color": "#8B93A3",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -3485,7 +3485,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                       "marginHorizontal": 16,
                     },
                     {
-                      "backgroundColor": "#EDE6D4",
+                      "backgroundColor": "#E4EDFB",
                     },
                   ]
                 }
@@ -3514,7 +3514,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                 <View>
                   <Ionicons
                     accessibilityElementsHidden={true}
-                    color="#5C5748"
+                    color="#5B6572"
                     importantForAccessibility="no-hide-descendants"
                     name="notifications-outline"
                     size={20}
@@ -3543,7 +3543,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                 </Text>
                 <Ionicons
                   accessibilityElementsHidden={true}
-                  color="#DDD4BC"
+                  color="#D3E1F5"
                   importantForAccessibility="no-hide-descendants"
                   name="chevron-forward"
                   size={16}
@@ -3559,7 +3559,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                       "marginHorizontal": 16,
                     },
                     {
-                      "backgroundColor": "#EDE6D4",
+                      "backgroundColor": "#E4EDFB",
                     },
                   ]
                 }
@@ -3588,7 +3588,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                 <View>
                   <Ionicons
                     accessibilityElementsHidden={true}
-                    color="#5C5748"
+                    color="#5B6572"
                     importantForAccessibility="no-hide-descendants"
                     name="time-outline"
                     size={20}
@@ -3617,7 +3617,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                 </Text>
                 <Ionicons
                   accessibilityElementsHidden={true}
-                  color="#DDD4BC"
+                  color="#D3E1F5"
                   importantForAccessibility="no-hide-descendants"
                   name="chevron-forward"
                   size={16}
@@ -3636,7 +3636,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                   "lineHeight": 18,
                 },
                 {
-                  "color": "#8C8674",
+                  "color": "#8B93A3",
                   "textAlign": undefined,
                   "writingDirection": "ltr",
                 },
@@ -3661,7 +3661,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                 },
                 {
                   "backgroundColor": "#FFFFFF",
-                  "borderColor": "#EDE6D4",
+                  "borderColor": "#E4EDFB",
                 },
                 {
                   "elevation": 1,
@@ -3693,7 +3693,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                 <View>
                   <Ionicons
                     accessibilityElementsHidden={true}
-                    color="#DDD4BC"
+                    color="#D3E1F5"
                     importantForAccessibility="no-hide-descendants"
                     name="lock-closed-outline"
                     size={20}
@@ -3708,7 +3708,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                         "lineHeight": 24,
                       },
                       {
-                        "color": "#8C8674",
+                        "color": "#8B93A3",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -3729,7 +3729,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                         "lineHeight": 18,
                       },
                       {
-                        "color": "#8C8674",
+                        "color": "#8B93A3",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -3750,7 +3750,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                       "marginHorizontal": 16,
                     },
                     {
-                      "backgroundColor": "#EDE6D4",
+                      "backgroundColor": "#E4EDFB",
                     },
                   ]
                 }
@@ -3778,7 +3778,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                 <View>
                   <Ionicons
                     accessibilityElementsHidden={true}
-                    color="#DDD4BC"
+                    color="#D3E1F5"
                     importantForAccessibility="no-hide-descendants"
                     name="shield-checkmark-outline"
                     size={20}
@@ -3793,7 +3793,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                         "lineHeight": 24,
                       },
                       {
-                        "color": "#8C8674",
+                        "color": "#8B93A3",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -3814,7 +3814,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                         "lineHeight": 18,
                       },
                       {
-                        "color": "#8C8674",
+                        "color": "#8B93A3",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -3838,7 +3838,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                   "lineHeight": 18,
                 },
                 {
-                  "color": "#8C8674",
+                  "color": "#8B93A3",
                   "textAlign": undefined,
                   "writingDirection": "ltr",
                 },
@@ -3863,7 +3863,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                 },
                 {
                   "backgroundColor": "#FFFFFF",
-                  "borderColor": "#EDE6D4",
+                  "borderColor": "#E4EDFB",
                 },
                 {
                   "elevation": 1,
@@ -3895,7 +3895,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                 <View>
                   <Ionicons
                     accessibilityElementsHidden={true}
-                    color="#DDD4BC"
+                    color="#D3E1F5"
                     importantForAccessibility="no-hide-descendants"
                     name="options-outline"
                     size={20}
@@ -3910,7 +3910,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                         "lineHeight": 24,
                       },
                       {
-                        "color": "#8C8674",
+                        "color": "#8B93A3",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -3931,7 +3931,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                         "lineHeight": 18,
                       },
                       {
-                        "color": "#8C8674",
+                        "color": "#8B93A3",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -3952,7 +3952,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                       "marginHorizontal": 16,
                     },
                     {
-                      "backgroundColor": "#EDE6D4",
+                      "backgroundColor": "#E4EDFB",
                     },
                   ]
                 }
@@ -3981,7 +3981,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                 <View>
                   <Ionicons
                     accessibilityElementsHidden={true}
-                    color="#5C5748"
+                    color="#5B6572"
                     importantForAccessibility="no-hide-descendants"
                     name="language-outline"
                     size={20}
@@ -4017,7 +4017,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                         "lineHeight": 18,
                       },
                       {
-                        "color": "#8C8674",
+                        "color": "#8B93A3",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -4038,7 +4038,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                       "marginHorizontal": 16,
                     },
                     {
-                      "backgroundColor": "#EDE6D4",
+                      "backgroundColor": "#E4EDFB",
                     },
                   ]
                 }
@@ -4067,7 +4067,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                 <View>
                   <Ionicons
                     accessibilityElementsHidden={true}
-                    color="#5C5748"
+                    color="#5B6572"
                     importantForAccessibility="no-hide-descendants"
                     name="color-palette-outline"
                     size={20}
@@ -4103,7 +4103,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                         "lineHeight": 18,
                       },
                       {
-                        "color": "#8C8674",
+                        "color": "#8B93A3",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -4262,7 +4262,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                     "lineHeight": 24,
                   },
                   {
-                    "color": "#5C5748",
+                    "color": "#5B6572",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -4303,7 +4303,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                         "lineHeight": 21,
                       },
                       {
-                        "color": "#5C5748",
+                        "color": "#5B6572",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -4375,7 +4375,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
           "flex": 1,
         },
         {
-          "backgroundColor": "#F7F3E8",
+          "backgroundColor": "#FFFFFF",
         },
       ]
     }
@@ -4419,7 +4419,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                   "justifyContent": "center",
                 },
                 {
-                  "backgroundColor": "#EDE6D4",
+                  "backgroundColor": "#E4EDFB",
                   "borderRadius": 48,
                   "height": 96,
                   "width": 96,
@@ -4465,14 +4465,14 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                 },
                 {
                   "backgroundColor": "#FFFFFF",
-                  "borderColor": "#EDE6D4",
+                  "borderColor": "#E4EDFB",
                 },
               ]
             }
           >
             <Ionicons
               accessibilityElementsHidden={true}
-              color="#5C5748"
+              color="#5B6572"
               importantForAccessibility="no-hide-descendants"
               name="camera-outline"
               size={16}
@@ -4526,8 +4526,8 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                   "paddingVertical": 6,
                 },
                 {
-                  "backgroundColor": "#EDE6D4",
-                  "borderColor": "#EDE6D4",
+                  "backgroundColor": "#E4EDFB",
+                  "borderColor": "#E4EDFB",
                 },
               ]
             }
@@ -4548,7 +4548,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                     "lineHeight": 21,
                   },
                   {
-                    "color": "#5C5748",
+                    "color": "#5B6572",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -4581,7 +4581,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                     "lineHeight": 21,
                   },
                   {
-                    "color": "#8C8674",
+                    "color": "#8B93A3",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -4610,8 +4610,8 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
               "padding": 16,
             },
             {
-              "backgroundColor": "#EDE6D4",
-              "borderColor": "#EDE6D4",
+              "backgroundColor": "#E4EDFB",
+              "borderColor": "#E4EDFB",
             },
           ]
         }
@@ -4634,7 +4634,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
         >
           <Ionicons
             accessibilityElementsHidden={true}
-            color="#5C5748"
+            color="#5B6572"
             importantForAccessibility="no-hide-descendants"
             name="time-outline"
             size={20}
@@ -4678,7 +4678,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                   "lineHeight": 21,
                 },
                 {
-                  "color": "#5C5748",
+                  "color": "#5B6572",
                   "textAlign": undefined,
                   "writingDirection": "ltr",
                 },
@@ -4709,7 +4709,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                   "lineHeight": 18,
                 },
                 {
-                  "color": "#8C8674",
+                  "color": "#8B93A3",
                   "textAlign": undefined,
                   "writingDirection": "ltr",
                 },
@@ -4734,7 +4734,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                 },
                 {
                   "backgroundColor": "#FFFFFF",
-                  "borderColor": "#EDE6D4",
+                  "borderColor": "#E4EDFB",
                 },
                 {
                   "elevation": 1,
@@ -4767,7 +4767,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                 <View>
                   <Ionicons
                     accessibilityElementsHidden={true}
-                    color="#5C5748"
+                    color="#5B6572"
                     importantForAccessibility="no-hide-descendants"
                     name="person-outline"
                     size={20}
@@ -4796,7 +4796,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                 </Text>
                 <Ionicons
                   accessibilityElementsHidden={true}
-                  color="#DDD4BC"
+                  color="#D3E1F5"
                   importantForAccessibility="no-hide-descendants"
                   name="chevron-forward"
                   size={16}
@@ -4815,7 +4815,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                   "lineHeight": 18,
                 },
                 {
-                  "color": "#8C8674",
+                  "color": "#8B93A3",
                   "textAlign": undefined,
                   "writingDirection": "ltr",
                 },
@@ -4840,7 +4840,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                 },
                 {
                   "backgroundColor": "#FFFFFF",
-                  "borderColor": "#EDE6D4",
+                  "borderColor": "#E4EDFB",
                 },
                 {
                   "elevation": 1,
@@ -4872,7 +4872,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                 <View>
                   <Ionicons
                     accessibilityElementsHidden={true}
-                    color="#DDD4BC"
+                    color="#D3E1F5"
                     importantForAccessibility="no-hide-descendants"
                     name="card-outline"
                     size={20}
@@ -4887,7 +4887,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                         "lineHeight": 24,
                       },
                       {
-                        "color": "#8C8674",
+                        "color": "#8B93A3",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -4908,7 +4908,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                         "lineHeight": 18,
                       },
                       {
-                        "color": "#8C8674",
+                        "color": "#8B93A3",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -4929,7 +4929,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                       "marginHorizontal": 16,
                     },
                     {
-                      "backgroundColor": "#EDE6D4",
+                      "backgroundColor": "#E4EDFB",
                     },
                   ]
                 }
@@ -4958,7 +4958,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                 <View>
                   <Ionicons
                     accessibilityElementsHidden={true}
-                    color="#5C5748"
+                    color="#5B6572"
                     importantForAccessibility="no-hide-descendants"
                     name="notifications-outline"
                     size={20}
@@ -4987,7 +4987,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                 </Text>
                 <Ionicons
                   accessibilityElementsHidden={true}
-                  color="#DDD4BC"
+                  color="#D3E1F5"
                   importantForAccessibility="no-hide-descendants"
                   name="chevron-forward"
                   size={16}
@@ -5003,7 +5003,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                       "marginHorizontal": 16,
                     },
                     {
-                      "backgroundColor": "#EDE6D4",
+                      "backgroundColor": "#E4EDFB",
                     },
                   ]
                 }
@@ -5032,7 +5032,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                 <View>
                   <Ionicons
                     accessibilityElementsHidden={true}
-                    color="#5C5748"
+                    color="#5B6572"
                     importantForAccessibility="no-hide-descendants"
                     name="time-outline"
                     size={20}
@@ -5061,7 +5061,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                 </Text>
                 <Ionicons
                   accessibilityElementsHidden={true}
-                  color="#DDD4BC"
+                  color="#D3E1F5"
                   importantForAccessibility="no-hide-descendants"
                   name="chevron-forward"
                   size={16}
@@ -5080,7 +5080,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                   "lineHeight": 18,
                 },
                 {
-                  "color": "#8C8674",
+                  "color": "#8B93A3",
                   "textAlign": undefined,
                   "writingDirection": "ltr",
                 },
@@ -5105,7 +5105,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                 },
                 {
                   "backgroundColor": "#FFFFFF",
-                  "borderColor": "#EDE6D4",
+                  "borderColor": "#E4EDFB",
                 },
                 {
                   "elevation": 1,
@@ -5137,7 +5137,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                 <View>
                   <Ionicons
                     accessibilityElementsHidden={true}
-                    color="#DDD4BC"
+                    color="#D3E1F5"
                     importantForAccessibility="no-hide-descendants"
                     name="lock-closed-outline"
                     size={20}
@@ -5152,7 +5152,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                         "lineHeight": 24,
                       },
                       {
-                        "color": "#8C8674",
+                        "color": "#8B93A3",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -5173,7 +5173,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                         "lineHeight": 18,
                       },
                       {
-                        "color": "#8C8674",
+                        "color": "#8B93A3",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -5194,7 +5194,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                       "marginHorizontal": 16,
                     },
                     {
-                      "backgroundColor": "#EDE6D4",
+                      "backgroundColor": "#E4EDFB",
                     },
                   ]
                 }
@@ -5222,7 +5222,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                 <View>
                   <Ionicons
                     accessibilityElementsHidden={true}
-                    color="#DDD4BC"
+                    color="#D3E1F5"
                     importantForAccessibility="no-hide-descendants"
                     name="shield-checkmark-outline"
                     size={20}
@@ -5237,7 +5237,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                         "lineHeight": 24,
                       },
                       {
-                        "color": "#8C8674",
+                        "color": "#8B93A3",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -5258,7 +5258,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                         "lineHeight": 18,
                       },
                       {
-                        "color": "#8C8674",
+                        "color": "#8B93A3",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -5282,7 +5282,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                   "lineHeight": 18,
                 },
                 {
-                  "color": "#8C8674",
+                  "color": "#8B93A3",
                   "textAlign": undefined,
                   "writingDirection": "ltr",
                 },
@@ -5307,7 +5307,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                 },
                 {
                   "backgroundColor": "#FFFFFF",
-                  "borderColor": "#EDE6D4",
+                  "borderColor": "#E4EDFB",
                 },
                 {
                   "elevation": 1,
@@ -5339,7 +5339,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                 <View>
                   <Ionicons
                     accessibilityElementsHidden={true}
-                    color="#DDD4BC"
+                    color="#D3E1F5"
                     importantForAccessibility="no-hide-descendants"
                     name="options-outline"
                     size={20}
@@ -5354,7 +5354,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                         "lineHeight": 24,
                       },
                       {
-                        "color": "#8C8674",
+                        "color": "#8B93A3",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -5375,7 +5375,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                         "lineHeight": 18,
                       },
                       {
-                        "color": "#8C8674",
+                        "color": "#8B93A3",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -5396,7 +5396,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                       "marginHorizontal": 16,
                     },
                     {
-                      "backgroundColor": "#EDE6D4",
+                      "backgroundColor": "#E4EDFB",
                     },
                   ]
                 }
@@ -5425,7 +5425,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                 <View>
                   <Ionicons
                     accessibilityElementsHidden={true}
-                    color="#5C5748"
+                    color="#5B6572"
                     importantForAccessibility="no-hide-descendants"
                     name="language-outline"
                     size={20}
@@ -5461,7 +5461,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                         "lineHeight": 18,
                       },
                       {
-                        "color": "#8C8674",
+                        "color": "#8B93A3",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -5482,7 +5482,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                       "marginHorizontal": 16,
                     },
                     {
-                      "backgroundColor": "#EDE6D4",
+                      "backgroundColor": "#E4EDFB",
                     },
                   ]
                 }
@@ -5511,7 +5511,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                 <View>
                   <Ionicons
                     accessibilityElementsHidden={true}
-                    color="#5C5748"
+                    color="#5B6572"
                     importantForAccessibility="no-hide-descendants"
                     name="color-palette-outline"
                     size={20}
@@ -5547,7 +5547,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                         "lineHeight": 18,
                       },
                       {
-                        "color": "#8C8674",
+                        "color": "#8B93A3",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -5706,7 +5706,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                     "lineHeight": 24,
                   },
                   {
-                    "color": "#5C5748",
+                    "color": "#5B6572",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -5747,7 +5747,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                         "lineHeight": 21,
                       },
                       {
-                        "color": "#5C5748",
+                        "color": "#5B6572",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -5819,7 +5819,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
           "flex": 1,
         },
         {
-          "backgroundColor": "#F7F3E8",
+          "backgroundColor": "#FFFFFF",
         },
       ]
     }
@@ -5863,7 +5863,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                   "justifyContent": "center",
                 },
                 {
-                  "backgroundColor": "#EDE6D4",
+                  "backgroundColor": "#E4EDFB",
                   "borderRadius": 48,
                   "height": 96,
                   "width": 96,
@@ -5909,14 +5909,14 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                 },
                 {
                   "backgroundColor": "#FFFFFF",
-                  "borderColor": "#EDE6D4",
+                  "borderColor": "#E4EDFB",
                 },
               ]
             }
           >
             <Ionicons
               accessibilityElementsHidden={true}
-              color="#5C5748"
+              color="#5B6572"
               importantForAccessibility="no-hide-descendants"
               name="camera-outline"
               size={16}
@@ -5970,8 +5970,8 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                   "paddingVertical": 6,
                 },
                 {
-                  "backgroundColor": "#EDE6D4",
-                  "borderColor": "#EDE6D4",
+                  "backgroundColor": "#E4EDFB",
+                  "borderColor": "#E4EDFB",
                 },
               ]
             }
@@ -5992,7 +5992,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                     "lineHeight": 21,
                   },
                   {
-                    "color": "#5C5748",
+                    "color": "#5B6572",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -6025,7 +6025,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                     "lineHeight": 21,
                   },
                   {
-                    "color": "#8C8674",
+                    "color": "#8B93A3",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -6056,7 +6056,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
               "padding": 16,
             },
             {
-              "backgroundColor": "#EDE6D4",
+              "backgroundColor": "#E4EDFB",
               "borderColor": "#B5503C",
             },
           ]
@@ -6124,7 +6124,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                   "lineHeight": 21,
                 },
                 {
-                  "color": "#5C5748",
+                  "color": "#5B6572",
                   "textAlign": undefined,
                   "writingDirection": "ltr",
                 },
@@ -6162,7 +6162,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                   "lineHeight": 18,
                 },
                 {
-                  "color": "#8C8674",
+                  "color": "#8B93A3",
                   "textAlign": undefined,
                   "writingDirection": "ltr",
                 },
@@ -6187,7 +6187,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                 },
                 {
                   "backgroundColor": "#FFFFFF",
-                  "borderColor": "#EDE6D4",
+                  "borderColor": "#E4EDFB",
                 },
                 {
                   "elevation": 1,
@@ -6220,7 +6220,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                 <View>
                   <Ionicons
                     accessibilityElementsHidden={true}
-                    color="#5C5748"
+                    color="#5B6572"
                     importantForAccessibility="no-hide-descendants"
                     name="person-outline"
                     size={20}
@@ -6249,7 +6249,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                 </Text>
                 <Ionicons
                   accessibilityElementsHidden={true}
-                  color="#DDD4BC"
+                  color="#D3E1F5"
                   importantForAccessibility="no-hide-descendants"
                   name="chevron-forward"
                   size={16}
@@ -6268,7 +6268,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                   "lineHeight": 18,
                 },
                 {
-                  "color": "#8C8674",
+                  "color": "#8B93A3",
                   "textAlign": undefined,
                   "writingDirection": "ltr",
                 },
@@ -6293,7 +6293,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                 },
                 {
                   "backgroundColor": "#FFFFFF",
-                  "borderColor": "#EDE6D4",
+                  "borderColor": "#E4EDFB",
                 },
                 {
                   "elevation": 1,
@@ -6325,7 +6325,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                 <View>
                   <Ionicons
                     accessibilityElementsHidden={true}
-                    color="#DDD4BC"
+                    color="#D3E1F5"
                     importantForAccessibility="no-hide-descendants"
                     name="card-outline"
                     size={20}
@@ -6340,7 +6340,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                         "lineHeight": 24,
                       },
                       {
-                        "color": "#8C8674",
+                        "color": "#8B93A3",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -6361,7 +6361,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                         "lineHeight": 18,
                       },
                       {
-                        "color": "#8C8674",
+                        "color": "#8B93A3",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -6382,7 +6382,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                       "marginHorizontal": 16,
                     },
                     {
-                      "backgroundColor": "#EDE6D4",
+                      "backgroundColor": "#E4EDFB",
                     },
                   ]
                 }
@@ -6411,7 +6411,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                 <View>
                   <Ionicons
                     accessibilityElementsHidden={true}
-                    color="#5C5748"
+                    color="#5B6572"
                     importantForAccessibility="no-hide-descendants"
                     name="notifications-outline"
                     size={20}
@@ -6440,7 +6440,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                 </Text>
                 <Ionicons
                   accessibilityElementsHidden={true}
-                  color="#DDD4BC"
+                  color="#D3E1F5"
                   importantForAccessibility="no-hide-descendants"
                   name="chevron-forward"
                   size={16}
@@ -6456,7 +6456,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                       "marginHorizontal": 16,
                     },
                     {
-                      "backgroundColor": "#EDE6D4",
+                      "backgroundColor": "#E4EDFB",
                     },
                   ]
                 }
@@ -6485,7 +6485,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                 <View>
                   <Ionicons
                     accessibilityElementsHidden={true}
-                    color="#5C5748"
+                    color="#5B6572"
                     importantForAccessibility="no-hide-descendants"
                     name="time-outline"
                     size={20}
@@ -6514,7 +6514,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                 </Text>
                 <Ionicons
                   accessibilityElementsHidden={true}
-                  color="#DDD4BC"
+                  color="#D3E1F5"
                   importantForAccessibility="no-hide-descendants"
                   name="chevron-forward"
                   size={16}
@@ -6533,7 +6533,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                   "lineHeight": 18,
                 },
                 {
-                  "color": "#8C8674",
+                  "color": "#8B93A3",
                   "textAlign": undefined,
                   "writingDirection": "ltr",
                 },
@@ -6558,7 +6558,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                 },
                 {
                   "backgroundColor": "#FFFFFF",
-                  "borderColor": "#EDE6D4",
+                  "borderColor": "#E4EDFB",
                 },
                 {
                   "elevation": 1,
@@ -6590,7 +6590,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                 <View>
                   <Ionicons
                     accessibilityElementsHidden={true}
-                    color="#DDD4BC"
+                    color="#D3E1F5"
                     importantForAccessibility="no-hide-descendants"
                     name="lock-closed-outline"
                     size={20}
@@ -6605,7 +6605,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                         "lineHeight": 24,
                       },
                       {
-                        "color": "#8C8674",
+                        "color": "#8B93A3",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -6626,7 +6626,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                         "lineHeight": 18,
                       },
                       {
-                        "color": "#8C8674",
+                        "color": "#8B93A3",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -6647,7 +6647,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                       "marginHorizontal": 16,
                     },
                     {
-                      "backgroundColor": "#EDE6D4",
+                      "backgroundColor": "#E4EDFB",
                     },
                   ]
                 }
@@ -6675,7 +6675,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                 <View>
                   <Ionicons
                     accessibilityElementsHidden={true}
-                    color="#DDD4BC"
+                    color="#D3E1F5"
                     importantForAccessibility="no-hide-descendants"
                     name="shield-checkmark-outline"
                     size={20}
@@ -6690,7 +6690,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                         "lineHeight": 24,
                       },
                       {
-                        "color": "#8C8674",
+                        "color": "#8B93A3",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -6711,7 +6711,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                         "lineHeight": 18,
                       },
                       {
-                        "color": "#8C8674",
+                        "color": "#8B93A3",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -6735,7 +6735,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                   "lineHeight": 18,
                 },
                 {
-                  "color": "#8C8674",
+                  "color": "#8B93A3",
                   "textAlign": undefined,
                   "writingDirection": "ltr",
                 },
@@ -6760,7 +6760,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                 },
                 {
                   "backgroundColor": "#FFFFFF",
-                  "borderColor": "#EDE6D4",
+                  "borderColor": "#E4EDFB",
                 },
                 {
                   "elevation": 1,
@@ -6792,7 +6792,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                 <View>
                   <Ionicons
                     accessibilityElementsHidden={true}
-                    color="#DDD4BC"
+                    color="#D3E1F5"
                     importantForAccessibility="no-hide-descendants"
                     name="options-outline"
                     size={20}
@@ -6807,7 +6807,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                         "lineHeight": 24,
                       },
                       {
-                        "color": "#8C8674",
+                        "color": "#8B93A3",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -6828,7 +6828,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                         "lineHeight": 18,
                       },
                       {
-                        "color": "#8C8674",
+                        "color": "#8B93A3",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -6849,7 +6849,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                       "marginHorizontal": 16,
                     },
                     {
-                      "backgroundColor": "#EDE6D4",
+                      "backgroundColor": "#E4EDFB",
                     },
                   ]
                 }
@@ -6878,7 +6878,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                 <View>
                   <Ionicons
                     accessibilityElementsHidden={true}
-                    color="#5C5748"
+                    color="#5B6572"
                     importantForAccessibility="no-hide-descendants"
                     name="language-outline"
                     size={20}
@@ -6914,7 +6914,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                         "lineHeight": 18,
                       },
                       {
-                        "color": "#8C8674",
+                        "color": "#8B93A3",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -6935,7 +6935,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                       "marginHorizontal": 16,
                     },
                     {
-                      "backgroundColor": "#EDE6D4",
+                      "backgroundColor": "#E4EDFB",
                     },
                   ]
                 }
@@ -6964,7 +6964,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                 <View>
                   <Ionicons
                     accessibilityElementsHidden={true}
-                    color="#5C5748"
+                    color="#5B6572"
                     importantForAccessibility="no-hide-descendants"
                     name="color-palette-outline"
                     size={20}
@@ -7000,7 +7000,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                         "lineHeight": 18,
                       },
                       {
-                        "color": "#8C8674",
+                        "color": "#8B93A3",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },
@@ -7159,7 +7159,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                     "lineHeight": 24,
                   },
                   {
-                    "color": "#5C5748",
+                    "color": "#5B6572",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -7200,7 +7200,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                         "lineHeight": 21,
                       },
                       {
-                        "color": "#5C5748",
+                        "color": "#5B6572",
                         "textAlign": undefined,
                         "writingDirection": "ltr",
                       },

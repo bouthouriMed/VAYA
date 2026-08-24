@@ -101,7 +101,7 @@ exports[`PassengerSheet snapshots > renders the stepper stage with the given val
                   "width": 40,
                 },
                 {
-                  "backgroundColor": "#EDE6D4",
+                  "backgroundColor": "#E4EDFB",
                 },
               ]
             }
@@ -241,8 +241,8 @@ exports[`PassengerSheet snapshots > renders the stepper stage with the given val
                       "width": 56,
                     },
                     {
-                      "backgroundColor": "#EDE6D4",
-                      "borderColor": "#EDE6D4",
+                      "backgroundColor": "#E4EDFB",
+                      "borderColor": "#E4EDFB",
                     },
                     false,
                   ]
@@ -317,8 +317,8 @@ exports[`PassengerSheet snapshots > renders the stepper stage with the given val
                       "width": 56,
                     },
                     {
-                      "backgroundColor": "#EDE6D4",
-                      "borderColor": "#EDE6D4",
+                      "backgroundColor": "#E4EDFB",
+                      "borderColor": "#E4EDFB",
                     },
                     false,
                   ]
@@ -353,7 +353,7 @@ exports[`PassengerSheet snapshots > renders the stepper stage with the given val
                       "marginTop": 16,
                     },
                     {
-                      "color": "#5C5748",
+                      "color": "#5B6572",
                     },
                   ],
                 ]
@@ -379,7 +379,7 @@ exports[`PassengerSheet snapshots > renders the stepper stage with the given val
                       "marginTop": 4,
                     },
                     {
-                      "color": "#8C8674",
+                      "color": "#8B93A3",
                     },
                   ],
                 ]
@@ -428,7 +428,7 @@ exports[`PassengerSheet snapshots > renders the stepper stage with the given val
                       "fontWeight": "600",
                     },
                     {
-                      "color": "#F7F3E8",
+                      "color": "#FFFFFF",
                     },
                   ],
                 ]

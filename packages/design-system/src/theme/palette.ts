@@ -4,19 +4,20 @@
  * A deliberate, from-scratch design pass — not a remap of an existing
  * token set. The brief: make VAYA read as genuinely premium in both light
  * and dark, not "basic black and white with a green accent." The concept:
- * deep charcoal-emerald darkness meets warm ivory light, unified by one
- * saturated jewel-tone emerald accent (not a muted "eco-app sage" — a
- * confident gem-green with real presence). Both modes lean warm rather
- * than clinical: `ink`/`background` are never flat `#000000`/`#FFFFFF` in
- * either mode.
+ * deep charcoal-emerald darkness meets a clean white/cool-blue light mode
+ * (revised on direct feedback — the original warm-ivory light mode read
+ * as flat/grey rather than premium; the Stitch reference screens this
+ * whole flow is built against use a near-white canvas with a light-blue
+ * secondary surface, not a warm cream), unified by one saturated
+ * jewel-tone emerald accent (not a muted "eco-app sage" — a confident
+ * gem-green with real presence). `ink` stays the palette's "real black"
+ * role in both modes — the thing an active filter pill, an own-message
+ * bubble, or any other deliberately-black moment should key off, per
+ * this same direct feedback ("leave the black").
  *
- * The two modes are built to mirror each other rather than simply invert:
- * dark mode's `background` (`#0D1512`) and light mode's `ink` (`#14201B`)
- * sit in the same deep charcoal-forest family, and light mode's
- * `background` (warm ivory) is close to dark mode's `ink` (warm
- * champagne). That relationship — not just "swap every value" — is what
- * makes a two-theme system read as one considered design instead of an
- * automated inversion.
+ * Dark mode is unchanged by this revision — only `lightPalette` moved off
+ * the warm-cream family; `ink`/`background` are still never flat
+ * `#000000` in dark mode.
  *
  * A flat set of solid hex fills reads as premium-adjacent at best — every
  * genuinely premium app (Linear, Arc, Stripe's own dashboard) builds depth
@@ -90,18 +91,22 @@ export interface AppPalette {
 }
 
 export const lightPalette: AppPalette = {
-  background: '#F7F3E8',
-  backgroundGradient: ['#FBF8EF', '#F0E9D3'],
+  background: '#FFFFFF',
+  backgroundGradient: ['#FFFFFF', '#EEF4FC'],
   surface: '#FFFFFF',
-  surfaceGradient: ['#FFFFFF', '#F5EFDD'],
-  surfaceMuted: '#EDE6D4',
+  surfaceGradient: ['#FFFFFF', '#EAF1FC'],
+  // The palette's "secondary" surface — filter pills, tinted fields, badge
+  // fills, avatar-fallback circles — is now a clean light blue (matching
+  // the Stitch reference's own surface-container token) instead of the
+  // old warm tan, on direct feedback.
+  surfaceMuted: '#E4EDFB',
   ink: '#14201B',
   inkGradient: ['#1E2F27', '#0A100D'],
-  onInk: '#F7F3E8',
-  inkMuted: '#5C5748',
-  inkFaint: '#8C8674',
-  outline: '#DDD4BC',
-  outlineVariant: '#EDE6D4',
+  onInk: '#FFFFFF',
+  inkMuted: '#5B6572',
+  inkFaint: '#8B93A3',
+  outline: '#D3E1F5',
+  outlineVariant: '#E4EDFB',
   accent: '#2E9E6C',
   accentStrong: '#22794F',
   accentGradient: ['#3FBE85', '#1F6B49'],

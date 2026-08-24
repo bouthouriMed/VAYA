@@ -8,7 +8,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
         "flex": 1,
       },
       {
-        "backgroundColor": "#F7F3E8",
+        "backgroundColor": "#FFFFFF",
       },
     ]
   }
@@ -246,7 +246,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
           },
           {
             "backgroundColor": "#FFFFFF",
-            "borderColor": "#EDE6D4",
+            "borderColor": "#E4EDFB",
           },
         ]
       }
@@ -330,7 +330,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
       >
         <Ionicons
           accessibilityElementsHidden={true}
-          color="#5C5748"
+          color="#5B6572"
           importantForAccessibility="no-hide-descendants"
           name="time-outline"
           size={20}
@@ -344,7 +344,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
                 "lineHeight": 21,
               },
               {
-                "color": "#5C5748",
+                "color": "#5B6572",
                 "textAlign": undefined,
                 "writingDirection": "ltr",
               },
@@ -366,7 +366,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
       >
         <Ionicons
           accessibilityElementsHidden={true}
-          color="#5C5748"
+          color="#5B6572"
           importantForAccessibility="no-hide-descendants"
           name="location-outline"
           size={20}
@@ -381,7 +381,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
                 "lineHeight": 21,
               },
               {
-                "color": "#5C5748",
+                "color": "#5B6572",
                 "textAlign": undefined,
                 "writingDirection": "ltr",
               },
@@ -405,7 +405,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
       >
         <Ionicons
           accessibilityElementsHidden={true}
-          color="#5C5748"
+          color="#5B6572"
           importantForAccessibility="no-hide-descendants"
           name="cash-outline"
           size={20}
@@ -419,7 +419,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
                 "lineHeight": 21,
               },
               {
-                "color": "#5C5748",
+                "color": "#5B6572",
                 "textAlign": undefined,
                 "writingDirection": "ltr",
               },
@@ -443,7 +443,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
           },
           {
             "backgroundColor": "#FFFFFF",
-            "borderColor": "#EDE6D4",
+            "borderColor": "#E4EDFB",
           },
         ]
       }
@@ -468,7 +468,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
                 "justifyContent": "center",
               },
               {
-                "backgroundColor": "#EDE6D4",
+                "backgroundColor": "#E4EDFB",
                 "borderRadius": 26,
                 "height": 52,
                 "width": 52,
@@ -546,7 +546,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
                     "lineHeight": 18,
                   },
                   {
-                    "color": "#5C5748",
+                    "color": "#5B6572",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -584,7 +584,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
                 "paddingVertical": 8,
               },
               {
-                "backgroundColor": "#EDE6D4",
+                "backgroundColor": "#E4EDFB",
               },
             ]
           }
@@ -632,14 +632,14 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
                 "opacity": 0.5,
               },
               {
-                "backgroundColor": "#EDE6D4",
+                "backgroundColor": "#E4EDFB",
               },
             ]
           }
         >
           <Ionicons
             accessibilityElementsHidden={true}
-            color="#8C8674"
+            color="#8B93A3"
             importantForAccessibility="no-hide-descendants"
             name="call-outline"
             size={20}
@@ -653,7 +653,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
                   "lineHeight": 21,
                 },
                 {
-                  "color": "#8C8674",
+                  "color": "#8B93A3",
                   "textAlign": undefined,
                   "writingDirection": "ltr",
                 },
@@ -683,7 +683,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
           },
           {
             "backgroundColor": "#FFFFFF",
-            "borderColor": "#EDE6D4",
+            "borderColor": "#E4EDFB",
           },
         ]
       }
@@ -699,14 +699,14 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
               "width": 44,
             },
             {
-              "backgroundColor": "#EDE6D4",
+              "backgroundColor": "#E4EDFB",
             },
           ]
         }
       >
         <Ionicons
           accessibilityElementsHidden={true}
-          color="#5C5748"
+          color="#5B6572"
           importantForAccessibility="no-hide-descendants"
           name="car-sport-outline"
           size={24}
@@ -741,7 +741,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
                 "lineHeight": 21,
               },
               {
-                "color": "#5C5748",
+                "color": "#5B6572",
                 "textAlign": undefined,
                 "writingDirection": "ltr",
               },
@@ -760,7 +760,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
                 "lineHeight": 18,
               },
               {
-                "color": "#8C8674",
+                "color": "#8B93A3",
                 "textAlign": undefined,
                 "writingDirection": "ltr",
               },
@@ -789,8 +789,8 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
           "paddingTop": 8,
         },
         {
-          "backgroundColor": "#F7F3E8",
-          "borderTopColor": "#EDE6D4",
+          "backgroundColor": "#FFFFFF",
+          "borderTopColor": "#E4EDFB",
           "paddingBottom": 12,
         },
       ]
