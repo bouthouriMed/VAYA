@@ -6,8 +6,8 @@ import { Text, Icon, useAppTheme, spacing, radii } from '@vaya/design-system';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useAppDispatch, useAppSelector } from '../../src/state/store';
 import { setOrigin, setDestination, type SearchLocation } from '../../src/state/searchSlice';
-import { PLACES, type MockPlace } from '../../src/mocks/seed-data';
 import { useCurrentPosition } from '../../src/services/location/useCurrentPosition';
+import { loadRecentPlaces, addRecentPlace } from '../../src/services/search/recentPlacesStorage';
 import {
   useLazyGeocodeAutocompleteQuery,
   useLazyGeocodePlaceDetailsQuery,
@@ -22,11 +22,11 @@ interface ResultRow {
   key: string;
   label: string;
   subLabel: string;
-  /** Absent for a pre-typed recent/mock row (PLACES) — those already carry
-   *  real lat/lng and skip the resolve step entirely. Present for a live
-   *  prediction, which must be resolved via Place Details before it has
-   *  coordinates at all (brief §6/§7 — Places API (New) never returns
-   *  coordinates from Autocomplete itself). */
+  /** Absent for a real recent-pick row — those already carry real lat/lng
+   *  (persisted from a prior successful selection) and skip the resolve
+   *  step entirely. Present for a live prediction, which must be resolved
+   *  via Place Details before it has coordinates at all (brief §6/§7 —
+   *  Places API (New) never returns coordinates from Autocomplete itself). */
   placeId?: string;
   type?: LocationType;
   lat?: number;
@@ -50,8 +50,14 @@ const LOCATION_TYPE_ICON: Partial<Record<LocationType, React.ComponentProps<type
 const DEFAULT_RESULT_ICON: React.ComponentProps<typeof Icon>['name'] = 'location-outline';
 const RECENT_ICON: React.ComponentProps<typeof Icon>['name'] = 'time-outline';
 
-function placeToRow(place: MockPlace): ResultRow {
-  return { key: place.id, label: place.label, subLabel: place.subLabel, lat: place.lat, lng: place.lng };
+function locationToRow(place: SearchLocation): ResultRow {
+  return {
+    key: place.placeId ?? `${place.lat},${place.lng}`,
+    label: place.label,
+    subLabel: place.subLabel ?? '',
+    lat: place.lat,
+    lng: place.lng,
+  };
 }
 
 /** RFC-4122-shaped v4 UUID, good enough as a Places API (New) session-token
@@ -90,6 +96,11 @@ export default function SearchComposerScreen(): React.JSX.Element {
   const [activeField, setActiveField] = useState<ActiveField>(field === 'destination' ? 'destination' : 'origin');
   const [query, setQuery] = useState('');
   const { status, position } = useCurrentPosition();
+  const [recentPlaces, setRecentPlaces] = useState<SearchLocation[]>([]);
+
+  useEffect(() => {
+    void loadRecentPlaces().then(setRecentPlaces);
+  }, []);
 
   // Places API (New) session-token lifecycle (brief §7): one UUID per
   // search interaction, reused across every autocomplete keystroke AND the
@@ -113,7 +124,7 @@ export default function SearchComposerScreen(): React.JSX.Element {
 
   const isSearching = query.trim().length >= 2;
   const rows: ResultRow[] = useMemo(() => {
-    if (!isSearching) return PLACES.map(placeToRow);
+    if (!isSearching) return recentPlaces.map(locationToRow);
     if (!predictions) return [];
     return predictions.map((p) => ({
       key: p.placeId,
@@ -122,7 +133,7 @@ export default function SearchComposerScreen(): React.JSX.Element {
       placeId: p.placeId,
       type: p.type,
     }));
-  }, [isSearching, predictions]);
+  }, [isSearching, predictions, recentPlaces]);
 
   function activate(field: ActiveField): void {
     setActiveField(field);
@@ -135,6 +146,7 @@ export default function SearchComposerScreen(): React.JSX.Element {
   }
 
   function choose(place: SearchLocation): void {
+    void addRecentPlace(place).then(setRecentPlaces);
     if (activeField === 'origin') {
       dispatch(setOrigin(place));
       if (!destination) {
@@ -341,6 +353,10 @@ export default function SearchComposerScreen(): React.JSX.Element {
               isSearching && !isFetching ? (
                 <Text variant="body" color={theme.inkFaint} style={styles.empty}>
                   Aucun résultat
+                </Text>
+              ) : !isSearching ? (
+                <Text variant="body" color={theme.inkFaint} style={styles.empty}>
+                  Vos recherches récentes apparaîtront ici
                 </Text>
               ) : null
             }
