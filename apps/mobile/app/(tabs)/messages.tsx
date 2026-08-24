@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { SectionList, View, StyleSheet, TouchableOpacity, ScrollView, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useAppSelector } from '../../src/state/store';
 import { useContextualAuth } from '../../src/features/auth/useContextualAuth';
@@ -9,13 +10,14 @@ import {
   Text,
   Avatar,
   Button,
-  Chip,
   Icon,
   EmptyState,
   SkeletonBlock,
   useAppTheme,
   spacing,
   radii,
+  elevation,
+  type AppPalette,
 } from '@vaya/design-system';
 import { useListConversationsQuery } from '../../src/state/api';
 import {
@@ -37,16 +39,107 @@ const FILTERS: { key: InboxFilter; label: string }[] = [
   { key: 'past', label: 'Passés' },
 ];
 
+/** Full-screen wash shared by every render path (guest, loading, error,
+ *  populated) — a flat theme.background fill read as generic/basic; this
+ *  layers the theme's own backgroundGradient (a two-stop vignette, not a
+ *  parallel palette) plus one soft ambient accent glow behind the header,
+ *  the same depth-through-gradient-and-light treatment the rest of the
+ *  Stitch-rebuilt flow already earns on its hero surfaces. */
+function ScreenBackground({
+  theme,
+  children,
+}: {
+  theme: AppPalette;
+  children: React.ReactNode;
+}): React.JSX.Element {
+  return (
+    <View style={styles.root}>
+      <LinearGradient
+        colors={theme.backgroundGradient}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
+        style={StyleSheet.absoluteFillObject}
+      />
+      <View pointerEvents="none" style={[styles.ambientGlow, { backgroundColor: theme.accentGlow }]} />
+      <SafeAreaView style={styles.container} edges={['top']}>
+        {children}
+      </SafeAreaView>
+    </View>
+  );
+}
+
+/** Local rounded-full filter pill — deliberately not the shared `Chip`
+ *  primitive: Chip's selected state is a fixed solid-accent fill (the
+ *  right call for its other callers), while this row's own design
+ *  reference (stitch/message/inbox-trip-centric-overview.html) calls for a
+ *  solid near-black active pill instead. `theme.inkGradient` gives that
+ *  black real depth (a diagonal charcoal wash, not a flat #000) rather
+ *  than diluting the brand palette with literal black. */
+function FilterPill({
+  label,
+  selected,
+  onPress,
+  theme,
+}: {
+  label: string;
+  selected: boolean;
+  onPress: () => void;
+  theme: AppPalette;
+}): React.JSX.Element {
+  if (selected) {
+    return (
+      <TouchableOpacity
+        onPress={onPress}
+        activeOpacity={0.85}
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        accessibilityState={{ selected: true }}
+      >
+        <LinearGradient
+          colors={theme.inkGradient}
+          start={{ x: 0.1, y: 0 }}
+          end={{ x: 0.9, y: 1 }}
+          style={[styles.filterPill, elevation?.sm, { shadowColor: theme.ink }]}
+        >
+          <Text variant="label" color={theme.onInk} style={styles.filterPillText}>
+            {label}
+          </Text>
+        </LinearGradient>
+      </TouchableOpacity>
+    );
+  }
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={0.7}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ selected: false }}
+      style={[
+        styles.filterPill,
+        { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.outlineVariant },
+      ]}
+    >
+      <Text variant="label" color={theme.inkMuted} style={styles.filterPillText}>
+        {label}
+      </Text>
+    </TouchableOpacity>
+  );
+}
+
 /**
  * Top app bar shared by every render path (guest, loading, error, inbox).
- * Left-aligned title (matching the sibling tabs' own idiom, e.g. trips.tsx's
- * "Mes trajets") with a trailing search toggle — deliberately no leading
- * own-profile avatar here (a tap-to-profile shortcut duplicating the
- * Profile tab already in the bottom bar); a real avatar belongs identifying
- * *who you're talking to* in the individual conversation screen instead,
- * not as a generic self-shortcut in the inbox list. The search slot only
- * renders when `onToggleSearch` is given (the populated, authenticated
- * view) — a guest has nothing to search.
+ * A true 3-slot layout — matching symmetric spacer/title/action widths so
+ * the title sits genuinely centered (not `flex:1` text hugging one side) —
+ * in the same `headlineDisplay` Fraunces cut notifications/index.tsx's own
+ * header title uses, so the two inbox-style screens read as one family.
+ * Deliberately no leading own-profile avatar here (a tap-to-profile
+ * shortcut duplicating the Profile tab already in the bottom bar); a real
+ * avatar belongs identifying *who you're talking to* in the individual
+ * conversation screen instead. The search slot only renders when
+ * `onToggleSearch` is given (the populated, authenticated view) — a guest
+ * has nothing to search, but keeps the matching empty spacer so the title
+ * doesn't visibly re-center between states.
  */
 function InboxHeader({
   theme,
@@ -59,24 +152,37 @@ function InboxHeader({
 }): React.JSX.Element {
   return (
     <View style={styles.header}>
-      <Text variant="h3" color={theme.ink} style={styles.headerTitle}>
+      <View style={styles.headerSlot} />
+      <Text
+        variant="headlineDisplay"
+        color={theme.ink}
+        numberOfLines={1}
+        style={styles.headerTitle}
+      >
         Messages
       </Text>
-
       {onToggleSearch ? (
         <TouchableOpacity
           onPress={onToggleSearch}
           accessibilityRole="button"
           accessibilityLabel={searchOpen ? 'Fermer la recherche' : 'Rechercher une conversation'}
-          style={styles.headerSlot}
+          style={[
+            styles.headerSlot,
+            styles.headerIconBtn,
+            { backgroundColor: theme.surface, borderColor: theme.outlineVariant },
+            elevation?.sm,
+            { shadowColor: theme.ink },
+          ]}
         >
           <Icon
             name={searchOpen ? 'close-outline' : 'search-outline'}
             size="sm"
-            color={theme.inkMuted}
+            color={theme.ink}
           />
         </TouchableOpacity>
-      ) : null}
+      ) : (
+        <View style={styles.headerSlot} />
+      )}
     </View>
   );
 }
@@ -136,7 +242,7 @@ export default function MessagesScreen(): React.JSX.Element {
   // ContextualAuthSheet search/publish already use, not a separate screen.
   if (!accessToken) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top']}>
+      <ScreenBackground theme={theme}>
         <InboxHeader theme={theme} />
         <EmptyState
           icon={<Icon name="chatbubble-ellipses-outline" size="lg" color={theme.inkFaint} />}
@@ -152,26 +258,26 @@ export default function MessagesScreen(): React.JSX.Element {
           onClose={cancelAuth}
           onAuthenticated={handleAuthenticated}
         />
-      </SafeAreaView>
+      </ScreenBackground>
     );
   }
 
   if (isLoading) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top']}>
+      <ScreenBackground theme={theme}>
         <InboxHeader theme={theme} />
         <View style={styles.skeletonWrap}>
           {[0, 1, 2, 3].map((i) => (
             <SkeletonBlock key={i} height={92} radius="xl" />
           ))}
         </View>
-      </SafeAreaView>
+      </ScreenBackground>
     );
   }
 
   if (isError) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top']}>
+      <ScreenBackground theme={theme}>
         <InboxHeader theme={theme} />
         <EmptyState
           icon={<Icon name="cloud-offline-outline" size="lg" color={theme.inkFaint} />}
@@ -180,12 +286,12 @@ export default function MessagesScreen(): React.JSX.Element {
           actionLabel="Réessayer"
           onAction={() => void refetch()}
         />
-      </SafeAreaView>
+      </ScreenBackground>
     );
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top']}>
+    <ScreenBackground theme={theme}>
       <InboxHeader theme={theme} searchOpen={searchOpen} onToggleSearch={toggleSearch} />
 
       {searchOpen ? (
@@ -194,6 +300,8 @@ export default function MessagesScreen(): React.JSX.Element {
             style={[
               styles.searchField,
               { backgroundColor: theme.surface, borderColor: theme.outlineVariant },
+              elevation?.sm,
+              { shadowColor: theme.ink },
             ]}
           >
             <Icon name="search" size="sm" color={theme.inkMuted} />
@@ -228,7 +336,7 @@ export default function MessagesScreen(): React.JSX.Element {
           contentContainerStyle={styles.filters}
         >
           {FILTERS.map(({ key, label }) => (
-            <Chip
+            <FilterPill
               key={key}
               label={label}
               onPress={() => setFilter(key)}
@@ -240,6 +348,7 @@ export default function MessagesScreen(): React.JSX.Element {
       ) : null}
 
       <SectionList
+        style={styles.list}
         sections={sections}
         keyExtractor={(conversation) => conversation.id}
         onRefresh={() => void handleRefresh()}
@@ -268,6 +377,8 @@ export default function MessagesScreen(): React.JSX.Element {
               style={[
                 styles.card,
                 { backgroundColor: theme.surface, borderColor: theme.outlineVariant },
+                elevation?.sm,
+                { shadowColor: theme.ink },
                 isClosed && styles.cardClosed,
               ]}
               onPress={() => openConversation(item)}
@@ -380,11 +491,23 @@ export default function MessagesScreen(): React.JSX.Element {
           )
         }
       />
-    </SafeAreaView>
+    </ScreenBackground>
   );
 }
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
+  ambientGlow: {
+    position: 'absolute',
+    top: -120,
+    alignSelf: 'center',
+    width: 320,
+    height: 320,
+    borderRadius: 160,
+    opacity: 0.22,
+  },
   container: {
     flex: 1,
   },
@@ -393,29 +516,34 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing.md,
   },
   headerSlot: {
-    width: 32,
-    height: 32,
+    width: 40,
+    height: 40,
     alignItems: 'center',
     justifyContent: 'center',
   },
+  headerIconBtn: {
+    borderRadius: radii.full,
+    borderWidth: 1,
+  },
   headerTitle: {
     flex: 1,
+    textAlign: 'center',
   },
   searchWrap: {
     paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.sm,
+    paddingBottom: spacing.md,
   },
   searchField: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
     height: 52,
-    borderRadius: radii.lg,
+    borderRadius: radii.full,
     borderWidth: 1,
-    paddingHorizontal: spacing.md,
+    paddingHorizontal: spacing.lg,
   },
   searchInput: {
     flex: 1,
@@ -424,9 +552,22 @@ const styles = StyleSheet.create({
   },
   filters: {
     flexDirection: 'row',
-    gap: spacing.xs,
+    gap: spacing.sm,
     paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.sm,
+    paddingBottom: spacing.md,
+  },
+  filterPill: {
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm + 2,
+    borderRadius: radii.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  filterPillText: {
+    fontWeight: '600',
+  },
+  list: {
+    flex: 1,
   },
   listContent: {
     paddingHorizontal: spacing.lg,
