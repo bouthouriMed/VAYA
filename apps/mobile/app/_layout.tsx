@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Provider as ReduxProvider, useDispatch } from 'react-redux';
@@ -88,7 +89,13 @@ function ThemedStatusBar(): React.JSX.Element {
  *  `'dark'` pin the scheme the user picked in profile.tsx. Also hydrates
  *  the persisted preference once on mount — until that resolves, `'system'`
  *  is the store's initial state, so a pinned user sees at most one
- *  system-scheme frame before their choice lands. */
+ *  system-scheme frame before their choice lands.
+ *
+ *  Note: the actual ToastProvider is mounted once, further down in
+ *  RootLayout — not here. A second one used to wrap `children` at this
+ *  level too; since useToast() always resolves to the nearest provider,
+ *  that outer one never received any toasts and just rendered a dead,
+ *  permanently-empty stack view. */
 function ThemedApp({ children }: { children: React.ReactNode }): React.JSX.Element {
   const dispatch = useDispatch<AppDispatch>();
   const preference = useAppSelector((s) => s.appearance.preference);
@@ -105,7 +112,7 @@ function ThemedApp({ children }: { children: React.ReactNode }): React.JSX.Eleme
 
   return (
     <AppThemeProvider scheme={preference === 'system' ? undefined : preference}>
-      <ToastProvider>{children}</ToastProvider>
+      {children}
     </AppThemeProvider>
   );
 }
@@ -122,6 +129,12 @@ export default function RootLayout(): React.JSX.Element {
     Fraunces_600SemiBold,
     Fraunces_500Medium_Italic,
   });
+
+  // Expo Router mounts its own SafeAreaProvider around the whole app, so
+  // this resolves to the real per-device inset — what lets ToastProvider
+  // clear the status bar / notch / Dynamic Island exactly, instead of
+  // guessing one fixed offset per platform.
+  const insets = useSafeAreaInsets();
 
   if (!fontsLoaded) return <BrandedLoadingScreen />;
 
@@ -143,7 +156,7 @@ export default function RootLayout(): React.JSX.Element {
          *  migrated to useAppTheme(). */}
         <ReduxProvider store={store}>
           <ThemedApp>
-            <ToastProvider>
+            <ToastProvider topInset={insets.top}>
               <NotificationBridge />
               <PushPermissionBridge />
               <RatingPromptBridge />
