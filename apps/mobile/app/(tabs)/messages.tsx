@@ -18,7 +18,7 @@ import {
   spacing,
   radii,
 } from '@vaya/design-system';
-import { useListConversationsQuery, useGetMeQuery } from '../../src/state/api';
+import { useListConversationsQuery } from '../../src/state/api';
 import {
   filterConversations,
   formatDepartureLabel,
@@ -39,46 +39,27 @@ const FILTERS: { key: InboxFilter; label: string }[] = [
 ];
 
 /**
- * Top app bar shared by every render path (guest, loading, error, inbox) —
- * Stitch's "Inbox / trip-centric overview" reference exactly: a leading
- * tappable profile avatar, a centered "Messages" title, and a trailing
- * search toggle. The search slot only renders when `onToggleSearch` is
- * given (the populated, authenticated view) — a guest has nothing to
- * search, and an empty trailing spacer keeps the title centered anyway.
+ * Top app bar shared by every render path (guest, loading, error, inbox).
+ * Left-aligned title (matching the sibling tabs' own idiom, e.g. trips.tsx's
+ * "Mes trajets") with a trailing search toggle — deliberately no leading
+ * own-profile avatar here (a tap-to-profile shortcut duplicating the
+ * Profile tab already in the bottom bar); a real avatar belongs identifying
+ * *who you're talking to* in the individual conversation screen instead,
+ * not as a generic self-shortcut in the inbox list. The search slot only
+ * renders when `onToggleSearch` is given (the populated, authenticated
+ * view) — a guest has nothing to search.
  */
 function InboxHeader({
   theme,
-  avatarUrl,
-  avatarName,
-  onAvatarPress,
   searchOpen,
   onToggleSearch,
 }: {
   theme: ReturnType<typeof useAppTheme>['colors'];
-  avatarUrl?: string | null;
-  avatarName?: string;
-  onAvatarPress?: () => void;
   searchOpen?: boolean;
   onToggleSearch?: () => void;
 }): React.JSX.Element {
   return (
     <View style={styles.header}>
-      <TouchableOpacity
-        onPress={onAvatarPress}
-        disabled={!onAvatarPress}
-        accessibilityRole="button"
-        accessibilityLabel="Ouvrir mon profil"
-        style={styles.headerSlot}
-      >
-        {avatarName ? (
-          <Avatar uri={avatarUrl ?? null} name={avatarName} sizePx={32} />
-        ) : (
-          <View style={[styles.headerAvatarPlaceholder, { backgroundColor: theme.surfaceMuted }]}>
-            <Icon name="person-outline" size="sm" color={theme.inkMuted} />
-          </View>
-        )}
-      </TouchableOpacity>
-
       <Text variant="h3" color={theme.ink} style={styles.headerTitle}>
         Messages
       </Text>
@@ -96,9 +77,7 @@ function InboxHeader({
             color={theme.inkMuted}
           />
         </TouchableOpacity>
-      ) : (
-        <View style={styles.headerSlot} />
-      )}
+      ) : null}
     </View>
   );
 }
@@ -117,7 +96,6 @@ export default function MessagesScreen(): React.JSX.Element {
   const { data: conversations, isLoading, isError, refetch } = useListConversationsQuery(undefined, {
     skip: !accessToken,
   });
-  const { data: me } = useGetMeQuery(undefined, { skip: !accessToken });
   const { requireAuth, isAuthSheetVisible, authTrigger, handleAuthenticated, cancelAuth } =
     useContextualAuth();
 
@@ -182,7 +160,7 @@ export default function MessagesScreen(): React.JSX.Element {
   if (isLoading) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top']}>
-        <InboxHeader theme={theme} avatarUrl={me?.avatarUrl} avatarName={me?.fullName} />
+        <InboxHeader theme={theme} />
         <View style={styles.skeletonWrap}>
           {[0, 1, 2, 3].map((i) => (
             <SkeletonBlock key={i} height={92} radius="xl" />
@@ -195,7 +173,7 @@ export default function MessagesScreen(): React.JSX.Element {
   if (isError) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top']}>
-        <InboxHeader theme={theme} avatarUrl={me?.avatarUrl} avatarName={me?.fullName} />
+        <InboxHeader theme={theme} />
         <EmptyState
           icon={<Icon name="cloud-offline-outline" size="lg" color={theme.inkFaint} />}
           title="Impossible de charger vos messages"
@@ -209,14 +187,7 @@ export default function MessagesScreen(): React.JSX.Element {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top']}>
-      <InboxHeader
-        theme={theme}
-        avatarUrl={me?.avatarUrl}
-        avatarName={me?.fullName}
-        onAvatarPress={() => router.push('/(tabs)/profile')}
-        searchOpen={searchOpen}
-        onToggleSearch={toggleSearch}
-      />
+      <InboxHeader theme={theme} searchOpen={searchOpen} onToggleSearch={toggleSearch} />
 
       {searchOpen ? (
         <View style={styles.searchWrap}>
@@ -291,19 +262,13 @@ export default function MessagesScreen(): React.JSX.Element {
                 ) : null}
               </View>
 
-              <View style={styles.avatarWrap}>
-                <Avatar uri={item.otherParty.avatarUrl} name={item.otherParty.fullName} sizePx={48} />
-                {item.isOtherPartyVerified ? (
-                  <View
-                    style={[
-                      styles.verifiedBadge,
-                      { backgroundColor: theme.accent, borderColor: theme.surface },
-                    ]}
-                  >
-                    <Icon name="checkmark" size="xs" color={theme.onAccent} />
-                  </View>
-                ) : null}
-              </View>
+              <Avatar
+                uri={item.otherParty.avatarUrl}
+                name={item.otherParty.fullName}
+                sizePx={48}
+                fallbackBackgroundColor={theme.surfaceMuted}
+                fallbackTextColor={theme.ink}
+              />
 
               <View style={styles.rowBody}>
                 <View style={styles.nameRow}>
@@ -417,16 +382,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  headerAvatarPlaceholder: {
-    width: 32,
-    height: 32,
-    borderRadius: radii.full,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   headerTitle: {
     flex: 1,
-    textAlign: 'center',
   },
   searchWrap: {
     paddingHorizontal: spacing.lg,
@@ -475,20 +432,6 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-  },
-  avatarWrap: {
-    position: 'relative',
-  },
-  verifiedBadge: {
-    position: 'absolute',
-    right: -2,
-    bottom: -2,
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    borderWidth: 2,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   rowBody: {
     flex: 1,

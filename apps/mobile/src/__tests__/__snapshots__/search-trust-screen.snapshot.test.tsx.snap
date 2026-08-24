@@ -106,7 +106,7 @@ exports[`search/trust.tsx snapshots > renders a passenger-only profile (no drive
                 "justifyContent": "center",
               },
               {
-                "backgroundColor": "#5B7D8A",
+                "backgroundColor": "#EDE6D4",
                 "borderRadius": 52,
                 "height": 104,
                 "width": 104,
@@ -122,7 +122,7 @@ exports[`search/trust.tsx snapshots > renders a passenger-only profile (no drive
                   "fontWeight": "600",
                 },
                 {
-                  "color": undefined,
+                  "color": "#14201B",
                   "fontSize": 42,
                 },
               ]
@@ -364,7 +364,7 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
                 "justifyContent": "center",
               },
               {
-                "backgroundColor": "#5B7D8A",
+                "backgroundColor": "#EDE6D4",
                 "borderRadius": 52,
                 "height": 104,
                 "width": 104,
@@ -380,7 +380,7 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
                   "fontWeight": "600",
                 },
                 {
-                  "color": undefined,
+                  "color": "#14201B",
                   "fontSize": 42,
                 },
               ]

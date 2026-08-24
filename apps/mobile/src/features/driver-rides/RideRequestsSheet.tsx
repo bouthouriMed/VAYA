@@ -111,7 +111,13 @@ export function RideRequestsSheet({
                 {pending.map((request) => (
                   <View key={request.id} style={[styles.requestRow, { backgroundColor: theme.surfaceMuted }]}>
                     <View style={styles.identityCol}>
-                      <Avatar uri={request.rider?.avatarUrl} name={request.rider?.fullName ?? '?'} sizePx={40} />
+                      <Avatar
+                        uri={request.rider?.avatarUrl}
+                        name={request.rider?.fullName ?? '?'}
+                        sizePx={40}
+                        fallbackBackgroundColor={theme.surface}
+                        fallbackTextColor={theme.ink}
+                      />
                       <View style={styles.identityText}>
                         <Text variant="body" color={theme.ink} numberOfLines={1} style={styles.riderName}>
                           {request.rider?.fullName ?? 'Passager'}
@@ -168,7 +174,13 @@ export function RideRequestsSheet({
                           : undefined
                       }
                     >
-                      <Avatar uri={request.rider?.avatarUrl} name={request.rider?.fullName ?? '?'} sizePx={36} />
+                      <Avatar
+                        uri={request.rider?.avatarUrl}
+                        name={request.rider?.fullName ?? '?'}
+                        sizePx={36}
+                        fallbackBackgroundColor={theme.surfaceMuted}
+                        fallbackTextColor={theme.ink}
+                      />
                       <View style={styles.identityText}>
                         <Text variant="bodySmall" color={theme.ink} numberOfLines={1}>
                           {request.rider?.fullName ?? 'Passager'}
