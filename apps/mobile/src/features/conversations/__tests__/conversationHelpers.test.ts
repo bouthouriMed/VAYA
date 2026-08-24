@@ -31,6 +31,7 @@ function makeConversation(overrides: Partial<Conversation> = {}): Conversation {
     otherParty: { id: 'driver-1', fullName: 'Sami Trabelsi', avatarUrl: null },
     otherPartyRole: 'driver',
     isOtherPartyVerified: true,
+    rideId: 'ride-1',
     originLabel: 'Tunis',
     destinationLabel: 'Sousse',
     departureAt: '2026-08-20T08:00:00.000Z',

@@ -212,6 +212,32 @@ export default function DriverRideHubScreen(): React.JSX.Element {
 
   const badge = RIDE_BADGE[ride.status];
   const cancellable = ['draft', 'published', 'full'].includes(ride.status);
+  // One connected route timeline — origin, then every driver-selected stop
+  // in route order, then destination — instead of the origin/destination
+  // pair living in the info card's title while stops sat in a disconnected
+  // "Points de rendez-vous" section further down the page. Endpoints
+  // (origin/destination) get the same accent/ink solid-dot treatment the
+  // map pins already use; stops in between get a quieter hollow dot.
+  const timelineEntries: {
+    key: string;
+    roleLabel: string;
+    placeLabel: string;
+    isEndpoint: boolean;
+  }[] = [
+    { key: 'origin', roleLabel: 'Départ', placeLabel: ride.originLabel, isEndpoint: true },
+    ...selectedStops.map((stop, index) => ({
+      key: stop.id,
+      roleLabel:
+        selectedStops.length === 2
+          ? index === 0
+            ? 'Point de rendez-vous'
+            : 'Point de dépose'
+          : `Arrêt ${index + 1}`,
+      placeLabel: stop.label,
+      isEndpoint: false,
+    })),
+    { key: 'destination', roleLabel: 'Arrivée', placeLabel: ride.destinationLabel, isEndpoint: true },
+  ];
   const fullRouteRegion =
     regionForPoints([
       pickupStop ?? { lat: ride.originLat, lng: ride.originLng },
@@ -269,11 +295,42 @@ export default function DriverRideHubScreen(): React.JSX.Element {
 
         <View style={[styles.infoCard, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
           <View style={styles.infoTitleRow}>
-            <Text variant="h3" color={theme.ink} style={styles.infoTitle} numberOfLines={2}>
-              {`${ride.originLabel} → ${ride.destinationLabel}`}
+            <Text variant="label" color={theme.inkMuted} style={styles.sectionHeading}>
+              Itinéraire
             </Text>
             <Badge label={badge.label} variant={badge.variant} theme={theme} />
           </View>
+
+          <View style={styles.timeline}>
+            {timelineEntries.map((entry, index) => {
+              const isFirst = index === 0;
+              const isLast = index === timelineEntries.length - 1;
+              return (
+                <View
+                  key={entry.key}
+                  style={!isLast && [styles.stopRow, { borderBottomColor: theme.outlineVariant }]}
+                >
+                  <View style={styles.stopRowHeader}>
+                    <View
+                      style={[
+                        styles.stopDot,
+                        entry.isEndpoint
+                          ? { backgroundColor: isFirst ? theme.accent : theme.ink, borderColor: theme.surface }
+                          : { backgroundColor: theme.surfaceMuted, borderColor: theme.ink },
+                      ]}
+                    />
+                    <Text variant="caption" color={theme.inkFaint}>
+                      {entry.roleLabel}
+                    </Text>
+                  </View>
+                  <Text variant="bodySmall" color={theme.ink} style={styles.stopLabel} numberOfLines={2}>
+                    {entry.placeLabel}
+                  </Text>
+                </View>
+              );
+            })}
+          </View>
+
           <View style={styles.factRow}>
             <Icon name="time-outline" size="sm" color={theme.inkMuted} />
             <Text variant="bodySmall" color={theme.inkMuted}>
@@ -296,51 +353,6 @@ export default function DriverRideHubScreen(): React.JSX.Element {
             </Text>
           </View>
         </View>
-
-        {selectedStops.length > 0 ? (
-          <View style={styles.section}>
-            <Text variant="label" color={theme.inkMuted} style={styles.sectionHeading}>
-              Points de rendez-vous
-            </Text>
-            <View style={[styles.glassRow, { backgroundColor: theme.surfaceMuted, borderColor: theme.outlineVariant }]}>
-              {selectedStops.map((stop, index) => {
-                const isFirst = index === 0;
-                const isLast = index === selectedStops.length - 1;
-                // Only the exactly-2-stops case (pickup then dropoff, the
-                // shape the current publish flow always produces) gets
-                // role labels — an older ride with a different stop count
-                // gets a plain sequence number instead of a guessed role.
-                const roleLabel =
-                  selectedStops.length === 2
-                    ? isFirst
-                      ? 'Point de rendez-vous'
-                      : 'Point de dépose'
-                    : `Arrêt ${index + 1}`;
-                return (
-                  <View
-                    key={stop.id}
-                    style={!isLast && [styles.stopRow, { borderBottomColor: theme.outlineVariant }]}
-                  >
-                    <View style={styles.stopRowHeader}>
-                      <View
-                        style={[
-                          styles.stopDot,
-                          { backgroundColor: isFirst ? theme.accent : theme.ink, borderColor: theme.surface },
-                        ]}
-                      />
-                      <Text variant="caption" color={theme.inkFaint}>
-                        {roleLabel}
-                      </Text>
-                    </View>
-                    <Text variant="bodySmall" color={theme.ink} style={styles.stopLabel}>
-                      {stop.label}
-                    </Text>
-                  </View>
-                );
-              })}
-            </View>
-          </View>
-        ) : null}
 
         <View style={styles.section}>
           <Text variant="label" color={theme.inkMuted} style={styles.sectionHeading}>
@@ -583,12 +595,13 @@ const styles = StyleSheet.create({
   },
   infoTitleRow: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     justifyContent: 'space-between',
     gap: spacing.sm,
   },
-  infoTitle: {
-    flex: 1,
+  timeline: {
+    marginTop: spacing.xs,
+    marginBottom: spacing.sm,
   },
   factRow: {
     flexDirection: 'row',

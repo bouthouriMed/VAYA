@@ -35,6 +35,7 @@ const conversationSummarySchema = z.object({
   }),
   otherPartyRole: z.enum(['driver', 'rider']),
   isOtherPartyVerified: z.boolean(),
+  rideId: z.string().uuid(),
   originLabel: z.string(),
   destinationLabel: z.string(),
   departureAt: z.date(),

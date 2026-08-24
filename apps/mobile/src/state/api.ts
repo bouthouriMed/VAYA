@@ -350,6 +350,7 @@ export interface Conversation {
   /** Server-derived: true only when the other party is a driver with an
    *  approved verification — never guessed from anything else. */
   isOtherPartyVerified: boolean;
+  rideId: string;
   originLabel: string;
   destinationLabel: string;
   departureAt: string;

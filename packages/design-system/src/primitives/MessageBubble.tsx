@@ -15,8 +15,10 @@ interface MessageBubbleProps {
    *  the screen layer (same discipline as notifications/index.tsx). */
   timestamp: string;
   /** Optional `useAppTheme()` override (Stitch migration) — own bubbles
-   *  render solid-accent/onAccent, others on surfaceMuted with an
-   *  outlineVariant hairline. Omit for the legacy static palette. */
+   *  render solid-ink/onInk (the app's "real black" fill, matching the
+   *  active filter pill's own theme.ink treatment elsewhere in this
+   *  screen family), others on surfaceMuted with an outlineVariant
+   *  hairline. Omit for the legacy static palette. */
   theme?: AppPalette;
   /** The other party's real avatar (Stitch's "Conversation / active trip
    *  coordination" shows a small avatar beside each of their bubbles) —
@@ -49,7 +51,7 @@ export function MessageBubble({
         bubble: [
           styles.bubble,
           isOwn
-            ? { backgroundColor: theme.accent, borderBottomRightRadius: radii.sm }
+            ? { backgroundColor: theme.ink, borderBottomRightRadius: radii.sm }
             : {
                 backgroundColor: theme.surfaceMuted,
                 borderBottomLeftRadius: radii.sm,
@@ -57,8 +59,8 @@ export function MessageBubble({
                 borderColor: theme.outlineVariant,
               },
         ],
-        bodyColor: isOwn ? theme.onAccent : theme.ink,
-        timestampColor: isOwn ? theme.onAccent : theme.inkMuted,
+        bodyColor: isOwn ? theme.onInk : theme.ink,
+        timestampColor: isOwn ? theme.onInk : theme.inkMuted,
       }
     : {
         row: [styles.row, isOwn ? styles.rowOwn : styles.rowOther],
