@@ -19,6 +19,7 @@ import { loadTokens } from '../src/services/auth/tokenStorage';
 import { loadAppearancePreference } from '../src/services/settings/appearanceStorage';
 import { ErrorBoundary } from '../src/components/ErrorBoundary';
 import { useNotificationSetup } from '../src/services/notifications/useNotificationSetup';
+import { PushPermissionBridge } from '../src/services/notifications/PushPermissionBridge';
 import { RatingPromptBridge } from '../src/features/ratings/RatingPromptBridge';
 import { RecurringPatternPromptBridge } from '../src/features/recurring/RecurringPatternPromptBridge';
 
@@ -144,6 +145,7 @@ export default function RootLayout(): React.JSX.Element {
           <ThemedApp>
             <ToastProvider>
               <NotificationBridge />
+              <PushPermissionBridge />
               <RatingPromptBridge />
               <RecurringPatternPromptBridge />
               <ThemedStatusBar />
