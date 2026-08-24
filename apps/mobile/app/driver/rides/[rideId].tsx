@@ -34,6 +34,7 @@ import { DriverBookingDetailSheet } from '../../../src/features/driver-rides/Dri
 import { ManageRideSheet } from '../../../src/features/driver-rides/ManageRideSheet';
 import { trackEvent } from '../../../src/services/analytics/analytics';
 import { estimateArrivalLabel } from '../../../src/features/driver-rides/myRidesHelpers';
+import { RouteTimeline } from '../../../src/features/trip-shared/RouteTimeline';
 
 type ThemeColors = ReturnType<typeof useAppTheme>['colors'];
 
@@ -58,9 +59,11 @@ function formatWhen(iso: string): string {
  *  now inline in the trip hub rather than tucked in a sheet. */
 function PendingRequestRow({
   booking,
+  rideDestinationLabel,
   theme,
 }: {
   booking: Booking;
+  rideDestinationLabel: string;
   theme: ThemeColors;
 }): React.JSX.Element {
   const [acceptBooking, acceptState] = useAcceptBookingMutation();
@@ -97,6 +100,13 @@ function PendingRequestRow({
           </Text>
           <Text variant="caption" color={theme.inkMuted} numberOfLines={1}>
             {`${booking.seatsRequested} place${booking.seatsRequested > 1 ? 's' : ''} · ${booking.pickupLabel}`}
+          </Text>
+          {/* This passenger's own dropoff — may not match the ride's own
+           *  destination on a route-passthrough match, so the driver sees
+           *  exactly where THIS rider goes before deciding, not just where
+           *  the ride itself ends. */}
+          <Text variant="caption" color={theme.inkFaint} numberOfLines={1}>
+            {`→ ${booking.dropoffLabel ?? rideDestinationLabel}`}
           </Text>
         </View>
       </View>
@@ -238,6 +248,12 @@ export default function DriverRideHubScreen(): React.JSX.Element {
     })),
     { key: 'destination', roleLabel: 'Arrivée', placeLabel: ride.destinationLabel, isEndpoint: true },
   ];
+  // Real revenue insight for the driver — summed from actually-accepted
+  // bookings' own contributionTotal (which already accounts for seat count),
+  // never seatsTotal × price, so a partially-filled ride never overstates
+  // what's actually confirmed.
+  const confirmedBookings = answered.filter((b) => b.status === 'accepted');
+  const confirmedRevenue = confirmedBookings.reduce((sum, b) => sum + b.contributionTotal, 0);
   const fullRouteRegion =
     regionForPoints([
       pickupStop ?? { lat: ride.originLat, lng: ride.originLng },
@@ -301,35 +317,7 @@ export default function DriverRideHubScreen(): React.JSX.Element {
             <Badge label={badge.label} variant={badge.variant} theme={theme} />
           </View>
 
-          <View style={styles.timeline}>
-            {timelineEntries.map((entry, index) => {
-              const isFirst = index === 0;
-              const isLast = index === timelineEntries.length - 1;
-              return (
-                <View
-                  key={entry.key}
-                  style={!isLast && [styles.stopRow, { borderBottomColor: theme.outlineVariant }]}
-                >
-                  <View style={styles.stopRowHeader}>
-                    <View
-                      style={[
-                        styles.stopDot,
-                        entry.isEndpoint
-                          ? { backgroundColor: isFirst ? theme.accent : theme.ink, borderColor: theme.surface }
-                          : { backgroundColor: theme.surfaceMuted, borderColor: theme.ink },
-                      ]}
-                    />
-                    <Text variant="caption" color={theme.inkFaint}>
-                      {entry.roleLabel}
-                    </Text>
-                  </View>
-                  <Text variant="bodySmall" color={theme.ink} style={styles.stopLabel} numberOfLines={2}>
-                    {entry.placeLabel}
-                  </Text>
-                </View>
-              );
-            })}
-          </View>
+          <RouteTimeline entries={timelineEntries} theme={theme} />
 
           <View style={styles.factRow}>
             <Icon name="time-outline" size="sm" color={theme.inkMuted} />
@@ -352,6 +340,14 @@ export default function DriverRideHubScreen(): React.JSX.Element {
               {`${ride.contributionPerSeat} DT par place`}
             </Text>
           </View>
+          {confirmedBookings.length > 0 ? (
+            <View style={styles.factRow}>
+              <Icon name="wallet-outline" size="sm" color={theme.inkMuted} />
+              <Text variant="bodySmall" color={theme.inkMuted}>
+                {`${confirmedRevenue} DT confirmés · ${confirmedBookings.length} passager${confirmedBookings.length > 1 ? 's' : ''}`}
+              </Text>
+            </View>
+          ) : null}
         </View>
 
         <View style={styles.section}>
@@ -365,7 +361,14 @@ export default function DriverRideHubScreen(): React.JSX.Element {
               Aucune demande en attente.
             </Text>
           ) : (
-            pending.map((booking) => <PendingRequestRow key={booking.id} booking={booking} theme={theme} />)
+            pending.map((booking) => (
+              <PendingRequestRow
+                key={booking.id}
+                booking={booking}
+                rideDestinationLabel={ride.destinationLabel}
+                theme={theme}
+              />
+            ))
           )}
         </View>
 
@@ -490,6 +493,7 @@ export default function DriverRideHubScreen(): React.JSX.Element {
       <DriverBookingDetailSheet
         visible={!!managedBooking}
         booking={managedBooking}
+        rideDestinationLabel={ride.destinationLabel}
         onClose={() => setManagedBooking(null)}
       />
       <ManageRideSheet
@@ -599,10 +603,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: spacing.sm,
   },
-  timeline: {
-    marginTop: spacing.xs,
-    marginBottom: spacing.sm,
-  },
   factRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -628,26 +628,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: spacing.md,
     gap: spacing.sm,
-  },
-  stopRow: {
-    marginBottom: spacing.sm,
-    paddingBottom: spacing.sm,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    gap: 2,
-  },
-  stopRowHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-  },
-  stopDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    borderWidth: 1.5,
-  },
-  stopLabel: {
-    marginLeft: spacing.md + spacing.xs,
   },
   requestIdentityRow: {
     flexDirection: 'row',

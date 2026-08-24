@@ -57,13 +57,18 @@ export function polylineDistanceKm(points: LatLng[]): number {
   return total;
 }
 
-const AVERAGE_WALK_KMH = 5;
+/** Meters per minute at an average walking pace — kept numerically identical
+ *  to the server's own WALK_SPEED_M_PER_MIN (apps/api/src/modules/matching/
+ *  matching.service.ts) so a walk-time computed live on-device (e.g. the
+ *  passenger's current position to their pickup point) never disagrees with
+ *  a walk-time the server computed for the same kind of distance. */
+const WALK_SPEED_M_PER_MIN = 80;
 
 /** Real straight-line distance between two coordinates, converted to a
  *  walking-minutes estimate at an average pace — used where no server-side
- *  walk-time field exists (e.g. a route stop's distance to the actual
- *  drop-off point) but real coordinates for both ends do. Same "derived,
- *  not fabricated" reasoning as polylineDistanceKm. */
+ *  walk-time field exists (e.g. the passenger's live device position, which
+ *  the server never sees) but real coordinates for both ends do. Same
+ *  "derived, not fabricated" reasoning as polylineDistanceKm. */
 export function estimateWalkMinutes(a: LatLng, b: LatLng): number {
-  return (haversineKm(a, b) / AVERAGE_WALK_KMH) * 60;
+  return (haversineKm(a, b) * 1000) / WALK_SPEED_M_PER_MIN;
 }

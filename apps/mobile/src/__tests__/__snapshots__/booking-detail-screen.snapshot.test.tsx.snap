@@ -81,158 +81,296 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
     </View>
     <View
       style={
-        [
-          {
-            "backgroundColor": "#EDEBE1",
-            "borderRadius": 16,
-            "overflow": "hidden",
-            "position": "relative",
-          },
-          {
-            "height": 160,
-          },
-          {
-            "marginHorizontal": 16,
-          },
-        ]
+        {
+          "marginHorizontal": 16,
+          "position": "relative",
+        }
       }
     >
-      <MapView
-        customMapStyle={[]}
-        initialRegion={
-          {
-            "latitude": 36.60325,
-            "latitudeDelta": 0.650400000000002,
-            "longitude": 10.39075,
-            "longitudeDelta": 0.6695999999999999,
-          }
-        }
-        onMapReady={[Function]}
-        pitchEnabled={false}
-        pointerEvents="none"
-        provider="default"
-        rotateEnabled={false}
-        scrollEnabled={false}
-        style={{}}
-        zoomEnabled={false}
-      >
-        <Marker
-          anchor={
-            {
-              "x": 0.5,
-              "y": 0.5,
-            }
-          }
-          coordinate={
-            {
-              "latitude": 36.8065,
-              "longitude": 10.1815,
-            }
-          }
-        >
-          <View
-            style={
-              [
-                {
-                  "borderColor": "#FFFFFF",
-                  "borderRadius": 6,
-                  "borderWidth": 2,
-                  "height": 12,
-                  "width": 12,
-                },
-                {
-                  "backgroundColor": "#7FA491",
-                },
-              ]
-            }
-          />
-        </Marker>
-        <Marker
-          anchor={
-            {
-              "x": 0.5,
-              "y": 0.5,
-            }
-          }
-          coordinate={
-            {
-              "latitude": 36.4,
-              "longitude": 10.6,
-            }
-          }
-        >
-          <View
-            style={
-              [
-                {
-                  "borderColor": "#FFFFFF",
-                  "borderRadius": 6,
-                  "borderWidth": 2,
-                  "height": 12,
-                  "width": 12,
-                },
-                {
-                  "backgroundColor": "#2E3B42",
-                },
-              ]
-            }
-          />
-        </Marker>
-      </MapView>
       <View
-        pointerEvents="none"
-        style={
-          {
-            "backgroundColor": "#EDEBE1",
-            "opacity": 0.18,
-          }
-        }
-      />
-      <Animated.View
-        accessibilityElementsHidden={true}
-        importantForAccessibility="no-hide-descendants"
         style={
           [
             {
-              "backgroundColor": "#EAE7DC",
+              "backgroundColor": "#EDEBE1",
+              "borderRadius": 16,
+              "overflow": "hidden",
+              "position": "relative",
             },
             {
-              "borderRadius": 0,
-              "height": 16,
-              "opacity": AnimatedValue {
-                "value": 0.45,
-              },
-              "width": "100%",
+              "height": 160,
             },
             {},
           ]
         }
-      />
-      <View
-        style={
-          {
-            "backgroundColor": "#2E3B42",
-            "borderRadius": 9999,
-            "left": 8,
-            "paddingHorizontal": 8,
-            "paddingVertical": 4,
-            "position": "absolute",
-            "top": 8,
-          }
-        }
       >
-        <Text
+        <MapView
+          customMapStyle={[]}
+          initialRegion={
+            {
+              "latitude": 36.620999999999995,
+              "latitudeDelta": 0.7072000000000003,
+              "longitude": 10.39,
+              "longitudeDelta": 0.6719999999999999,
+            }
+          }
+          onMapReady={[Function]}
+          pitchEnabled={false}
+          pointerEvents="none"
+          provider="default"
+          rotateEnabled={false}
+          scrollEnabled={false}
+          style={{}}
+          zoomEnabled={false}
+        >
+          <Marker
+            anchor={
+              {
+                "x": 0.5,
+                "y": 0.5,
+              }
+            }
+            coordinate={
+              {
+                "latitude": 36.842,
+                "longitude": 10.18,
+              }
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "borderBottomLeftRadius": 2,
+                    "borderRadius": 13,
+                    "borderWidth": 2.5,
+                    "elevation": 3,
+                    "height": 26,
+                    "justifyContent": "center",
+                    "shadowColor": "#000",
+                    "shadowOffset": {
+                      "height": 2,
+                      "width": 0,
+                    },
+                    "shadowOpacity": 0.2,
+                    "shadowRadius": 4,
+                    "transform": [
+                      {
+                        "rotate": "-45deg",
+                      },
+                    ],
+                    "width": 26,
+                  },
+                  {
+                    "backgroundColor": "#2E9E6C",
+                    "borderColor": "#FFFFFF",
+                  },
+                ]
+              }
+            >
+              <View
+                style={
+                  [
+                    {
+                      "borderRadius": 3.5,
+                      "height": 7,
+                      "transform": [
+                        {
+                          "rotate": "45deg",
+                        },
+                      ],
+                      "width": 7,
+                    },
+                    {
+                      "backgroundColor": "#0D1512",
+                    },
+                  ]
+                }
+              />
+            </View>
+          </Marker>
+          <Marker
+            anchor={
+              {
+                "x": 0.5,
+                "y": 0.5,
+              }
+            }
+            coordinate={
+              {
+                "latitude": 36.4,
+                "longitude": 10.6,
+              }
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "borderBottomLeftRadius": 2,
+                    "borderRadius": 13,
+                    "borderWidth": 2.5,
+                    "elevation": 3,
+                    "height": 26,
+                    "justifyContent": "center",
+                    "shadowColor": "#000",
+                    "shadowOffset": {
+                      "height": 2,
+                      "width": 0,
+                    },
+                    "shadowOpacity": 0.2,
+                    "shadowRadius": 4,
+                    "transform": [
+                      {
+                        "rotate": "-45deg",
+                      },
+                    ],
+                    "width": 26,
+                  },
+                  {
+                    "backgroundColor": "#14201B",
+                    "borderColor": "#FFFFFF",
+                  },
+                ]
+              }
+            >
+              <View
+                style={
+                  [
+                    {
+                      "borderRadius": 3.5,
+                      "height": 7,
+                      "transform": [
+                        {
+                          "rotate": "45deg",
+                        },
+                      ],
+                      "width": 7,
+                    },
+                    {
+                      "backgroundColor": "#FFFFFF",
+                    },
+                  ]
+                }
+              />
+            </View>
+          </Marker>
+        </MapView>
+        <View
+          pointerEvents="none"
           style={
             {
-              "color": "#F3F1E9",
-              "fontSize": 12,
-              "fontWeight": "600",
+              "backgroundColor": "#EDEBE1",
+              "opacity": 0.18,
+            }
+          }
+        />
+        <Animated.View
+          accessibilityElementsHidden={true}
+          importantForAccessibility="no-hide-descendants"
+          style={
+            [
+              {
+                "backgroundColor": "#EAE7DC",
+              },
+              {
+                "borderRadius": 0,
+                "height": 16,
+                "opacity": AnimatedValue {
+                  "value": 0.45,
+                },
+                "width": "100%",
+              },
+              {},
+            ]
+          }
+        />
+        <View
+          style={
+            {
+              "backgroundColor": "#2E3B42",
+              "borderRadius": 9999,
+              "left": 8,
+              "paddingHorizontal": 8,
+              "paddingVertical": 4,
+              "position": "absolute",
+              "top": 8,
             }
           }
         >
-          Confirmé
-        </Text>
+          <Text
+            style={
+              {
+                "color": "#F3F1E9",
+                "fontSize": 12,
+                "fontWeight": "600",
+              }
+            }
+          >
+            Confirmé
+          </Text>
+        </View>
       </View>
+      <TouchableOpacity
+        accessibilityLabel="Voir l'itinéraire en plein écran"
+        accessibilityRole="button"
+        activeOpacity={0.85}
+        onPress={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "borderRadius": 9999,
+              "bottom": 8,
+              "elevation": 2,
+              "flexDirection": "row",
+              "gap": 4,
+              "paddingHorizontal": 8,
+              "paddingVertical": 4,
+              "position": "absolute",
+              "right": 8,
+              "shadowColor": "#000",
+              "shadowOffset": {
+                "height": 2,
+                "width": 0,
+              },
+              "shadowOpacity": 0.12,
+              "shadowRadius": 6,
+            },
+            {
+              "backgroundColor": "#FFFFFF",
+            },
+          ]
+        }
+      >
+        <Ionicons
+          accessibilityElementsHidden={true}
+          color="#14201B"
+          importantForAccessibility="no-hide-descendants"
+          name="expand-outline"
+          size={16}
+        />
+        <Text
+          style={
+            [
+              {
+                "fontSize": 12,
+                "fontWeight": "400",
+                "lineHeight": 18,
+              },
+              {
+                "color": "#14201B",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              undefined,
+            ]
+          }
+        >
+          Voir l'itinéraire
+        </Text>
+      </TouchableOpacity>
     </View>
     <View
       style={
@@ -322,6 +460,252 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
       <View
         style={
           {
+            "marginBottom": 8,
+            "marginTop": 4,
+          }
+        }
+      >
+        <View
+          style={
+            [
+              {
+                "borderBottomWidth": 1,
+                "gap": 2,
+                "marginBottom": 8,
+                "paddingBottom": 8,
+              },
+              {
+                "borderBottomColor": "#E4EDFB",
+              },
+            ]
+          }
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+                "gap": 4,
+              }
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "borderRadius": 4,
+                    "borderWidth": 1.5,
+                    "height": 8,
+                    "width": 8,
+                  },
+                  {
+                    "backgroundColor": "#2E9E6C",
+                    "borderColor": "#FFFFFF",
+                  },
+                ]
+              }
+            />
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "lineHeight": 18,
+                  },
+                  {
+                    "color": "#8B93A3",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              Départ
+            </Text>
+          </View>
+          <Text
+            numberOfLines={2}
+            style={
+              [
+                {
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "lineHeight": 21,
+                },
+                {
+                  "color": "#14201B",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                {
+                  "marginLeft": 16,
+                },
+              ]
+            }
+          >
+            Tunis
+          </Text>
+        </View>
+        <View
+          style={
+            [
+              {
+                "borderBottomWidth": 1,
+                "gap": 2,
+                "marginBottom": 8,
+                "paddingBottom": 8,
+              },
+              {
+                "borderBottomColor": "#E4EDFB",
+              },
+            ]
+          }
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+                "gap": 4,
+              }
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "borderRadius": 4,
+                    "borderWidth": 1.5,
+                    "height": 8,
+                    "width": 8,
+                  },
+                  {
+                    "backgroundColor": "#E4EDFB",
+                    "borderColor": "#14201B",
+                  },
+                ]
+              }
+            />
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "lineHeight": 18,
+                  },
+                  {
+                    "color": "#8B93A3",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              Point de rendez-vous
+            </Text>
+          </View>
+          <Text
+            numberOfLines={2}
+            style={
+              [
+                {
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "lineHeight": 21,
+                },
+                {
+                  "color": "#14201B",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                {
+                  "marginLeft": 16,
+                },
+              ]
+            }
+          >
+            Arrêt Menzah 6
+          </Text>
+        </View>
+        <View
+          style={false}
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+                "gap": 4,
+              }
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "borderRadius": 4,
+                    "borderWidth": 1.5,
+                    "height": 8,
+                    "width": 8,
+                  },
+                  {
+                    "backgroundColor": "#14201B",
+                    "borderColor": "#FFFFFF",
+                  },
+                ]
+              }
+            />
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "lineHeight": 18,
+                  },
+                  {
+                    "color": "#8B93A3",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              Arrivée
+            </Text>
+          </View>
+          <Text
+            numberOfLines={2}
+            style={
+              [
+                {
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "lineHeight": 21,
+                },
+                {
+                  "color": "#14201B",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                {
+                  "marginLeft": 16,
+                },
+              ]
+            }
+          >
+            Hammamet
+          </Text>
+        </View>
+      </View>
+      <View
+        style={
+          {
             "alignItems": "center",
             "flexDirection": "row",
             "gap": 8,
@@ -353,45 +737,6 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
           }
         >
           mar. 25 août · 08:30
-        </Text>
-      </View>
-      <View
-        style={
-          {
-            "alignItems": "center",
-            "flexDirection": "row",
-            "gap": 8,
-          }
-        }
-      >
-        <Ionicons
-          accessibilityElementsHidden={true}
-          color="#5B6572"
-          importantForAccessibility="no-hide-descendants"
-          name="location-outline"
-          size={20}
-        />
-        <Text
-          numberOfLines={2}
-          style={
-            [
-              {
-                "fontSize": 14,
-                "fontWeight": "400",
-                "lineHeight": 21,
-              },
-              {
-                "color": "#5B6572",
-                "textAlign": undefined,
-                "writingDirection": "ltr",
-              },
-              {
-                "flex": 1,
-              },
-            ]
-          }
-        >
-          Arrêt Menzah 6
         </Text>
       </View>
       <View
@@ -556,7 +901,61 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
             >
               4.8
             </Text>
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "lineHeight": 18,
+                  },
+                  {
+                    "color": "#8B93A3",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              · 130 trajets
+            </Text>
           </View>
+        </View>
+        <View
+          accessibilityLabel="Confiance"
+          accessibilityRole="text"
+          accessible={true}
+          style={
+            [
+              {
+                "alignSelf": "flex-start",
+                "borderRadius": 9999,
+                "paddingHorizontal": 8,
+                "paddingVertical": 4,
+              },
+              {
+                "backgroundColor": "#E4EDFB",
+              },
+              undefined,
+            ]
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                  "fontWeight": "500",
+                },
+                {
+                  "color": "#4A7C8C",
+                },
+              ]
+            }
+          >
+            Confiance
+          </Text>
         </View>
       </View>
       <View
@@ -828,5 +1227,222 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
       </Text>
     </Pressable>
   </View>
+  <Modal
+    animationType="slide"
+    onRequestClose={[Function]}
+    visible={false}
+  >
+    <View
+      style={
+        [
+          {
+            "flex": 1,
+          },
+          {
+            "backgroundColor": "#FFFFFF",
+          },
+        ]
+      }
+    >
+      <View
+        style={
+          [
+            {
+              "borderRadius": 16,
+              "overflow": "hidden",
+              "position": "relative",
+            },
+            {
+              "flex": 1,
+              "minHeight": 200,
+            },
+            {
+              "flex": 1,
+            },
+          ]
+        }
+      >
+        <MapView
+          customMapStyle={[]}
+          initialRegion={
+            {
+              "latitude": 36.620999999999995,
+              "latitudeDelta": 0.7072000000000003,
+              "longitude": 10.39,
+              "longitudeDelta": 0.6719999999999999,
+            }
+          }
+          onMapReady={[Function]}
+          provider="google"
+          style={{}}
+        >
+          <Marker
+            anchor={
+              {
+                "x": 0.5,
+                "y": 0.5,
+              }
+            }
+            coordinate={
+              {
+                "latitude": 36.842,
+                "longitude": 10.18,
+              }
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "borderBottomLeftRadius": 2,
+                    "borderRadius": 13,
+                    "borderWidth": 2.5,
+                    "elevation": 3,
+                    "height": 26,
+                    "justifyContent": "center",
+                    "shadowColor": "#000",
+                    "shadowOffset": {
+                      "height": 2,
+                      "width": 0,
+                    },
+                    "shadowOpacity": 0.2,
+                    "shadowRadius": 4,
+                    "transform": [
+                      {
+                        "rotate": "-45deg",
+                      },
+                    ],
+                    "width": 26,
+                  },
+                  {
+                    "backgroundColor": "#2E9E6C",
+                    "borderColor": "#FFFFFF",
+                  },
+                ]
+              }
+            >
+              <View
+                style={
+                  [
+                    {
+                      "borderRadius": 3.5,
+                      "height": 7,
+                      "transform": [
+                        {
+                          "rotate": "45deg",
+                        },
+                      ],
+                      "width": 7,
+                    },
+                    {
+                      "backgroundColor": "#0D1512",
+                    },
+                  ]
+                }
+              />
+            </View>
+          </Marker>
+          <Marker
+            anchor={
+              {
+                "x": 0.5,
+                "y": 0.5,
+              }
+            }
+            coordinate={
+              {
+                "latitude": 36.4,
+                "longitude": 10.6,
+              }
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "borderRadius": 8,
+                    "borderWidth": 2,
+                    "height": 16,
+                    "width": 16,
+                  },
+                  {
+                    "backgroundColor": "#14201B",
+                    "borderColor": "#FFFFFF",
+                  },
+                ]
+              }
+            />
+          </Marker>
+        </MapView>
+        <View
+          pointerEvents="none"
+          style={
+            {
+              "backgroundColor": "#EDEBE1",
+              "opacity": 0.18,
+            }
+          }
+        />
+        <Animated.View
+          accessibilityElementsHidden={true}
+          importantForAccessibility="no-hide-descendants"
+          style={
+            [
+              {
+                "backgroundColor": "#EAE7DC",
+              },
+              {
+                "borderRadius": 0,
+                "height": 16,
+                "opacity": AnimatedValue {
+                  "value": 0.45,
+                },
+                "width": "100%",
+              },
+              {},
+            ]
+          }
+        />
+      </View>
+      <TouchableOpacity
+        accessibilityLabel="Fermer"
+        accessibilityRole="button"
+        hitSlop={12}
+        onPress={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "borderRadius": 20,
+              "elevation": 3,
+              "height": 40,
+              "justifyContent": "center",
+              "position": "absolute",
+              "right": 16,
+              "shadowColor": "#000",
+              "shadowOffset": {
+                "height": 2,
+                "width": 0,
+              },
+              "shadowOpacity": 0.15,
+              "shadowRadius": 6,
+              "width": 40,
+            },
+            {
+              "backgroundColor": "#FFFFFF",
+              "top": 8,
+            },
+          ]
+        }
+      >
+        <Ionicons
+          color="#14201B"
+          name="close"
+          size={22}
+        />
+      </TouchableOpacity>
+    </View>
+  </Modal>
 </View>
 `;

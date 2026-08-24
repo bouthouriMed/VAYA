@@ -119,6 +119,10 @@ export interface MatchCandidate {
   seatsAvailable: number;
   contributionPerSeat: number;
   pickupWalkMinutes: number;
+  /** Dropoff-side mirror of `pickupWalkMinutes`, always server-computed at
+   *  the same walk pace as every other walk-time in the app — never fall
+   *  back to a client-side re-estimate for this leg when this is present. */
+  dropoffWalkMinutes: number;
   routeOverlapPercent: number;
   score: number;
   reasons: string[];

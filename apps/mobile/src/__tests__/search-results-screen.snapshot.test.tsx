@@ -71,6 +71,7 @@ function candidate(overrides: Partial<MatchCandidate>): MatchCandidate {
     seatsAvailable: 4,
     contributionPerSeat: 5.5,
     pickupWalkMinutes: 0,
+    dropoffWalkMinutes: 0,
     routeOverlapPercent: 0.8,
     score: 0.9,
     reasons: [],
@@ -103,7 +104,6 @@ function mockApi(state: { matching?: { data?: SearchResult; isLoading?: boolean 
     }),
     useNotifyMeMutation: () => [vi.fn(), { isLoading: false, isSuccess: false }],
     useListFellowPassengersQuery: () => ({ data: [] }),
-    useGetRideStopsQuery: () => ({ data: [] }),
   }));
 }
 

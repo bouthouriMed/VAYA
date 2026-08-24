@@ -2,7 +2,7 @@ import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
 import { renderJSON } from './test-utils/renderJSON';
 import type { RootState } from '../state/store';
-import type { Booking, PublicProfile } from '../state/api';
+import type { Booking, PublicProfile, TrustSummary } from '../state/api';
 
 /**
  * Real react-test-renderer snapshots of bookings/[bookingId].tsx (2026-08-23
@@ -71,6 +71,12 @@ const DRIVER_PROFILE: PublicProfile = {
   },
 };
 
+const TRUST_SUMMARY: TrustSummary = {
+  userId: 'driver-amine',
+  driver: { tier: 'trusted', ratingAvg: 4.85, tripCount: 130, punctualityScore: 0.93 },
+  rider: null,
+};
+
 type QueryResult<T> = { data?: T; isLoading?: boolean };
 type MutationTuple = [unknown, { isLoading: boolean }];
 
@@ -88,10 +94,18 @@ function mockApi(): void {
       },
     }),
     useGetUserPublicProfileQuery: (): QueryResult<PublicProfile> => ({ data: DRIVER_PROFILE }),
+    useGetUserTrustSummaryQuery: (): QueryResult<TrustSummary> => ({ data: TRUST_SUMMARY }),
     // CancellationSheet's transitive hooks — rendered closed (visible=false)
     // so inert stubs suffice; they just have to exist.
     useCancelBookingMutation: (): MutationTuple => [vi.fn(), { isLoading: false }],
     useGetCancellationPreviewQuery: (): QueryResult<unknown> => ({}),
+  }));
+  // useCurrentPosition triggers a real expo-location permission request on
+  // mount — irrelevant to what this snapshot verifies, and expo-location
+  // isn't mocked in this test environment at all, so stub it directly
+  // rather than let the real module load and throw.
+  vi.doMock('../services/location/useCurrentPosition', () => ({
+    useCurrentPosition: () => ({ status: 'idle', position: null }),
   }));
 }
 

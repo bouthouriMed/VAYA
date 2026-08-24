@@ -9,6 +9,10 @@ import { NoShowReportSheet } from '../bookings/NoShowReportSheet';
 interface DriverBookingDetailSheetProps {
   visible: boolean;
   booking: Booking | null;
+  /** Fallback dropoff label when this booking has no mid-route dropoff of
+   *  its own (booking.dropoffLabel is null) — the rider rides to the ride's
+   *  own destination unchanged, so that's what's shown instead. */
+  rideDestinationLabel?: string;
   onClose: () => void;
 }
 
@@ -28,6 +32,7 @@ interface DriverBookingDetailSheetProps {
 export function DriverBookingDetailSheet({
   visible,
   booking,
+  rideDestinationLabel,
   onClose,
 }: DriverBookingDetailSheetProps): React.JSX.Element {
   const theme = useAppTheme().colors;
@@ -78,9 +83,15 @@ export function DriverBookingDetailSheet({
           </View>
 
           <View style={[styles.factRow, { backgroundColor: theme.surfaceMuted }]}>
-            <Icon name="location-outline" size="sm" color={theme.inkMuted} />
+            <Icon name="navigate-outline" size="sm" color={theme.inkMuted} />
             <Text variant="bodySmall" color={theme.ink} numberOfLines={2} style={styles.factText}>
               {booking.pickupLabel}
+            </Text>
+          </View>
+          <View style={[styles.factRow, { backgroundColor: theme.surfaceMuted }]}>
+            <Icon name="flag-outline" size="sm" color={theme.inkMuted} />
+            <Text variant="bodySmall" color={theme.ink} numberOfLines={2} style={styles.factText}>
+              {booking.dropoffLabel ?? rideDestinationLabel ?? 'Destination du trajet'}
             </Text>
           </View>
 

@@ -144,6 +144,13 @@ export interface MatchCandidate {
   seatsAvailable: number;
   contributionPerSeat: number;
   pickupWalkMinutes: number;
+  /** Dropoff-side mirror of `pickupWalkMinutes` — walk distance from the
+   *  passenger's requested destination to their actual dropoff point (the
+   *  closest ranked dropoff stop, or the ride's own destination for a
+   *  legacy/endpoint match), at the same WALK_SPEED_M_PER_MIN pace. Always
+   *  present so the client never has to fall back to a second, differently-
+   *  tuned client-side estimate for this leg. */
+  dropoffWalkMinutes: number;
   routeOverlapPercent: number;
   score: number;
   reasons: string[];
@@ -355,6 +362,7 @@ function buildEndpointCandidate(
 
   const timeDeltaMin = Math.abs(ride.departureAt.getTime() - input.when.getTime()) / 60_000;
   const pickupWalkMinutes = pickupDistanceM / WALK_SPEED_M_PER_MIN;
+  const dropoffWalkMinutes = dropoffDistanceM / WALK_SPEED_M_PER_MIN;
 
   // Real road-geometry overlap when both routes have a polyline (rides
   // created before OSRM was wired, or seeded before a backfill, won't —
@@ -390,6 +398,7 @@ function buildEndpointCandidate(
     seatsAvailable: ride.seatsAvailable,
     contributionPerSeat: ride.contributionPerSeat,
     pickupWalkMinutes,
+    dropoffWalkMinutes,
     routeOverlapPercent: clamp01(routeOverlapPercent / 100) * 100,
     score,
     originLat: ride.originLat,
@@ -577,6 +586,7 @@ async function scorePassThroughCandidates(
       seatsAvailable: ride.seatsAvailable,
       contributionPerSeat: ride.contributionPerSeat,
       pickupWalkMinutes,
+      dropoffWalkMinutes,
       // The rider's whole requested trip runs on this ride's route by
       // construction (that's the qualification test above) — a real 100%,
       // not the endpoint-distance proxy `buildEndpointCandidate` uses.
@@ -717,6 +727,7 @@ async function scoreDetourCandidates(
 
     const timeDeltaMin = Math.abs(ride.departureAt.getTime() - input.when.getTime()) / 60_000;
     const pickupWalkMinutes = 0; // No walk — this tier's whole point is the driver detouring TO the rider, not the rider walking to the route.
+    const dropoffWalkMinutes = 0; // Same reasoning — the driver detours to the rider's actual dropoff too.
 
     const score =
       clamp01(1 - detourRatio / (MAX_DETOUR_RATIO * 1.2)) * 0.5 +
@@ -733,6 +744,7 @@ async function scoreDetourCandidates(
       seatsAvailable: ride.seatsAvailable,
       contributionPerSeat: ride.contributionPerSeat,
       pickupWalkMinutes,
+      dropoffWalkMinutes,
       routeOverlapPercent: 0,
       score,
       originLat: ride.originLat,
