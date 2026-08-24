@@ -6,6 +6,7 @@ import { canTransitionRideStatus, computeSuggestedPrice, type SuggestedPrice } f
 import { getRoute, type RouteResult } from '../../lib/routing.js';
 import { upsertRouteGeometry } from '../../lib/spatial.js';
 import { getActivePricingConfig } from '../pricing/pricing.service.js';
+import { redeemRouteToken } from './route-options.service.js';
 import type { CreateRideInput, UpdateRideInput } from '@vaya/validation';
 
 type Database = ReturnType<typeof getDatabase>;
@@ -91,10 +92,27 @@ export async function createRide(
     }
   }
 
-  const route = await getRoute(
-    { lat: input.origin.lat, lng: input.origin.lng },
-    { lat: input.destination.lat, lng: input.destination.lng },
-  );
+  const originPoint = { lat: input.origin.lat, lng: input.origin.lng };
+  const destinationPoint = { lat: input.destination.lat, lng: input.destination.lng };
+
+  // Route-selection step (rides/route-options.service.ts): a redeemed token
+  // carries the exact route the driver picked on the route-selection step
+  // (server-computed moments earlier, never a client-supplied distance/
+  // geometry). Missing/expired/mismatched token — no token at all, Redis
+  // down, more than 15 minutes stale, or minted for a different origin/
+  // destination — degrades to the same default-route computation this
+  // codebase always did, never blocking ride creation.
+  const redeemed = input.routeToken
+    ? await redeemRouteToken(input.routeToken, originPoint, destinationPoint)
+    : null;
+  const route: RouteResult = redeemed
+    ? {
+        polyline: redeemed.polyline,
+        distanceM: redeemed.distanceM,
+        durationSec: redeemed.durationSec,
+        isEstimate: redeemed.isEstimate,
+      }
+    : await getRoute(originPoint, destinationPoint);
 
   // Phase 6 (docs/domain/pricing.md): computed right after the route, using
   // the same call that already produced routePolyline/estimatedDurationSec
@@ -139,6 +157,7 @@ export async function createRide(
       status: 'draft',
       routePolyline: route.polyline || null,
       estimatedDurationSec: route.durationSec,
+      routeKind: redeemed?.kind ?? null,
       recurringPatternId: input.recurringPatternId ?? null,
     })
     .returning();

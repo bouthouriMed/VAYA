@@ -29,6 +29,7 @@ function makeRide(overrides: Partial<Ride> = {}): Ride {
     status: 'published',
     routePolyline: null,
     estimatedDurationSec: 4500,
+    routeKind: null,
     ...overrides,
   };
 }

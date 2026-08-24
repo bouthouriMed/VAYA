@@ -45,3 +45,5 @@ export { GlassSurface } from './GlassSurface';
 export { StatusBarBlend } from './StatusBarBlend';
 export { DriverListCard } from './DriverListCard';
 export type { DriverListCardData } from './DriverListCard';
+export { RouteOptionCard } from './RouteOptionCard';
+export type { RouteOptionCardData, RouteOptionKind } from './RouteOptionCard';

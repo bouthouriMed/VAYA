@@ -15,6 +15,23 @@ export interface RouteResult {
   isEstimate: boolean;
 }
 
+/** What kind of route this alternative represents — drives the label a
+ *  driver sees on the route-selection step (rides/route-options.service.ts)
+ *  and, for `no_tolls`/`no_highways`, was explicitly requested via a route
+ *  modifier rather than merely being whatever a provider's alternate-route
+ *  algorithm happened to surface. */
+export type RouteOptionKind = 'fastest' | 'no_tolls' | 'no_highways' | 'alternative';
+
+export interface RouteAlternative extends RouteResult {
+  kind: RouteOptionKind;
+  /** Whether this route carries tolls — `false` when it was computed with
+   *  tolls explicitly avoided, `null` when the provider has no toll data to
+   *  report (always the case for the OSRM adapter, and for Google whenever
+   *  this deployment's field mask/billing doesn't surface toll info). Never
+   *  fabricated when unknown. */
+  hasTolls: boolean | null;
+}
+
 /**
  * RoutingProvider abstraction (mirrors LocationProvider in
  * modules/geocoding/providers/ exactly) — every routing call in this
@@ -46,4 +63,18 @@ export interface RoutingProvider {
     origins: RoutePoint[],
     destinations: RoutePoint[],
   ): Promise<Array<{ originIndex: number; destinationIndex: number; distanceM: number; durationSec: number }> | null>;
+
+  /** Route-selection step (rides/route-options.service.ts): computes a
+   *  small set of genuinely distinct route alternatives between origin and
+   *  destination — the fastest route plus, where the provider actually
+   *  supports it, an explicit toll-avoiding and a highway-avoiding
+   *  alternative — instead of only ever returning one route. Returns null
+   *  (never throws) when the provider is unreachable, exactly like
+   *  `computeRoute`; an empty array is a valid "no route found" result,
+   *  distinct from "couldn't ask the provider at all". */
+  computeRouteAlternatives(
+    origin: RoutePoint,
+    destination: RoutePoint,
+    waypoints?: RoutePoint[],
+  ): Promise<RouteAlternative[] | null>;
 }

@@ -10,6 +10,7 @@ import { nearestRoad, getRouteWithSpeedProfile, type RoutePoint } from '../../li
 import { reverseGeocode } from '../geocoding/geocoding.service.js';
 import { OVERLAP_CORRIDOR_WIDTH_M } from '../matching/matching.service.js';
 import { ForbiddenError, NotFoundError } from '../../lib/errors.js';
+import { classifyTripProfile, type TripProfile } from '@vaya/domain';
 
 type Database = ReturnType<typeof getDatabase>;
 type RouteStopRow = typeof routeStops.$inferSelect;
@@ -19,11 +20,12 @@ type RouteStopRow = typeof routeStops.$inferSelect;
 // for the design these implement.
 
 /** Sample the route roughly every 1km — a middle ground within the design
- *  doc's proposed 800m-1.2km range. A future iteration should make this a
- *  pricing_configs-style per-region tunable rather than a fixed constant,
- *  once real driver usage data justifies the added complexity (premature
- *  configurability isn't justified yet — CLAUDE.md's architecture
- *  principles). */
+ *  doc's proposed 800m-1.2km range. This is the "urban" trip profile's
+ *  value (@vaya/domain's `classifyTripProfile`) and the default for direct
+ *  callers of `sampleRoutePoints` (e.g. unit tests); `computeCandidatesForRoute`
+ *  below derives the actual interval it uses per-route from the route's own
+ *  length instead of this fixed constant — a short commute samples more
+ *  densely, a long intercity haul more sparsely. */
 export const SAMPLE_INTERVAL_M = 1000;
 
 /** Reject candidates whose driver detour exceeds either threshold outright
@@ -38,7 +40,9 @@ export const MAX_DEVIATION_SECONDS = 120;
 const DETOUR_SPEED_M_PER_S = 6; // ~22 km/h
 
 /** Top N candidates returned to the driver, per docs/domain/ride-engine.md
- *  ("proposed N=6-10"). */
+ *  ("proposed N=6-10"). This is the "urban" trip profile's value and the
+ *  default for direct callers of `clusterAndRank`; `computeCandidatesForRoute`
+ *  derives the actual cap per-route from `classifyTripProfile` instead. */
 export const MAX_CANDIDATES = 8;
 
 // --- Road classification --------------------------------------------------
@@ -287,37 +291,56 @@ export async function computeCandidatesForRoute(
   const annotated = await getRouteWithSpeedProfile(origin, destination);
   if (!annotated) return null;
 
+  // Route-length-aware tuning (@vaya/domain's classifyTripProfile): a short
+  // commute samples more densely with a tighter merge radius (little room
+  // to spread candidates apart), while a long intercity haul samples more
+  // sparsely (a driver won't detour every km on a highway leg) but is
+  // allowed more total candidates overall, since it passes through more
+  // distinct towns worth offering as a stop. Cache key includes the profile
+  // type so a route whose distance later crosses a threshold (shouldn't
+  // happen for an already-generated ride, but keeps the cache honest) never
+  // serves stale candidates tuned for the wrong profile.
+  const profile: TripProfile = classifyTripProfile(annotated.distanceM);
+
   const hash = hashPolyline(routePolyline);
-  return cached(`route-stops:candidates:v1:${hash}`, CANDIDATE_CACHE_TTL_SEC, async () => {
-    const samples = sampleRoutePoints(annotated.points, annotated.segmentSpeedsMPerS);
+  return cached(
+    `route-stops:candidates:v2:${profile.type}:${hash}`,
+    CANDIDATE_CACHE_TTL_SEC,
+    async () => {
+      const samples = sampleRoutePoints(
+        annotated.points,
+        annotated.segmentSpeedsMPerS,
+        profile.sampleIntervalM,
+      );
 
-    const raw: ScoredStopCandidate[] = [];
-    for (const sample of samples) {
-      const nearest = await nearestRoad(sample.point);
-      if (!nearest) continue; // couldn't snap — water, out of coverage, etc.
+      const raw: ScoredStopCandidate[] = [];
+      for (const sample of samples) {
+        const nearest = await nearestRoad(sample.point);
+        if (!nearest) continue; // couldn't snap — water, out of coverage, etc.
 
-      const roadClass = classifyRoadSpeed(sample.segmentSpeedMPerS);
-      const { deviationMeters, deviationSeconds } = computeDeviationCost(nearest.snapDistanceM);
-      const hasLabel = nearest.name.trim().length > 0;
+        const roadClass = classifyRoadSpeed(sample.segmentSpeedMPerS);
+        const { deviationMeters, deviationSeconds } = computeDeviationCost(nearest.snapDistanceM);
+        const hasLabel = nearest.name.trim().length > 0;
 
-      const scored = scoreStopCandidate({ deviationMeters, deviationSeconds, roadClass, hasLabel });
-      if (!scored.accepted) continue;
+        const scored = scoreStopCandidate({ deviationMeters, deviationSeconds, roadClass, hasLabel });
+        if (!scored.accepted) continue;
 
-      raw.push({
-        sequence: sample.sequence,
-        label: await buildLabel(nearest),
-        lat: nearest.lat,
-        lng: nearest.lng,
-        roadSnapped: true,
-        deviationMeters,
-        deviationSeconds,
-        suitabilityScore: scored.suitabilityScore,
-        roadClass,
-      });
-    }
+        raw.push({
+          sequence: sample.sequence,
+          label: await buildLabel(nearest),
+          lat: nearest.lat,
+          lng: nearest.lng,
+          roadSnapped: true,
+          deviationMeters,
+          deviationSeconds,
+          suitabilityScore: scored.suitabilityScore,
+          roadClass,
+        });
+      }
 
-    return clusterAndRank(raw);
-  });
+      return clusterAndRank(raw, profile.mergeRadiusM, profile.maxCandidates);
+    },
+  );
 }
 
 // --- Orchestration: ride-scoped generation + persistence ------------------

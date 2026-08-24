@@ -6,6 +6,7 @@ import {
   updateRideSchema,
   updateRideStopsSchema,
   addCustomStopSchema,
+  routeOptionsRequestSchema,
 } from '@vaya/validation';
 import { RIDE_STATUSES } from '@vaya/domain';
 import { getDatabase } from '../../lib/database.js';
@@ -25,6 +26,7 @@ import {
   listRideStopsForDriver,
   addCustomStop,
 } from './stop-candidates.service.js';
+import { getRouteOptions } from './route-options.service.js';
 
 const rideSchema = z.object({
   id: z.string().uuid(),
@@ -44,6 +46,10 @@ const rideSchema = z.object({
   status: z.enum(RIDE_STATUSES),
   routePolyline: z.string().nullable(),
   estimatedDurationSec: z.number().nullable(),
+  // Route-selection step: which kind of route alternative the driver
+  // picked, or null (created before this feature existed, or the token had
+  // expired) — see db/schema/rides.schema.ts's doc comment.
+  routeKind: z.string().nullable(),
 });
 
 // Phase 6 (docs/domain/pricing.md): the computed bounded price suggestion,
@@ -61,6 +67,25 @@ const rideWithPricingSchema = rideSchema.extend({
 });
 
 const rideIdParamSchema = z.object({ rideId: z.string().uuid() });
+
+// Route-selection step (route-options.service.ts): a small set of real,
+// distinct route alternatives for a not-yet-created ride, each redeemable
+// via `routeToken` on POST /rides.
+const routeOptionSchema = z.object({
+  token: z.string(),
+  kind: z.enum(['fastest', 'no_tolls', 'no_highways', 'alternative']),
+  label: z.string(),
+  distanceM: z.number(),
+  durationSec: z.number(),
+  polyline: z.string(),
+  isEstimate: z.boolean(),
+  hasTolls: z.boolean().nullable(),
+  recommended: z.boolean(),
+});
+
+const routeOptionsResponseSchema = z.object({
+  options: z.array(routeOptionSchema),
+});
 
 const routeStopSchema = z.object({
   id: z.string().uuid(),
@@ -104,6 +129,26 @@ export async function ridesRoutes(fastify: FastifyInstance): Promise<void> {
     async (request, reply) => {
       const ride = await createRide(db, getUserId(request), request.body);
       reply.send(ride);
+    },
+  );
+
+  // Route-selection step: stateless (no rideId — a ride doesn't exist yet),
+  // called right after the driver confirms origin/destination/date/seats.
+  // Authenticated (not public) to keep the routing-provider call budget
+  // scoped to signed-in users, consistent with how the rest of the
+  // ride-creation flow is gated.
+  app.post(
+    '/rides/route-options',
+    {
+      onRequest: [fastify.authenticate],
+      schema: { body: routeOptionsRequestSchema, response: { 200: routeOptionsResponseSchema } },
+    },
+    async (request, reply) => {
+      const result = await getRouteOptions(
+        { lat: request.body.origin.lat, lng: request.body.origin.lng },
+        { lat: request.body.destination.lat, lng: request.body.destination.lng },
+      );
+      reply.send(result);
     },
   );
 

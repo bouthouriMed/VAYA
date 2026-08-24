@@ -24,6 +24,7 @@ import {
   PassengerSheet,
   GlassSurface,
   PriceRangeStepper,
+  RouteOptionCard,
   Icon,
   useAppTheme,
   spacing,
@@ -48,6 +49,7 @@ import { useContextualAuth } from '../../src/features/auth/useContextualAuth';
 import { ContextualAuthSheet } from '../../src/features/auth/ContextualAuthSheet';
 import {
   useGetMyDriverProfileQuery,
+  useGetRouteOptionsMutation,
   useCreateRideMutation,
   useUpdateRideMutation,
   useGenerateCandidateStopsMutation,
@@ -58,6 +60,7 @@ import {
   useLazyGeocodeReverseQuery,
   type RouteStop,
   type SuggestedPrice,
+  type RouteOption,
 } from '../../src/state/api';
 import { decodePolyline } from '../../src/utils/polyline';
 import { trackEvent } from '../../src/services/analytics/analytics';
@@ -85,7 +88,14 @@ const TUNIS_REGION: MapRegion = {
 // was the bug that made the confirm bar invisible.
 const SELECTION_CARD_HEIGHT = 168;
 
-type Step = 'form' | 'price' | 'review';
+// 'route' is the route-selection step (world-class-carpooling-app UX:
+// Google/Waze-style route picker) inserted between the origin/destination
+// form and pickup/dropoff selection — only ever entered when there's a
+// real choice to make (2+ genuinely distinct route alternatives); a route
+// with only one real option skips straight past it, per the "without
+// friction" principle this whole wizard already follows for zero-stop
+// publishing.
+type Step = 'form' | 'route' | 'price' | 'review';
 
 // Explicit journey-configuration vs. presentation state (Publish Explorer
 // spec §18) — kept as two separate small state pieces rather than one
@@ -256,6 +266,16 @@ export default function PublishTabScreen(): React.JSX.Element {
   const [isGeneratingStops, setIsGeneratingStops] = useState(false);
   const [osrmUnavailable, setOsrmUnavailable] = useState(false);
 
+  // Route-selection step: a small set of real, distinct route alternatives
+  // (fastest/toll-avoiding/highway-avoiding/algorithmic-alternate) fetched
+  // right after the form step, before the ride itself exists. `vehicleIdRef`
+  // carries the vehicle id from the form step through to `continueFromRoute`
+  // — kept as a ref (not state) since it's write-once-per-entry plumbing,
+  // never itself rendered.
+  const [routeOptions, setRouteOptions] = useState<RouteOption[]>([]);
+  const [selectedRouteToken, setSelectedRouteToken] = useState<string | null>(null);
+  const vehicleIdRef = useRef<string | null>(null);
+
   // Pickup/dropoff selection (Publish Explorer spec §5-11): mapMode drives
   // which full-map workspace (if any) is on screen; pickup/dropoff are the
   // driver's confirmed precise meeting points, independent of `origin`/
@@ -301,6 +321,7 @@ export default function PublishTabScreen(): React.JSX.Element {
     isLoading: isProfileLoading,
     refetch: refetchDriverProfile,
   } = useGetMyDriverProfileQuery(undefined, { skip: !accessToken });
+  const [fetchRouteOptions, { isLoading: isLoadingRouteOptions }] = useGetRouteOptionsMutation();
   const [createRide, { isLoading: isCreating }] = useCreateRideMutation();
   const [updateRide, { isLoading: isUpdatingPrice }] = useUpdateRideMutation();
   const [generateCandidateStops] = useGenerateCandidateStopsMutation();
@@ -350,6 +371,8 @@ export default function PublishTabScreen(): React.JSX.Element {
     setMapMode('none');
     setPickup(null);
     setDropoff(null);
+    setRouteOptions([]);
+    setSelectedRouteToken(null);
   }, [origin, destination]);
 
   // Cross-fade + slight rise between the three steps instead of an instant
@@ -592,10 +615,18 @@ export default function PublishTabScreen(): React.JSX.Element {
    *  to source recommended points from (§6/§7), which only exists once a
    *  ride does. Safe to call again after a form-only edit (date/time/seats)
    *  without recreating anything — see the invalidation effect below, which
-   *  is what actually clears `rideId` when origin/destination change. */
-  async function createRideAndEnterPickup(vehicleId: string): Promise<void> {
+   *  is what actually clears `rideId` when origin/destination change.
+   *  `routeToken` (from the route-selection step, when it was shown) is
+   *  redeemed server-side for the exact route the driver picked — see
+   *  createRide's doc comment in rides.service.ts; omitted or expired falls
+   *  back to the server's own default route, never blocking creation. */
+  async function createRideAndEnterPickup(vehicleId: string, routeToken?: string): Promise<void> {
     if (!origin || !destination) return;
     setErrorMessage(undefined);
+    // Route selection (if shown) is a step that precedes ride creation, not
+    // one entered from it — returning here lands back on the base 'form'
+    // render, where mapMode('pickup') below actually takes over the screen.
+    setStep('form');
 
     let ride: {
       id: string;
@@ -611,6 +642,7 @@ export default function PublishTabScreen(): React.JSX.Element {
         destination: { label: destination.label, lat: destination.lat, lng: destination.lng },
         departureAt,
         seatsTotal: seats,
+        routeToken,
         // Phase 6 (docs/domain/pricing.md): price is deliberately omitted
         // here — the driver hasn't seen a route-derived bound yet, so
         // there's nothing meaningful to submit. The server computes the
@@ -643,7 +675,56 @@ export default function PublishTabScreen(): React.JSX.Element {
     });
 
     void generateStopsInBackground(ride.id);
+    setRouteOptions([]);
+    setSelectedRouteToken(null);
     setMapMode('pickup');
+  }
+
+  /** Route-selection step's entry point — fetches real route alternatives
+   *  for the confirmed origin/destination. World-class-app judgment call,
+   *  not a hardcoded rule: when there's nothing genuinely worth choosing
+   *  between (a network hiccup, or a route with no meaningful alternative
+   *  at all — the common case for a short in-town hop), this skips the
+   *  step entirely and creates the ride against the recommended route
+   *  directly, exactly as this wizard did before this feature existed —
+   *  "without friction" means never showing a decision with only one real
+   *  answer. */
+  async function enterRouteSelection(vehicleId: string): Promise<void> {
+    if (!origin || !destination) return;
+    vehicleIdRef.current = vehicleId;
+
+    try {
+      const { options } = await fetchRouteOptions({
+        origin: { lat: origin.lat, lng: origin.lng },
+        destination: { lat: destination.lat, lng: destination.lng },
+      }).unwrap();
+
+      if (options.length <= 1) {
+        await createRideAndEnterPickup(vehicleId, options[0]?.token);
+        return;
+      }
+
+      setRouteOptions(options);
+      setSelectedRouteToken(options.find((o) => o.recommended)?.token ?? options[0]!.token);
+      trackEvent('ride_route_options_shown', { count: options.length });
+      setStep('route');
+    } catch {
+      // Never block ride creation on the enhancement itself — degrade to
+      // the exact pre-feature behavior (server picks the default route).
+      await createRideAndEnterPickup(vehicleId);
+    }
+  }
+
+  /** Route-selection step's "Continuer" — hands the picked token to ride
+   *  creation, which redeems it server-side for the exact route computed
+   *  moments earlier (rides.service.ts's createRide doc comment). */
+  async function continueFromRoute(): Promise<void> {
+    const vehicleId = vehicleIdRef.current;
+    if (!vehicleId) return;
+    trackEvent('ride_route_option_selected', {
+      kind: routeOptions.find((o) => o.token === selectedRouteToken)?.kind ?? null,
+    });
+    await createRideAndEnterPickup(vehicleId, selectedRouteToken ?? undefined);
   }
 
   /** The form step's "Suivant"/"Choisir le prix" — gated by requireAuth (a
@@ -669,7 +750,7 @@ export default function PublishTabScreen(): React.JSX.Element {
     const { data: freshProfile } = await refetchDriverProfile();
     const freshVehicle = freshProfile?.vehicles[0];
     if (freshVehicle) {
-      await createRideAndEnterPickup(freshVehicle.id);
+      await enterRouteSelection(freshVehicle.id);
     } else {
       setStep('review');
     }
@@ -814,6 +895,9 @@ export default function PublishTabScreen(): React.JSX.Element {
     setCandidates([]);
     setIsGeneratingStops(false);
     setOsrmUnavailable(false);
+    setRouteOptions([]);
+    setSelectedRouteToken(null);
+    vehicleIdRef.current = null;
     setMapMode('none');
     setPickup(null);
     setDropoff(null);
@@ -902,6 +986,7 @@ export default function PublishTabScreen(): React.JSX.Element {
   }
 
   const stepTitles: Record<Exclude<Step, 'form'>, string> = {
+    route: "Choisir l'itinéraire",
     price: 'Prix suggéré',
     review: 'Vérifier et publier',
   };
@@ -913,6 +998,7 @@ export default function PublishTabScreen(): React.JSX.Element {
   function handleWizardBack(): void {
     if (step === 'review') setStep(vehicle ? 'price' : 'form');
     else if (step === 'price') setStep('form');
+    else if (step === 'route') setStep('form');
   }
 
   if (isProfileLoading) {
@@ -920,6 +1006,90 @@ export default function PublishTabScreen(): React.JSX.Element {
       <View style={[styles.container, { backgroundColor: theme.background }]}>
         <View style={[styles.loadingWrap, { paddingTop: insets.top }]}>
           <ActivityIndicator size="large" color={theme.accent} />
+        </View>
+      </View>
+    );
+  }
+
+  if (step === 'route') {
+    const decodedByToken = new Map(
+      routeOptions.map((o) => [o.token, decodePolyline(o.polyline)] as const),
+    );
+    const allPoints = routeOptions.flatMap(
+      (o) => decodedByToken.get(o.token)?.map((c) => ({ lat: c.latitude, lng: c.longitude })) ?? [],
+    );
+    const routeOptionsRegion = regionForPoints(allPoints) ?? TUNIS_REGION;
+
+    return (
+      <View style={[styles.container, { backgroundColor: theme.background }]}>
+        <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
+          <StepHeader theme={theme} title={stepTitles.route} onBack={handleWizardBack} />
+        </View>
+
+        <View style={styles.routeMapSection}>
+          <MapView
+            style={StyleSheet.absoluteFillObject}
+            provider={PROVIDER_DEFAULT}
+            customMapStyle={scheme === 'dark' ? darkMapStyle : lightMapStyle}
+            initialRegion={routeOptionsRegion}
+          >
+            {/* Unselected routes first, so the selected one always draws on
+                top — matches Google/Waze's own route-picker layering. */}
+            {routeOptions
+              .filter((o) => o.token !== selectedRouteToken)
+              .map((option) => (
+                <MapRoute
+                  key={option.token}
+                  coordinates={decodedByToken.get(option.token) ?? []}
+                  color={theme.inkFaint}
+                  width={3}
+                />
+              ))}
+            {routeOptions
+              .filter((o) => o.token === selectedRouteToken)
+              .map((option) => (
+                <MapRoute
+                  key={option.token}
+                  coordinates={decodedByToken.get(option.token) ?? []}
+                  color={theme.accent}
+                  width={5}
+                  showCorridor
+                />
+              ))}
+          </MapView>
+        </View>
+
+        <GlassSurface theme={theme} scheme={scheme} radius="2xl" style={styles.routeSheet}>
+          <ScrollView contentContainerStyle={styles.routeList} showsVerticalScrollIndicator={false}>
+            <Text variant="label" color={theme.inkFaint} style={styles.eyebrow}>
+              {routeOptions.length} ITINÉRAIRES DISPONIBLES
+            </Text>
+            {routeOptions.map((option) => (
+              <RouteOptionCard
+                key={option.token}
+                option={option}
+                selected={option.token === selectedRouteToken}
+                onPress={() => setSelectedRouteToken(option.token)}
+                theme={theme}
+              />
+            ))}
+          </ScrollView>
+        </GlassSurface>
+
+        {errorMessage ? (
+          <Text variant="bodySmall" color={theme.error} align="center">
+            {errorMessage}
+          </Text>
+        ) : null}
+
+        <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.md }]}>
+          <PrimaryButton
+            theme={theme}
+            label="Continuer"
+            loading={isCreating}
+            disabled={!selectedRouteToken}
+            onPress={() => void continueFromRoute()}
+          />
         </View>
       </View>
     );
@@ -1575,7 +1745,7 @@ export default function PublishTabScreen(): React.JSX.Element {
             theme={theme}
             label={readyForPrice ? 'Choisir le prix' : 'Suivant'}
             icon={readyForPrice ? 'pricetag-outline' : undefined}
-            loading={isCreating}
+            loading={isCreating || isLoadingRouteOptions}
             disabled={!canContinue}
             onPress={() => requireAuth(() => void proceedFromForm(), 'publishing')}
           />
@@ -1882,6 +2052,22 @@ const styles = StyleSheet.create({
   },
   priceCard: {
     padding: spacing.lg,
+  },
+  // Route-selection step: a persistent map (all alternatives drawn at
+  // once, Google/Waze-picker style) filling the space between the header
+  // and the option-list sheet below it.
+  routeMapSection: {
+    flex: 1,
+    position: 'relative',
+  },
+  routeSheet: {
+    maxHeight: '48%',
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.sm,
+  },
+  routeList: {
+    padding: spacing.md,
+    gap: spacing.sm,
   },
   stopsBody: {
     flex: 1,

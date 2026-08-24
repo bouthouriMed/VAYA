@@ -16,13 +16,20 @@ Today, a driver's ride is a single origin point and a single destination point (
 ## Architecture
 
 ```
-Driver publishes route (origin → destination)
+Driver confirms route (origin → destination)
         │
         ▼
-  OSRM computes real polyline + duration   (existing: lib/routing.ts)
+  Route-selection step                      (NEW: route-options.service.ts)
+    - real route alternatives via the active RoutingProvider (fastest,
+      toll-avoiding, highway-avoiding, algorithmic alternates)
+    - driver picks one; skipped entirely when there's only one real option
         │
         ▼
-  Candidate stop generation                 (NEW: stop-candidates.service.ts)
+  OSRM/Google computes real polyline + duration for the picked route
+  (existing: lib/routing.ts, now redeemed via a route-selection token)
+        │
+        ▼
+  Candidate stop generation                 (stop-candidates.service.ts)
     - sample points along the polyline at an interval
     - snap each sample to real road network + nearby POIs
     - score each for stop-suitability
@@ -44,9 +51,22 @@ Driver publishes route (origin → destination)
   Passenger selects one ranked stop as pickupStopId on their booking
 ```
 
+## Route-selection step
+
+Before candidate-stop generation, the driver picks which real road their ride actually takes — the two hardest carpooling mechanics this document opens with ("where to stop, what to pay") both implicitly assumed a single, already-decided route; this step makes the route itself a small, validated, ranked choice too, consistent with product principle #1.
+
+- **`RoutingProvider.computeRouteAlternatives`** (`lib/routing-providers/`): each provider adapter returns a small set of genuinely distinct `RouteAlternative`s, not just whatever a raw "alternatives" flag happens to surface.
+  - **Google Routes**: fires the default request with `computeAlternativeRoutes: true` (fastest + up to 2 algorithmic alternates, with toll info) in parallel with an explicit `avoidTolls` request and an explicit `avoidHighways` request — each modifier result is only kept if its geometry actually differs from every option already collected, so a route with no tolls to begin with doesn't produce a duplicate "avoid tolls" card.
+  - **OSRM**: `alternatives=true` on `/route` — real geometric alternates, honestly labeled `fastest`/`alternative` only (no modifier vocabulary exists in this deployment's profile, so `no_tolls`/`no_highways` are never fabricated for the OSRM path — `hasTolls` is always `null`, never guessed as `false`).
+- **`route-options.service.ts`**: `getRouteOptions(origin, destination)` is stateless (no ride needs to exist yet) and mints a short-lived (15 min), one-shot Redis token per option. `redeemRouteToken` is what `createRide` calls: a token is only valid for the exact origin/destination it was minted for, and is deleted the moment it's redeemed — the mechanism that keeps `createRide`'s pricing server-authoritative (CLAUDE.md: bounds must be enforced server-side, independent of client input) even though the client is choosing which route to use. A missing/expired/mismatched token degrades to the default route computation exactly as before this step existed — never blocks ride creation.
+- **Mobile** (`apps/mobile/app/(tabs)/publish.tsx`): a new `'route'` wizard step between the origin/destination form and pickup/dropoff selection, shown only when there are 2+ genuinely distinct options — a route with a single real answer skips the step entirely (the "without friction" principle this wizard already applies to zero-stop publishing). All alternatives are drawn on one persistent map at once (Google/Waze route-picker convention: unselected routes muted, the selected one solid + on top), with a `RouteOptionCard` list underneath; picking a card just re-highlights the map, no re-fetch.
+- `rides.routeKind` (migration `0016_add_ride_route_kind.sql`, additive/nullable) records which kind of route the driver picked, for future stop-generation tuning and analytics — never backfilled, `null` just means "picked before this feature existed."
+
 ## Candidate stop generation — algorithm
 
 1. **Sample the route.** Walk `rides.routePolyline` (already decoded via `decodePolyline` in `lib/polyline.ts`) and sample candidate points at a fixed interval (proposed: every ~800m–1.2km, denser in urban segments, sparser on open highway — the interval itself should be a `pricing_configs`-style tunable, not hardcoded).
+
+   **Implementation note (route-selection + trip-profile tuning):** implemented as `classifyTripProfile` (`packages/domain/src/route/classify-trip-profile.ts`), a pure function that buckets a route by its real `distanceM` into `commute` (≤15km: 500m interval, up to 5 candidates, 120m merge radius), `urban` (≤45km: the original 1km/8/150m defaults, unchanged), or `intercity` (>45km: 2.5km interval, up to 12 candidates, 300m merge radius — wider spacing since a driver won't detour every km on a highway leg, but more total candidates since the route passes through more distinct towns). `stop-candidates.service.ts`'s `computeCandidatesForRoute` derives the profile from the route it's actually generating candidates for and threads it through `sampleRoutePoints`/`clusterAndRank` instead of the fixed constants — a `pricing_configs`-style DB-backed tunable would be the natural next step once real driver usage data justifies it (same "don't over-configure ahead of evidence" principle CLAUDE.md's architecture section states for pricing).
 2. **Snap to reachable road geometry.** Use OSRM's `nearest` service (already have an OSRM client in `lib/routing.ts` — extend it with a `nearestRoad` call) to snap each sampled point to the nearest drivable road segment. Discard samples that can't snap within a small tolerance (e.g. water, pedestrian-only areas).
 3. **Score stop-suitability.** Each snapped candidate gets a suitability score from signals available without new data acquisition in phase 1:
    - **Route deviation**: distance/time cost for the driver to detour from the straight route line to this stop and back — must stay under a configurable max deviation (e.g. 300m / 2 minutes). Reject candidates above the threshold outright, don't just downrank them.

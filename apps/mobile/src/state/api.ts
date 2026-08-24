@@ -259,6 +259,33 @@ export interface Ride {
   status: 'draft' | 'published' | 'full' | 'in_progress' | 'completed' | 'cancelled';
   routePolyline: string | null;
   estimatedDurationSec: number | null;
+  /** Route-selection step: which kind of route alternative the driver
+   *  picked, or null (ride created before this feature existed, or the
+   *  route token had already expired). */
+  routeKind: string | null;
+}
+
+/** Route-selection step (publish.tsx, between the origin/destination form
+ *  and pickup/dropoff selection): a real, distinct route alternative
+ *  returned by POST /rides/route-options. `token` is redeemed by
+ *  createRide (never a source of distance/duration/geometry itself — see
+ *  route-options.service.ts's doc comment on the server). */
+export type RouteOptionKind = 'fastest' | 'no_tolls' | 'no_highways' | 'alternative';
+
+export interface RouteOption {
+  token: string;
+  kind: RouteOptionKind;
+  label: string;
+  distanceM: number;
+  durationSec: number;
+  polyline: string;
+  isEstimate: boolean;
+  hasTolls: boolean | null;
+  recommended: boolean;
+}
+
+export interface RouteOptionsResult {
+  options: RouteOption[];
 }
 
 /** Phase 6 (docs/domain/pricing.md): the server-computed bounded price
@@ -702,6 +729,16 @@ export const api = createApi({
       query: (formData) => ({ url: '/uploads', method: 'POST', body: formData }),
     }),
 
+    // Route-selection step: stateless (no rideId yet) — called right after
+    // the driver confirms origin/destination/date/seats, before the ride
+    // itself is created. See createRide's `routeToken` field below for how
+    // the driver's pick is redeemed.
+    getRouteOptions: builder.mutation<
+      RouteOptionsResult,
+      { origin: { lat: number; lng: number }; destination: { lat: number; lng: number } }
+    >({
+      query: (body) => ({ url: '/rides/route-options', method: 'POST', body }),
+    }),
     createRide: builder.mutation<RideWithPricing, CreateRideInput>({
       query: (body) => ({ url: '/rides', method: 'POST', body }),
       invalidatesTags: ['MyRides'],
@@ -938,6 +975,7 @@ export const {
   useCreateDriverOnboardingMutation,
   useUpdateVehicleMutation,
   useUploadFileMutation,
+  useGetRouteOptionsMutation,
   useCreateRideMutation,
   useUpdateRideMutation,
   useListMyRidesQuery,

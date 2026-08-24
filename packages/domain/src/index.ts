@@ -7,6 +7,8 @@ export * from './driver/vehicle.types';
 export * from './driver/verification-document.types';
 
 export * from './route/route.types';
+export * from './route/trip-profile.types';
+export * from './route/classify-trip-profile';
 
 export * from './ride/ride.types';
 export * from './ride/ride-status';

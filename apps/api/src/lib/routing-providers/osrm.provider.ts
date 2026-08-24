@@ -1,6 +1,6 @@
 import { getEnv } from '../../config/env.js';
 import { getLogger } from '../../config/logger.js';
-import type { RoutePoint, RouteResult, RoutingProvider } from './routing-provider.types.js';
+import type { RouteAlternative, RoutePoint, RouteResult, RoutingProvider } from './routing-provider.types.js';
 
 /**
  * Self-hosted OSRM adapter — Vaya's original, protected routing
@@ -69,6 +69,46 @@ export class OsrmRoutingProvider implements RoutingProvider {
       };
     } catch (err) {
       getLogger().warn({ err, origin, destination }, 'OSRM unreachable or failed');
+      return null;
+    }
+  }
+
+  /**
+   * OSRM's `alternatives=true` param — real geometric alternates from the
+   * routing graph, but with none of Google's route-modifier vocabulary
+   * (avoid tolls/highways). Every result is honestly labeled 'fastest'
+   * (first) or 'alternative' (the rest) rather than claiming a toll- or
+   * highway-avoidance guarantee OSRM's default `car.lua` profile has no way
+   * to actually make — `hasTolls` is always null here (this deployment has
+   * no toll data source at all), never fabricated as false.
+   */
+  async computeRouteAlternatives(
+    origin: RoutePoint,
+    destination: RoutePoint,
+    waypoints: RoutePoint[] = [],
+  ): Promise<RouteAlternative[] | null> {
+    const allPoints = [origin, ...waypoints, destination];
+    const coords = allPoints.map((p) => `${p.lng},${p.lat}`).join(';');
+    const url = `${getEnv().OSRM_URL}/route/v1/driving/${coords}?overview=full&geometries=polyline&alternatives=true`;
+
+    try {
+      const response = await fetchWithTimeout(url);
+      if (!response.ok) throw new Error(`OSRM responded ${response.status}`);
+      const data = (await response.json()) as OsrmRouteResponse;
+      if (data.code !== 'Ok' || data.routes.length === 0) {
+        throw new Error(`OSRM returned no route (${data.code})`);
+      }
+
+      return data.routes.map((route, index) => ({
+        polyline: route.geometry,
+        distanceM: route.distance,
+        durationSec: Math.round(route.duration),
+        isEstimate: false,
+        kind: index === 0 ? 'fastest' : 'alternative',
+        hasTolls: null,
+      }));
+    } catch (err) {
+      getLogger().warn({ err, origin, destination }, 'OSRM alternatives unreachable or failed');
       return null;
     }
   }

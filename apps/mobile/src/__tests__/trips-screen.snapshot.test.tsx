@@ -67,6 +67,7 @@ const HERO_RIDE: Ride = {
   status: 'published',
   routePolyline: null,
   estimatedDurationSec: 7200,
+  routeKind: null,
 };
 
 const PAST_RIDE: Ride = {

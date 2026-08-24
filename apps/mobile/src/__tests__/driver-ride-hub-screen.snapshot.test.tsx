@@ -35,6 +35,7 @@ const RIDE: Ride = {
   status: 'published',
   routePolyline: null,
   estimatedDurationSec: 7200,
+  routeKind: null,
 };
 
 const PENDING_REQUEST: Booking = {
