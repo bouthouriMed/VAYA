@@ -18,7 +18,7 @@ function readScreen(relativePath: string): string {
 // silently rendering mock data after a real API call succeeded — see
 // docs/product/audit.md §4) so it can't quietly come back.
 describe('booking flow screens render real data, not mocks', () => {
-  const screens = ['bookings/pending.tsx', 'bookings/pickup.tsx', 'bookings/settlement.tsx'];
+  const screens = ['bookings/pending.tsx', 'bookings/pickup.tsx', 'bookings/settlement.tsx', 'search/composer.tsx'];
 
   it.each(screens)('%s does not import from src/mocks/seed-data', (screen) => {
     const source = readScreen(screen);
