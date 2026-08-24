@@ -80,230 +80,296 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
     </View>
     <View
       style={
-        [
-          {
-            "backgroundColor": "#EDEBE1",
-            "borderRadius": 16,
-            "overflow": "hidden",
-            "position": "relative",
-          },
-          {
-            "height": 160,
-          },
-          {
-            "marginHorizontal": 16,
-          },
-        ]
+        {
+          "marginHorizontal": 16,
+          "position": "relative",
+        }
       }
     >
-      <MapView
-        customMapStyle={[]}
-        initialRegion={
-          {
-            "latitude": 36.31,
-            "latitudeDelta": 1.5679999999999952,
-            "longitude": 10.405000000000001,
-            "longitudeDelta": 0.7200000000000017,
-          }
-        }
-        onMapReady={[Function]}
-        pitchEnabled={false}
-        pointerEvents="none"
-        provider="default"
-        rotateEnabled={false}
-        scrollEnabled={false}
-        style={{}}
-        zoomEnabled={false}
-      >
-        <Marker
-          anchor={
-            {
-              "x": 0.5,
-              "y": 0.5,
-            }
-          }
-          coordinate={
-            {
-              "latitude": 36.8,
-              "longitude": 10.18,
-            }
-          }
-        >
-          <View
-            style={
-              [
-                {
-                  "alignItems": "center",
-                  "borderBottomLeftRadius": 2,
-                  "borderRadius": 13,
-                  "borderWidth": 2.5,
-                  "elevation": 3,
-                  "height": 26,
-                  "justifyContent": "center",
-                  "shadowColor": "#000",
-                  "shadowOffset": {
-                    "height": 2,
-                    "width": 0,
-                  },
-                  "shadowOpacity": 0.2,
-                  "shadowRadius": 4,
-                  "transform": [
-                    {
-                      "rotate": "-45deg",
-                    },
-                  ],
-                  "width": 26,
-                },
-                {
-                  "backgroundColor": "#2E9E6C",
-                  "borderColor": "#FFFFFF",
-                },
-              ]
-            }
-          >
-            <View
-              style={
-                [
-                  {
-                    "borderRadius": 3.5,
-                    "height": 7,
-                    "transform": [
-                      {
-                        "rotate": "45deg",
-                      },
-                    ],
-                    "width": 7,
-                  },
-                  {
-                    "backgroundColor": "#0D1512",
-                  },
-                ]
-              }
-            />
-          </View>
-        </Marker>
-        <Marker
-          anchor={
-            {
-              "x": 0.5,
-              "y": 0.5,
-            }
-          }
-          coordinate={
-            {
-              "latitude": 35.82,
-              "longitude": 10.63,
-            }
-          }
-        >
-          <View
-            style={
-              [
-                {
-                  "alignItems": "center",
-                  "borderBottomLeftRadius": 2,
-                  "borderRadius": 13,
-                  "borderWidth": 2.5,
-                  "elevation": 3,
-                  "height": 26,
-                  "justifyContent": "center",
-                  "shadowColor": "#000",
-                  "shadowOffset": {
-                    "height": 2,
-                    "width": 0,
-                  },
-                  "shadowOpacity": 0.2,
-                  "shadowRadius": 4,
-                  "transform": [
-                    {
-                      "rotate": "-45deg",
-                    },
-                  ],
-                  "width": 26,
-                },
-                {
-                  "backgroundColor": "#14201B",
-                  "borderColor": "#FFFFFF",
-                },
-              ]
-            }
-          >
-            <View
-              style={
-                [
-                  {
-                    "borderRadius": 3.5,
-                    "height": 7,
-                    "transform": [
-                      {
-                        "rotate": "45deg",
-                      },
-                    ],
-                    "width": 7,
-                  },
-                  {
-                    "backgroundColor": "#F7F3E8",
-                  },
-                ]
-              }
-            />
-          </View>
-        </Marker>
-      </MapView>
       <View
-        pointerEvents="none"
-        style={
-          {
-            "backgroundColor": "#EDEBE1",
-            "opacity": 0.18,
-          }
-        }
-      />
-      <Animated.View
-        accessibilityElementsHidden={true}
-        importantForAccessibility="no-hide-descendants"
         style={
           [
             {
-              "backgroundColor": "#EAE7DC",
+              "backgroundColor": "#EDEBE1",
+              "borderRadius": 16,
+              "overflow": "hidden",
+              "position": "relative",
             },
             {
-              "borderRadius": 0,
-              "height": 16,
-              "opacity": AnimatedValue {
-                "value": 0.45,
-              },
-              "width": "100%",
+              "height": 160,
             },
             {},
           ]
         }
-      />
-      <View
-        style={
-          {
-            "backgroundColor": "#2E3B42",
-            "borderRadius": 9999,
-            "left": 8,
-            "paddingHorizontal": 8,
-            "paddingVertical": 4,
-            "position": "absolute",
-            "top": 8,
-          }
-        }
       >
-        <Text
+        <MapView
+          customMapStyle={[]}
+          initialRegion={
+            {
+              "latitude": 36.31,
+              "latitudeDelta": 1.5679999999999952,
+              "longitude": 10.405000000000001,
+              "longitudeDelta": 0.7200000000000017,
+            }
+          }
+          onMapReady={[Function]}
+          pitchEnabled={false}
+          pointerEvents="none"
+          provider="default"
+          rotateEnabled={false}
+          scrollEnabled={false}
+          style={{}}
+          zoomEnabled={false}
+        >
+          <Marker
+            anchor={
+              {
+                "x": 0.5,
+                "y": 0.5,
+              }
+            }
+            coordinate={
+              {
+                "latitude": 36.8,
+                "longitude": 10.18,
+              }
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "borderBottomLeftRadius": 2,
+                    "borderRadius": 13,
+                    "borderWidth": 2.5,
+                    "elevation": 3,
+                    "height": 26,
+                    "justifyContent": "center",
+                    "shadowColor": "#000",
+                    "shadowOffset": {
+                      "height": 2,
+                      "width": 0,
+                    },
+                    "shadowOpacity": 0.2,
+                    "shadowRadius": 4,
+                    "transform": [
+                      {
+                        "rotate": "-45deg",
+                      },
+                    ],
+                    "width": 26,
+                  },
+                  {
+                    "backgroundColor": "#2E9E6C",
+                    "borderColor": "#FFFFFF",
+                  },
+                ]
+              }
+            >
+              <View
+                style={
+                  [
+                    {
+                      "borderRadius": 3.5,
+                      "height": 7,
+                      "transform": [
+                        {
+                          "rotate": "45deg",
+                        },
+                      ],
+                      "width": 7,
+                    },
+                    {
+                      "backgroundColor": "#0D1512",
+                    },
+                  ]
+                }
+              />
+            </View>
+          </Marker>
+          <Marker
+            anchor={
+              {
+                "x": 0.5,
+                "y": 0.5,
+              }
+            }
+            coordinate={
+              {
+                "latitude": 35.82,
+                "longitude": 10.63,
+              }
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "borderBottomLeftRadius": 2,
+                    "borderRadius": 13,
+                    "borderWidth": 2.5,
+                    "elevation": 3,
+                    "height": 26,
+                    "justifyContent": "center",
+                    "shadowColor": "#000",
+                    "shadowOffset": {
+                      "height": 2,
+                      "width": 0,
+                    },
+                    "shadowOpacity": 0.2,
+                    "shadowRadius": 4,
+                    "transform": [
+                      {
+                        "rotate": "-45deg",
+                      },
+                    ],
+                    "width": 26,
+                  },
+                  {
+                    "backgroundColor": "#14201B",
+                    "borderColor": "#FFFFFF",
+                  },
+                ]
+              }
+            >
+              <View
+                style={
+                  [
+                    {
+                      "borderRadius": 3.5,
+                      "height": 7,
+                      "transform": [
+                        {
+                          "rotate": "45deg",
+                        },
+                      ],
+                      "width": 7,
+                    },
+                    {
+                      "backgroundColor": "#F7F3E8",
+                    },
+                  ]
+                }
+              />
+            </View>
+          </Marker>
+        </MapView>
+        <View
+          pointerEvents="none"
           style={
             {
-              "color": "#F3F1E9",
-              "fontSize": 12,
-              "fontWeight": "600",
+              "backgroundColor": "#EDEBE1",
+              "opacity": 0.18,
+            }
+          }
+        />
+        <Animated.View
+          accessibilityElementsHidden={true}
+          importantForAccessibility="no-hide-descendants"
+          style={
+            [
+              {
+                "backgroundColor": "#EAE7DC",
+              },
+              {
+                "borderRadius": 0,
+                "height": 16,
+                "opacity": AnimatedValue {
+                  "value": 0.45,
+                },
+                "width": "100%",
+              },
+              {},
+            ]
+          }
+        />
+        <View
+          style={
+            {
+              "backgroundColor": "#2E3B42",
+              "borderRadius": 9999,
+              "left": 8,
+              "paddingHorizontal": 8,
+              "paddingVertical": 4,
+              "position": "absolute",
+              "top": 8,
             }
           }
         >
-          Publié
-        </Text>
+          <Text
+            style={
+              {
+                "color": "#F3F1E9",
+                "fontSize": 12,
+                "fontWeight": "600",
+              }
+            }
+          >
+            Publié
+          </Text>
+        </View>
       </View>
+      <TouchableOpacity
+        accessibilityLabel="Voir l'itinéraire en plein écran"
+        accessibilityRole="button"
+        activeOpacity={0.85}
+        onPress={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "borderRadius": 9999,
+              "bottom": 8,
+              "elevation": 2,
+              "flexDirection": "row",
+              "gap": 4,
+              "paddingHorizontal": 8,
+              "paddingVertical": 4,
+              "position": "absolute",
+              "right": 8,
+              "shadowColor": "#000",
+              "shadowOffset": {
+                "height": 2,
+                "width": 0,
+              },
+              "shadowOpacity": 0.12,
+              "shadowRadius": 6,
+            },
+            {
+              "backgroundColor": "#FFFFFF",
+            },
+          ]
+        }
+      >
+        <Ionicons
+          accessibilityElementsHidden={true}
+          color="#14201B"
+          importantForAccessibility="no-hide-descendants"
+          name="expand-outline"
+          size={16}
+        />
+        <Text
+          style={
+            [
+              {
+                "fontSize": 12,
+                "fontWeight": "400",
+                "lineHeight": 18,
+              },
+              {
+                "color": "#14201B",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              undefined,
+            ]
+          }
+        >
+          Voir l'itinéraire
+        </Text>
+      </TouchableOpacity>
     </View>
     <View
       style={
@@ -810,6 +876,259 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
       </Text>
     </Pressable>
   </View>
+  <Modal
+    animationType="slide"
+    onRequestClose={[Function]}
+    visible={false}
+  >
+    <View
+      style={
+        [
+          {
+            "flex": 1,
+          },
+          {
+            "backgroundColor": "#F7F3E8",
+          },
+        ]
+      }
+    >
+      <View
+        style={
+          [
+            {
+              "borderRadius": 16,
+              "overflow": "hidden",
+              "position": "relative",
+            },
+            {
+              "flex": 1,
+              "minHeight": 200,
+            },
+            {
+              "flex": 1,
+            },
+          ]
+        }
+      >
+        <MapView
+          customMapStyle={[]}
+          initialRegion={
+            {
+              "latitude": 36.31,
+              "latitudeDelta": 1.5679999999999952,
+              "longitude": 10.405000000000001,
+              "longitudeDelta": 0.7200000000000017,
+            }
+          }
+          onMapReady={[Function]}
+          provider="google"
+          style={{}}
+        >
+          <Marker
+            anchor={
+              {
+                "x": 0.5,
+                "y": 0.5,
+              }
+            }
+            coordinate={
+              {
+                "latitude": 36.8,
+                "longitude": 10.18,
+              }
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "borderBottomLeftRadius": 2,
+                    "borderRadius": 13,
+                    "borderWidth": 2.5,
+                    "elevation": 3,
+                    "height": 26,
+                    "justifyContent": "center",
+                    "shadowColor": "#000",
+                    "shadowOffset": {
+                      "height": 2,
+                      "width": 0,
+                    },
+                    "shadowOpacity": 0.2,
+                    "shadowRadius": 4,
+                    "transform": [
+                      {
+                        "rotate": "-45deg",
+                      },
+                    ],
+                    "width": 26,
+                  },
+                  {
+                    "backgroundColor": "#2E9E6C",
+                    "borderColor": "#FFFFFF",
+                  },
+                ]
+              }
+            >
+              <View
+                style={
+                  [
+                    {
+                      "borderRadius": 3.5,
+                      "height": 7,
+                      "transform": [
+                        {
+                          "rotate": "45deg",
+                        },
+                      ],
+                      "width": 7,
+                    },
+                    {
+                      "backgroundColor": "#0D1512",
+                    },
+                  ]
+                }
+              />
+            </View>
+          </Marker>
+          <Marker
+            anchor={
+              {
+                "x": 0.5,
+                "y": 0.5,
+              }
+            }
+            coordinate={
+              {
+                "latitude": 35.82,
+                "longitude": 10.63,
+              }
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "borderBottomLeftRadius": 2,
+                    "borderRadius": 13,
+                    "borderWidth": 2.5,
+                    "elevation": 3,
+                    "height": 26,
+                    "justifyContent": "center",
+                    "shadowColor": "#000",
+                    "shadowOffset": {
+                      "height": 2,
+                      "width": 0,
+                    },
+                    "shadowOpacity": 0.2,
+                    "shadowRadius": 4,
+                    "transform": [
+                      {
+                        "rotate": "-45deg",
+                      },
+                    ],
+                    "width": 26,
+                  },
+                  {
+                    "backgroundColor": "#14201B",
+                    "borderColor": "#FFFFFF",
+                  },
+                ]
+              }
+            >
+              <View
+                style={
+                  [
+                    {
+                      "borderRadius": 3.5,
+                      "height": 7,
+                      "transform": [
+                        {
+                          "rotate": "45deg",
+                        },
+                      ],
+                      "width": 7,
+                    },
+                    {
+                      "backgroundColor": "#F7F3E8",
+                    },
+                  ]
+                }
+              />
+            </View>
+          </Marker>
+        </MapView>
+        <View
+          pointerEvents="none"
+          style={
+            {
+              "backgroundColor": "#EDEBE1",
+              "opacity": 0.18,
+            }
+          }
+        />
+        <Animated.View
+          accessibilityElementsHidden={true}
+          importantForAccessibility="no-hide-descendants"
+          style={
+            [
+              {
+                "backgroundColor": "#EAE7DC",
+              },
+              {
+                "borderRadius": 0,
+                "height": 16,
+                "opacity": AnimatedValue {
+                  "value": 0.45,
+                },
+                "width": "100%",
+              },
+              {},
+            ]
+          }
+        />
+      </View>
+      <TouchableOpacity
+        accessibilityLabel="Fermer"
+        accessibilityRole="button"
+        hitSlop={12}
+        onPress={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "borderRadius": 20,
+              "elevation": 3,
+              "height": 40,
+              "justifyContent": "center",
+              "position": "absolute",
+              "right": 16,
+              "shadowColor": "#000",
+              "shadowOffset": {
+                "height": 2,
+                "width": 0,
+              },
+              "shadowOpacity": 0.15,
+              "shadowRadius": 6,
+              "width": 40,
+            },
+            {
+              "backgroundColor": "#FFFFFF",
+              "top": 8,
+            },
+          ]
+        }
+      >
+        <Ionicons
+          color="#14201B"
+          name="close"
+          size={22}
+        />
+      </TouchableOpacity>
+    </View>
+  </Modal>
 </View>
 `;
 
@@ -893,230 +1212,296 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
     </View>
     <View
       style={
-        [
-          {
-            "backgroundColor": "#EDEBE1",
-            "borderRadius": 16,
-            "overflow": "hidden",
-            "position": "relative",
-          },
-          {
-            "height": 160,
-          },
-          {
-            "marginHorizontal": 16,
-          },
-        ]
+        {
+          "marginHorizontal": 16,
+          "position": "relative",
+        }
       }
     >
-      <MapView
-        customMapStyle={[]}
-        initialRegion={
-          {
-            "latitude": 36.31,
-            "latitudeDelta": 1.5679999999999952,
-            "longitude": 10.405000000000001,
-            "longitudeDelta": 0.7200000000000017,
-          }
-        }
-        onMapReady={[Function]}
-        pitchEnabled={false}
-        pointerEvents="none"
-        provider="default"
-        rotateEnabled={false}
-        scrollEnabled={false}
-        style={{}}
-        zoomEnabled={false}
-      >
-        <Marker
-          anchor={
-            {
-              "x": 0.5,
-              "y": 0.5,
-            }
-          }
-          coordinate={
-            {
-              "latitude": 36.8,
-              "longitude": 10.18,
-            }
-          }
-        >
-          <View
-            style={
-              [
-                {
-                  "alignItems": "center",
-                  "borderBottomLeftRadius": 2,
-                  "borderRadius": 13,
-                  "borderWidth": 2.5,
-                  "elevation": 3,
-                  "height": 26,
-                  "justifyContent": "center",
-                  "shadowColor": "#000",
-                  "shadowOffset": {
-                    "height": 2,
-                    "width": 0,
-                  },
-                  "shadowOpacity": 0.2,
-                  "shadowRadius": 4,
-                  "transform": [
-                    {
-                      "rotate": "-45deg",
-                    },
-                  ],
-                  "width": 26,
-                },
-                {
-                  "backgroundColor": "#2E9E6C",
-                  "borderColor": "#FFFFFF",
-                },
-              ]
-            }
-          >
-            <View
-              style={
-                [
-                  {
-                    "borderRadius": 3.5,
-                    "height": 7,
-                    "transform": [
-                      {
-                        "rotate": "45deg",
-                      },
-                    ],
-                    "width": 7,
-                  },
-                  {
-                    "backgroundColor": "#0D1512",
-                  },
-                ]
-              }
-            />
-          </View>
-        </Marker>
-        <Marker
-          anchor={
-            {
-              "x": 0.5,
-              "y": 0.5,
-            }
-          }
-          coordinate={
-            {
-              "latitude": 35.82,
-              "longitude": 10.63,
-            }
-          }
-        >
-          <View
-            style={
-              [
-                {
-                  "alignItems": "center",
-                  "borderBottomLeftRadius": 2,
-                  "borderRadius": 13,
-                  "borderWidth": 2.5,
-                  "elevation": 3,
-                  "height": 26,
-                  "justifyContent": "center",
-                  "shadowColor": "#000",
-                  "shadowOffset": {
-                    "height": 2,
-                    "width": 0,
-                  },
-                  "shadowOpacity": 0.2,
-                  "shadowRadius": 4,
-                  "transform": [
-                    {
-                      "rotate": "-45deg",
-                    },
-                  ],
-                  "width": 26,
-                },
-                {
-                  "backgroundColor": "#14201B",
-                  "borderColor": "#FFFFFF",
-                },
-              ]
-            }
-          >
-            <View
-              style={
-                [
-                  {
-                    "borderRadius": 3.5,
-                    "height": 7,
-                    "transform": [
-                      {
-                        "rotate": "45deg",
-                      },
-                    ],
-                    "width": 7,
-                  },
-                  {
-                    "backgroundColor": "#F7F3E8",
-                  },
-                ]
-              }
-            />
-          </View>
-        </Marker>
-      </MapView>
       <View
-        pointerEvents="none"
-        style={
-          {
-            "backgroundColor": "#EDEBE1",
-            "opacity": 0.18,
-          }
-        }
-      />
-      <Animated.View
-        accessibilityElementsHidden={true}
-        importantForAccessibility="no-hide-descendants"
         style={
           [
             {
-              "backgroundColor": "#EAE7DC",
+              "backgroundColor": "#EDEBE1",
+              "borderRadius": 16,
+              "overflow": "hidden",
+              "position": "relative",
             },
             {
-              "borderRadius": 0,
-              "height": 16,
-              "opacity": AnimatedValue {
-                "value": 0.45,
-              },
-              "width": "100%",
+              "height": 160,
             },
             {},
           ]
         }
-      />
-      <View
-        style={
-          {
-            "backgroundColor": "#2E3B42",
-            "borderRadius": 9999,
-            "left": 8,
-            "paddingHorizontal": 8,
-            "paddingVertical": 4,
-            "position": "absolute",
-            "top": 8,
-          }
-        }
       >
-        <Text
+        <MapView
+          customMapStyle={[]}
+          initialRegion={
+            {
+              "latitude": 36.31,
+              "latitudeDelta": 1.5679999999999952,
+              "longitude": 10.405000000000001,
+              "longitudeDelta": 0.7200000000000017,
+            }
+          }
+          onMapReady={[Function]}
+          pitchEnabled={false}
+          pointerEvents="none"
+          provider="default"
+          rotateEnabled={false}
+          scrollEnabled={false}
+          style={{}}
+          zoomEnabled={false}
+        >
+          <Marker
+            anchor={
+              {
+                "x": 0.5,
+                "y": 0.5,
+              }
+            }
+            coordinate={
+              {
+                "latitude": 36.8,
+                "longitude": 10.18,
+              }
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "borderBottomLeftRadius": 2,
+                    "borderRadius": 13,
+                    "borderWidth": 2.5,
+                    "elevation": 3,
+                    "height": 26,
+                    "justifyContent": "center",
+                    "shadowColor": "#000",
+                    "shadowOffset": {
+                      "height": 2,
+                      "width": 0,
+                    },
+                    "shadowOpacity": 0.2,
+                    "shadowRadius": 4,
+                    "transform": [
+                      {
+                        "rotate": "-45deg",
+                      },
+                    ],
+                    "width": 26,
+                  },
+                  {
+                    "backgroundColor": "#2E9E6C",
+                    "borderColor": "#FFFFFF",
+                  },
+                ]
+              }
+            >
+              <View
+                style={
+                  [
+                    {
+                      "borderRadius": 3.5,
+                      "height": 7,
+                      "transform": [
+                        {
+                          "rotate": "45deg",
+                        },
+                      ],
+                      "width": 7,
+                    },
+                    {
+                      "backgroundColor": "#0D1512",
+                    },
+                  ]
+                }
+              />
+            </View>
+          </Marker>
+          <Marker
+            anchor={
+              {
+                "x": 0.5,
+                "y": 0.5,
+              }
+            }
+            coordinate={
+              {
+                "latitude": 35.82,
+                "longitude": 10.63,
+              }
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "borderBottomLeftRadius": 2,
+                    "borderRadius": 13,
+                    "borderWidth": 2.5,
+                    "elevation": 3,
+                    "height": 26,
+                    "justifyContent": "center",
+                    "shadowColor": "#000",
+                    "shadowOffset": {
+                      "height": 2,
+                      "width": 0,
+                    },
+                    "shadowOpacity": 0.2,
+                    "shadowRadius": 4,
+                    "transform": [
+                      {
+                        "rotate": "-45deg",
+                      },
+                    ],
+                    "width": 26,
+                  },
+                  {
+                    "backgroundColor": "#14201B",
+                    "borderColor": "#FFFFFF",
+                  },
+                ]
+              }
+            >
+              <View
+                style={
+                  [
+                    {
+                      "borderRadius": 3.5,
+                      "height": 7,
+                      "transform": [
+                        {
+                          "rotate": "45deg",
+                        },
+                      ],
+                      "width": 7,
+                    },
+                    {
+                      "backgroundColor": "#F7F3E8",
+                    },
+                  ]
+                }
+              />
+            </View>
+          </Marker>
+        </MapView>
+        <View
+          pointerEvents="none"
           style={
             {
-              "color": "#F3F1E9",
-              "fontSize": 12,
-              "fontWeight": "600",
+              "backgroundColor": "#EDEBE1",
+              "opacity": 0.18,
+            }
+          }
+        />
+        <Animated.View
+          accessibilityElementsHidden={true}
+          importantForAccessibility="no-hide-descendants"
+          style={
+            [
+              {
+                "backgroundColor": "#EAE7DC",
+              },
+              {
+                "borderRadius": 0,
+                "height": 16,
+                "opacity": AnimatedValue {
+                  "value": 0.45,
+                },
+                "width": "100%",
+              },
+              {},
+            ]
+          }
+        />
+        <View
+          style={
+            {
+              "backgroundColor": "#2E3B42",
+              "borderRadius": 9999,
+              "left": 8,
+              "paddingHorizontal": 8,
+              "paddingVertical": 4,
+              "position": "absolute",
+              "top": 8,
             }
           }
         >
-          Publié
-        </Text>
+          <Text
+            style={
+              {
+                "color": "#F3F1E9",
+                "fontSize": 12,
+                "fontWeight": "600",
+              }
+            }
+          >
+            Publié
+          </Text>
+        </View>
       </View>
+      <TouchableOpacity
+        accessibilityLabel="Voir l'itinéraire en plein écran"
+        accessibilityRole="button"
+        activeOpacity={0.85}
+        onPress={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "borderRadius": 9999,
+              "bottom": 8,
+              "elevation": 2,
+              "flexDirection": "row",
+              "gap": 4,
+              "paddingHorizontal": 8,
+              "paddingVertical": 4,
+              "position": "absolute",
+              "right": 8,
+              "shadowColor": "#000",
+              "shadowOffset": {
+                "height": 2,
+                "width": 0,
+              },
+              "shadowOpacity": 0.12,
+              "shadowRadius": 6,
+            },
+            {
+              "backgroundColor": "#FFFFFF",
+            },
+          ]
+        }
+      >
+        <Ionicons
+          accessibilityElementsHidden={true}
+          color="#14201B"
+          importantForAccessibility="no-hide-descendants"
+          name="expand-outline"
+          size={16}
+        />
+        <Text
+          style={
+            [
+              {
+                "fontSize": 12,
+                "fontWeight": "400",
+                "lineHeight": 18,
+              },
+              {
+                "color": "#14201B",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              undefined,
+            ]
+          }
+        >
+          Voir l'itinéraire
+        </Text>
+      </TouchableOpacity>
     </View>
     <View
       style={
@@ -1993,5 +2378,258 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
       </Text>
     </Pressable>
   </View>
+  <Modal
+    animationType="slide"
+    onRequestClose={[Function]}
+    visible={false}
+  >
+    <View
+      style={
+        [
+          {
+            "flex": 1,
+          },
+          {
+            "backgroundColor": "#F7F3E8",
+          },
+        ]
+      }
+    >
+      <View
+        style={
+          [
+            {
+              "borderRadius": 16,
+              "overflow": "hidden",
+              "position": "relative",
+            },
+            {
+              "flex": 1,
+              "minHeight": 200,
+            },
+            {
+              "flex": 1,
+            },
+          ]
+        }
+      >
+        <MapView
+          customMapStyle={[]}
+          initialRegion={
+            {
+              "latitude": 36.31,
+              "latitudeDelta": 1.5679999999999952,
+              "longitude": 10.405000000000001,
+              "longitudeDelta": 0.7200000000000017,
+            }
+          }
+          onMapReady={[Function]}
+          provider="google"
+          style={{}}
+        >
+          <Marker
+            anchor={
+              {
+                "x": 0.5,
+                "y": 0.5,
+              }
+            }
+            coordinate={
+              {
+                "latitude": 36.8,
+                "longitude": 10.18,
+              }
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "borderBottomLeftRadius": 2,
+                    "borderRadius": 13,
+                    "borderWidth": 2.5,
+                    "elevation": 3,
+                    "height": 26,
+                    "justifyContent": "center",
+                    "shadowColor": "#000",
+                    "shadowOffset": {
+                      "height": 2,
+                      "width": 0,
+                    },
+                    "shadowOpacity": 0.2,
+                    "shadowRadius": 4,
+                    "transform": [
+                      {
+                        "rotate": "-45deg",
+                      },
+                    ],
+                    "width": 26,
+                  },
+                  {
+                    "backgroundColor": "#2E9E6C",
+                    "borderColor": "#FFFFFF",
+                  },
+                ]
+              }
+            >
+              <View
+                style={
+                  [
+                    {
+                      "borderRadius": 3.5,
+                      "height": 7,
+                      "transform": [
+                        {
+                          "rotate": "45deg",
+                        },
+                      ],
+                      "width": 7,
+                    },
+                    {
+                      "backgroundColor": "#0D1512",
+                    },
+                  ]
+                }
+              />
+            </View>
+          </Marker>
+          <Marker
+            anchor={
+              {
+                "x": 0.5,
+                "y": 0.5,
+              }
+            }
+            coordinate={
+              {
+                "latitude": 35.82,
+                "longitude": 10.63,
+              }
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "borderBottomLeftRadius": 2,
+                    "borderRadius": 13,
+                    "borderWidth": 2.5,
+                    "elevation": 3,
+                    "height": 26,
+                    "justifyContent": "center",
+                    "shadowColor": "#000",
+                    "shadowOffset": {
+                      "height": 2,
+                      "width": 0,
+                    },
+                    "shadowOpacity": 0.2,
+                    "shadowRadius": 4,
+                    "transform": [
+                      {
+                        "rotate": "-45deg",
+                      },
+                    ],
+                    "width": 26,
+                  },
+                  {
+                    "backgroundColor": "#14201B",
+                    "borderColor": "#FFFFFF",
+                  },
+                ]
+              }
+            >
+              <View
+                style={
+                  [
+                    {
+                      "borderRadius": 3.5,
+                      "height": 7,
+                      "transform": [
+                        {
+                          "rotate": "45deg",
+                        },
+                      ],
+                      "width": 7,
+                    },
+                    {
+                      "backgroundColor": "#F7F3E8",
+                    },
+                  ]
+                }
+              />
+            </View>
+          </Marker>
+        </MapView>
+        <View
+          pointerEvents="none"
+          style={
+            {
+              "backgroundColor": "#EDEBE1",
+              "opacity": 0.18,
+            }
+          }
+        />
+        <Animated.View
+          accessibilityElementsHidden={true}
+          importantForAccessibility="no-hide-descendants"
+          style={
+            [
+              {
+                "backgroundColor": "#EAE7DC",
+              },
+              {
+                "borderRadius": 0,
+                "height": 16,
+                "opacity": AnimatedValue {
+                  "value": 0.45,
+                },
+                "width": "100%",
+              },
+              {},
+            ]
+          }
+        />
+      </View>
+      <TouchableOpacity
+        accessibilityLabel="Fermer"
+        accessibilityRole="button"
+        hitSlop={12}
+        onPress={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "borderRadius": 20,
+              "elevation": 3,
+              "height": 40,
+              "justifyContent": "center",
+              "position": "absolute",
+              "right": 16,
+              "shadowColor": "#000",
+              "shadowOffset": {
+                "height": 2,
+                "width": 0,
+              },
+              "shadowOpacity": 0.15,
+              "shadowRadius": 6,
+              "width": 40,
+            },
+            {
+              "backgroundColor": "#FFFFFF",
+              "top": 8,
+            },
+          ]
+        }
+      >
+        <Ionicons
+          color="#14201B"
+          name="close"
+          size={22}
+        />
+      </TouchableOpacity>
+    </View>
+  </Modal>
 </View>
 `;

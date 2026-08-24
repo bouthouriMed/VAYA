@@ -88,11 +88,28 @@ describe('pickBestGeocodeResult', () => {
     expect(pickBestGeocodeResult(results)?.label).toBe('Avenue de la Liberté');
   });
 
-  it('falls back to the first result when none of the preferred types are present', () => {
+  it('prefers a governorate/admin name over a plus_code when nothing more specific exists', () => {
+    // The concrete residual bug: a coordinate Google has no street-level
+    // match for (common outside dense Tunis-center areas) used to fall
+    // through straight to the plus_code — even though a perfectly
+    // human-readable admin-level result sat right next to it.
     const results = [
       { types: ['plus_code'], label: 'V528+3RF' },
       { types: ['administrative_area_level_1'], label: 'Ariana Governorate' },
     ];
+    expect(pickBestGeocodeResult(results)?.label).toBe('Ariana Governorate');
+  });
+
+  it('prefers a locality/neighborhood over a plus_code too', () => {
+    const results = [
+      { types: ['plus_code'], label: 'V528+3RF' },
+      { types: ['locality', 'political'], label: 'Ariana' },
+    ];
+    expect(pickBestGeocodeResult(results)?.label).toBe('Ariana');
+  });
+
+  it('only ever picks a plus_code when it is the sole result Google returned', () => {
+    const results = [{ types: ['plus_code'], label: 'V528+3RF' }];
     expect(pickBestGeocodeResult(results)?.label).toBe('V528+3RF');
   });
 
