@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Modal } from 'react-native';
+import { Marker, Polyline } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -10,10 +11,14 @@ import {
   Badge,
   Button,
   MapPreview,
+  MapCanvas,
+  PickupPin,
+  DropoffPin,
   useAppTheme,
   spacing,
   radii,
   haptics,
+  regionForPoints,
 } from '@vaya/design-system';
 import {
   useGetRideQuery,
@@ -157,6 +162,7 @@ export default function DriverRideHubScreen(): React.JSX.Element {
   const { colors: theme } = useAppTheme();
   const [managedBooking, setManagedBooking] = useState<Booking | null>(null);
   const [cancellingRide, setCancellingRide] = useState(false);
+  const [routeModalOpen, setRouteModalOpen] = useState(false);
 
   const { data: ride, isLoading: isRideLoading } = useGetRideQuery(rideId);
   const { data: requests, isLoading: isRequestsLoading } = useListRequestsForRideQuery(rideId);
@@ -180,6 +186,11 @@ export default function DriverRideHubScreen(): React.JSX.Element {
   // is "the" pickup or dropoff.
   const pickupStop = selectedStops.length === 2 ? selectedStops[0] : undefined;
   const dropoffStop = selectedStops.length === 2 ? selectedStops[1] : undefined;
+  // Any stop that isn't the pickup or dropoff endpoint — only possible on a
+  // legacy ride published before this flow narrowed the driver to exactly
+  // one pickup + one dropoff. Shown as neutral waypoints on the fullscreen
+  // map, same convention as the passenger's ride-details.tsx.
+  const intermediateStops = selectedStops.slice(1, -1);
 
   if (isRideLoading) {
     return (
@@ -201,6 +212,12 @@ export default function DriverRideHubScreen(): React.JSX.Element {
 
   const badge = RIDE_BADGE[ride.status];
   const cancellable = ['draft', 'published', 'full'].includes(ride.status);
+  const fullRouteRegion =
+    regionForPoints([
+      pickupStop ?? { lat: ride.originLat, lng: ride.originLng },
+      ...intermediateStops,
+      dropoffStop ?? { lat: ride.destinationLat, lng: ride.destinationLng },
+    ]) ?? undefined;
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -220,17 +237,35 @@ export default function DriverRideHubScreen(): React.JSX.Element {
           <View style={styles.headerSpacer} />
         </View>
 
-        <MapPreview
-          height={160}
-          badge={badge.label}
-          origin={{ latitude: ride.originLat, longitude: ride.originLng }}
-          destination={{ latitude: ride.destinationLat, longitude: ride.destinationLng }}
-          pickup={pickupStop ? { latitude: pickupStop.lat, longitude: pickupStop.lng } : undefined}
-          dropoff={dropoffStop ? { latitude: dropoffStop.lat, longitude: dropoffStop.lng } : undefined}
-          theme={theme}
-          routeCoordinates={routeCoordinates}
-          style={styles.map}
-        />
+        <View style={styles.mapCard}>
+          <MapPreview
+            height={160}
+            badge={badge.label}
+            origin={{ latitude: ride.originLat, longitude: ride.originLng }}
+            destination={{ latitude: ride.destinationLat, longitude: ride.destinationLng }}
+            pickup={pickupStop ? { latitude: pickupStop.lat, longitude: pickupStop.lng } : undefined}
+            dropoff={dropoffStop ? { latitude: dropoffStop.lat, longitude: dropoffStop.lng } : undefined}
+            theme={theme}
+            routeCoordinates={routeCoordinates}
+            style={styles.map}
+          />
+          {/* The preview thumbnail is deliberately non-interactive (same as
+           *  every MapPreview elsewhere) — this is the way in to a real,
+           *  pannable/zoomable view of the whole route, matching the
+           *  passenger's own ride-details.tsx "Voir l'itinéraire" pattern. */}
+          <TouchableOpacity
+            style={[styles.viewRouteBtn, { backgroundColor: theme.surface }]}
+            onPress={() => setRouteModalOpen(true)}
+            activeOpacity={0.85}
+            accessibilityRole="button"
+            accessibilityLabel="Voir l'itinéraire en plein écran"
+          >
+            <Icon name="expand-outline" size="xs" color={theme.ink} />
+            <Text variant="caption" color={theme.ink}>
+              Voir l&apos;itinéraire
+            </Text>
+          </TouchableOpacity>
+        </View>
 
         <View style={[styles.infoCard, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
           <View style={styles.infoTitleRow}>
@@ -380,6 +415,66 @@ export default function DriverRideHubScreen(): React.JSX.Element {
         </View>
       ) : null}
 
+      <Modal
+        visible={routeModalOpen}
+        animationType="slide"
+        onRequestClose={() => setRouteModalOpen(false)}
+      >
+        <View style={[styles.routeModal, { backgroundColor: theme.background }]}>
+          <MapCanvas region={fullRouteRegion} style={styles.routeModalMap}>
+            {routeCoordinates.length > 1 ? (
+              <Polyline coordinates={routeCoordinates} strokeColor={theme.ink} strokeWidth={4} />
+            ) : null}
+            <Marker
+              coordinate={
+                pickupStop
+                  ? { latitude: pickupStop.lat, longitude: pickupStop.lng }
+                  : { latitude: ride.originLat, longitude: ride.originLng }
+              }
+              anchor={{ x: 0.5, y: 0.5 }}
+            >
+              {pickupStop ? (
+                <PickupPin theme={theme} />
+              ) : (
+                <View style={[styles.originDot, { backgroundColor: theme.accent, borderColor: theme.surface }]} />
+              )}
+            </Marker>
+            {intermediateStops.map((stop) => (
+              <Marker
+                key={stop.id}
+                coordinate={{ latitude: stop.lat, longitude: stop.lng }}
+                anchor={{ x: 0.5, y: 0.5 }}
+              >
+                <View style={[styles.waypointDot, { backgroundColor: theme.surface, borderColor: theme.ink }]} />
+              </Marker>
+            ))}
+            <Marker
+              coordinate={
+                dropoffStop
+                  ? { latitude: dropoffStop.lat, longitude: dropoffStop.lng }
+                  : { latitude: ride.destinationLat, longitude: ride.destinationLng }
+              }
+              anchor={{ x: 0.5, y: 0.5 }}
+            >
+              {dropoffStop ? (
+                <DropoffPin theme={theme} />
+              ) : (
+                <View style={[styles.destDot, { backgroundColor: theme.ink, borderColor: theme.surface }]} />
+              )}
+            </Marker>
+          </MapCanvas>
+          <TouchableOpacity
+            style={[styles.routeModalClose, { top: insets.top + spacing.sm, backgroundColor: theme.surface }]}
+            onPress={() => setRouteModalOpen(false)}
+            hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel="Fermer"
+          >
+            <Ionicons name="close" size={22} color={theme.ink} />
+          </TouchableOpacity>
+        </View>
+      </Modal>
+
       <DriverBookingDetailSheet
         visible={!!managedBooking}
         booking={managedBooking}
@@ -419,8 +514,64 @@ const styles = StyleSheet.create({
   headerSpacer: {
     width: 24,
   },
-  map: {
+  mapCard: {
+    position: 'relative',
     marginHorizontal: spacing.lg,
+  },
+  map: {},
+  viewRouteBtn: {
+    position: 'absolute',
+    right: spacing.sm,
+    bottom: spacing.sm,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    borderRadius: radii.full,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  routeModal: {
+    flex: 1,
+  },
+  routeModalMap: {
+    flex: 1,
+  },
+  routeModalClose: {
+    position: 'absolute',
+    right: spacing.lg,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  originDot: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    borderWidth: 2,
+  },
+  destDot: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    borderWidth: 2,
+  },
+  waypointDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    borderWidth: 2,
   },
   infoCard: {
     marginHorizontal: spacing.lg,
