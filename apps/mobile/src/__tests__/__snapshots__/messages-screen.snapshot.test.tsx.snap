@@ -857,6 +857,12 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
       }
       horizontal={true}
       showsHorizontalScrollIndicator={false}
+      style={
+        {
+          "flexGrow": 0,
+          "flexShrink": 0,
+        }
+      }
     >
       <TouchableOpacity
         accessibilityLabel="Tous"
