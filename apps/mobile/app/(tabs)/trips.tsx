@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { View, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
 import {
   Text,
   Button,
@@ -174,7 +173,7 @@ function TripCard({
  * ManageRideSheet, with one real screen that shows requests, passengers,
  * and cancellation together). */
 export default function TripsScreen(): React.JSX.Element {
-  const theme = useAppTheme().colors;
+  const { colors: theme, scheme } = useAppTheme();
   const { openRequestsForRide } = useLocalSearchParams<{ openRequestsForRide?: string }>();
   const accessToken = useAppSelector((s) => s.auth.accessToken);
   const { data: bookings, isLoading: isBookingsLoading } = useListMyBookingsQuery(undefined, {
@@ -285,32 +284,11 @@ export default function TripsScreen(): React.JSX.Element {
           </View>
         ) : (
           <>
-            {/* Driver-onboarding entry point only ever shown once the driver
-                role is actually the active context here — a pure passenger
-                never sees this banner competing for space with their real
-                upcoming trips; driver onboarding stays discoverable from
-                Profile's own existing CTA instead (unchanged). */}
-            {driverProfile || segment === 'driver' ? (
-              <TouchableOpacity style={[styles.publishCard, { backgroundColor: theme.surface }]} onPress={goToDriverFlow} activeOpacity={0.8}>
-                <View style={[styles.publishIcon, { backgroundColor: theme.accent }]}>
-                  <Ionicons name="add" size={22} color={theme.onAccent} />
-                </View>
-                <View style={styles.publishTextCol}>
-                  <Text style={[styles.publishTitle, { color: theme.ink }]}>
-                    {driverProfile ? 'Publier un trajet' : 'Devenir conducteur'}
-                  </Text>
-                  <Text variant="bodySmall" color={theme.inkMuted}>
-                    {driverProfile
-                      ? 'Proposez des places et gagnez de la contribution'
-                      : 'Ajoutez votre véhicule pour commencer à conduire'}
-                  </Text>
-                </View>
-                <Icon name="chevron-forward" size="sm" color={theme.inkFaint} />
-              </TouchableOpacity>
-            ) : null}
-
-        {/* Upcoming ride hero */}
-        {heroRide && segment === 'driver' ? (
+        {/* Upcoming ride hero — shown whenever the driver has one, regardless
+            of which segment (Conducteur/Passager) is selected below; the
+            Stitch reference's "Upcoming Ride" is likewise unconditional,
+            only "Recent Rides" respects the toggle. */}
+        {heroRide ? (
           <View style={styles.heroSection}>
             <Text variant="label" color={theme.inkMuted} style={styles.sectionHeading}>
               Prochain trajet
@@ -322,6 +300,7 @@ export default function TripsScreen(): React.JSX.Element {
                 origin={{ latitude: heroRide.originLat, longitude: heroRide.originLng }}
                 destination={{ latitude: heroRide.destinationLat, longitude: heroRide.destinationLng }}
                 routeCoordinates={heroPolyline}
+                isDark={scheme === 'dark'}
                 style={styles.heroMap}
               />
               <View style={styles.heroBody}>
@@ -385,34 +364,41 @@ export default function TripsScreen(): React.JSX.Element {
           </View>
         ) : null}
 
-        {/* Segmented control */}
-        <View style={[styles.segmentTrack, { backgroundColor: theme.surfaceMuted }]}>
-          {(
-            [
-              { key: 'driver' as Segment, label: 'Conducteur' },
-              { key: 'rider' as Segment, label: 'Passager' },
-            ]
-          ).map(({ key, label }) => (
-            <TouchableOpacity
-              key={key}
-              style={[
-                styles.segmentItem,
-                segment === key ? { backgroundColor: theme.surface } : null,
-              ]}
-              onPress={() => selectSegment(key)}
-              accessibilityRole="tab"
-              accessibilityState={{ selected: segment === key }}
-              accessibilityLabel={label}
-            >
-              <Text
-                variant="bodySmall"
-                color={segment === key ? theme.ink : theme.inkMuted}
-                style={segment === key ? styles.segmentActiveLabel : undefined}
+        {/* List header — Stitch's "Recent Rides" heading with the
+            Riding/Driving toggle inline beside it, scoped only to the list
+            below (the hero above is unconditional, see above). */}
+        <View style={styles.listHeaderRow}>
+          <Text variant="label" color={theme.inkMuted} style={styles.sectionHeading}>
+            Trajets récents
+          </Text>
+          <View style={[styles.segmentTrack, { backgroundColor: theme.surfaceMuted }]}>
+            {(
+              [
+                { key: 'driver' as Segment, label: 'Conducteur' },
+                { key: 'rider' as Segment, label: 'Passager' },
+              ]
+            ).map(({ key, label }) => (
+              <TouchableOpacity
+                key={key}
+                style={[
+                  styles.segmentItem,
+                  segment === key ? { backgroundColor: theme.surface } : null,
+                ]}
+                onPress={() => selectSegment(key)}
+                accessibilityRole="tab"
+                accessibilityState={{ selected: segment === key }}
+                accessibilityLabel={label}
               >
-                {label}
-              </Text>
-            </TouchableOpacity>
-          ))}
+                <Text
+                  variant="bodySmall"
+                  color={segment === key ? theme.ink : theme.inkMuted}
+                  style={segment === key ? styles.segmentActiveLabel : undefined}
+                >
+                  {label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
 
         {segment === 'driver' ? (
@@ -566,26 +552,12 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.4,
   },
-  publishCard: {
+  listHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     gap: spacing.sm,
-    borderRadius: radii.xl,
-    padding: spacing.md,
-  },
-  publishIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  publishTextCol: {
-    flex: 1,
-  },
-  publishTitle: {
-    fontSize: 16,
-    fontWeight: '700',
+    marginTop: spacing.xs,
   },
   heroSection: {
     gap: spacing.sm,
@@ -655,12 +627,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     borderRadius: radii.lg,
     padding: 4,
-    marginTop: spacing.xs,
   },
   segmentItem: {
-    flex: 1,
     alignItems: 'center',
-    paddingVertical: spacing.xs + 2,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
     borderRadius: radii.md,
   },
   segmentActiveLabel: {

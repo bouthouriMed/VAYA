@@ -8,7 +8,7 @@ import {
   Platform,
   TouchableOpacity,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import {
   Text,
@@ -127,15 +127,15 @@ export default function ConversationScreen(): React.JSX.Element {
 
   if (isConversationLoading) {
     return (
-      <View style={[styles.centered, { backgroundColor: theme.background }]}>
+      <SafeAreaView style={[styles.container, styles.centered, { backgroundColor: theme.background }]}>
         <ActivityIndicator color={theme.accent} size="large" />
-      </View>
+      </SafeAreaView>
     );
   }
 
   if (conversationError || !conversation) {
     return (
-      <View style={[styles.container, styles.centered, { backgroundColor: theme.background }]}>
+      <SafeAreaView style={[styles.container, styles.centered, { backgroundColor: theme.background }]}>
         <EmptyState
           icon={<Icon name="chatbubble-outline" size="lg" color={theme.inkFaint} />}
           title="Conversation indisponible"
@@ -143,7 +143,7 @@ export default function ConversationScreen(): React.JSX.Element {
           actionLabel="Retour"
           onAction={() => router.back()}
         />
-      </View>
+      </SafeAreaView>
     );
   }
 
