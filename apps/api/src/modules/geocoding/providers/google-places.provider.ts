@@ -121,15 +121,26 @@ export function mapGoogleTypesToLocationType(types: string[] | undefined): Locat
  *  plus_code, admin levels, ...), not ranked by human-readability — a
  *  `plus_code` entry (e.g. "V528+3RF, Ariana, Tunisia") can legitimately
  *  sort first for a rooftop point Google can't precisely match to a named
- *  street. Prefers the most specific real-address type before falling back
- *  to whichever result the API happened to put first. */
+ *  street. Prefers the most specific real-address type, then progressively
+ *  coarser but still human-readable admin levels, before ever falling back
+ *  to a raw plus_code — a governorate/locality name is always more useful
+ *  to a driver than a grid code, even when it's the least specific option
+ *  available. plus_code is only ever chosen when it's literally the only
+ *  result Google returned for that coordinate. */
 export function pickBestGeocodeResult<T extends { types: string[] }>(
   results: T[],
 ): T | undefined {
+  const nonPlusCode = results.filter((r) => !r.types.includes('plus_code'));
   return (
     results.find((r) => r.types.includes('street_address')) ??
     results.find((r) => r.types.includes('premise')) ??
     results.find((r) => r.types.includes('route')) ??
+    results.find((r) => r.types.includes('sublocality')) ??
+    results.find((r) => r.types.includes('neighborhood')) ??
+    results.find((r) => r.types.includes('locality')) ??
+    results.find((r) => r.types.includes('administrative_area_level_2')) ??
+    results.find((r) => r.types.includes('administrative_area_level_1')) ??
+    nonPlusCode[0] ??
     results[0]
   );
 }
