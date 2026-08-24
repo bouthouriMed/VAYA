@@ -334,6 +334,7 @@ export default function MessagesScreen(): React.JSX.Element {
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
+          style={styles.filtersScroll}
           contentContainerStyle={styles.filters}
         >
           {FILTERS.map(({ key, label }) => (
@@ -550,6 +551,16 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     padding: 0,
+  },
+  // RN's ScrollView defaults its own outer box to `flexGrow: 1` internally
+  // (baseHorizontal/baseVertical in ScrollView's own styles) regardless of
+  // contentContainerStyle — left unset, this row silently claimed most of
+  // the screen's remaining flex space, which is what actually produced the
+  // dead gap between the pills and the first day section (a second,
+  // distinct bug from the pill-stretch one fixed earlier).
+  filtersScroll: {
+    flexGrow: 0,
+    flexShrink: 0,
   },
   filters: {
     flexDirection: 'row',
