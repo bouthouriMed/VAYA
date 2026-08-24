@@ -33,6 +33,14 @@ const envSchema = z.object({
   GOOGLE_GEOCODING_API_KEY: z.string().optional(),
   LOCATION_PROVIDER: z.enum(['auto', 'google', 'nominatim']).default('auto'),
   ROUTING_PROVIDER: z.enum(['auto', 'google', 'osrm']).default('auto'),
+  // VAYA is Tunisia-only for now, so location search stays scoped there by
+  // default — set to 'false' to search/autocomplete anywhere in the world
+  // (Tortosa, Barcelona, Paris, Switzerland, Algeria, Dakar, ...), e.g. for
+  // demoing or testing outside Tunisia.
+  LOCATION_RESTRICT_TO_TUNISIA: z
+    .string()
+    .optional()
+    .transform((v) => v !== 'false'),
   POSTGIS_ENABLED: z
     .string()
     .optional()

@@ -117,14 +117,18 @@ async function fetchWithTimeout(url: string): Promise<Response> {
 export class NominatimProvider implements LocationProvider {
   readonly name = 'nominatim' as const;
 
+  constructor(private readonly restrictToTunisia: boolean = true) {}
+
   async autocomplete(input: string, sessionToken: string): Promise<LocationPrediction[]> {
     try {
       const url = new URL(`${NOMINATIM_BASE_URL}/search`);
       url.searchParams.set('q', input);
       url.searchParams.set('format', 'json');
       url.searchParams.set('limit', '5');
-      url.searchParams.set('viewbox', TUNISIA_VIEWBOX);
-      url.searchParams.set('bounded', '1');
+      if (this.restrictToTunisia) {
+        url.searchParams.set('viewbox', TUNISIA_VIEWBOX);
+        url.searchParams.set('bounded', '1');
+      }
       url.searchParams.set('addressdetails', '1');
 
       const response = await fetchWithTimeout(url.toString());
