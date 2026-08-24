@@ -95,7 +95,14 @@ export default function TrustScreen(): React.JSX.Element {
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.identity}>
           <View style={styles.avatarWrap}>
-            <Avatar uri={profile.avatarUrl} name={profile.fullName} sizePx={104} style={{ borderWidth: 3, borderColor: theme.surface }} />
+            <Avatar
+              uri={profile.avatarUrl}
+              name={profile.fullName}
+              sizePx={104}
+              style={{ borderWidth: 3, borderColor: theme.surface }}
+              fallbackBackgroundColor={theme.surfaceMuted}
+              fallbackTextColor={theme.ink}
+            />
             {driverStats ? (
               <View style={[styles.verifiedBadge, { backgroundColor: theme.accent, borderColor: theme.surface }]}>
                 <Icon name="checkmark" size="xs" color={theme.onAccent} />

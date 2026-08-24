@@ -29,45 +29,6 @@ exports[`messages.tsx snapshots > empty inbox — headline, filter-less, first-r
       }
     }
   >
-    <TouchableOpacity
-      accessibilityLabel="Ouvrir mon profil"
-      accessibilityRole="button"
-      disabled={false}
-      onPress={[Function]}
-      style={
-        {
-          "alignItems": "center",
-          "height": 32,
-          "justifyContent": "center",
-          "width": 32,
-        }
-      }
-    >
-      <View
-        style={
-          [
-            {
-              "alignItems": "center",
-              "borderRadius": 9999,
-              "height": 32,
-              "justifyContent": "center",
-              "width": 32,
-            },
-            {
-              "backgroundColor": "#EDE6D4",
-            },
-          ]
-        }
-      >
-        <Ionicons
-          accessibilityElementsHidden={true}
-          color="#5C5748"
-          importantForAccessibility="no-hide-descendants"
-          name="person-outline"
-          size={20}
-        />
-      </View>
-    </TouchableOpacity>
     <Text
       style={
         [
@@ -83,7 +44,6 @@ exports[`messages.tsx snapshots > empty inbox — headline, filter-less, first-r
           },
           {
             "flex": 1,
-            "textAlign": "center",
           },
         ]
       }
@@ -273,44 +233,6 @@ exports[`messages.tsx snapshots > error — full-screen retry EmptyState 1`] = `
       }
     }
   >
-    <TouchableOpacity
-      accessibilityLabel="Ouvrir mon profil"
-      accessibilityRole="button"
-      disabled={true}
-      style={
-        {
-          "alignItems": "center",
-          "height": 32,
-          "justifyContent": "center",
-          "width": 32,
-        }
-      }
-    >
-      <View
-        style={
-          [
-            {
-              "alignItems": "center",
-              "borderRadius": 9999,
-              "height": 32,
-              "justifyContent": "center",
-              "width": 32,
-            },
-            {
-              "backgroundColor": "#EDE6D4",
-            },
-          ]
-        }
-      >
-        <Ionicons
-          accessibilityElementsHidden={true}
-          color="#5C5748"
-          importantForAccessibility="no-hide-descendants"
-          name="person-outline"
-          size={20}
-        />
-      </View>
-    </TouchableOpacity>
     <Text
       style={
         [
@@ -326,23 +248,12 @@ exports[`messages.tsx snapshots > error — full-screen retry EmptyState 1`] = `
           },
           {
             "flex": 1,
-            "textAlign": "center",
           },
         ]
       }
     >
       Messages
     </Text>
-    <View
-      style={
-        {
-          "alignItems": "center",
-          "height": 32,
-          "justifyContent": "center",
-          "width": 32,
-        }
-      }
-    />
   </View>
   <View
     accessibilityRole="text"
@@ -473,44 +384,6 @@ exports[`messages.tsx snapshots > loading — headline over conversation-row ske
       }
     }
   >
-    <TouchableOpacity
-      accessibilityLabel="Ouvrir mon profil"
-      accessibilityRole="button"
-      disabled={true}
-      style={
-        {
-          "alignItems": "center",
-          "height": 32,
-          "justifyContent": "center",
-          "width": 32,
-        }
-      }
-    >
-      <View
-        style={
-          [
-            {
-              "alignItems": "center",
-              "borderRadius": 9999,
-              "height": 32,
-              "justifyContent": "center",
-              "width": 32,
-            },
-            {
-              "backgroundColor": "#EDE6D4",
-            },
-          ]
-        }
-      >
-        <Ionicons
-          accessibilityElementsHidden={true}
-          color="#5C5748"
-          importantForAccessibility="no-hide-descendants"
-          name="person-outline"
-          size={20}
-        />
-      </View>
-    </TouchableOpacity>
     <Text
       style={
         [
@@ -526,23 +399,12 @@ exports[`messages.tsx snapshots > loading — headline over conversation-row ske
           },
           {
             "flex": 1,
-            "textAlign": "center",
           },
         ]
       }
     >
       Messages
     </Text>
-    <View
-      style={
-        {
-          "alignItems": "center",
-          "height": 32,
-          "justifyContent": "center",
-          "width": 32,
-        }
-      }
-    />
   </View>
   <View
     style={
@@ -665,45 +527,6 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
       }
     }
   >
-    <TouchableOpacity
-      accessibilityLabel="Ouvrir mon profil"
-      accessibilityRole="button"
-      disabled={false}
-      onPress={[Function]}
-      style={
-        {
-          "alignItems": "center",
-          "height": 32,
-          "justifyContent": "center",
-          "width": 32,
-        }
-      }
-    >
-      <View
-        style={
-          [
-            {
-              "alignItems": "center",
-              "borderRadius": 9999,
-              "height": 32,
-              "justifyContent": "center",
-              "width": 32,
-            },
-            {
-              "backgroundColor": "#EDE6D4",
-            },
-          ]
-        }
-      >
-        <Ionicons
-          accessibilityElementsHidden={true}
-          color="#5C5748"
-          importantForAccessibility="no-hide-descendants"
-          name="person-outline"
-          size={20}
-        />
-      </View>
-    </TouchableOpacity>
     <Text
       style={
         [
@@ -719,7 +542,6 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
           },
           {
             "flex": 1,
-            "textAlign": "center",
           },
         ]
       }
@@ -1027,77 +849,40 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
         />
       </View>
       <View
+        accessibilityLabel="Photo de Amine Ben Salah"
+        accessibilityRole="image"
+        accessible={true}
         style={
-          {
-            "position": "relative",
-          }
+          [
+            {
+              "alignItems": "center",
+              "justifyContent": "center",
+            },
+            {
+              "backgroundColor": "#EDE6D4",
+              "borderRadius": 24,
+              "height": 48,
+              "width": 48,
+            },
+          ]
         }
       >
-        <View
-          accessibilityLabel="Photo de Amine Ben Salah"
-          accessibilityRole="image"
-          accessible={true}
+        <Text
           style={
             [
               {
-                "alignItems": "center",
-                "justifyContent": "center",
+                "color": "#FFFFFF",
+                "fontWeight": "600",
               },
               {
-                "backgroundColor": "#2E3B42",
-                "borderRadius": 24,
-                "height": 48,
-                "width": 48,
+                "color": "#14201B",
+                "fontSize": 19,
               },
             ]
           }
         >
-          <Text
-            style={
-              [
-                {
-                  "color": "#FFFFFF",
-                  "fontWeight": "600",
-                },
-                {
-                  "color": undefined,
-                  "fontSize": 19,
-                },
-              ]
-            }
-          >
-            AB
-          </Text>
-        </View>
-        <View
-          style={
-            [
-              {
-                "alignItems": "center",
-                "borderRadius": 9,
-                "borderWidth": 2,
-                "bottom": -2,
-                "height": 18,
-                "justifyContent": "center",
-                "position": "absolute",
-                "right": -2,
-                "width": 18,
-              },
-              {
-                "backgroundColor": "#2E9E6C",
-                "borderColor": "#FFFFFF",
-              },
-            ]
-          }
-        >
-          <Ionicons
-            accessibilityElementsHidden={true}
-            color="#0D1512"
-            importantForAccessibility="no-hide-descendants"
-            name="checkmark"
-            size={16}
-          />
-        </View>
+          AB
+        </Text>
       </View>
       <View
         style={
@@ -1350,48 +1135,40 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
         }
       />
       <View
+        accessibilityLabel="Photo de Salma Trabelsi"
+        accessibilityRole="image"
+        accessible={true}
         style={
-          {
-            "position": "relative",
-          }
+          [
+            {
+              "alignItems": "center",
+              "justifyContent": "center",
+            },
+            {
+              "backgroundColor": "#EDE6D4",
+              "borderRadius": 24,
+              "height": 48,
+              "width": 48,
+            },
+          ]
         }
       >
-        <View
-          accessibilityLabel="Photo de Salma Trabelsi"
-          accessibilityRole="image"
-          accessible={true}
+        <Text
           style={
             [
               {
-                "alignItems": "center",
-                "justifyContent": "center",
+                "color": "#FFFFFF",
+                "fontWeight": "600",
               },
               {
-                "backgroundColor": "#B08A4E",
-                "borderRadius": 24,
-                "height": 48,
-                "width": 48,
+                "color": "#14201B",
+                "fontSize": 19,
               },
             ]
           }
         >
-          <Text
-            style={
-              [
-                {
-                  "color": "#FFFFFF",
-                  "fontWeight": "600",
-                },
-                {
-                  "color": undefined,
-                  "fontSize": 19,
-                },
-              ]
-            }
-          >
-            ST
-          </Text>
-        </View>
+          ST
+        </Text>
       </View>
       <View
         style={

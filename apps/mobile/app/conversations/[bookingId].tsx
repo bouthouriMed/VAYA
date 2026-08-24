@@ -170,6 +170,8 @@ export default function ConversationScreen(): React.JSX.Element {
               uri={conversation.otherParty.avatarUrl}
               name={conversation.otherParty.fullName}
               sizePx={40}
+              fallbackBackgroundColor={theme.surfaceMuted}
+              fallbackTextColor={theme.ink}
             />
             {conversation.isOtherPartyVerified ? (
               <View

@@ -409,7 +409,13 @@ export default function RideDetailsScreen(): React.JSX.Element {
           accessibilityRole="button"
           accessibilityLabel={`Voir le profil de ${firstName}`}
         >
-          <Avatar uri={profile.avatarUrl} name={profile.fullName} size="md" />
+          <Avatar
+            uri={profile.avatarUrl}
+            name={profile.fullName}
+            size="md"
+            fallbackBackgroundColor={theme.surfaceMuted}
+            fallbackTextColor={theme.ink}
+          />
           <View style={styles.driverTextCol}>
             <View style={styles.driverNameRow}>
               <Text variant="label" color={theme.ink}>
@@ -456,7 +462,13 @@ export default function RideDetailsScreen(): React.JSX.Element {
                   key={passenger.userId}
                   style={[styles.passengerRow, i > 0 && { borderTopColor: theme.outlineVariant, borderTopWidth: 1 }]}
                 >
-                  <Avatar uri={passenger.avatarUrl} name={passenger.firstName} size="sm" />
+                  <Avatar
+                    uri={passenger.avatarUrl}
+                    name={passenger.firstName}
+                    size="sm"
+                    fallbackBackgroundColor={theme.surfaceMuted}
+                    fallbackTextColor={theme.ink}
+                  />
                   <Text variant="body" color={theme.ink} style={styles.passengerName}>
                     {passenger.firstName}
                   </Text>
