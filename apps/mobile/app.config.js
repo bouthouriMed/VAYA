@@ -18,12 +18,18 @@ module.exports = {
     },
     android: {
       package: 'com.vaya.app',
-      // Local-only, gitignored — see apps/mobile/README or ask whoever set
-      // up the Firebase project (console.firebase.google.com, project
-      // vaya-f3eaa) for a copy. Required for FCM-backed push notifications
-      // to work on an Android build; the app still builds/runs fine
-      // without it, push token registration just silently fails.
-      googleServicesFile: './google-services.json',
+      // Gitignored locally (ask whoever set up the Firebase project,
+      // console.firebase.google.com project vaya-f3eaa, for a copy). A
+      // gitignored file never reaches EAS Build's cloud runner, so builds
+      // there instead pull it from a GOOGLE_SERVICES_JSON EAS file-type
+      // env var (see eas.json's per-profile "environment" field + EAS
+      // dashboard/CLI env:set) — this is Expo's own documented pattern for
+      // exactly this file. process.env.GOOGLE_SERVICES_JSON is a path EAS
+      // Build injects at build time; the local path is the dev fallback.
+      // Required for FCM-backed push notifications to work on an Android
+      // build; the app still builds/runs fine without it, push token
+      // registration just silently fails.
+      googleServicesFile: process.env.GOOGLE_SERVICES_JSON ?? './google-services.json',
       // Keep hardware/system back on the classic onBackPressed pipeline
       // instead of Android 13+'s predictive-back OnBackInvokedCallback.
       // With predictive back enabled, an edge-starting swipe can be
