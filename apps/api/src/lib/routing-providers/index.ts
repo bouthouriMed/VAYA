@@ -3,7 +3,13 @@ import { GoogleRoutesProvider } from './google-routes.provider.js';
 import { OsrmRoutingProvider } from './osrm.provider.js';
 import type { RoutingProvider } from './routing-provider.types.js';
 
-export type { RoutingProvider, RoutePoint, RouteResult } from './routing-provider.types.js';
+export type {
+  RoutingProvider,
+  RoutePoint,
+  RouteResult,
+  RouteAlternative,
+  RouteOptionKind,
+} from './routing-provider.types.js';
 
 let _provider: RoutingProvider | null = null;
 

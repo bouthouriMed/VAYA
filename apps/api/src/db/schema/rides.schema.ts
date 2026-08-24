@@ -47,6 +47,16 @@ export const rides = pgTable(
     status: rideStatusEnum('status').notNull().default('draft'),
     routePolyline: text('route_polyline'),
     estimatedDurationSec: integer('estimated_duration_sec'),
+    // Route-selection step (rides/route-options.service.ts): which kind of
+    // route alternative the driver picked ('fastest' | 'no_tolls' |
+    // 'no_highways' | 'alternative'), or null for a ride created before
+    // this feature existed / whose route token had already expired at
+    // creation time — never backfilled, absence just means "unknown," not
+    // "fastest." Free text rather than a pgEnum: it mirrors
+    // RouteOptionKind (lib/routing-providers/routing-provider.types.ts), a
+    // TS-only type with no schema-level enum equivalent yet, and a new kind
+    // added there later shouldn't require a migration here too.
+    routeKind: varchar('route_kind', { length: 32 }),
     recurringPatternId: uuid('recurring_pattern_id').references(() => recurringPatterns.id),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),

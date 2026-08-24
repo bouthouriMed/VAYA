@@ -27,8 +27,27 @@ export const createRideSchema = z.object({
   // ride-creation endpoint with a pre-filled body rather than a bespoke
   // "confirm auto-draft" endpoint, per the phase doc's explicit scope.
   recurringPatternId: z.string().uuid().optional(),
+  // Route-selection step: an opaque token from POST /rides/route-options,
+  // redeemed server-side (rides.service.ts's createRide, via
+  // route-options.service.ts's redeemRouteToken) for the exact route the
+  // driver picked. Never trusted as a source of distance/duration/geometry
+  // values itself — only as a lookup key — so a client can't forge a route
+  // to manipulate the bounded price. Omitted (or expired/invalid) falls
+  // back to the default freshly-computed route, exactly as before this
+  // field existed.
+  routeToken: z.string().uuid().optional(),
 });
 export type CreateRideInput = z.infer<typeof createRideSchema>;
+
+// Route-selection step (apps/mobile's publish wizard, between the
+// origin/destination form and pickup/dropoff selection): fetches a small
+// set of real, distinct route alternatives for a not-yet-created ride.
+// Stateless — no rideId, since no ride needs to exist yet.
+export const routeOptionsRequestSchema = z.object({
+  origin: z.object({ lat: z.number().min(-90).max(90), lng: z.number().min(-180).max(180) }),
+  destination: z.object({ lat: z.number().min(-90).max(90), lng: z.number().min(-180).max(180) }),
+});
+export type RouteOptionsRequestInput = z.infer<typeof routeOptionsRequestSchema>;
 
 export const updateRideSchema = z.object({
   departureAt: z.coerce.date().optional(),

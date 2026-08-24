@@ -3,14 +3,19 @@ import { getLogger } from '../config/logger.js';
 import { getRedis } from './redis.js';
 import { haversineDistanceMeters } from './geo.js';
 import { decodePolyline } from './polyline.js';
-import { getRoutingProvider, type RoutePoint, type RouteResult } from './routing-providers/index.js';
+import {
+  getRoutingProvider,
+  type RouteAlternative,
+  type RoutePoint,
+  type RouteResult,
+} from './routing-providers/index.js';
 
 // Re-exported so every existing call site (matching.service.ts,
 // rides.service.ts, stop-candidates.service.ts) keeps importing these types
 // from lib/routing.js unchanged — the canonical definition now lives in
 // lib/routing-providers/routing-provider.types.ts, shared by both provider
 // adapters and this file.
-export type { RoutePoint, RouteResult };
+export type { RoutePoint, RouteResult, RouteAlternative };
 
 const CACHE_TTL_SEC = 3600;
 // Short-lived: a fallback estimate shouldn't keep being served for a full
@@ -201,6 +206,59 @@ export async function getRoute(
       JSON.stringify(result),
       'EX',
       result.isEstimate ? FALLBACK_CACHE_TTL_SEC : CACHE_TTL_SEC,
+    );
+  }
+  return result;
+}
+
+// Shorter-lived than a single route's cache: alternatives are requested
+// once per route-selection step (not on every render the way a single
+// route is), so there's less value in holding them a full hour, and a
+// shorter TTL means a provider outage's fallback single-option result
+// doesn't get stuck being served for long once the provider recovers.
+const ALTERNATIVES_CACHE_TTL_SEC = 600;
+const ALTERNATIVES_FALLBACK_CACHE_TTL_SEC = 60;
+
+/**
+ * Computes a small set of genuinely distinct route alternatives (fastest,
+ * and — where the active provider supports it — an explicit toll-avoiding
+ * and highway-avoiding option) via the active RoutingProvider, Redis-cached
+ * by coordinate pair exactly like `getRoute`. Falls back to a single
+ * haversine-estimate "route" (marked `isEstimate: true`, `kind: 'fastest'`)
+ * when the provider is unreachable or returns nothing — the route-selection
+ * step always has at least one option to fall back to, it just isn't a
+ * meaningful *choice* in that case (rides/route-options.service.ts's caller
+ * decides whether showing a single-option step is worth it at all).
+ */
+export async function getRouteAlternatives(
+  origin: RoutePoint,
+  destination: RoutePoint,
+  waypoints: RoutePoint[] = [],
+): Promise<RouteAlternative[]> {
+  const waypointKey = waypoints.map((w) => `${w.lat.toFixed(5)},${w.lng.toFixed(5)}`).join(';');
+  const key =
+    `route-alts:${origin.lat.toFixed(5)},${origin.lng.toFixed(5)}:${destination.lat.toFixed(5)},${destination.lng.toFixed(5)}` +
+    (waypointKey ? `:via:${waypointKey}` : '');
+  const redis = getRedis();
+
+  if (redis) {
+    const hit = await redis.get(key);
+    if (hit) return JSON.parse(hit) as RouteAlternative[];
+  }
+
+  const provided = await getRoutingProvider().computeRouteAlternatives(origin, destination, waypoints);
+  const result: RouteAlternative[] =
+    provided && provided.length > 0
+      ? provided
+      : [{ ...fallbackRoute([origin, ...waypoints, destination]), kind: 'fastest', hasTolls: null }];
+
+  if (redis) {
+    const anyEstimate = result.some((r) => r.isEstimate);
+    await redis.set(
+      key,
+      JSON.stringify(result),
+      'EX',
+      anyEstimate ? ALTERNATIVES_FALLBACK_CACHE_TTL_SEC : ALTERNATIVES_CACHE_TTL_SEC,
     );
   }
   return result;
