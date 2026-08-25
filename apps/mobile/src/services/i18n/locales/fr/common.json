@@ -1,10 +1,89 @@
 {
-  "back": "Retour",
-  "cancel": "Annuler",
-  "loading": "Chargement…",
-  "error_generic": "Une erreur est survenue. Réessayez.",
-  "retry": "Réessayer",
-  "seats_one": "{{count}} place",
-  "seats_other": "{{count}} places",
-  "minutes": "{{count}} min"
+  "actions": {
+    "back": "Retour",
+    "cancel": "Annuler",
+    "confirm": "Confirmer",
+    "save": "Enregistrer",
+    "done": "Terminé",
+    "next": "Suivant",
+    "continue": "Continuer",
+    "retry": "Réessayer",
+    "close": "Fermer",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "share": "Partager",
+    "seeAll": "Tout voir",
+    "viewDetails": "Voir les détails",
+    "gotIt": "Compris",
+    "later": "Plus tard",
+    "tryAgain": "Réessayer",
+    "call": "Appeler",
+    "message": "Message",
+    "search": "Rechercher",
+    "swap": "Inverser départ et arrivée"
+  },
+  "status": {
+    "loading": "Chargement…",
+    "comingSoon": "Bientôt disponible",
+    "unavailable": "Indisponible"
+  },
+  "terms": {
+    "ride_one": "Trajet",
+    "ride_other": "Trajets",
+    "trip_one": "Trajet",
+    "trip_other": "Trajets",
+    "driver": "Conducteur",
+    "passenger": "Passager",
+    "pickup": "Point de prise en charge",
+    "dropoff": "Point de dépose",
+    "booking": "Réservation",
+    "request": "Demande",
+    "available": "Disponible",
+    "confirmed": "Confirmé",
+    "cancelled": "Annulé",
+    "startTrip": "Démarrer le trajet",
+    "endTrip": "Terminer le trajet",
+    "eta": "Heure d'arrivée estimée",
+    "route": "Itinéraire",
+    "detour": "Détour",
+    "location": "Position",
+    "vehicle": "Véhicule",
+    "seat_one": "{{count}} place",
+    "seat_other": "{{count}} places",
+    "passenger_one": "{{count}} passager",
+    "passenger_other": "{{count}} passagers",
+    "minute_one": "{{count}} min",
+    "minute_other": "{{count}} min",
+    "km_one": "{{count}} km",
+    "km_other": "{{count}} km",
+    "currentPosition": "Ma position actuelle",
+    "departurePoint": "Point de départ",
+    "departure": "Départ",
+    "arrival": "Arrivée",
+    "whereTo": "Où allez-vous ?",
+    "date": "Date",
+    "time": "Heure",
+    "passengers": "Passagers"
+  },
+  "errors": {
+    "generic": "Une erreur est survenue. Réessayez.",
+    "network": "Vérifiez votre connexion et réessayez.",
+    "notSaved": "Cette modification n'a pas été enregistrée. Réessayez."
+  },
+  "time": {
+    "now": "Maintenant",
+    "today": "Aujourd'hui",
+    "tomorrow": "Demain"
+  },
+  "permissions": {
+    "required": "Autorisation requise",
+    "openSettings": "Ouvrir les réglages"
+  },
+  "language": {
+    "title": "Langue",
+    "restartTitle": "Redémarrage nécessaire",
+    "restartMessage": "Passer en {{language}} modifie le sens de lecture de l'application. Redémarrez VAYA pour appliquer ce changement.",
+    "restartCta": "Redémarrer maintenant",
+    "restartLater": "Plus tard"
+  }
 }

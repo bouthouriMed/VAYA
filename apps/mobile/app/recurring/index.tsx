@@ -1,5 +1,6 @@
 import { StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import {
   Badge,
   Button,
@@ -15,17 +16,9 @@ import {
   useListMyRecurringPatternsQuery,
   useUpdateRecurringPatternMutation,
   type RecurringPattern,
-  type RecurringPatternStatus,
 } from '../../src/state/api';
 import { trackEvent } from '../../src/services/analytics/analytics';
 import { formatDaysOfWeek, formatTimeWindow } from '../../src/features/recurring/recurringHelpers';
-
-const STATUS_BADGE: Record<RecurringPatternStatus, { label: string; variant: 'success' | 'default' }> = {
-  enabled: { label: 'Actif', variant: 'success' },
-  suggested: { label: 'Suggéré', variant: 'default' },
-  detected: { label: 'Détecté', variant: 'default' },
-  dismissed: { label: 'Ignoré', variant: 'default' },
-};
 
 /**
  * Pattern-management screen (docs/roadmap/phase-11-recurring-rides.md's
@@ -35,6 +28,7 @@ const STATUS_BADGE: Record<RecurringPatternStatus, { label: string; variant: 'su
  * screen.
  */
 export default function RecurringPatternsScreen(): React.JSX.Element {
+  const { t } = useTranslation();
   const { data: patterns, isLoading } = useListMyRecurringPatternsQuery();
   const [updatePattern, { isLoading: isUpdating }] = useUpdateRecurringPatternMutation();
 
@@ -76,36 +70,43 @@ export default function RecurringPatternsScreen(): React.JSX.Element {
       <View style={styles.container}>
         <EmptyState
           icon={<Icon name="repeat-outline" size="lg" color={colors.gray400} />}
-          title="Aucun trajet régulier"
-          description="Quand vous prenez ou publiez le même trajet plusieurs fois, VAYA vous propose d'en faire un trajet régulier."
+          title={t('booking:recurring.emptyTitle')}
+          description={t('booking:recurring.emptyDescription')}
         />
       </View>
     );
   }
 
+  const STATUS_BADGE: Record<string, { variant: 'success' | 'default' }> = {
+    enabled: { variant: 'success' },
+    suggested: { variant: 'default' },
+    detected: { variant: 'default' },
+    dismissed: { variant: 'default' },
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.list}>
         {visible.map((pattern) => {
-          const badge = STATUS_BADGE[pattern.status];
+          const badge = STATUS_BADGE[pattern.status] ?? { variant: 'default' as const };
           return (
             <Card key={pattern.id} style={styles.card}>
               <View style={styles.cardHeader}>
                 <Text variant="label">{pattern.originLabel}</Text>
-                <Badge label={badge.label} variant={badge.variant} />
+                <Badge label={t(`common:status.${pattern.status}`)} variant={badge.variant} />
               </View>
               <Text variant="bodySmall" color={colors.gray600}>
                 → {pattern.destinationLabel}
               </Text>
               <Text variant="bodySmall" color={colors.gray600}>
-                {formatDaysOfWeek(pattern.daysOfWeekMask)} ·{' '}
+                {formatDaysOfWeek(pattern.daysOfWeekMask, t)} ·{' '}
                 {formatTimeWindow(pattern.timeWindowStart, pattern.timeWindowEnd)} ·{' '}
-                {pattern.role === 'driver' ? 'Conducteur' : 'Passager'}
+                {pattern.role === 'driver' ? t('booking:driver') : t('booking:passenger')}
               </Text>
 
               {pattern.status === 'enabled' && pattern.role === 'driver' && pattern.matchesToday ? (
                 <Button
-                  label={pattern.todayRideId ? "Aujourd'hui : voir le trajet" : "Confirmer le trajet d'aujourd'hui"}
+                  label={pattern.todayRideId ? t('booking:recurring.viewTodayRide') : t('booking:recurring.confirmTodayRide')}
                   size="md"
                   style={styles.actionBtn}
                   onPress={() =>
@@ -121,7 +122,7 @@ export default function RecurringPatternsScreen(): React.JSX.Element {
               <View style={styles.actions}>
                 {pattern.status !== 'enabled' ? (
                   <Button
-                    label="Activer"
+                    label={t('common:actions.enable')}
                     variant="outline"
                     size="sm"
                     loading={isUpdating}
@@ -129,7 +130,7 @@ export default function RecurringPatternsScreen(): React.JSX.Element {
                   />
                 ) : null}
                 <Button
-                  label={pattern.status === 'enabled' ? 'Désactiver' : 'Ignorer'}
+                  label={pattern.status === 'enabled' ? t('common:actions.disable') : t('common:actions.dismiss')}
                   variant="ghost"
                   size="sm"
                   loading={isUpdating}

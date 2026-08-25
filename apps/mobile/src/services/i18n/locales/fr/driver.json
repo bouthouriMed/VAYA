@@ -1,0 +1,184 @@
+{
+  "publish": {
+    "steps": {
+      "route": "Choisir l'itinéraire",
+      "price": "Prix suggéré",
+      "stops": "Points d'arrêt",
+      "review": "Vérifier et publier"
+    },
+    "routeStep": {
+      "title": "ITINÉRAIRES DISPONIBLES",
+      "continue": "Continuer"
+    },
+    "priceStep": {
+      "title": "PRIX SUGGÉRÉ",
+      "description": "Ce montant est calculé pour ce trajet en fonction de la distance et de la durée. Vous pouvez l'ajuster dans la plage autorisée.",
+      "suggested": "Suggéré",
+      "min": "Minimum",
+      "max": "Maximum"
+    },
+    "stopsStep": {
+      "pickupTitle": "Point de rendez-vous",
+      "dropoffTitle": "Point de dépose",
+      "confirm": "Confirmer",
+      "customPosition": "Position personnalisée",
+      "editPickup": "Modifier le point de rendez-vous",
+      "editDropoff": "Modifier le point de dépose",
+      "selectedPoint": "Point sélectionné",
+      "choosePoint": "Choisir ce point"
+    },
+    "reviewStep": {
+      "readyToPublish": "Prêt à publier votre trajet ?",
+      "checkDetails": "Vérifiez les détails ci-dessous avant de publier.",
+      "itinerary": "ITINÉRAIRES",
+      "modify": "Modifier",
+      "meetingPoint": "Point de rendez-vous",
+      "price": "PRIX",
+      "afterVerification": "Après vérification",
+      "vehicle": "VÉHICULE",
+      "addAfterVerify": "vous ajouterez votre véhicule…",
+      "publishCta": "PUBLIER CE TRAJET",
+      "verifyCta": "Vérifier mon profil pour publier",
+      "verifyDescription": "Vérification prend environ 5 minutes."
+    },
+    "errors": {
+      "createFailed": "Impossible de créer ce trajet. Réessayez.",
+      "stopsFailed": "Impossible d'enregistrer vos arrêts. Réessayez.",
+      "priceFailed": "Impossible de mettre à jour le prix. Réessayez.",
+      "publishFailed": "Impossible de publier ce trajet. Réessayez."
+    }
+  },
+  "onboarding": {
+    "index": {
+      "title": "Devenir conducteur VAYA",
+      "subtitle": "Partagez vos trajets, gagnez en roulant.",
+      "benefits": {
+        "documents": "Documents en direct",
+        "documentsDesc": "Vérification d'identité rapide et sécurisée.",
+        "verified": "Profil vérifié",
+        "verifiedDesc": "Inspirez confiance aux passagers.",
+        "earnings": "Gagnez de l'argent",
+        "earningsDesc": "Partagez les frais sur vos trajets habituels."
+      },
+      "startCta": "Commencer",
+      "later": "Pas maintenant",
+      "back": "Retour"
+    },
+    "vehicle": {
+      "stepTitle": "Votre véhicule",
+      "stepLabel": "Étape {{current}} sur {{total}}",
+      "vehicleDetails": "DÉTAILS DU VÉHICULE",
+      "seatCount": "Nombre de places passagers",
+      "fields": {
+        "make": "Marque",
+        "model": "Modèle",
+        "color": "Couleur",
+        "plate": "Plaque d'immatriculation"
+      },
+      "placeholders": {
+        "make": "Peugeot",
+        "model": "208",
+        "color": "Grise",
+        "plate": "208TU1234"
+      },
+      "removeSeat": "Retirer une place",
+      "addSeat": "Ajouter une place",
+      "continue": "Continuer"
+    },
+    "selfie": {
+      "captureTitle": "Vérification d'identité",
+      "captureInstruction": "Prenez un selfie pour confirmer votre identité.",
+      "reviewTitle": "Vérifier et confirmer",
+      "reviewEyebrow": "DERNIÈRE ÉTAPE",
+      "reviewHeadline": "Tout est prêt",
+      "reviewSubtitle": "Vérifiez vos informations avant d'activer votre profil conducteur.",
+      "vehicleSection": "VÉHICULE",
+      "documentsSection": "DOCUMENTS VÉRIFIÉS EN DIRECT",
+      "tipLight": "Bon éclairage",
+      "tipFace": "Face à la caméra",
+      "tipGlasses": "Retirez vos lunettes",
+      "tabs": {
+        "license": "Permis",
+        "insurance": "Assurance",
+        "identity": "Identité"
+      },
+      "reviewRetake": "Reprendre",
+      "reviewConfirm": "Confirmer et activer mon profil"
+    },
+    "license": {
+      "title": "Permis de conduire",
+      "eyebrow": "Capture de document",
+      "instruction": "Placez votre permis dans le cadre.",
+      "tipValid": "Le document doit être en cours de validité",
+      "tipClear": "Photo nette, pas de reflet",
+      "tipFull": "Les quatre coins doivent être visibles"
+    },
+    "insurance": {
+      "title": "Assurance véhicule",
+      "eyebrow": "Capture de document",
+      "instruction": "Placez votre attestation d'assurance dans le cadre.",
+      "tipValid": "Le document doit être en cours de validité",
+      "tipClear": "Photo nette, pas de reflet",
+      "tipFull": "Les quatre coins doivent être visibles"
+    },
+    "confirmation": {
+      "successTitle": "Profil vérifié !",
+      "successDescription": "Vous pouvez maintenant publier des trajets.",
+      "successCta": "Aller à Mes Trajets",
+      "errorTitle": "C'est presque prêt !",
+      "errorDescription": "Votre trajet n'a pas pu être publié automatiquement. Vous pouvez réessayer depuis Mes Trajets.",
+      "errorCta": "Aller à Mes Trajets",
+      "publishSuccess": "Votre trajet a été publié !",
+      "publishError": "Profil vérifié mais le trajet n'a pas pu être publié. Réessayez depuis Mes Trajets."
+    }
+  },
+  "rides": {
+    "rideDetail": {
+      "passenger": "Passager",
+      "departure": "Départ",
+      "arrival": "Arrivée",
+      "dropoff": "Point de dépose",
+      "viewRouteFullscreen": "Voir l'itinéraire en plein écran",
+      "cancelRide": "Annuler le trajet",
+      "back": "Retour",
+      "close": "Fermer",
+      "myRide": "Mon trajet",
+      "itinerary": "Itinéraire",
+      "rideNotFound": "Trajet introuvable.",
+      "passengers": "Passagers",
+      "arrivalEta": "Arrivée ~{{time}}",
+      "seatsAvailable": "{{available}}/{{total}} places disponibles",
+      "pricePerSeat": "{{price}} DT par place",
+      "confirmedRevenue": "{{revenue}} DT confirmés · {{count}} passager",
+      "pendingSection": "À répondre ({{count}})",
+      "noPendingRequests": "Aucune demande en attente."
+    },
+    "manageSheet": {
+      "title": "Gérer ce trajet",
+      "cannotCancel": "Impossible d'annuler un trajet avec des réservations actives.",
+      "cancelRide": "Annuler ce trajet",
+      "doNotCancel": "Ne pas annuler",
+      "confirmCancel": "Confirmer l'annulation du trajet"
+    },
+    "requestsSheet": {
+      "title": "Demandes de réservation",
+      "loadError": "Impossible de charger les demandes",
+      "empty": "Aucune demande",
+      "emptyAccepted": "Aucune demande acceptée",
+      "sectionPending": "Nouvelles",
+      "sectionAccepted": "Déjà traitées",
+      "decline": "Refuser",
+      "accept": "Accepter",
+      "acceptError": "Impossible d'accepter. Réessayez.",
+      "declineError": "Impossible de refuser. Réessayez.",
+      "retry": "Réessayer"
+    },
+    "bookingDetail": {
+      "passenger": "Passager",
+      "destination": "Destination du trajet",
+      "message": "Message",
+      "reportNoShow": "Signaler une absence",
+      "cancelBooking": "Annuler cette réservation"
+    }
+  }
+}

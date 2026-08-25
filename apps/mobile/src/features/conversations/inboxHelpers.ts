@@ -5,6 +5,8 @@
  * recurringHelpers/rankStopsByWalkDistance).
  */
 
+import type { TFunction } from 'i18next';
+
 export interface InboxConversation {
   id: string;
   bookingId: string;
@@ -89,7 +91,7 @@ function isSameCalendarDay(a: Date, b: Date): boolean {
  * mirroring the mockup's time/day/weekday progression without ever
  * inventing a relative phrase the data can't back.
  */
-export function formatInboxTimestamp(iso: string, now: Date = new Date()): string {
+export function formatInboxTimestamp(iso: string, now: Date = new Date(), locale: string = 'en'): string {
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return '';
 
@@ -97,12 +99,12 @@ export function formatInboxTimestamp(iso: string, now: Date = new Date()): strin
   yesterday.setDate(now.getDate() - 1);
 
   if (isSameCalendarDay(date, now)) {
-    return date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    return date.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
   }
   if (isSameCalendarDay(date, yesterday)) return 'Hier';
 
   const sameYear = date.getFullYear() === now.getFullYear();
-  return date.toLocaleDateString('fr-FR', {
+  return date.toLocaleDateString(locale, {
     day: 'numeric',
     month: 'short',
     ...(sameYear ? {} : { year: 'numeric' }),
@@ -110,14 +112,14 @@ export function formatInboxTimestamp(iso: string, now: Date = new Date()): strin
 }
 
 /** Section header above each day bucket ("Aujourd'hui", "Hier", dates). */
-export function formatDaySectionLabel(iso: string, now: Date = new Date()): string {
+export function formatDaySectionLabel(iso: string, t: TFunction, now: Date = new Date(), locale: string = 'en'): string {
   const date = new Date(iso);
   const yesterday = new Date(now);
   yesterday.setDate(now.getDate() - 1);
 
-  if (isSameCalendarDay(date, now)) return "Aujourd'hui";
-  if (isSameCalendarDay(date, yesterday)) return 'Hier';
-  return date.toLocaleDateString('fr-FR', {
+  if (isSameCalendarDay(date, now)) return t('common:time.today');
+  if (isSameCalendarDay(date, yesterday)) return t('common:time.yesterday');
+  return date.toLocaleDateString(locale, {
     weekday: 'short',
     day: 'numeric',
     month: 'long',
@@ -136,12 +138,13 @@ export interface InboxSection {
  */
 export function groupConversationsByDay(
   conversations: InboxConversation[],
+  t: TFunction,
   now: Date = new Date(),
 ): InboxSection[] {
   const sections: InboxSection[] = [];
   for (const conversation of conversations) {
     const activityIso = conversation.lastMessage?.createdAt ?? conversation.updatedAt;
-    const label = formatDaySectionLabel(activityIso, now);
+    const label = formatDaySectionLabel(activityIso, t, now);
     const last = sections[sections.length - 1];
     if (last && last.label === label) {
       last.conversations.push(conversation);
@@ -153,26 +156,26 @@ export function groupConversationsByDay(
 }
 
 /** Neutral role label for the row's context line — no gender guessing. */
-export function roleLabel(role: 'driver' | 'rider'): string {
-  return role === 'driver' ? 'Conducteur' : 'Passager';
+export function roleLabel(role: 'driver' | 'rider', t: TFunction): string {
+  return role === 'driver' ? t('booking:driver') : t('booking:passenger');
 }
 
 /** Short departure-time label for an inbox row's meta line — clock time
  *  today, "Demain" tomorrow, a short date beyond that. Mirrors
  *  formatInboxTimestamp's day logic but is forward-looking (a departure
  *  is usually in the future, not the past a message timestamp implies). */
-export function formatDepartureLabel(iso: string, now: Date = new Date()): string {
+export function formatDepartureLabel(iso: string, t: TFunction, now: Date = new Date(), locale: string = 'en'): string {
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return '';
 
   if (isSameCalendarDay(date, now)) {
-    return date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    return date.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
   }
   const tomorrow = new Date(now);
   tomorrow.setDate(now.getDate() + 1);
-  if (isSameCalendarDay(date, tomorrow)) return 'Demain';
+  if (isSameCalendarDay(date, tomorrow)) return t('common:time.tomorrow');
 
-  return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+  return date.toLocaleDateString(locale, { day: 'numeric', month: 'short' });
 }
 
 /** Client-side text filter over the already-fetched inbox — matches the

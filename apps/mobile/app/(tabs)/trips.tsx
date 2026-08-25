@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { View, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
+import { formatDate, formatTime } from '../../src/utils/localeFormat';
 import {
   Text,
   Button,
@@ -33,35 +35,43 @@ import { decodePolyline } from '../../src/utils/polyline';
 type ThemeColors = ReturnType<typeof useAppTheme>['colors'];
 type BadgeVariant = 'default' | 'success' | 'warning' | 'error' | 'info';
 
-const BOOKING_STATUS: Record<Booking['status'], { label: string; variant: BadgeVariant }> = {
-  pending: { label: 'En attente', variant: 'warning' },
-  accepted: { label: 'Confirmé', variant: 'success' },
-  declined: { label: 'Refusé', variant: 'error' },
-  cancelled_by_rider: { label: 'Annulé', variant: 'default' },
-  cancelled_by_driver: { label: 'Annulé par le conducteur', variant: 'error' },
-  expired: { label: 'Expiré', variant: 'default' },
-  completed: { label: 'Terminé', variant: 'info' },
-  no_show: { label: 'Absence', variant: 'error' },
-};
+function getBookingStatus(t: (key: string) => string, status: Booking['status']): { label: string; variant: BadgeVariant } {
+  const statusMap: Record<Booking['status'], { key: string; variant: BadgeVariant }> = {
+    pending: { key: 'booking.status_pending', variant: 'warning' },
+    accepted: { key: 'booking.status_accepted', variant: 'success' },
+    declined: { key: 'booking.status_declined', variant: 'error' },
+    cancelled_by_rider: { key: 'booking.status_cancelled_by_rider', variant: 'default' },
+    cancelled_by_driver: { key: 'booking.status_cancelled_by_driver', variant: 'error' },
+    expired: { key: 'booking.status_expired', variant: 'default' },
+    completed: { key: 'booking.status_completed', variant: 'info' },
+    no_show: { key: 'booking.status_no_show', variant: 'error' },
+  };
+  const { key, variant } = statusMap[status];
+  return { label: t(key), variant };
+}
 
-const RIDE_STATUS: Record<Ride['status'], { label: string; variant: BadgeVariant }> = {
-  draft: { label: 'Brouillon', variant: 'default' },
-  published: { label: 'Publié', variant: 'success' },
-  full: { label: 'Complet', variant: 'info' },
-  in_progress: { label: 'En cours', variant: 'warning' },
-  completed: { label: 'Terminé', variant: 'info' },
-  cancelled: { label: 'Annulé', variant: 'error' },
-};
+function getRideStatus(t: (key: string) => string, status: Ride['status']): { label: string; variant: BadgeVariant } {
+  const statusMap: Record<Ride['status'], { key: string; variant: BadgeVariant }> = {
+    draft: { key: 'booking.status_draft', variant: 'default' },
+    published: { key: 'booking.status_published', variant: 'success' },
+    full: { key: 'booking.status_full', variant: 'info' },
+    in_progress: { key: 'booking.status_in_progress', variant: 'warning' },
+    completed: { key: 'booking.status_completed', variant: 'info' },
+    cancelled: { key: 'booking.status_cancelled_by_driver', variant: 'error' },
+  };
+  const { key, variant } = statusMap[status];
+  return { label: t(key), variant };
+}
 
 const UPCOMING_RIDE_STATUSES: Ride['status'][] = ['draft', 'published', 'full'];
 
-function formatWhen(iso: string): string {
+function formatWhen(iso: string, t: (key: string) => string, locale: string): string {
   const date = new Date(iso);
   const now = new Date();
   const isToday = date.toDateString() === now.toDateString();
-  const time = date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-  if (isToday) return `Aujourd'hui, ${time}`;
-  return `${date.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })} · ${time}`;
+  const time = formatTime(date, locale as any);
+  if (isToday) return `${t('common:time.today')}, ${time}`;
+  return `${formatDate(date, locale as any, { weekday: 'short', day: 'numeric', month: 'short' })} · ${time}`;
 }
 
 type CardCounterpart =
@@ -109,7 +119,7 @@ function TripCard({
       onPress={onPress}
       activeOpacity={0.7}
       accessibilityRole="button"
-      accessibilityLabel={`${originLabel} vers ${destinationLabel}, ${dateTimeLabel}, ${badge.label}`}
+      accessibilityLabel={`${originLabel} → ${destinationLabel}, ${dateTimeLabel}, ${badge.label}`}
     >
       <View style={styles.tripCardTopRow}>
         <Text variant="label" color={theme.ink} style={styles.tripCardDate}>
@@ -174,6 +184,8 @@ function TripCard({
  * and cancellation together). */
 export default function TripsScreen(): React.JSX.Element {
   const { colors: theme, scheme } = useAppTheme();
+  const { t } = useTranslation(['trips', 'booking', 'common']);
+  const locale = useAppSelector((s) => s.language.locale) || 'en';
   const { openRequestsForRide } = useLocalSearchParams<{ openRequestsForRide?: string }>();
   const accessToken = useAppSelector((s) => s.auth.accessToken);
   const { data: bookings, isLoading: isBookingsLoading } = useListMyBookingsQuery(undefined, {
@@ -253,16 +265,16 @@ export default function TripsScreen(): React.JSX.Element {
         <View style={styles.pageHeaderRow}>
           <View style={styles.pageHeader}>
             <Text variant="headlineDisplay" color={theme.ink} style={styles.heading}>
-              Mes trajets
+              {t('trips:title')}
             </Text>
             <Text variant="body" color={theme.inkMuted}>
-              Gérez vos trajets à venir et passés.
+              {t('trips:subtitle')}
             </Text>
           </View>
           <TouchableOpacity
             onPress={() => router.push('/notifications')}
             accessibilityRole="button"
-            accessibilityLabel={hasUnreadNotifications ? 'Notifications (non lues)' : 'Notifications'}
+            accessibilityLabel={hasUnreadNotifications ? t('trips:notificationsUnreadAria') : t('trips:notificationsAria')}
             style={[styles.notificationButton, { backgroundColor: theme.surface }]}
           >
             <Icon name="notifications-outline" size="sm" color={theme.ink} />
@@ -276,9 +288,9 @@ export default function TripsScreen(): React.JSX.Element {
           <View style={styles.guestEmptyWrap}>
             <EmptyState
               icon={<Icon name="car-sport-outline" size="lg" color={theme.inkFaint} />}
-              title="Trouvez votre premier trajet"
-              description="Recherchez un trajet pour commencer à voyager avec VAYA — vous pourrez suivre vos réservations ici."
-              actionLabel="Rechercher un trajet"
+              title={t('trips:guestEmpty.title')}
+              description={t('trips:guestEmpty.description')}
+              actionLabel={t('trips:guestEmpty.cta')}
               onAction={() => router.navigate('/(tabs)/explore')}
             />
           </View>
@@ -291,12 +303,12 @@ export default function TripsScreen(): React.JSX.Element {
         {heroRide ? (
           <View style={styles.heroSection}>
             <Text variant="label" color={theme.inkMuted} style={styles.sectionHeading}>
-              Prochain trajet
+              {t('trips:nextRide')}
             </Text>
             <View style={[styles.heroCard, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
               <MapPreview
                 height={128}
-                badge={RIDE_STATUS[heroRide.status].label}
+                badge={getRideStatus(t, heroRide.status).label}
                 origin={{ latitude: heroRide.originLat, longitude: heroRide.originLng }}
                 destination={{ latitude: heroRide.destinationLat, longitude: heroRide.destinationLng }}
                 routeCoordinates={heroPolyline}
@@ -310,7 +322,7 @@ export default function TripsScreen(): React.JSX.Element {
                       {`${heroRide.originLabel} → ${heroRide.destinationLabel}`}
                     </Text>
                     <Text variant="bodySmall" color={theme.inkMuted}>
-                      {`${formatWhen(heroRide.departureAt)} • ${heroRide.seatsAvailable} place${heroRide.seatsAvailable > 1 ? 's' : ''} disponible${heroRide.seatsAvailable > 1 ? 's' : ''}`}
+                      {`${formatWhen(heroRide.departureAt, t, locale)} • ${t('trips:seatsAvailable', { count: heroRide.seatsAvailable })}`}
                     </Text>
                   </View>
                   <View style={styles.priceCol}>
@@ -318,7 +330,7 @@ export default function TripsScreen(): React.JSX.Element {
                       {`${heroRide.contributionPerSeat} DT`}
                     </Text>
                     <Text variant="caption" color={theme.inkMuted}>
-                      par place
+                      {t('trips:perSeat')}
                     </Text>
                   </View>
                 </View>
@@ -332,7 +344,7 @@ export default function TripsScreen(): React.JSX.Element {
                   <View style={styles.timelineEntries}>
                     <View style={styles.timelineEntry}>
                       <Text variant="caption" color={theme.inkMuted}>
-                        {new Date(heroRide.departureAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                        {formatTime(new Date(heroRide.departureAt), locale as any)}
                       </Text>
                       <Text variant="body" color={theme.ink} numberOfLines={1}>
                         {heroRide.originLabel}
@@ -341,7 +353,7 @@ export default function TripsScreen(): React.JSX.Element {
                     <View style={styles.timelineEntry}>
                       {heroArrivalLabel ? (
                         <Text variant="caption" color={theme.inkMuted}>
-                          {`${heroArrivalLabel} (est.)`}
+                          {`${heroArrivalLabel} ${t('trips:estimated')}`}
                         </Text>
                       ) : null}
                       <Text variant="body" color={theme.ink} numberOfLines={1}>
@@ -352,7 +364,7 @@ export default function TripsScreen(): React.JSX.Element {
                 </View>
 
                 <Button
-                  label="Gérer ce trajet"
+                  label={t('trips:manageRide')}
                   theme={theme}
                   onPress={() =>
                     router.push({ pathname: '/driver/rides/[rideId]', params: { rideId: heroRide.id } })
@@ -369,15 +381,15 @@ export default function TripsScreen(): React.JSX.Element {
             below (the hero above is unconditional, see above). */}
         <View style={styles.listHeaderRow}>
           <Text variant="label" color={theme.inkMuted} style={styles.sectionHeading}>
-            Trajets récents
+            {t('trips:recentRides')}
           </Text>
           <View style={[styles.segmentTrack, { backgroundColor: theme.surfaceMuted }]}>
             {(
               [
-                { key: 'driver' as Segment, label: 'Conducteur' },
-                { key: 'rider' as Segment, label: 'Passager' },
+                { key: 'driver' as Segment, labelKey: 'trips:segmentDriver' },
+                { key: 'rider' as Segment, labelKey: 'trips:segmentRider' },
               ]
-            ).map(({ key, label }) => (
+            ).map(({ key, labelKey }) => (
               <TouchableOpacity
                 key={key}
                 style={[
@@ -387,14 +399,14 @@ export default function TripsScreen(): React.JSX.Element {
                 onPress={() => selectSegment(key)}
                 accessibilityRole="tab"
                 accessibilityState={{ selected: segment === key }}
-                accessibilityLabel={label}
+                accessibilityLabel={t(labelKey)}
               >
                 <Text
                   variant="bodySmall"
                   color={segment === key ? theme.ink : theme.inkMuted}
                   style={segment === key ? styles.segmentActiveLabel : undefined}
                 >
-                  {label}
+                  {t(labelKey)}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -406,17 +418,17 @@ export default function TripsScreen(): React.JSX.Element {
             {!driverProfile ? (
               <EmptyState
                 icon={<Icon name="car-outline" size="lg" color={theme.inkFaint} />}
-                title="Vous ne conduisez pas encore"
-                description="Ajoutez votre véhicule pour publier vos premiers trajets."
-                actionLabel="Devenir conducteur"
+                title={t('trips:driverEmpty.notDriverYet')}
+                description={t('trips:driverEmpty.notDriverDesc')}
+                actionLabel={t('trips:driverEmpty.becomeDriver')}
                 onAction={goToDriverFlow}
               />
             ) : remainingRides.length === 0 && !heroRide ? (
               <EmptyState
                 icon={<Icon name="car-outline" size="lg" color={theme.inkFaint} />}
-                title="Aucun trajet publié"
-                description="Publiez un trajet pour remplir vos places vides."
-                actionLabel="Publier un trajet"
+                title={t('trips:driverEmpty.noRides')}
+                description={t('trips:driverEmpty.noRidesDesc')}
+                actionLabel={t('trips:driverEmpty.publishRide')}
                 onAction={goToDriverFlow}
               />
             ) : (
@@ -426,13 +438,13 @@ export default function TripsScreen(): React.JSX.Element {
                   <TripCard
                     key={ride.id}
                     theme={theme}
-                    dateTimeLabel={formatWhen(ride.departureAt)}
-                    badge={RIDE_STATUS[ride.status]}
+                    dateTimeLabel={formatWhen(ride.departureAt, t, locale)}
+                    badge={getRideStatus(t, ride.status)}
                     originLabel={ride.originLabel}
                     destinationLabel={ride.destinationLabel}
                     counterpart={{
                       kind: 'text',
-                      label: `${ride.seatsTotal - ride.seatsAvailable}/${ride.seatsTotal} places réservées`,
+                      label: t('trips:placesReserved', { count: ride.seatsTotal - ride.seatsAvailable }),
                     }}
                     priceLabel={`${ride.contributionPerSeat} DT`}
                     onPress={() =>
@@ -451,9 +463,9 @@ export default function TripsScreen(): React.JSX.Element {
             ) : (bookings?.length ?? 0) === 0 ? (
               <EmptyState
                 icon={<Icon name="search-outline" size="lg" color={theme.inkFaint} />}
-                title="Aucune réservation"
-                description="Recherchez un trajet pour réserver votre première place."
-                actionLabel="Trouver un trajet"
+                title={t('trips:riderEmpty.noBookings')}
+                description={t('trips:riderEmpty.noBookingsDesc')}
+                actionLabel={t('trips:riderEmpty.findRide')}
                 onAction={() => router.navigate('/(tabs)/explore')}
               />
             ) : (
@@ -462,11 +474,11 @@ export default function TripsScreen(): React.JSX.Element {
                   <TripCard
                     key={booking.id}
                     theme={theme}
-                    dateTimeLabel={booking.ride ? formatWhen(booking.ride.departureAt) : ''}
-                    badge={BOOKING_STATUS[booking.status]}
-                    originLabel={booking.ride?.originLabel ?? 'Départ'}
-                    destinationLabel={booking.ride?.destinationLabel ?? 'Arrivée'}
-                    counterpart={{ kind: 'person', name: booking.ride?.driverFullName ?? 'Conducteur' }}
+                    dateTimeLabel={booking.ride ? formatWhen(booking.ride.departureAt, t, locale) : ''}
+                    badge={getBookingStatus(t, booking.status)}
+                    originLabel={booking.ride?.originLabel ?? t('booking:departure')}
+                    destinationLabel={booking.ride?.destinationLabel ?? t('booking:arrival')}
+                    counterpart={{ kind: 'person', name: booking.ride?.driverFullName ?? t('booking:driver') }}
                     priceLabel={`${booking.contributionTotal} DT`}
                     onPress={() =>
                       router.push({ pathname: '/bookings/[bookingId]', params: { bookingId: booking.id } })
@@ -476,14 +488,14 @@ export default function TripsScreen(): React.JSX.Element {
                 {pastBookings.length > 0 ? (
                   <>
                     <Text variant="label" color={theme.inkMuted} style={[styles.sectionHeading, styles.pastHeading]}>
-                      Passés
+                      {t('booking.filters.past')}
                     </Text>
                     {pastBookings.map((booking) => (
                       <TripCard
                         key={booking.id}
                         theme={theme}
-                        dateTimeLabel={booking.ride ? formatWhen(booking.ride.departureAt) : ''}
-                        badge={BOOKING_STATUS[booking.status]}
+                        dateTimeLabel={booking.ride ? formatWhen(booking.ride.departureAt, t, locale) : ''}
+                        badge={getBookingStatus(t, booking.status)}
                         originLabel={booking.ride?.originLabel ?? 'Départ'}
                         destinationLabel={booking.ride?.destinationLabel ?? 'Arrivée'}
                         counterpart={{ kind: 'person', name: booking.ride?.driverFullName ?? 'Conducteur' }}

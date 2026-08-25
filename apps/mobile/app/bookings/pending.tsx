@@ -3,9 +3,11 @@ import { View, StyleSheet, TouchableOpacity, ScrollView, Share } from 'react-nat
 import { Ionicons } from '@expo/vector-icons';
 import { Text, Icon, MapPreview, useAppTheme, spacing, radii } from '@vaya/design-system';
 import { router, useLocalSearchParams } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { CancellationSheet } from '../../src/features/bookings/CancellationSheet';
 
 export default function PendingScreen(): React.JSX.Element {
+  const { t } = useTranslation(['booking', 'activeTrip', 'common']);
   const params = useLocalSearchParams<{
     bookingId?: string;
     driverName?: string;
@@ -21,7 +23,7 @@ export default function PendingScreen(): React.JSX.Element {
     destinationLng?: string;
   }>();
   const { colors: theme } = useAppTheme();
-  const driverName = params.driverName ?? 'votre conducteur';
+  const driverName = params.driverName ?? t('common:terms.driver');
   const firstName = driverName.split(' ')[0]!;
   const [cancelling, setCancelling] = useState(false);
 
@@ -33,7 +35,7 @@ export default function PendingScreen(): React.JSX.Element {
     // requestSeat() → confirmed.tsx → here).
     try {
       await Share.share({
-        message: `Mon trajet Vaya avec ${driverName} · ${params.pickupLabel ?? ''} → ${params.destinationLabel ?? ''} · ${params.price ?? ''} DT`,
+        message: t('booking:shareDetails', { driver: driverName, pickup: params.pickupLabel ?? '', destination: params.destinationLabel ?? '', price: params.price ?? '' }),
       });
     } catch {
       // User dismissed the share sheet — not an error worth surfacing.
@@ -47,7 +49,7 @@ export default function PendingScreen(): React.JSX.Element {
           onPress={() => router.back()}
           hitSlop={12}
           accessibilityRole="button"
-          accessibilityLabel="Retour"
+          accessibilityLabel={t('common:actions.back')}
         >
           <Ionicons name="chevron-back" size={22} color={theme.ink} />
         </TouchableOpacity>
@@ -73,14 +75,14 @@ export default function PendingScreen(): React.JSX.Element {
             <View style={[styles.confirmedPill, { backgroundColor: theme.accentGlow + '40' }]}>
               <Icon name="checkmark-circle" size="xs" color={theme.accentStrong} />
               <Text variant="caption" color={theme.accentStrong}>
-                Confirmé
+                {t('booking:status_confirmed')}
               </Text>
             </View>
             <Text variant="h1" color={theme.ink}>
-              Votre trajet Vaya est confirmé
+              {t('booking:status_confirmed_title')}
             </Text>
             <Text variant="body" color={theme.inkMuted}>
-              {firstName} a accepté votre demande
+              {t('booking:status_confirmed_hint', { name: firstName })}
             </Text>
           </View>
 
@@ -115,7 +117,7 @@ export default function PendingScreen(): React.JSX.Element {
                       })
                     }
                     accessibilityRole="button"
-                    accessibilityLabel={`Message à ${firstName}`}
+                    accessibilityLabel={t('common:actions.message', { name: firstName })}
                   >
                     <Icon name="chatbubble" size="sm" color={theme.ink} />
                   </TouchableOpacity>
@@ -154,7 +156,7 @@ export default function PendingScreen(): React.JSX.Element {
 
           <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
             <Text variant="caption" color={theme.inkFaint} style={styles.sectionLabel}>
-              TRAJET
+              {t('booking:section_trip')}
             </Text>
             <View style={styles.journeyRow}>
               <View style={styles.journeyDotsCol}>
@@ -165,7 +167,7 @@ export default function PendingScreen(): React.JSX.Element {
               <View style={styles.journeyTextCol}>
                 <View>
                   <Text variant="caption" color={theme.inkFaint}>
-                    Point de rendez-vous
+                    {t('booking:departure')}
                   </Text>
                   <Text variant="body" color={theme.ink}>
                     {params.pickupLabel ?? '—'}
@@ -173,7 +175,7 @@ export default function PendingScreen(): React.JSX.Element {
                 </View>
                 <View>
                   <Text variant="caption" color={theme.inkFaint}>
-                    Destination
+                    {t('booking:arrival')}
                   </Text>
                   <Text variant="body" color={theme.ink}>
                     {params.destinationLabel ?? '—'}
@@ -187,7 +189,7 @@ export default function PendingScreen(): React.JSX.Element {
             <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
               <View style={styles.paymentHeaderRow}>
                 <Text variant="caption" color={theme.inkFaint} style={styles.sectionLabel}>
-                  PAIEMENT
+                  {t('booking:section_payment')}
                 </Text>
                 <Text variant="h3" color={theme.accent}>
                   {params.price} DT
@@ -196,7 +198,7 @@ export default function PendingScreen(): React.JSX.Element {
               <View style={[styles.paymentNote, { backgroundColor: theme.background }]}>
                 <Icon name="cash-outline" size="sm" color={theme.ink} />
                 <Text variant="bodySmall" color={theme.ink}>
-                  Réglez votre conducteur en espèces pendant le trajet.
+                  {t('booking:settlement_pay', { price: params.price, name: firstName })}
                 </Text>
               </View>
             </View>
@@ -215,10 +217,10 @@ export default function PendingScreen(): React.JSX.Element {
           onPress={() => router.push({ pathname: '/bookings/pickup', params })}
           activeOpacity={0.85}
           accessibilityRole="button"
-          accessibilityLabel={`Rejoindre ${firstName}`}
+          accessibilityLabel={t('booking:driver_join', { name: firstName })}
         >
           <Text variant="label" color={theme.onInk}>
-            Rejoindre {firstName}
+            {t('booking:driver_join', { name: firstName })}
           </Text>
         </TouchableOpacity>
         <View style={styles.footerRow}>
@@ -228,10 +230,10 @@ export default function PendingScreen(): React.JSX.Element {
               onPress={() => setCancelling(true)}
               activeOpacity={0.7}
               accessibilityRole="button"
-              accessibilityLabel="Annuler la réservation"
+              accessibilityLabel={t('booking:cancelBooking')}
             >
               <Text variant="label" color={theme.ink}>
-                Annuler
+                {t('common:actions.cancel')}
               </Text>
             </TouchableOpacity>
           ) : null}
@@ -240,10 +242,10 @@ export default function PendingScreen(): React.JSX.Element {
             onPress={() => void handleShare()}
             activeOpacity={0.7}
             accessibilityRole="button"
-            accessibilityLabel="Partager les détails"
+            accessibilityLabel={t('booking:shareDetails', { driver: driverName, pickup: params.pickupLabel ?? '', destination: params.destinationLabel ?? '', price: params.price ?? '' })}
           >
             <Text variant="label" color={theme.ink}>
-              Partager
+              {t('common:actions.share')}
             </Text>
           </TouchableOpacity>
         </View>

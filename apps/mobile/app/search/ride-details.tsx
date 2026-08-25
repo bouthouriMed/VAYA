@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Marker, Polyline } from 'react-native-maps';
 import { Ionicons } from '@expo/vector-icons';
 import { skipToken } from '@reduxjs/toolkit/query/react';
+import { useTranslation } from 'react-i18next';
 import {
   Text,
   Icon,
@@ -36,14 +37,6 @@ import { decodePolyline, polylineDistanceKm } from '../../src/utils/polyline';
 import { useContextualAuth } from '../../src/features/auth/useContextualAuth';
 import { ContextualAuthSheet } from '../../src/features/auth/ContextualAuthSheet';
 
-function dayLabel(date: Date, now: Date): string {
-  if (isSameDay(date, now)) return "Aujourd'hui";
-  const tomorrow = new Date(now.getTime() + 24 * 60 * 60_000);
-  if (isSameDay(date, tomorrow)) return 'Demain';
-  const label = date.toLocaleDateString('fr-FR', { weekday: 'long' });
-  return label.charAt(0).toUpperCase() + label.slice(1);
-}
-
 function fullDateLabel(date: Date): string {
   const label = date.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
   return label.charAt(0).toUpperCase() + label.slice(1);
@@ -68,6 +61,7 @@ function durationLabel(seconds: number): string {
 export default function RideDetailsScreen(): React.JSX.Element {
   const { rideId, driverUserId } = useLocalSearchParams<{ rideId: string; driverUserId: string }>();
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation(['search', 'common', 'booking']);
   const { colors: theme } = useAppTheme();
   const dispatch = useAppDispatch();
   const origin = useAppSelector((s) => s.search.origin);
@@ -250,7 +244,7 @@ export default function RideDetailsScreen(): React.JSX.Element {
           onPress={() => router.back()}
           hitSlop={12}
           accessibilityRole="button"
-          accessibilityLabel="Retour"
+          accessibilityLabel={t('common:actions.back')}
         >
           <Ionicons name="chevron-back" size={22} color={theme.ink} />
         </TouchableOpacity>
@@ -264,7 +258,11 @@ export default function RideDetailsScreen(): React.JSX.Element {
         <View style={styles.summaryRow}>
           <View>
             <Text variant="h2" color={theme.ink}>
-              {dayLabel(departureDate, now)}
+              {isSameDay(departureDate, now)
+                ? t('common:time.today')
+                : isSameDay(departureDate, new Date(now.getTime() + 24 * 60 * 60_000))
+                  ? t('common:time.tomorrow')
+                  : (() => { const l = departureDate.toLocaleDateString('fr-FR', { weekday: 'long' }); return l.charAt(0).toUpperCase() + l.slice(1); })()}
             </Text>
             <Text variant="bodySmall" color={theme.inkFaint}>
               {fullDateLabel(departureDate)}
@@ -343,11 +341,11 @@ export default function RideDetailsScreen(): React.JSX.Element {
             onPress={() => setRouteModalOpen(true)}
             activeOpacity={0.85}
             accessibilityRole="button"
-            accessibilityLabel="Voir l'itinéraire en plein écran"
+            accessibilityLabel={t('search:details.viewRouteFullscreen')}
           >
             <Icon name="expand-outline" size="xs" color={theme.ink} />
             <Text variant="caption" color={theme.ink}>
-              Voir l&apos;itinéraire
+              {t('search:details.viewRouteFullscreen')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -562,7 +560,7 @@ export default function RideDetailsScreen(): React.JSX.Element {
             onPress={() => setRouteModalOpen(false)}
             hitSlop={12}
             accessibilityRole="button"
-            accessibilityLabel="Fermer"
+            accessibilityLabel={t('common:actions.close')}
           >
             <Ionicons name="close" size={22} color={theme.ink} />
           </TouchableOpacity>

@@ -2,9 +2,11 @@ import { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Text, Button, Avatar, MapPreview, colors, spacing, radii } from '@vaya/design-system';
 import { router, useLocalSearchParams } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { CancellationSheet } from '../../src/features/bookings/CancellationSheet';
 
 export default function PickupScreen(): React.JSX.Element {
+  const { t } = useTranslation(['booking', 'activeTrip', 'common']);
   const params = useLocalSearchParams<{
     bookingId?: string;
     driverName?: string;
@@ -14,7 +16,7 @@ export default function PickupScreen(): React.JSX.Element {
     pickupLat?: string;
     pickupLng?: string;
   }>();
-  const driverName = params.driverName ?? 'votre conducteur';
+  const driverName = params.driverName ?? t('common:terms.driver');
   const pickupCoord =
     params.pickupLat && params.pickupLng
       ? { latitude: Number(params.pickupLat), longitude: Number(params.pickupLng) }
@@ -33,9 +35,9 @@ export default function PickupScreen(): React.JSX.Element {
 
       <View style={styles.card}>
         <Text variant="label" color={colors.gray600}>
-          Rendez-vous
+          {t('booking:departure')}
         </Text>
-        <Text variant="h3">{params.pickupLabel ?? 'En attente de confirmation'}</Text>
+        <Text variant="h3">{params.pickupLabel ?? t('booking:waiting_confirmation')}</Text>
       </View>
 
       <View style={styles.driverRow}>
@@ -46,15 +48,15 @@ export default function PickupScreen(): React.JSX.Element {
             {driverName.split(' ')[0]}
           </Text>
           <Text variant="bodySmall" color={colors.gray600}>
-            En approche
+            {t('activeTrip:waitingConfirmation')}
           </Text>
         </View>
         {params.bookingId ? (
           <Button
-            label="Message"
+            label={t('common:actions.message')}
             variant="ghost"
             size="sm"
-            accessibilityLabel={`Envoyer un message à ${driverName.split(' ')[0]}`}
+            accessibilityLabel={t('common:actions.message', { name: driverName.split(' ')[0] })}
             onPress={() =>
               router.push({
                 pathname: '/conversations/[bookingId]',
@@ -70,7 +72,7 @@ export default function PickupScreen(): React.JSX.Element {
       </View>
 
       <Button
-        label="Je suis arrivé"
+        label={t('activeTrip:arrived')}
         size="lg"
         onPress={() => router.push({ pathname: '/bookings/live', params })}
         style={styles.cta}
@@ -78,7 +80,7 @@ export default function PickupScreen(): React.JSX.Element {
 
       {params.bookingId ? (
         <Button
-          label="Annuler la réservation"
+          label={t('booking:cancelBooking')}
           variant="ghost"
           onPress={() => setCancelling(true)}
         />

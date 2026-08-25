@@ -1,0 +1,184 @@
+{
+  "publish": {
+    "steps": {
+      "route": "Choose route",
+      "price": "Suggested price",
+      "stops": "Pickup stops",
+      "review": "Review and publish"
+    },
+    "routeStep": {
+      "title": "Available routes",
+      "continue": "Continue"
+    },
+    "priceStep": {
+      "title": "Suggested price",
+      "description": "This amount is calculated for this trip based on distance and duration. You can adjust it within the allowed range.",
+      "suggested": "Suggested",
+      "min": "Minimum",
+      "max": "Maximum"
+    },
+    "stopsStep": {
+      "pickupTitle": "Pickup point",
+      "dropoffTitle": "Drop-off point",
+      "confirm": "Confirm",
+      "customPosition": "Custom position",
+      "editPickup": "Edit pickup point",
+      "editDropoff": "Edit drop-off point",
+      "selectedPoint": "Selected point",
+      "choosePoint": "Choose this point"
+    },
+    "reviewStep": {
+      "readyToPublish": "Ready to publish your ride?",
+      "checkDetails": "Check the details below before publishing.",
+      "itinerary": "Itinerary",
+      "modify": "Edit",
+      "meetingPoint": "Meeting point",
+      "price": "Price",
+      "afterVerification": "After verification",
+      "vehicle": "Vehicle",
+      "addAfterVerify": "You'll add your vehicle after verification",
+      "publishCta": "Publish this ride",
+      "verifyCta": "Verify your profile to publish",
+      "verifyDescription": "Verification takes about 5 minutes."
+    },
+    "errors": {
+      "createFailed": "Unable to create this ride. Try again.",
+      "stopsFailed": "Unable to save your stops. Try again.",
+      "priceFailed": "Unable to update the price. Try again.",
+      "publishFailed": "Unable to publish this ride. Try again."
+    }
+  },
+  "onboarding": {
+    "index": {
+      "title": "Become a VAYA driver",
+      "subtitle": "Share your trips, earn while riding.",
+      "benefits": {
+        "documents": "Live documents",
+        "documentsDesc": "Quick and secure identity verification.",
+        "verified": "Verified profile",
+        "verifiedDesc": "Build trust with passengers.",
+        "earnings": "Earn income",
+        "earningsDesc": "Share costs on your regular routes."
+      },
+      "startCta": "Get started",
+      "later": "Not now",
+      "back": "Back"
+    },
+    "vehicle": {
+      "stepTitle": "Your vehicle",
+      "stepLabel": "Step {{current}} of {{total}}",
+      "vehicleDetails": "VEHICLE DETAILS",
+      "seatCount": "Number of passenger seats",
+      "fields": {
+        "make": "Make",
+        "model": "Model",
+        "color": "Color",
+        "plate": "License plate"
+      },
+      "placeholders": {
+        "make": "Peugeot",
+        "model": "208",
+        "color": "Grey",
+        "plate": "208TU1234"
+      },
+      "removeSeat": "Remove a seat",
+      "addSeat": "Add a seat",
+      "continue": "Continue"
+    },
+    "selfie": {
+      "captureTitle": "Identity verification",
+      "captureInstruction": "Take a selfie to confirm your identity.",
+      "reviewTitle": "Review and confirm",
+      "reviewEyebrow": "FINAL STEP",
+      "reviewHeadline": "All set!",
+      "reviewSubtitle": "Check your information before activating your driver profile.",
+      "vehicleSection": "VEHICLE",
+      "documentsSection": "LIVE-VERIFIED DOCUMENTS",
+      "tipLight": "Good lighting",
+      "tipFace": "Face the camera",
+      "tipGlasses": "Remove glasses",
+      "tabs": {
+        "license": "License",
+        "insurance": "Insurance",
+        "identity": "Identity"
+      },
+      "reviewRetake": "Retake",
+      "reviewConfirm": "Confirm and activate my profile"
+    },
+    "license": {
+      "title": "Driver's license",
+      "eyebrow": "Document capture",
+      "instruction": "Place your driver's license in the frame.",
+      "tipValid": "Document must be currently valid",
+      "tipClear": "Clear photo, no glare",
+      "tipFull": "All four corners visible"
+    },
+    "insurance": {
+      "title": "Vehicle insurance",
+      "eyebrow": "Document capture",
+      "instruction": "Place your insurance certificate in the frame.",
+      "tipValid": "Document must be currently valid",
+      "tipClear": "Clear photo, no glare",
+      "tipFull": "All four corners visible"
+    },
+    "confirmation": {
+      "successTitle": "Profile verified!",
+      "successDescription": "You can now publish rides.",
+      "successCta": "Go to My Trips",
+      "errorTitle": "Almost there!",
+      "errorDescription": "Your ride couldn't be published automatically. You can try from My Trips.",
+      "errorCta": "Go to My Trips",
+      "publishSuccess": "Your ride has been published!",
+      "publishError": "Profile verified but the ride couldn't be published. Try from My Trips."
+    }
+  },
+  "rides": {
+    "rideDetail": {
+      "passenger": "Passenger",
+      "departure": "Departure",
+      "arrival": "Arrival",
+      "dropoff": "Drop-off point",
+      "viewRouteFullscreen": "View route on full screen",
+      "cancelRide": "Cancel this ride",
+      "back": "Back",
+      "close": "Close",
+      "myRide": "My trip",
+      "itinerary": "Itinerary",
+      "rideNotFound": "Trip not found.",
+      "passengers": "Passengers",
+      "arrivalEta": "Arrival ~{{time}}",
+      "seatsAvailable": "{{available}}/{{total}} seats available",
+      "pricePerSeat": "{{price}} DT per seat",
+      "confirmedRevenue": "{{revenue}} DT confirmed · {{count}} passenger",
+      "pendingSection": "To answer ({{count}})",
+      "noPendingRequests": "No pending requests."
+    },
+    "manageSheet": {
+      "title": "Manage this ride",
+      "cannotCancel": "Cannot cancel a ride with active bookings.",
+      "cancelRide": "Cancel this ride",
+      "doNotCancel": "Don't cancel",
+      "confirmCancel": "Confirm ride cancellation"
+    },
+    "requestsSheet": {
+      "title": "Booking requests",
+      "loadError": "Unable to load requests",
+      "empty": "No requests",
+      "emptyAccepted": "No accepted requests",
+      "sectionPending": "New",
+      "sectionAccepted": "Already processed",
+      "decline": "Decline",
+      "accept": "Accept",
+      "acceptError": "Unable to accept. Try again.",
+      "declineError": "Unable to decline. Try again.",
+      "retry": "Retry"
+    },
+    "bookingDetail": {
+      "passenger": "Passenger",
+      "destination": "Trip destination",
+      "message": "Message",
+      "reportNoShow": "Report no-show",
+      "cancelBooking": "Cancel this booking"
+    }
+  }
+}

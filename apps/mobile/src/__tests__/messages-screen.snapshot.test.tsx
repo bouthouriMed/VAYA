@@ -29,8 +29,8 @@ vi.mock('expo-router', () => ({
 // identity-scoped end to end) — these snapshots exercise the signed-in
 // experience, so the store needs a token to get past the guard at all.
 vi.mock('../state/store', () => ({
-  useAppSelector: (selector: (s: { auth: { accessToken: string } }) => unknown) =>
-    selector({ auth: { accessToken: 'test-token' } }),
+  useAppSelector: (selector: (s: { auth: { accessToken: string }; language: { locale: string } }) => unknown) =>
+    selector({ auth: { accessToken: 'test-token' }, language: { locale: 'fr' } }),
 }));
 
 // messages.tsx imports ContextualAuthSheet unconditionally (only *rendered*

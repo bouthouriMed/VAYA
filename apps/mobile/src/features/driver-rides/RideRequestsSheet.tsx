@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { View, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { BottomSheet, Badge, Button, Text, Avatar, Icon, EmptyState, useAppTheme, spacing, radii, haptics } from '@vaya/design-system';
+import { useTranslation } from 'react-i18next';
 import {
   useListRequestsForRideQuery,
   useAcceptBookingMutation,
@@ -20,17 +21,6 @@ interface RideRequestsSheetProps {
   onManageBooking?: (booking: Booking) => void;
 }
 
-const REQUEST_BADGE: Record<Booking['status'], { label: string; variant: 'default' | 'success' | 'warning' | 'error' }> = {
-  pending: { label: 'En attente', variant: 'warning' },
-  accepted: { label: 'Confirmé', variant: 'success' },
-  declined: { label: 'Refusé', variant: 'error' },
-  cancelled_by_rider: { label: 'Annulé', variant: 'default' },
-  cancelled_by_driver: { label: 'Annulé', variant: 'error' },
-  expired: { label: 'Expiré', variant: 'default' },
-  completed: { label: 'Terminé', variant: 'default' },
-  no_show: { label: 'Absence', variant: 'error' },
-};
-
 /**
  * The driver's per-ride request list — the real backing of the dashboard
  * hero card's "Demandes" action (stitch my-rides-driver-dashboard). Backed
@@ -45,6 +35,7 @@ export function RideRequestsSheet({
   onClose,
   onManageBooking,
 }: RideRequestsSheetProps): React.JSX.Element {
+  const { t } = useTranslation();
   const theme = useAppTheme().colors;
   const [actionError, setActionError] = useState<string | null>(null);
   const { data: requests, isLoading, isError, refetch } = useListRequestsForRideQuery(rideId, {
@@ -70,8 +61,8 @@ export function RideRequestsSheet({
       haptics.error();
       setActionError(
         action === 'accept'
-          ? "Impossible d'accepter cette demande pour le moment."
-          : 'Impossible de refuser cette demande pour le moment.',
+          ? t('driver:rides.requestsSheet.acceptError')
+          : t('driver:rides.requestsSheet.declineError'),
       );
     }
   }
@@ -80,7 +71,7 @@ export function RideRequestsSheet({
     <BottomSheet
       visible={visible}
       onClose={onClose}
-      title="Demandes de réservation"
+      title={t('driver:rides.requestsSheet.title')}
       heightRatio={0.62}
       theme={theme}
     >
@@ -90,23 +81,23 @@ export function RideRequestsSheet({
         ) : isError ? (
           <EmptyState
             icon={<Icon name="cloud-offline-outline" size="lg" color={theme.inkFaint} />}
-            title="Impossible de charger les demandes"
-            description="Vérifiez votre connexion puis réessayez."
-            actionLabel="Réessayer"
+            title={t('driver:rides.requestsSheet.loadError')}
+            description={t('driver:rides.requestsSheet.loadErrorDescription')}
+            actionLabel={t('common:actions.retry')}
             onAction={() => void refetch()}
           />
         ) : (requests?.length ?? 0) === 0 ? (
           <EmptyState
             icon={<Icon name="mail-outline" size="lg" color={theme.inkFaint} />}
-            title="Aucune demande"
-            description="Les demandes de réservation pour ce trajet apparaîtront ici."
+            title={t('driver:rides.requestsSheet.empty')}
+            description={t('driver:rides.requestsSheet.emptyDescription')}
           />
         ) : (
           <View style={styles.list}>
             {pending.length > 0 ? (
               <>
                 <Text variant="label" color={theme.inkMuted} style={styles.sectionLabel}>
-                  À répondre ({pending.length})
+                  {t('driver:rides.requestsSheet.toAnswer', { count: pending.length })}
                 </Text>
                 {pending.map((request) => (
                   <View key={request.id} style={[styles.requestRow, { backgroundColor: theme.surfaceMuted }]}>
@@ -120,16 +111,16 @@ export function RideRequestsSheet({
                       />
                       <View style={styles.identityText}>
                         <Text variant="body" color={theme.ink} numberOfLines={1} style={styles.riderName}>
-                          {request.rider?.fullName ?? 'Passager'}
+                          {request.rider?.fullName ?? t('booking:passenger')}
                         </Text>
                         <Text variant="caption" color={theme.inkMuted} numberOfLines={1}>
-                          {`${request.seatsRequested} place${request.seatsRequested > 1 ? 's' : ''} · ${request.pickupLabel}`}
+                          {t('driver:rides.requestsSheet.seatsAndPickup', { seats: request.seatsRequested, seatLabel: request.seatsRequested > 1 ? t('common:status.seats_plural') : t('common:status.seats_singular'), pickup: request.pickupLabel })}
                         </Text>
                       </View>
                     </View>
                     <View style={styles.actions}>
                       <Button
-                        label="Refuser"
+                        label={t('common:actions.decline')}
                         size="sm"
                         variant="outline"
                         disabled={declineState.isLoading}
@@ -137,7 +128,7 @@ export function RideRequestsSheet({
                         style={styles.actionButton}
                       />
                       <Button
-                        label="Accepter"
+                        label={t('common:actions.accept')}
                         size="sm"
                         disabled={acceptState.isLoading}
                         onPress={() => void respond(request.id, 'accept', acceptBooking)}
@@ -149,17 +140,17 @@ export function RideRequestsSheet({
               </>
             ) : (
               <Text variant="bodySmall" color={theme.inkMuted} style={styles.allAnswered}>
-                Toutes les demandes ont été traitées.
+                {t('driver:rides.requestsSheet.allAnswered')}
               </Text>
             )}
 
             {answered.length > 0 ? (
               <>
                 <Text variant="label" color={theme.inkMuted} style={[styles.sectionLabel, styles.answeredLabel]}>
-                  Déjà traitées
+                  {t('driver:rides.requestsSheet.answered')}
                 </Text>
                 {answered.map((request) => {
-                  const badge = REQUEST_BADGE[request.status];
+                  const requestStatus = t(`common:status.${request.status}`);
                   const manageable = request.status === 'accepted' && Boolean(onManageBooking);
                   return (
                     <TouchableOpacity
@@ -170,7 +161,7 @@ export function RideRequestsSheet({
                       accessibilityRole={manageable ? 'button' : 'text'}
                       accessibilityLabel={
                         manageable
-                          ? `Gérer la réservation de ${request.rider?.fullName ?? 'ce passager'}`
+                          ? t('driver:rides.requestsSheet.manageLabel', { name: request.rider?.fullName ?? t('booking:passenger') })
                           : undefined
                       }
                     >
@@ -183,13 +174,13 @@ export function RideRequestsSheet({
                       />
                       <View style={styles.identityText}>
                         <Text variant="bodySmall" color={theme.ink} numberOfLines={1}>
-                          {request.rider?.fullName ?? 'Passager'}
+                          {request.rider?.fullName ?? t('booking:passenger')}
                         </Text>
                         <Text variant="caption" color={theme.inkMuted}>
-                          {`${request.seatsRequested} place${request.seatsRequested > 1 ? 's' : ''}`}
+                          {t('driver:rides.requestsSheet.seatsCount', { count: request.seatsRequested, seatLabel: request.seatsRequested > 1 ? t('common:status.seats_plural') : t('common:status.seats_singular') })}
                         </Text>
                       </View>
-                      <Badge label={badge.label} variant={badge.variant} />
+                      <Badge label={requestStatus} variant={request.status === 'accepted' ? 'success' : request.status === 'declined' || request.status === 'cancelled_by_driver' || request.status === 'no_show' ? 'error' : request.status === 'pending' ? 'warning' : 'default'} />
                       {manageable ? (
                         <Icon name="chevron-forward" size="xs" color={theme.outline} />
                       ) : null}

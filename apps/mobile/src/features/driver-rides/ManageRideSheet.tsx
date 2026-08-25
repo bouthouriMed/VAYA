@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { View, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { BottomSheet, Badge, Text, Icon, useAppTheme, spacing, radii, haptics } from '@vaya/design-system';
+import { useTranslation } from 'react-i18next';
 import type { Ride } from '../../state/api';
 import { useCancelRideMutation } from '../../state/api';
 import { trackEvent } from '../../services/analytics/analytics';
@@ -11,15 +12,6 @@ interface ManageRideSheetProps {
   onClose: () => void;
 }
 
-const RIDE_BADGE: Record<Ride['status'], { label: string; variant: 'default' | 'success' | 'info' | 'warning' | 'error' }> = {
-  draft: { label: 'Brouillon', variant: 'default' },
-  published: { label: 'Publié', variant: 'success' },
-  full: { label: 'Complet', variant: 'info' },
-  in_progress: { label: 'En cours', variant: 'warning' },
-  completed: { label: 'Terminé', variant: 'info' },
-  cancelled: { label: 'Annulé', variant: 'error' },
-};
-
 /**
  * The dashboard hero card's "Gérer" action (stitch my-rides-driver-dashboard):
  * the ride's real facts plus the one destructive action that exists today —
@@ -28,6 +20,7 @@ const RIDE_BADGE: Record<Ride['status'], { label: string; variant: 'default' | '
  * cancel which could fire from an accidental touch.
  */
 export function ManageRideSheet({ visible, ride, onClose }: ManageRideSheetProps): React.JSX.Element {
+  const { t } = useTranslation();
   const theme = useAppTheme().colors;
   const [confirmingCancel, setConfirmingCancel] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -52,46 +45,44 @@ export function ManageRideSheet({ visible, ride, onClose }: ManageRideSheetProps
       onClose();
     } catch {
       haptics.error();
-      setError("Impossible d'annuler ce trajet pour le moment. Réessayez.");
+      setError(t('driver:rides.manageSheet.cancelError'));
     }
   }
 
   function formatWhen(iso: string): string {
     const date = new Date(iso);
     const time = date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-    if (date.toDateString() === new Date().toDateString()) return `Aujourd'hui, ${time}`;
+    if (date.toDateString() === new Date().toDateString()) return `${t('common:time.today')}, ${time}`;
     return `${date.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })} · ${time}`;
   }
 
-  const badge = RIDE_BADGE[ride.status];
-
   return (
-    <BottomSheet visible={visible} onClose={onClose} title="Gérer ce trajet" heightRatio={0.55} theme={theme}>
+    <BottomSheet visible={visible} onClose={onClose} title={t('driver:rides.manageSheet.title')} heightRatio={0.55} theme={theme}>
       <View style={styles.content}>
         <View style={styles.headerRow}>
           <Text variant="body" color={theme.ink} style={styles.title}>
             {`${ride.originLabel} → ${ride.destinationLabel}`}
           </Text>
-          <Badge label={badge.label} variant={badge.variant} />
+          <Badge label={t(`common:status.${ride.status}`)} variant={ride.status === 'published' ? 'success' : ride.status === 'cancelled' ? 'error' : ride.status === 'full' || ride.status === 'completed' ? 'info' : ride.status === 'in_progress' ? 'warning' : 'default'} />
         </View>
 
         <View style={[styles.factsCard, { backgroundColor: theme.surfaceMuted }]}>
           <View style={styles.factRow}>
             <Icon name="time-outline" size="sm" color={theme.inkMuted} />
             <Text variant="bodySmall" color={theme.inkMuted}>
-              {`Départ · ${formatWhen(ride.departureAt)}`}
+              {`${t('booking:departure')} · ${formatWhen(ride.departureAt)}`}
             </Text>
           </View>
           <View style={styles.factRow}>
             <Icon name="people-outline" size="sm" color={theme.inkMuted} />
             <Text variant="bodySmall" color={theme.inkMuted}>
-              {`${ride.seatsAvailable}/${ride.seatsTotal} places disponibles`}
+              {t('driver:rides.manageSheet.seatsAvailable', { available: ride.seatsAvailable, total: ride.seatsTotal })}
             </Text>
           </View>
           <View style={styles.factRow}>
             <Icon name="cash-outline" size="sm" color={theme.inkMuted} />
             <Text variant="bodySmall" color={theme.inkMuted}>
-              {`${ride.contributionPerSeat} DT par place`}
+              {t('driver:rides.manageSheet.pricePerSeat', { price: ride.contributionPerSeat })}
             </Text>
           </View>
         </View>
@@ -100,27 +91,27 @@ export function ManageRideSheet({ visible, ride, onClose }: ManageRideSheetProps
           onPress={() => setConfirmingCancel(true)}
           disabled={cancelling}
           accessibilityRole="button"
-          accessibilityLabel="Annuler ce trajet"
+          accessibilityLabel={t('driver:rides.manageSheet.cancelCta')}
         >
           <Text variant="body" color={theme.error} style={styles.cancelLabel}>
-            Annuler ce trajet
+            {t('driver:rides.manageSheet.cancelCta')}
           </Text>
         </TouchableOpacity>
 
         {confirmingCancel ? (
           <View style={[styles.confirmCard, { backgroundColor: theme.errorMuted }]}>
             <Text variant="bodySmall" color={theme.ink}>
-              Les passagers déjà acceptés seront informés et les places seront libérées. Cette action est définitive.
+              {t('driver:rides.manageSheet.cancelWarning')}
             </Text>
             <View style={styles.confirmActions}>
               <TouchableOpacity
                 onPress={() => setConfirmingCancel(false)}
                 disabled={cancelling}
                 accessibilityRole="button"
-                accessibilityLabel="Ne pas annuler"
+                accessibilityLabel={t('driver:rides.manageSheet.keepCta')}
               >
                 <Text variant="bodySmall" color={theme.ink} style={styles.confirmKeep}>
-                  Garder le trajet
+                  {t('driver:rides.manageSheet.keepCta')}
                 </Text>
               </TouchableOpacity>
               {cancelling ? (
@@ -129,10 +120,10 @@ export function ManageRideSheet({ visible, ride, onClose }: ManageRideSheetProps
                 <TouchableOpacity
                   onPress={() => void handleCancel()}
                   accessibilityRole="button"
-                  accessibilityLabel="Confirmer l'annulation du trajet"
+                  accessibilityLabel={t('driver:rides.manageSheet.confirmCancelCta')}
                 >
                   <Text variant="bodySmall" color={theme.error} style={styles.confirmCancel}>
-                    Oui, annuler
+                    {t('driver:rides.manageSheet.confirmCancelCta')}
                   </Text>
                 </TouchableOpacity>
               )}

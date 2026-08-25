@@ -1,0 +1,35 @@
+{
+  "title": "Mes trajets",
+  "subtitle": "Gérez vos trajets à venir et passés.",
+  "nextRide": "Prochain trajet",
+  "recentRides": "Trajets récents",
+  "seatsAvailable_one": "{{count}} place disponible",
+  "seatsAvailable_other": "{{count}} places disponibles",
+  "perSeat": "par place",
+  "estimated": "(est.)",
+  "manageRide": "Gérer ce trajet",
+  "placesReserved_one": "{{count}} place réservée",
+  "placesReserved_other": "{{count}} places réservées",
+  "guestEmpty": {
+    "title": "Trouvez votre premier trajet",
+    "description": "Recherchez un trajet pour commencer à voyager avec VAYA — vous pourrez suivre vos réservations ici.",
+    "cta": "Rechercher un trajet"
+  },
+  "driverEmpty": {
+    "notDriverYet": "Vous ne conduisez pas encore",
+    "notDriverDesc": "Ajoutez votre véhicule pour publier vos premiers trajets.",
+    "becomeDriver": "Devenir conducteur",
+    "noRides": "Aucun trajet publié",
+    "noRidesDesc": "Publiez un trajet pour remplir vos places vides.",
+    "publishRide": "Publier un trajet"
+  },
+  "riderEmpty": {
+    "noBookings": "Aucune réservation",
+    "noBookingsDesc": "Recherchez un trajet pour réserver votre première place.",
+    "findRide": "Trouver un trajet"
+  },
+  "notificationsAria": "Notifications",
+  "notificationsUnreadAria": "Notifications (non lues)",
+  "segmentDriver": "Conducteur",
+  "segmentRider": "Passager"
+}

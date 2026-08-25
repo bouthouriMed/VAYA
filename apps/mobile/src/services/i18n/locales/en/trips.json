@@ -1,0 +1,35 @@
+{
+  "title": "My trips",
+  "subtitle": "Manage your upcoming and past trips.",
+  "nextRide": "Next ride",
+  "recentRides": "Recent rides",
+  "seatsAvailable_one": "{{count}} seat available",
+  "seatsAvailable_other": "{{count}} seats available",
+  "perSeat": "per seat",
+  "estimated": "(est.)",
+  "manageRide": "Manage this ride",
+  "placesReserved_one": "{{count}} seat booked",
+  "placesReserved_other": "{{count}} seats booked",
+  "guestEmpty": {
+    "title": "Find your first ride",
+    "description": "Search for a ride to start traveling with VAYA — you'll be able to track your bookings here.",
+    "cta": "Search for a ride"
+  },
+  "driverEmpty": {
+    "notDriverYet": "You haven't started driving yet",
+    "notDriverDesc": "Add your vehicle to publish your first rides.",
+    "becomeDriver": "Become a driver",
+    "noRides": "No published rides",
+    "noRidesDesc": "Publish a ride to fill your empty seats.",
+    "publishRide": "Publish a ride"
+  },
+  "riderEmpty": {
+    "noBookings": "No bookings",
+    "noBookingsDesc": "Search for a ride to book your first seat.",
+    "findRide": "Find a ride"
+  },
+  "notificationsAria": "Notifications",
+  "notificationsUnreadAria": "Notifications (unread)",
+  "segmentDriver": "Driver",
+  "segmentRider": "Passenger"
+}

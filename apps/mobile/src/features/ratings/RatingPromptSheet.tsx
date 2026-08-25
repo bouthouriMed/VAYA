@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { BottomSheet, Button, Chip, StarRatingInput, Text, useAppTheme, spacing } from '@vaya/design-system';
+import { useTranslation } from 'react-i18next';
 import type { RatingRole } from '../../state/api';
-
-const PUNCTUALITY_CHIP = 'Ponctuel';
 
 interface RatingPromptSheetProps {
   visible: boolean;
@@ -28,15 +27,15 @@ export function RatingPromptSheet({
   counterpartName,
   onSubmit,
 }: RatingPromptSheetProps): React.JSX.Element {
+  const { t } = useTranslation();
   const theme = useAppTheme().colors;
   const [stars, setStars] = useState(0);
   const [punctual, setPunctual] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | undefined>();
 
-  const firstName = counterpartName?.split(' ')[0] ?? (role === 'rider_rates_driver' ? 'votre conducteur' : 'votre passager');
-  const heading =
-    role === 'rider_rates_driver' ? `Comment était le trajet avec ${firstName} ?` : `Comment était ${firstName} ?`;
+  const firstName = counterpartName?.split(' ')[0] ?? (role === 'rider_rates_driver' ? t('booking:driver') : t('booking:passenger'));
+  const heading = t('booking:rating.title', { name: firstName });
 
   async function handleSubmit(): Promise<void> {
     if (stars < 1) return;
@@ -47,7 +46,7 @@ export function RatingPromptSheet({
       setStars(0);
       setPunctual(false);
     } catch {
-      setError('Impossible d’envoyer votre note pour le moment.');
+      setError(t('booking:rating.error'));
     } finally {
       setSubmitting(false);
     }
@@ -59,7 +58,7 @@ export function RatingPromptSheet({
         <StarRatingInput value={stars} onChange={setStars} theme={theme} accessibilityLabel="Votre note" />
 
         <Chip
-          label={PUNCTUALITY_CHIP}
+          label={t('booking:rating.punctual')}
           tone={punctual ? 'default' : 'dim'}
           selected={punctual}
           onPress={() => setPunctual((p) => !p)}
@@ -73,7 +72,7 @@ export function RatingPromptSheet({
         ) : null}
 
         <Button
-          label="Envoyer ma note"
+          label={t('booking:rating.submitCta')}
           size="lg"
           disabled={stars < 1}
           loading={submitting}

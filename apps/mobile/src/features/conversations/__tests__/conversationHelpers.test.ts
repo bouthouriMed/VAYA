@@ -1,4 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
+import type { TFunction } from 'i18next';
 import {
   isOwnMessage,
   canSendMessage,
@@ -8,6 +9,18 @@ import {
   groupMessagesByDay,
 } from '../conversationHelpers';
 import type { Conversation, ConversationMessage } from '../../../state/api';
+
+// Mock translation function for tests
+const mockT: TFunction = ((key: string) => {
+  const translations: Record<string, string> = {
+    'common:time.today': "Aujourd'hui",
+    'common:time.yesterday': 'Hier',
+    'common:time.tomorrow': 'Demain',
+    'booking:status_completed': 'Terminé',
+    'booking:status_in_progress': 'En cours',
+  };
+  return translations[key] ?? key;
+}) as unknown as TFunction;
 
 function makeMessage(overrides: Partial<ConversationMessage> = {}): ConversationMessage {
   return {
@@ -167,6 +180,7 @@ describe('groupMessagesByDay', () => {
         makeMessage({ id: 'b', createdAt: new Date(2026, 7, 19, 8, 0).toISOString() }),
         makeMessage({ id: 'c', createdAt: new Date(2026, 7, 19, 9, 30).toISOString() }),
       ],
+      mockT,
       NOW,
     );
 
@@ -175,6 +189,6 @@ describe('groupMessagesByDay', () => {
   });
 
   it('returns no groups for an empty thread', () => {
-    expect(groupMessagesByDay([], NOW)).toEqual([]);
+    expect(groupMessagesByDay([], mockT, NOW)).toEqual([]);
   });
 });

@@ -1,0 +1,110 @@
+{
+  "pending_title": "Waiting for {{name}}…",
+  "pending_subtitle": "Usually responds within a few minutes.",
+  "cancel_request": "Cancel request",
+  "mine_title": "My trips",
+  "status_pending": "Pending",
+  "status_accepted": "Accepted",
+  "status_declined": "Declined",
+  "status_cancelled_by_rider": "Cancelled",
+  "status_cancelled_by_driver": "Cancelled by driver",
+  "status_expired": "Expired",
+  "status_completed": "Completed",
+  "status_no_show": "No show",
+  "status_draft": "Draft",
+  "status_published": "Published",
+  "status_full": "Full",
+  "status_in_progress": "In progress",
+  "settlement_title": "Trip completed",
+  "settlement_pay": "Pay {{price}} DT directly to {{name}}",
+  "rate_prompt": "How was {{name}}?",
+  "finish": "Finish",
+  "filters": {
+    "all": "All",
+    "upcoming": "Upcoming",
+    "active": "Active",
+    "past": "Past"
+  },
+  "departure": "Departure",
+  "arrival": "Arrival",
+  "driver": "Driver",
+  "passenger": "Passenger",
+  "seats_reserved": "{{reserved}}/{{total}} seats reserved",
+  "title": "Ride",
+  "backToResults": "Back to results",
+  "shareDetails": "Share details",
+  "cancelBooking": "Cancel my booking",
+  "cancellation": {
+    "title": "Cancel this trip?",
+    "warning": "Cancellation may affect your reliability score.",
+    "confirmCta": "Confirm cancellation",
+    "cancelCta": "Keep booking",
+    "error": "Unable to cancel. Try again.",
+    "reasons": {
+      "change_of_plans": "Change of plans",
+      "found_alternative": "Found another ride",
+      "emergency": "Emergency",
+      "other": "Other"
+    }
+  },
+  "noShow": {
+    "title": "Report no-show",
+    "guidance": "Have you tried contacting the other party? We recommend reaching out before reporting a no-show.",
+    "reportCta": "Report no-show",
+    "cancelCta": "Cancel",
+    "error": "Unable to report. Try again."
+  },
+  "rating": {
+    "punctual": "Punctual",
+    "submitCta": "Submit rating",
+    "error": "Unable to submit rating. Try again.",
+    "title": "How was your trip with {{name}}?"
+  },
+  "conversation": {
+    "unavailable": "Conversation unavailable",
+    "closed": "This conversation is closed.",
+    "placeholder": "Type a message…",
+    "send": "Send",
+    "quickReplies": {
+      "hello": "Hello!",
+      "onMyWay": "On my way!",
+      "runningLate": "Running a bit late",
+      "thanks": "Thanks!"
+    }
+  },
+  "recurring": {
+    "detectedTitle": "Recurring ride detected",
+    "detectedBodyDriver": "You've taken this route several times recently. Want to publish it automatically?",
+    "detectedBodyRider": "You've searched for this route several times recently. Want to get notified when a driver publishes it?",
+    "confirmTitle": "Confirm your recurring ride",
+    "confirmDescription": "Check the details before publishing — seats and price may vary each day.",
+    "departure": "Departure",
+    "arrival": "Arrival",
+    "usualSchedule": "Usual schedule",
+    "publishError": "Unable to publish this ride. Try again.",
+    "draftError": "Unable to prepare this ride. Try again.",
+    "noVehicleError": "No vehicle registered — complete your driver profile before confirming this ride.",
+    "title": "Recurring rides",
+    "empty": "No recurring rides yet",
+    "emptyDescription": "Your recurring ride patterns will appear here once detected.",
+    "enableCta": "Enable",
+    "dismissCta": "Dismiss",
+    "dismissed": "Dismissed",
+    "enabled": "Enabled",
+    "suggested": "Suggested",
+    "detected": "Detected",
+    "driversLicense": "Driver's license",
+    "insuranceProof": "Insurance proof",
+    "identitySelfie": "Identity selfie"
+  },
+  "days": {
+    "mon": "Mon",
+    "tue": "Tue",
+    "wed": "Wed",
+    "thu": "Thu",
+    "fri": "Fri",
+    "sat": "Sat",
+    "sun": "Sun",
+    "everyDay": "Every day"
+  }
+}

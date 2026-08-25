@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import { BottomSheet, Badge, Button, Text, useAppTheme, spacing, haptics } from '@vaya/design-system';
+import { useTranslation } from 'react-i18next';
 import { useCancelBookingMutation, useGetCancellationPreviewQuery } from '../../state/api';
 import { trackEvent } from '../../services/analytics/analytics';
 import { cancellationTierBadge, buildCancellationAnalyticsPayload } from './cancellationHelpers';
@@ -42,6 +43,7 @@ export function CancellationSheet({
   role,
   onCancelled,
 }: CancellationSheetProps): React.JSX.Element {
+  const { t } = useTranslation();
   const theme = useAppTheme().colors;
   const {
     data: preview,
@@ -68,7 +70,7 @@ export function CancellationSheet({
       onClose();
     } catch {
       haptics.error();
-      setSubmitError('Impossible d’annuler cette réservation pour le moment. Réessayez.');
+      setSubmitError(t('booking:cancellation.error'));
     }
   }
 
@@ -78,7 +80,7 @@ export function CancellationSheet({
     <BottomSheet
       visible={visible}
       onClose={onClose}
-      title="Annuler ce trajet ?"
+      title={t('booking:cancellation.title')}
       heightRatio={0.48}
       theme={theme}
     >
@@ -87,7 +89,7 @@ export function CancellationSheet({
           <ActivityIndicator size="small" color={theme.accent} style={styles.loading} />
         ) : isError || !preview ? (
           <Text variant="bodySmall" color={theme.error}>
-            Impossible de vérifier la politique d’annulation pour le moment.
+            {t('booking:cancellation.warning')}
           </Text>
         ) : (
           <>
@@ -105,7 +107,7 @@ export function CancellationSheet({
         ) : null}
 
         <Button
-          label="Confirmer l’annulation"
+          label={t('booking:cancellation.confirmCta')}
           size="lg"
           variant="outline"
           loading={cancelling}
@@ -115,7 +117,7 @@ export function CancellationSheet({
           theme={theme}
         />
         <Button
-          label="Retour"
+          label={t('common:actions.back')}
           variant="ghost"
           onPress={onClose}
           style={styles.cta}

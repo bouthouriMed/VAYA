@@ -1,0 +1,30 @@
+{
+  "title": "Messages",
+  "searchAria": "Rechercher une conversation",
+  "searchClose": "Fermer la recherche",
+  "searchPlaceholder": "Nom, ville de départ ou d'arrivée…",
+  "searchClear": "Effacer la recherche",
+  "conversationWith": "Conversation avec",
+  "tripInProgress": "trajet en cours",
+  "inProgress": "En cours",
+  "conversationClosed": "Conversation terminée.",
+  "noMessages": "Aucun message pour le moment.",
+  "guestEmpty": {
+    "title": "Vos trajets, au même endroit.",
+    "description": "Connectez-vous pour retrouver les conversations liées à vos trajets partagés — avant, pendant et après le départ.",
+    "cta": "Se connecter"
+  },
+  "error": {
+    "title": "Impossible de charger vos messages",
+    "description": "Vérifiez votre connexion puis réessayez."
+  },
+  "emptyHero": {
+    "title": "Vos trajets, au même endroit.",
+    "description": "Les conversations avec vos conducteurs et passagers apparaîtront ici.",
+    "cta": "Trouver un trajet"
+  },
+  "filterEmpty": {
+    "title": "Rien dans ce filtre",
+    "description": "Essayez un autre filtre pour retrouver une conversation."
+  }
+}

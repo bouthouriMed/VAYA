@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Text, Icon, useAppTheme, spacing, radii, haptics } from '@vaya/design-system';
 import { router, useLocalSearchParams } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useListMyBookingsQuery, useCancelBookingMutation } from '../../src/state/api';
 
 const REQUEST_WINDOW_MS = 7 * 60_000;
@@ -20,6 +21,7 @@ const POLL_MS = 5000;
  *  expiry policy exists yet for a booking request, so nothing enforces it
  *  server-side; it's a UI cue, not a real deadline. */
 export default function ConfirmedScreen(): React.JSX.Element {
+  const { t } = useTranslation(['booking', 'activeTrip', 'common']);
   const params = useLocalSearchParams<{
     bookingId?: string;
     driverName?: string;
@@ -30,7 +32,7 @@ export default function ConfirmedScreen(): React.JSX.Element {
   }>();
   const { colors: theme } = useAppTheme();
   const insets = useSafeAreaInsets();
-  const driverFirstName = (params.driverName ?? 'votre conducteur').split(' ')[0]!;
+  const driverFirstName = (params.driverName ?? t('common:terms.driver')).split(' ')[0]!;
   const deadline = useMemo(() => Date.now() + REQUEST_WINDOW_MS, []);
   const [remainingMs, setRemainingMs] = useState(REQUEST_WINDOW_MS);
   const [cancelling, setCancelling] = useState(false);
@@ -96,7 +98,7 @@ export default function ConfirmedScreen(): React.JSX.Element {
           onPress={() => router.replace('/(tabs)/explore')}
           hitSlop={12}
           accessibilityRole="button"
-          accessibilityLabel="Fermer"
+          accessibilityLabel={t('common:actions.close')}
         >
           <Ionicons name="close" size={22} color={theme.ink} />
         </TouchableOpacity>
@@ -120,24 +122,25 @@ export default function ConfirmedScreen(): React.JSX.Element {
         </View>
 
         <Text variant="h1" color={theme.ink} align="center" style={styles.title}>
-          {declined ? `${driverFirstName} n'a pas pu accepter` : `Demande envoyée à ${driverFirstName}`}
+          {declined
+            ? t('booking:status_declined', { name: driverFirstName })
+            : t('booking:status_pending', { name: driverFirstName })}
         </Text>
 
         {declined ? (
           <Text variant="body" color={theme.inkMuted} align="center" style={styles.subtitle}>
-            Retournez aux résultats pour choisir un autre conducteur.
+            {t('booking:status_declined_hint')}
           </Text>
         ) : (
           <>
             <Text variant="body" color={theme.inkMuted} align="center" style={styles.subtitle}>
-              {driverFirstName} a jusqu&apos;à{' '}
+              {t('booking:status_pending_hint', { name: driverFirstName })}{' '}
               <Text variant="body" color={theme.ink} style={styles.bold}>
                 {minutes}:{seconds}
-              </Text>{' '}
-              pour répondre.
+              </Text>
             </Text>
             <Text variant="bodySmall" color={theme.inkFaint} align="center">
-              Vous serez averti dès qu&apos;il répond.
+              {t('booking:status_pending_notification')}
             </Text>
           </>
         )}
@@ -182,10 +185,10 @@ export default function ConfirmedScreen(): React.JSX.Element {
           onPress={() => router.dismissTo('/search/results')}
           activeOpacity={0.85}
           accessibilityRole="button"
-          accessibilityLabel="Retour aux résultats"
+          accessibilityLabel={t('booking:backToResults')}
         >
           <Text variant="label" color={theme.onInk}>
-            Retour aux résultats
+            {t('booking:backToResults')}
           </Text>
         </TouchableOpacity>
         {!declined ? (
@@ -195,10 +198,10 @@ export default function ConfirmedScreen(): React.JSX.Element {
             disabled={cancelling}
             activeOpacity={0.7}
             accessibilityRole="button"
-            accessibilityLabel="Annuler la demande"
+            accessibilityLabel={t('booking:cancel_request')}
           >
             <Text variant="label" color={theme.inkFaint}>
-              {cancelling ? 'Annulation…' : 'Annuler la demande'}
+              {cancelling ? t('booking:status_cancelling') : t('booking:cancel_request')}
             </Text>
           </TouchableOpacity>
         ) : null}

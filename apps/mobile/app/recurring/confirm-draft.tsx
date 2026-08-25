@@ -26,6 +26,7 @@ import {
   formatDaysOfWeek,
   formatTimeWindow,
 } from '../../src/features/recurring/recurringHelpers';
+import { useTranslation } from 'react-i18next';
 
 /**
  * Driver auto-draft confirmation flow
@@ -46,6 +47,7 @@ import {
  * endpoint.
  */
 export default function ConfirmAutoDraftScreen(): React.JSX.Element {
+  const { t } = useTranslation('booking');
   const { patternId } = useLocalSearchParams<{ patternId: string }>();
   const { data: patterns } = useListMyRecurringPatternsQuery();
   const pattern = patterns?.find((p) => p.id === patternId) ?? null;
@@ -86,7 +88,7 @@ export default function ConfirmAutoDraftScreen(): React.JSX.Element {
         setPrice(ride.pricing.recommended);
       })
       .catch(() => {
-        setErrorMessage('Impossible de préparer ce trajet. Réessayez.');
+        setErrorMessage(t('recurring.draftError'));
       })
       .finally(() => setIsDrafting(false));
     // Deliberately runs only when the pattern/vehicle first become
@@ -108,7 +110,7 @@ export default function ConfirmAutoDraftScreen(): React.JSX.Element {
       router.replace('/(tabs)/trips');
     } catch {
       haptics.error();
-      setErrorMessage('Impossible de publier ce trajet. Réessayez.');
+      setErrorMessage(t('recurring.publishError'));
     }
   }
 
@@ -124,7 +126,7 @@ export default function ConfirmAutoDraftScreen(): React.JSX.Element {
     return (
       <View style={styles.container}>
         <Text variant="bodySmall" color={colors.error} style={styles.padded}>
-          Aucun véhicule enregistré — complétez votre profil conducteur avant de confirmer ce trajet.
+          {t('recurring.noVehicleError')}
         </Text>
       </View>
     );
@@ -133,18 +135,18 @@ export default function ConfirmAutoDraftScreen(): React.JSX.Element {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text variant="h3">Confirmer votre trajet régulier</Text>
+        <Text variant="h3">{t('recurring.confirmTitle')}</Text>
         <Text variant="bodySmall" color={colors.gray600}>
-          Vérifiez les détails avant de publier — les places et le prix peuvent varier chaque jour.
+          {t('recurring.confirmDescription')}
         </Text>
       </View>
 
       <FieldCard>
-        <FieldRow label="Départ" value={pattern.originLabel} dotColor={colors.secondary} />
-        <FieldRow label="Arrivée" value={pattern.destinationLabel} dotColor={colors.primary} dotFilled={false} />
+        <FieldRow label={t('recurring.departure')} value={pattern.originLabel} dotColor={colors.secondary} />
+        <FieldRow label={t('recurring.arrival')} value={pattern.destinationLabel} dotColor={colors.primary} dotFilled={false} />
         <FieldRow
-          label="Horaire habituel"
-          value={`${formatDaysOfWeek(pattern.daysOfWeekMask)} · ${formatTimeWindow(pattern.timeWindowStart, pattern.timeWindowEnd)}`}
+          label={t('recurring.usualSchedule')}
+          value={`${formatDaysOfWeek(pattern.daysOfWeekMask, t)} · ${formatTimeWindow(pattern.timeWindowStart, pattern.timeWindowEnd)}`}
           last
         />
       </FieldCard>

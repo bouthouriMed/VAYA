@@ -1,5 +1,6 @@
 import { View, StyleSheet } from 'react-native';
 import { BottomSheet, Button, Text, useAppTheme, spacing, radii } from '@vaya/design-system';
+import { useTranslation } from 'react-i18next';
 import type { RecurringPattern } from '../../state/api';
 import { buildDetectionPromptCopy, formatDaysOfWeek, formatTimeWindow } from './recurringHelpers';
 
@@ -26,9 +27,10 @@ export function RecurringPatternPromptSheet({
   onEnable,
   enabling,
 }: RecurringPatternPromptSheetProps): React.JSX.Element | null {
+  const { t } = useTranslation();
   const theme = useAppTheme().colors;
   if (!pattern) return null;
-  const copy = buildDetectionPromptCopy(pattern);
+  const copy = buildDetectionPromptCopy(pattern, t);
 
   return (
     <BottomSheet visible={visible} onClose={onClose} title={copy.title} heightRatio={0.4} theme={theme}>
@@ -41,12 +43,12 @@ export function RecurringPatternPromptSheet({
             → {pattern.destinationLabel}
           </Text>
           <Text variant="bodySmall" color={theme.inkMuted}>
-            {formatDaysOfWeek(pattern.daysOfWeekMask)} · {formatTimeWindow(pattern.timeWindowStart, pattern.timeWindowEnd)}
+            {formatDaysOfWeek(pattern.daysOfWeekMask, t)} · {formatTimeWindow(pattern.timeWindowStart, pattern.timeWindowEnd)}
           </Text>
         </View>
 
         <Button
-          label="En faire un trajet régulier"
+          label={t('booking:recurring.enableCta')}
           size="lg"
           loading={enabling}
           onPress={onEnable}
@@ -54,7 +56,7 @@ export function RecurringPatternPromptSheet({
           theme={theme}
         />
         <Button
-          label="Pas maintenant"
+          label={t('common:actions.notNow')}
           variant="ghost"
           size="lg"
           onPress={onClose}

@@ -1,0 +1,11 @@
+{
+  "language": {
+    "title": "Langue"
+  },
+  "appearance": {
+    "title": "Apparence",
+    "system": "Automatique",
+    "light": "Clair",
+    "dark": "Sombre"
+  }
+}

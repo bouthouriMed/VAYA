@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import {
   Text,
   ScreenHeader,
@@ -22,24 +23,6 @@ import {
 } from '@vaya/design-system';
 import { router } from 'expo-router';
 
-const BENEFITS: { icon: IconName; title: string; body: string }[] = [
-  {
-    icon: 'car-sport-outline',
-    title: 'Votre véhicule, vérifié',
-    body: 'Marque, modèle et plaque affichés sur votre profil pour rassurer vos passagers.',
-  },
-  {
-    icon: 'shield-checkmark-outline',
-    title: 'Documents en direct',
-    body: 'Permis et assurance capturés à la caméra sur le moment — jamais depuis la galerie.',
-  },
-  {
-    icon: 'time-outline',
-    title: 'Prêt en 5 minutes',
-    body: 'Trois photos et un véhicule : votre profil conducteur est activé le temps du trajet.',
-  },
-];
-
 /**
  * The driver-flow entry hero. Fully theme-following (`useAppTheme()`): both
  * modes render the same structure — a `backgroundGradient` wash with ambient
@@ -52,7 +35,26 @@ const BENEFITS: { icon: IconName; title: string; body: string }[] = [
 export default function BecomeDriverScreen(): React.JSX.Element {
   const insets = useSafeAreaInsets();
   const { colors: theme, scheme } = useAppTheme();
+  const { t } = useTranslation('driver');
   const isDark = scheme === 'dark';
+
+  const BENEFITS: { icon: IconName; title: string; body: string }[] = [
+    {
+      icon: 'car-sport-outline',
+      title: t('onboarding.index.benefits.verified'),
+      body: t('onboarding.index.benefits.verifiedDesc'),
+    },
+    {
+      icon: 'shield-checkmark-outline',
+      title: t('onboarding.index.benefits.documents'),
+      body: t('onboarding.index.benefits.documentsDesc'),
+    },
+    {
+      icon: 'time-outline',
+      title: t('onboarding.index.benefits.earnings'),
+      body: t('onboarding.index.benefits.earningsDesc'),
+    },
+  ];
   const [reduceMotion, setReduceMotion] = useState(false);
   const fade = useRef(new Animated.Value(0)).current;
   const rise = useRef(new Animated.Value(16)).current;
@@ -108,11 +110,10 @@ export default function BecomeDriverScreen(): React.JSX.Element {
             PROFIL CONDUCTEUR
           </Text>
           <Text variant="headlineDisplay" color={theme.ink} style={styles.headline}>
-            Prenez le volant avec VAYA
+            {t('onboarding.index.title')}
           </Text>
           <Text variant="body" color={theme.inkMuted} style={styles.subhead}>
-            Proposez vos trajets, fixez votre itinéraire et partagez les frais de route — en toute
-            confiance.
+            {t('onboarding.index.subtitle')}
           </Text>
         </Animated.View>
       </View>
@@ -154,7 +155,7 @@ export default function BecomeDriverScreen(): React.JSX.Element {
             onPress={() => router.push('/driver/onboarding/vehicle')}
             activeOpacity={0.85}
             accessibilityRole="button"
-            accessibilityLabel="Commencer"
+            accessibilityLabel={t('onboarding.index.startCta')}
             style={styles.ctaWrap}
           >
             <LinearGradient
@@ -172,7 +173,7 @@ export default function BecomeDriverScreen(): React.JSX.Element {
                 />
               </View>
               <Text variant="label" color={theme.onInk}>
-                Commencer
+                {t('onboarding.index.startCta')}
               </Text>
               <Icon name="arrow-forward" size="sm" color={theme.onInk} />
             </LinearGradient>
@@ -182,10 +183,10 @@ export default function BecomeDriverScreen(): React.JSX.Element {
             hitSlop={12}
             style={styles.secondaryBack}
             accessibilityRole="button"
-            accessibilityLabel="Retour"
+            accessibilityLabel={t('onboarding.index.back')}
           >
             <Text variant="bodySmall" color={theme.inkMuted}>
-              Pas maintenant
+              {t('onboarding.index.later')}
             </Text>
           </TouchableOpacity>
         </View>

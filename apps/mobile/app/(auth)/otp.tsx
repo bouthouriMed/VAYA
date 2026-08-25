@@ -24,6 +24,7 @@ import {
   haptics,
 } from '@vaya/design-system';
 import { router, useLocalSearchParams } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useRequestOtpMutation, useVerifyOtpMutation } from '../../src/state/api';
 import { useAppDispatch } from '../../src/state/store';
 import { setTokens } from '../../src/state/authSlice';
@@ -73,6 +74,7 @@ function OtpCell({ digit, active }: { digit?: string; active: boolean }): React.
  * instead, smooth on both platforms.
  */
 export default function OtpScreen(): React.JSX.Element {
+  const { t } = useTranslation();
   const { phone } = useLocalSearchParams<{ phone?: string }>();
   const normalizedPhone = (phone ?? '').replace(/\s/g, '');
   const insets = useSafeAreaInsets();
@@ -94,7 +96,7 @@ export default function OtpScreen(): React.JSX.Element {
       setDevCode(result.devCode);
       setSecondsLeft(RESEND_SECONDS);
     } catch {
-      setErrorMessage("Impossible d'envoyer le code. Vérifiez votre connexion.");
+      setErrorMessage(t('common:errors.network'));
     }
   }
 
@@ -162,7 +164,7 @@ export default function OtpScreen(): React.JSX.Element {
       router.replace('/(tabs)/explore');
     } catch {
       haptics.error();
-      setErrorMessage('Code invalide ou expiré. Réessayez.');
+      setErrorMessage(t('auth:otp.error'));
       setCode('');
     }
   }
@@ -188,10 +190,10 @@ export default function OtpScreen(): React.JSX.Element {
         <Animated.View style={[styles.lowerSection, { paddingBottom: keyboardPad }]}>
           <View style={styles.body}>
             <Text variant="headlineDisplay" color={darkPalette.ink}>
-              Entrez le code de vérification
+              {t('auth:otp.title', { phone: maskPhone(phone ?? '+216 98 *** ***') })}
             </Text>
             <Text variant="body" color={darkPalette.inkMuted} style={styles.subtitle}>
-              Envoyé par SMS au {maskPhone(phone ?? '+216 98 *** ***')}
+              {t('auth:otp.sentTo', { phone: maskPhone(phone ?? '+216 98 *** ***') })}
             </Text>
 
             <TouchableOpacity
@@ -241,7 +243,7 @@ export default function OtpScreen(): React.JSX.Element {
                 align="center"
                 style={styles.resend}
               >
-                Renvoyer le code dans {mm}:{ss}
+                {t('auth:otp.resendIn', { seconds: `${mm}:${ss}` })}
               </Text>
             ) : (
               <TouchableOpacity
@@ -250,7 +252,7 @@ export default function OtpScreen(): React.JSX.Element {
                 style={styles.resend}
               >
                 <Text variant="bodySmall" color={darkPalette.accent} align="center">
-                  Renvoyer le code
+                  {t('auth:otp.resendCta')}
                 </Text>
               </TouchableOpacity>
             )}
@@ -261,7 +263,7 @@ export default function OtpScreen(): React.JSX.Element {
             disabled={!canVerify}
             activeOpacity={0.85}
             accessibilityRole="button"
-            accessibilityLabel="Vérifier et continuer"
+            accessibilityLabel={t('auth:otp.cta')}
             accessibilityState={{ disabled: !canVerify, busy: isVerifying }}
             style={[
               styles.ctaWrap,
@@ -287,7 +289,7 @@ export default function OtpScreen(): React.JSX.Element {
                 <ActivityIndicator color={darkPalette.onInk} size="small" />
               ) : (
                 <Text variant="label" color={darkPalette.onInk}>
-                  Vérifier et continuer
+                  {t('auth:otp.cta')}
                 </Text>
               )}
             </LinearGradient>

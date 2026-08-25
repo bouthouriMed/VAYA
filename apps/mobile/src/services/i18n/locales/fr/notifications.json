@@ -1,0 +1,35 @@
+{
+  "inbox": {
+    "title": "Notifications",
+    "empty": "Aucune notification",
+    "emptyDescription": "Vos notifications apparaîtront ici.",
+    "unread_one": "{{count}} non lu(e)",
+    "unread_other": "{{count}} non lu(e)s"
+  },
+  "events": {
+    "booking_created": "Nouvelle demande de réservation",
+    "booking_accepted": "Réservation confirmée",
+    "booking_declined": "Réservation refusée",
+    "booking_cancelled": "Réservation annulée",
+    "booking_expired": "Réservation expirée",
+    "ride_published": "Trajet publié",
+    "ride_cancelled": "Trajet annulé",
+    "message_received": "Nouveau message",
+    "rating_received": "Nouvelle note",
+    "no_show_reported": "Absence signalée",
+    "recurring_proactive_match": "Suggestion de trajet"
+  },
+  "descriptions": {
+    "booking_created": "{{name}} souhaite rejoindre votre trajet de {{origin}} à {{destination}}.",
+    "booking_accepted": "Votre réservation pour le trajet de {{origin}} à {{destination}} a été confirmée.",
+    "booking_declined": "Votre réservation pour le trajet de {{origin}} à {{destination}} a été refusée.",
+    "booking_cancelled": "Le trajet de {{origin}} à {{destination}} a été annulé.",
+    "booking_expired": "Votre demande de réservation pour le trajet de {{origin}} à {{destination}} a expiré.",
+    "ride_published": "Votre trajet de {{origin}} à {{destination}} est maintenant visible par les passagers.",
+    "ride_cancelled": "Le trajet de {{origin}} à {{destination}} a été annulé par le conducteur.",
+    "message_received": "Vous avez un nouveau message de {{name}}.",
+    "rating_received": "{{name}} vous a laissé une note.",
+    "no_show_reported": "Une absence a été signalée pour le trajet de {{origin}} à {{destination}}.",
+    "recurring_proactive_match": "Nous avons trouvé un trajet correspondant à votre itinéraire habituel de {{origin}} à {{destination}}."
+  }
+}

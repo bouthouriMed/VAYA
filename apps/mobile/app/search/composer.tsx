@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { View, StyleSheet, TextInput, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { Text, Icon, useAppTheme, spacing, radii } from '@vaya/design-system';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useAppDispatch, useAppSelector } from '../../src/state/store';
@@ -89,6 +90,7 @@ function generateSessionToken(): string {
 export default function SearchComposerScreen(): React.JSX.Element {
   const { field } = useLocalSearchParams<{ field?: ActiveField }>();
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation(['search', 'common', 'booking']);
   const dispatch = useAppDispatch();
   const { colors: theme } = useAppTheme();
   const origin = useAppSelector((s) => s.search.origin);
@@ -197,12 +199,12 @@ export default function SearchComposerScreen(): React.JSX.Element {
 
   function useMyPosition(): void {
     if (!position) return;
-    choose({ label: 'Ma position actuelle', lat: position.lat, lng: position.lng, isCurrentPosition: true });
+    choose({ label: t('search:composer.myLocation'), lat: position.lat, lng: position.lng, isCurrentPosition: true });
   }
 
   const isOrigin = activeField === 'origin';
-  const title = isOrigin ? "D'où partez-vous ?" : 'Où allez-vous ?';
-  const placeholder = isOrigin ? 'Rechercher un point de départ' : 'Rechercher une destination';
+  const title = isOrigin ? t('search:composer.searchPickup') : t('search:composer.searchDestination');
+  const placeholder = isOrigin ? t('search:composer.searchPickup') : t('search:composer.searchDestination');
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -212,7 +214,7 @@ export default function SearchComposerScreen(): React.JSX.Element {
           hitSlop={8}
           style={[styles.backBtn, { backgroundColor: theme.surface, shadowColor: theme.ink }]}
           accessibilityRole="button"
-          accessibilityLabel="Retour"
+          accessibilityLabel={t('common:actions.back')}
         >
           <Ionicons name="arrow-back" size={20} color={theme.ink} />
         </TouchableOpacity>
@@ -267,7 +269,7 @@ export default function SearchComposerScreen(): React.JSX.Element {
               <Icon name="locate" size="sm" color={theme.info} />
             )}
             <Text variant="label" color={theme.ink}>
-              Ma position actuelle
+              {t('search:composer.myLocation')}
             </Text>
           </TouchableOpacity>
         ) : null}
@@ -278,23 +280,23 @@ export default function SearchComposerScreen(): React.JSX.Element {
               LIEUX ENREGISTRÉS
             </Text>
             <View style={styles.savedGrid}>
-              {(['Travail', 'Domicile'] as const).map((label) => (
+              {(['work', 'home'] as const).map((key) => (
                 <TouchableOpacity
-                  key={label}
+                  key={key}
                   disabled
                   style={[styles.savedCard, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}
                   accessibilityState={{ disabled: true }}
                 >
                   <View style={[styles.savedIconWrap, { backgroundColor: theme.surfaceMuted }]}>
                     <Icon
-                      name={label === 'Travail' ? 'briefcase-outline' : 'home-outline'}
+                      name={key === 'work' ? 'briefcase-outline' : 'home-outline'}
                       size="sm"
                       color={theme.outline}
                     />
                   </View>
                   <View style={styles.savedTextCol}>
                     <Text variant="bodySmall" color={theme.inkFaint} numberOfLines={1}>
-                      {label}
+                      {key === 'work' ? t('search:composer.work') : t('search:composer.home')}
                     </Text>
                     <Text variant="caption" color={theme.inkFaint}>
                       Bientôt

@@ -1,0 +1,184 @@
+{
+  "publish": {
+    "steps": {
+      "route": "اختيار المسار",
+      "price": "السعر المقترح",
+      "stops": "نقاط التوقف",
+      "review": "المراجعة والنشر"
+    },
+    "routeStep": {
+      "title": "المسارات المتاحة",
+      "continue": "متابعة"
+    },
+    "priceStep": {
+      "title": "السعر المقترح",
+      "description": "يتم حساب هذا المبلغ لهذه الرحلة بناءً على المسافة والمدة. يمكنك تعديله ضمن النطاق المسموح.",
+      "suggested": "مقترح",
+      "min": "الحد الأدنى",
+      "max": "الحد الأقصى"
+    },
+    "stopsStep": {
+      "pickupTitle": "نقطة الالتقاء",
+      "dropoffTitle": "نقطة التوصيل",
+      "confirm": "تأكيد",
+      "customPosition": "موقع مخصص",
+      "editPickup": "تعديل نقطة الالتقاء",
+      "editDropoff": "تعديل نقطة التوصيل",
+      "selectedPoint": "النقطة المحددة",
+      "choosePoint": "اختيار هذه النقطة"
+    },
+    "reviewStep": {
+      "readyToPublish": "مستعد لنشر رحلتك؟",
+      "checkDetails": "تحقق من التفاصيل أدناه قبل النشر.",
+      "itinerary": "المسار",
+      "modify": "تعديل",
+      "meetingPoint": "نقطة الالتقاء",
+      "price": "السعر",
+      "afterVerification": "بعد التحقق",
+      "vehicle": "المركبة",
+      "addAfterVerify": "ستضيف مركبتك بعد التحقق…",
+      "publishCta": "نشر هذه الرحلة",
+      "verifyCta": "تحقق من ملفك الشخصي للنشر",
+      "verifyDescription": "التحقق يستغرق حوالي 5 دقائق."
+    },
+    "errors": {
+      "createFailed": "تعذر إنشاء هذه الرحلة. حاول مرة أخرى.",
+      "stopsFailed": "تعذر حفظ نقاط التوقف. حاول مرة أخرى.",
+      "priceFailed": "تعذر تحديث السعر. حاول مرة أخرى.",
+      "publishFailed": "تعذر نشر هذه الرحلة. حاول مرة أخرى."
+    }
+  },
+  "onboarding": {
+    "index": {
+      "title": "كن سائق VAYA",
+      "subtitle": "شارك رحلاتك واكسب وأنت تقود.",
+      "benefits": {
+        "documents": "وثائق حية",
+        "documentsDesc": "تحقق سريع وآمن من الهوية.",
+        "verified": "ملف موثّق",
+        "verifiedDesc": "ابنِ ثقة مع الركاب.",
+        "earnings": "اكسب دخلًا",
+        "earningsDesc": "شارك تكاليف رحلاتك المعتادة."
+      },
+      "startCta": "ابدأ",
+      "later": "ليس الآن",
+      "back": "رجوع"
+    },
+    "vehicle": {
+      "stepTitle": "مركبتك",
+      "stepLabel": "الخطوة {{current}} من {{total}}",
+      "vehicleDetails": "تفاصيل المركبة",
+      "seatCount": "عدد مقاعد الركاب",
+      "fields": {
+        "make": "العلامة التجارية",
+        "model": "الطراز",
+        "color": "اللون",
+        "plate": "رقم اللوحة"
+      },
+      "placeholders": {
+        "make": "Peugeot",
+        "model": "208",
+        "color": "رمادي",
+        "plate": "208TU1234"
+      },
+      "removeSeat": "إزالة مقعد",
+      "addSeat": "إضافة مقعد",
+      "continue": "متابعة"
+    },
+    "selfie": {
+      "captureTitle": "التحقق من الهوية",
+      "captureInstruction": "التقط صورة ذاتية لتأكيد هويتك.",
+      "reviewTitle": "راجع وأكد",
+      "reviewEyebrow": "الخطوة الأخيرة",
+      "reviewHeadline": "كل شيء جاهز!",
+      "reviewSubtitle": "تحقق من معلوماتك قبل تنشيط ملفك كسائق.",
+      "vehicleSection": "المركبة",
+      "documentsSection": "المستندات المتحقة مباشرة",
+      "tipLight": "إضاءة جيدة",
+      "tipFace": "واجه الكاميرا",
+      "tipGlasses": "أزل النظارات",
+      "tabs": {
+        "license": "الرخصة",
+        "insurance": "التأمين",
+        "identity": "الهوية"
+      },
+      "reviewRetake": "إعادة الالتقاط",
+      "reviewConfirm": "تأكيد وتفعيل ملفي الشخصي"
+    },
+    "license": {
+      "title": "رخصة القيادة",
+      "eyebrow": "التقاط الوثيقة",
+      "instruction": "ضع رخصة القيادة داخل الإطار.",
+      "tipValid": "يجب أن تكون الوثيقة سارية المفعول",
+      "tipClear": "صورة واضحة بدون لمعان",
+      "tipFull": "يجب أن تكون الأركان الأربعة مرئية"
+    },
+    "insurance": {
+      "title": "تأمين المركبة",
+      "eyebrow": "التقاط الوثيقة",
+      "instruction": "ضع شهادة التأمين داخل الإطار.",
+      "tipValid": "يجب أن تكون الوثيقة سارية المفعول",
+      "tipClear": "صورة واضحة بدون لمعان",
+      "tipFull": "يجب أن تكون الأركان الأربعة مرئية"
+    },
+    "confirmation": {
+      "successTitle": "تم التحقق من الملف!",
+      "successDescription": "يمكنك الآن نشر الرحلات.",
+      "successCta": "الذهاب إلى رحلاتي",
+      "errorTitle": "تقريبًا تم!",
+      "errorDescription": "تعذر نشر رحلتك تلقائيًا. يمكنك المحاولة من رحلاتي.",
+      "errorCta": "الذهاب إلى رحلاتي",
+      "publishSuccess": "تم نشر رحلتك!",
+      "publishError": "تم التحقق من الملف لكن تعذر نشر الرحلة. حاول من رحلاتي."
+    }
+  },
+  "rides": {
+    "rideDetail": {
+      "passenger": "راكب",
+      "departure": "المغادرة",
+      "arrival": "الوصول",
+      "dropoff": "نقطة التوصيل",
+      "viewRouteFullscreen": "عرض المسار بالشاشة الكاملة",
+      "cancelRide": "إلغاء هذه الرحلة",
+      "back": "رجوع",
+      "close": "إغلاق",
+      "myRide": "رحلتي",
+      "itinerary": "المسار",
+      "rideNotFound": "الرحلة غير موجودة.",
+      "passengers": "الركاب",
+      "arrivalEta": "الوصول ~{{time}}",
+      "seatsAvailable": "{{available}}/{{total}} مقاعد متاحة",
+      "pricePerSeat": "{{price}} د.ت لكل مقعد",
+      "confirmedRevenue": "{{revenue}} د.ت مؤكدة · {{count}} راكب",
+      "pendingSection": "للرد ({{count}})",
+      "noPendingRequests": "لا توجد طلبات معلقة."
+    },
+    "manageSheet": {
+      "title": "إدارة هذه الرحلة",
+      "cannotCancel": "لا يمكن إلغاء رحلة بها حجوزات نشطة.",
+      "cancelRide": "إلغاء هذه الرحلة",
+      "doNotCancel": "لا تلغِ",
+      "confirmCancel": "تأكيد إلغاء الرحلة"
+    },
+    "requestsSheet": {
+      "title": "طلبات الحجز",
+      "loadError": "تعذر تحميل الطلبات",
+      "empty": "لا توجد طلبات",
+      "emptyAccepted": "لا توجد طلبات مقبولة",
+      "sectionPending": "جديدة",
+      "sectionAccepted": "تمت معالجتها",
+      "decline": "رفض",
+      "accept": "قبول",
+      "acceptError": "تعذر القبول. حاول مرة أخرى.",
+      "declineError": "تعذر الرفض. حاول مرة أخرى.",
+      "retry": "إعادة المحاولة"
+    },
+    "bookingDetail": {
+      "passenger": "راكب",
+      "destination": "وجهة الرحلة",
+      "message": "رسالة",
+      "reportNoShow": "الإبلاغ عن عدم الحضور",
+      "cancelBooking": "إلغاء هذا الحجز"
+    }
+  }
+}
