@@ -1,0 +1,89 @@
+{
+  "actions": {
+    "back": "Back",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "done": "Done",
+    "next": "Next",
+    "continue": "Continue",
+    "retry": "Retry",
+    "close": "Close",
+    "edit": "Edit",
+    "delete": "Delete",
+    "share": "Share",
+    "seeAll": "See all",
+    "viewDetails": "View details",
+    "gotIt": "Got it",
+    "later": "Later",
+    "tryAgain": "Try again",
+    "call": "Call",
+    "message": "Message",
+    "search": "Search",
+    "swap": "Swap origin and destination"
+  },
+  "status": {
+    "loading": "Loading…",
+    "comingSoon": "Coming soon",
+    "unavailable": "Unavailable"
+  },
+  "terms": {
+    "ride_one": "Ride",
+    "ride_other": "Rides",
+    "trip_one": "Trip",
+    "trip_other": "Trips",
+    "driver": "Driver",
+    "passenger": "Passenger",
+    "pickup": "Pickup",
+    "dropoff": "Drop-off",
+    "booking": "Booking",
+    "request": "Request",
+    "available": "Available",
+    "confirmed": "Confirmed",
+    "cancelled": "Cancelled",
+    "startTrip": "Start trip",
+    "endTrip": "End trip",
+    "eta": "ETA",
+    "route": "Route",
+    "detour": "Detour",
+    "location": "Location",
+    "vehicle": "Vehicle",
+    "seat_one": "{{count}} seat",
+    "seat_other": "{{count}} seats",
+    "passenger_one": "{{count}} passenger",
+    "passenger_other": "{{count}} passengers",
+    "minute_one": "{{count}} min",
+    "minute_other": "{{count}} min",
+    "km_one": "{{count}} km",
+    "km_other": "{{count}} km",
+    "currentPosition": "My current location",
+    "departurePoint": "Departure point",
+    "departure": "Departure",
+    "arrival": "Arrival",
+    "whereTo": "Where are you going?",
+    "date": "Date",
+    "time": "Time",
+    "passengers": "Passengers"
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again.",
+    "network": "Check your connection and try again.",
+    "notSaved": "This wasn't saved. Please try again."
+  },
+  "time": {
+    "now": "Now",
+    "today": "Today",
+    "tomorrow": "Tomorrow"
+  },
+  "permissions": {
+    "required": "Permission required",
+    "openSettings": "Open settings"
+  },
+  "language": {
+    "title": "Language",
+    "restartTitle": "Restart required",
+    "restartMessage": "Switching to {{language}} changes the app's layout direction. Restart VAYA to apply it.",
+    "restartCta": "Restart now",
+    "restartLater": "Later"
+  }
+}

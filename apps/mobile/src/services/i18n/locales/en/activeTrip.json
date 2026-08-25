@@ -1,0 +1,9 @@
+{
+  "title": "On the way",
+  "message": "Message",
+  "estimatedDuration": "Estimated trip duration",
+  "liveTracking": "Live tracking",
+  "arrived": "I've arrived",
+  "cancel": "Cancel",
+  "waitingConfirmation": "Waiting for confirmation"
+}

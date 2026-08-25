@@ -1,0 +1,52 @@
+{
+  "results": {
+    "title": "Rides",
+    "listView": "List",
+    "mapView": "Map",
+    "noResults": "No one on this route right now.",
+    "notifyMe": "Notify me if a ride appears",
+    "notifyDescription": "We'll let you know",
+    "driverFallback": "Driver",
+    "destination": "Destination",
+    "departure": "Departure",
+    "onYourRoute": "On your route",
+    "candidateCount_one": "{{count}} ride available today on this route",
+    "candidateCount_other": "{{count}} rides available today on this route"
+  },
+  "composer": {
+    "myLocation": "My current location",
+    "searchPickup": "Search for a pickup point",
+    "searchDestination": "Search for a destination",
+    "work": "Work",
+    "home": "Home",
+    "findRide": "Find a ride"
+  },
+  "pickupPoint": {
+    "noStopClose": "No stop on this route is close enough for pickup.",
+    "backToSearch": "Back to search",
+    "selected": "Selected point",
+    "choosePoint": "Choose this point"
+  },
+  "dropoffPoint": {
+    "noDropoff": "No accessible drop-off point found.",
+    "noDropoffDesc": "No stop on this route is close enough for drop-off.",
+    "confirmDropoff": "Confirm this drop-off point",
+    "selected": "Selected point",
+    "choosePoint": "Choose this point"
+  },
+  "details": {
+    "viewRouteFullscreen": "View route on full screen",
+    "back": "Back"
+  },
+  "trust": {
+    "back": "Back"
+  },
+  "timePicker": {
+    "when": "When?",
+    "now": "Now",
+    "in1h": "In 1h",
+    "thisAfternoon": "This afternoon",
+    "tomorrowMorning": "Tomorrow morning",
+    "chooseDate": "Choose a date"
+  }
+}

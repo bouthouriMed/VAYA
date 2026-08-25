@@ -1,24 +1,33 @@
+import type { TFunction } from 'i18next';
 import type { RecurringPattern } from '../../state/api';
 
-const DAY_LABELS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
-
-/** Bitmask -> a short French day-list, e.g. "Lun-Ven" for a contiguous
+/** Bitmask -> a short day-list, e.g. "Lun-Ven" for a contiguous
  *  weekday run, or "Lun, Mer, Ven" for a non-contiguous set. Mirrors
  *  `packages/domain/src/recurring/day-of-week.ts`'s Monday=bit0 convention. */
-export function formatDaysOfWeek(mask: number): string {
+export function formatDaysOfWeek(mask: number, t: TFunction): string {
   const days: number[] = [];
   for (let bit = 0; bit < 7; bit += 1) {
     if (mask & (1 << bit)) days.push(bit);
   }
   if (days.length === 0) return '';
-  if (days.length === 7) return 'Tous les jours';
+  if (days.length === 7) return t('booking:days.everyDay');
+
+  const dayLabels = [
+    t('booking:days.mon'),
+    t('booking:days.tue'),
+    t('booking:days.wed'),
+    t('booking:days.thu'),
+    t('booking:days.fri'),
+    t('booking:days.sat'),
+    t('booking:days.sun'),
+  ];
 
   // A single contiguous run (e.g. Mon-Fri) reads better collapsed.
   const isContiguous = days.every((d, i) => i === 0 || d === days[i - 1]! + 1);
   if (isContiguous && days.length > 1) {
-    return `${DAY_LABELS[days[0]!]}-${DAY_LABELS[days[days.length - 1]!]}`;
+    return `${dayLabels[days[0]!]}-${dayLabels[days[days.length - 1]!]}`;
   }
-  return days.map((d) => DAY_LABELS[d]).join(', ');
+  return days.map((d) => dayLabels[d]).join(', ');
 }
 
 /** "08:00" when start === end, "08:00-08:30" otherwise. */
@@ -35,16 +44,16 @@ export function formatTimeWindow(start: string, end: string): string {
  * client was never actually given. "Plusieurs fois récemment" is the
  * honest equivalent — real, just not falsely precise.
  */
-export function buildDetectionPromptCopy(pattern: Pick<RecurringPattern, 'role'>): {
+export function buildDetectionPromptCopy(pattern: Pick<RecurringPattern, 'role'>, t: TFunction): {
   title: string;
   body: string;
 } {
   return {
-    title: 'Trajet régulier détecté',
+    title: t('booking:recurring.detectedTitle'),
     body:
       pattern.role === 'driver'
-        ? 'Vous avez publié ce trajet plusieurs fois récemment — voulez-vous en faire un trajet régulier ?'
-        : 'Vous avez pris cet itinéraire plusieurs fois récemment — voulez-vous en faire un trajet régulier ?',
+        ? t('booking:recurring.detectedBodyDriver')
+        : t('booking:recurring.detectedBodyRider'),
   };
 }
 

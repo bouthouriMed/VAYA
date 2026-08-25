@@ -1,0 +1,9 @@
+{
+  "required": "Ce champ est obligatoire.",
+  "invalidPhone": "Entrez un numéro de téléphone valide.",
+  "invalidCode": "Code invalide ou expiré.",
+  "invalidEmail": "Entrez une adresse e-mail valide.",
+  "tooShort": "C'est trop court.",
+  "tooLong": "C'est trop long.",
+  "outOfRange": "Cette valeur est hors des limites autorisées."
+}

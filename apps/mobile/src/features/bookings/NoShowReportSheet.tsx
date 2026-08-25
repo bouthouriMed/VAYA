@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { BottomSheet, Button, Text, useAppTheme, spacing, haptics } from '@vaya/design-system';
+import { useTranslation } from 'react-i18next';
 import { useReportNoShowMutation } from '../../state/api';
 import { trackEvent } from '../../services/analytics/analytics';
 
@@ -35,6 +36,7 @@ export function NoShowReportSheet({
   counterpartName,
   onReported,
 }: NoShowReportSheetProps): React.JSX.Element {
+  const { t } = useTranslation();
   const theme = useAppTheme().colors;
   const [reportNoShow, { isLoading }] = useReportNoShowMutation();
   const [error, setError] = useState<string | undefined>();
@@ -44,7 +46,7 @@ export function NoShowReportSheet({
   }, [visible]);
 
   const firstName =
-    counterpartName?.split(' ')[0] ?? (role === 'rider' ? 'le conducteur' : 'le passager');
+    counterpartName?.split(' ')[0] ?? (role === 'rider' ? t('booking:driver') : t('booking:passenger'));
 
   async function handleConfirm(): Promise<void> {
     setError(undefined);
@@ -56,9 +58,7 @@ export function NoShowReportSheet({
       onClose();
     } catch {
       haptics.error();
-      setError(
-        'Impossible de signaler cette absence maintenant — l’heure de départ n’est peut-être pas encore passée, ou une erreur est survenue.',
-      );
+      setError(t('booking:noShow.error'));
     }
   }
 
@@ -66,18 +66,16 @@ export function NoShowReportSheet({
     <BottomSheet
       visible={visible}
       onClose={onClose}
-      title={`${firstName} ne s’est pas présenté ?`}
+      title={t('booking:noShow.title', { name: firstName })}
       heightRatio={0.42}
       theme={theme}
     >
       <View style={styles.content}>
         <Text variant="body" color={theme.ink}>
-          Avant de signaler une absence, essayez de contacter {firstName} (message ou appel) — il
-          ou elle a peut-être simplement un léger retard.
+          {t('booking:noShow.guidance', { name: firstName })}
         </Text>
         <Text variant="bodySmall" color={theme.inkMuted}>
-          Si vous ne parvenez pas à le/la joindre après l’heure de départ prévue, vous pouvez
-          signaler l’absence ci-dessous.
+          {t('booking:noShow.followUp', { name: firstName })}
         </Text>
 
         {error ? (
@@ -87,7 +85,7 @@ export function NoShowReportSheet({
         ) : null}
 
         <Button
-          label="Signaler l’absence"
+          label={t('booking:noShow.reportCta')}
           size="lg"
           variant="outline"
           loading={isLoading}
@@ -96,7 +94,7 @@ export function NoShowReportSheet({
           theme={theme}
         />
         <Button
-          label="Retour"
+          label={t('booking:noShow.cancelCta')}
           variant="ghost"
           onPress={onClose}
           style={styles.cta}

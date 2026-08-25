@@ -1,0 +1,7 @@
+{
+  "exactMatch": "Exact match",
+  "corridorMatch": "Route match",
+  "detourMatch": "Detour match",
+  "closestDeparture": "Closest available",
+  "noMatch": "No rides available"
+}

@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { SectionList, View, StyleSheet, TouchableOpacity, ScrollView, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useTranslation } from 'react-i18next';
 import { router } from 'expo-router';
 import { useAppSelector } from '../../src/state/store';
 import { useContextualAuth } from '../../src/features/auth/useContextualAuth';
@@ -31,13 +32,6 @@ import {
   type InboxConversation,
   type InboxFilter,
 } from '../../src/features/conversations/inboxHelpers';
-
-const FILTERS: { key: InboxFilter; label: string }[] = [
-  { key: 'all', label: 'Tous' },
-  { key: 'upcoming', label: 'À venir' },
-  { key: 'active', label: 'En cours' },
-  { key: 'past', label: 'Passés' },
-];
 
 /** Full-screen wash shared by every render path (guest, loading, error,
  *  populated) — a flat theme.background fill read as generic/basic; this
@@ -118,10 +112,6 @@ function FilterPill({
       accessibilityState={{ selected: false }}
       style={[
         styles.filterPill,
-        // The unselected pill's fill is the palette's secondary surface —
-        // a clean light blue in light mode (Stitch's surface-container
-        // token) — not the plain white `surface` card fill, so the
-        // filter row actually reads as its own tinted secondary group.
         { backgroundColor: theme.surfaceMuted, borderWidth: 1, borderColor: theme.outlineVariant },
       ]}
     >
@@ -134,17 +124,6 @@ function FilterPill({
 
 /**
  * Top app bar shared by every render path (guest, loading, error, inbox).
- * A true 3-slot layout — matching symmetric spacer/title/action widths so
- * the title sits genuinely centered (not `flex:1` text hugging one side) —
- * in the same `headlineDisplay` Fraunces cut notifications/index.tsx's own
- * header title uses, so the two inbox-style screens read as one family.
- * Deliberately no leading own-profile avatar here (a tap-to-profile
- * shortcut duplicating the Profile tab already in the bottom bar); a real
- * avatar belongs identifying *who you're talking to* in the individual
- * conversation screen instead. The search slot only renders when
- * `onToggleSearch` is given (the populated, authenticated view) — a guest
- * has nothing to search, but keeps the matching empty spacer so the title
- * doesn't visibly re-center between states.
  */
 function InboxHeader({
   theme,
@@ -155,6 +134,7 @@ function InboxHeader({
   searchOpen?: boolean;
   onToggleSearch?: () => void;
 }): React.JSX.Element {
+  const { t } = useTranslation();
   return (
     <View style={styles.header}>
       <View style={styles.headerSlot} />
@@ -164,13 +144,13 @@ function InboxHeader({
         numberOfLines={1}
         style={styles.headerTitle}
       >
-        Messages
+        {t('messages:title')}
       </Text>
       {onToggleSearch ? (
         <TouchableOpacity
           onPress={onToggleSearch}
           accessibilityRole="button"
-          accessibilityLabel={searchOpen ? 'Fermer la recherche' : 'Rechercher une conversation'}
+          accessibilityLabel={searchOpen ? t('messages:searchClose') : t('messages:searchAria')}
           style={[
             styles.headerSlot,
             styles.headerIconBtn,
@@ -197,8 +177,18 @@ function InboxHeader({
  *  the inbox is a real index over real conversations and never guesses
  *  read state or message counts that don't exist yet. */
 export default function MessagesScreen(): React.JSX.Element {
-  const theme = useAppTheme().colors;
+  const { colors: theme } = useAppTheme();
+  const { t } = useTranslation(['messages', 'booking', 'common']);
+  const locale = useAppSelector((s) => s.language.locale) || 'en';
   const accessToken = useAppSelector((s) => s.auth.accessToken);
+
+  const FILTERS: { key: InboxFilter; label: string }[] = [
+    { key: 'all', label: t('booking.filters.all') },
+    { key: 'upcoming', label: t('booking.filters.upcoming') },
+    { key: 'active', label: t('booking.filters.active') },
+    { key: 'past', label: t('booking.filters.past') },
+  ];
+
   const [filter, setFilter] = useState<InboxFilter>('all');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -214,7 +204,7 @@ export default function MessagesScreen(): React.JSX.Element {
       filterConversations(conversations ?? [], filter),
       searchQuery,
     );
-    return groupConversationsByDay(filtered).map((section) => ({
+    return groupConversationsByDay(filtered, t).map((section) => ({
       title: section.label,
       data: section.conversations,
     }));
@@ -251,9 +241,9 @@ export default function MessagesScreen(): React.JSX.Element {
         <InboxHeader theme={theme} />
         <EmptyState
           icon={<Icon name="chatbubble-ellipses-outline" size="lg" color={theme.inkFaint} />}
-          title="Vos trajets, au même endroit."
-          description="Connectez-vous pour retrouver les conversations liées à vos trajets partagés — avant, pendant et après le départ."
-          actionLabel="Se connecter"
+          title={t('messages:guestEmpty.title')}
+          description={t('messages:guestEmpty.description')}
+          actionLabel={t('messages:guestEmpty.cta')}
           onAction={() => requireAuth(() => {}, 'messages')}
         />
 
@@ -286,9 +276,9 @@ export default function MessagesScreen(): React.JSX.Element {
         <InboxHeader theme={theme} />
         <EmptyState
           icon={<Icon name="cloud-offline-outline" size="lg" color={theme.inkFaint} />}
-          title="Impossible de charger vos messages"
-          description="Vérifiez votre connexion puis réessayez."
-          actionLabel="Réessayer"
+          title={t('messages:error.title')}
+          description={t('messages:error.description')}
+          actionLabel={t('common:actions.retry')}
           onAction={() => void refetch()}
         />
       </ScreenBackground>
@@ -313,19 +303,19 @@ export default function MessagesScreen(): React.JSX.Element {
             <TextInput
               value={searchQuery}
               onChangeText={setSearchQuery}
-              placeholder="Nom, ville de départ ou d'arrivée…"
+              placeholder={t('messages:searchPlaceholder')}
               placeholderTextColor={theme.inkFaint}
               style={[styles.searchInput, { color: theme.ink }]}
               autoFocus
               returnKeyType="search"
-              accessibilityLabel="Rechercher une conversation"
+              accessibilityLabel={t('messages:searchAria')}
             />
             {searchQuery.length > 0 ? (
               <TouchableOpacity
                 onPress={() => setSearchQuery('')}
                 hitSlop={8}
                 accessibilityRole="button"
-                accessibilityLabel="Effacer la recherche"
+                accessibilityLabel={t('messages:searchClear')}
               >
                 <Icon name="close-circle" size="sm" color={theme.inkFaint} />
               </TouchableOpacity>
@@ -370,14 +360,14 @@ export default function MessagesScreen(): React.JSX.Element {
           </View>
         )}
         renderItem={({ item }) => {
-          const timestamp = formatInboxTimestamp(item.lastMessage?.createdAt ?? item.updatedAt);
+          const timestamp = formatInboxTimestamp(item.lastMessage?.createdAt ?? item.updatedAt, new Date(), locale);
           const preview =
             item.lastMessage?.body ??
-            (item.status === 'closed' ? 'Conversation terminée.' : 'Aucun message pour le moment.');
+            (item.status === 'closed' ? t('messages:conversationClosed') : t('messages:noMessages'));
           const state = getConversationState(item);
           const isActive = state === 'active';
           const isClosed = state === 'past';
-          const departureLabel = isClosed ? null : formatDepartureLabel(item.departureAt);
+          const departureLabel = isClosed ? null : formatDepartureLabel(item.departureAt, t);
           return (
             <TouchableOpacity
               style={[
@@ -390,7 +380,7 @@ export default function MessagesScreen(): React.JSX.Element {
               onPress={() => openConversation(item)}
               activeOpacity={0.7}
               accessibilityRole="button"
-              accessibilityLabel={`Conversation avec ${item.otherParty.fullName}, ${item.originLabel} vers ${item.destinationLabel}${isActive ? ', trajet en cours' : ''}`}
+              accessibilityLabel={`${t('messages:conversationWith')} ${item.otherParty.fullName}, ${item.originLabel} → ${item.destinationLabel}${isActive ? `, ${t('messages:tripInProgress')}` : ''}`}
             >
               <View style={styles.unreadDotSlot}>
                 {item.hasUnread ? (
@@ -429,13 +419,13 @@ export default function MessagesScreen(): React.JSX.Element {
                     <>
                       <View style={[styles.liveDot, { backgroundColor: theme.accent }]} />
                       <Text variant="caption" color={theme.accent} style={styles.metaState}>
-                        En cours
+                        {t('messages:inProgress')}
                       </Text>
                     </>
                   ) : null}
                   <View style={[styles.rolePill, { backgroundColor: theme.surfaceMuted }]}>
                     <Text variant="caption" color={theme.inkMuted} style={styles.rolePillText}>
-                      {roleLabel(item.otherPartyRole)}
+                      {roleLabel(item.otherPartyRole, t)}
                     </Text>
                   </View>
                   <Text variant="caption" color={theme.inkFaint}>
@@ -475,13 +465,13 @@ export default function MessagesScreen(): React.JSX.Element {
                 <Icon name="chatbubbles-outline" size="lg" color={theme.ink} />
               </View>
               <Text variant="h3" color={theme.ink} style={styles.emptyTitle}>
-                Vos trajets, au même endroit.
+                {t('messages:emptyHero.title')}
               </Text>
               <Text variant="body" color={theme.inkMuted} style={styles.emptyDescription}>
-                Les conversations avec vos conducteurs et passagers apparaîtront ici.
+                {t('messages:emptyHero.description')}
               </Text>
               <Button
-                label="Trouver un trajet"
+                label={t('messages:emptyHero.cta')}
                 variant="primary"
                 theme={theme}
                 onPress={() => router.navigate('/(tabs)/explore')}
@@ -491,8 +481,8 @@ export default function MessagesScreen(): React.JSX.Element {
           ) : (
             <EmptyState
               icon={<Icon name="funnel-outline" size="lg" color={theme.inkFaint} />}
-              title="Rien dans ce filtre"
-              description="Essayez un autre filtre pour retrouver une conversation."
+              title={t('messages:filterEmpty.title')}
+              description={t('messages:filterEmpty.description')}
             />
           )
         }

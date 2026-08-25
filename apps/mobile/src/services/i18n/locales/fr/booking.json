@@ -1,0 +1,110 @@
+{
+  "pending_title": "En attente de {{name}}…",
+  "pending_subtitle": "Réponse habituelle sous quelques minutes.",
+  "cancel_request": "Annuler la demande",
+  "mine_title": "Mes trajets",
+  "status_pending": "En attente",
+  "status_accepted": "Accepté",
+  "status_declined": "Refusé",
+  "status_cancelled_by_rider": "Annulé",
+  "status_cancelled_by_driver": "Annulé par le conducteur",
+  "status_expired": "Expiré",
+  "status_completed": "Terminé",
+  "status_no_show": "Absence",
+  "status_draft": "Brouillon",
+  "status_published": "Publié",
+  "status_full": "Complet",
+  "status_in_progress": "En cours",
+  "settlement_title": "Trajet terminé",
+  "settlement_pay": "Réglez {{price}} DT directement avec {{name}}",
+  "rate_prompt": "Comment était {{name}} ?",
+  "finish": "Terminer",
+  "filters": {
+    "all": "Tous",
+    "upcoming": "À venir",
+    "active": "En cours",
+    "past": "Passés"
+  },
+  "departure": "Départ",
+  "arrival": "Arrivée",
+  "driver": "Conducteur",
+  "passenger": "Passager",
+  "seats_reserved": "{{reserved}}/{{total}} places réservées",
+  "title": "Trajet",
+  "backToResults": "Retour aux résultats",
+  "shareDetails": "Partager les détails",
+  "cancelBooking": "Annuler ma réservation",
+  "cancellation": {
+    "title": "Annuler ce trajet ?",
+    "warning": "L'annulation peut affecter votre score de fiabilité.",
+    "confirmCta": "Confirmer l'annulation",
+    "cancelCta": "Garder la réservation",
+    "error": "Impossible d'annuler. Réessayez.",
+    "reasons": {
+      "change_of_plans": "Changement de plans",
+      "found_alternative": "J'ai trouvé un autre trajet",
+      "emergency": "Urgence",
+      "other": "Autre"
+    }
+  },
+  "noShow": {
+    "title": "Signaler une absence",
+    "guidance": "Avez-vous essayé de contacter l'autre partie ? Nous vous recommandons de le faire avant de signaler une absence.",
+    "reportCta": "Signaler l'absence",
+    "cancelCta": "Annuler",
+    "error": "Impossible de signaler. Réessayez."
+  },
+  "rating": {
+    "punctual": "Ponctuel",
+    "submitCta": "Envoyer l'évaluation",
+    "error": "Impossible d'envoyer l'évaluation. Réessayez.",
+    "title": "Comment était le trajet avec {{name}} ?"
+  },
+  "conversation": {
+    "unavailable": "Conversation indisponible",
+    "closed": "Cette conversation est terminée.",
+    "placeholder": "Écrivez un message…",
+    "send": "Envoyer",
+    "quickReplies": {
+      "hello": "Bonjour !",
+      "onMyWay": "J'arrive !",
+      "runningLate": "Je suis en retard",
+      "thanks": "Merci !"
+    }
+  },
+  "recurring": {
+    "detectedTitle": "Trajet régulier détecté",
+    "detectedBodyDriver": "Vous avez pris cet itinéraire plusieurs fois récemment. Souhaitez-vous le publier automatiquement ?",
+    "detectedBodyRider": "Vous avez recherché cet itinéraire plusieurs fois récemment. Souhaitez-vous être notifié lorsqu'un conducteur le publie ?",
+    "confirmTitle": "Confirmer votre trajet régulier",
+    "confirmDescription": "Vérifiez les détails avant de publier — les places et le prix peuvent varier chaque jour.",
+    "departure": "Départ",
+    "arrival": "Arrivée",
+    "usualSchedule": "Horaire habituel",
+    "publishError": "Impossible de publier ce trajet. Réessayez.",
+    "draftError": "Impossible de préparer ce trajet. Réessayez.",
+    "noVehicleError": "Aucun véhicule enregistré — complétez votre profil conducteur avant de confirmer ce trajet.",
+    "title": "Trajets réguliers",
+    "empty": "Aucun trajet régulier",
+    "emptyDescription": "Vos trajets réguliers apparaîtront ici une fois détectés.",
+    "enableCta": "Activer",
+    "dismissCta": "Ignorer",
+    "dismissed": "Ignoré",
+    "enabled": "Activé",
+    "suggested": "Suggéré",
+    "detected": "Détecté",
+    "driversLicense": "Permis de conduire",
+    "insuranceProof": "Attestation d'assurance",
+    "identitySelfie": "Selfie d'identité"
+  },
+  "days": {
+    "mon": "Lun",
+    "tue": "Mar",
+    "wed": "Mer",
+    "thu": "Jeu",
+    "fri": "Ven",
+    "sat": "Sam",
+    "sun": "Dim",
+    "everyDay": "Tous les jours"
+  }
+}

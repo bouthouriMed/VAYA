@@ -1,0 +1,35 @@
+{
+  "inbox": {
+    "title": "Notifications",
+    "empty": "No notifications",
+    "emptyDescription": "You'll see your notifications here.",
+    "unread_one": "{{count}} unread",
+    "unread_other": "{{count}} unread"
+  },
+  "events": {
+    "booking_created": "New booking request",
+    "booking_accepted": "Booking confirmed",
+    "booking_declined": "Booking declined",
+    "booking_cancelled": "Booking cancelled",
+    "booking_expired": "Booking expired",
+    "ride_published": "Ride published",
+    "ride_cancelled": "Ride cancelled",
+    "message_received": "New message",
+    "rating_received": "New rating",
+    "no_show_reported": "No-show reported",
+    "recurring_proactive_match": "Ride suggestion"
+  },
+  "descriptions": {
+    "booking_created": "{{name}} wants to join your ride from {{origin}} to {{destination}}.",
+    "booking_accepted": "Your booking for the ride from {{origin}} to {{destination}} has been confirmed.",
+    "booking_declined": "Your booking for the ride from {{origin}} to {{destination}} has been declined.",
+    "booking_cancelled": "The ride from {{origin}} to {{destination}} has been cancelled.",
+    "booking_expired": "Your booking request for the ride from {{origin}} to {{destination}} has expired.",
+    "ride_published": "Your ride from {{origin}} to {{destination}} is now visible to passengers.",
+    "ride_cancelled": "The ride from {{origin}} to {{destination}} has been cancelled by the driver.",
+    "message_received": "You have a new message from {{name}}.",
+    "rating_received": "{{name}} left you a rating.",
+    "no_show_reported": "A no-show has been reported for the ride from {{origin}} to {{destination}}.",
+    "recurring_proactive_match": "We found a ride matching your frequent route from {{origin}} to {{destination}}."
+  }
+}

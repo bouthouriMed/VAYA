@@ -34,7 +34,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
       }
     >
       <TouchableOpacity
-        accessibilityLabel="Retour"
+        accessibilityLabel="common:actions.back"
         accessibilityRole="button"
         hitSlop={12}
         onPress={[Function]}
@@ -139,7 +139,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
         </Text>
       </View>
       <TouchableOpacity
-        accessibilityLabel="Voir sur la carte"
+        accessibilityLabel="search:results.mapView"
         accessibilityRole="button"
         onPress={[Function]}
         style={
@@ -184,7 +184,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
             ]
           }
         >
-          Carte
+          search:results.mapView
         </Text>
       </TouchableOpacity>
     </View>
@@ -1384,7 +1384,7 @@ exports[`search/results.tsx snapshots > renders the genuine empty state with a n
       }
     >
       <TouchableOpacity
-        accessibilityLabel="Retour"
+        accessibilityLabel="common:actions.back"
         accessibilityRole="button"
         hitSlop={12}
         onPress={[Function]}
@@ -1489,7 +1489,7 @@ exports[`search/results.tsx snapshots > renders the genuine empty state with a n
         </Text>
       </View>
       <TouchableOpacity
-        accessibilityLabel="Voir sur la carte"
+        accessibilityLabel="search:results.mapView"
         accessibilityRole="button"
         onPress={[Function]}
         style={
@@ -1534,7 +1534,7 @@ exports[`search/results.tsx snapshots > renders the genuine empty state with a n
             ]
           }
         >
-          Carte
+          search:results.mapView
         </Text>
       </TouchableOpacity>
     </View>
@@ -1585,10 +1585,10 @@ exports[`search/results.tsx snapshots > renders the genuine empty state with a n
               ]
             }
           >
-            Personne sur ce trajet pour le moment.
+            search:results.noResults
           </Text>
           <Pressable
-            accessibilityLabel="Me notifier si un trajet apparaît"
+            accessibilityLabel="search:results.notifyMe"
             accessibilityRole="button"
             accessibilityState={
               {
@@ -1615,7 +1615,7 @@ exports[`search/results.tsx snapshots > renders the genuine empty state with a n
                 ]
               }
             >
-              Me notifier si un trajet apparaît
+              search:results.notifyMe
             </Text>
           </Pressable>
         </View>
@@ -1671,7 +1671,7 @@ exports[`search/results.tsx snapshots > renders the loading skeleton 1`] = `
       }
     >
       <TouchableOpacity
-        accessibilityLabel="Retour"
+        accessibilityLabel="common:actions.back"
         accessibilityRole="button"
         hitSlop={12}
         onPress={[Function]}
@@ -1776,7 +1776,7 @@ exports[`search/results.tsx snapshots > renders the loading skeleton 1`] = `
         </Text>
       </View>
       <TouchableOpacity
-        accessibilityLabel="Voir sur la carte"
+        accessibilityLabel="search:results.mapView"
         accessibilityRole="button"
         onPress={[Function]}
         style={
@@ -1821,7 +1821,7 @@ exports[`search/results.tsx snapshots > renders the loading skeleton 1`] = `
             ]
           }
         >
-          Carte
+          search:results.mapView
         </Text>
       </TouchableOpacity>
     </View>
@@ -1960,7 +1960,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
       }
     >
       <TouchableOpacity
-        accessibilityLabel="Retour"
+        accessibilityLabel="common:actions.back"
         accessibilityRole="button"
         hitSlop={12}
         onPress={[Function]}
@@ -2065,7 +2065,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
         </Text>
       </View>
       <TouchableOpacity
-        accessibilityLabel="Voir sur la carte"
+        accessibilityLabel="search:results.mapView"
         accessibilityRole="button"
         onPress={[Function]}
         style={
@@ -2110,7 +2110,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
             ]
           }
         >
-          Carte
+          search:results.mapView
         </Text>
       </TouchableOpacity>
     </View>
@@ -3307,7 +3307,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
         </View>
       </View>
       <TouchableOpacity
-        accessibilityLabel="Me notifier si un trajet apparaît"
+        accessibilityLabel="search:results.notifyMe"
         accessibilityRole="button"
         disabled={false}
         onPress={[Function]}
@@ -3344,7 +3344,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
             ]
           }
         >
-          Me notifier si un trajet apparaît à l'heure exacte
+          search:results.notifyDescription
         </Text>
       </TouchableOpacity>
     </ScrollView>

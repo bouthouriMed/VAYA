@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
@@ -22,6 +22,7 @@ import {
 } from '@vaya/design-system';
 import { TRUST_TIER_LABELS, type TrustTier } from '@vaya/domain';
 import { router } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useContextualAuth } from '../../src/features/auth/useContextualAuth';
 import { ContextualAuthSheet } from '../../src/features/auth/ContextualAuthSheet';
 import { SUPPORTED_LOCALES, type SupportedLocale } from '@vaya/config';
@@ -33,6 +34,8 @@ import {
   saveAppearancePreference,
   type AppearancePreference,
 } from '../../src/services/settings/appearanceStorage';
+import { useLanguage } from '../../src/hooks/useLanguage';
+import { formatDate } from '../../src/utils/localeFormat';
 import {
   useGetMeQuery,
   useGetMyDriverProfileQuery,
@@ -49,19 +52,6 @@ const LOCALE_LABELS: Record<SupportedLocale, string> = {
   ar: 'العربية',
   en: 'English',
 };
-
-/** The Apparence sheet's three choices, in display order. Icons are
- *  decorative (each row is labeled by its text) — the device glyph reads as
- *  "follow the OS", sun/moon as "pin one scheme". */
-const APPEARANCE_OPTIONS: readonly {
-  value: AppearancePreference;
-  label: string;
-  icon: IconName;
-}[] = [
-  { value: 'system', label: 'Automatique', icon: 'phone-portrait-outline' },
-  { value: 'light', label: 'Clair', icon: 'sunny-outline' },
-  { value: 'dark', label: 'Sombre', icon: 'moon-outline' },
-] as const;
 
 // Higher = stronger public signal about the person. The pill shows the best
 // tier across both marketplace roles (most users start passenger-only).
@@ -102,12 +92,15 @@ function fileFromUri(uri: string): FormData {
  *    chevron that would promise navigation that can't happen.
  */
 export default function ProfileScreen(): React.JSX.Element {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const dispatch = useAppDispatch();
   const accessToken = useAppSelector((s) => s.auth.accessToken);
   const refreshToken = useAppSelector((s) => s.auth.refreshToken);
   const {colors: theme, scheme} = useAppTheme();
   const toast = useToast();
+  const { changeLanguage } = useLanguage();
+  const userLocale = useAppSelector((s) => s.language.locale) || 'fr';
 
   const { data: me, isLoading: isMeLoading } = useGetMeQuery(undefined, { skip: !accessToken });
   // Skip until me.id exists — trust summary is keyed by user id.
@@ -144,6 +137,16 @@ export default function ProfileScreen(): React.JSX.Element {
 
   const appearancePreference = useAppSelector((s) => s.appearance.preference);
 
+  const APPEARANCE_OPTIONS = useMemo(
+    () =>
+      [
+        { value: 'system' as AppearancePreference, label: t('settings:appearance.system'), icon: 'phone-portrait-outline' as IconName },
+        { value: 'light' as AppearancePreference, label: t('settings:appearance.light'), icon: 'sunny-outline' as IconName },
+        { value: 'dark' as AppearancePreference, label: t('settings:appearance.dark'), icon: 'moon-outline' as IconName },
+      ] as const,
+    [t],
+  );
+
   const activeLocale: SupportedLocale = me?.locale ?? locale;
 
   const trustAggregate =
@@ -164,9 +167,9 @@ export default function ProfileScreen(): React.JSX.Element {
         <View style={{ height: insets.top + spacing.sm }} />
         <EmptyState
           icon={<Icon name="person-circle-outline" size="lg" color={theme.inkFaint} />}
-          title="Votre profil VAYA"
-          description="Connectez-vous pour gérer votre profil, suivre vos trajets et accéder à vos réglages."
-          actionLabel="Se connecter"
+          title={t('profile:guest.title')}
+          description={t('profile:guest.description')}
+          actionLabel={t('profile:guest.signIn')}
           onAction={() => requireAuth(() => {}, 'account')}
         />
         <StatusBarBlend theme={theme} scheme={scheme} height={insets.top - spacing.sm} />
@@ -220,7 +223,7 @@ export default function ProfileScreen(): React.JSX.Element {
     try {
       const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!permission.granted) {
-        toast({ message: 'Accès à la galerie requis pour choisir une photo.', tone: 'warning' });
+        toast({ message: t('profile:toast.galleryRequired'), tone: 'warning' });
         return;
       }
       const result = await ImagePicker.launchImageLibraryAsync({
@@ -237,9 +240,9 @@ export default function ProfileScreen(): React.JSX.Element {
       // Server round-trip invalidates Me — the avatar below re-renders from
       // the refetched real URL, never from optimistic local state.
       await updateMe({ avatarFileUrl: url }).unwrap();
-      toast({ message: 'Photo de profil mise à jour.', tone: 'success' });
+      toast({ message: t('profile:toast.photoUpdated'), tone: 'success' });
     } catch {
-      toast({ message: "Échec de l'envoi de la photo. Réessayez.", tone: 'error' });
+      toast({ message: t('profile:toast.photoFailed'), tone: 'error' });
     } finally {
       setIsUploadingPhoto(false);
     }
@@ -268,7 +271,7 @@ export default function ProfileScreen(): React.JSX.Element {
       setPhoneDevCode(result.devCode);
       setPhoneStep('code');
     } catch {
-      setPhoneError('Numéro invalide ou envoi impossible. Réessayez.');
+      setPhoneError(t('profile:phoneSheet.invalidOrUnsent'));
     }
   }
 
@@ -283,15 +286,15 @@ export default function ProfileScreen(): React.JSX.Element {
         code: phoneOtpCode,
       }).unwrap();
       haptics.success();
-      toast({ message: 'Numéro de téléphone vérifié.', tone: 'success' });
+      toast({ message: t('profile:phoneSheet.verified'), tone: 'success' });
       setAddingPhone(false);
     } catch (err) {
       haptics.error();
       const status = (err as { status?: number } | undefined)?.status;
       setPhoneError(
         status === 409
-          ? 'Ce numéro est déjà associé à un autre compte VAYA.'
-          : 'Code invalide ou expiré. Réessayez.',
+          ? t('profile:phoneSheet.alreadyLinked')
+          : t('profile:phoneSheet.invalidOrExpired'),
       );
       setPhoneOtpCode('');
     }
@@ -300,8 +303,9 @@ export default function ProfileScreen(): React.JSX.Element {
   function pickLocale(option: SupportedLocale): void {
     setLocale(option);
     setPickingLocale(false);
+    void changeLanguage(option);
     updateMe({ locale: option }).catch(() => {
-      toast({ message: 'Langue non enregistrée.', tone: 'error' });
+      toast({ message: t('profile:toast.localeNotSaved'), tone: 'error' });
     });
   }
 
@@ -316,63 +320,63 @@ export default function ProfileScreen(): React.JSX.Element {
     setPickingAppearance(false);
     dispatch(setAppearance(option));
     saveAppearancePreference(option).catch(() => {
-      toast({ message: "Préférence d'apparence non enregistrée.", tone: 'error' });
+      toast({ message: t('profile:toast.appearanceNotSaved'), tone: 'error' });
     });
   }
 
   const sections: { title: string; rows: ProfileRow[] }[] = [
     {
-      title: 'Identité',
+      title: t('profile:sections.identity'),
       rows: [
         {
           key: 'personal-info',
           icon: 'person-outline',
-          label: 'Informations personnelles',
+          label: t('profile:rows.personalInfo'),
           onPress: () => setShowingAccountInfo(true),
           alert: Boolean(me && !me.phone),
         },
       ],
     },
     {
-      title: 'Compte',
+      title: t('profile:sections.account'),
       rows: [
-        { key: 'payment', icon: 'card-outline', label: 'Paiement' },
+        { key: 'payment', icon: 'card-outline', label: t('profile:rows.payment') },
         {
           key: 'notifications',
           icon: 'notifications-outline',
-          label: 'Notifications',
+          label: t('profile:rows.notifications'),
           onPress: () => router.push('/notifications'),
         },
         {
           key: 'history',
           icon: 'time-outline',
-          label: 'Historique des trajets',
+          label: t('profile:rows.history'),
           onPress: () => router.push('/(tabs)/trips'),
         },
       ],
     },
     {
-      title: 'Sécurité',
+      title: t('profile:sections.security'),
       rows: [
-        { key: 'security', icon: 'lock-closed-outline', label: 'Sécurité et mot de passe' },
-        { key: 'privacy', icon: 'shield-checkmark-outline', label: 'Confidentialité' },
+        { key: 'security', icon: 'lock-closed-outline', label: t('profile:rows.securityPassword') },
+        { key: 'privacy', icon: 'shield-checkmark-outline', label: t('profile:rows.privacy') },
       ],
     },
     {
-      title: 'Préférences',
+      title: t('profile:sections.preferences'),
       rows: [
-        { key: 'ride-prefs', icon: 'options-outline', label: 'Préférences de trajet' },
+        { key: 'ride-prefs', icon: 'options-outline', label: t('profile:rows.ridePrefs') },
         {
           key: 'language',
           icon: 'language-outline',
-          label: 'Langue',
+          label: t('profile:rows.language'),
           value: LOCALE_LABELS[activeLocale],
           onPress: () => setPickingLocale(true),
         },
         {
           key: 'appearance',
           icon: 'color-palette-outline',
-          label: 'Apparence',
+          label: t('profile:rows.appearance'),
           value: APPEARANCE_OPTIONS.find((o) => o.value === appearancePreference)?.label,
           onPress: () => setPickingAppearance(true),
         },
@@ -413,7 +417,7 @@ export default function ProfileScreen(): React.JSX.Element {
                   activeOpacity={0.8}
                   accessibilityRole="button"
                   accessibilityLabel={
-                    me.avatarUrl ? 'Modifier la photo de profil' : 'Ajouter une photo de profil'
+                    me.avatarUrl ? t('profile:photo.changeAria') : t('profile:photo.addAria')
                   }
                   style={[
                     styles.photoBadge,
@@ -442,7 +446,7 @@ export default function ProfileScreen(): React.JSX.Element {
                 numberOfLines={2}
                 style={styles.identityName}
               >
-                {me?.fullName ?? 'Mon profil'}
+                {me?.fullName ?? t('profile:fallbacks.myProfile')}
               </Text>
             ) : (
               <SkeletonText variant="h2" width={170} />
@@ -475,7 +479,7 @@ export default function ProfileScreen(): React.JSX.Element {
               >
                 <Icon name="sparkles-outline" size="xs" color={theme.accent} />
                 <Text variant="bodySmall" color={theme.inkMuted}>
-                  Nouveau sur Vaya
+                  {t('profile:trust.new')}
                 </Text>
               </View>
             ) : null}
@@ -486,7 +490,7 @@ export default function ProfileScreen(): React.JSX.Element {
                 disabled={isUploadingPhoto}
                 accessibilityRole="button"
                 accessibilityLabel={
-                  me.avatarUrl ? 'Modifier la photo de profil' : 'Ajoutez une photo de profil'
+                  me.avatarUrl ? t('profile:photo.changeAria') : t('profile:photo.addAria')
                 }
                 style={styles.photoCta}
               >
@@ -494,7 +498,7 @@ export default function ProfileScreen(): React.JSX.Element {
                   <ActivityIndicator size="small" color={theme.accent} />
                 ) : (
                   <Text variant="bodySmall" color={theme.inkFaint}>
-                    {me.avatarUrl ? 'Modifier la photo de profil' : 'Ajoutez une photo de profil'}
+                    {me.avatarUrl ? t('profile:photo.changeText') : t('profile:photo.addText')}
                   </Text>
                 )}
               </TouchableOpacity>
@@ -531,8 +535,8 @@ export default function ProfileScreen(): React.JSX.Element {
             accessibilityRole="button"
             accessibilityLabel={
               primaryVehicle
-                ? `Conducteur vérifié, ${primaryVehicle.make} ${primaryVehicle.model}, publier un trajet`
-                : 'Conducteur vérifié, publier un trajet'
+                ? t('profile:driver.verifiedWithVehicleAria', { make: primaryVehicle.make, model: primaryVehicle.model })
+                : t('profile:driver.verifiedAria')
             }
           >
             <View style={[styles.driverIconCircle, { backgroundColor: theme.accent }]}>
@@ -540,7 +544,7 @@ export default function ProfileScreen(): React.JSX.Element {
             </View>
             <View style={styles.driverTextCol}>
               <Text variant="body" color={theme.ink} style={styles.driverTitle}>
-                Conducteur vérifié
+                {t('profile:driver.verified')}
               </Text>
               {primaryVehicle ? (
                 <Text variant="bodySmall" color={theme.inkMuted} numberOfLines={1}>
@@ -551,7 +555,7 @@ export default function ProfileScreen(): React.JSX.Element {
                *  is something true to show (no fabricated zeros). */}
               {(realDriverProfile?.tripCount ?? 0) > 0 ? (
                 <Text variant="caption" color={theme.inkFaint}>
-                  {`★ ${realDriverProfile?.ratingAvg} · ${realDriverProfile?.tripCount} trajets`}
+                  {`★ ${realDriverProfile?.ratingAvg} · ${t('profile:fallbacks.trips', { count: realDriverProfile?.tripCount })}`}
                 </Text>
               ) : null}
             </View>
@@ -564,17 +568,17 @@ export default function ProfileScreen(): React.JSX.Element {
               { backgroundColor: theme.surfaceMuted, borderColor: theme.outlineVariant },
             ]}
             accessibilityRole="text"
-            accessibilityLabel="Vérification du profil conducteur en cours"
+            accessibilityLabel={t('profile:driver.pendingAria')}
           >
             <View style={[styles.driverIconCircle, { backgroundColor: theme.surface }]}>
               <Icon name="time-outline" size="sm" color={theme.inkMuted} />
             </View>
             <View style={styles.driverTextCol}>
               <Text variant="body" color={theme.ink} style={styles.driverTitle}>
-                Vérification en cours
+                {t('profile:driver.pending')}
               </Text>
               <Text variant="bodySmall" color={theme.inkMuted}>
-                Nous vérifions vos documents. Vous pourrez publier dès qu&apos;ils sont validés.
+                {t('profile:driver.pendingDescription')}
               </Text>
             </View>
           </View>
@@ -587,17 +591,17 @@ export default function ProfileScreen(): React.JSX.Element {
             onPress={goToDriverFlow}
             activeOpacity={0.85}
             accessibilityRole="button"
-            accessibilityLabel="Vérification refusée, reprendre la vérification"
+            accessibilityLabel={t('profile:driver.rejectedAria')}
           >
             <View style={[styles.driverIconCircle, { backgroundColor: theme.surface }]}>
               <Icon name="alert-circle-outline" size="sm" color={theme.error} />
             </View>
             <View style={styles.driverTextCol}>
               <Text variant="body" color={theme.ink} style={styles.driverTitle}>
-                Vérification refusée
+                {t('profile:driver.rejected')}
               </Text>
               <Text variant="bodySmall" color={theme.inkMuted}>
-                Reprenez la vérification pour publier vos trajets.
+                {t('profile:driver.rejectedDescription')}
               </Text>
             </View>
             <Icon name="chevron-forward" size="sm" color={theme.error} />
@@ -611,17 +615,17 @@ export default function ProfileScreen(): React.JSX.Element {
             onPress={goToDriverFlow}
             activeOpacity={0.85}
             accessibilityRole="button"
-            accessibilityLabel="Rejoignez la communauté Vaya en tant que conducteur"
+            accessibilityLabel={t('profile:driver.noneAria')}
           >
             <View style={[styles.driverIconCircle, { backgroundColor: theme.surface }]}>
               <Icon name="car-sport-outline" size="sm" color={theme.ink} />
             </View>
             <View style={styles.driverTextCol}>
               <Text variant="body" color={theme.ink} style={styles.driverTitle}>
-                Partagez vos trajets
+                {t('profile:driver.noneTitle')}
               </Text>
               <Text variant="bodySmall" color={theme.inkMuted}>
-                Rejoignez la communauté Vaya.
+                {t('profile:driver.noneDescription')}
               </Text>
             </View>
             <Icon name="arrow-forward" size="sm" color={theme.outline} />
@@ -685,7 +689,7 @@ export default function ProfileScreen(): React.JSX.Element {
                         <Icon name="chevron-forward" size="xs" color={theme.outline} />
                       ) : (
                         <Text variant="caption" color={theme.inkFaint}>
-                          Bientôt
+                          {t('common:status.comingSoon')}
                         </Text>
                       )}
                     </TouchableOpacity>
@@ -704,11 +708,11 @@ export default function ProfileScreen(): React.JSX.Element {
             onPress={() => setConfirmingLogout(true)}
             activeOpacity={0.7}
             accessibilityRole="button"
-            accessibilityLabel="Déconnexion"
+            accessibilityLabel={t('profile:logout.accessibility')}
           >
             <Icon name="log-out-outline" size="sm" color={theme.error} />
             <Text variant="label" color={theme.error}>
-              Déconnexion
+              {t('profile:logout.cta')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -723,8 +727,8 @@ export default function ProfileScreen(): React.JSX.Element {
       <Modal
         visible={confirmingLogout}
         onClose={() => setConfirmingLogout(false)}
-        title="Se déconnecter ?"
-        confirmLabel="Se déconnecter"
+        title={t('profile:logout.title')}
+        confirmLabel={t('profile:logout.cta')}
         confirmDestructive
         theme={theme}
         onConfirm={() => {
@@ -733,14 +737,14 @@ export default function ProfileScreen(): React.JSX.Element {
         }}
       >
         <Text variant="body" color={theme.inkMuted}>
-          Vous devrez vous reconnecter avec votre numéro de téléphone.
+          {t('profile:logout.description')}
         </Text>
       </Modal>
 
       <BottomSheet
         visible={pickingLocale}
         onClose={() => setPickingLocale(false)}
-        title="Langue"
+        title={t('common:language.title')}
         heightRatio={0.35}
         theme={theme}
       >
@@ -767,7 +771,7 @@ export default function ProfileScreen(): React.JSX.Element {
       <BottomSheet
         visible={pickingAppearance}
         onClose={() => setPickingAppearance(false)}
-        title="Apparence"
+        title={t('settings:appearance.title')}
         heightRatio={0.35}
         theme={theme}
       >
@@ -777,7 +781,7 @@ export default function ProfileScreen(): React.JSX.Element {
             style={[styles.sheetRow, { borderBottomColor: theme.outlineVariant }]}
             activeOpacity={0.6}
             accessibilityRole="button"
-            accessibilityLabel={`Apparence ${option.label}`}
+            accessibilityLabel={`${t('settings:appearance.title')} ${option.label}`}
             accessibilityState={{ selected: option.value === appearancePreference }}
             onPress={() => pickAppearance(option.value)}
           >
@@ -797,7 +801,7 @@ export default function ProfileScreen(): React.JSX.Element {
       <BottomSheet
         visible={showingAccountInfo}
         onClose={() => setShowingAccountInfo(false)}
-        title="Informations personnelles"
+        title={t('profile:infoSheet.title')}
         heightRatio={0.38}
         theme={theme}
       >
@@ -805,7 +809,7 @@ export default function ProfileScreen(): React.JSX.Element {
           <View style={styles.infoGroup}>
             <View style={styles.infoRow}>
               <Text variant="caption" color={theme.inkFaint}>
-                Nom complet
+                {t('profile:infoSheet.fullName')}
               </Text>
               <Text variant="body" color={theme.ink}>
                 {me.fullName}
@@ -813,7 +817,7 @@ export default function ProfileScreen(): React.JSX.Element {
             </View>
             <View style={[styles.infoRow, { borderBottomColor: theme.outlineVariant }]}>
               <Text variant="caption" color={theme.inkFaint}>
-                Téléphone
+                {t('profile:infoSheet.phone')}
               </Text>
               {me.phone ? (
                 <Text variant="body" color={theme.ink}>
@@ -824,7 +828,7 @@ export default function ProfileScreen(): React.JSX.Element {
                   onPress={openAddPhone}
                   activeOpacity={0.7}
                   accessibilityRole="button"
-                  accessibilityLabel="Ajouter et vérifier votre numéro de téléphone"
+                  accessibilityLabel={t('profile:phoneSheet.ariaPhone')}
                   style={[
                     styles.verifyPhoneChip,
                     { backgroundColor: theme.surfaceMuted, borderColor: theme.accent },
@@ -832,7 +836,7 @@ export default function ProfileScreen(): React.JSX.Element {
                 >
                   <Icon name="shield-checkmark-outline" size="xs" color={theme.accent} />
                   <Text variant="bodySmall" color={theme.accent}>
-                    Ajouter et vérifier
+                    {t('profile:infoSheet.addVerify')}
                   </Text>
                   <Icon name="chevron-forward" size="xs" color={theme.accent} />
                 </TouchableOpacity>
@@ -841,7 +845,7 @@ export default function ProfileScreen(): React.JSX.Element {
             {me.email ? (
               <View style={[styles.infoRow, { borderBottomColor: theme.outlineVariant }]}>
                 <Text variant="caption" color={theme.inkFaint}>
-                  Email
+                  {t('profile:infoSheet.email')}
                 </Text>
                 <Text variant="body" color={theme.ink}>
                   {me.email}
@@ -850,13 +854,10 @@ export default function ProfileScreen(): React.JSX.Element {
             ) : null}
             <View style={[styles.infoRow, { borderBottomColor: theme.outlineVariant }]}>
               <Text variant="caption" color={theme.inkFaint}>
-                Membre depuis
+                {t('profile:infoSheet.memberSince')}
               </Text>
               <Text variant="body" color={theme.ink}>
-                {new Date(me.createdAt).toLocaleDateString('fr-FR', {
-                  month: 'long',
-                  year: 'numeric',
-                })}
+                {formatDate(new Date(me.createdAt), userLocale, { month: 'long', year: 'numeric' })}
               </Text>
             </View>
           </View>
@@ -868,14 +869,14 @@ export default function ProfileScreen(): React.JSX.Element {
       <BottomSheet
         visible={addingPhone}
         onClose={() => setAddingPhone(false)}
-        title={phoneStep === 'phone' ? 'Ajouter votre numéro' : 'Vérification'}
+        title={phoneStep === 'phone' ? t('profile:phoneSheet.addTitle') : t('profile:phoneSheet.verifyTitle')}
         heightRatio={0.42}
         theme={theme}
       >
         {phoneStep === 'phone' ? (
           <View style={styles.phoneSheetBody}>
             <Text variant="bodySmall" color={theme.inkMuted}>
-              Utilisé pour la vérification et pour vous mettre en contact avec vos covoitureurs.
+              {t('profile:phoneSheet.description')}
             </Text>
             <View
               style={[
@@ -891,13 +892,13 @@ export default function ProfileScreen(): React.JSX.Element {
               <TextInput
                 value={phoneDraft}
                 onChangeText={setPhoneDraft}
-                placeholder="98 123 456"
+                placeholder={t('profile:phoneSheet.placeholder')}
                 placeholderTextColor={theme.inkFaint}
                 keyboardType="phone-pad"
                 returnKeyType="done"
                 onSubmitEditing={() => void sendPhoneOtp()}
                 style={[styles.phoneTextInput, { color: theme.ink }]}
-                accessibilityLabel="Numéro de téléphone"
+                accessibilityLabel={t('profile:phoneSheet.ariaPhone')}
                 autoFocus
               />
             </View>
@@ -911,7 +912,7 @@ export default function ProfileScreen(): React.JSX.Element {
               disabled={!canSendPhoneOtp}
               activeOpacity={0.85}
               accessibilityRole="button"
-              accessibilityLabel="Envoyer le code"
+              accessibilityLabel={t('profile:phoneSheet.sendCode')}
               accessibilityState={{ disabled: !canSendPhoneOtp, busy: isSendingPhoneOtp }}
               style={[
                 styles.phoneCta,
@@ -923,7 +924,7 @@ export default function ProfileScreen(): React.JSX.Element {
                 <ActivityIndicator size="small" color={theme.onInk} />
               ) : (
                 <Text variant="label" color={theme.onInk}>
-                  Envoyer le code
+                  {t('profile:phoneSheet.sendCode')}
                 </Text>
               )}
             </TouchableOpacity>
@@ -931,12 +932,12 @@ export default function ProfileScreen(): React.JSX.Element {
         ) : (
           <View style={styles.phoneSheetBody}>
             <Text variant="bodySmall" color={theme.inkMuted}>
-              Code envoyé au +216 {phoneDraft}
+              {t('profile:phoneSheet.codeSentTo', { phone: phoneDraft })}
             </Text>
             <TextInput
               value={phoneOtpCode}
               onChangeText={(v) => setPhoneOtpCode(v.replace(/[^0-9]/g, '').slice(0, 6))}
-              placeholder="000000"
+              placeholder={t('profile:phoneSheet.codePlaceholder')}
               placeholderTextColor={theme.inkFaint}
               keyboardType="number-pad"
               maxLength={6}
@@ -950,12 +951,12 @@ export default function ProfileScreen(): React.JSX.Element {
                   backgroundColor: theme.surfaceMuted,
                 },
               ]}
-              accessibilityLabel="Code de vérification"
+              accessibilityLabel={t('profile:phoneSheet.ariaCode')}
               autoFocus
             />
             {phoneDevCode ? (
               <Text variant="bodySmall" color={theme.inkFaint}>
-                Code de test : {phoneDevCode}
+                {t('profile:phoneSheet.testCode', { code: phoneDevCode })}
               </Text>
             ) : null}
             {phoneError ? (
@@ -968,7 +969,7 @@ export default function ProfileScreen(): React.JSX.Element {
               disabled={!canVerifyPhoneOtp}
               activeOpacity={0.85}
               accessibilityRole="button"
-              accessibilityLabel="Vérifier"
+              accessibilityLabel={t('profile:phoneSheet.verify')}
               accessibilityState={{ disabled: !canVerifyPhoneOtp, busy: isVerifyingPhoneOtp }}
               style={[
                 styles.phoneCta,
@@ -980,13 +981,13 @@ export default function ProfileScreen(): React.JSX.Element {
                 <ActivityIndicator size="small" color={theme.onInk} />
               ) : (
                 <Text variant="label" color={theme.onInk}>
-                  Vérifier
+                  {t('profile:phoneSheet.verify')}
                 </Text>
               )}
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setPhoneStep('phone')} accessibilityRole="button">
               <Text variant="bodySmall" color={theme.accent} align="center">
-                Changer de numéro
+                {t('profile:phoneSheet.changeNumber')}
               </Text>
             </TouchableOpacity>
           </View>

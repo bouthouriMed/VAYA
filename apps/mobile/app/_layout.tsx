@@ -16,13 +16,28 @@ import { colors, ToastProvider, AppThemeProvider, useAppTheme } from '@vaya/desi
 import { store, useAppSelector, type AppDispatch } from '../src/state/store';
 import { hydrateAuth } from '../src/state/authSlice';
 import { hydrateAppearance } from '../src/state/appearanceSlice';
+import { hydrateLanguage } from '../src/state/languageSlice';
 import { loadTokens } from '../src/services/auth/tokenStorage';
 import { loadAppearancePreference } from '../src/services/settings/appearanceStorage';
+import { loadLanguagePreference } from '../src/services/settings/languageStorage';
+import { initI18n, detectDeviceLocale } from '../src/services/i18n';
+import { applyRtlDirection } from '../src/services/i18n/rtl';
+import { useLanguage } from '../src/hooks/useLanguage';
 import { ErrorBoundary } from '../src/components/ErrorBoundary';
 import { useNotificationSetup } from '../src/services/notifications/useNotificationSetup';
 import { PushPermissionBridge } from '../src/services/notifications/PushPermissionBridge';
 import { RatingPromptBridge } from '../src/features/ratings/RatingPromptBridge';
 import { RecurringPatternPromptBridge } from '../src/features/recurring/RecurringPatternPromptBridge';
+
+// Runs once at module load, before the first render — i18next and the
+// native RTL flag must both be settled before any screen mounts. Uses the
+// device's own locale as the first-run guess; if a persisted explicit
+// choice disagrees, LanguageHydrator below reconciles it once storage
+// resolves (mirrors AuthHydrator/ThemedApp's own "sync guess, async
+// correct" pattern elsewhere in this file).
+const startupLocale = detectDeviceLocale();
+applyRtlDirection(startupLocale);
+initI18n(startupLocale);
 
 function BrandedLoadingScreen(): React.JSX.Element {
   return (
@@ -59,6 +74,41 @@ function AuthHydrator({ children }: { children: React.ReactNode }): React.JSX.El
   // branded frame beats a blank one for however long it takes.
   if (!ready) return <BrandedLoadingScreen />;
   return <>{children}</>;
+}
+
+/** Reconciles the module-load device-locale guess (`startupLocale`, already
+ *  active by the time this mounts) against any persisted explicit choice
+ *  from a previous session. First run (nothing persisted yet) just mirrors
+ *  the guess into the language slice. A returning user whose explicit
+ *  choice disagrees with this session's device-locale guess (e.g. they
+ *  picked French on an Arabic-locale device) gets reconciled through the
+ *  same `useLanguage().changeLanguage` path profile.tsx's picker uses —
+ *  including its RTL-reload handling, since that mismatch can also mean a
+ *  layout-direction change. Renders nothing. */
+function LanguageHydrator(): null {
+  const dispatch = useDispatch<AppDispatch>();
+  const { changeLanguage } = useLanguage();
+
+  useEffect(() => {
+    let cancelled = false;
+    dispatch(hydrateLanguage({ locale: startupLocale, isExplicit: false }));
+
+    loadLanguagePreference().then((persisted) => {
+      if (cancelled || !persisted) return;
+      if (persisted !== startupLocale) {
+        void changeLanguage(persisted);
+      } else {
+        dispatch(hydrateLanguage({ locale: persisted, isExplicit: true }));
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- startupLocale is a module-scope constant
+  }, [dispatch, changeLanguage]);
+
+  return null;
 }
 
 /** Bridges expo-notifications' event streams (foreground delivery, tap) into
@@ -157,6 +207,7 @@ export default function RootLayout(): React.JSX.Element {
         <ReduxProvider store={store}>
           <ThemedApp>
             <ToastProvider topInset={insets.top}>
+              <LanguageHydrator />
               <NotificationBridge />
               <PushPermissionBridge />
               <RatingPromptBridge />

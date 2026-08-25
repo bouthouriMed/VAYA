@@ -7,6 +7,7 @@ import searchReducer from './searchSlice';
 import authReducer from './authSlice';
 import driverOnboardingReducer from './driverOnboardingSlice';
 import appearanceReducer from './appearanceSlice';
+import languageReducer from './languageSlice';
 import { api } from './api';
 
 export const store = configureStore({
@@ -15,6 +16,7 @@ export const store = configureStore({
     auth: authReducer,
     driverOnboarding: driverOnboardingReducer,
     appearance: appearanceReducer,
+    language: languageReducer,
     [api.reducerPath]: api.reducer,
   },
   middleware: (getDefaultMiddleware) =>

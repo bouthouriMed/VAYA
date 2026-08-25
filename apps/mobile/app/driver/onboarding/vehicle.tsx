@@ -10,6 +10,7 @@ import {
   AccessibilityInfo,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import {
   Text,
   Icon,
@@ -29,6 +30,7 @@ const TOTAL_STEPS = 4;
 export default function VehicleStepScreen(): React.JSX.Element {
   const insets = useSafeAreaInsets();
   const { colors: theme } = useAppTheme();
+  const { t } = useTranslation('driver');
   const dispatch = useAppDispatch();
   const draft = useAppSelector((s) => s.driverOnboarding.vehicle);
 
@@ -82,12 +84,12 @@ export default function VehicleStepScreen(): React.JSX.Element {
             onPress={() => router.back()}
             hitSlop={12}
             accessibilityRole="button"
-            accessibilityLabel="Retour"
+            accessibilityLabel={t('onboarding.index.back')}
           >
             <Icon name="arrow-back" size="sm" color={theme.ink} />
           </TouchableOpacity>
           <Text variant="caption" color={theme.inkFaint} style={styles.headerStepLabel}>
-            Étape 1 sur {TOTAL_STEPS}
+            {t('onboarding.vehicle.stepLabel', { current: 1, total: TOTAL_STEPS })}
           </Text>
           <View style={styles.headerSpacer} />
         </View>
@@ -103,35 +105,35 @@ export default function VehicleStepScreen(): React.JSX.Element {
             PROFIL CONDUCTEUR
           </Text>
           <Text variant="headlineDisplay" color={theme.ink} style={styles.title}>
-            Votre véhicule
+            {t('onboarding.vehicle.stepTitle')}
           </Text>
           <Text variant="body" color={theme.inkMuted} style={styles.subtitle}>
-            Ces informations apparaissent sur votre profil conducteur pour rassurer vos passagers.
+            {t('onboarding.index.subtitle')}
           </Text>
 
           <GlassSurface theme={theme} radius="2xl" style={styles.card}>
             <Text variant="label" color={theme.inkFaint} style={styles.cardEyebrow}>
-              DÉTAILS DU VÉHICULE
+              {t('onboarding.vehicle.vehicleDetails')}
             </Text>
             <View style={styles.fieldRow}>
               <View style={styles.fieldHalf}>
-                <Input theme={theme} label="Marque" value={make} onChangeText={setMake} placeholder="Peugeot" />
+                <Input theme={theme} label={t('onboarding.vehicle.fields.make')} value={make} onChangeText={setMake} placeholder={t('onboarding.vehicle.placeholders.make')} />
               </View>
               <View style={styles.fieldHalf}>
-                <Input theme={theme} label="Modèle" value={model} onChangeText={setModel} placeholder="208" />
+                <Input theme={theme} label={t('onboarding.vehicle.fields.model')} value={model} onChangeText={setModel} placeholder={t('onboarding.vehicle.placeholders.model')} />
               </View>
             </View>
             <View style={styles.fieldRow}>
               <View style={styles.fieldHalf}>
-                <Input theme={theme} label="Couleur" value={color} onChangeText={setColor} placeholder="Grise" />
+                <Input theme={theme} label={t('onboarding.vehicle.fields.color')} value={color} onChangeText={setColor} placeholder={t('onboarding.vehicle.placeholders.color')} />
               </View>
               <View style={styles.fieldHalf}>
                 <Input
                   theme={theme}
-                  label="Plaque"
+                  label={t('onboarding.vehicle.fields.plate')}
                   value={plateNumber}
                   onChangeText={setPlateNumber}
-                  placeholder="208TU1234"
+                  placeholder={t('onboarding.vehicle.placeholders.plate')}
                   autoCapitalize="characters"
                 />
               </View>
@@ -139,14 +141,14 @@ export default function VehicleStepScreen(): React.JSX.Element {
 
             <View style={[styles.seatsSection, { borderTopColor: theme.outlineVariant }]}>
               <Text variant="label" color={theme.inkMuted}>
-                Nombre de places passagers
+                {t('onboarding.vehicle.seatCount')}
               </Text>
               <View style={styles.stepperRow}>
                 <TouchableOpacity
                   style={[styles.stepperBtn, { backgroundColor: theme.surfaceMuted }]}
                   onPress={() => setSeatCount((s) => Math.max(1, s - 1))}
                   accessibilityRole="button"
-                  accessibilityLabel="Retirer une place"
+                  accessibilityLabel={t('onboarding.vehicle.removeSeat')}
                 >
                   <Text variant="h3" color={theme.ink}>
                     −
@@ -159,7 +161,7 @@ export default function VehicleStepScreen(): React.JSX.Element {
                   style={[styles.stepperBtn, { backgroundColor: theme.surfaceMuted }]}
                   onPress={() => setSeatCount((s) => Math.min(8, s + 1))}
                   accessibilityRole="button"
-                  accessibilityLabel="Ajouter une place"
+                  accessibilityLabel={t('onboarding.vehicle.addSeat')}
                 >
                   <Text variant="h3" color={theme.ink}>
                     +
@@ -182,12 +184,12 @@ export default function VehicleStepScreen(): React.JSX.Element {
           disabled={!canContinue}
           activeOpacity={0.85}
           accessibilityRole="button"
-          accessibilityLabel="Continuer"
+          accessibilityLabel={t('onboarding.vehicle.continue')}
           accessibilityState={{ disabled: !canContinue }}
         >
-          <Text variant="label" color={theme.onInk}>
-            Continuer
-          </Text>
+            <Text variant="label" color={theme.onInk}>
+              {t('onboarding.vehicle.continue')}
+            </Text>
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>

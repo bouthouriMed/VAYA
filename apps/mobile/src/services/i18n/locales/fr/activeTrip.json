@@ -1,0 +1,9 @@
+{
+  "title": "En voiture",
+  "message": "Message",
+  "estimatedDuration": "Durée estimée du trajet",
+  "liveTracking": "Suivi en direct",
+  "arrived": "Je suis arrivé(e)",
+  "cancel": "Annuler",
+  "waitingConfirmation": "En attente de confirmation"
+}

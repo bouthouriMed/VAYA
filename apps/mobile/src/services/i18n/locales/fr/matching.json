@@ -1,0 +1,7 @@
+{
+  "exactMatch": "Correspondance exacte",
+  "corridorMatch": "Correspondance d'itinéraire",
+  "detourMatch": "Correspondance par détour",
+  "closestDeparture": "Prochain départ",
+  "noMatch": "Aucun trajet disponible"
+}

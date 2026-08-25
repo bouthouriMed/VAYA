@@ -103,10 +103,10 @@ exports[`messages.tsx snapshots > empty inbox — headline, filter-less, first-r
           ]
         }
       >
-        Messages
+        messages:title
       </Text>
       <TouchableOpacity
-        accessibilityLabel="Rechercher une conversation"
+        accessibilityLabel="messages:searchAria"
         accessibilityRole="button"
         onPress={[Function]}
         style={
@@ -215,7 +215,7 @@ exports[`messages.tsx snapshots > empty inbox — headline, filter-less, first-r
             ]
           }
         >
-          Vos trajets, au même endroit.
+          messages:emptyHero.title
         </Text>
         <Text
           style={
@@ -237,10 +237,10 @@ exports[`messages.tsx snapshots > empty inbox — headline, filter-less, first-r
             ]
           }
         >
-          Les conversations avec vos conducteurs et passagers apparaîtront ici.
+          messages:emptyHero.description
         </Text>
         <Pressable
-          accessibilityLabel="Trouver un trajet"
+          accessibilityLabel="messages:emptyHero.cta"
           accessibilityRole="button"
           accessibilityState={
             {
@@ -267,7 +267,7 @@ exports[`messages.tsx snapshots > empty inbox — headline, filter-less, first-r
               ]
             }
           >
-            Trouver un trajet
+            messages:emptyHero.cta
           </Text>
         </Pressable>
       </View>
@@ -379,7 +379,7 @@ exports[`messages.tsx snapshots > error — full-screen retry EmptyState 1`] = `
           ]
         }
       >
-        Messages
+        messages:title
       </Text>
       <View
         style={
@@ -434,7 +434,7 @@ exports[`messages.tsx snapshots > error — full-screen retry EmptyState 1`] = `
           ]
         }
       >
-        Impossible de charger vos messages
+        messages:error.title
       </Text>
       <Text
         style={
@@ -455,10 +455,10 @@ exports[`messages.tsx snapshots > error — full-screen retry EmptyState 1`] = `
           ]
         }
       >
-        Vérifiez votre connexion puis réessayez.
+        messages:error.description
       </Text>
       <Pressable
-        accessibilityLabel="Réessayer"
+        accessibilityLabel="common:actions.retry"
         accessibilityRole="button"
         accessibilityState={
           {
@@ -485,7 +485,7 @@ exports[`messages.tsx snapshots > error — full-screen retry EmptyState 1`] = `
             ]
           }
         >
-          Réessayer
+          common:actions.retry
         </Text>
       </Pressable>
     </View>
@@ -596,7 +596,7 @@ exports[`messages.tsx snapshots > loading — headline over conversation-row ske
           ]
         }
       >
-        Messages
+        messages:title
       </Text>
       <View
         style={
@@ -805,10 +805,10 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
           ]
         }
       >
-        Messages
+        messages:title
       </Text>
       <TouchableOpacity
-        accessibilityLabel="Rechercher une conversation"
+        accessibilityLabel="messages:searchAria"
         accessibilityRole="button"
         onPress={[Function]}
         style={
@@ -865,7 +865,7 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
       }
     >
       <TouchableOpacity
-        accessibilityLabel="Tous"
+        accessibilityLabel="booking.filters.all"
         accessibilityRole="button"
         accessibilityState={
           {
@@ -937,12 +937,12 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
               ]
             }
           >
-            Tous
+            booking.filters.all
           </Text>
         </LinearGradient>
       </TouchableOpacity>
       <TouchableOpacity
-        accessibilityLabel="À venir"
+        accessibilityLabel="booking.filters.upcoming"
         accessibilityRole="button"
         accessibilityState={
           {
@@ -988,11 +988,11 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
             ]
           }
         >
-          À venir
+          booking.filters.upcoming
         </Text>
       </TouchableOpacity>
       <TouchableOpacity
-        accessibilityLabel="En cours"
+        accessibilityLabel="booking.filters.active"
         accessibilityRole="button"
         accessibilityState={
           {
@@ -1038,11 +1038,11 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
             ]
           }
         >
-          En cours
+          booking.filters.active
         </Text>
       </TouchableOpacity>
       <TouchableOpacity
-        accessibilityLabel="Passés"
+        accessibilityLabel="booking.filters.past"
         accessibilityRole="button"
         accessibilityState={
           {
@@ -1088,7 +1088,7 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
             ]
           }
         >
-          Passés
+          booking.filters.past
         </Text>
       </TouchableOpacity>
     </ScrollView>
@@ -1126,11 +1126,11 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
             ]
           }
         >
-          Aujourd'hui
+          common:time.today
         </Text>
       </View>
       <TouchableOpacity
-        accessibilityLabel="Conversation avec Amine Ben Salah, Tunis vers Sousse"
+        accessibilityLabel="messages:conversationWith Amine Ben Salah, Tunis → Sousse"
         accessibilityRole="button"
         activeOpacity={0.7}
         onPress={[Function]}
@@ -1329,7 +1329,7 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
                   ]
                 }
               >
-                Conducteur
+                booking:driver
               </Text>
             </View>
             <Text
@@ -1371,7 +1371,7 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
                 ]
               }
             >
-              Tunis → Sousse (Demain)
+              Tunis → Sousse (common:time.tomorrow)
             </Text>
           </View>
           <Text
@@ -1431,11 +1431,11 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
             ]
           }
         >
-          Hier
+          common:time.yesterday
         </Text>
       </View>
       <TouchableOpacity
-        accessibilityLabel="Conversation avec Salma Trabelsi, Tunis vers Hammamet"
+        accessibilityLabel="messages:conversationWith Salma Trabelsi, Tunis → Hammamet"
         accessibilityRole="button"
         activeOpacity={0.7}
         onPress={[Function]}
@@ -1617,7 +1617,7 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
                   ]
                 }
               >
-                Conducteur
+                booking:driver
               </Text>
             </View>
             <Text
@@ -1687,7 +1687,7 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
               ]
             }
           >
-            Conversation terminée.
+            messages:conversationClosed
           </Text>
         </View>
       </TouchableOpacity>

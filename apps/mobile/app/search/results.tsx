@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps';
 import { Ionicons } from '@expo/vector-icons';
 import { skipToken } from '@reduxjs/toolkit/query/react';
+import { useTranslation } from 'react-i18next';
 import {
   Text,
   Icon,
@@ -76,6 +77,7 @@ function RideResultCard({
   onPress: () => void;
 }): React.JSX.Element {
   const { data: passengers } = useListFellowPassengersQuery(candidate.rideId);
+  const { t } = useTranslation(['search', 'common', 'booking']);
 
   const time = new Date(candidate.departureAt).toLocaleTimeString('fr-FR', {
     hour: '2-digit',
@@ -94,14 +96,14 @@ function RideResultCard({
     }
   }
 
-  const dropoffSplit = destination ? splitLocationLabel(destination.label) : { city: 'Destination' };
+  const dropoffSplit = destination ? splitLocationLabel(destination.label) : { city: t('search:results.destination') };
 
   const data: DriverListCardData = {
-    driverName: candidate.driverFullName ?? 'Conducteur',
+    driverName: candidate.driverFullName ?? t('search:results.driverFallback'),
     ratingAvg: candidate.ratingAvg,
     timeLabel: time,
     priceLabel: `${candidate.contributionPerSeat} DT`,
-    pickupCityLabel: origin?.label ? splitLocationLabel(origin.label).city : 'Départ',
+    pickupCityLabel: origin?.label ? splitLocationLabel(origin.label).city : t('search:results.departure'),
     pickupPlaceLabel: closestStop?.label ?? 'Point de rendez-vous',
     pickupWalkLabel: `${Math.round(candidate.pickupWalkMinutes)} min`,
     dropoffCityLabel: dropoffSplit.city,
@@ -112,7 +114,7 @@ function RideResultCard({
     passengers: passengers?.map((p) => ({ userId: p.userId, name: p.firstName, avatarUrl: p.avatarUrl })),
     routeBadgeLabel:
       candidate.matchType === 'route_passthrough'
-        ? 'Sur votre trajet'
+        ? t('search:results.onYourRoute')
         : candidate.matchType === 'detour' && candidate.detour
           ? `Détour +${Math.round(candidate.detour.extraDurationSeconds / 60)} min`
           : undefined,
@@ -123,6 +125,7 @@ function RideResultCard({
 
 export default function ResultsScreen(): React.JSX.Element {
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation(['search', 'common', 'booking']);
   const { colors: theme } = useAppTheme();
   const origin = useAppSelector((s) => s.search.origin);
   const destination = useAppSelector((s) => s.search.destination);
@@ -177,9 +180,9 @@ export default function ResultsScreen(): React.JSX.Element {
         desiredWindowStart: new Date(target.getTime() - 1.5 * 3_600_000),
         desiredWindowEnd: new Date(target.getTime() + 1.5 * 3_600_000),
       }).unwrap();
-      showToast({ message: 'Nous vous préviendrons dès qu’un trajet apparaît.', tone: 'success' });
+      showToast({ message: t('search:results.notifyDescription'), tone: 'success' });
     } catch {
-      showToast({ message: 'Impossible de vous inscrire pour le moment.', tone: 'error' });
+      showToast({ message: t('search:results.notifyDescription'), tone: 'error' });
     }
   }
 
@@ -206,7 +209,7 @@ export default function ResultsScreen(): React.JSX.Element {
           hitSlop={12}
           style={styles.headerSide}
           accessibilityRole="button"
-          accessibilityLabel="Retour"
+          accessibilityLabel={t('common:actions.back')}
         >
           <Ionicons name="chevron-back" size={22} color={theme.ink} />
         </TouchableOpacity>
@@ -217,7 +220,7 @@ export default function ResultsScreen(): React.JSX.Element {
           align="center"
           style={styles.headerTitle}
         >
-          {origin && destination ? `${origin.label} → ${destination.label}` : 'Résultats'}
+          {origin && destination ? `${origin.label} → ${destination.label}` : t('search:results.title')}
         </Text>
         <View style={styles.headerSide} />
       </View>
@@ -231,7 +234,7 @@ export default function ResultsScreen(): React.JSX.Element {
         <View style={styles.subheaderDateRow}>
           <Icon name="calendar-outline" size="xs" color={theme.inkFaint} />
           <Text variant="bodySmall" color={theme.inkFaint} style={styles.subheaderDateText}>
-            {searchAt ? formatDepartureLabel(new Date(searchAt)) : "Aujourd'hui, maintenant"}
+            {searchAt ? formatDepartureLabel(new Date(searchAt)) : t('common:time.now')}
           </Text>
         </View>
 
@@ -239,11 +242,11 @@ export default function ResultsScreen(): React.JSX.Element {
           onPress={() => setShowMap((v) => !v)}
           style={[styles.mapToggle, { backgroundColor: theme.surfaceMuted }]}
           accessibilityRole="button"
-          accessibilityLabel={showMap ? 'Voir la liste' : 'Voir sur la carte'}
+          accessibilityLabel={showMap ? t('search:results.listView') : t('search:results.mapView')}
         >
           <Icon name={showMap ? 'list-outline' : 'map-outline'} size="xs" color={theme.ink} />
           <Text variant="caption" color={theme.ink} style={styles.mapToggleText}>
-            {showMap ? 'Liste' : 'Carte'}
+            {showMap ? t('search:results.listView') : t('search:results.mapView')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -330,11 +333,11 @@ export default function ResultsScreen(): React.JSX.Element {
                 disabled={isNotifying || notified}
                 accessibilityRole="button"
                 accessibilityLabel={
-                  notified ? 'Nous vous préviendrons' : 'Me notifier si un trajet apparaît'
+                  notified ? t('search:results.notifyMe') : t('search:results.notifyMe')
                 }
               >
                 <Text variant="label" color={theme.ink} align="center">
-                  {notified ? 'Nous vous préviendrons ✓' : "Me notifier si un trajet apparaît à l'heure exacte"}
+                  {notified ? `${t('search:results.notifyMe')} ✓` : t('search:results.notifyDescription')}
                 </Text>
               </TouchableOpacity>
             ) : null}
@@ -342,9 +345,9 @@ export default function ResultsScreen(): React.JSX.Element {
         ) : (
           <View style={styles.emptyWrap}>
             <EmptyState
-              title="Personne sur ce trajet pour le moment."
+              title={t('search:results.noResults')}
               actionLabel={
-                notified ? 'Nous vous préviendrons ✓' : 'Me notifier si un trajet apparaît'
+                notified ? `${t('search:results.notifyMe')} ✓` : t('search:results.notifyMe')
               }
               actionDisabled={isNotifying || notified}
               onAction={() => void handleNotifyMe()}

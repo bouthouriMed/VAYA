@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import type { TFunction } from 'i18next';
 import {
   formatDaysOfWeek,
   formatTimeWindow,
@@ -6,25 +7,43 @@ import {
   buildAutoDraftDepartureAt,
 } from '../recurringHelpers';
 
+// Mock translation function for tests
+const mockT: TFunction = ((key: string) => {
+  const translations: Record<string, string> = {
+    'booking:days.mon': 'Lun',
+    'booking:days.tue': 'Mar',
+    'booking:days.wed': 'Mer',
+    'booking:days.thu': 'Jeu',
+    'booking:days.fri': 'Ven',
+    'booking:days.sat': 'Sam',
+    'booking:days.sun': 'Dim',
+    'booking:days.everyDay': 'Tous les jours',
+    'booking:recurring.detectedTitle': 'Trajet régulier détecté',
+    'booking:recurring.detectedBodyDriver': "Vous avez pris cet itinéraire plusieurs fois récemment. Souhaitez-vous le publier automatiquement ?",
+    'booking:recurring.detectedBodyRider': "Vous avez recherché cet itinéraire plusieurs fois récemment. Souhaitez-vous être notifié lorsqu'un conducteur le publie ?",
+  };
+  return translations[key] ?? key;
+}) as unknown as TFunction;
+
 describe('formatDaysOfWeek', () => {
   it('collapses a contiguous weekday run', () => {
-    expect(formatDaysOfWeek(0b0011111)).toBe('Lun-Ven');
+    expect(formatDaysOfWeek(0b0011111, mockT)).toBe('Lun-Ven');
   });
 
   it('lists non-contiguous days individually', () => {
-    expect(formatDaysOfWeek(0b0010101)).toBe('Lun, Mer, Ven');
+    expect(formatDaysOfWeek(0b0010101, mockT)).toBe('Lun, Mer, Ven');
   });
 
   it('special-cases every day of the week', () => {
-    expect(formatDaysOfWeek(0b1111111)).toBe('Tous les jours');
+    expect(formatDaysOfWeek(0b1111111, mockT)).toBe('Tous les jours');
   });
 
   it('handles a single day', () => {
-    expect(formatDaysOfWeek(0b1000000)).toBe('Dim');
+    expect(formatDaysOfWeek(0b1000000, mockT)).toBe('Dim');
   });
 
   it('returns an empty string for a zero mask', () => {
-    expect(formatDaysOfWeek(0)).toBe('');
+    expect(formatDaysOfWeek(0, mockT)).toBe('');
   });
 });
 
@@ -40,8 +59,8 @@ describe('formatTimeWindow', () => {
 
 describe('buildDetectionPromptCopy', () => {
   it('never quotes a fabricated trip count and differs by role', () => {
-    const rider = buildDetectionPromptCopy({ role: 'rider' });
-    const driver = buildDetectionPromptCopy({ role: 'driver' });
+    const rider = buildDetectionPromptCopy({ role: 'rider' }, mockT);
+    const driver = buildDetectionPromptCopy({ role: 'driver' }, mockT);
     expect(rider.body).not.toMatch(/\d/);
     expect(driver.body).not.toMatch(/\d/);
     expect(rider.body).not.toBe(driver.body);

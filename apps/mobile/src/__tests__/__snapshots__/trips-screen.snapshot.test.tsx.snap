@@ -67,7 +67,7 @@ exports[`trips.tsx snapshots > driver dashboard — hero ride card over segmente
             ]
           }
         >
-          Mes trajets
+          trips:title
         </Text>
         <Text
           style={
@@ -86,11 +86,11 @@ exports[`trips.tsx snapshots > driver dashboard — hero ride card over segmente
             ]
           }
         >
-          Gérez vos trajets à venir et passés.
+          trips:subtitle
         </Text>
       </View>
       <TouchableOpacity
-        accessibilityLabel="Notifications"
+        accessibilityLabel="trips:notificationsAria"
         accessibilityRole="button"
         onPress={[Function]}
         style={
@@ -144,7 +144,7 @@ exports[`trips.tsx snapshots > driver dashboard — hero ride card over segmente
           ]
         }
       >
-        Prochain trajet
+        trips:nextRide
       </Text>
       <View
         style={
@@ -313,7 +313,7 @@ exports[`trips.tsx snapshots > driver dashboard — hero ride card over segmente
                 }
               }
             >
-              Publié
+              booking.status_published
             </Text>
           </View>
         </View>
@@ -378,7 +378,7 @@ exports[`trips.tsx snapshots > driver dashboard — hero ride card over segmente
                   ]
                 }
               >
-                dim. 23 août · 08:30 • 3 places disponibles
+                dim. 23 août · 8:30 AM • trips:seatsAvailable
               </Text>
             </View>
             <View
@@ -424,7 +424,7 @@ exports[`trips.tsx snapshots > driver dashboard — hero ride card over segmente
                   ]
                 }
               >
-                par place
+                trips:perSeat
               </Text>
             </View>
           </View>
@@ -522,7 +522,7 @@ exports[`trips.tsx snapshots > driver dashboard — hero ride card over segmente
                     ]
                   }
                 >
-                  08:30
+                  8:30 AM
                 </Text>
                 <Text
                   numberOfLines={1}
@@ -569,7 +569,7 @@ exports[`trips.tsx snapshots > driver dashboard — hero ride card over segmente
                     ]
                   }
                 >
-                  10:30 (est.)
+                  10:30 trips:estimated
                 </Text>
                 <Text
                   numberOfLines={1}
@@ -595,7 +595,7 @@ exports[`trips.tsx snapshots > driver dashboard — hero ride card over segmente
             </View>
           </View>
           <Pressable
-            accessibilityLabel="Gérer ce trajet"
+            accessibilityLabel="trips:manageRide"
             accessibilityRole="button"
             accessibilityState={
               {
@@ -622,7 +622,7 @@ exports[`trips.tsx snapshots > driver dashboard — hero ride card over segmente
                 ]
               }
             >
-              Gérer ce trajet
+              trips:manageRide
             </Text>
           </Pressable>
         </View>
@@ -659,7 +659,7 @@ exports[`trips.tsx snapshots > driver dashboard — hero ride card over segmente
           ]
         }
       >
-        Trajets récents
+        trips:recentRides
       </Text>
       <View
         style={
@@ -676,7 +676,7 @@ exports[`trips.tsx snapshots > driver dashboard — hero ride card over segmente
         }
       >
         <TouchableOpacity
-          accessibilityLabel="Conducteur"
+          accessibilityLabel="trips:segmentDriver"
           accessibilityRole="tab"
           accessibilityState={
             {
@@ -717,11 +717,11 @@ exports[`trips.tsx snapshots > driver dashboard — hero ride card over segmente
               ]
             }
           >
-            Conducteur
+            trips:segmentDriver
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          accessibilityLabel="Passager"
+          accessibilityLabel="trips:segmentRider"
           accessibilityRole="tab"
           accessibilityState={
             {
@@ -758,7 +758,7 @@ exports[`trips.tsx snapshots > driver dashboard — hero ride card over segmente
               ]
             }
           >
-            Passager
+            trips:segmentRider
           </Text>
         </TouchableOpacity>
       </View>
@@ -771,7 +771,7 @@ exports[`trips.tsx snapshots > driver dashboard — hero ride card over segmente
       }
     >
       <TouchableOpacity
-        accessibilityLabel="Tunis vers Sousse, sam. 15 août · 08:30, Terminé"
+        accessibilityLabel="Tunis → Sousse, sam. 15 août · 8:30 AM, booking.status_completed"
         accessibilityRole="button"
         activeOpacity={0.7}
         onPress={[Function]}
@@ -822,10 +822,10 @@ exports[`trips.tsx snapshots > driver dashboard — hero ride card over segmente
               ]
             }
           >
-            sam. 15 août · 08:30
+            sam. 15 août · 8:30 AM
           </Text>
           <View
-            accessibilityLabel="Terminé"
+            accessibilityLabel="booking.status_completed"
             accessibilityRole="text"
             accessible={true}
             style={
@@ -856,7 +856,7 @@ exports[`trips.tsx snapshots > driver dashboard — hero ride card over segmente
                 ]
               }
             >
-              Terminé
+              booking.status_completed
             </Text>
           </View>
         </View>
@@ -1024,7 +1024,7 @@ exports[`trips.tsx snapshots > driver dashboard — hero ride card over segmente
                 ]
               }
             >
-              4/4 places réservées
+              trips:placesReserved
             </Text>
           </View>
           <Text
@@ -1120,7 +1120,7 @@ exports[`trips.tsx snapshots > first run — no bookings, no profile, rider empt
             ]
           }
         >
-          Mes trajets
+          trips:title
         </Text>
         <Text
           style={
@@ -1139,11 +1139,11 @@ exports[`trips.tsx snapshots > first run — no bookings, no profile, rider empt
             ]
           }
         >
-          Gérez vos trajets à venir et passés.
+          trips:subtitle
         </Text>
       </View>
       <TouchableOpacity
-        accessibilityLabel="Notifications"
+        accessibilityLabel="trips:notificationsAria"
         accessibilityRole="button"
         onPress={[Function]}
         style={
@@ -1201,7 +1201,7 @@ exports[`trips.tsx snapshots > first run — no bookings, no profile, rider empt
           ]
         }
       >
-        Trajets récents
+        trips:recentRides
       </Text>
       <View
         style={
@@ -1218,7 +1218,7 @@ exports[`trips.tsx snapshots > first run — no bookings, no profile, rider empt
         }
       >
         <TouchableOpacity
-          accessibilityLabel="Conducteur"
+          accessibilityLabel="trips:segmentDriver"
           accessibilityRole="tab"
           accessibilityState={
             {
@@ -1255,11 +1255,11 @@ exports[`trips.tsx snapshots > first run — no bookings, no profile, rider empt
               ]
             }
           >
-            Conducteur
+            trips:segmentDriver
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          accessibilityLabel="Passager"
+          accessibilityLabel="trips:segmentRider"
           accessibilityRole="tab"
           accessibilityState={
             {
@@ -1300,7 +1300,7 @@ exports[`trips.tsx snapshots > first run — no bookings, no profile, rider empt
               ]
             }
           >
-            Passager
+            trips:segmentRider
           </Text>
         </TouchableOpacity>
       </View>
@@ -1354,7 +1354,7 @@ exports[`trips.tsx snapshots > first run — no bookings, no profile, rider empt
             ]
           }
         >
-          Aucune réservation
+          trips:riderEmpty.noBookings
         </Text>
         <Text
           style={
@@ -1375,10 +1375,10 @@ exports[`trips.tsx snapshots > first run — no bookings, no profile, rider empt
             ]
           }
         >
-          Recherchez un trajet pour réserver votre première place.
+          trips:riderEmpty.noBookingsDesc
         </Text>
         <Pressable
-          accessibilityLabel="Trouver un trajet"
+          accessibilityLabel="trips:riderEmpty.findRide"
           accessibilityRole="button"
           accessibilityState={
             {
@@ -1405,7 +1405,7 @@ exports[`trips.tsx snapshots > first run — no bookings, no profile, rider empt
               ]
             }
           >
-            Trouver un trajet
+            trips:riderEmpty.findRide
           </Text>
         </Pressable>
       </View>
@@ -1481,7 +1481,7 @@ exports[`trips.tsx snapshots > rider view — booking card shows the real driver
             ]
           }
         >
-          Mes trajets
+          trips:title
         </Text>
         <Text
           style={
@@ -1500,11 +1500,11 @@ exports[`trips.tsx snapshots > rider view — booking card shows the real driver
             ]
           }
         >
-          Gérez vos trajets à venir et passés.
+          trips:subtitle
         </Text>
       </View>
       <TouchableOpacity
-        accessibilityLabel="Notifications"
+        accessibilityLabel="trips:notificationsAria"
         accessibilityRole="button"
         onPress={[Function]}
         style={
@@ -1562,7 +1562,7 @@ exports[`trips.tsx snapshots > rider view — booking card shows the real driver
           ]
         }
       >
-        Trajets récents
+        trips:recentRides
       </Text>
       <View
         style={
@@ -1579,7 +1579,7 @@ exports[`trips.tsx snapshots > rider view — booking card shows the real driver
         }
       >
         <TouchableOpacity
-          accessibilityLabel="Conducteur"
+          accessibilityLabel="trips:segmentDriver"
           accessibilityRole="tab"
           accessibilityState={
             {
@@ -1616,11 +1616,11 @@ exports[`trips.tsx snapshots > rider view — booking card shows the real driver
               ]
             }
           >
-            Conducteur
+            trips:segmentDriver
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          accessibilityLabel="Passager"
+          accessibilityLabel="trips:segmentRider"
           accessibilityRole="tab"
           accessibilityState={
             {
@@ -1661,7 +1661,7 @@ exports[`trips.tsx snapshots > rider view — booking card shows the real driver
               ]
             }
           >
-            Passager
+            trips:segmentRider
           </Text>
         </TouchableOpacity>
       </View>
@@ -1674,7 +1674,7 @@ exports[`trips.tsx snapshots > rider view — booking card shows the real driver
       }
     >
       <TouchableOpacity
-        accessibilityLabel="Tunis vers Hammamet, dim. 23 août · 08:30, Confirmé"
+        accessibilityLabel="Tunis → Hammamet, dim. 23 août · 8:30 AM, booking.status_accepted"
         accessibilityRole="button"
         activeOpacity={0.7}
         onPress={[Function]}
@@ -1723,10 +1723,10 @@ exports[`trips.tsx snapshots > rider view — booking card shows the real driver
               ]
             }
           >
-            dim. 23 août · 08:30
+            dim. 23 août · 8:30 AM
           </Text>
           <View
-            accessibilityLabel="Confirmé"
+            accessibilityLabel="booking.status_accepted"
             accessibilityRole="text"
             accessible={true}
             style={
@@ -1757,7 +1757,7 @@ exports[`trips.tsx snapshots > rider view — booking card shows the real driver
                 ]
               }
             >
-              Confirmé
+              booking.status_accepted
             </Text>
           </View>
         </View>

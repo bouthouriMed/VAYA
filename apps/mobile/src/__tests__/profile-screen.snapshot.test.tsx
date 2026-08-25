@@ -63,6 +63,38 @@ function makeDriverProfile(
   };
 }
 
+vi.mock('expo-localization', () => ({
+  getLocales: () => [{ languageCode: 'fr', countryCode: 'TN' }],
+}));
+
+vi.mock('../services/i18n', () => {
+  const i18n = {
+    language: 'fr',
+    t: (key: string, opts?: Record<string, unknown>) => opts?.defaultValue ?? key,
+    changeLanguage: async () => {},
+    on: () => {},
+    off: () => {},
+    use: () => i18n,
+    init: () => i18n,
+    addResourceBundle: () => i18n,
+    isInitialized: true,
+  };
+  return { __esModule: true, default: i18n, initI18n: () => i18n, detectDeviceLocale: () => 'fr' as const };
+});
+
+vi.mock('../services/i18n/rtl', () => ({
+  applyRtlDirection: () => ({ reloadRequired: false }),
+}));
+
+vi.mock('../services/i18n/restart', () => ({
+  tryReloadApp: () => false,
+}));
+
+vi.mock('../services/settings/languageStorage', () => ({
+  saveLanguagePreference: async () => {},
+  loadLanguagePreference: async () => null,
+}));
+
 vi.mock('expo-router', () => ({
   router: { push: vi.fn(), replace: vi.fn(), back: vi.fn(), canGoBack: vi.fn(() => false) },
   Redirect: () => null,

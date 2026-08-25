@@ -1,0 +1,30 @@
+{
+  "title": "Messages",
+  "searchAria": "Search conversations",
+  "searchClose": "Close search",
+  "searchPlaceholder": "Name, departure or arrival city…",
+  "searchClear": "Clear search",
+  "conversationWith": "Conversation with",
+  "tripInProgress": "trip in progress",
+  "inProgress": "In progress",
+  "conversationClosed": "Conversation ended.",
+  "noMessages": "No messages yet.",
+  "guestEmpty": {
+    "title": "Your trips, all in one place.",
+    "description": "Sign in to see conversations from your shared trips — before, during and after departure.",
+    "cta": "Sign in"
+  },
+  "error": {
+    "title": "Could not load your messages",
+    "description": "Check your connection and try again."
+  },
+  "emptyHero": {
+    "title": "Your trips, all in one place.",
+    "description": "Conversations with your drivers and passengers will appear here.",
+    "cta": "Find a ride"
+  },
+  "filterEmpty": {
+    "title": "Nothing in this filter",
+    "description": "Try a different filter to find a conversation."
+  }
+}

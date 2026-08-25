@@ -58,7 +58,7 @@ describe('NoShowReportSheet enforces guidance-not-gate contact copy and real ser
   const source = readSource(featuresDir, 'NoShowReportSheet.tsx');
 
   it('shows contact-first guidance text rather than blocking the action outright', () => {
-    expect(source).toMatch(/contacter/);
+    expect(source).toMatch(/noShow\.guidance/);
   });
 
   it('relies on the server for the minimum-time-past-departure rule (no local time gate)', () => {
