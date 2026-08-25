@@ -5,6 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { skipToken } from '@reduxjs/toolkit/query/react';
+import { useTranslation } from 'react-i18next';
 import {
   Text,
   Icon,
@@ -26,6 +27,7 @@ import {
 } from '@vaya/design-system';
 import { router } from 'expo-router';
 import { useAppDispatch, useAppSelector } from '../../src/state/store';
+import { formatTime } from '../../src/utils/localeFormat';
 import {
   setOrigin,
   swapOriginDestination,
@@ -63,6 +65,8 @@ export default function HomeSearchScreen(): React.JSX.Element {
   const { height: windowHeight } = useWindowDimensions();
   const dispatch = useAppDispatch();
   const { colors: theme, scheme } = useAppTheme();
+  const { t } = useTranslation();
+  const locale = useAppSelector((s) => s.language.locale) || 'en';
   const origin = useAppSelector((s) => s.search.origin);
   const destination = useAppSelector((s) => s.search.destination);
   const desiredDepartureAt = useAppSelector((s) => s.search.desiredDepartureAt);
@@ -90,14 +94,14 @@ export default function HomeSearchScreen(): React.JSX.Element {
   // are" opener. Never overwrites a value the rider already chose.
   useEffect(() => {
     if (origin || status !== 'granted' || !position) return;
-    dispatch(
-      setOrigin({
-        label: 'Ma position actuelle',
-        lat: position.lat,
-        lng: position.lng,
-        isCurrentPosition: true,
-      }),
-    );
+      dispatch(
+        setOrigin({
+          label: t('common:terms.currentPosition'),
+          lat: position.lat,
+          lng: position.lng,
+          isCurrentPosition: true,
+        }),
+      );
   }, [origin, status, position, dispatch]);
 
   const canSearch = Boolean(origin && destination);
@@ -127,8 +131,8 @@ export default function HomeSearchScreen(): React.JSX.Element {
 
   function originValue(): string {
     if (origin) return origin.label;
-    if (status === 'loading') return 'Localisation en cours…';
-    return 'Point de départ';
+    if (status === 'loading') return t('common:status.loading');
+    return t('common:terms.departurePoint');
   }
 
   function openField(field: 'origin' | 'destination'): void {
@@ -137,10 +141,10 @@ export default function HomeSearchScreen(): React.JSX.Element {
 
   const dateLabel = desiredDepartureAt
     ? formatDepartureLabel(new Date(desiredDepartureAt)).split(' · ')[0]
-    : "Aujourd'hui";
+    : t('common:time.today');
   const timeLabel = desiredDepartureAt
-    ? new Date(desiredDepartureAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
-    : 'Maintenant';
+    ? formatTime(new Date(desiredDepartureAt), locale as any)
+    : t('search:timePicker.now');
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -215,7 +219,7 @@ export default function HomeSearchScreen(): React.JSX.Element {
         <TouchableOpacity
           onPress={() => router.push(accessToken ? '/notifications' : '/sign-in')}
           accessibilityRole="button"
-          accessibilityLabel={hasUnreadNotifications ? 'Notifications (non lues)' : 'Notifications'}
+          accessibilityLabel={hasUnreadNotifications ? t('trips:notificationsUnreadAria') : t('trips:notificationsAria')}
           style={[
             styles.notificationButton,
             { top: insets.top + spacing.sm, backgroundColor: theme.surface, shadowColor: theme.ink },
@@ -239,7 +243,7 @@ export default function HomeSearchScreen(): React.JSX.Element {
           </View>
 
           <Text variant="headlineDisplay" color={theme.ink} style={styles.headline}>
-            Trouver un trajet
+            {t('search:composer.findRide')}
           </Text>
 
           {/* Raised above the filter cards below it (white, bordered,
@@ -260,14 +264,14 @@ export default function HomeSearchScreen(): React.JSX.Element {
               onPress={() => openField('origin')}
               activeOpacity={0.7}
               accessibilityRole="button"
-              accessibilityLabel={`Départ, ${originValue()}`}
+              accessibilityLabel={`${t('common:terms.departure')}, ${originValue()}`}
             >
               <View style={[styles.locationIconWrap, { backgroundColor: theme.accentGlow + '33' }]}>
                 <Icon name="locate" size="sm" color={theme.accent} />
               </View>
               <View style={styles.locationTextCol}>
                 <Text variant="caption" color={theme.inkFaint}>
-                  Départ
+                  {t('common:terms.departure')}
                 </Text>
                 <Text variant="body" numberOfLines={1} color={origin ? theme.ink : theme.inkFaint}>
                   {originValue()}
@@ -280,17 +284,17 @@ export default function HomeSearchScreen(): React.JSX.Element {
               onPress={() => openField('destination')}
               activeOpacity={0.7}
               accessibilityRole="button"
-              accessibilityLabel={`Arrivée, ${destination?.label ?? 'Où allez-vous ?'}`}
+              accessibilityLabel={`${t('common:terms.arrival')}, ${destination?.label ?? t('common:terms.whereTo')}`}
             >
               <View style={[styles.locationIconWrap, { backgroundColor: theme.surfaceMuted }]}>
                 <Icon name="location" size="sm" color={theme.inkMuted} />
               </View>
               <View style={styles.locationTextCol}>
                 <Text variant="caption" color={theme.inkFaint}>
-                  Arrivée
+                  {t('common:terms.arrival')}
                 </Text>
                 <Text variant="body" numberOfLines={1} color={destination ? theme.ink : theme.inkFaint}>
-                  {destination?.label ?? 'Où allez-vous ?'}
+                  {destination?.label ?? t('common:terms.whereTo')}
                 </Text>
               </View>
             </TouchableOpacity>
@@ -301,7 +305,7 @@ export default function HomeSearchScreen(): React.JSX.Element {
                 onPress={() => dispatch(swapOriginDestination())}
                 hitSlop={8}
                 accessibilityRole="button"
-                accessibilityLabel="Inverser départ et arrivée"
+                accessibilityLabel={t('common:actions.swap')}
               >
                 <Ionicons name="swap-vertical" size={15} color={theme.inkMuted} />
               </TouchableOpacity>
@@ -317,7 +321,7 @@ export default function HomeSearchScreen(): React.JSX.Element {
               <Icon name="calendar-outline" size="sm" color={theme.inkFaint} />
               <View>
                 <Text variant="caption" color={theme.inkFaint}>
-                  Date
+                  {t('common:terms.date')}
                 </Text>
                 <Text variant="bodySmall" color={theme.ink}>
                   {dateLabel}
@@ -333,7 +337,7 @@ export default function HomeSearchScreen(): React.JSX.Element {
               <Icon name="time-outline" size="sm" color={theme.inkFaint} />
               <View>
                 <Text variant="caption" color={theme.inkFaint}>
-                  Heure
+                  {t('common:terms.time')}
                 </Text>
                 <Text variant="bodySmall" color={theme.ink}>
                   {timeLabel}
@@ -349,14 +353,14 @@ export default function HomeSearchScreen(): React.JSX.Element {
             onPress={() => setIsPassengerSheetOpen(true)}
             activeOpacity={0.7}
             accessibilityRole="button"
-            accessibilityLabel={`Passagers, ${formatPassengerCount(passengers)}`}
+              accessibilityLabel={`${t('common:terms.passengers')}, ${formatPassengerCount(passengers)}`}
           >
             <View style={[styles.locationIconWrap, styles.filterIconWrap, { backgroundColor: theme.surfaceMuted }]}>
               <Icon name="person-outline" size="sm" color={theme.inkFaint} />
             </View>
             <View>
               <Text variant="caption" color={theme.inkFaint}>
-                Passagers
+                {t('common:terms.passengers')}
               </Text>
               <Text variant="bodySmall" color={theme.ink}>
                 {formatPassengerCount(passengers)}
@@ -377,10 +381,10 @@ export default function HomeSearchScreen(): React.JSX.Element {
               router.push('/search/results');
             }}
             accessibilityRole="button"
-            accessibilityLabel="Rechercher un trajet"
+            accessibilityLabel={t('search:composer.findRide')}
           >
             <Text variant="label" color={canSearch ? theme.onInk : theme.inkFaint}>
-              Rechercher
+              {t('common:actions.search')}
             </Text>
             <Ionicons
               name="arrow-forward"
@@ -392,8 +396,7 @@ export default function HomeSearchScreen(): React.JSX.Element {
           {/* Real data or nothing — never a hardcoded placeholder count. */}
           {canSearch && candidates ? (
             <Text variant="caption" color={theme.inkFaint} style={styles.quickNote}>
-              {candidates.length} trajet{candidates.length > 1 ? 's' : ''} disponible
-              {candidates.length > 1 ? 's' : ''} aujourd&apos;hui sur cet itinéraire
+              {t('search:results.candidateCount', { count: candidates.length })}
             </Text>
           ) : null}
       </View>

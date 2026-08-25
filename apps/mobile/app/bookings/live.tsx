@@ -2,10 +2,12 @@ import { View, StyleSheet } from 'react-native';
 import { Text, Button, MapPreview, colors, spacing, radii } from '@vaya/design-system';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { CancellationSheet } from '../../src/features/bookings/CancellationSheet';
 import { NoShowReportSheet } from '../../src/features/bookings/NoShowReportSheet';
 
 export default function LiveScreen(): React.JSX.Element {
+  const { t } = useTranslation(['booking', 'activeTrip', 'common']);
   const params = useLocalSearchParams<{
     bookingId?: string;
     driverName?: string;
@@ -18,7 +20,7 @@ export default function LiveScreen(): React.JSX.Element {
     destinationLat?: string;
     destinationLng?: string;
   }>();
-  const driverName = params.driverName ?? 'votre conducteur';
+  const driverName = params.driverName ?? t('common:terms.driver');
   // Phase 10 (docs/roadmap/phase-10-cancellation-no-show.md): trip-day
   // affordances for both directions of "this isn't happening as planned" —
   // cancelling outright, or reporting the driver never showed.
@@ -51,7 +53,7 @@ export default function LiveScreen(): React.JSX.Element {
     <View style={styles.container}>
       <MapPreview
         height={300}
-        badge="● En route"
+        badge={`● ${t('activeTrip:liveTracking')}`}
         origin={pickupCoord}
         destination={destinationCoord}
         style={styles.map}
@@ -60,14 +62,14 @@ export default function LiveScreen(): React.JSX.Element {
       <View style={styles.card}>
         <View style={styles.headerRow}>
           <Text variant="h1">
-            {params.estimatedDurationMin ? `≈ ${params.estimatedDurationMin} min` : 'En route'}
+            {params.estimatedDurationMin ? `≈ ${params.estimatedDurationMin} min` : t('activeTrip:liveTracking')}
           </Text>
           {params.bookingId ? (
             <Button
-              label="Message"
+              label={t('common:actions.message')}
               variant="outline"
               size="sm"
-              accessibilityLabel={`Envoyer un message à ${driverName.split(' ')[0]}`}
+              accessibilityLabel={t('common:actions.message', { name: driverName.split(' ')[0] })}
               onPress={() =>
                 router.push({
                   pathname: '/conversations/[bookingId]',
@@ -85,7 +87,7 @@ export default function LiveScreen(): React.JSX.Element {
           {/* Trip duration is the real, OSRM-computed route estimate — this
               is intentionally not a live countdown/arrival clock, since
               there's no real-time position feed to compute one from yet. */}
-          {params.estimatedDurationMin ? 'Durée estimée du trajet' : 'Suivi en direct'}
+          {params.estimatedDurationMin ? t('activeTrip:estimatedDuration') : t('activeTrip:liveTracking')}
           {params.destinationLabel ? ` · ${params.destinationLabel}` : ''}
         </Text>
         <View style={styles.track}>
@@ -95,13 +97,13 @@ export default function LiveScreen(): React.JSX.Element {
         {params.bookingId ? (
           <View style={styles.tripActions}>
             <Button
-              label="Le conducteur n’est pas arrivé"
+              label={t('activeTrip:noShowReport')}
               variant="ghost"
               size="sm"
               onPress={() => setReportingNoShow(true)}
             />
             <Button
-              label="Annuler"
+              label={t('activeTrip:cancel')}
               variant="ghost"
               size="sm"
               onPress={() => setCancelling(true)}

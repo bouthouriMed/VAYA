@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { BottomSheet, Button, Avatar, Icon, Text, useAppTheme, spacing, radii, haptics } from '@vaya/design-system';
+import { useTranslation } from 'react-i18next';
 import { router } from 'expo-router';
 import type { Booking } from '../../state/api';
 import { CancellationSheet } from '../bookings/CancellationSheet';
@@ -35,6 +36,7 @@ export function DriverBookingDetailSheet({
   rideDestinationLabel,
   onClose,
 }: DriverBookingDetailSheetProps): React.JSX.Element {
+  const { t } = useTranslation();
   const theme = useAppTheme().colors;
   const [cancelling, setCancelling] = useState(false);
   const [reportingNoShow, setReportingNoShow] = useState(false);
@@ -65,7 +67,7 @@ export function DriverBookingDetailSheet({
       <BottomSheet
         visible={visible && !cancelling && !reportingNoShow}
         onClose={onClose}
-        title={booking.rider?.fullName ?? 'Passager'}
+        title={booking.rider?.fullName ?? t('booking:passenger')}
         heightRatio={0.5}
         theme={theme}
       >
@@ -74,10 +76,10 @@ export function DriverBookingDetailSheet({
             <Avatar uri={booking.rider?.avatarUrl} name={booking.rider?.fullName ?? '?'} sizePx={48} />
             <View style={styles.identityText}>
               <Text variant="body" color={theme.ink} style={styles.riderName} numberOfLines={1}>
-                {booking.rider?.fullName ?? 'Passager'}
+                {booking.rider?.fullName ?? t('booking:passenger')}
               </Text>
               <Text variant="caption" color={theme.inkMuted} numberOfLines={1}>
-                {`${booking.seatsRequested} place${booking.seatsRequested > 1 ? 's' : ''} · ${booking.contributionTotal} DT`}
+                {t('driver:rides.bookingDetail.seatsAndPrice', { seats: booking.seatsRequested, seatLabel: booking.seatsRequested > 1 ? t('common:status.seats_plural') : t('common:status.seats_singular'), price: booking.contributionTotal })}
               </Text>
             </View>
           </View>
@@ -91,18 +93,18 @@ export function DriverBookingDetailSheet({
           <View style={[styles.factRow, { backgroundColor: theme.surfaceMuted }]}>
             <Icon name="flag-outline" size="sm" color={theme.inkMuted} />
             <Text variant="bodySmall" color={theme.ink} numberOfLines={2} style={styles.factText}>
-              {booking.dropoffLabel ?? rideDestinationLabel ?? 'Destination du trajet'}
+              {booking.dropoffLabel ?? rideDestinationLabel ?? t('booking:destination')}
             </Text>
           </View>
 
           <Button
-            label="Message"
+            label={t('booking:conversation.unavailable')}
             theme={theme}
             onPress={openConversation}
             style={styles.actionButton}
           />
           <Button
-            label="Signaler une absence"
+            label={t('booking:noShow.reportCta')}
             variant="outline"
             theme={theme}
             onPress={() => setReportingNoShow(true)}
@@ -111,10 +113,10 @@ export function DriverBookingDetailSheet({
           <TouchableOpacity
             onPress={() => setCancelling(true)}
             accessibilityRole="button"
-            accessibilityLabel="Annuler cette réservation"
+            accessibilityLabel={t('driver:rides.bookingDetail.cancelLabel')}
           >
             <Text variant="body" color={theme.error} style={styles.cancelLabel}>
-              Annuler cette réservation
+              {t('driver:rides.bookingDetail.cancelLabel')}
             </Text>
           </TouchableOpacity>
         </View>

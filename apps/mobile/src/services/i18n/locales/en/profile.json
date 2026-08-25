@@ -1,0 +1,90 @@
+{
+  "sections": {
+    "identity": "Identity",
+    "account": "Account",
+    "security": "Security",
+    "preferences": "Preferences"
+  },
+  "rows": {
+    "personalInfo": "Personal information",
+    "payment": "Payment",
+    "notifications": "Notifications",
+    "history": "Ride history",
+    "securityPassword": "Security and password",
+    "privacy": "Privacy",
+    "ridePrefs": "Ride preferences",
+    "language": "Language",
+    "appearance": "Appearance"
+  },
+  "driver": {
+    "verified": "Verified driver",
+    "pending": "Verification in progress",
+    "pendingDescription": "We're reviewing your documents. You'll be able to publish once they're approved.",
+    "rejected": "Verification refused",
+    "rejectedDescription": "Resume verification to publish your rides.",
+    "noneTitle": "Share your rides",
+    "noneDescription": "Join the VAYA community as a driver.",
+    "verifiedAria": "Verified driver, publish a ride",
+    "verifiedWithVehicleAria": "Verified driver, {{make}} {{model}}, publish a ride",
+    "pendingAria": "Driver verification in progress",
+    "rejectedAria": "Verification refused, resume verification",
+    "noneAria": "Join VAYA as a driver"
+  },
+  "trust": {
+    "new": "New on VAYA"
+  },
+  "photo": {
+    "changeAria": "Change profile photo",
+    "addAria": "Add profile photo",
+    "changeText": "Change profile photo",
+    "addText": "Add a profile photo"
+  },
+  "toast": {
+    "galleryRequired": "Gallery access required to choose a photo.",
+    "photoUpdated": "Profile photo updated.",
+    "photoFailed": "Failed to upload photo. Try again.",
+    "localeNotSaved": "Language not saved.",
+    "appearanceNotSaved": "Appearance preference not saved."
+  },
+  "guest": {
+    "title": "Your VAYA profile",
+    "description": "Sign in to manage your profile, track your rides and access your settings.",
+    "signIn": "Sign in"
+  },
+  "logout": {
+    "title": "Sign out?",
+    "cta": "Sign out",
+    "description": "You'll need to sign in again with your phone number.",
+    "accessibility": "Sign out"
+  },
+  "infoSheet": {
+    "title": "Personal information",
+    "fullName": "Full name",
+    "phone": "Phone",
+    "email": "Email",
+    "memberSince": "Member since",
+    "addVerify": "Add and verify"
+  },
+  "phoneSheet": {
+    "addTitle": "Add your number",
+    "verifyTitle": "Verification",
+    "description": "Used for verification and to connect you with your carpool partners.",
+    "placeholder": "98 123 456",
+    "sendCode": "Send code",
+    "verify": "Verify",
+    "changeNumber": "Change number",
+    "codeSentTo": "Code sent to +216 {{phone}}",
+    "codePlaceholder": "000000",
+    "testCode": "Test code: {{code}}",
+    "ariaPhone": "Phone number",
+    "ariaCode": "Verification code",
+    "invalidOrUnsent": "Invalid number or unable to send. Try again.",
+    "alreadyLinked": "This number is already linked to another VAYA account.",
+    "invalidOrExpired": "Invalid or expired code. Try again.",
+    "verified": "Phone number verified."
+  },
+  "fallbacks": {
+    "myProfile": "My profile",
+    "trips": "{{count}} trips"
+  }
+}

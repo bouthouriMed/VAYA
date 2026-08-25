@@ -1,3 +1,4 @@
+import type { TFunction } from 'i18next';
 import type { IconName } from '@vaya/design-system';
 import type { NotificationEventType } from '../../state/api';
 
@@ -15,25 +16,25 @@ export interface NotificationTypeMeta {
  * the inbox never renders a broken/blank row if one shows up from a later
  * phase's event before that phase ships its own copy.
  */
-const NOTIFICATION_TYPE_META: Record<NotificationEventType, NotificationTypeMeta> = {
-  booking_requested: { title: 'Nouvelle demande de réservation', icon: 'person-add-outline' },
-  booking_accepted: { title: 'Réservation acceptée', icon: 'checkmark-circle-outline' },
-  booking_declined: { title: 'Réservation refusée', icon: 'close-circle-outline' },
-  trip_driver_approaching: { title: 'Votre conducteur approche', icon: 'car-outline' },
-  trip_completed: { title: 'Trajet terminé', icon: 'flag-outline' },
-  recurring_pattern_detected: { title: 'Trajet récurrent détecté', icon: 'repeat-outline' },
-  recurring_proactive_match: { title: 'Nouveau trajet correspondant', icon: 'sparkles-outline' },
-  demand_signal_matched: { title: 'Un trajet correspond à votre demande', icon: 'notifications-outline' },
-  message_received: { title: 'Nouveau message', icon: 'chatbubble-outline' },
+const NOTIFICATION_TYPE_META: Record<NotificationEventType, (t: TFunction) => NotificationTypeMeta> = {
+  booking_requested: (t) => ({ title: t('notifications:events.booking_requested'), icon: 'person-add-outline' }),
+  booking_accepted: (t) => ({ title: t('notifications:events.booking_accepted'), icon: 'checkmark-circle-outline' }),
+  booking_declined: (t) => ({ title: t('notifications:events.booking_declined'), icon: 'close-circle-outline' }),
+  trip_driver_approaching: (t) => ({ title: t('notifications:events.trip_driver_approaching'), icon: 'car-outline' }),
+  trip_completed: (t) => ({ title: t('notifications:events.trip_completed'), icon: 'flag-outline' }),
+  recurring_pattern_detected: (t) => ({ title: t('notifications:events.recurring_pattern_detected'), icon: 'repeat-outline' }),
+  recurring_proactive_match: (t) => ({ title: t('notifications:events.recurring_proactive_match'), icon: 'sparkles-outline' }),
+  demand_signal_matched: (t) => ({ title: t('notifications:events.demand_signal_matched'), icon: 'notifications-outline' }),
+  message_received: (t) => ({ title: t('notifications:events.message_received'), icon: 'chatbubble-outline' }),
   // Phase 10 (docs/roadmap/phase-10-cancellation-no-show.md).
-  booking_cancelled: { title: 'Réservation annulée', icon: 'close-circle-outline' },
-  booking_no_show_reported: { title: 'Absence signalée', icon: 'alert-circle-outline' },
+  booking_cancelled: (t) => ({ title: t('notifications:events.booking_cancelled'), icon: 'close-circle-outline' }),
+  booking_no_show_reported: (t) => ({ title: t('notifications:events.booking_no_show_reported'), icon: 'alert-circle-outline' }),
 };
 
-const FALLBACK_META: NotificationTypeMeta = { title: 'Notification', icon: 'notifications-outline' };
+const FALLBACK_META: (t: TFunction) => NotificationTypeMeta = (t) => ({ title: t('notifications:events.fallback'), icon: 'notifications-outline' });
 
-export function notificationTypeMeta(type: NotificationEventType): NotificationTypeMeta {
-  return NOTIFICATION_TYPE_META[type] ?? FALLBACK_META;
+export function notificationTypeMeta(type: NotificationEventType, t: TFunction): NotificationTypeMeta {
+  return (NOTIFICATION_TYPE_META[type] ?? FALLBACK_META)(t);
 }
 
 /** Which of AppPalette's few semantic tones (accent/error/info/neutral) an
@@ -70,35 +71,36 @@ export function notificationTone(type: NotificationEventType): NotificationTone 
 export function notificationDescription(
   type: NotificationEventType,
   payload: Record<string, unknown>,
+  t: TFunction,
 ): string {
   switch (type) {
     case 'booking_requested': {
+      const name = typeof payload.riderName === 'string' ? payload.riderName : undefined;
       const seats = typeof payload.seatsRequested === 'number' ? payload.seatsRequested : undefined;
-      const seatsLabel = seats ? (seats > 1 ? `${seats} places` : 'une place') : 'une place';
-      return typeof payload.riderName === 'string'
-        ? `${payload.riderName} souhaite réserver ${seatsLabel}.`
-        : 'Une nouvelle demande de réservation attend votre réponse.';
+      return t('notifications:descriptions.booking_requested', { name, seats });
     }
     case 'booking_accepted':
-      return typeof payload.driverName === 'string'
-        ? `${payload.driverName} a accepté votre demande.`
-        : 'Votre demande de réservation a été acceptée.';
+      return t('notifications:descriptions.booking_accepted', { name: typeof payload.driverName === 'string' ? payload.driverName : undefined });
     case 'booking_declined':
-      return typeof payload.driverName === 'string'
-        ? `${payload.driverName} n'a pas pu accepter votre demande.`
-        : 'Votre demande de réservation a été refusée.';
+      return t('notifications:descriptions.booking_declined', { name: typeof payload.driverName === 'string' ? payload.driverName : undefined });
     case 'message_received':
-      return typeof payload.senderName === 'string'
-        ? `${payload.senderName} vous a envoyé un message.`
-        : 'Vous avez reçu un nouveau message.';
+      return t('notifications:descriptions.message_received', { name: typeof payload.senderName === 'string' ? payload.senderName : undefined });
     case 'trip_completed':
-      return 'Votre trajet est terminé — notez votre expérience.';
+      return t('notifications:descriptions.trip_completed');
     case 'booking_cancelled':
-      return 'Un trajet réservé vient d’être annulé.';
+      return t('notifications:descriptions.booking_cancelled');
     case 'booking_no_show_reported':
-      return 'Une absence a été signalée pour ce trajet.';
+      return t('notifications:descriptions.booking_no_show_reported');
+    case 'trip_driver_approaching':
+      return t('notifications:descriptions.trip_driver_approaching', { name: typeof payload.driverName === 'string' ? payload.driverName : undefined });
+    case 'recurring_pattern_detected':
+      return t('notifications:descriptions.recurring_pattern_detected');
+    case 'recurring_proactive_match':
+      return t('notifications:descriptions.recurring_proactive_match', { origin: typeof payload.originLabel === 'string' ? payload.originLabel : undefined, destination: typeof payload.destinationLabel === 'string' ? payload.destinationLabel : undefined });
+    case 'demand_signal_matched':
+      return t('notifications:descriptions.demand_signal_matched', { origin: typeof payload.originLabel === 'string' ? payload.originLabel : undefined, destination: typeof payload.destinationLabel === 'string' ? payload.destinationLabel : undefined });
     default:
-      return notificationTypeMeta(type).title;
+      return notificationTypeMeta(type, t).title;
   }
 }
 

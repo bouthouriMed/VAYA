@@ -1,4 +1,5 @@
 import type { Conversation, ConversationMessage } from '../../state/api';
+import type { TFunction } from 'i18next';
 import { formatDaySectionLabel } from './inboxHelpers';
 
 /** A message renders right-aligned (own) vs left-aligned (other party) —
@@ -32,15 +33,15 @@ export function mergeAndSortMessages(
   );
 }
 
-/** French, locale-aware timestamp for a message bubble — same
+/** Locale-aware timestamp for a message bubble — same
  *  today-vs-older split notifications/index.tsx's formatWhen already uses. */
-export function formatMessageTimestamp(iso: string): string {
+export function formatMessageTimestamp(iso: string, locale: string = 'en'): string {
   const date = new Date(iso);
   const now = new Date();
   const isToday = date.toDateString() === now.toDateString();
-  const time = date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  const time = date.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
   if (isToday) return time;
-  return `${date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })} · ${time}`;
+  return `${date.toLocaleDateString(locale, { day: 'numeric', month: 'short' })} · ${time}`;
 }
 
 export interface SubmitMessageDeps {
@@ -93,11 +94,12 @@ export interface MessageDayGroup {
  */
 export function groupMessagesByDay(
   messages: ConversationMessage[],
+  t: TFunction,
   now: Date = new Date(),
 ): MessageDayGroup[] {
   const groups: MessageDayGroup[] = [];
   for (const message of messages) {
-    const label = formatDaySectionLabel(message.createdAt, now);
+    const label = formatDaySectionLabel(message.createdAt, t, now);
     const last = groups[groups.length - 1];
     if (last && last.label === label) {
       last.messages.push(message);

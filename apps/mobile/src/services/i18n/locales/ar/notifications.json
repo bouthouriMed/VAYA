@@ -1,0 +1,35 @@
+{
+  "inbox": {
+    "title": "الإشعارات",
+    "empty": "لا توجد إشعارات",
+    "emptyDescription": "ستظهر إشعاراتك هنا.",
+    "unread_one": "{{count}} غير مقروءة",
+    "unread_other": "{{count}} غير مقروءة"
+  },
+  "events": {
+    "booking_created": "طلب حجز جديد",
+    "booking_accepted": "تم تأكيد الحجز",
+    "booking_declined": "تم رفض الحجز",
+    "booking_cancelled": "تم إلغاء الحجز",
+    "booking_expired": "انتهت صلاحية الحجز",
+    "ride_published": "تم نشر الرحلة",
+    "ride_cancelled": "تم إلغاء الرحلة",
+    "message_received": "رسالة جديدة",
+    "rating_received": "تقييم جديد",
+    "no_show_reported": "تم الإبلاغ عن عدم حضور",
+    "recurring_proactive_match": "اقتراح رحلة"
+  },
+  "descriptions": {
+    "booking_created": "{{name}} يريد الانضمام إلى رحلتك من {{origin}} إلى {{destination}}.",
+    "booking_accepted": "تم تأكيد حجزك للرحلة من {{origin}} إلى {{destination}}.",
+    "booking_declined": "تم رفض حجزك للرحلة من {{origin}} إلى {{destination}}.",
+    "booking_cancelled": "تم إلغاء الرحلة من {{origin}} إلى {{destination}}.",
+    "booking_expired": "انتهت صلاحية طلب حجزك للرحلة من {{origin}} إلى {{destination}}.",
+    "ride_published": "رحلتك من {{origin}} إلى {{destination}} أصبحت مرئية للركاب.",
+    "ride_cancelled": "تم إلغاء الرحلة من {{origin}} إلى {{destination}} من قبل السائق.",
+    "message_received": "لديك رسالة جديدة من {{name}}.",
+    "rating_received": "{{name}} ترك لك تقييمًا.",
+    "no_show_reported": "تم الإبلاغ عن عدم حضور للرحلة من {{origin}} إلى {{destination}}.",
+    "recurring_proactive_match": "وجدنا رحلة تطابق مسارك المعتاد من {{origin}} إلى {{destination}}."
+  }
+}

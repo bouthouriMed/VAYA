@@ -1,0 +1,19 @@
+{
+  "codes": {
+    "NOT_FOUND": "This item could not be found.",
+    "VALIDATION_ERROR": "Some information isn't valid. Please check and try again.",
+    "UNAUTHORIZED": "Please sign in to continue.",
+    "FORBIDDEN": "You don't have permission to do this.",
+    "CONFLICT": "This action can't be completed right now.",
+    "INTERNAL_ERROR": "Something went wrong on our end. Please try again.",
+    "REQUEST_ERROR": "This request couldn't be completed.",
+    "GOOGLE_AUTH_NOT_CONFIGURED": "Sign-in with Google isn't available right now.",
+    "RATE_LIMITED": "Too many attempts. Please wait a moment and try again."
+  },
+  "fallback": "Something went wrong. Please try again.",
+  "boundary": {
+    "title": "Something went wrong",
+    "description": "VAYA ran into an unexpected problem. Restarting usually fixes it.",
+    "restart": "Restart"
+  }
+}

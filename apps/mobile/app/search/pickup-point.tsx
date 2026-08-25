@@ -4,6 +4,7 @@ import { Marker, Polyline } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { skipToken } from '@reduxjs/toolkit/query/react';
+import { useTranslation } from 'react-i18next';
 import {
   Text,
   Button,
@@ -38,6 +39,7 @@ import { defaultStopId, rankedPosition } from '../../src/features/pickup-selecti
 export default function PickupPointScreen(): React.JSX.Element {
   const { rideId, driverUserId } = useLocalSearchParams<{ rideId: string; driverUserId: string }>();
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation(['search', 'common', 'booking']);
   const dispatch = useAppDispatch();
 
   const origin = useAppSelector((s) => s.search.origin);
@@ -145,16 +147,16 @@ export default function PickupPointScreen(): React.JSX.Element {
           hitSlop={12}
           style={[styles.backBtn, styles.backBtnStandalone]}
           accessibilityRole="button"
-          accessibilityLabel="Retour"
+          accessibilityLabel={t('common:actions.back')}
         >
           <Ionicons name="chevron-back" size={24} color={colors.gray900} />
         </TouchableOpacity>
         <View style={styles.emptyWrap}>
           <EmptyState
             icon={<Ionicons name="location-outline" size={40} color={colors.gray400} />}
-            title="Aucun point de rendez-vous accessible"
+            title={t('search:pickupPoint.noStopClose')}
             description="Aucun arrêt de ce trajet n'est assez proche de votre position pour être rejoint à pied. Essayez un autre trajet ou ajustez votre recherche."
-            actionLabel="Retour à la recherche"
+            actionLabel={t('search:pickupPoint.backToSearch')}
             onAction={() => router.back()}
           />
         </View>
@@ -200,7 +202,7 @@ export default function PickupPointScreen(): React.JSX.Element {
           hitSlop={12}
           style={styles.backBtn}
           accessibilityRole="button"
-          accessibilityLabel="Retour"
+          accessibilityLabel={t('common:actions.back')}
         >
           <Ionicons name="chevron-back" size={24} color={colors.gray900} />
         </TouchableOpacity>
@@ -257,8 +259,8 @@ export default function PickupPointScreen(): React.JSX.Element {
             <Button
               label={
                 detailStop.stopId === selectedStopId
-                  ? 'Point sélectionné'
-                  : 'Choisir ce point'
+                  ? t('search:pickupPoint.selected')
+                  : t('search:pickupPoint.choosePoint')
               }
               variant={detailStop.stopId === selectedStopId ? 'outline' : 'primary'}
               size="lg"

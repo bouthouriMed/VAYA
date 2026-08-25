@@ -1,16 +1,52 @@
 {
-  "greeting": "أهلاً، {{name}}",
-  "search_prompt": "إلى أين نتوجه اليوم؟",
-  "field_from": "الانطلاق",
-  "field_to": "الوصول",
-  "field_when": "الوقت",
-  "cta_search": "البحث",
-  "results_title": "{{count}} سائقين موجودين",
-  "no_results_title": "لا توجد رحلة مطابقة",
-  "best_match": "أفضل تطابق",
-  "reason_walk": "{{minutes}} د مشياً",
-  "seats_available": "{{count}} مقاعد",
-  "liquidity_nearby": "{{count}} رحلات قريبة من هذا الاتجاه",
-  "liquidity_demand": "{{count}} أشخاص يبحثون عن رحلة في هذا الاتجاه",
-  "notify_me": "أعلمني عند ظهور سائق"
+  "results": {
+    "title": "الرحلات",
+    "listView": "القائمة",
+    "mapView": "الخريطة",
+    "noResults": "لا أحد على هذا المسار حاليًا.",
+    "notifyMe": "أبلغني إذا ظهرت رحلة",
+    "notifyDescription": "سنخبرك",
+    "driverFallback": "السائق",
+    "destination": "الوجهة",
+    "departure": "المغادرة",
+    "onYourRoute": "على مسارك",
+    "candidateCount_one": "رحلة واحدة متاحة اليوم على هذا المسار",
+    "candidateCount_other": "{{count}} رحلات متاحة اليوم على هذا المسار"
+  },
+  "composer": {
+    "myLocation": "موقعي الحالي",
+    "searchPickup": "البحث عن نقطة الانطلاق",
+    "searchDestination": "البحث عن وجهة",
+    "work": "العمل",
+    "home": "المنزل",
+    "findRide": "البحث عن رحلة"
+  },
+  "pickupPoint": {
+    "noStopClose": "لا يوجد محطة على هذا المسار قريبة بما يكفي للانطلاق.",
+    "backToSearch": "العودة إلى البحث",
+    "selected": "النقطة المحددة",
+    "choosePoint": "اختيار هذه النقطة"
+  },
+  "dropoffPoint": {
+    "noDropoff": "لم يتم العثور على نقطة وصول متاحة.",
+    "noDropoffDesc": "لا يوجد محطة على هذا المسار قريبة بما يكفي للوصول.",
+    "confirmDropoff": "تأكيد نقطة الوصول هذه",
+    "selected": "النقطة المحددة",
+    "choosePoint": "اختيار هذه النقطة"
+  },
+  "details": {
+    "viewRouteFullscreen": "عرض المسار على كامل الشاشة",
+    "back": "رجوع"
+  },
+  "trust": {
+    "back": "رجوع"
+  },
+  "timePicker": {
+    "when": "متى؟",
+    "now": "الآن",
+    "in1h": "بعد ساعة",
+    "thisAfternoon": "هذا بعد الظهر",
+    "tomorrowMorning": "غدًا صباحًا",
+    "chooseDate": "اختيار تاريخ"
+  }
 }

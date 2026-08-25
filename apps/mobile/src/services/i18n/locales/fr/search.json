@@ -1,16 +1,52 @@
 {
-  "greeting": "Bonjour, {{name}}",
-  "search_prompt": "Où allons-nous aujourd'hui ?",
-  "field_from": "Départ",
-  "field_to": "Arrivée",
-  "field_when": "Quand",
-  "cta_search": "Rechercher",
-  "results_title": "{{count}} conducteurs trouvés",
-  "no_results_title": "Pas de trajet exact",
-  "best_match": "Meilleure correspondance",
-  "reason_walk": "{{minutes}} min à pied",
-  "seats_available": "{{count}} places",
-  "liquidity_nearby": "{{count}} trajets circulent à proximité",
-  "liquidity_demand": "{{count}} personnes cherchent un trajet dans cette direction",
-  "notify_me": "Me notifier quand un conducteur apparaît"
+  "results": {
+    "title": "Trajets",
+    "listView": "Liste",
+    "mapView": "Carte",
+    "noResults": "Personne sur ce trajet pour le moment.",
+    "notifyMe": "Me notifier si un trajet apparaît",
+    "notifyDescription": "Nous vous préviendrons",
+    "driverFallback": "Conducteur",
+    "destination": "Destination",
+    "departure": "Départ",
+    "onYourRoute": "Sur votre trajet",
+    "candidateCount_one": "{{count}} trajet disponible aujourd'hui sur cet itinéraire",
+    "candidateCount_other": "{{count}} trajets disponibles aujourd'hui sur cet itinéraire"
+  },
+  "composer": {
+    "myLocation": "Ma position actuelle",
+    "searchPickup": "Rechercher un point de départ",
+    "searchDestination": "Rechercher une destination",
+    "work": "Travail",
+    "home": "Domicile",
+    "findRide": "Trouver un trajet"
+  },
+  "pickupPoint": {
+    "noStopClose": "Aucun arrêt de ce trajet n'est assez proche pour la prise en charge.",
+    "backToSearch": "Retour à la recherche",
+    "selected": "Point sélectionné",
+    "choosePoint": "Choisir ce point"
+  },
+  "dropoffPoint": {
+    "noDropoff": "Aucun point de dépose accessible",
+    "noDropoffDesc": "Aucun arrêt de ce trajet n'est assez proche pour la dépose.",
+    "confirmDropoff": "Confirmer ce point de dépose",
+    "selected": "Point sélectionné",
+    "choosePoint": "Choisir ce point"
+  },
+  "details": {
+    "viewRouteFullscreen": "Voir l'itinéraire en plein écran",
+    "back": "Retour"
+  },
+  "trust": {
+    "back": "Retour"
+  },
+  "timePicker": {
+    "when": "Quand ?",
+    "now": "Maintenant",
+    "in1h": "Dans 1h",
+    "thisAfternoon": "Cet après-midi",
+    "tomorrowMorning": "Demain matin",
+    "chooseDate": "Choisir une date"
+  }
 }

@@ -37,7 +37,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
       }
     >
       <TouchableOpacity
-        accessibilityLabel="Retour"
+        accessibilityLabel="rides.rideDetail.back"
         accessibilityRole="button"
         hitSlop={12}
         onPress={[Function]}
@@ -68,7 +68,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
           ]
         }
       >
-        Mon trajet
+        rides.rideDetail.myRide
       </Text>
       <View
         style={
@@ -307,12 +307,12 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
               }
             }
           >
-            Publié
+            rides.rideDetail.departure
           </Text>
         </View>
       </View>
       <TouchableOpacity
-        accessibilityLabel="Voir l'itinéraire en plein écran"
+        accessibilityLabel="rides.rideDetail.viewRouteFullscreen"
         accessibilityRole="button"
         activeOpacity={0.85}
         onPress={[Function]}
@@ -367,7 +367,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
             ]
           }
         >
-          Voir l'itinéraire
+          rides.rideDetail.viewRouteFullscreen
         </Text>
       </TouchableOpacity>
     </View>
@@ -419,10 +419,10 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
             ]
           }
         >
-          Itinéraire
+          rides.rideDetail.itinerary
         </Text>
         <View
-          accessibilityLabel="Publié"
+          accessibilityLabel="rides.rideDetail.departure"
           accessibilityRole="text"
           accessible={true}
           style={
@@ -453,7 +453,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
               ]
             }
           >
-            Publié
+            rides.rideDetail.departure
           </Text>
         </View>
       </View>
@@ -522,7 +522,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                 ]
               }
             >
-              Départ
+              rides.rideDetail.departure
             </Text>
           </View>
           <Text
@@ -605,7 +605,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                 ]
               }
             >
-              Point de rendez-vous
+              rides.rideDetail.dropoff
             </Text>
           </View>
           <Text
@@ -688,7 +688,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                 ]
               }
             >
-              Point de dépose
+              rides.rideDetail.dropoff
             </Text>
           </View>
           <Text
@@ -759,7 +759,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                 ]
               }
             >
-              Arrivée
+              rides.rideDetail.arrival
             </Text>
           </View>
           <Text
@@ -819,7 +819,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
             ]
           }
         >
-          mar. 25 août · 08:30 · Arrivée ~10:30
+          Aujourd'hui, 08:30 · rides.rideDetail.arrivalEta
         </Text>
       </View>
       <View
@@ -855,7 +855,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
             ]
           }
         >
-          2/4 places disponibles
+          rides.rideDetail.seatsAvailable
         </Text>
       </View>
       <View
@@ -891,7 +891,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
             ]
           }
         >
-          12.5 DT par place
+          rides.rideDetail.pricePerSeat
         </Text>
       </View>
     </View>
@@ -924,7 +924,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
           ]
         }
       >
-        À répondre (0)
+        rides.rideDetail.pendingSection
       </Text>
       <Text
         style={
@@ -945,7 +945,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
           ]
         }
       >
-        Aucune demande en attente.
+        rides.rideDetail.noPendingRequests
       </Text>
     </View>
     <View
@@ -973,7 +973,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
     }
   >
     <Pressable
-      accessibilityLabel="Annuler le trajet"
+      accessibilityLabel="rides.rideDetail.cancelRide"
       accessibilityRole="button"
       accessibilityState={
         {
@@ -1000,7 +1000,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
           ]
         }
       >
-        Annuler le trajet
+        rides.rideDetail.cancelRide
       </Text>
     </Pressable>
   </View>
@@ -1219,7 +1219,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
         />
       </View>
       <TouchableOpacity
-        accessibilityLabel="Fermer"
+        accessibilityLabel="rides.rideDetail.close"
         accessibilityRole="button"
         hitSlop={12}
         onPress={[Function]}
@@ -1297,7 +1297,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
       }
     >
       <TouchableOpacity
-        accessibilityLabel="Retour"
+        accessibilityLabel="rides.rideDetail.back"
         accessibilityRole="button"
         hitSlop={12}
         onPress={[Function]}
@@ -1328,7 +1328,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
           ]
         }
       >
-        Mon trajet
+        rides.rideDetail.myRide
       </Text>
       <View
         style={
@@ -1567,12 +1567,12 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
               }
             }
           >
-            Publié
+            rides.rideDetail.departure
           </Text>
         </View>
       </View>
       <TouchableOpacity
-        accessibilityLabel="Voir l'itinéraire en plein écran"
+        accessibilityLabel="rides.rideDetail.viewRouteFullscreen"
         accessibilityRole="button"
         activeOpacity={0.85}
         onPress={[Function]}
@@ -1627,7 +1627,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
             ]
           }
         >
-          Voir l'itinéraire
+          rides.rideDetail.viewRouteFullscreen
         </Text>
       </TouchableOpacity>
     </View>
@@ -1679,10 +1679,10 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
             ]
           }
         >
-          Itinéraire
+          rides.rideDetail.itinerary
         </Text>
         <View
-          accessibilityLabel="Publié"
+          accessibilityLabel="rides.rideDetail.departure"
           accessibilityRole="text"
           accessible={true}
           style={
@@ -1713,7 +1713,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
               ]
             }
           >
-            Publié
+            rides.rideDetail.departure
           </Text>
         </View>
       </View>
@@ -1782,7 +1782,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                 ]
               }
             >
-              Départ
+              rides.rideDetail.departure
             </Text>
           </View>
           <Text
@@ -1865,7 +1865,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                 ]
               }
             >
-              Point de rendez-vous
+              rides.rideDetail.dropoff
             </Text>
           </View>
           <Text
@@ -1948,7 +1948,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                 ]
               }
             >
-              Point de dépose
+              rides.rideDetail.dropoff
             </Text>
           </View>
           <Text
@@ -2019,7 +2019,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                 ]
               }
             >
-              Arrivée
+              rides.rideDetail.arrival
             </Text>
           </View>
           <Text
@@ -2079,7 +2079,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
             ]
           }
         >
-          mar. 25 août · 08:30 · Arrivée ~10:30
+          Aujourd'hui, 08:30 · rides.rideDetail.arrivalEta
         </Text>
       </View>
       <View
@@ -2115,7 +2115,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
             ]
           }
         >
-          2/4 places disponibles
+          rides.rideDetail.seatsAvailable
         </Text>
       </View>
       <View
@@ -2151,7 +2151,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
             ]
           }
         >
-          12.5 DT par place
+          rides.rideDetail.pricePerSeat
         </Text>
       </View>
       <View
@@ -2187,7 +2187,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
             ]
           }
         >
-          12.5 DT confirmés · 1 passager
+          rides.rideDetail.confirmedRevenue
         </Text>
       </View>
     </View>
@@ -2220,7 +2220,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
           ]
         }
       >
-        À répondre (1)
+        rides.rideDetail.pendingSection
       </Text>
       <View
         style={
@@ -2362,7 +2362,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
           }
         >
           <TouchableOpacity
-            accessibilityLabel="Refuser la demande de Dinara Kochakajeva"
+            accessibilityLabel="rides.requestsSheet.decline Dinara Kochakajeva"
             accessibilityRole="button"
             activeOpacity={0.7}
             disabled={false}
@@ -2402,11 +2402,11 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                 ]
               }
             >
-              Refuser
+              rides.requestsSheet.decline
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            accessibilityLabel="Accepter la demande de Dinara Kochakajeva"
+            accessibilityLabel="rides.requestsSheet.accept Dinara Kochakajeva"
             accessibilityRole="button"
             activeOpacity={0.85}
             disabled={false}
@@ -2443,7 +2443,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                 ]
               }
             >
-              Accepter
+              rides.requestsSheet.accept
             </Text>
           </TouchableOpacity>
         </View>
@@ -2478,10 +2478,10 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
           ]
         }
       >
-        Passagers
+        rides.rideDetail.passengers
       </Text>
       <TouchableOpacity
-        accessibilityLabel="Gérer la réservation de Karim Fassi"
+        accessibilityLabel="rides.manageSheet.title Karim Fassi"
         accessibilityRole="button"
         activeOpacity={0.7}
         disabled={false}
@@ -2591,7 +2591,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
           </Text>
         </View>
         <View
-          accessibilityLabel="Confirmé"
+          accessibilityLabel="rides.requestsSheet.sectionAccepted"
           accessibilityRole="text"
           accessible={true}
           style={
@@ -2622,7 +2622,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
               ]
             }
           >
-            Confirmé
+            rides.requestsSheet.sectionAccepted
           </Text>
         </View>
         <Ionicons
@@ -2659,7 +2659,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
     }
   >
     <Pressable
-      accessibilityLabel="Annuler le trajet"
+      accessibilityLabel="rides.rideDetail.cancelRide"
       accessibilityRole="button"
       accessibilityState={
         {
@@ -2686,7 +2686,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
           ]
         }
       >
-        Annuler le trajet
+        rides.rideDetail.cancelRide
       </Text>
     </Pressable>
   </View>
@@ -2905,7 +2905,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
         />
       </View>
       <TouchableOpacity
-        accessibilityLabel="Fermer"
+        accessibilityLabel="rides.rideDetail.close"
         accessibilityRole="button"
         hitSlop={12}
         onPress={[Function]}

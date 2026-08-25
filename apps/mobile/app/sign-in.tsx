@@ -26,6 +26,7 @@ import {
   haptics,
 } from '@vaya/design-system';
 import { router, Redirect } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useAppSelector, useAppDispatch } from '../src/state/store';
 import { useGoogleExchangeMutation } from '../src/state/api';
 import { setTokens } from '../src/state/authSlice';
@@ -67,6 +68,7 @@ import { signInWithGoogle } from '../src/services/auth/googleAuth';
  * there's nowhere to go back to.
  */
 export default function SignInScreen(): React.JSX.Element {
+  const { t } = useTranslation();
   const accessToken = useAppSelector((s) => s.auth.accessToken);
   const insets = useSafeAreaInsets();
   const dispatch = useAppDispatch();
@@ -94,7 +96,7 @@ export default function SignInScreen(): React.JSX.Element {
       }
       if (result.status === 'error') {
         haptics.error();
-        setGoogleError('Connexion Google impossible. Réessayez.');
+        setGoogleError(t('common:errors.network'));
       }
       // 'cancelled': the user closed the browser themselves — no error to show.
     } catch {
@@ -189,7 +191,7 @@ export default function SignInScreen(): React.JSX.Element {
             hitSlop={12}
             style={styles.closeBtn}
             accessibilityRole="button"
-            accessibilityLabel="Fermer"
+            accessibilityLabel={t('common:actions.close')}
           >
             <Ionicons name="close" size={24} color={darkPalette.ink} />
           </TouchableOpacity>
@@ -210,17 +212,16 @@ export default function SignInScreen(): React.JSX.Element {
             align="center"
             style={styles.headline}
           >
-            Voyagez, en toute confiance.
+            {t('auth:landing.tagline')}
           </Text>
           <Text variant="body" color={darkPalette.inkMuted} align="center" style={styles.subhead}>
-            Le covoiturage repensé pour la Tunisie — trajets vérifiés, prix justes, en toute
-            simplicité.
+            {t('auth:landing.description')}
           </Text>
 
           <GlassSurface theme={darkPalette} scheme="dark" radius="xl" style={styles.card}>
             <View style={styles.cardBody}>
               <Text variant="label" color={darkPalette.inkMuted} style={styles.cardLabel}>
-                Rejoignez VAYA avec votre numéro
+                {t('auth:phone.title')}
               </Text>
               <View
                 style={[
@@ -240,7 +241,7 @@ export default function SignInScreen(): React.JSX.Element {
                 <TextInput
                   value={phone}
                   onChangeText={setPhone}
-                  placeholder="98 123 456"
+                  placeholder={t('auth:phone.placeholder')}
                   placeholderTextColor={darkPalette.inkFaint}
                   keyboardType="phone-pad"
                   returnKeyType="done"
@@ -248,7 +249,7 @@ export default function SignInScreen(): React.JSX.Element {
                   onFocus={() => setIsPhoneFocused(true)}
                   onBlur={() => setIsPhoneFocused(false)}
                   style={[styles.phoneInput, { color: darkPalette.ink }]}
-                  accessibilityLabel="Numéro de téléphone"
+                  accessibilityLabel={t('auth:phone.title')}
                 />
               </View>
 
@@ -257,7 +258,7 @@ export default function SignInScreen(): React.JSX.Element {
                 disabled={!canContinue}
                 activeOpacity={0.85}
                 accessibilityRole="button"
-                accessibilityLabel="Continuer"
+                accessibilityLabel={t('auth:phone.cta')}
                 accessibilityState={{ disabled: !canContinue }}
                 style={[styles.ctaWrap, !canContinue && styles.ctaDisabled]}
               >
@@ -276,7 +277,7 @@ export default function SignInScreen(): React.JSX.Element {
                     />
                   </View>
                   <Text variant="label" color={darkPalette.onInk}>
-                    Continuer
+                    {t('auth:phone.cta')}
                   </Text>
                 </LinearGradient>
               </TouchableOpacity>
@@ -284,7 +285,7 @@ export default function SignInScreen(): React.JSX.Element {
               <View style={styles.dividerRow}>
                 <View style={[styles.dividerLine, { backgroundColor: darkPalette.outlineVariant }]} />
                 <Text variant="caption" color={darkPalette.inkFaint}>
-                  ou
+                  {t('common:actions.continue')}
                 </Text>
                 <View style={[styles.dividerLine, { backgroundColor: darkPalette.outlineVariant }]} />
               </View>
@@ -294,7 +295,7 @@ export default function SignInScreen(): React.JSX.Element {
                 disabled={isGoogleLoading}
                 activeOpacity={0.85}
                 accessibilityRole="button"
-                accessibilityLabel="Continuer avec Google"
+                accessibilityLabel={t('auth:guest.signInCta')}
                 accessibilityState={{ disabled: isGoogleLoading, busy: isGoogleLoading }}
                 style={[
                   styles.googleCta,
@@ -311,7 +312,7 @@ export default function SignInScreen(): React.JSX.Element {
                   <>
                     <Ionicons name="logo-google" size={18} color={darkPalette.ink} />
                     <Text variant="label" color={darkPalette.ink}>
-                      Continuer avec Google
+                      {t('auth:guest.signInCta')}
                     </Text>
                   </>
                 )}
@@ -331,7 +332,7 @@ export default function SignInScreen(): React.JSX.Element {
             align="center"
             style={styles.legalHint}
           >
-            En continuant, vous acceptez nos conditions d&apos;utilisation.
+            {t('auth:landing.legal')}
           </Text>
         </Animated.View>
       </View>

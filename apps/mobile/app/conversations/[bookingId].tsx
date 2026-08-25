@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import {
   Text,
   Avatar,
@@ -28,6 +29,7 @@ import {
   useListConversationMessagesQuery,
   useSendConversationMessageMutation,
 } from '../../src/state/api';
+import { useAppSelector } from '../../src/state/store';
 import {
   isOwnMessage,
   canSendMessage,
@@ -43,18 +45,13 @@ import { trackEvent } from '../../src/services/analytics/analytics';
 // conversation feeling responsive without hammering the API.
 const POLL_INTERVAL_MS = 4000;
 
-const ICEBREAKERS = [
-  "On se retrouve à l'arrêt indiqué ?",
-  'Je suis en route, à tout de suite !',
-];
-
-function formatDeparture(iso: string): string {
+function formatDeparture(iso: string, locale: string = 'en'): string {
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return '';
   const now = new Date();
-  const time = date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  const time = date.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
   if (date.toDateString() === now.toDateString()) return time;
-  return `${date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })} · ${time}`;
+  return `${date.toLocaleDateString(locale, { day: 'numeric', month: 'short' })} · ${time}`;
 }
 
 /** Stitch's "Conversation / active trip coordination" — the other party's
@@ -70,6 +67,8 @@ export default function ConversationScreen(): React.JSX.Element {
   const hasTrackedCount = useRef(false);
   const insets = useSafeAreaInsets();
   const theme = useAppTheme().colors;
+  const { t } = useTranslation();
+  const locale = useAppSelector((s) => s.language.locale) || 'en';
 
   const { data: me } = useGetMeQuery();
   const {
@@ -88,7 +87,7 @@ export default function ConversationScreen(): React.JSX.Element {
   const sendAllowed = canSendMessage(conversation);
   const tripContext = conversation ? getTripContext(conversation) : null;
   const dayGroups = useMemo(
-    () => (messages && messages.length > 0 ? groupMessagesByDay(messages) : []),
+    () => (messages && messages.length > 0 ? groupMessagesByDay(messages, t) : []),
     [messages],
   );
 
@@ -138,14 +137,19 @@ export default function ConversationScreen(): React.JSX.Element {
       <SafeAreaView style={[styles.container, styles.centered, { backgroundColor: theme.background }]}>
         <EmptyState
           icon={<Icon name="chatbubble-outline" size="lg" color={theme.inkFaint} />}
-          title="Conversation indisponible"
-          description="Cette conversation n'existe pas ou n'est pas encore ouverte — elle s'ouvre dès que la réservation est confirmée."
-          actionLabel="Retour"
+          title={t('booking:conversation.unavailable')}
+          description={t('booking:conversation.unavailableDescription')}
+          actionLabel={t('common:actions.back')}
           onAction={() => router.back()}
         />
       </SafeAreaView>
     );
   }
+
+  const icebreakers = [
+    t('booking:conversation.quickReplies.hello'),
+    t('booking:conversation.quickReplies.onMyWay'),
+  ];
 
   return (
     <KeyboardAvoidingView
@@ -159,7 +163,7 @@ export default function ConversationScreen(): React.JSX.Element {
           onPress={() => router.back()}
           hitSlop={12}
           accessibilityRole="button"
-          accessibilityLabel="Retour"
+          accessibilityLabel={t('common:actions.back')}
         >
           <Icon name="chevron-back" size="md" color={theme.ink} />
         </TouchableOpacity>
@@ -189,7 +193,7 @@ export default function ConversationScreen(): React.JSX.Element {
               {conversation.otherParty.fullName}
             </Text>
             <Text variant="caption" color={theme.inkMuted}>
-              {conversation.otherPartyRole === 'driver' ? 'Conducteur' : 'Passager'}
+              {conversation.otherPartyRole === 'driver' ? t('booking:driver') : t('booking:passenger')}
             </Text>
           </View>
         </View>
@@ -209,7 +213,7 @@ export default function ConversationScreen(): React.JSX.Element {
               {tripContext.label.toUpperCase()}
             </Text>
             <Text variant="bodySmall" color={theme.ink} numberOfLines={1}>
-              {`${conversation.originLabel} → ${conversation.destinationLabel} · ${formatDeparture(conversation.departureAt)}`}
+              {`${conversation.originLabel} → ${conversation.destinationLabel} · ${formatDeparture(conversation.departureAt, locale)}`}
             </Text>
           </View>
           <TouchableOpacity
@@ -220,10 +224,10 @@ export default function ConversationScreen(): React.JSX.Element {
             }
             hitSlop={8}
             accessibilityRole="button"
-            accessibilityLabel="Voir le trajet"
+            accessibilityLabel={t('booking:conversation.viewRide')}
           >
             <Text variant="caption" color={theme.accent}>
-              Voir le trajet
+              {t('booking:conversation.viewRide')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -235,7 +239,7 @@ export default function ConversationScreen(): React.JSX.Element {
         >
           <Icon name="lock-closed-outline" size="xs" color={theme.inkMuted} />
           <Text variant="bodySmall" color={theme.inkMuted} style={styles.closedBannerText}>
-            Ce trajet est terminé — la conversation est en lecture seule.
+            {t('booking:conversation.closed')}
           </Text>
         </View>
       ) : null}
@@ -251,14 +255,14 @@ export default function ConversationScreen(): React.JSX.Element {
           <View style={styles.icebreakersWrap}>
             <EmptyState
               icon={<Icon name="chatbubble-ellipses-outline" size="lg" color={theme.inkFaint} />}
-              title="Dites bonjour"
-              description={`Coordonnez votre point de rendez-vous avec votre ${
-                conversation.otherPartyRole === 'driver' ? 'conducteur' : 'passager'
-              }.`}
+              title={t('booking:conversation.sayHello')}
+              description={t('booking:conversation.sayHelloDescription', {
+                role: conversation.otherPartyRole === 'driver' ? t('booking:driver').toLowerCase() : t('booking:passenger').toLowerCase(),
+              })}
             >
               {sendAllowed ? (
                 <View style={styles.icebreakers}>
-                  {ICEBREAKERS.map((icebreaker) => (
+                  {icebreakers.map((icebreaker) => (
                     <Chip
                       key={icebreaker}
                       label={icebreaker}
@@ -285,7 +289,7 @@ export default function ConversationScreen(): React.JSX.Element {
                   key={message.id}
                   body={message.body}
                   isOwn={Boolean(me && isOwnMessage(message, me.id))}
-                  timestamp={formatMessageTimestamp(message.createdAt)}
+                   timestamp={formatMessageTimestamp(message.createdAt, locale)}
                   theme={theme}
                   avatarUrl={conversation.otherParty.avatarUrl}
                   avatarName={conversation.otherParty.fullName}
@@ -315,11 +319,11 @@ export default function ConversationScreen(): React.JSX.Element {
           <Input
             value={draft}
             onChangeText={setDraft}
-            placeholder={sendAllowed ? 'Écrivez un message…' : 'Conversation fermée'}
+            placeholder={sendAllowed ? t('booking:conversation.placeholder') : t('booking:conversation.closed')}
             editable={sendAllowed && !isSending}
             multiline
             maxLength={1000}
-            accessibilityLabel="Message"
+            accessibilityLabel={t('booking:conversation.send')}
             theme={theme}
             style={styles.composerInput}
           />
@@ -335,7 +339,7 @@ export default function ConversationScreen(): React.JSX.Element {
             },
           ]}
           accessibilityRole="button"
-          accessibilityLabel="Envoyer le message"
+          accessibilityLabel={t('booking:conversation.send')}
           accessibilityState={{ disabled: !sendAllowed || isSending || draft.trim().length === 0 }}
         >
           <Icon

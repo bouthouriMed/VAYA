@@ -1,0 +1,43 @@
+{
+  "title": "رحلاتي",
+  "subtitle": "أدر رحلاتك القادمة والسابقة.",
+  "nextRide": "الرحلة القادمة",
+  "recentRides": "الرحلات الأخيرة",
+  "seatsAvailable_zero": "لا مقاعد متاحة",
+  "seatsAvailable_one": "مقعد واحد متاح",
+  "seatsAvailable_two": "مقعدان متاحان",
+  "seatsAvailable_few": "{{count}} مقاعد متاحة",
+  "seatsAvailable_many": "{{count}} مقعد متاح",
+  "seatsAvailable_other": "{{count}} مقعد متاح",
+  "perSeat": "لكل مقعد",
+  "estimated": "(تقديري)",
+  "manageRide": "إدارة هذه الرحلة",
+  "placesReserved_zero": "لا مقاعد محجوزة",
+  "placesReserved_one": "مقعد واحد محجوز",
+  "placesReserved_two": "مقعدان محجوزان",
+  "placesReserved_few": "{{count}} مقاعد محجوزة",
+  "placesReserved_many": "{{count}} مقعد محجوز",
+  "placesReserved_other": "{{count}} مقعد محجوز",
+  "guestEmpty": {
+    "title": "ابحث عن رحلتك الأولى",
+    "description": "ابحث عن رحلة للبدء في السفر مع VAYA — يمكنك متابعة حجوزاتك هنا.",
+    "cta": "البحث عن رحلة"
+  },
+  "driverEmpty": {
+    "notDriverYet": "لم تبدأ القيادة بعد",
+    "notDriverDesc": "أضف مركبتك لنشر رحلاتك الأولى.",
+    "becomeDriver": "أصبح سائقًا",
+    "noRides": "لا رحلات منشورة",
+    "noRidesDesc": "انشر رملة لملء مقاعدك الفارغة.",
+    "publishRide": "نشر رحلة"
+  },
+  "riderEmpty": {
+    "noBookings": "لا حجوزات",
+    "noBookingsDesc": "ابحث عن رحلة لتحجز مقعدك الأول.",
+    "findRide": "البحث عن رحلة"
+  },
+  "notificationsAria": "الإشعارات",
+  "notificationsUnreadAria": "الإشعارات (غير مقروءة)",
+  "segmentDriver": "السائق",
+  "segmentRider": "الراكب"
+}

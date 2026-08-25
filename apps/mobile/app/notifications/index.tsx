@@ -3,6 +3,8 @@ import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router, Redirect } from 'expo-router';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import {
   Text,
   Icon,
@@ -33,14 +35,14 @@ import {
 import { resolveNotificationDeepLink } from '../../src/services/notifications/deepLink';
 import { trackEvent } from '../../src/services/analytics/analytics';
 
-function formatWhen(iso: string): string {
+function formatWhen(iso: string, t: (key: string) => string): string {
   const date = new Date(iso);
   const now = new Date();
   const isToday = date.toDateString() === now.toDateString();
   const time = date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-  if (isToday) return `Aujourd'hui, ${time}`;
+  if (isToday) return `${t('common:time.today')}, ${time}`;
   const yesterday = new Date(now.getTime() - 24 * 60 * 60_000);
-  if (date.toDateString() === yesterday.toDateString()) return `Hier, ${time}`;
+  if (date.toDateString() === yesterday.toDateString()) return `${t('common:time.yesterday')}, ${time}`;
   return `${date.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })} · ${time}`;
 }
 
@@ -85,9 +87,11 @@ function toneColors(
 function DriverRequestCard({
   notification,
   theme,
+  t,
 }: {
   notification: AppNotification;
   theme: ReturnType<typeof useAppTheme>['colors'];
+  t: (key: string, params?: Record<string, unknown>) => string;
 }): React.JSX.Element {
   const info = readNotificationCounterpartPayload(notification.type, notification.payload);
   const [acceptBooking, acceptState] = useAcceptBookingMutation();
@@ -111,7 +115,7 @@ function DriverRequestCard({
     } catch {
       haptics.error();
       setActionError(
-        'Cette demande a peut-être déjà été traitée. Consultez Mes trajets pour vérifier.',
+        t('notifications:driverRequest.actionError'),
       );
     }
   }
@@ -132,7 +136,7 @@ function DriverRequestCard({
         onPress={openInTrips}
         activeOpacity={0.7}
         accessibilityRole="button"
-        accessibilityLabel={`Demande de ${info.counterpartName ?? 'un passager'}`}
+        accessibilityLabel={t('notifications:driverRequest.accessibilityLabel', { name: info.counterpartName ?? t('booking:passenger') })}
       >
         <View style={styles.requestHeaderRow}>
           <Avatar
@@ -144,7 +148,7 @@ function DriverRequestCard({
           />
           <View style={styles.requestIdentityText}>
             <Text variant="label" color={theme.ink} numberOfLines={1}>
-              {info.counterpartName ?? 'Passager'}
+              {info.counterpartName ?? t('booking:passenger')}
             </Text>
             {info.counterpartRatingAvg ? (
               <View style={styles.ratingRow}>
@@ -155,7 +159,7 @@ function DriverRequestCard({
               </View>
             ) : (
               <Text variant="caption" color={theme.inkFaint}>
-                Nouveau sur VAYA
+                {t('notifications:driverRequest.newOnVaya')}
               </Text>
             )}
           </View>
@@ -173,13 +177,13 @@ function DriverRequestCard({
           </View>
         ) : (
           <Text variant="bodySmall" color={theme.inkMuted} style={styles.fallbackBody}>
-            {notificationDescription(notification.type, notification.payload)}
+            {notificationDescription(notification.type, notification.payload, t as TFunction)}
           </Text>
         )}
 
         <View style={styles.metaRow}>
           <Badge
-            label={`${info.seatsRequested ?? 1} place${(info.seatsRequested ?? 1) > 1 ? 's' : ''}`}
+            label={`${info.seatsRequested ?? 1} ${(info.seatsRequested ?? 1) > 1 ? t('common:status.seats_plural') : t('common:status.seats_singular')}`}
             variant="default"
             theme={theme}
           />
@@ -195,7 +199,7 @@ function DriverRequestCard({
             color={resolvedAs === 'accepted' ? theme.accent : theme.error}
           />
           <Text variant="bodySmall" color={resolvedAs === 'accepted' ? theme.accent : theme.error}>
-            {resolvedAs === 'accepted' ? 'Demande acceptée' : 'Demande refusée'}
+            {resolvedAs === 'accepted' ? t('notifications:driverRequest.resolvedAccepted') : t('notifications:driverRequest.resolvedDeclined')}
           </Text>
         </View>
       ) : (
@@ -207,10 +211,10 @@ function DriverRequestCard({
               disabled={isBusy}
               activeOpacity={0.7}
               accessibilityRole="button"
-              accessibilityLabel="Refuser cette demande"
+              accessibilityLabel={t('common:actions.decline')}
             >
               <Text variant="label" color={theme.error}>
-                Refuser
+                {t('common:actions.decline')}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -219,10 +223,10 @@ function DriverRequestCard({
               disabled={isBusy}
               activeOpacity={0.85}
               accessibilityRole="button"
-              accessibilityLabel="Accepter cette demande"
+              accessibilityLabel={t('common:actions.accept')}
             >
               <Text variant="label" color={theme.onAccent}>
-                Accepter
+                {t('common:actions.accept')}
               </Text>
             </TouchableOpacity>
           </View>
@@ -235,7 +239,7 @@ function DriverRequestCard({
       )}
 
       <Text variant="caption" color={theme.inkFaint} style={styles.timestamp}>
-        {formatWhen(notification.createdAt)}
+        {formatWhen(notification.createdAt, t)}
       </Text>
     </View>
   );
@@ -252,12 +256,14 @@ function StatusCard({
   notification,
   theme,
   onOpen,
+  t,
 }: {
   notification: AppNotification;
   theme: ReturnType<typeof useAppTheme>['colors'];
   onOpen: (notification: AppNotification) => void;
+  t: (key: string, params?: Record<string, unknown>) => string;
 }): React.JSX.Element {
-  const meta = notificationTypeMeta(notification.type);
+  const meta = notificationTypeMeta(notification.type, t as TFunction);
   const tone = toneColors(notificationTone(notification.type), theme);
   const isUnread = !notification.readAt;
   const destination = resolveNotificationDeepLink(notification.type, notification.payload);
@@ -272,7 +278,7 @@ function StatusCard({
       activeOpacity={0.7}
       onPress={() => onOpen(notification)}
       accessibilityRole="button"
-      accessibilityLabel={`${meta.title}${isUnread ? ', non lu' : ''}`}
+      accessibilityLabel={`${meta.title}${isUnread ? `, ${t('common:status.unread')}` : ''}`}
     >
       <View style={styles.rowTop}>
         <View style={[styles.iconWrap, { backgroundColor: tone.bg }]}>
@@ -286,10 +292,10 @@ function StatusCard({
             {isUnread ? <View style={[styles.unreadDot, { backgroundColor: theme.accent }]} /> : null}
           </View>
           <Text variant="bodySmall" color={theme.inkMuted} numberOfLines={2}>
-            {notificationDescription(notification.type, notification.payload)}
+            {notificationDescription(notification.type, notification.payload, t as TFunction)}
           </Text>
           <Text variant="caption" color={theme.inkFaint} style={styles.timestamp}>
-            {formatWhen(notification.createdAt)}
+            {formatWhen(notification.createdAt, t)}
           </Text>
         </View>
       </View>
@@ -297,7 +303,7 @@ function StatusCard({
       {destination ? (
         <View style={[styles.actionRow, { borderTopColor: theme.outlineVariant }]}>
           <Text variant="bodySmall" color={theme.accent} style={styles.actionLabel}>
-            Voir les détails du trajet
+            {t('notifications:inbox.viewDetails')}
           </Text>
           <Icon name="chevron-forward" size="xs" color={theme.accent} />
         </View>
@@ -317,6 +323,7 @@ function StatusCard({
 export default function NotificationsScreen(): React.JSX.Element {
   const insets = useSafeAreaInsets();
   const { colors: theme } = useAppTheme();
+  const { t } = useTranslation();
   const accessToken = useAppSelector((s) => s.auth.accessToken);
   const { data: notifications, isLoading } = useListNotificationsQuery(undefined, {
     skip: !accessToken,
@@ -351,17 +358,17 @@ export default function NotificationsScreen(): React.JSX.Element {
           hitSlop={12}
           style={styles.backBtn}
           accessibilityRole="button"
-          accessibilityLabel="Retour"
+          accessibilityLabel={t('common:actions.back')}
         >
           <Ionicons name="chevron-back" size={24} color={theme.ink} />
         </TouchableOpacity>
         <View style={styles.headerTitleCol}>
           <Text variant="headlineDisplay" color={theme.ink}>
-            Notifications
+            {t('notifications:inbox.title')}
           </Text>
           {unreadCount > 0 ? (
             <Text variant="bodySmall" color={theme.inkMuted}>
-              {unreadCount} non {unreadCount > 1 ? 'lues' : 'lue'}
+              {unreadCount} {unreadCount > 1 ? t('common:status.unread_plural') : t('common:status.unread_singular')}
             </Text>
           ) : null}
         </View>
@@ -378,21 +385,22 @@ export default function NotificationsScreen(): React.JSX.Element {
         <View style={styles.emptyWrap}>
           <EmptyState
             icon={<Icon name="notifications-outline" size="lg" color={theme.inkFaint} />}
-            title="Aucune notification"
-            description="Les demandes de réservation et leurs réponses apparaîtront ici."
+            title={t('notifications:inbox.empty')}
+            description={t('notifications:inbox.emptyDescription')}
           />
         </View>
       ) : (
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.list}>
           {notifications.map((notification) =>
             notification.type === 'booking_requested' ? (
-              <DriverRequestCard key={notification.id} notification={notification} theme={theme} />
+              <DriverRequestCard key={notification.id} notification={notification} theme={theme} t={t} />
             ) : (
               <StatusCard
                 key={notification.id}
                 notification={notification}
                 theme={theme}
                 onOpen={handleOpen}
+                t={t}
               />
             ),
           )}

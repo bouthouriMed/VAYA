@@ -3,6 +3,7 @@ import { View, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text, Button, colors, spacing, radii } from '@vaya/design-system';
 import { router, useLocalSearchParams } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import {
   useCompleteTripMutation,
   useCreateTripRatingMutation,
@@ -13,13 +14,14 @@ import { submitRating } from '../../src/features/ratings/ratingHelpers';
 import { RatingPromptSheet } from '../../src/features/ratings/RatingPromptSheet';
 
 export default function SettlementScreen(): React.JSX.Element {
+  const { t } = useTranslation(['booking', 'activeTrip', 'common']);
   const { bookingId, driverName, price, destinationLabel } = useLocalSearchParams<{
     bookingId?: string;
     driverName?: string;
     price?: string;
     destinationLabel?: string;
   }>();
-  const firstName = (driverName ?? 'votre conducteur').split(' ')[0]!;
+  const firstName = (driverName ?? t('common:terms.driver')).split(' ')[0]!;
   const insets = useSafeAreaInsets();
 
   const { data: trip } = useGetTripByBookingQuery(bookingId ?? '', { skip: !bookingId });
@@ -69,32 +71,32 @@ export default function SettlementScreen(): React.JSX.Element {
     <View style={styles.container}>
       <View style={[styles.hero, { paddingTop: insets.top + spacing['3xl'] }]}>
         <Text variant="h1" color={colors.navyText} align="center">
-          Bienvenue{destinationLabel ? ` à ${destinationLabel}` : ''}.
+          {t('booking:arrival')}{destinationLabel ? ` ${destinationLabel}` : ''}.
         </Text>
       </View>
 
       <View style={styles.sheet}>
-        <Text variant="h3">Merci d’avoir voyagé avec {firstName}.</Text>
+        <Text variant="h3">{t('booking:settlement_title', { name: firstName })}</Text>
 
         <View style={styles.settleRow}>
           <Text variant="bodySmall" color={colors.gray600}>
-            Réglez directement
+            {t('booking:settlement_pay', { price: price ?? '\u2014', name: firstName })}
           </Text>
-          <Text variant="h3">{price ?? '—'} DT</Text>
+          <Text variant="h3">{price ?? '\u2014'} DT</Text>
         </View>
 
         {sheetDone ? (
           <Text variant="bodySmall" color={colors.success}>
-            Merci pour votre note !
+            {t('booking:rate_prompt', { name: firstName })}
           </Text>
         ) : (
           <Text variant="bodySmall" color={colors.gray600}>
-            Notez votre trajet pour aider la communauté VAYA.
+            {t('booking:rate_prompt', { name: firstName })}
           </Text>
         )}
 
         <Button
-          label="Terminer"
+          label={t('booking:finish')}
           size="lg"
           onPress={() => router.replace('/(tabs)/explore')}
           style={styles.cta}

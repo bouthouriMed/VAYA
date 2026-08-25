@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import {
   Text,
   Icon,
@@ -66,6 +67,7 @@ function ThumbCard({
 export default function SelfieCaptureScreen(): React.JSX.Element {
   const insets = useSafeAreaInsets();
   const { colors: theme } = useAppTheme();
+  const { t } = useTranslation('driver');
   const dispatch = useAppDispatch();
   const draft = useAppSelector((s) => s.driverOnboarding);
   const [phase, setPhase] = useState<'capture' | 'review'>(draft.selfieUri ? 'review' : 'capture');
@@ -120,13 +122,13 @@ export default function SelfieCaptureScreen(): React.JSX.Element {
       <CaptureCamera
         facing="front"
         guideShape="face"
-        title="Vérification d'identité"
-        eyebrow="Vérification d’identité"
-        instruction="Prenez un selfie pour confirmer que c'est bien vous."
+        title={t('onboarding.selfie.captureTitle')}
+        eyebrow={t('onboarding.selfie.captureTitle')}
+        instruction={t('onboarding.selfie.captureInstruction')}
         tips={[
-          { icon: 'eye-outline', label: 'Regardez l’objectif' },
-          { icon: 'glasses-outline', label: 'Évitez les lunettes de soleil' },
-          { icon: 'sunny-outline', label: 'Bonne luminosité' },
+          { icon: 'eye-outline', label: t('onboarding.selfie.tipFace') },
+          { icon: 'glasses-outline', label: t('onboarding.selfie.tipGlasses') },
+          { icon: 'sunny-outline', label: t('onboarding.selfie.tipLight') },
         ]}
         currentStep={4}
         totalSteps={4}
@@ -252,12 +254,12 @@ export default function SelfieCaptureScreen(): React.JSX.Element {
             onPress={() => setPhase('capture')}
             hitSlop={12}
             accessibilityRole="button"
-            accessibilityLabel="Retour"
+          accessibilityLabel={t('onboarding.index.back')}
           >
             <Icon name="arrow-back" size="sm" color={theme.ink} />
           </TouchableOpacity>
           <Text variant="h3" color={theme.ink} style={styles.headerTitle}>
-            Vérifier et confirmer
+            {t('onboarding.selfie.reviewTitle')}
           </Text>
           <View style={styles.headerSpacer} />
         </View>
@@ -270,18 +272,18 @@ export default function SelfieCaptureScreen(): React.JSX.Element {
             <Icon name="shield-checkmark" size="lg" color={theme.ink} />
           </View>
           <Text variant="label" color={theme.inkFaint} style={styles.eyebrow}>
-            DERNIÈRE ÉTAPE
+            {t('onboarding.selfie.reviewEyebrow')}
           </Text>
           <Text variant="h2" color={theme.ink} style={styles.title}>
-            Tout est prêt
+            {t('onboarding.selfie.reviewHeadline')}
           </Text>
           <Text variant="body" color={theme.inkMuted} style={styles.subtitle}>
-            Vérifiez vos informations avant d&apos;activer votre profil conducteur.
+            {t('onboarding.selfie.reviewSubtitle')}
           </Text>
 
           <GlassSurface theme={theme} radius="2xl" style={styles.card}>
             <Text variant="label" color={theme.inkFaint} style={styles.cardEyebrow}>
-              VÉHICULE
+              {t('onboarding.selfie.vehicleSection')}
             </Text>
             <View style={styles.vehicleRow}>
               <View style={[styles.vehicleIcon, { backgroundColor: theme.surfaceMuted }]}>
@@ -300,12 +302,12 @@ export default function SelfieCaptureScreen(): React.JSX.Element {
 
           <GlassSurface theme={theme} radius="2xl" style={styles.card}>
             <Text variant="label" color={theme.inkFaint} style={styles.cardEyebrow}>
-              DOCUMENTS VÉRIFIÉS EN DIRECT
+              {t('onboarding.selfie.documentsSection')}
             </Text>
             <View style={styles.thumbRow}>
-              <ThumbCard theme={theme} uri={licenseUri} label="Permis" />
-              <ThumbCard theme={theme} uri={insuranceUri} label="Assurance" />
-              <ThumbCard theme={theme} uri={selfieUri} label="Identité" />
+              <ThumbCard theme={theme} uri={licenseUri} label={t('onboarding.selfie.tabs.license')} />
+              <ThumbCard theme={theme} uri={insuranceUri} label={t('onboarding.selfie.tabs.insurance')} />
+              <ThumbCard theme={theme} uri={selfieUri} label={t('onboarding.selfie.tabs.identity')} />
             </View>
           </GlassSurface>
 
@@ -324,14 +326,14 @@ export default function SelfieCaptureScreen(): React.JSX.Element {
           disabled={isSubmitting}
           activeOpacity={0.85}
           accessibilityRole="button"
-          accessibilityLabel={errorMessage ? 'Réessayer' : 'Confirmer et activer mon profil'}
+          accessibilityLabel={errorMessage ? t('onboarding.selfie.reviewRetake') : t('onboarding.selfie.reviewConfirm')}
           accessibilityState={{ disabled: isSubmitting, busy: isSubmitting }}
         >
           {isSubmitting ? (
             <ActivityIndicator color={theme.onInk} />
           ) : (
             <Text variant="label" color={theme.onInk}>
-              {errorMessage ? 'Réessayer' : 'Confirmer et activer mon profil'}
+              {errorMessage ? t('onboarding.selfie.reviewRetake') : t('onboarding.selfie.reviewConfirm')}
             </Text>
           )}
         </TouchableOpacity>

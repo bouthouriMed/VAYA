@@ -1,0 +1,7 @@
+{
+  "exactMatch": "تطابق دقيق",
+  "corridorMatch": "تطابق مسار",
+  "detourMatch": "تطابق بالانحراف",
+  "closestDeparture": "أقرب موعد",
+  "noMatch": "لا رحلات متاحة"
+}

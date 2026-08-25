@@ -1,0 +1,91 @@
+{
+  "sections": {
+    "identity": "Identité",
+    "account": "Compte",
+    "security": "Sécurité",
+    "preferences": "Préférences"
+  },
+  "rows": {
+    "personalInfo": "Informations personnelles",
+    "payment": "Paiement",
+    "notifications": "Notifications",
+    "history": "Historique des trajets",
+    "securityPassword": "Sécurité et mot de passe",
+    "privacy": "Confidentialité",
+    "ridePrefs": "Préférences de trajet",
+    "language": "Langue",
+    "appearance": "Apparence"
+  },
+  "driver": {
+    "verified": "Conducteur vérifié",
+    "pending": "Vérification en cours",
+    "pendingDescription": "Nous vérifions vos documents. Vous pourrez publier dès qu'ils sont validés.",
+    "rejected": "Vérification refusée",
+    "rejectedDescription": "Reprenez la vérification pour publier vos trajets.",
+    "noneTitle": "Partagez vos trajets",
+    "noneDescription": "Rejoignez la communauté Vaya en tant que conducteur.",
+    "verifiedAria": "Conducteur vérifié, publier un trajet",
+    "verifiedWithVehicleAria": "Conducteur vérifié, {{make}} {{model}}, publier un trajet",
+    "pendingAria": "Vérification du profil conducteur en cours",
+    "rejectedAria": "Vérification refusée, reprendre la vérification",
+    "noneAria": "Rejoignez la communauté Vaya en tant que conducteur"
+  },
+  "trust": {
+    "new": "Nouveau sur Vaya"
+  },
+  "photo": {
+    "changeAria": "Modifier la photo de profil",
+    "addAria": "Ajouter une photo de profil",
+    "changeText": "Modifier la photo de profil",
+    "addText": "Ajoutez une photo de profil"
+  },
+  "toast": {
+    "galleryRequired": "Accès à la galerie requis pour choisir une photo.",
+    "photoUpdated": "Photo de profil mise à jour.",
+    "photoFailed": "Échec de l'envoi de la photo. Réessayez.",
+    "localeNotSaved": "Langue non enregistrée.",
+    "appearanceNotSaved": "Préférence d'apparence non enregistrée."
+  },
+  "guest": {
+    "title": "Votre profil VAYA",
+    "description": "Connectez-vous pour gérer votre profil, suivre vos trajets et accéder à vos réglages.",
+    "signIn": "Se connecter"
+  },
+  "logout": {
+    "title": "Se déconnecter ?",
+    "cta": "Se déconnecter",
+    "description": "Vous devrez vous reconnecter avec votre numéro de téléphone.",
+    "accessibility": "Déconnexion"
+  },
+  "infoSheet": {
+    "title": "Informations personnelles",
+    "fullName": "Nom complet",
+    "phone": "Téléphone",
+    "email": "Email",
+    "memberSince": "Membre depuis",
+    "addVerify": "Ajouter et vérifier"
+  },
+  "phoneSheet": {
+    "addTitle": "Ajouter votre numéro",
+    "verifyTitle": "Vérification",
+    "description": "Utilisé pour la vérification et pour vous mettre en contact avec vos covoitureurs.",
+    "placeholder": "98 123 456",
+    "sendCode": "Envoyer le code",
+    "verify": "Vérifier",
+    "changeNumber": "Changer de numéro",
+    "codeSentTo": "Code envoyé au +216 {{phone}}",
+    "codePlaceholder": "000000",
+    "testCode": "Code de test : {{code}}",
+    "ariaPhone": "Numéro de téléphone",
+    "ariaCode": "Code de vérification",
+    "invalidOrUnsent": "Numéro invalide ou envoi impossible. Réessayez.",
+    "alreadyLinked": "Ce numéro est déjà associé à un autre compte VAYA.",
+    "invalidOrExpired": "Code invalide ou expiré. Réessayez.",
+    "verified": "Numéro de téléphone vérifié."
+  },
+  "fallbacks": {
+    "myProfile": "Mon profil",
+    "trips_one": "{{count}} trajet",
+    "trips_other": "{{count}} trajets"
+  }
+}

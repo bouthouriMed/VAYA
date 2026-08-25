@@ -1,0 +1,110 @@
+{
+  "pending_title": "في انتظار {{name}}…",
+  "pending_subtitle": "عادة ما يرد خلال بضع دقائق.",
+  "cancel_request": "إلغاء الطلب",
+  "mine_title": "رحلاتي",
+  "status_pending": "قيد الانتظار",
+  "status_accepted": "مقبول",
+  "status_declined": "مرفوض",
+  "status_cancelled_by_rider": "ملغى",
+  "status_cancelled_by_driver": "ملغى من السائق",
+  "status_expired": "منتهي الصلاحية",
+  "status_completed": "مكتمل",
+  "status_no_show": "لم يحضر",
+  "status_draft": "مسودة",
+  "status_published": "منشور",
+  "status_full": "ممتلئ",
+  "status_in_progress": "قيد التنفيذ",
+  "settlement_title": "اكتملت الرحلة",
+  "settlement_pay": "ادفع {{price}} DT مباشرة لـ {{name}}",
+  "rate_prompt": "كيف كان {{name}}؟",
+  "finish": "إنهاء",
+  "filters": {
+    "all": "الكل",
+    "upcoming": "القادمة",
+    "active": "النشطة",
+    "past": "السابقة"
+  },
+  "departure": "المغادرة",
+  "arrival": "الوصول",
+  "driver": "السائق",
+  "passenger": "الراكب",
+  "seats_reserved": "{{reserved}}/{{total}} مقاعد محجوزة",
+  "title": "رحلة",
+  "backToResults": "العودة إلى النتائج",
+  "shareDetails": "مشاركة التفاصيل",
+  "cancelBooking": "إلغاء حجزي",
+  "cancellation": {
+    "title": "إلغاء هذه الرحلة؟",
+    "warning": "قد يؤثر الإلغاء على نقاط موثوقيتك.",
+    "confirmCta": "تأكيد الإلغاء",
+    "cancelCta": "الاحتفاظ بالحجز",
+    "error": "تعذر الإلغاء. أعد المحاولة.",
+    "reasons": {
+      "change_of_plans": "تغيير في الخطط",
+      "found_alternative": "وجدت رحلة أخرى",
+      "emergency": "حالة طارئة",
+      "other": "أخرى"
+    }
+  },
+  "noShow": {
+    "title": "الإبلاغ عن عدم الحضور",
+    "guidance": "هل حاولت التواصل مع الطرف الآخر؟ نوصي بالتواصل قبل الإبلاغ عن عدم الحضور.",
+    "reportCta": "الإبلاغ عن عدم الحضور",
+    "cancelCta": "إلغاء",
+    "error": "تعذر الإبلاغ. أعد المحاولة."
+  },
+  "rating": {
+    "punctual": "دقيق الموعد",
+    "submitCta": "إرسال التقييم",
+    "error": "تعذر إرسال التقييم. أعد المحاولة.",
+    "title": "كيف كانت الرحلة مع {{name}}؟"
+  },
+  "conversation": {
+    "unavailable": "المحادثة غير متاحة",
+    "closed": "تم إغلاق هذه المحادثة.",
+    "placeholder": "اكتب رسالة…",
+    "send": "إرسال",
+    "quickReplies": {
+      "hello": "مرحبًا!",
+      "onMyWay": "أنا في الطريق!",
+      "runningLate": "أتأخر قليلاً",
+      "thanks": "شكرًا!"
+    }
+  },
+  "recurring": {
+    "detectedTitle": "تم اكتشاف رحلة متكررة",
+    "detectedBodyDriver": "لقد قمت بنفس هذا المسار عدة مرات مؤخرًا. هل تريد نشره تلقائيًا؟",
+    "detectedBodyRider": "لقد بحثت عن هذا المسار عدة مرات مؤخرًا. هل تريد تلقي إشعار عندما ينشره سائق؟",
+    "confirmTitle": "تأكيد رحلتك المتكررة",
+    "confirmDescription": "تحقق من التفاصيل قبل النشر — قد تختلف المقاعد والسعر كل يوم.",
+    "departure": "المغادرة",
+    "arrival": "الوصول",
+    "usualSchedule": "المواعيد المعتادة",
+    "publishError": "تعذر نشر هذه الرحلة. أعد المحاولة.",
+    "draftError": "تعذر إعداد هذه الرحلة. أعد المحاولة.",
+    "noVehicleError": "لا يوجد مركبة مسجلة — أكمل ملف تعريفك كسائق قبل تأكيد هذه الرحلة.",
+    "title": "الرحلات المتكررة",
+    "empty": "لا توجد رحلات متكررة بعد",
+    "emptyDescription": "ستظهر رحلاتك المتكررة هنا بمجرد اكتشافها.",
+    "enableCta": "تفعيل",
+    "dismissCta": "تجاهل",
+    "dismissed": "تم التجاهل",
+    "enabled": "مفعّل",
+    "suggested": "مقترح",
+    "detected": "مكتشف",
+    "driversLicense": "رخصة القيادة",
+    "insuranceProof": "إثبات التأمين",
+    "identitySelfie": "صورة هوية"
+  },
+  "days": {
+    "mon": "اثنين",
+    "tue": "ثلاثاء",
+    "wed": "أربعاء",
+    "thu": "خميس",
+    "fri": "جمعة",
+    "sat": "سبت",
+    "sun": "أحد",
+    "everyDay": "كل يوم"
+  }
+}

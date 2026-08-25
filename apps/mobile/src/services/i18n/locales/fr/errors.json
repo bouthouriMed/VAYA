@@ -1,0 +1,19 @@
+{
+  "codes": {
+    "NOT_FOUND": "Cet élément est introuvable.",
+    "VALIDATION_ERROR": "Certaines informations ne sont pas valides. Vérifiez et réessayez.",
+    "UNAUTHORIZED": "Connectez-vous pour continuer.",
+    "FORBIDDEN": "Vous n'avez pas la permission de faire cela.",
+    "CONFLICT": "Cette action n'est pas possible pour le moment.",
+    "INTERNAL_ERROR": "Une erreur est survenue de notre côté. Réessayez.",
+    "REQUEST_ERROR": "Cette demande n'a pas pu aboutir.",
+    "GOOGLE_AUTH_NOT_CONFIGURED": "La connexion avec Google n'est pas disponible pour le moment.",
+    "RATE_LIMITED": "Trop de tentatives. Patientez un instant puis réessayez."
+  },
+  "fallback": "Une erreur est survenue. Réessayez.",
+  "boundary": {
+    "title": "Un problème est survenu",
+    "description": "VAYA a rencontré un problème inattendu. Redémarrer résout généralement le souci.",
+    "restart": "Redémarrer"
+  }
+}

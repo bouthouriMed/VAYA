@@ -3,6 +3,7 @@ import { View, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Moda
 import { Marker, Polyline } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { router, useLocalSearchParams } from 'expo-router';
 import {
   Text,
@@ -38,15 +39,6 @@ import { RouteTimeline } from '../../../src/features/trip-shared/RouteTimeline';
 
 type ThemeColors = ReturnType<typeof useAppTheme>['colors'];
 
-const RIDE_BADGE: Record<Ride['status'], { label: string; variant: 'default' | 'success' | 'info' | 'warning' | 'error' }> = {
-  draft: { label: 'Brouillon', variant: 'default' },
-  published: { label: 'Publié', variant: 'success' },
-  full: { label: 'Complet', variant: 'info' },
-  in_progress: { label: 'En cours', variant: 'warning' },
-  completed: { label: 'Terminé', variant: 'info' },
-  cancelled: { label: 'Annulé', variant: 'error' },
-};
-
 function formatWhen(iso: string): string {
   const date = new Date(iso);
   const time = date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
@@ -66,6 +58,7 @@ function PendingRequestRow({
   rideDestinationLabel: string;
   theme: ThemeColors;
 }): React.JSX.Element {
+  const { t } = useTranslation('driver');
   const [acceptBooking, acceptState] = useAcceptBookingMutation();
   const [declineBooking, declineState] = useDeclineBookingMutation();
   const [error, setError] = useState<string | null>(null);
@@ -80,7 +73,7 @@ function PendingRequestRow({
       trackEvent('driver_request_response', { action, source: 'ride-hub' });
     } catch {
       haptics.error();
-      setError(action === 'accept' ? "Impossible d'accepter." : 'Impossible de refuser.');
+      setError(action === 'accept' ? t('rides.requestsSheet.acceptError') : t('rides.requestsSheet.declineError'));
     }
   }
 
@@ -96,7 +89,7 @@ function PendingRequestRow({
         />
         <View style={styles.requestIdentityText}>
           <Text variant="body" color={theme.ink} numberOfLines={1}>
-            {booking.rider?.fullName ?? 'Passager'}
+            {booking.rider?.fullName ?? t('rides.rideDetail.passenger')}
           </Text>
           <Text variant="caption" color={theme.inkMuted} numberOfLines={1}>
             {`${booking.seatsRequested} place${booking.seatsRequested > 1 ? 's' : ''} · ${booking.pickupLabel}`}
@@ -117,10 +110,10 @@ function PendingRequestRow({
           disabled={isBusy}
           activeOpacity={0.7}
           accessibilityRole="button"
-          accessibilityLabel={`Refuser la demande de ${booking.rider?.fullName ?? 'ce passager'}`}
+          accessibilityLabel={`${t('rides.requestsSheet.decline')} ${booking.rider?.fullName ?? ''}`}
         >
           <Text variant="label" color={theme.error}>
-            Refuser
+            {t('rides.requestsSheet.decline')}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -129,10 +122,10 @@ function PendingRequestRow({
           disabled={isBusy}
           activeOpacity={0.85}
           accessibilityRole="button"
-          accessibilityLabel={`Accepter la demande de ${booking.rider?.fullName ?? 'ce passager'}`}
+          accessibilityLabel={`${t('rides.requestsSheet.accept')} ${booking.rider?.fullName ?? ''}`}
         >
           <Text variant="label" color={theme.onAccent}>
-            Accepter
+            {t('rides.requestsSheet.accept')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -144,17 +137,6 @@ function PendingRequestRow({
     </View>
   );
 }
-
-const ANSWERED_BADGE: Record<Booking['status'], { label: string; variant: 'default' | 'success' | 'warning' | 'error' }> = {
-  pending: { label: 'En attente', variant: 'warning' },
-  accepted: { label: 'Confirmé', variant: 'success' },
-  declined: { label: 'Refusé', variant: 'error' },
-  cancelled_by_rider: { label: 'Annulé', variant: 'default' },
-  cancelled_by_driver: { label: 'Annulé', variant: 'error' },
-  expired: { label: 'Expiré', variant: 'default' },
-  completed: { label: 'Terminé', variant: 'default' },
-  no_show: { label: 'Absence', variant: 'error' },
-};
 
 /**
  * Driver's real-time ride management hub (2026-08-23 trips/notifications
@@ -170,7 +152,28 @@ export default function DriverRideHubScreen(): React.JSX.Element {
   const { rideId } = useLocalSearchParams<{ rideId: string }>();
   const insets = useSafeAreaInsets();
   const { colors: theme } = useAppTheme();
+  const { t } = useTranslation(['driver', 'booking', 'common']);
   const [managedBooking, setManagedBooking] = useState<Booking | null>(null);
+
+  const RIDE_BADGE: Record<Ride['status'], { label: string; variant: 'default' | 'success' | 'info' | 'warning' | 'error' }> = {
+    draft: { label: t('rides.rideDetail.departure'), variant: 'default' },
+    published: { label: t('rides.rideDetail.departure'), variant: 'success' },
+    full: { label: t('rides.rideDetail.departure'), variant: 'info' },
+    in_progress: { label: t('rides.rideDetail.departure'), variant: 'warning' },
+    completed: { label: t('rides.rideDetail.arrival'), variant: 'info' },
+    cancelled: { label: t('rides.rideDetail.cancelRide'), variant: 'error' },
+  };
+
+  const ANSWERED_BADGE: Record<Booking['status'], { label: string; variant: 'default' | 'success' | 'warning' | 'error' }> = {
+    pending: { label: t('rides.requestsSheet.sectionPending'), variant: 'warning' },
+    accepted: { label: t('rides.requestsSheet.sectionAccepted'), variant: 'success' },
+    declined: { label: t('rides.requestsSheet.decline'), variant: 'error' },
+    cancelled_by_rider: { label: t('rides.rideDetail.cancelRide'), variant: 'default' },
+    cancelled_by_driver: { label: t('rides.rideDetail.cancelRide'), variant: 'error' },
+    expired: { label: t('rides.requestsSheet.empty'), variant: 'default' },
+    completed: { label: t('rides.rideDetail.arrival'), variant: 'default' },
+    no_show: { label: t('rides.requestsSheet.empty'), variant: 'error' },
+  };
   const [cancellingRide, setCancellingRide] = useState(false);
   const [routeModalOpen, setRouteModalOpen] = useState(false);
 
@@ -214,7 +217,7 @@ export default function DriverRideHubScreen(): React.JSX.Element {
     return (
       <View style={[styles.loadingWrap, { backgroundColor: theme.background }]}>
         <Text variant="body" color={theme.inkFaint}>
-          Trajet introuvable.
+          {t('rides.rideDetail.rideNotFound')}
         </Text>
       </View>
     );
@@ -234,19 +237,19 @@ export default function DriverRideHubScreen(): React.JSX.Element {
     placeLabel: string;
     isEndpoint: boolean;
   }[] = [
-    { key: 'origin', roleLabel: 'Départ', placeLabel: ride.originLabel, isEndpoint: true },
+    { key: 'origin', roleLabel: t('rides.rideDetail.departure'), placeLabel: ride.originLabel, isEndpoint: true },
     ...selectedStops.map((stop, index) => ({
       key: stop.id,
       roleLabel:
         selectedStops.length === 2
           ? index === 0
-            ? 'Point de rendez-vous'
-            : 'Point de dépose'
-          : `Arrêt ${index + 1}`,
+            ? t('rides.rideDetail.dropoff')
+            : t('rides.rideDetail.dropoff')
+          : `${t('rides.rideDetail.dropoff')} ${index + 1}`,
       placeLabel: stop.label,
       isEndpoint: false,
     })),
-    { key: 'destination', roleLabel: 'Arrivée', placeLabel: ride.destinationLabel, isEndpoint: true },
+    { key: 'destination', roleLabel: t('rides.rideDetail.arrival'), placeLabel: ride.destinationLabel, isEndpoint: true },
   ];
   // Real revenue insight for the driver — summed from actually-accepted
   // bookings' own contributionTotal (which already accounts for seat count),
@@ -269,12 +272,12 @@ export default function DriverRideHubScreen(): React.JSX.Element {
             onPress={() => (router.canGoBack() ? router.back() : router.replace('/(tabs)/trips'))}
             hitSlop={12}
             accessibilityRole="button"
-            accessibilityLabel="Retour"
+            accessibilityLabel={t('rides.rideDetail.back')}
           >
             <Ionicons name="chevron-back" size={24} color={theme.ink} />
           </TouchableOpacity>
           <Text variant="h3" color={theme.ink} style={styles.headerTitle}>
-            Mon trajet
+            {t('rides.rideDetail.myRide')}
           </Text>
           <View style={styles.headerSpacer} />
         </View>
@@ -300,11 +303,11 @@ export default function DriverRideHubScreen(): React.JSX.Element {
             onPress={() => setRouteModalOpen(true)}
             activeOpacity={0.85}
             accessibilityRole="button"
-            accessibilityLabel="Voir l'itinéraire en plein écran"
+            accessibilityLabel={t('rides.rideDetail.viewRouteFullscreen')}
           >
             <Icon name="expand-outline" size="xs" color={theme.ink} />
             <Text variant="caption" color={theme.ink}>
-              Voir l&apos;itinéraire
+              {t('rides.rideDetail.viewRouteFullscreen')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -312,7 +315,7 @@ export default function DriverRideHubScreen(): React.JSX.Element {
         <View style={[styles.infoCard, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
           <View style={styles.infoTitleRow}>
             <Text variant="label" color={theme.inkMuted} style={styles.sectionHeading}>
-              Itinéraire
+              {t('rides.rideDetail.itinerary')}
             </Text>
             <Badge label={badge.label} variant={badge.variant} theme={theme} />
           </View>
@@ -325,26 +328,26 @@ export default function DriverRideHubScreen(): React.JSX.Element {
               {/* Real OSRM/Google-derived duration only — estimateArrivalLabel
                *  returns null (nothing rendered) rather than inventing an
                *  arrival time for a haversine-fallback route. */}
-              {arrivalLabel ? `${formatWhen(ride.departureAt)} · Arrivée ~${arrivalLabel}` : formatWhen(ride.departureAt)}
+              {arrivalLabel ? `${formatWhen(ride.departureAt)} · ${t('rides.rideDetail.arrivalEta', { time: arrivalLabel })}` : formatWhen(ride.departureAt)}
             </Text>
           </View>
           <View style={styles.factRow}>
             <Icon name="people-outline" size="sm" color={theme.inkMuted} />
             <Text variant="bodySmall" color={theme.inkMuted}>
-              {`${ride.seatsAvailable}/${ride.seatsTotal} places disponibles`}
+              {t('rides.rideDetail.seatsAvailable', { available: ride.seatsAvailable, total: ride.seatsTotal })}
             </Text>
           </View>
           <View style={styles.factRow}>
             <Icon name="cash-outline" size="sm" color={theme.inkMuted} />
             <Text variant="bodySmall" color={theme.inkMuted}>
-              {`${ride.contributionPerSeat} DT par place`}
+              {t('rides.rideDetail.pricePerSeat', { price: ride.contributionPerSeat })}
             </Text>
           </View>
           {confirmedBookings.length > 0 ? (
             <View style={styles.factRow}>
               <Icon name="wallet-outline" size="sm" color={theme.inkMuted} />
               <Text variant="bodySmall" color={theme.inkMuted}>
-                {`${confirmedRevenue} DT confirmés · ${confirmedBookings.length} passager${confirmedBookings.length > 1 ? 's' : ''}`}
+                {t('rides.rideDetail.confirmedRevenue', { revenue: confirmedRevenue, count: confirmedBookings.length })}
               </Text>
             </View>
           ) : null}
@@ -352,13 +355,13 @@ export default function DriverRideHubScreen(): React.JSX.Element {
 
         <View style={styles.section}>
           <Text variant="label" color={theme.inkMuted} style={styles.sectionHeading}>
-            {`À répondre (${pending.length})`}
+            {t('rides.rideDetail.pendingSection', { count: pending.length })}
           </Text>
           {isRequestsLoading ? (
             <ActivityIndicator size="small" color={theme.accent} style={styles.loading} />
           ) : pending.length === 0 ? (
             <Text variant="bodySmall" color={theme.inkFaint} style={styles.emptyHint}>
-              Aucune demande en attente.
+              {t('rides.rideDetail.noPendingRequests')}
             </Text>
           ) : (
             pending.map((booking) => (
@@ -375,7 +378,7 @@ export default function DriverRideHubScreen(): React.JSX.Element {
         {answered.length > 0 ? (
           <View style={styles.section}>
             <Text variant="label" color={theme.inkMuted} style={styles.sectionHeading}>
-              Passagers
+              {t('rides.rideDetail.passengers')}
             </Text>
             {answered.map((booking) => {
               const meta = ANSWERED_BADGE[booking.status];
@@ -389,7 +392,7 @@ export default function DriverRideHubScreen(): React.JSX.Element {
                   activeOpacity={0.7}
                   accessibilityRole={manageable ? 'button' : undefined}
                   accessibilityLabel={
-                    manageable ? `Gérer la réservation de ${booking.rider?.fullName ?? 'ce passager'}` : undefined
+                    manageable ? `${t('rides.manageSheet.title')} ${booking.rider?.fullName ?? t('rides.bookingDetail.passenger')}` : undefined
                   }
                 >
                   <Avatar
@@ -401,7 +404,7 @@ export default function DriverRideHubScreen(): React.JSX.Element {
                   />
                   <View style={styles.requestIdentityText}>
                     <Text variant="bodySmall" color={theme.ink} numberOfLines={1}>
-                      {booking.rider?.fullName ?? 'Passager'}
+                      {booking.rider?.fullName ?? t('rides.bookingDetail.passenger')}
                     </Text>
                     <Text variant="caption" color={theme.inkMuted}>
                       {`${booking.seatsRequested} place${booking.seatsRequested > 1 ? 's' : ''}`}
@@ -421,7 +424,7 @@ export default function DriverRideHubScreen(): React.JSX.Element {
       {cancellable ? (
         <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.md, backgroundColor: theme.background, borderTopColor: theme.outlineVariant }]}>
           <Button
-            label="Annuler le trajet"
+            label={t('rides.rideDetail.cancelRide')}
             variant="outline"
             theme={theme}
             onPress={() => setCancellingRide(true)}
@@ -483,7 +486,7 @@ export default function DriverRideHubScreen(): React.JSX.Element {
             onPress={() => setRouteModalOpen(false)}
             hitSlop={12}
             accessibilityRole="button"
-            accessibilityLabel="Fermer"
+            accessibilityLabel={t('rides.rideDetail.close')}
           >
             <Ionicons name="close" size={22} color={theme.ink} />
           </TouchableOpacity>

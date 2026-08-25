@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { BottomSheet, Text, useAppTheme, spacing, radii, haptics } from '@vaya/design-system';
+import { useTranslation } from 'react-i18next';
 import {
   useRequestOtpMutation,
   useVerifyOtpMutation,
@@ -42,8 +43,9 @@ export function ContextualAuthSheet({
   onAuthenticated,
 }: ContextualAuthSheetProps): React.JSX.Element {
   const { colors: theme } = useAppTheme();
+  const { t } = useTranslation();
   const dispatch = useAppDispatch();
-  const copy = contextualAuthCopy(trigger);
+  const copy = contextualAuthCopy(trigger, t);
 
   const [phoneStep, setPhoneStep] = useState<PhoneStep>('phone');
   const [phone, setPhone] = useState('');

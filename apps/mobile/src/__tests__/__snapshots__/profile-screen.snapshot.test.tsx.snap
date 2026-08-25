@@ -79,7 +79,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
             </Text>
           </View>
           <TouchableOpacity
-            accessibilityLabel="Ajouter une photo de profil"
+            accessibilityLabel="profile:photo.addAria"
             accessibilityRole="button"
             activeOpacity={0.8}
             disabled={false}
@@ -194,7 +194,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
             </Text>
           </View>
           <TouchableOpacity
-            accessibilityLabel="Ajoutez une photo de profil"
+            accessibilityLabel="profile:photo.addAria"
             accessibilityRole="button"
             disabled={false}
             onPress={[Function]}
@@ -223,13 +223,13 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                 ]
               }
             >
-              Ajoutez une photo de profil
+              profile:photo.addText
             </Text>
           </TouchableOpacity>
         </View>
       </View>
       <TouchableOpacity
-        accessibilityLabel="Conducteur vérifié, Dacia Logan, publier un trajet"
+        accessibilityLabel="profile:driver.verifiedWithVehicleAria"
         accessibilityRole="button"
         activeOpacity={0.85}
         onPress={[Function]}
@@ -306,7 +306,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
               ]
             }
           >
-            Conducteur vérifié
+            profile:driver.verified
           </Text>
           <Text
             numberOfLines={1}
@@ -345,7 +345,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
               ]
             }
           >
-            ★ 4.8 · 12 trajets
+            ★ 4.8 · profile:fallbacks.trips
           </Text>
         </View>
         <Ionicons
@@ -388,7 +388,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
               ]
             }
           >
-            Identité
+            profile:sections.identity
           </Text>
           <View
             style={
@@ -410,7 +410,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
           >
             <View>
               <TouchableOpacity
-                accessibilityLabel="Informations personnelles"
+                accessibilityLabel="profile:rows.personalInfo"
                 accessibilityRole="button"
                 accessibilityState={
                   {
@@ -458,7 +458,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                     ]
                   }
                 >
-                  Informations personnelles
+                  profile:rows.personalInfo
                 </Text>
                 <Ionicons
                   accessibilityElementsHidden={true}
@@ -494,7 +494,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
               ]
             }
           >
-            Compte
+            profile:sections.account
           </Text>
           <View
             style={
@@ -516,7 +516,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
           >
             <View>
               <TouchableOpacity
-                accessibilityLabel="Paiement"
+                accessibilityLabel="profile:rows.payment"
                 accessibilityRole="text"
                 accessibilityState={
                   {
@@ -563,7 +563,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                     ]
                   }
                 >
-                  Paiement
+                  profile:rows.payment
                 </Text>
                 <Text
                   style={
@@ -582,7 +582,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                     ]
                   }
                 >
-                  Bientôt
+                  common:status.comingSoon
                 </Text>
               </TouchableOpacity>
             </View>
@@ -601,7 +601,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                 }
               />
               <TouchableOpacity
-                accessibilityLabel="Notifications"
+                accessibilityLabel="profile:rows.notifications"
                 accessibilityRole="button"
                 accessibilityState={
                   {
@@ -649,7 +649,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                     ]
                   }
                 >
-                  Notifications
+                  profile:rows.notifications
                 </Text>
                 <Ionicons
                   accessibilityElementsHidden={true}
@@ -675,7 +675,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                 }
               />
               <TouchableOpacity
-                accessibilityLabel="Historique des trajets"
+                accessibilityLabel="profile:rows.history"
                 accessibilityRole="button"
                 accessibilityState={
                   {
@@ -723,7 +723,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                     ]
                   }
                 >
-                  Historique des trajets
+                  profile:rows.history
                 </Text>
                 <Ionicons
                   accessibilityElementsHidden={true}
@@ -759,7 +759,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
               ]
             }
           >
-            Sécurité
+            profile:sections.security
           </Text>
           <View
             style={
@@ -781,7 +781,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
           >
             <View>
               <TouchableOpacity
-                accessibilityLabel="Sécurité et mot de passe"
+                accessibilityLabel="profile:rows.securityPassword"
                 accessibilityRole="text"
                 accessibilityState={
                   {
@@ -828,7 +828,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                     ]
                   }
                 >
-                  Sécurité et mot de passe
+                  profile:rows.securityPassword
                 </Text>
                 <Text
                   style={
@@ -847,7 +847,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                     ]
                   }
                 >
-                  Bientôt
+                  common:status.comingSoon
                 </Text>
               </TouchableOpacity>
             </View>
@@ -866,7 +866,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                 }
               />
               <TouchableOpacity
-                accessibilityLabel="Confidentialité"
+                accessibilityLabel="profile:rows.privacy"
                 accessibilityRole="text"
                 accessibilityState={
                   {
@@ -913,7 +913,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                     ]
                   }
                 >
-                  Confidentialité
+                  profile:rows.privacy
                 </Text>
                 <Text
                   style={
@@ -932,7 +932,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                     ]
                   }
                 >
-                  Bientôt
+                  common:status.comingSoon
                 </Text>
               </TouchableOpacity>
             </View>
@@ -961,7 +961,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
               ]
             }
           >
-            Préférences
+            profile:sections.preferences
           </Text>
           <View
             style={
@@ -983,7 +983,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
           >
             <View>
               <TouchableOpacity
-                accessibilityLabel="Préférences de trajet"
+                accessibilityLabel="profile:rows.ridePrefs"
                 accessibilityRole="text"
                 accessibilityState={
                   {
@@ -1030,7 +1030,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                     ]
                   }
                 >
-                  Préférences de trajet
+                  profile:rows.ridePrefs
                 </Text>
                 <Text
                   style={
@@ -1049,7 +1049,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                     ]
                   }
                 >
-                  Bientôt
+                  common:status.comingSoon
                 </Text>
               </TouchableOpacity>
             </View>
@@ -1068,7 +1068,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                 }
               />
               <TouchableOpacity
-                accessibilityLabel="Langue"
+                accessibilityLabel="profile:rows.language"
                 accessibilityRole="button"
                 accessibilityState={
                   {
@@ -1116,7 +1116,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                     ]
                   }
                 >
-                  Langue
+                  profile:rows.language
                 </Text>
                 <Text
                   style={
@@ -1154,7 +1154,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                 }
               />
               <TouchableOpacity
-                accessibilityLabel="Apparence"
+                accessibilityLabel="profile:rows.appearance"
                 accessibilityRole="button"
                 accessibilityState={
                   {
@@ -1202,7 +1202,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                     ]
                   }
                 >
-                  Apparence
+                  profile:rows.appearance
                 </Text>
                 <Text
                   style={
@@ -1221,14 +1221,14 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                     ]
                   }
                 >
-                  Automatique
+                  settings:appearance.system
                 </Text>
               </TouchableOpacity>
             </View>
           </View>
         </View>
         <TouchableOpacity
-          accessibilityLabel="Déconnexion"
+          accessibilityLabel="profile:logout.accessibility"
           accessibilityRole="button"
           activeOpacity={0.7}
           onPress={[Function]}
@@ -1271,7 +1271,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
               ]
             }
           >
-            Déconnexion
+            profile:logout.cta
           </Text>
         </TouchableOpacity>
       </View>
@@ -1361,7 +1361,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                 ]
               }
             >
-              Se déconnecter ?
+              profile:logout.title
             </Text>
             <Text
               style={
@@ -1380,7 +1380,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                 ]
               }
             >
-              Vous devrez vous reconnecter avec votre numéro de téléphone.
+              profile:logout.description
             </Text>
             <View
               style={
@@ -1425,7 +1425,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                 </Text>
               </Pressable>
               <Pressable
-                accessibilityLabel="Se déconnecter"
+                accessibilityLabel="profile:logout.cta"
                 accessibilityRole="button"
                 accessibilityState={
                   {
@@ -1452,7 +1452,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                     ]
                   }
                 >
-                  Se déconnecter
+                  profile:logout.cta
                 </Text>
               </Pressable>
             </View>
@@ -1555,7 +1555,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
             </Text>
           </View>
           <TouchableOpacity
-            accessibilityLabel="Ajouter une photo de profil"
+            accessibilityLabel="profile:photo.addAria"
             accessibilityRole="button"
             activeOpacity={0.8}
             disabled={false}
@@ -1670,7 +1670,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
             </Text>
           </View>
           <TouchableOpacity
-            accessibilityLabel="Ajoutez une photo de profil"
+            accessibilityLabel="profile:photo.addAria"
             accessibilityRole="button"
             disabled={false}
             onPress={[Function]}
@@ -1699,7 +1699,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                 ]
               }
             >
-              Ajoutez une photo de profil
+              profile:photo.addText
             </Text>
           </TouchableOpacity>
         </View>
@@ -1825,7 +1825,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
               ]
             }
           >
-            Identité
+            profile:sections.identity
           </Text>
           <View
             style={
@@ -1847,7 +1847,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
           >
             <View>
               <TouchableOpacity
-                accessibilityLabel="Informations personnelles"
+                accessibilityLabel="profile:rows.personalInfo"
                 accessibilityRole="button"
                 accessibilityState={
                   {
@@ -1895,7 +1895,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                     ]
                   }
                 >
-                  Informations personnelles
+                  profile:rows.personalInfo
                 </Text>
                 <Ionicons
                   accessibilityElementsHidden={true}
@@ -1931,7 +1931,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
               ]
             }
           >
-            Compte
+            profile:sections.account
           </Text>
           <View
             style={
@@ -1953,7 +1953,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
           >
             <View>
               <TouchableOpacity
-                accessibilityLabel="Paiement"
+                accessibilityLabel="profile:rows.payment"
                 accessibilityRole="text"
                 accessibilityState={
                   {
@@ -2000,7 +2000,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                     ]
                   }
                 >
-                  Paiement
+                  profile:rows.payment
                 </Text>
                 <Text
                   style={
@@ -2019,7 +2019,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                     ]
                   }
                 >
-                  Bientôt
+                  common:status.comingSoon
                 </Text>
               </TouchableOpacity>
             </View>
@@ -2038,7 +2038,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                 }
               />
               <TouchableOpacity
-                accessibilityLabel="Notifications"
+                accessibilityLabel="profile:rows.notifications"
                 accessibilityRole="button"
                 accessibilityState={
                   {
@@ -2086,7 +2086,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                     ]
                   }
                 >
-                  Notifications
+                  profile:rows.notifications
                 </Text>
                 <Ionicons
                   accessibilityElementsHidden={true}
@@ -2112,7 +2112,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                 }
               />
               <TouchableOpacity
-                accessibilityLabel="Historique des trajets"
+                accessibilityLabel="profile:rows.history"
                 accessibilityRole="button"
                 accessibilityState={
                   {
@@ -2160,7 +2160,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                     ]
                   }
                 >
-                  Historique des trajets
+                  profile:rows.history
                 </Text>
                 <Ionicons
                   accessibilityElementsHidden={true}
@@ -2196,7 +2196,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
               ]
             }
           >
-            Sécurité
+            profile:sections.security
           </Text>
           <View
             style={
@@ -2218,7 +2218,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
           >
             <View>
               <TouchableOpacity
-                accessibilityLabel="Sécurité et mot de passe"
+                accessibilityLabel="profile:rows.securityPassword"
                 accessibilityRole="text"
                 accessibilityState={
                   {
@@ -2265,7 +2265,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                     ]
                   }
                 >
-                  Sécurité et mot de passe
+                  profile:rows.securityPassword
                 </Text>
                 <Text
                   style={
@@ -2284,7 +2284,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                     ]
                   }
                 >
-                  Bientôt
+                  common:status.comingSoon
                 </Text>
               </TouchableOpacity>
             </View>
@@ -2303,7 +2303,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                 }
               />
               <TouchableOpacity
-                accessibilityLabel="Confidentialité"
+                accessibilityLabel="profile:rows.privacy"
                 accessibilityRole="text"
                 accessibilityState={
                   {
@@ -2350,7 +2350,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                     ]
                   }
                 >
-                  Confidentialité
+                  profile:rows.privacy
                 </Text>
                 <Text
                   style={
@@ -2369,7 +2369,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                     ]
                   }
                 >
-                  Bientôt
+                  common:status.comingSoon
                 </Text>
               </TouchableOpacity>
             </View>
@@ -2398,7 +2398,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
               ]
             }
           >
-            Préférences
+            profile:sections.preferences
           </Text>
           <View
             style={
@@ -2420,7 +2420,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
           >
             <View>
               <TouchableOpacity
-                accessibilityLabel="Préférences de trajet"
+                accessibilityLabel="profile:rows.ridePrefs"
                 accessibilityRole="text"
                 accessibilityState={
                   {
@@ -2467,7 +2467,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                     ]
                   }
                 >
-                  Préférences de trajet
+                  profile:rows.ridePrefs
                 </Text>
                 <Text
                   style={
@@ -2486,7 +2486,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                     ]
                   }
                 >
-                  Bientôt
+                  common:status.comingSoon
                 </Text>
               </TouchableOpacity>
             </View>
@@ -2505,7 +2505,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                 }
               />
               <TouchableOpacity
-                accessibilityLabel="Langue"
+                accessibilityLabel="profile:rows.language"
                 accessibilityRole="button"
                 accessibilityState={
                   {
@@ -2553,7 +2553,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                     ]
                   }
                 >
-                  Langue
+                  profile:rows.language
                 </Text>
                 <Text
                   style={
@@ -2591,7 +2591,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                 }
               />
               <TouchableOpacity
-                accessibilityLabel="Apparence"
+                accessibilityLabel="profile:rows.appearance"
                 accessibilityRole="button"
                 accessibilityState={
                   {
@@ -2639,7 +2639,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                     ]
                   }
                 >
-                  Apparence
+                  profile:rows.appearance
                 </Text>
                 <Text
                   style={
@@ -2658,14 +2658,14 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                     ]
                   }
                 >
-                  Automatique
+                  settings:appearance.system
                 </Text>
               </TouchableOpacity>
             </View>
           </View>
         </View>
         <TouchableOpacity
-          accessibilityLabel="Déconnexion"
+          accessibilityLabel="profile:logout.accessibility"
           accessibilityRole="button"
           activeOpacity={0.7}
           onPress={[Function]}
@@ -2708,7 +2708,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
               ]
             }
           >
-            Déconnexion
+            profile:logout.cta
           </Text>
         </TouchableOpacity>
       </View>
@@ -2798,7 +2798,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                 ]
               }
             >
-              Se déconnecter ?
+              profile:logout.title
             </Text>
             <Text
               style={
@@ -2817,7 +2817,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                 ]
               }
             >
-              Vous devrez vous reconnecter avec votre numéro de téléphone.
+              profile:logout.description
             </Text>
             <View
               style={
@@ -2862,7 +2862,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                 </Text>
               </Pressable>
               <Pressable
-                accessibilityLabel="Se déconnecter"
+                accessibilityLabel="profile:logout.cta"
                 accessibilityRole="button"
                 accessibilityState={
                   {
@@ -2889,7 +2889,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                     ]
                   }
                 >
-                  Se déconnecter
+                  profile:logout.cta
                 </Text>
               </Pressable>
             </View>
@@ -2992,7 +2992,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
             </Text>
           </View>
           <TouchableOpacity
-            accessibilityLabel="Ajouter une photo de profil"
+            accessibilityLabel="profile:photo.addAria"
             accessibilityRole="button"
             activeOpacity={0.8}
             disabled={false}
@@ -3107,7 +3107,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
             </Text>
           </View>
           <TouchableOpacity
-            accessibilityLabel="Ajoutez une photo de profil"
+            accessibilityLabel="profile:photo.addAria"
             accessibilityRole="button"
             disabled={false}
             onPress={[Function]}
@@ -3136,13 +3136,13 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                 ]
               }
             >
-              Ajoutez une photo de profil
+              profile:photo.addText
             </Text>
           </TouchableOpacity>
         </View>
       </View>
       <TouchableOpacity
-        accessibilityLabel="Rejoignez la communauté Vaya en tant que conducteur"
+        accessibilityLabel="profile:driver.noneAria"
         accessibilityRole="button"
         activeOpacity={0.85}
         onPress={[Function]}
@@ -3216,7 +3216,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
               ]
             }
           >
-            Partagez vos trajets
+            profile:driver.noneTitle
           </Text>
           <Text
             style={
@@ -3235,7 +3235,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
               ]
             }
           >
-            Rejoignez la communauté Vaya.
+            profile:driver.noneDescription
           </Text>
         </View>
         <Ionicons
@@ -3278,7 +3278,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
               ]
             }
           >
-            Identité
+            profile:sections.identity
           </Text>
           <View
             style={
@@ -3300,7 +3300,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
           >
             <View>
               <TouchableOpacity
-                accessibilityLabel="Informations personnelles"
+                accessibilityLabel="profile:rows.personalInfo"
                 accessibilityRole="button"
                 accessibilityState={
                   {
@@ -3348,7 +3348,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                     ]
                   }
                 >
-                  Informations personnelles
+                  profile:rows.personalInfo
                 </Text>
                 <Ionicons
                   accessibilityElementsHidden={true}
@@ -3384,7 +3384,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
               ]
             }
           >
-            Compte
+            profile:sections.account
           </Text>
           <View
             style={
@@ -3406,7 +3406,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
           >
             <View>
               <TouchableOpacity
-                accessibilityLabel="Paiement"
+                accessibilityLabel="profile:rows.payment"
                 accessibilityRole="text"
                 accessibilityState={
                   {
@@ -3453,7 +3453,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                     ]
                   }
                 >
-                  Paiement
+                  profile:rows.payment
                 </Text>
                 <Text
                   style={
@@ -3472,7 +3472,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                     ]
                   }
                 >
-                  Bientôt
+                  common:status.comingSoon
                 </Text>
               </TouchableOpacity>
             </View>
@@ -3491,7 +3491,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                 }
               />
               <TouchableOpacity
-                accessibilityLabel="Notifications"
+                accessibilityLabel="profile:rows.notifications"
                 accessibilityRole="button"
                 accessibilityState={
                   {
@@ -3539,7 +3539,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                     ]
                   }
                 >
-                  Notifications
+                  profile:rows.notifications
                 </Text>
                 <Ionicons
                   accessibilityElementsHidden={true}
@@ -3565,7 +3565,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                 }
               />
               <TouchableOpacity
-                accessibilityLabel="Historique des trajets"
+                accessibilityLabel="profile:rows.history"
                 accessibilityRole="button"
                 accessibilityState={
                   {
@@ -3613,7 +3613,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                     ]
                   }
                 >
-                  Historique des trajets
+                  profile:rows.history
                 </Text>
                 <Ionicons
                   accessibilityElementsHidden={true}
@@ -3649,7 +3649,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
               ]
             }
           >
-            Sécurité
+            profile:sections.security
           </Text>
           <View
             style={
@@ -3671,7 +3671,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
           >
             <View>
               <TouchableOpacity
-                accessibilityLabel="Sécurité et mot de passe"
+                accessibilityLabel="profile:rows.securityPassword"
                 accessibilityRole="text"
                 accessibilityState={
                   {
@@ -3718,7 +3718,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                     ]
                   }
                 >
-                  Sécurité et mot de passe
+                  profile:rows.securityPassword
                 </Text>
                 <Text
                   style={
@@ -3737,7 +3737,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                     ]
                   }
                 >
-                  Bientôt
+                  common:status.comingSoon
                 </Text>
               </TouchableOpacity>
             </View>
@@ -3756,7 +3756,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                 }
               />
               <TouchableOpacity
-                accessibilityLabel="Confidentialité"
+                accessibilityLabel="profile:rows.privacy"
                 accessibilityRole="text"
                 accessibilityState={
                   {
@@ -3803,7 +3803,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                     ]
                   }
                 >
-                  Confidentialité
+                  profile:rows.privacy
                 </Text>
                 <Text
                   style={
@@ -3822,7 +3822,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                     ]
                   }
                 >
-                  Bientôt
+                  common:status.comingSoon
                 </Text>
               </TouchableOpacity>
             </View>
@@ -3851,7 +3851,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
               ]
             }
           >
-            Préférences
+            profile:sections.preferences
           </Text>
           <View
             style={
@@ -3873,7 +3873,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
           >
             <View>
               <TouchableOpacity
-                accessibilityLabel="Préférences de trajet"
+                accessibilityLabel="profile:rows.ridePrefs"
                 accessibilityRole="text"
                 accessibilityState={
                   {
@@ -3920,7 +3920,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                     ]
                   }
                 >
-                  Préférences de trajet
+                  profile:rows.ridePrefs
                 </Text>
                 <Text
                   style={
@@ -3939,7 +3939,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                     ]
                   }
                 >
-                  Bientôt
+                  common:status.comingSoon
                 </Text>
               </TouchableOpacity>
             </View>
@@ -3958,7 +3958,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                 }
               />
               <TouchableOpacity
-                accessibilityLabel="Langue"
+                accessibilityLabel="profile:rows.language"
                 accessibilityRole="button"
                 accessibilityState={
                   {
@@ -4006,7 +4006,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                     ]
                   }
                 >
-                  Langue
+                  profile:rows.language
                 </Text>
                 <Text
                   style={
@@ -4044,7 +4044,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                 }
               />
               <TouchableOpacity
-                accessibilityLabel="Apparence"
+                accessibilityLabel="profile:rows.appearance"
                 accessibilityRole="button"
                 accessibilityState={
                   {
@@ -4092,7 +4092,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                     ]
                   }
                 >
-                  Apparence
+                  profile:rows.appearance
                 </Text>
                 <Text
                   style={
@@ -4111,14 +4111,14 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                     ]
                   }
                 >
-                  Automatique
+                  settings:appearance.system
                 </Text>
               </TouchableOpacity>
             </View>
           </View>
         </View>
         <TouchableOpacity
-          accessibilityLabel="Déconnexion"
+          accessibilityLabel="profile:logout.accessibility"
           accessibilityRole="button"
           activeOpacity={0.7}
           onPress={[Function]}
@@ -4161,7 +4161,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
               ]
             }
           >
-            Déconnexion
+            profile:logout.cta
           </Text>
         </TouchableOpacity>
       </View>
@@ -4251,7 +4251,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                 ]
               }
             >
-              Se déconnecter ?
+              profile:logout.title
             </Text>
             <Text
               style={
@@ -4270,7 +4270,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                 ]
               }
             >
-              Vous devrez vous reconnecter avec votre numéro de téléphone.
+              profile:logout.description
             </Text>
             <View
               style={
@@ -4315,7 +4315,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                 </Text>
               </Pressable>
               <Pressable
-                accessibilityLabel="Se déconnecter"
+                accessibilityLabel="profile:logout.cta"
                 accessibilityRole="button"
                 accessibilityState={
                   {
@@ -4342,7 +4342,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                     ]
                   }
                 >
-                  Se déconnecter
+                  profile:logout.cta
                 </Text>
               </Pressable>
             </View>
@@ -4445,7 +4445,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
             </Text>
           </View>
           <TouchableOpacity
-            accessibilityLabel="Ajouter une photo de profil"
+            accessibilityLabel="profile:photo.addAria"
             accessibilityRole="button"
             activeOpacity={0.8}
             disabled={false}
@@ -4560,7 +4560,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
             </Text>
           </View>
           <TouchableOpacity
-            accessibilityLabel="Ajoutez une photo de profil"
+            accessibilityLabel="profile:photo.addAria"
             accessibilityRole="button"
             disabled={false}
             onPress={[Function]}
@@ -4589,13 +4589,13 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                 ]
               }
             >
-              Ajoutez une photo de profil
+              profile:photo.addText
             </Text>
           </TouchableOpacity>
         </View>
       </View>
       <View
-        accessibilityLabel="Vérification du profil conducteur en cours"
+        accessibilityLabel="profile:driver.pendingAria"
         accessibilityRole="text"
         style={
           [
@@ -4667,7 +4667,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
               ]
             }
           >
-            Vérification en cours
+            profile:driver.pending
           </Text>
           <Text
             style={
@@ -4686,7 +4686,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
               ]
             }
           >
-            Nous vérifions vos documents. Vous pourrez publier dès qu'ils sont validés.
+            profile:driver.pendingDescription
           </Text>
         </View>
       </View>
@@ -4722,7 +4722,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
               ]
             }
           >
-            Identité
+            profile:sections.identity
           </Text>
           <View
             style={
@@ -4744,7 +4744,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
           >
             <View>
               <TouchableOpacity
-                accessibilityLabel="Informations personnelles"
+                accessibilityLabel="profile:rows.personalInfo"
                 accessibilityRole="button"
                 accessibilityState={
                   {
@@ -4792,7 +4792,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                     ]
                   }
                 >
-                  Informations personnelles
+                  profile:rows.personalInfo
                 </Text>
                 <Ionicons
                   accessibilityElementsHidden={true}
@@ -4828,7 +4828,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
               ]
             }
           >
-            Compte
+            profile:sections.account
           </Text>
           <View
             style={
@@ -4850,7 +4850,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
           >
             <View>
               <TouchableOpacity
-                accessibilityLabel="Paiement"
+                accessibilityLabel="profile:rows.payment"
                 accessibilityRole="text"
                 accessibilityState={
                   {
@@ -4897,7 +4897,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                     ]
                   }
                 >
-                  Paiement
+                  profile:rows.payment
                 </Text>
                 <Text
                   style={
@@ -4916,7 +4916,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                     ]
                   }
                 >
-                  Bientôt
+                  common:status.comingSoon
                 </Text>
               </TouchableOpacity>
             </View>
@@ -4935,7 +4935,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                 }
               />
               <TouchableOpacity
-                accessibilityLabel="Notifications"
+                accessibilityLabel="profile:rows.notifications"
                 accessibilityRole="button"
                 accessibilityState={
                   {
@@ -4983,7 +4983,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                     ]
                   }
                 >
-                  Notifications
+                  profile:rows.notifications
                 </Text>
                 <Ionicons
                   accessibilityElementsHidden={true}
@@ -5009,7 +5009,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                 }
               />
               <TouchableOpacity
-                accessibilityLabel="Historique des trajets"
+                accessibilityLabel="profile:rows.history"
                 accessibilityRole="button"
                 accessibilityState={
                   {
@@ -5057,7 +5057,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                     ]
                   }
                 >
-                  Historique des trajets
+                  profile:rows.history
                 </Text>
                 <Ionicons
                   accessibilityElementsHidden={true}
@@ -5093,7 +5093,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
               ]
             }
           >
-            Sécurité
+            profile:sections.security
           </Text>
           <View
             style={
@@ -5115,7 +5115,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
           >
             <View>
               <TouchableOpacity
-                accessibilityLabel="Sécurité et mot de passe"
+                accessibilityLabel="profile:rows.securityPassword"
                 accessibilityRole="text"
                 accessibilityState={
                   {
@@ -5162,7 +5162,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                     ]
                   }
                 >
-                  Sécurité et mot de passe
+                  profile:rows.securityPassword
                 </Text>
                 <Text
                   style={
@@ -5181,7 +5181,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                     ]
                   }
                 >
-                  Bientôt
+                  common:status.comingSoon
                 </Text>
               </TouchableOpacity>
             </View>
@@ -5200,7 +5200,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                 }
               />
               <TouchableOpacity
-                accessibilityLabel="Confidentialité"
+                accessibilityLabel="profile:rows.privacy"
                 accessibilityRole="text"
                 accessibilityState={
                   {
@@ -5247,7 +5247,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                     ]
                   }
                 >
-                  Confidentialité
+                  profile:rows.privacy
                 </Text>
                 <Text
                   style={
@@ -5266,7 +5266,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                     ]
                   }
                 >
-                  Bientôt
+                  common:status.comingSoon
                 </Text>
               </TouchableOpacity>
             </View>
@@ -5295,7 +5295,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
               ]
             }
           >
-            Préférences
+            profile:sections.preferences
           </Text>
           <View
             style={
@@ -5317,7 +5317,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
           >
             <View>
               <TouchableOpacity
-                accessibilityLabel="Préférences de trajet"
+                accessibilityLabel="profile:rows.ridePrefs"
                 accessibilityRole="text"
                 accessibilityState={
                   {
@@ -5364,7 +5364,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                     ]
                   }
                 >
-                  Préférences de trajet
+                  profile:rows.ridePrefs
                 </Text>
                 <Text
                   style={
@@ -5383,7 +5383,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                     ]
                   }
                 >
-                  Bientôt
+                  common:status.comingSoon
                 </Text>
               </TouchableOpacity>
             </View>
@@ -5402,7 +5402,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                 }
               />
               <TouchableOpacity
-                accessibilityLabel="Langue"
+                accessibilityLabel="profile:rows.language"
                 accessibilityRole="button"
                 accessibilityState={
                   {
@@ -5450,7 +5450,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                     ]
                   }
                 >
-                  Langue
+                  profile:rows.language
                 </Text>
                 <Text
                   style={
@@ -5488,7 +5488,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                 }
               />
               <TouchableOpacity
-                accessibilityLabel="Apparence"
+                accessibilityLabel="profile:rows.appearance"
                 accessibilityRole="button"
                 accessibilityState={
                   {
@@ -5536,7 +5536,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                     ]
                   }
                 >
-                  Apparence
+                  profile:rows.appearance
                 </Text>
                 <Text
                   style={
@@ -5555,14 +5555,14 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                     ]
                   }
                 >
-                  Automatique
+                  settings:appearance.system
                 </Text>
               </TouchableOpacity>
             </View>
           </View>
         </View>
         <TouchableOpacity
-          accessibilityLabel="Déconnexion"
+          accessibilityLabel="profile:logout.accessibility"
           accessibilityRole="button"
           activeOpacity={0.7}
           onPress={[Function]}
@@ -5605,7 +5605,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
               ]
             }
           >
-            Déconnexion
+            profile:logout.cta
           </Text>
         </TouchableOpacity>
       </View>
@@ -5695,7 +5695,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                 ]
               }
             >
-              Se déconnecter ?
+              profile:logout.title
             </Text>
             <Text
               style={
@@ -5714,7 +5714,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                 ]
               }
             >
-              Vous devrez vous reconnecter avec votre numéro de téléphone.
+              profile:logout.description
             </Text>
             <View
               style={
@@ -5759,7 +5759,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                 </Text>
               </Pressable>
               <Pressable
-                accessibilityLabel="Se déconnecter"
+                accessibilityLabel="profile:logout.cta"
                 accessibilityRole="button"
                 accessibilityState={
                   {
@@ -5786,7 +5786,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                     ]
                   }
                 >
-                  Se déconnecter
+                  profile:logout.cta
                 </Text>
               </Pressable>
             </View>
@@ -5889,7 +5889,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
             </Text>
           </View>
           <TouchableOpacity
-            accessibilityLabel="Ajouter une photo de profil"
+            accessibilityLabel="profile:photo.addAria"
             accessibilityRole="button"
             activeOpacity={0.8}
             disabled={false}
@@ -6004,7 +6004,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
             </Text>
           </View>
           <TouchableOpacity
-            accessibilityLabel="Ajoutez une photo de profil"
+            accessibilityLabel="profile:photo.addAria"
             accessibilityRole="button"
             disabled={false}
             onPress={[Function]}
@@ -6033,13 +6033,13 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                 ]
               }
             >
-              Ajoutez une photo de profil
+              profile:photo.addText
             </Text>
           </TouchableOpacity>
         </View>
       </View>
       <TouchableOpacity
-        accessibilityLabel="Vérification refusée, reprendre la vérification"
+        accessibilityLabel="profile:driver.rejectedAria"
         accessibilityRole="button"
         activeOpacity={0.85}
         onPress={[Function]}
@@ -6113,7 +6113,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
               ]
             }
           >
-            Vérification refusée
+            profile:driver.rejected
           </Text>
           <Text
             style={
@@ -6132,7 +6132,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
               ]
             }
           >
-            Reprenez la vérification pour publier vos trajets.
+            profile:driver.rejectedDescription
           </Text>
         </View>
         <Ionicons
@@ -6175,7 +6175,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
               ]
             }
           >
-            Identité
+            profile:sections.identity
           </Text>
           <View
             style={
@@ -6197,7 +6197,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
           >
             <View>
               <TouchableOpacity
-                accessibilityLabel="Informations personnelles"
+                accessibilityLabel="profile:rows.personalInfo"
                 accessibilityRole="button"
                 accessibilityState={
                   {
@@ -6245,7 +6245,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                     ]
                   }
                 >
-                  Informations personnelles
+                  profile:rows.personalInfo
                 </Text>
                 <Ionicons
                   accessibilityElementsHidden={true}
@@ -6281,7 +6281,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
               ]
             }
           >
-            Compte
+            profile:sections.account
           </Text>
           <View
             style={
@@ -6303,7 +6303,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
           >
             <View>
               <TouchableOpacity
-                accessibilityLabel="Paiement"
+                accessibilityLabel="profile:rows.payment"
                 accessibilityRole="text"
                 accessibilityState={
                   {
@@ -6350,7 +6350,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                     ]
                   }
                 >
-                  Paiement
+                  profile:rows.payment
                 </Text>
                 <Text
                   style={
@@ -6369,7 +6369,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                     ]
                   }
                 >
-                  Bientôt
+                  common:status.comingSoon
                 </Text>
               </TouchableOpacity>
             </View>
@@ -6388,7 +6388,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                 }
               />
               <TouchableOpacity
-                accessibilityLabel="Notifications"
+                accessibilityLabel="profile:rows.notifications"
                 accessibilityRole="button"
                 accessibilityState={
                   {
@@ -6436,7 +6436,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                     ]
                   }
                 >
-                  Notifications
+                  profile:rows.notifications
                 </Text>
                 <Ionicons
                   accessibilityElementsHidden={true}
@@ -6462,7 +6462,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                 }
               />
               <TouchableOpacity
-                accessibilityLabel="Historique des trajets"
+                accessibilityLabel="profile:rows.history"
                 accessibilityRole="button"
                 accessibilityState={
                   {
@@ -6510,7 +6510,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                     ]
                   }
                 >
-                  Historique des trajets
+                  profile:rows.history
                 </Text>
                 <Ionicons
                   accessibilityElementsHidden={true}
@@ -6546,7 +6546,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
               ]
             }
           >
-            Sécurité
+            profile:sections.security
           </Text>
           <View
             style={
@@ -6568,7 +6568,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
           >
             <View>
               <TouchableOpacity
-                accessibilityLabel="Sécurité et mot de passe"
+                accessibilityLabel="profile:rows.securityPassword"
                 accessibilityRole="text"
                 accessibilityState={
                   {
@@ -6615,7 +6615,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                     ]
                   }
                 >
-                  Sécurité et mot de passe
+                  profile:rows.securityPassword
                 </Text>
                 <Text
                   style={
@@ -6634,7 +6634,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                     ]
                   }
                 >
-                  Bientôt
+                  common:status.comingSoon
                 </Text>
               </TouchableOpacity>
             </View>
@@ -6653,7 +6653,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                 }
               />
               <TouchableOpacity
-                accessibilityLabel="Confidentialité"
+                accessibilityLabel="profile:rows.privacy"
                 accessibilityRole="text"
                 accessibilityState={
                   {
@@ -6700,7 +6700,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                     ]
                   }
                 >
-                  Confidentialité
+                  profile:rows.privacy
                 </Text>
                 <Text
                   style={
@@ -6719,7 +6719,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                     ]
                   }
                 >
-                  Bientôt
+                  common:status.comingSoon
                 </Text>
               </TouchableOpacity>
             </View>
@@ -6748,7 +6748,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
               ]
             }
           >
-            Préférences
+            profile:sections.preferences
           </Text>
           <View
             style={
@@ -6770,7 +6770,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
           >
             <View>
               <TouchableOpacity
-                accessibilityLabel="Préférences de trajet"
+                accessibilityLabel="profile:rows.ridePrefs"
                 accessibilityRole="text"
                 accessibilityState={
                   {
@@ -6817,7 +6817,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                     ]
                   }
                 >
-                  Préférences de trajet
+                  profile:rows.ridePrefs
                 </Text>
                 <Text
                   style={
@@ -6836,7 +6836,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                     ]
                   }
                 >
-                  Bientôt
+                  common:status.comingSoon
                 </Text>
               </TouchableOpacity>
             </View>
@@ -6855,7 +6855,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                 }
               />
               <TouchableOpacity
-                accessibilityLabel="Langue"
+                accessibilityLabel="profile:rows.language"
                 accessibilityRole="button"
                 accessibilityState={
                   {
@@ -6903,7 +6903,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                     ]
                   }
                 >
-                  Langue
+                  profile:rows.language
                 </Text>
                 <Text
                   style={
@@ -6941,7 +6941,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                 }
               />
               <TouchableOpacity
-                accessibilityLabel="Apparence"
+                accessibilityLabel="profile:rows.appearance"
                 accessibilityRole="button"
                 accessibilityState={
                   {
@@ -6989,7 +6989,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                     ]
                   }
                 >
-                  Apparence
+                  profile:rows.appearance
                 </Text>
                 <Text
                   style={
@@ -7008,14 +7008,14 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                     ]
                   }
                 >
-                  Automatique
+                  settings:appearance.system
                 </Text>
               </TouchableOpacity>
             </View>
           </View>
         </View>
         <TouchableOpacity
-          accessibilityLabel="Déconnexion"
+          accessibilityLabel="profile:logout.accessibility"
           accessibilityRole="button"
           activeOpacity={0.7}
           onPress={[Function]}
@@ -7058,7 +7058,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
               ]
             }
           >
-            Déconnexion
+            profile:logout.cta
           </Text>
         </TouchableOpacity>
       </View>
@@ -7148,7 +7148,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                 ]
               }
             >
-              Se déconnecter ?
+              profile:logout.title
             </Text>
             <Text
               style={
@@ -7167,7 +7167,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                 ]
               }
             >
-              Vous devrez vous reconnecter avec votre numéro de téléphone.
+              profile:logout.description
             </Text>
             <View
               style={
@@ -7212,7 +7212,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                 </Text>
               </Pressable>
               <Pressable
-                accessibilityLabel="Se déconnecter"
+                accessibilityLabel="profile:logout.cta"
                 accessibilityRole="button"
                 accessibilityState={
                   {
@@ -7239,7 +7239,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                     ]
                   }
                 >
-                  Se déconnecter
+                  profile:logout.cta
                 </Text>
               </Pressable>
             </View>

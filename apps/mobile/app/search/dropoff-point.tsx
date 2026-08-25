@@ -4,6 +4,7 @@ import { Marker, Polyline } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { skipToken } from '@reduxjs/toolkit/query/react';
+import { useTranslation } from 'react-i18next';
 import {
   Text,
   Button,
@@ -40,6 +41,7 @@ import { defaultStopId, rankedPosition } from '../../src/features/pickup-selecti
 export default function DropoffPointScreen(): React.JSX.Element {
   const { rideId, driverUserId } = useLocalSearchParams<{ rideId: string; driverUserId: string }>();
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation(['search', 'common', 'booking']);
   const dispatch = useAppDispatch();
 
   const origin = useAppSelector((s) => s.search.origin);
@@ -126,16 +128,16 @@ export default function DropoffPointScreen(): React.JSX.Element {
           hitSlop={12}
           style={[styles.backBtn, styles.backBtnStandalone]}
           accessibilityRole="button"
-          accessibilityLabel="Retour"
+          accessibilityLabel={t('common:actions.back')}
         >
           <Ionicons name="chevron-back" size={24} color={colors.gray900} />
         </TouchableOpacity>
         <View style={styles.emptyWrap}>
           <EmptyState
             icon={<Ionicons name="flag-outline" size={40} color={colors.gray400} />}
-            title="Aucun point de dépose accessible"
-            description="Aucun arrêt de ce trajet n'est assez proche de votre destination pour être rejoint à pied. Essayez un autre trajet ou ajustez votre recherche."
-            actionLabel="Retour à la recherche"
+            title={t('search:dropoffPoint.noDropoff')}
+            description={t('search:dropoffPoint.noDropoffDesc')}
+            actionLabel={t('search:pickupPoint.backToSearch')}
             onAction={() => router.back()}
           />
         </View>
@@ -181,7 +183,7 @@ export default function DropoffPointScreen(): React.JSX.Element {
           hitSlop={12}
           style={styles.backBtn}
           accessibilityRole="button"
-          accessibilityLabel="Retour"
+          accessibilityLabel={t('common:actions.back')}
         >
           <Ionicons name="chevron-back" size={24} color={colors.gray900} />
         </TouchableOpacity>
@@ -214,7 +216,7 @@ export default function DropoffPointScreen(): React.JSX.Element {
           </TouchableOpacity>
         ) : null}
         <Button
-          label="Confirmer ce point de dépose"
+          label={t('search:dropoffPoint.confirmDropoff')}
           size="lg"
           onPress={confirm}
           disabled={!selectedStop}
@@ -236,7 +238,7 @@ export default function DropoffPointScreen(): React.JSX.Element {
               Ce point a été validé par le conducteur comme arrêt sur son trajet.
             </Text>
             <Button
-              label={detailStop.stopId === selectedStopId ? 'Point sélectionné' : 'Choisir ce point'}
+              label={detailStop.stopId === selectedStopId ? t('search:dropoffPoint.selected') : t('search:dropoffPoint.choosePoint')}
               variant={detailStop.stopId === selectedStopId ? 'outline' : 'primary'}
               size="lg"
               disabled={detailStop.stopId === selectedStopId}

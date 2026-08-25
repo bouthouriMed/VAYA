@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Animated, View, StyleSheet, Easing, AccessibilityInfo, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { Text, Icon, useAppTheme, spacing, radii, colors } from '@vaya/design-system';
 import { router, useLocalSearchParams } from 'expo-router';
 
@@ -27,6 +28,7 @@ const RING_SIZE = 84;
 export default function VerificationConfirmationScreen(): React.JSX.Element {
   const insets = useSafeAreaInsets();
   const { colors: theme } = useAppTheme();
+  const { t } = useTranslation('driver');
   const { originLabel, destinationLabel, status } = useLocalSearchParams<{
     originLabel?: string;
     destinationLabel?: string;
@@ -100,17 +102,16 @@ export default function VerificationConfirmationScreen(): React.JSX.Element {
         </View>
 
         <Text variant="headlineDisplay" color={theme.ink} align="center" style={styles.title}>
-          {failed ? 'Profil vérifié' : "C'est presque prêt !"}
+          {failed ? t('onboarding.confirmation.errorTitle') : t('onboarding.confirmation.successTitle')}
         </Text>
         <Text variant="body" color={theme.inkMuted} align="center" style={styles.subtitle}>
-          Votre profil conducteur vient d&apos;être vérifié.{' '}
           {failed
             ? originLabel && destinationLabel
-              ? `Votre trajet de ${originLabel} vers ${destinationLabel} n'a pas pu être publié automatiquement — retrouvez-le en brouillon dans Mes Trajets.`
-              : "Votre trajet n'a pas pu être publié automatiquement — retrouvez-le en brouillon dans Mes Trajets."
+              ? `${t('onboarding.confirmation.errorDescription')} ${t('onboarding.confirmation.publishError')}`
+              : t('onboarding.confirmation.errorDescription')
             : originLabel && destinationLabel
-              ? `Votre trajet de ${originLabel} vers ${destinationLabel} vient d'être publié.`
-              : 'Vous pouvez maintenant publier des trajets.'}
+              ? `${t('onboarding.confirmation.publishSuccess')} ${t('onboarding.confirmation.successDescription')}`
+              : t('onboarding.confirmation.successDescription')}
         </Text>
       </View>
 
@@ -120,11 +121,11 @@ export default function VerificationConfirmationScreen(): React.JSX.Element {
           onPress={() => router.replace('/(tabs)/trips')}
           activeOpacity={0.85}
           accessibilityRole="button"
-          accessibilityLabel="Aller à Mes Trajets"
+          accessibilityLabel={t('onboarding.confirmation.successCta')}
         >
           <Icon name="time-outline" size="sm" color={theme.onInk} />
           <Text variant="label" color={theme.onInk}>
-            Aller à Mes Trajets
+            {t('onboarding.confirmation.successCta')}
           </Text>
         </TouchableOpacity>
       </View>
