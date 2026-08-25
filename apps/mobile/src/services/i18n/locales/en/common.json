@@ -20,12 +20,15 @@
     "call": "Call",
     "message": "Message",
     "search": "Search",
-    "swap": "Swap origin and destination"
+    "swap": "Swap origin and destination",
+    "accept": "Accept",
+    "decline": "Decline"
   },
   "status": {
     "loading": "Loading…",
     "comingSoon": "Coming soon",
-    "unavailable": "Unavailable"
+    "unavailable": "Unavailable",
+    "unread": "Unread"
   },
   "terms": {
     "ride_one": "Ride",
@@ -73,7 +76,8 @@
   "time": {
     "now": "Now",
     "today": "Today",
-    "tomorrow": "Tomorrow"
+    "tomorrow": "Tomorrow",
+    "yesterday": "Yesterday"
   },
   "permissions": {
     "required": "Permission required",

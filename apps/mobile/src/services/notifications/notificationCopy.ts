@@ -76,8 +76,8 @@ export function notificationDescription(
   switch (type) {
     case 'booking_requested': {
       const name = typeof payload.riderName === 'string' ? payload.riderName : undefined;
-      const seats = typeof payload.seatsRequested === 'number' ? payload.seatsRequested : undefined;
-      return t('notifications:descriptions.booking_requested', { name, seats });
+      const count = typeof payload.seatsRequested === 'number' ? payload.seatsRequested : 1;
+      return t('notifications:descriptions.booking_requested', { name, count });
     }
     case 'booking_accepted':
       return t('notifications:descriptions.booking_accepted', { name: typeof payload.driverName === 'string' ? payload.driverName : undefined });

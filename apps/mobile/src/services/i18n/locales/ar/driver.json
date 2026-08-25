@@ -158,27 +158,36 @@
       "cannotCancel": "لا يمكن إلغاء رحلة بها حجوزات نشطة.",
       "cancelRide": "إلغاء هذه الرحلة",
       "doNotCancel": "لا تلغِ",
-      "confirmCancel": "تأكيد إلغاء الرحلة"
+      "confirmCancel": "تأكيد إلغاء الرحلة",
+      "cancelError": "تعذر إلغاء هذه الرحلة. حاول مرة أخرى.",
+      "cancelWarning": "سيؤدي هذا إلى إلغاء الرحلة لكل راكب حجز مقعدًا بالفعل."
     },
     "requestsSheet": {
       "title": "طلبات الحجز",
       "loadError": "تعذر تحميل الطلبات",
+      "loadErrorDescription": "تحقق من اتصالك وأعد المحاولة.",
       "empty": "لا توجد طلبات",
       "emptyAccepted": "لا توجد طلبات مقبولة",
       "sectionPending": "جديدة",
       "sectionAccepted": "تمت معالجتها",
+      "toAnswer": "للرد ({{count}})",
+      "answered": "تمت معالجتها",
+      "allAnswered": "تمت معالجة جميع الطلبات",
       "decline": "رفض",
       "accept": "قبول",
       "acceptError": "تعذر القبول. حاول مرة أخرى.",
       "declineError": "تعذر الرفض. حاول مرة أخرى.",
-      "retry": "إعادة المحاولة"
+      "retry": "إعادة المحاولة",
+      "seatsAndPickup": "{{seatLabel}} · {{pickup}}",
+      "manageLabel": "إدارة حجز {{name}}"
     },
     "bookingDetail": {
       "passenger": "راكب",
       "destination": "وجهة الرحلة",
       "message": "رسالة",
       "reportNoShow": "الإبلاغ عن عدم الحضور",
-      "cancelBooking": "إلغاء هذا الحجز"
+      "cancelBooking": "إلغاء هذا الحجز",
+      "seatsAndPrice": "{{seatLabel}} · {{price}} د.ت"
     }
   }
 }

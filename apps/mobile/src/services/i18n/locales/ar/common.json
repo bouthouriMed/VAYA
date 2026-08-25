@@ -20,12 +20,15 @@
     "call": "اتصال",
     "message": "رسالة",
     "search": "بحث",
-    "swap": "تبديل نقطة الانطلاق والوجهة"
+    "swap": "تبديل نقطة الانطلاق والوجهة",
+    "accept": "قبول",
+    "decline": "رفض"
   },
   "status": {
     "loading": "جارٍ التحميل…",
     "comingSoon": "قريبًا",
-    "unavailable": "غير متاح"
+    "unavailable": "غير متاح",
+    "unread": "غير مقروءة"
   },
   "terms": {
     "ride_zero": "لا رحلات",
@@ -97,7 +100,8 @@
   "time": {
     "now": "الآن",
     "today": "اليوم",
-    "tomorrow": "غدًا"
+    "tomorrow": "غدًا",
+    "yesterday": "أمس"
   },
   "permissions": {
     "required": "إذن مطلوب",

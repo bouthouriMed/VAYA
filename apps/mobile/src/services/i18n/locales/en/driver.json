@@ -158,27 +158,36 @@
       "cannotCancel": "Cannot cancel a ride with active bookings.",
       "cancelRide": "Cancel this ride",
       "doNotCancel": "Don't cancel",
-      "confirmCancel": "Confirm ride cancellation"
+      "confirmCancel": "Confirm ride cancellation",
+      "cancelError": "Unable to cancel this ride. Try again.",
+      "cancelWarning": "This will cancel the ride for every passenger who already booked a seat."
     },
     "requestsSheet": {
       "title": "Booking requests",
       "loadError": "Unable to load requests",
+      "loadErrorDescription": "Check your connection and try again.",
       "empty": "No requests",
       "emptyAccepted": "No accepted requests",
       "sectionPending": "New",
       "sectionAccepted": "Already processed",
+      "toAnswer": "To answer ({{count}})",
+      "answered": "Already processed",
+      "allAnswered": "All requests answered",
       "decline": "Decline",
       "accept": "Accept",
       "acceptError": "Unable to accept. Try again.",
       "declineError": "Unable to decline. Try again.",
-      "retry": "Retry"
+      "retry": "Retry",
+      "seatsAndPickup": "{{seatLabel}} · {{pickup}}",
+      "manageLabel": "Manage {{name}}'s booking"
     },
     "bookingDetail": {
       "passenger": "Passenger",
       "destination": "Trip destination",
       "message": "Message",
       "reportNoShow": "Report no-show",
-      "cancelBooking": "Cancel this booking"
+      "cancelBooking": "Cancel this booking",
+      "seatsAndPrice": "{{seatLabel}} · {{price}} DT"
     }
   }
 }

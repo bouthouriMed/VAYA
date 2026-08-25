@@ -5,6 +5,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { router, Redirect } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
+import type { SupportedLocale } from '@vaya/config';
+import { formatDate, formatTime } from '../../src/utils/localeFormat';
 import {
   Text,
   Icon,
@@ -35,20 +37,20 @@ import {
 import { resolveNotificationDeepLink } from '../../src/services/notifications/deepLink';
 import { trackEvent } from '../../src/services/analytics/analytics';
 
-function formatWhen(iso: string, t: (key: string) => string): string {
+function formatWhen(iso: string, t: (key: string) => string, locale: SupportedLocale): string {
   const date = new Date(iso);
   const now = new Date();
   const isToday = date.toDateString() === now.toDateString();
-  const time = date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  const time = formatTime(date, locale);
   if (isToday) return `${t('common:time.today')}, ${time}`;
   const yesterday = new Date(now.getTime() - 24 * 60 * 60_000);
   if (date.toDateString() === yesterday.toDateString()) return `${t('common:time.yesterday')}, ${time}`;
-  return `${date.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })} · ${time}`;
+  return `${formatDate(date, locale, { weekday: 'short', day: 'numeric', month: 'short' })} · ${time}`;
 }
 
-function formatPickupTime(iso?: string): string | undefined {
+function formatPickupTime(iso: string | undefined, locale: SupportedLocale): string | undefined {
   if (!iso) return undefined;
-  return new Date(iso).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  return formatTime(new Date(iso), locale);
 }
 
 /**
@@ -88,10 +90,12 @@ function DriverRequestCard({
   notification,
   theme,
   t,
+  locale,
 }: {
   notification: AppNotification;
   theme: ReturnType<typeof useAppTheme>['colors'];
   t: (key: string, params?: Record<string, unknown>) => string;
+  locale: SupportedLocale;
 }): React.JSX.Element {
   const info = readNotificationCounterpartPayload(notification.type, notification.payload);
   const [acceptBooking, acceptState] = useAcceptBookingMutation();
@@ -128,7 +132,7 @@ function DriverRequestCard({
 
   const isBusy = acceptState.isLoading || declineState.isLoading;
   const hasRoute = Boolean(info.originLabel && info.destinationLabel);
-  const pickupTime = formatPickupTime(info.departureAt);
+  const pickupTime = formatPickupTime(info.departureAt, locale);
 
   return (
     <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
@@ -183,7 +187,7 @@ function DriverRequestCard({
 
         <View style={styles.metaRow}>
           <Badge
-            label={`${info.seatsRequested ?? 1} ${(info.seatsRequested ?? 1) > 1 ? t('common:status.seats_plural') : t('common:status.seats_singular')}`}
+            label={t('common:terms.seat', { count: info.seatsRequested ?? 1 })}
             variant="default"
             theme={theme}
           />
@@ -239,7 +243,7 @@ function DriverRequestCard({
       )}
 
       <Text variant="caption" color={theme.inkFaint} style={styles.timestamp}>
-        {formatWhen(notification.createdAt, t)}
+        {formatWhen(notification.createdAt, t, locale)}
       </Text>
     </View>
   );
@@ -257,11 +261,13 @@ function StatusCard({
   theme,
   onOpen,
   t,
+  locale,
 }: {
   notification: AppNotification;
   theme: ReturnType<typeof useAppTheme>['colors'];
   onOpen: (notification: AppNotification) => void;
   t: (key: string, params?: Record<string, unknown>) => string;
+  locale: SupportedLocale;
 }): React.JSX.Element {
   const meta = notificationTypeMeta(notification.type, t as TFunction);
   const tone = toneColors(notificationTone(notification.type), theme);
@@ -295,7 +301,7 @@ function StatusCard({
             {notificationDescription(notification.type, notification.payload, t as TFunction)}
           </Text>
           <Text variant="caption" color={theme.inkFaint} style={styles.timestamp}>
-            {formatWhen(notification.createdAt, t)}
+            {formatWhen(notification.createdAt, t, locale)}
           </Text>
         </View>
       </View>
@@ -323,7 +329,8 @@ function StatusCard({
 export default function NotificationsScreen(): React.JSX.Element {
   const insets = useSafeAreaInsets();
   const { colors: theme } = useAppTheme();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const locale = i18n.language as SupportedLocale;
   const accessToken = useAppSelector((s) => s.auth.accessToken);
   const { data: notifications, isLoading } = useListNotificationsQuery(undefined, {
     skip: !accessToken,
@@ -368,7 +375,7 @@ export default function NotificationsScreen(): React.JSX.Element {
           </Text>
           {unreadCount > 0 ? (
             <Text variant="bodySmall" color={theme.inkMuted}>
-              {unreadCount} {unreadCount > 1 ? t('common:status.unread_plural') : t('common:status.unread_singular')}
+              {t('notifications:inbox.unread', { count: unreadCount })}
             </Text>
           ) : null}
         </View>
@@ -393,7 +400,7 @@ export default function NotificationsScreen(): React.JSX.Element {
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.list}>
           {notifications.map((notification) =>
             notification.type === 'booking_requested' ? (
-              <DriverRequestCard key={notification.id} notification={notification} theme={theme} t={t} />
+              <DriverRequestCard key={notification.id} notification={notification} theme={theme} t={t} locale={locale} />
             ) : (
               <StatusCard
                 key={notification.id}
@@ -401,6 +408,7 @@ export default function NotificationsScreen(): React.JSX.Element {
                 theme={theme}
                 onOpen={handleOpen}
                 t={t}
+                locale={locale}
               />
             ),
           )}

@@ -37,14 +37,14 @@ type BadgeVariant = 'default' | 'success' | 'warning' | 'error' | 'info';
 
 function getBookingStatus(t: (key: string) => string, status: Booking['status']): { label: string; variant: BadgeVariant } {
   const statusMap: Record<Booking['status'], { key: string; variant: BadgeVariant }> = {
-    pending: { key: 'booking.status_pending', variant: 'warning' },
-    accepted: { key: 'booking.status_accepted', variant: 'success' },
-    declined: { key: 'booking.status_declined', variant: 'error' },
-    cancelled_by_rider: { key: 'booking.status_cancelled_by_rider', variant: 'default' },
-    cancelled_by_driver: { key: 'booking.status_cancelled_by_driver', variant: 'error' },
-    expired: { key: 'booking.status_expired', variant: 'default' },
-    completed: { key: 'booking.status_completed', variant: 'info' },
-    no_show: { key: 'booking.status_no_show', variant: 'error' },
+    pending: { key: 'booking:status_pending', variant: 'warning' },
+    accepted: { key: 'booking:status_accepted', variant: 'success' },
+    declined: { key: 'booking:status_declined', variant: 'error' },
+    cancelled_by_rider: { key: 'booking:status_cancelled_by_rider', variant: 'default' },
+    cancelled_by_driver: { key: 'booking:status_cancelled_by_driver', variant: 'error' },
+    expired: { key: 'booking:status_expired', variant: 'default' },
+    completed: { key: 'booking:status_completed', variant: 'info' },
+    no_show: { key: 'booking:status_no_show', variant: 'error' },
   };
   const { key, variant } = statusMap[status];
   return { label: t(key), variant };
@@ -52,12 +52,12 @@ function getBookingStatus(t: (key: string) => string, status: Booking['status'])
 
 function getRideStatus(t: (key: string) => string, status: Ride['status']): { label: string; variant: BadgeVariant } {
   const statusMap: Record<Ride['status'], { key: string; variant: BadgeVariant }> = {
-    draft: { key: 'booking.status_draft', variant: 'default' },
-    published: { key: 'booking.status_published', variant: 'success' },
-    full: { key: 'booking.status_full', variant: 'info' },
-    in_progress: { key: 'booking.status_in_progress', variant: 'warning' },
-    completed: { key: 'booking.status_completed', variant: 'info' },
-    cancelled: { key: 'booking.status_cancelled_by_driver', variant: 'error' },
+    draft: { key: 'booking:status_draft', variant: 'default' },
+    published: { key: 'booking:status_published', variant: 'success' },
+    full: { key: 'booking:status_full', variant: 'info' },
+    in_progress: { key: 'booking:status_in_progress', variant: 'warning' },
+    completed: { key: 'booking:status_completed', variant: 'info' },
+    cancelled: { key: 'booking:status_cancelled_by_driver', variant: 'error' },
   };
   const { key, variant } = statusMap[status];
   return { label: t(key), variant };
@@ -488,7 +488,7 @@ export default function TripsScreen(): React.JSX.Element {
                 {pastBookings.length > 0 ? (
                   <>
                     <Text variant="label" color={theme.inkMuted} style={[styles.sectionHeading, styles.pastHeading]}>
-                      {t('booking.filters.past')}
+                      {t('booking:filters.past')}
                     </Text>
                     {pastBookings.map((booking) => (
                       <TripCard

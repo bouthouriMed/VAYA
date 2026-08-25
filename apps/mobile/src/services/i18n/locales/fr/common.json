@@ -20,12 +20,15 @@
     "call": "Appeler",
     "message": "Message",
     "search": "Rechercher",
-    "swap": "Inverser départ et arrivée"
+    "swap": "Inverser départ et arrivée",
+    "accept": "Accepter",
+    "decline": "Refuser"
   },
   "status": {
     "loading": "Chargement…",
     "comingSoon": "Bientôt disponible",
-    "unavailable": "Indisponible"
+    "unavailable": "Indisponible",
+    "unread": "Non lu"
   },
   "terms": {
     "ride_one": "Trajet",
@@ -73,7 +76,8 @@
   "time": {
     "now": "Maintenant",
     "today": "Aujourd'hui",
-    "tomorrow": "Demain"
+    "tomorrow": "Demain",
+    "yesterday": "Hier"
   },
   "permissions": {
     "required": "Autorisation requise",

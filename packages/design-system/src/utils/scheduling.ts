@@ -25,20 +25,38 @@ export function isSameDay(a: Date, b: Date): boolean {
   );
 }
 
-/** "HH:MM" in the app's one supported locale (matches the formatting
- *  already used across trips.tsx/notifications/conversationHelpers). */
-export function formatTime(date: Date): string {
-  return date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+/** "HH:MM" in the given BCP-47 locale tag — defaults to the app's original
+ *  fr-FR behavior so any caller that hasn't been threaded a real locale yet
+ *  keeps working unchanged. Callers should pass the live app locale (see
+ *  `apps/mobile/src/utils/localeFormat.ts`'s `INTL_TAGS`) so this never
+ *  silently renders French for an English/Arabic session. */
+export function formatTime(date: Date, locale = 'fr-FR'): string {
+  return date.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
 }
 
+export interface DepartureLabelWords {
+  today: string;
+  tomorrow: string;
+}
+
+const DEFAULT_DEPARTURE_WORDS: DepartureLabelWords = { today: "Aujourd'hui", tomorrow: 'Demain' };
+
 /** "Aujourd'hui, 14:30" / "Demain, 09:00" / "mer. 21 août, 18:15" — the
- *  label shown on a screen's "when" trigger field once a value is chosen. */
-export function formatDepartureLabel(date: Date, now: Date = new Date()): string {
-  const time = formatTime(date);
-  if (isSameDay(date, now)) return `Aujourd'hui, ${time}`;
+ *  label shown on a screen's "when" trigger field once a value is chosen.
+ *  `words` supplies the translated "today"/"tomorrow" strings — this module
+ *  stays translation-agnostic (no i18n dependency), so the caller passes
+ *  its own already-translated copy in. */
+export function formatDepartureLabel(
+  date: Date,
+  now: Date = new Date(),
+  locale = 'fr-FR',
+  words: DepartureLabelWords = DEFAULT_DEPARTURE_WORDS,
+): string {
+  const time = formatTime(date, locale);
+  if (isSameDay(date, now)) return `${words.today}, ${time}`;
   const tomorrow = new Date(now.getTime() + DAY_MS);
-  if (isSameDay(date, tomorrow)) return `Demain, ${time}`;
-  const day = date.toLocaleDateString('fr-FR', {
+  if (isSameDay(date, tomorrow)) return `${words.tomorrow}, ${time}`;
+  const day = date.toLocaleDateString(locale, {
     weekday: 'short',
     day: 'numeric',
     month: 'short',
@@ -47,16 +65,22 @@ export function formatDepartureLabel(date: Date, now: Date = new Date()): string
 }
 
 /** The next `count` days starting today, each labeled for a day-picker chip
- *  row ("Aujourd'hui" / "Demain" / "mer. 21"). */
-export function buildDayOptions(now: Date = new Date(), count = 14): DayOption[] {
+ *  row ("Aujourd'hui" / "Demain" / "mer. 21"). `words` supplies the
+ *  translated "today"/"tomorrow" strings (see `formatDepartureLabel`). */
+export function buildDayOptions(
+  now: Date = new Date(),
+  count = 14,
+  locale = 'fr-FR',
+  words: DepartureLabelWords = DEFAULT_DEPARTURE_WORDS,
+): DayOption[] {
   const today = startOfDay(now);
   return Array.from({ length: count }, (_, i) => {
     const date = new Date(today.getTime() + i * DAY_MS);
-    if (i === 0) return { date, label: "Aujourd'hui" };
-    if (i === 1) return { date, label: 'Demain' };
+    if (i === 0) return { date, label: words.today };
+    if (i === 1) return { date, label: words.tomorrow };
     return {
       date,
-      label: date.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric' }),
+      label: date.toLocaleDateString(locale, { weekday: 'short', day: 'numeric' }),
     };
   });
 }
@@ -134,20 +158,20 @@ export function buildMonthGrid(anchor: Date, now: Date = new Date()): MonthGridC
 }
 
 /** "novembre 2023" — the calendar grid's month/year heading. */
-export function formatMonthLabel(date: Date): string {
-  const label = date.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+export function formatMonthLabel(date: Date, locale = 'fr-FR'): string {
+  const label = date.toLocaleDateString(locale, { month: 'long', year: 'numeric' });
   return label.charAt(0).toUpperCase() + label.slice(1);
 }
 
 /** "novembre" — month alone, for the stacked month-over-year heading. */
-export function formatMonthName(date: Date): string {
-  const label = date.toLocaleDateString('fr-FR', { month: 'long' });
+export function formatMonthName(date: Date, locale = 'fr-FR'): string {
+  const label = date.toLocaleDateString(locale, { month: 'long' });
   return label.charAt(0).toUpperCase() + label.slice(1);
 }
 
 /** "2023" — year alone, for the stacked month-over-year heading. */
-export function formatYearLabel(date: Date): string {
-  return date.toLocaleDateString('fr-FR', { year: 'numeric' });
+export function formatYearLabel(date: Date, locale = 'fr-FR'): string {
+  return date.toLocaleDateString(locale, { year: 'numeric' });
 }
 
 /** Picks the first day in `days` that still has at least one time slot —

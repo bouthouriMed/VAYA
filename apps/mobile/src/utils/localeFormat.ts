@@ -16,6 +16,13 @@ function tag(locale: SupportedLocale): string {
   return INTL_TAGS[locale];
 }
 
+/** Public BCP-47 accessor for callers (design-system primitives, mostly)
+ *  that need the raw `Intl`-ready tag rather than one of this file's own
+ *  formatting functions — e.g. `DateCalendarSheet`'s `locale` prop. */
+export function toIntlTag(locale: SupportedLocale): string {
+  return tag(locale);
+}
+
 /** VAYA's business currency is always Tunisian Dinar regardless of display
  *  language — this must never be inferred from the UI locale. `Intl`'s
  *  built-in "TND" currency formatting renders inconsistently (and, on some

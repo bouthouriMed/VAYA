@@ -114,7 +114,7 @@ export function RideRequestsSheet({
                           {request.rider?.fullName ?? t('booking:passenger')}
                         </Text>
                         <Text variant="caption" color={theme.inkMuted} numberOfLines={1}>
-                          {t('driver:rides.requestsSheet.seatsAndPickup', { seats: request.seatsRequested, seatLabel: request.seatsRequested > 1 ? t('common:status.seats_plural') : t('common:status.seats_singular'), pickup: request.pickupLabel })}
+                          {t('driver:rides.requestsSheet.seatsAndPickup', { seatLabel: t('common:terms.seat', { count: request.seatsRequested }), pickup: request.pickupLabel })}
                         </Text>
                       </View>
                     </View>
@@ -150,7 +150,7 @@ export function RideRequestsSheet({
                   {t('driver:rides.requestsSheet.answered')}
                 </Text>
                 {answered.map((request) => {
-                  const requestStatus = t(`common:status.${request.status}`);
+                  const requestStatus = t(`booking:status_${request.status}`);
                   const manageable = request.status === 'accepted' && Boolean(onManageBooking);
                   return (
                     <TouchableOpacity
@@ -177,7 +177,7 @@ export function RideRequestsSheet({
                           {request.rider?.fullName ?? t('booking:passenger')}
                         </Text>
                         <Text variant="caption" color={theme.inkMuted}>
-                          {t('driver:rides.requestsSheet.seatsCount', { count: request.seatsRequested, seatLabel: request.seatsRequested > 1 ? t('common:status.seats_plural') : t('common:status.seats_singular') })}
+                          {t('common:terms.seat', { count: request.seatsRequested })}
                         </Text>
                       </View>
                       <Badge label={requestStatus} variant={request.status === 'accepted' ? 'success' : request.status === 'declined' || request.status === 'cancelled_by_driver' || request.status === 'no_show' ? 'error' : request.status === 'pending' ? 'warning' : 'default'} />

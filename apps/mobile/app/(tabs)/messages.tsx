@@ -183,10 +183,10 @@ export default function MessagesScreen(): React.JSX.Element {
   const accessToken = useAppSelector((s) => s.auth.accessToken);
 
   const FILTERS: { key: InboxFilter; label: string }[] = [
-    { key: 'all', label: t('booking.filters.all') },
-    { key: 'upcoming', label: t('booking.filters.upcoming') },
-    { key: 'active', label: t('booking.filters.active') },
-    { key: 'past', label: t('booking.filters.past') },
+    { key: 'all', label: t('booking:filters.all') },
+    { key: 'upcoming', label: t('booking:filters.upcoming') },
+    { key: 'active', label: t('booking:filters.active') },
+    { key: 'past', label: t('booking:filters.past') },
   ];
 
   const [filter, setFilter] = useState<InboxFilter>('all');

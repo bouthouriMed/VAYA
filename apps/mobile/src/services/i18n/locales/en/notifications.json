@@ -4,32 +4,42 @@
     "empty": "No notifications",
     "emptyDescription": "You'll see your notifications here.",
     "unread_one": "{{count}} unread",
-    "unread_other": "{{count}} unread"
+    "unread_other": "{{count}} unread",
+    "viewDetails": "View details"
   },
   "events": {
-    "booking_created": "New booking request",
+    "booking_requested": "New booking request",
     "booking_accepted": "Booking confirmed",
     "booking_declined": "Booking declined",
     "booking_cancelled": "Booking cancelled",
-    "booking_expired": "Booking expired",
-    "ride_published": "Ride published",
-    "ride_cancelled": "Ride cancelled",
+    "booking_no_show_reported": "No-show reported",
+    "trip_driver_approaching": "Your driver is arriving",
+    "trip_completed": "Trip completed",
     "message_received": "New message",
-    "rating_received": "New rating",
-    "no_show_reported": "No-show reported",
-    "recurring_proactive_match": "Ride suggestion"
+    "recurring_pattern_detected": "We noticed a pattern",
+    "recurring_proactive_match": "Ride suggestion",
+    "demand_signal_matched": "A ride just became available",
+    "fallback": "Notification"
   },
   "descriptions": {
-    "booking_created": "{{name}} wants to join your ride from {{origin}} to {{destination}}.",
-    "booking_accepted": "Your booking for the ride from {{origin}} to {{destination}} has been confirmed.",
-    "booking_declined": "Your booking for the ride from {{origin}} to {{destination}} has been declined.",
-    "booking_cancelled": "The ride from {{origin}} to {{destination}} has been cancelled.",
-    "booking_expired": "Your booking request for the ride from {{origin}} to {{destination}} has expired.",
-    "ride_published": "Your ride from {{origin}} to {{destination}} is now visible to passengers.",
-    "ride_cancelled": "The ride from {{origin}} to {{destination}} has been cancelled by the driver.",
+    "booking_requested_one": "{{name}} wants to book {{count}} seat on your ride.",
+    "booking_requested_other": "{{name}} wants to book {{count}} seats on your ride.",
+    "booking_accepted": "Your booking with {{name}} has been confirmed.",
+    "booking_declined": "{{name}} wasn't able to accept your booking this time.",
+    "booking_cancelled": "This ride has been cancelled.",
+    "booking_no_show_reported": "A no-show was reported for one of your trips.",
+    "trip_driver_approaching": "{{name}} is almost at your pickup point.",
+    "trip_completed": "Your trip has ended. Don't forget to rate it.",
     "message_received": "You have a new message from {{name}}.",
-    "rating_received": "{{name}} left you a rating.",
-    "no_show_reported": "A no-show has been reported for the ride from {{origin}} to {{destination}}.",
-    "recurring_proactive_match": "We found a ride matching your frequent route from {{origin}} to {{destination}}."
+    "recurring_pattern_detected": "You've taken this route often lately — set it up as a recurring ride.",
+    "recurring_proactive_match": "We found a ride matching your frequent route from {{origin}} to {{destination}}.",
+    "demand_signal_matched": "A ride from {{origin}} to {{destination}} matching your search is now available."
+  },
+  "driverRequest": {
+    "newOnVaya": "New on VAYA",
+    "actionError": "Something went wrong. Please try again.",
+    "accessibilityLabel": "Booking request from {{name}}",
+    "resolvedAccepted": "Accepted",
+    "resolvedDeclined": "Declined"
   }
 }

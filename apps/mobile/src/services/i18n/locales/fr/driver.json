@@ -158,27 +158,36 @@
       "cannotCancel": "Impossible d'annuler un trajet avec des réservations actives.",
       "cancelRide": "Annuler ce trajet",
       "doNotCancel": "Ne pas annuler",
-      "confirmCancel": "Confirmer l'annulation du trajet"
+      "confirmCancel": "Confirmer l'annulation du trajet",
+      "cancelError": "Impossible d'annuler ce trajet. Réessayez.",
+      "cancelWarning": "Cela annulera le trajet pour tous les passagers ayant déjà réservé une place."
     },
     "requestsSheet": {
       "title": "Demandes de réservation",
       "loadError": "Impossible de charger les demandes",
+      "loadErrorDescription": "Vérifiez votre connexion et réessayez.",
       "empty": "Aucune demande",
       "emptyAccepted": "Aucune demande acceptée",
       "sectionPending": "Nouvelles",
       "sectionAccepted": "Déjà traitées",
+      "toAnswer": "À répondre ({{count}})",
+      "answered": "Déjà traitées",
+      "allAnswered": "Toutes les demandes ont été traitées",
       "decline": "Refuser",
       "accept": "Accepter",
       "acceptError": "Impossible d'accepter. Réessayez.",
       "declineError": "Impossible de refuser. Réessayez.",
-      "retry": "Réessayer"
+      "retry": "Réessayer",
+      "seatsAndPickup": "{{seatLabel}} · {{pickup}}",
+      "manageLabel": "Gérer la réservation de {{name}}"
     },
     "bookingDetail": {
       "passenger": "Passager",
       "destination": "Destination du trajet",
       "message": "Message",
       "reportNoShow": "Signaler une absence",
-      "cancelBooking": "Annuler cette réservation"
+      "cancelBooking": "Annuler cette réservation",
+      "seatsAndPrice": "{{seatLabel}} · {{price}} DT"
     }
   }
 }

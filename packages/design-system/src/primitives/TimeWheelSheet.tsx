@@ -27,6 +27,12 @@ export interface TimeWheelSheetProps {
   value: Date;
   onChange: (date: Date) => void;
   title?: string;
+  closeLabel?: string;
+  subtitleLabel?: string;
+  /** "Rechercher vers {{time}}" by default — pass a function so callers
+   *  can place the time however their language's word order needs. */
+  summaryLabel?: (time: string) => string;
+  confirmLabel?: string;
 }
 
 const ITEM_HEIGHT = 50;
@@ -110,6 +116,10 @@ export function TimeWheelSheet({
   value,
   onChange,
   title = 'Heure',
+  closeLabel = 'Fermer',
+  subtitleLabel = 'À quelle heure souhaitez-vous partir ?',
+  summaryLabel = (time) => `Rechercher vers ${time}`,
+  confirmLabel = 'Confirmer',
 }: TimeWheelSheetProps): React.JSX.Element {
   const { colors: theme } = useAppTheme();
   const [hour, setHour] = useState(value.getHours());
@@ -161,7 +171,7 @@ export function TimeWheelSheet({
             hitSlop={12}
             style={styles.closeBtn}
             accessibilityRole="button"
-            accessibilityLabel="Fermer"
+            accessibilityLabel={closeLabel}
           >
             <Icon name="close" size="sm" color={theme.ink} />
           </TouchableOpacity>
@@ -170,10 +180,10 @@ export function TimeWheelSheet({
     >
       <View style={styles.summary}>
         <Text variant="bodySmall" color={theme.inkMuted}>
-          À quelle heure souhaitez-vous partir ?
+          {subtitleLabel}
         </Text>
         <Text variant="h2" color={theme.ink} style={styles.summaryValue}>
-          Rechercher vers {pad2(hour)}:{pad2(minute)}
+          {summaryLabel(`${pad2(hour)}:${pad2(minute)}`)}
         </Text>
       </View>
 
@@ -194,10 +204,10 @@ export function TimeWheelSheet({
           onPress={confirm}
           style={[styles.confirmBtn, { backgroundColor: theme.ink }]}
           accessibilityRole="button"
-          accessibilityLabel="Confirmer l'heure"
+          accessibilityLabel={confirmLabel}
         >
           <Text variant="label" color={theme.onInk}>
-            Confirmer
+            {confirmLabel}
           </Text>
         </TouchableOpacity>
       </View>
