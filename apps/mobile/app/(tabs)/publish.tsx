@@ -1069,29 +1069,25 @@ export default function PublishTabScreen(): React.JSX.Element {
             customMapStyle={scheme === 'dark' ? darkMapStyle : lightMapStyle}
             initialRegion={routeOptionsRegion}
           >
-            {/* Unselected routes first, so the selected one always draws on
-                top — matches Google/Waze's own route-picker layering. */}
-            {routeOptions
-              .filter((o) => o.token !== selectedRouteToken)
-              .map((option) => (
+            {/* A single stable-order pass, never two filtered/reordered
+                lists — on iOS, react-native-maps crashes when a MapView's
+                overlay children change POSITION between renders (not just
+                count), which is exactly what splitting into "unselected"/
+                "selected" arrays did every time selectedRouteToken changed.
+                Selection is now expressed purely via color/width/corridor
+                props on an unmoving set of nodes. */}
+            {routeOptions.map((option) => {
+              const isSelected = option.token === selectedRouteToken;
+              return (
                 <MapRoute
                   key={option.token}
                   coordinates={decodedByToken.get(option.token) ?? []}
-                  color={theme.inkFaint}
-                  width={3}
+                  color={isSelected ? theme.accent : theme.inkFaint}
+                  width={isSelected ? 5 : 3}
+                  showCorridor={isSelected}
                 />
-              ))}
-            {routeOptions
-              .filter((o) => o.token === selectedRouteToken)
-              .map((option) => (
-                <MapRoute
-                  key={option.token}
-                  coordinates={decodedByToken.get(option.token) ?? []}
-                  color={theme.accent}
-                  width={5}
-                  showCorridor
-                />
-              ))}
+              );
+            })}
           </MapView>
         </View>
 
