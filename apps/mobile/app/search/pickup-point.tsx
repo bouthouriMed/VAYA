@@ -127,7 +127,11 @@ export default function PickupPointScreen(): React.JSX.Element {
     if (candidate && candidate.rankedDropoffStops.length > 0) {
       router.push({ pathname: '/search/dropoff-point', params: { rideId, driverUserId } });
     } else {
-      router.push({ pathname: '/search/ride-details', params: { rideId, driverUserId } });
+      // This screen is only ever entered by pushing from ride-details.tsx's
+      // "Request a seat" CTA now — dismissTo returns to that same instance
+      // (the ride the rider was already looking at) instead of pushing a
+      // fresh one on top, which would leave a stale duplicate underneath.
+      router.dismissTo({ pathname: '/search/ride-details', params: { rideId, driverUserId } });
     }
   }
 

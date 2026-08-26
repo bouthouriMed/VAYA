@@ -81,6 +81,7 @@
       "verifyDescription": "Verifying your driver profile takes about 5 minutes.",
       "termsHint": "By publishing, you agree to our terms of use."
     },
+    "publishedToast": "Your ride is published!",
     "verificationSheet": {
       "title": "One last step before you hit the road",
       "description": "To publish your first ride, we need to verify your driver profile. Your ride is saved and will publish automatically as soon as your verification is approved.",

@@ -81,6 +81,7 @@
       "verifyDescription": "La vérification de votre profil conducteur prend environ 5 minutes.",
       "termsHint": "En publiant, vous acceptez nos conditions d'utilisation."
     },
+    "publishedToast": "Votre trajet est publié !",
     "verificationSheet": {
       "title": "Une dernière étape pour prendre la route",
       "description": "Pour publier votre premier trajet, nous devons vérifier votre profil de conducteur. Votre trajet est enregistré et sera publié automatiquement dès que votre vérification sera validée.",

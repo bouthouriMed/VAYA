@@ -151,7 +151,7 @@ function PendingRequestRow({
 export default function DriverRideHubScreen(): React.JSX.Element {
   const { rideId } = useLocalSearchParams<{ rideId: string }>();
   const insets = useSafeAreaInsets();
-  const { colors: theme } = useAppTheme();
+  const { colors: theme, scheme } = useAppTheme();
   const { t } = useTranslation(['driver', 'booking', 'common']);
   const [managedBooking, setManagedBooking] = useState<Booking | null>(null);
 
@@ -291,6 +291,7 @@ export default function DriverRideHubScreen(): React.JSX.Element {
             pickup={pickupStop ? { latitude: pickupStop.lat, longitude: pickupStop.lng } : undefined}
             dropoff={dropoffStop ? { latitude: dropoffStop.lat, longitude: dropoffStop.lng } : undefined}
             theme={theme}
+            isDark={scheme === 'dark'}
             routeCoordinates={routeCoordinates}
             style={styles.map}
           />

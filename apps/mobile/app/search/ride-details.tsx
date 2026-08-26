@@ -166,6 +166,27 @@ export default function RideDetailsScreen(): React.JSX.Element {
   );
   const bookedSeats = ride ? ride.seatsTotal - ride.seatsAvailable : 0;
 
+  // Stop confirmation (docs/domain/ride-engine.md, Phase 13 dropoff stops)
+  // no longer gates *viewing* this screen — useOpenDriver.ts routes here
+  // directly so a rider can browse several candidates freely. It's the
+  // "Request a seat" CTA below that triggers it, only when the ride
+  // actually has ranked stops to choose from and none is picked yet.
+  const needsPickupSelection = (candidate?.rankedStops.length ?? 0) > 0 && !selectedStop;
+  const needsDropoffSelection =
+    (candidate?.rankedDropoffStops.length ?? 0) > 0 && !selectedDropoffStop;
+
+  function handleRequestPress(): void {
+    if (needsPickupSelection) {
+      router.push({ pathname: '/search/pickup-point', params: { rideId, driverUserId } });
+      return;
+    }
+    if (needsDropoffSelection) {
+      router.push({ pathname: '/search/dropoff-point', params: { rideId, driverUserId } });
+      return;
+    }
+    void requestSeat();
+  }
+
   async function requestSeat(): Promise<void> {
     if (!selectedStop && !origin) return;
     setBookingError(undefined);
@@ -362,9 +383,14 @@ export default function RideDetailsScreen(): React.JSX.Element {
               <View style={[styles.timelineLine, { backgroundColor: theme.outlineVariant }]} />
             </View>
             <View style={styles.timelineTextCol}>
-              <Text variant="label" color={theme.ink}>
-                {formatTime(departureDate, locale)}
-              </Text>
+              <View style={styles.timelineRoleRow}>
+                <Text variant="label" color={theme.ink}>
+                  {formatTime(departureDate, locale)}
+                </Text>
+                <Text variant="caption" color={theme.inkFaint}>
+                  {t('common:terms.pickup')}
+                </Text>
+              </View>
               <Text variant="body" color={theme.ink}>
                 {pickupLabel ?? ride.originLabel}
               </Text>
@@ -400,6 +426,9 @@ export default function RideDetailsScreen(): React.JSX.Element {
               <View style={[styles.timelineDot, styles.timelineDotFilled, { backgroundColor: theme.ink }]} />
             </View>
             <View style={styles.timelineTextCol}>
+              <Text variant="caption" color={theme.inkFaint}>
+                {t('common:terms.dropoff')}
+              </Text>
               <Text variant="body" color={theme.ink}>
                 {dropoffLabel ?? ride.destinationLabel}
               </Text>
@@ -500,11 +529,21 @@ export default function RideDetailsScreen(): React.JSX.Element {
           style={[
             styles.cta,
             { backgroundColor: theme.ink },
-            ((!selectedStop && !origin) || ride.seatsAvailable < 1) && styles.ctaDisabled,
+            (!needsPickupSelection &&
+              !needsDropoffSelection &&
+              !selectedStop &&
+              !origin) ||
+            ride.seatsAvailable < 1
+              ? styles.ctaDisabled
+              : null,
           ]}
-          disabled={isBooking || (!selectedStop && !origin) || ride.seatsAvailable < 1}
+          disabled={
+            isBooking ||
+            ride.seatsAvailable < 1 ||
+            (!needsPickupSelection && !needsDropoffSelection && !selectedStop && !origin)
+          }
           activeOpacity={0.85}
-          onPress={() => requireAuth(() => void requestSeat(), 'booking')}
+          onPress={() => requireAuth(handleRequestPress, 'booking')}
           accessibilityRole="button"
           accessibilityLabel={t('search:details.requestSeatWithPrice', { price: ride.contributionPerSeat })}
         >
@@ -649,6 +688,11 @@ const styles = StyleSheet.create({
   timelineRow: {
     flexDirection: 'row',
     gap: spacing.sm,
+  },
+  timelineRoleRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    justifyContent: 'space-between',
   },
   timelineRowLast: {
     paddingBottom: 0,

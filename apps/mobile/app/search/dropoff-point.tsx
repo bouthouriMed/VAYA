@@ -109,7 +109,11 @@ export default function DropoffPointScreen(): React.JSX.Element {
         lng: selectedStop.lng,
       }),
     );
-    router.push({ pathname: '/search/ride-details', params: { rideId, driverUserId } });
+    // Only ever entered by pushing from pickup-point.tsx, itself only ever
+    // pushed from ride-details.tsx's "Request a seat" CTA — dismissTo
+    // returns to that same ride-details instance instead of pushing a
+    // fresh one on top of it.
+    router.dismissTo({ pathname: '/search/ride-details', params: { rideId, driverUserId } });
   }
 
   if (isLoading) {

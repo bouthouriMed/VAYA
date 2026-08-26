@@ -37,6 +37,7 @@ import {
   lightMapStyle,
   darkMapStyle,
   StatusBarBlend,
+  useToast,
   type AppPalette,
   type MapRegion,
 } from '@vaya/design-system';
@@ -260,6 +261,7 @@ export default function PublishTabScreen(): React.JSX.Element {
   const { height: windowHeight } = useWindowDimensions();
   const { colors: theme, scheme } = useAppTheme();
   const { t } = useTranslation(['driver', 'common']);
+  const toast = useToast();
   const locale = (useAppSelector((s) => s.language.locale) || 'en') as SupportedLocale;
   const dispatch = useAppDispatch();
   const origin = useAppSelector((s) => s.search.origin);
@@ -755,6 +757,14 @@ export default function PublishTabScreen(): React.JSX.Element {
    *  creation, which redeems it server-side for the exact route computed
    *  moments earlier (rides.service.ts's createRide doc comment). */
   async function continueFromRoute(): Promise<void> {
+    // Reachable a second time if the driver backed out of pickup selection
+    // (via the map's back arrow) into this same route step and taps
+    // "Continuer" again — the ride from their first pass already exists,
+    // so just re-enter the map workspace instead of creating a duplicate.
+    if (rideId) {
+      setMapMode('pickup');
+      return;
+    }
     const vehicleId = vehicleIdRef.current;
     if (!vehicleId) return;
     trackEvent('ride_route_option_selected', {
@@ -958,6 +968,10 @@ export default function PublishTabScreen(): React.JSX.Element {
       // a driver's first published ride is a real reason to ask — never
       // blocks navigation, and is a silent no-op after the first prompt.
       void requestPushPermissionAndRegister((args) => registerPushToken(args).unwrap());
+      // The only visible confirmation a publish actually succeeded — the
+      // screen navigates away immediately after, so a toast (not a
+      // dedicated screen) is the right weight here.
+      toast({ message: t('driver:publish.publishedToast'), tone: 'success' });
       resetWizard();
       router.replace('/(tabs)/trips');
     } catch {
@@ -1555,7 +1569,22 @@ export default function PublishTabScreen(): React.JSX.Element {
           // which is reserved for the confirm action alone.
           <View style={[styles.selectionTopBar, { paddingTop: insets.top + spacing.sm }]} pointerEvents="box-none">
             <TouchableOpacity
-              onPress={() => setMapMode(mapMode === 'dropoff' ? 'pickup' : 'none')}
+              onPress={() => {
+                if (mapMode === 'dropoff') {
+                  setMapMode('pickup');
+                  return;
+                }
+                // Backing out of the very first stop-selection sub-step: if
+                // a route-selection step was actually shown (routeOptions
+                // populated), that's where the driver was immediately
+                // before this map view took over — land back there instead
+                // of the 'form' step, which this map overlay otherwise
+                // always uses as its backdrop (createRideAndEnterPickup
+                // forces step to 'form' unconditionally so the pickup UI
+                // has somewhere to render).
+                if (routeOptions.length > 0) setStep('route');
+                setMapMode('none');
+              }}
               hitSlop={12}
               style={[styles.roundBtn, { backgroundColor: theme.surface, shadowColor: theme.ink }]}
               accessibilityRole="button"

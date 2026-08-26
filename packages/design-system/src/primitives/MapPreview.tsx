@@ -99,6 +99,12 @@ export function MapPreview({
         pointerEvents="none"
         onMapReady={() => setIsReady(true)}
         customMapStyle={isDark ? DARK_MAP_STYLE : []}
+        // customMapStyle only affects Google's renderer — PROVIDER_DEFAULT
+        // is Apple Maps on iOS, which ignores it entirely and otherwise
+        // follows the DEVICE's OS appearance instead of this app's own
+        // theme (the reported "always dark even in light mode" bug on
+        // iOS). userInterfaceStyle is the Apple Maps equivalent knob.
+        userInterfaceStyle={isDark ? 'dark' : 'light'}
       >
         {routeCoordinates && routeCoordinates.length > 1 ? (
           <Polyline coordinates={routeCoordinates} strokeColor={colors.mapRouteLine} strokeWidth={3} />

@@ -180,7 +180,7 @@ function DriverCard({
 export default function BookingDetailScreen(): React.JSX.Element {
   const { bookingId } = useLocalSearchParams<{ bookingId: string }>();
   const insets = useSafeAreaInsets();
-  const { colors: theme } = useAppTheme();
+  const { colors: theme, scheme } = useAppTheme();
   const { t, i18n } = useTranslation(['booking', 'common']);
   const locale = i18n.language as SupportedLocale;
   const [cancelling, setCancelling] = useState(false);
@@ -302,6 +302,7 @@ export default function BookingDetailScreen(): React.JSX.Element {
             pickup={{ latitude: booking.pickupLat, longitude: booking.pickupLng }}
             dropoff={dropoffPoint}
             theme={theme}
+            isDark={scheme === 'dark'}
             routeCoordinates={routeCoordinates}
             style={styles.map}
           />
