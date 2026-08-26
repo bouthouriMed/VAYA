@@ -32,22 +32,37 @@ describe('Phase 3 real map primitives', () => {
       { latitude: 36.84, longitude: 10.24 },
     ];
     const element = MapRoute({ coordinates });
-    // showCorridor defaults false, so the fragment's only child is the line Polyline.
     expect(element.type).toBe(Fragment);
     const polyline = element.props.children[1];
     expect(polyline.type).toBe('Polyline');
     expect(polyline.props.coordinates).toBe(coordinates);
   });
 
-  it('MapRoute renders a corridor underlay when showCorridor is set', () => {
+  // Regression test for a real reproduced iOS crash: toggling `showCorridor`
+  // used to conditionally mount/unmount the corridor Polyline node entirely
+  // (`{showCorridor ? <Polyline/> : null}`), so a MapView holding several
+  // MapRoutes (the publish wizard's route-selection step) changed its total
+  // native overlay count every time the selected route changed — tapping a
+  // different route option crashed and dismissed the whole app on iOS.
+  // MapRoute must now ALWAYS mount both Polyline nodes and only ever toggle
+  // the corridor's visibility via a transparent stroke color, never via
+  // presence/absence of the node itself.
+  it('MapRoute always mounts both Polyline nodes, regardless of showCorridor, to keep MapView overlay count stable', () => {
     const coordinates = [
       { latitude: 36.85, longitude: 10.16 },
       { latitude: 36.84, longitude: 10.24 },
     ];
-    const element = MapRoute({ coordinates, showCorridor: true });
-    const [corridor, line] = element.props.children;
+    const hidden = MapRoute({ coordinates, showCorridor: false });
+    const [hiddenCorridor, hiddenLine] = hidden.props.children;
+    expect(hiddenCorridor.type).toBe('Polyline');
+    expect(hiddenCorridor.props.strokeColor).toBe('transparent');
+    expect(hiddenLine.type).toBe('Polyline');
+
+    const shown = MapRoute({ coordinates, showCorridor: true });
+    const [corridor, line] = shown.props.children;
     expect(corridor.type).toBe('Polyline');
     expect(line.type).toBe('Polyline');
+    expect(corridor.props.strokeColor).not.toBe('transparent');
     expect(corridor.props.strokeWidth).toBeGreaterThan(line.props.strokeWidth);
   });
 });

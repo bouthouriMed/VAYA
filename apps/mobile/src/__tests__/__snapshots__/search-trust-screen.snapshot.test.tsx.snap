@@ -33,7 +33,7 @@ exports[`search/trust.tsx snapshots > renders a passenger-only profile (no drive
     }
   >
     <TouchableOpacity
-      accessibilityLabel="Retour"
+      accessibilityLabel="common:actions.back"
       accessibilityRole="button"
       hitSlop={12}
       onPress={[Function]}
@@ -232,7 +232,7 @@ exports[`search/trust.tsx snapshots > renders a passenger-only profile (no drive
           ]
         }
       >
-        Message conducteur
+        search:trust.messageDriver
       </Text>
     </View>
     <Text
@@ -252,7 +252,7 @@ exports[`search/trust.tsx snapshots > renders a passenger-only profile (no drive
         ]
       }
     >
-      Disponible une fois votre demande de place acceptée.
+      search:trust.messageAvailability
     </Text>
   </View>
 </View>
@@ -291,7 +291,7 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
     }
   >
     <TouchableOpacity
-      accessibilityLabel="Retour"
+      accessibilityLabel="common:actions.back"
       accessibilityRole="button"
       hitSlop={12}
       onPress={[Function]}
@@ -488,7 +488,7 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
               ]
             }
           >
-            Vérifié
+            search:trust.verified
           </Text>
         </View>
       </View>
@@ -509,8 +509,7 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
           ]
         }
       >
-        Parle 
-        Français, Arabe
+        search:trust.speaks
       </Text>
     </View>
     <View
@@ -592,7 +591,7 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
             ]
           }
         >
-          Note
+          search:trust.ratingLabel
         </Text>
       </View>
       <View
@@ -649,7 +648,7 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
             ]
           }
         >
-          Trajets
+          search:trust.tripsLabel
         </Text>
       </View>
     </View>
@@ -703,7 +702,7 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
             ]
           }
         >
-          Fiable
+          search:trust.pillReliable
         </Text>
       </View>
       <View
@@ -747,7 +746,7 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
             ]
           }
         >
-          Top VAYA
+          search:trust.pillTopRated
         </Text>
       </View>
     </View>
@@ -800,7 +799,7 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
             ]
           }
         >
-          Vérifications VAYA
+          search:trust.verificationsTitle
         </Text>
       </View>
       <View
@@ -836,7 +835,7 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
             ]
           }
         >
-          Identité confirmée par selfie
+          search:trust.verificationIdentity
         </Text>
       </View>
       <View
@@ -872,7 +871,7 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
             ]
           }
         >
-          Documents de conduite contrôlés
+          search:trust.verificationDocuments
         </Text>
       </View>
       <View
@@ -908,7 +907,7 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
             ]
           }
         >
-          Véhicule enregistré — plaque visible ci-dessous
+          search:trust.verificationVehicle
         </Text>
       </View>
     </View>
@@ -961,8 +960,7 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
             ]
           }
         >
-          À propos de 
-          Mehdi
+          search:trust.aboutTitle
         </Text>
       </View>
       <Text
@@ -1034,7 +1032,7 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
             ]
           }
         >
-          Véhicule
+          common:terms.vehicle
         </Text>
       </View>
       <View
@@ -1194,7 +1192,7 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
             ]
           }
         >
-          Avis
+          search:trust.reviewsTitle
         </Text>
         <Ionicons
           accessibilityElementsHidden={true}
@@ -1221,8 +1219,7 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
           ]
         }
       >
-        Voir tous les avis sur 
-        Mehdi
+        search:trust.reviewsSubtitle
       </Text>
     </TouchableOpacity>
     <View
@@ -1295,7 +1292,7 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
           ]
         }
       >
-        Message conducteur
+        search:trust.messageDriver
       </Text>
     </View>
     <Text
@@ -1315,7 +1312,7 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
         ]
       }
     >
-      Disponible une fois votre demande de place acceptée.
+      search:trust.messageAvailability
     </Text>
   </View>
 </View>
@@ -1353,7 +1350,7 @@ exports[`search/trust.tsx snapshots > renders the "profile not found" state 1`] 
       ]
     }
   >
-    Profil introuvable.
+    search:trust.profileNotFound
   </Text>
 </View>
 `;

@@ -1,6 +1,11 @@
 {
   "pending_title": "Waiting for {{name}}…",
   "pending_subtitle": "Usually responds within a few minutes.",
+  "declined_title": "{{name}} declined your request",
+  "status_pending_hint": "We'll let you know as soon as {{name}} responds.",
+  "status_pending_notification": "You'll get a notification the moment there's an update.",
+  "status_declined_hint": "No worries — try another ride on this route.",
+  "status_cancelling": "Cancelling…",
   "cancel_request": "Cancel request",
   "mine_title": "My trips",
   "status_pending": "Pending",
@@ -96,6 +101,20 @@
     "driversLicense": "Driver's license",
     "insuranceProof": "Insurance proof",
     "identitySelfie": "Identity selfie"
+  },
+  "detail": {
+    "title": "My booking",
+    "notFound": "Booking not found.",
+    "viewRoute": "View route",
+    "viewRouteFullscreen": "View route in full screen",
+    "sendMessage": "Send message",
+    "newOnVaya": "New on VAYA",
+    "pickupPoint": "Meeting point",
+    "dropoffPoint": "Drop-off point",
+    "distanceToPickup": "{{distance}} from your location · ≈ {{minutes}} walk to the meeting point",
+    "priceAndSeats": "{{price}} · {{seats}}",
+    "tripsSuffix_one": "· {{count}} trip",
+    "tripsSuffix_other": "· {{count}} trips"
   },
   "days": {
     "mon": "Mon",

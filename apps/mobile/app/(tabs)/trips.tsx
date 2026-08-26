@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { View, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { formatDate, formatTime } from '../../src/utils/localeFormat';
+import { formatDate, formatTime, formatCurrency } from '../../src/utils/localeFormat';
+import type { SupportedLocale } from '@vaya/config';
 import {
   Text,
   Button,
@@ -327,7 +328,7 @@ export default function TripsScreen(): React.JSX.Element {
                   </View>
                   <View style={styles.priceCol}>
                     <Text variant="h3" color={theme.ink}>
-                      {`${heroRide.contributionPerSeat} DT`}
+                      {formatCurrency(heroRide.contributionPerSeat, locale as SupportedLocale)}
                     </Text>
                     <Text variant="caption" color={theme.inkMuted}>
                       {t('trips:perSeat')}
@@ -446,7 +447,7 @@ export default function TripsScreen(): React.JSX.Element {
                       kind: 'text',
                       label: t('trips:placesReserved', { count: ride.seatsTotal - ride.seatsAvailable }),
                     }}
-                    priceLabel={`${ride.contributionPerSeat} DT`}
+                    priceLabel={formatCurrency(ride.contributionPerSeat, locale as SupportedLocale)}
                     onPress={() =>
                       router.push({ pathname: '/driver/rides/[rideId]', params: { rideId: ride.id } })
                     }
@@ -479,7 +480,7 @@ export default function TripsScreen(): React.JSX.Element {
                     originLabel={booking.ride?.originLabel ?? t('booking:departure')}
                     destinationLabel={booking.ride?.destinationLabel ?? t('booking:arrival')}
                     counterpart={{ kind: 'person', name: booking.ride?.driverFullName ?? t('booking:driver') }}
-                    priceLabel={`${booking.contributionTotal} DT`}
+                    priceLabel={formatCurrency(booking.contributionTotal, locale as SupportedLocale)}
                     onPress={() =>
                       router.push({ pathname: '/bookings/[bookingId]', params: { bookingId: booking.id } })
                     }
@@ -496,10 +497,10 @@ export default function TripsScreen(): React.JSX.Element {
                         theme={theme}
                         dateTimeLabel={booking.ride ? formatWhen(booking.ride.departureAt, t, locale) : ''}
                         badge={getBookingStatus(t, booking.status)}
-                        originLabel={booking.ride?.originLabel ?? 'Départ'}
-                        destinationLabel={booking.ride?.destinationLabel ?? 'Arrivée'}
-                        counterpart={{ kind: 'person', name: booking.ride?.driverFullName ?? 'Conducteur' }}
-                        priceLabel={`${booking.contributionTotal} DT`}
+                        originLabel={booking.ride?.originLabel ?? t('booking:departure')}
+                        destinationLabel={booking.ride?.destinationLabel ?? t('booking:arrival')}
+                        counterpart={{ kind: 'person', name: booking.ride?.driverFullName ?? t('booking:driver') }}
+                        priceLabel={formatCurrency(booking.contributionTotal, locale as SupportedLocale)}
                         onPress={() =>
                       router.push({ pathname: '/bookings/[bookingId]', params: { bookingId: booking.id } })
                     }

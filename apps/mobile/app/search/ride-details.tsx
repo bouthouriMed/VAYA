@@ -16,11 +16,11 @@ import {
   spacing,
   radii,
   haptics,
-  formatTime,
   isSameDay,
   regionForPoints,
 } from '@vaya/design-system';
 import { router, useLocalSearchParams } from 'expo-router';
+import type { SupportedLocale } from '@vaya/config';
 import {
   useGetRideQuery,
   useGetUserPublicProfileQuery,
@@ -36,18 +36,20 @@ import { requestPushPermissionAndRegister } from '../../src/services/notificatio
 import { decodePolyline, polylineDistanceKm } from '../../src/utils/polyline';
 import { useContextualAuth } from '../../src/features/auth/useContextualAuth';
 import { ContextualAuthSheet } from '../../src/features/auth/ContextualAuthSheet';
+import { formatDate, formatTime, splitDurationMinutes } from '../../src/utils/localeFormat';
 
-function fullDateLabel(date: Date): string {
-  const label = date.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+type TFn = (key: string, params?: Record<string, unknown>) => string;
+
+function fullDateLabel(date: Date, locale: SupportedLocale): string {
+  const label = formatDate(date, locale, { weekday: 'long', day: 'numeric', month: 'long' });
   return label.charAt(0).toUpperCase() + label.slice(1);
 }
 
-function durationLabel(seconds: number): string {
-  const totalMin = Math.round(seconds / 60);
-  const h = Math.floor(totalMin / 60);
-  const m = totalMin % 60;
-  if (h === 0) return `${m} min`;
-  return m === 0 ? `${h} h` : `${h} h ${m}`;
+function durationLabel(seconds: number, t: TFn): string {
+  const { hours, minutes } = splitDurationMinutes(seconds / 60);
+  if (hours === 0) return t('search:details.durationMinutesOnly', { minutes });
+  if (minutes === 0) return t('search:details.durationHoursOnly', { hours });
+  return t('search:details.durationHoursMinutes', { hours, minutes });
 }
 
 /**
@@ -61,7 +63,8 @@ function durationLabel(seconds: number): string {
 export default function RideDetailsScreen(): React.JSX.Element {
   const { rideId, driverUserId } = useLocalSearchParams<{ rideId: string; driverUserId: string }>();
   const insets = useSafeAreaInsets();
-  const { t } = useTranslation(['search', 'common', 'booking']);
+  const { t, i18n } = useTranslation(['search', 'common', 'booking']);
+  const locale = i18n.language as SupportedLocale;
   const { colors: theme } = useAppTheme();
   const dispatch = useAppDispatch();
   const origin = useAppSelector((s) => s.search.origin);
@@ -205,7 +208,7 @@ export default function RideDetailsScreen(): React.JSX.Element {
       });
     } catch {
       haptics.error();
-      setBookingError('Cette place vient peut-être d’être prise. Réessayez.');
+      setBookingError(t('search:details.seatTakenError'));
     }
   }
 
@@ -221,7 +224,7 @@ export default function RideDetailsScreen(): React.JSX.Element {
     return (
       <View style={[styles.loadingWrap, { backgroundColor: theme.background }]}>
         <Text variant="body" color={theme.inkFaint}>
-          Trajet introuvable.
+          {t('search:details.rideNotFound')}
         </Text>
       </View>
     );
@@ -262,10 +265,13 @@ export default function RideDetailsScreen(): React.JSX.Element {
                 ? t('common:time.today')
                 : isSameDay(departureDate, new Date(now.getTime() + 24 * 60 * 60_000))
                   ? t('common:time.tomorrow')
-                  : (() => { const l = departureDate.toLocaleDateString('fr-FR', { weekday: 'long' }); return l.charAt(0).toUpperCase() + l.slice(1); })()}
+                  : (() => {
+                      const l = formatDate(departureDate, locale, { weekday: 'long' });
+                      return l.charAt(0).toUpperCase() + l.slice(1);
+                    })()}
             </Text>
             <Text variant="bodySmall" color={theme.inkFaint}>
-              {fullDateLabel(departureDate)}
+              {fullDateLabel(departureDate, locale)}
             </Text>
           </View>
           <View style={styles.summaryPriceCol}>
@@ -277,8 +283,7 @@ export default function RideDetailsScreen(): React.JSX.Element {
               </Text>
             </Text>
             <Text variant="bodySmall" color={theme.inkFaint}>
-              {ride.seatsAvailable} place{ride.seatsAvailable > 1 ? 's' : ''} disponible
-              {ride.seatsAvailable > 1 ? 's' : ''}
+              {t('search:details.seatsAvailable', { count: ride.seatsAvailable })}
             </Text>
           </View>
         </View>
@@ -330,8 +335,8 @@ export default function RideDetailsScreen(): React.JSX.Element {
           {ride.estimatedDurationSec ? (
             <View style={[styles.mapValuesBadge, { backgroundColor: theme.surface }]}>
               <Text variant="caption" color={theme.ink} style={styles.mapValuesText}>
-                ~{durationLabel(ride.estimatedDurationSec)}
-                {distanceKm > 0 ? ` · ${Math.round(distanceKm)} km` : ''}
+                ~{durationLabel(ride.estimatedDurationSec, t)}
+                {distanceKm > 0 ? ` · ${t('common:terms.km', { count: Math.round(distanceKm) })}` : ''}
               </Text>
             </View>
           ) : null}
@@ -358,14 +363,16 @@ export default function RideDetailsScreen(): React.JSX.Element {
             </View>
             <View style={styles.timelineTextCol}>
               <Text variant="label" color={theme.ink}>
-                {formatTime(departureDate)}
+                {formatTime(departureDate, locale)}
               </Text>
               <Text variant="body" color={theme.ink}>
                 {pickupLabel ?? ride.originLabel}
               </Text>
               {pickupWalkMinutes !== undefined ? (
                 <Text variant="caption" color={theme.inkFaint}>
-                  {Math.round(pickupWalkMinutes)} min à pied jusqu&apos;au point de rendez-vous
+                  {t('search:details.walkToMeetingPoint', {
+                    minutes: t('common:terms.minute', { count: Math.round(pickupWalkMinutes) }),
+                  })}
                 </Text>
               ) : null}
             </View>
@@ -382,7 +389,7 @@ export default function RideDetailsScreen(): React.JSX.Element {
                   {stop.label}
                 </Text>
                 <Text variant="caption" color={theme.inkFaint}>
-                  Arrêt bref
+                  {t('search:details.briefStop')}
                 </Text>
               </View>
             </View>
@@ -405,7 +412,7 @@ export default function RideDetailsScreen(): React.JSX.Element {
           onPress={() => router.push({ pathname: '/search/trust', params: { rideId, driverUserId } })}
           activeOpacity={0.8}
           accessibilityRole="button"
-          accessibilityLabel={`Voir le profil de ${firstName}`}
+          accessibilityLabel={t('search:details.viewDriverProfile', { name: firstName })}
         >
           <Avatar
             uri={profile.avatarUrl}
@@ -425,7 +432,7 @@ export default function RideDetailsScreen(): React.JSX.Element {
               <View style={styles.driverStatsRow}>
                 <Icon name="star" size="xs" color={theme.accent} />
                 <Text variant="caption" color={theme.inkMuted}>
-                  {driverStats.ratingAvg.toFixed(1)} · {driverStats.tripCount} trajets
+                  {driverStats.ratingAvg.toFixed(1)} · {t('common:terms.trip', { count: driverStats.tripCount })}
                 </Text>
               </View>
             ) : null}
@@ -440,7 +447,7 @@ export default function RideDetailsScreen(): React.JSX.Element {
             </View>
             <View>
               <Text variant="label" color={theme.ink}>
-                Véhicule
+                {t('common:terms.vehicle')}
               </Text>
               <Text variant="bodySmall" color={theme.inkMuted}>
                 {driverStats.vehicle.make} {driverStats.vehicle.model} · {driverStats.vehicle.color}
@@ -452,7 +459,7 @@ export default function RideDetailsScreen(): React.JSX.Element {
         {passengers && passengers.length > 0 ? (
           <View style={styles.passengersSection}>
             <Text variant="caption" color={theme.inkFaint} style={styles.passengersTitle}>
-              PASSAGERS · {bookedSeats}/{ride.seatsTotal} PLACES RÉSERVÉES
+              {t('search:details.passengersHeader', { booked: bookedSeats, total: ride.seatsTotal }).toUpperCase()}
             </Text>
             <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
               {passengers.map((passenger, i) => (
@@ -499,13 +506,13 @@ export default function RideDetailsScreen(): React.JSX.Element {
           activeOpacity={0.85}
           onPress={() => requireAuth(() => void requestSeat(), 'booking')}
           accessibilityRole="button"
-          accessibilityLabel={`Demander une place, ${ride.contributionPerSeat} DT`}
+          accessibilityLabel={t('search:details.requestSeatWithPrice', { price: ride.contributionPerSeat })}
         >
           {isBooking ? (
             <ActivityIndicator color={theme.onInk} size="small" />
           ) : (
             <Text variant="label" color={theme.onInk}>
-              Demander une place
+              {t('search:details.requestSeat')}
             </Text>
           )}
         </TouchableOpacity>

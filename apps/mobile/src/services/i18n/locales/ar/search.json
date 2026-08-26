@@ -11,7 +11,10 @@
     "departure": "المغادرة",
     "onYourRoute": "على مسارك",
     "candidateCount_one": "رحلة واحدة متاحة اليوم على هذا المسار",
-    "candidateCount_other": "{{count}} رحلات متاحة اليوم على هذا المسار"
+    "candidateCount_other": "{{count}} رحلات متاحة اليوم على هذا المسار",
+    "meetingPoint": "نقطة الالتقاء",
+    "bestMatch": "الأنسب لك",
+    "timeOffsetNote": "تنطلق بعد {{offsetMin}} من الوقت الذي طلبته — ونقطة الانطلاق تبعد {{walkMinutes}} سيرًا على الأقدام."
   },
   "composer": {
     "myLocation": "موقعي الحالي",
@@ -19,27 +22,97 @@
     "searchDestination": "البحث عن وجهة",
     "work": "العمل",
     "home": "المنزل",
-    "findRide": "البحث عن رحلة"
+    "findRide": "البحث عن رحلة",
+    "savedPlaces": "الأماكن المحفوظة",
+    "clear": "مسح",
+    "resolveError": "تعذر جلب هذا المكان. أعد المحاولة.",
+    "resultsSectionLabel": "النتائج",
+    "recentSectionLabel": "الأخيرة",
+    "noResults": "لا توجد نتائج",
+    "noRecents": "ستظهر هنا عمليات البحث الأخيرة"
   },
   "pickupPoint": {
     "noStopClose": "لا يوجد محطة على هذا المسار قريبة بما يكفي للانطلاق.",
+    "noStopCloseDesc": "لا توجد محطة على هذا المسار قريبة بما يكفي من موقعك لبلوغها سيرًا على الأقدام. جرّب رحلة أخرى أو عدّل بحثك.",
     "backToSearch": "العودة إلى البحث",
     "selected": "النقطة المحددة",
-    "choosePoint": "اختيار هذه النقطة"
+    "choosePoint": "اختيار هذه النقطة",
+    "stopsOnRoute_zero": "لا توجد محطات على هذا المسار",
+    "stopsOnRoute_one": "محطة واحدة على هذا المسار",
+    "stopsOnRoute_two": "محطتان على هذا المسار",
+    "stopsOnRoute_few": "{{count}} محطات على هذا المسار",
+    "stopsOnRoute_many": "{{count}} محطة على هذا المسار",
+    "stopsOnRoute_other": "{{count}} محطة على هذا المسار",
+    "pointDetails": "تفاصيل نقطة {{label}}",
+    "walkFromOrigin": "{{minutes}} من موقع انطلاقك.",
+    "driverValidatedStop": "تم اعتماد هذه النقطة من قبل السائق كمحطة على مساره.",
+    "confirmPickup": "تأكيد نقطة الالتقاء هذه"
   },
   "dropoffPoint": {
     "noDropoff": "لم يتم العثور على نقطة وصول متاحة.",
     "noDropoffDesc": "لا يوجد محطة على هذا المسار قريبة بما يكفي للوصول.",
     "confirmDropoff": "تأكيد نقطة الوصول هذه",
     "selected": "النقطة المحددة",
-    "choosePoint": "اختيار هذه النقطة"
+    "choosePoint": "اختيار هذه النقطة",
+    "whereToDropoff": "أين تريد النزول؟",
+    "pointDetails": "تفاصيل نقطة {{label}}",
+    "walkFromDestination": "{{minutes}} من وجهتك.",
+    "walkToDestination": "{{minutes}} حتى وجهتك.",
+    "driverValidatedStop": "تم اعتماد هذه النقطة من قبل السائق كمحطة على مساره."
   },
   "details": {
     "viewRouteFullscreen": "عرض المسار على كامل الشاشة",
-    "back": "رجوع"
+    "back": "رجوع",
+    "rideNotFound": "الرحلة غير موجودة.",
+    "durationHoursMinutes": "{{hours}} س {{minutes}} د",
+    "durationHoursOnly": "{{hours}} س",
+    "durationMinutesOnly": "{{minutes}} د",
+    "seatsAvailable_zero": "لا مقاعد متاحة",
+    "seatsAvailable_one": "مقعد واحد متاح",
+    "seatsAvailable_two": "مقعدان متاحان",
+    "seatsAvailable_few": "{{count}} مقاعد متاحة",
+    "seatsAvailable_many": "{{count}} مقعدًا متاحًا",
+    "seatsAvailable_other": "{{count}} مقعد متاح",
+    "viewDriverProfile": "عرض الملف الشخصي لـ{{name}}",
+    "passengersHeader": "الركاب · {{booked}}/{{total}} مقاعد محجوزة",
+    "briefStop": "توقف قصير",
+    "walkToMeetingPoint": "{{minutes}} حتى نقطة الالتقاء",
+    "requestSeat": "طلب مقعد",
+    "requestSeatWithPrice": "طلب مقعد، {{price}} د.ت",
+    "seatTakenError": "قد يكون هذا المقعد قد أُخذ للتو. أعد المحاولة."
   },
   "trust": {
-    "back": "رجوع"
+    "back": "رجوع",
+    "profileNotFound": "الملف الشخصي غير موجود.",
+    "verified": "موثّق",
+    "speaks": "يتحدث {{languages}}",
+    "ratingLabel": "التقييم",
+    "tripsLabel": "الرحلات",
+    "welcomeTitle": "{{name}} بدأ للتو على VAYA",
+    "welcomeDescription": "ملف موثّق بالكامل، لكن بدون رحلات أو تقييمات بعد — الجميع يبدأ في مرحلة ما. ما تضمنه VAYA بالفعل موضّح أدناه.",
+    "welcomeEncourage": "كن من أوائل ركاب {{name}} — تقييمك بعد الرحلة سيساعده على بناء الثقة منذ البداية.",
+    "pillNew": "جديد",
+    "pillReliable": "موثوق",
+    "pillTopRated": "الأفضل في VAYA",
+    "verificationsTitle": "تحققات VAYA",
+    "verificationIdentity": "الهوية مؤكدة عبر صورة ذاتية",
+    "verificationDocuments": "تم التحقق من وثائق القيادة",
+    "verificationVehicle": "مركبة مسجّلة — رقم اللوحة معروض أدناه",
+    "aboutTitle": "نبذة عن {{name}}",
+    "reviewsTitle": "التقييمات",
+    "reviewsSubtitle": "عرض جميع التقييمات حول {{name}}",
+    "reviewsEmpty": "لم يتلقَّ {{name}} أي تقييمات بعد.",
+    "reviewsFirstLine": "شارك تقييمك بعد رحلتك — التقييم الأول هو الأهم.",
+    "messageDriver": "مراسلة السائق",
+    "messageAvailability": "متاح بمجرد قبول طلب مقعدك."
+  },
+  "reviews": {
+    "fallbackDriverName": "هذا السائق",
+    "mockReviews": [
+      { "when": "قبل يومين", "comment": "رحلة ممتازة والسائق كان دقيقًا في المواعيد. السيارة كانت نظيفة جدًا وساعدني في حمل أمتعتي." },
+      { "when": "قبل 5 أيام", "comment": "سيارة نظيفة وقيادة حذرة. تعامل جيدًا مع الازدحام. سأحجز هذا المسار مجددًا بكل سرور." },
+      { "when": "قبل أسبوع", "comment": "تجربة جيدة بشكل عام. السائق هادئ قليلاً، لكن الرحلة كانت سلسة وفي الموعد." }
+    ]
   },
   "timePicker": {
     "when": "متى؟",
@@ -48,5 +121,25 @@
     "thisAfternoon": "هذا بعد الظهر",
     "tomorrowMorning": "غدًا صباحًا",
     "chooseDate": "اختيار تاريخ"
+  },
+  "datePickerSheet": {
+    "title": "تاريخ المغادرة",
+    "weekdayLabels": ["ن", "ث", "ر", "خ", "ج", "س", "ح"],
+    "previousMonth": "الشهر السابق",
+    "nextMonth": "الشهر التالي",
+    "confirm": "تأكيد التاريخ"
+  },
+  "timeWheelSheet": {
+    "title": "الوقت",
+    "subtitle": "في أي وقت تريد المغادرة؟",
+    "summary": "البحث حوالي {{time}}"
+  },
+  "passengerPicker": {
+    "hint": "حتى {{count}} ركاب لكل رحلة",
+    "increment": "إضافة راكب",
+    "decrement": "إزالة راكب"
+  },
+  "walk": {
+    "suffix": "{{minutes}} سيرًا على الأقدام"
   }
 }

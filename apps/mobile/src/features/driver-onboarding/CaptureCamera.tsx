@@ -4,6 +4,7 @@ import { CameraView, useCameraPermissions, type CameraType } from 'expo-camera';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Svg, { Circle, Path } from 'react-native-svg';
+import { useTranslation } from 'react-i18next';
 import { Text, Icon, StepProgress, useToast, useAppTheme, spacing, radii, type IconName } from '@vaya/design-system';
 
 export type CaptureGuideShape = 'document' | 'face';
@@ -56,6 +57,7 @@ export function CaptureCamera({
 }: CaptureCameraProps): React.JSX.Element {
   const insets = useSafeAreaInsets();
   const { colors: theme } = useAppTheme();
+  const { t } = useTranslation('driver');
   const [permission, requestPermission] = useCameraPermissions();
   const [capturedUri, setCapturedUri] = useState<string | null>(null);
   const [isCapturing, setIsCapturing] = useState(false);
@@ -112,12 +114,12 @@ export function CaptureCamera({
         setCapturedUri(photo.uri);
       } else {
         showToast({
-          message: 'La caméra n’est pas prête. Attendez une seconde et réessayez.',
+          message: t('onboarding.capture.cameraNotReady'),
           tone: 'error',
         });
       }
     } catch {
-      showToast({ message: 'Impossible de prendre la photo. Réessayez.', tone: 'error' });
+      showToast({ message: t('onboarding.capture.captureFailed'), tone: 'error' });
     } finally {
       setIsCapturing(false);
     }
@@ -134,21 +136,20 @@ export function CaptureCamera({
           <Icon name="camera" size="lg" color={theme.ink} />
         </View>
         <Text variant="h3" color={theme.ink} align="center" style={styles.permissionTitle}>
-          Accès à la caméra requis
+          {t('onboarding.capture.permissionTitle')}
         </Text>
         <Text variant="body" color={theme.inkMuted} align="center" style={styles.permissionBody}>
-          VAYA a besoin de la caméra pour vérifier votre permis, votre assurance et votre identité
-          en direct — jamais depuis votre galerie.
+          {t('onboarding.capture.permissionBody')}
         </Text>
         <TouchableOpacity
           style={[styles.cta, { backgroundColor: theme.ink }]}
           onPress={() => void requestPermission()}
           activeOpacity={0.85}
           accessibilityRole="button"
-          accessibilityLabel="Autoriser la caméra"
+          accessibilityLabel={t('onboarding.capture.allowCamera')}
         >
           <Text variant="label" color={theme.onInk}>
-            Autoriser la caméra
+            {t('onboarding.capture.allowCamera')}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -156,10 +157,10 @@ export function CaptureCamera({
           hitSlop={12}
           style={styles.permissionBack}
           accessibilityRole="button"
-          accessibilityLabel="Retour"
+          accessibilityLabel={t('onboarding.capture.back')}
         >
           <Text variant="bodySmall" color={theme.inkFaint}>
-            Retour
+            {t('onboarding.capture.back')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -181,7 +182,7 @@ export function CaptureCamera({
 
         <View style={styles.body}>
           <Text variant="body" color={theme.inkMuted} align="center" style={styles.reviewPrompt}>
-            Photo nette et bien cadrée ?
+            {t('onboarding.capture.reviewPrompt')}
           </Text>
           <View
             style={[
@@ -199,21 +200,21 @@ export function CaptureCamera({
             onPress={() => onCapture(capturedUri)}
             activeOpacity={0.85}
             accessibilityRole="button"
-            accessibilityLabel="Utiliser cette photo"
+            accessibilityLabel={t('onboarding.capture.usePhoto')}
           >
             <Text variant="label" color={theme.onInk}>
-              Utiliser cette photo
+              {t('onboarding.capture.usePhoto')}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.retakeBtn}
             onPress={() => setCapturedUri(null)}
             accessibilityRole="button"
-            accessibilityLabel="Reprendre la photo"
+            accessibilityLabel={t('onboarding.capture.retake')}
           >
             <Ionicons name="refresh" size={16} color={theme.inkMuted} />
             <Text variant="label" color={theme.inkMuted}>
-              Reprendre
+              {t('onboarding.capture.retake')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -229,7 +230,7 @@ export function CaptureCamera({
             onPress={onBack}
             hitSlop={12}
             accessibilityRole="button"
-            accessibilityLabel="Retour"
+            accessibilityLabel={t('onboarding.capture.back')}
           >
             <Icon name="arrow-back" size="sm" color={theme.ink} />
           </TouchableOpacity>
@@ -335,7 +336,7 @@ export function CaptureCamera({
           disabled={isCapturing || !isCameraReady}
           activeOpacity={0.75}
           accessibilityRole="button"
-          accessibilityLabel="Prendre la photo"
+          accessibilityLabel={t('onboarding.capture.takePhoto')}
           accessibilityState={{ disabled: isCapturing || !isCameraReady, busy: isCapturing }}
         >
           <View style={[styles.shutterInner, { backgroundColor: theme.ink }]}>

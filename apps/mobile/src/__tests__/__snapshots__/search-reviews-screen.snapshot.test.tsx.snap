@@ -33,7 +33,7 @@ exports[`search/reviews.tsx snapshots > renders before the profile has loaded (i
     }
   >
     <TouchableOpacity
-      accessibilityLabel="Retour"
+      accessibilityLabel="common:actions.back"
       accessibilityRole="button"
       hitSlop={12}
       onPress={[Function]}
@@ -110,7 +110,7 @@ exports[`search/reviews.tsx snapshots > renders before the profile has loaded (i
   </View>
   <FlatList>
     <View
-      accessibilityLabel="Emma L., 5 sur 5 étoiles, il y a 2 jours. Trajet impeccable, très ponctuel. La voiture était impeccable et il m’a aidée avec mes bagages."
+      accessibilityLabel="Emma L., 5 sur 5 étoiles, . "
       accessible={true}
       style={
         [
@@ -209,9 +209,7 @@ exports[`search/reviews.tsx snapshots > renders before the profile has loaded (i
                 },
               ]
             }
-          >
-            il y a 2 jours
-          </Text>
+          />
         </View>
         <View
           accessibilityElementsHidden={true}
@@ -306,12 +304,10 @@ exports[`search/reviews.tsx snapshots > renders before the profile has loaded (i
             },
           ]
         }
-      >
-        Trajet impeccable, très ponctuel. La voiture était impeccable et il m’a aidée avec mes bagages.
-      </Text>
+      />
     </View>
     <View
-      accessibilityLabel="Karim T., 5 sur 5 étoiles, il y a 5 jours. Voiture propre et conduite prudente. A bien géré le trafic. Je reprendrais volontiers ce trajet."
+      accessibilityLabel="Karim T., 5 sur 5 étoiles, . "
       accessible={true}
       style={
         [
@@ -410,9 +406,7 @@ exports[`search/reviews.tsx snapshots > renders before the profile has loaded (i
                 },
               ]
             }
-          >
-            il y a 5 jours
-          </Text>
+          />
         </View>
         <View
           accessibilityElementsHidden={true}
@@ -507,12 +501,10 @@ exports[`search/reviews.tsx snapshots > renders before the profile has loaded (i
             },
           ]
         }
-      >
-        Voiture propre et conduite prudente. A bien géré le trafic. Je reprendrais volontiers ce trajet.
-      </Text>
+      />
     </View>
     <View
-      accessibilityLabel="Sarah B., 4 sur 5 étoiles, il y a 1 semaine. Bonne expérience dans l’ensemble. Conducteur un peu silencieux, mais trajet fluide et à l’heure."
+      accessibilityLabel="Sarah B., 4 sur 5 étoiles, . "
       accessible={true}
       style={
         [
@@ -611,9 +603,7 @@ exports[`search/reviews.tsx snapshots > renders before the profile has loaded (i
                 },
               ]
             }
-          >
-            il y a 1 semaine
-          </Text>
+          />
         </View>
         <View
           accessibilityElementsHidden={true}
@@ -708,9 +698,7 @@ exports[`search/reviews.tsx snapshots > renders before the profile has loaded (i
             },
           ]
         }
-      >
-        Bonne expérience dans l’ensemble. Conducteur un peu silencieux, mais trajet fluide et à l’heure.
-      </Text>
+      />
     </View>
   </FlatList>
 </View>
@@ -749,7 +737,7 @@ exports[`search/reviews.tsx snapshots > renders the mock review list under a rea
     }
   >
     <TouchableOpacity
-      accessibilityLabel="Retour"
+      accessibilityLabel="common:actions.back"
       accessibilityRole="button"
       hitSlop={12}
       onPress={[Function]}
@@ -891,7 +879,7 @@ exports[`search/reviews.tsx snapshots > renders the mock review list under a rea
   </View>
   <FlatList>
     <View
-      accessibilityLabel="Emma L., 5 sur 5 étoiles, il y a 2 jours. Trajet impeccable, très ponctuel. La voiture était impeccable et il m’a aidée avec mes bagages."
+      accessibilityLabel="Emma L., 5 sur 5 étoiles, . "
       accessible={true}
       style={
         [
@@ -990,9 +978,7 @@ exports[`search/reviews.tsx snapshots > renders the mock review list under a rea
                 },
               ]
             }
-          >
-            il y a 2 jours
-          </Text>
+          />
         </View>
         <View
           accessibilityElementsHidden={true}
@@ -1087,12 +1073,10 @@ exports[`search/reviews.tsx snapshots > renders the mock review list under a rea
             },
           ]
         }
-      >
-        Trajet impeccable, très ponctuel. La voiture était impeccable et il m’a aidée avec mes bagages.
-      </Text>
+      />
     </View>
     <View
-      accessibilityLabel="Karim T., 5 sur 5 étoiles, il y a 5 jours. Voiture propre et conduite prudente. A bien géré le trafic. Je reprendrais volontiers ce trajet."
+      accessibilityLabel="Karim T., 5 sur 5 étoiles, . "
       accessible={true}
       style={
         [
@@ -1191,9 +1175,7 @@ exports[`search/reviews.tsx snapshots > renders the mock review list under a rea
                 },
               ]
             }
-          >
-            il y a 5 jours
-          </Text>
+          />
         </View>
         <View
           accessibilityElementsHidden={true}
@@ -1288,12 +1270,10 @@ exports[`search/reviews.tsx snapshots > renders the mock review list under a rea
             },
           ]
         }
-      >
-        Voiture propre et conduite prudente. A bien géré le trafic. Je reprendrais volontiers ce trajet.
-      </Text>
+      />
     </View>
     <View
-      accessibilityLabel="Sarah B., 4 sur 5 étoiles, il y a 1 semaine. Bonne expérience dans l’ensemble. Conducteur un peu silencieux, mais trajet fluide et à l’heure."
+      accessibilityLabel="Sarah B., 4 sur 5 étoiles, . "
       accessible={true}
       style={
         [
@@ -1392,9 +1372,7 @@ exports[`search/reviews.tsx snapshots > renders the mock review list under a rea
                 },
               ]
             }
-          >
-            il y a 1 semaine
-          </Text>
+          />
         </View>
         <View
           accessibilityElementsHidden={true}
@@ -1489,9 +1467,7 @@ exports[`search/reviews.tsx snapshots > renders the mock review list under a rea
             },
           ]
         }
-      >
-        Bonne expérience dans l’ensemble. Conducteur un peu silencieux, mais trajet fluide et à l’heure.
-      </Text>
+      />
     </View>
   </FlatList>
 </View>

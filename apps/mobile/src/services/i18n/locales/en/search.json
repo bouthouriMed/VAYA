@@ -11,7 +11,10 @@
     "departure": "Departure",
     "onYourRoute": "On your route",
     "candidateCount_one": "{{count}} ride available today on this route",
-    "candidateCount_other": "{{count}} rides available today on this route"
+    "candidateCount_other": "{{count}} rides available today on this route",
+    "meetingPoint": "Meeting point",
+    "bestMatch": "BEST MATCH",
+    "timeOffsetNote": "Departs {{offsetMin}} after your requested time — pickup is a {{walkMinutes}} walk away."
   },
   "composer": {
     "myLocation": "My current location",
@@ -19,27 +22,89 @@
     "searchDestination": "Search for a destination",
     "work": "Work",
     "home": "Home",
-    "findRide": "Find a ride"
+    "findRide": "Find a ride",
+    "savedPlaces": "Saved places",
+    "clear": "Clear",
+    "resolveError": "Couldn't retrieve this place. Try again.",
+    "resultsSectionLabel": "Results",
+    "recentSectionLabel": "Recent",
+    "noResults": "No results",
+    "noRecents": "Your recent searches will appear here"
   },
   "pickupPoint": {
     "noStopClose": "No stop on this route is close enough for pickup.",
+    "noStopCloseDesc": "No stop on this route is close enough to reach on foot from your position. Try another ride or adjust your search.",
     "backToSearch": "Back to search",
     "selected": "Selected point",
-    "choosePoint": "Choose this point"
+    "choosePoint": "Choose this point",
+    "stopsOnRoute_one": "{{count}} stop on this route",
+    "stopsOnRoute_other": "{{count}} stops on this route",
+    "pointDetails": "Details for {{label}}",
+    "walkFromOrigin": "{{minutes}} from your starting position.",
+    "driverValidatedStop": "This point was confirmed by the driver as a stop on their route.",
+    "confirmPickup": "Confirm this pickup point"
   },
   "dropoffPoint": {
     "noDropoff": "No accessible drop-off point found.",
     "noDropoffDesc": "No stop on this route is close enough for drop-off.",
     "confirmDropoff": "Confirm this drop-off point",
     "selected": "Selected point",
-    "choosePoint": "Choose this point"
+    "choosePoint": "Choose this point",
+    "whereToDropoff": "Where would you like to get off?",
+    "pointDetails": "Details for {{label}}",
+    "walkFromDestination": "{{minutes}} from your destination.",
+    "walkToDestination": "{{minutes}} to your destination.",
+    "driverValidatedStop": "This point was confirmed by the driver as a stop on their route."
   },
   "details": {
     "viewRouteFullscreen": "View route on full screen",
-    "back": "Back"
+    "back": "Back",
+    "rideNotFound": "Ride not found.",
+    "durationHoursMinutes": "{{hours}} h {{minutes}} min",
+    "durationHoursOnly": "{{hours}} h",
+    "durationMinutesOnly": "{{minutes}} min",
+    "seatsAvailable_one": "{{count}} seat available",
+    "seatsAvailable_other": "{{count}} seats available",
+    "viewDriverProfile": "View {{name}}'s profile",
+    "passengersHeader": "passengers · {{booked}}/{{total}} seats reserved",
+    "briefStop": "Brief stop",
+    "walkToMeetingPoint": "{{minutes}} to the meeting point",
+    "requestSeat": "Request a seat",
+    "requestSeatWithPrice": "Request a seat, {{price}} DT",
+    "seatTakenError": "This seat may have just been taken. Try again."
   },
   "trust": {
-    "back": "Back"
+    "back": "Back",
+    "profileNotFound": "Profile not found.",
+    "verified": "Verified",
+    "speaks": "Speaks {{languages}}",
+    "ratingLabel": "Rating",
+    "tripsLabel": "Trips",
+    "welcomeTitle": "{{name}} is just getting started on VAYA",
+    "welcomeDescription": "A fully verified profile, not yet with trips or reviews — everyone starts somewhere. What VAYA already guarantees is listed below.",
+    "welcomeEncourage": "Be one of {{name}}'s first passengers — your review after the ride will help them build trust from the start.",
+    "pillNew": "New",
+    "pillReliable": "Reliable",
+    "pillTopRated": "Top VAYA",
+    "verificationsTitle": "VAYA verifications",
+    "verificationIdentity": "Identity confirmed by selfie",
+    "verificationDocuments": "Driving documents checked",
+    "verificationVehicle": "Registered vehicle — plate shown below",
+    "aboutTitle": "About {{name}}",
+    "reviewsTitle": "Reviews",
+    "reviewsSubtitle": "See all reviews about {{name}}",
+    "reviewsEmpty": "{{name}} hasn't received any reviews yet.",
+    "reviewsFirstLine": "Share yours after your ride — the first review counts the most.",
+    "messageDriver": "Message driver",
+    "messageAvailability": "Available once your seat request is accepted."
+  },
+  "reviews": {
+    "fallbackDriverName": "this driver",
+    "mockReviews": [
+      { "when": "2 days ago", "comment": "Great ride, very punctual. The car was spotless and he helped me with my bags." },
+      { "when": "5 days ago", "comment": "Clean car and careful driving. Handled traffic well. I'd happily book this route again." },
+      { "when": "1 week ago", "comment": "Good experience overall. A bit quiet, but the ride was smooth and on time." }
+    ]
   },
   "timePicker": {
     "when": "When?",
@@ -48,5 +113,25 @@
     "thisAfternoon": "This afternoon",
     "tomorrowMorning": "Tomorrow morning",
     "chooseDate": "Choose a date"
+  },
+  "datePickerSheet": {
+    "title": "Departure date",
+    "weekdayLabels": ["M", "T", "W", "T", "F", "S", "S"],
+    "previousMonth": "Previous month",
+    "nextMonth": "Next month",
+    "confirm": "Confirm date"
+  },
+  "timeWheelSheet": {
+    "title": "Time",
+    "subtitle": "What time would you like to leave?",
+    "summary": "Search around {{time}}"
+  },
+  "passengerPicker": {
+    "hint": "Up to {{count}} passengers per ride",
+    "increment": "Add a passenger",
+    "decrement": "Remove a passenger"
+  },
+  "walk": {
+    "suffix": "{{minutes}} walk"
   }
 }

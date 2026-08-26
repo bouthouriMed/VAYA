@@ -13,6 +13,7 @@ import MapView, { Marker, Polyline, PROVIDER_DEFAULT, type Region } from 'react-
 import Reanimated, { useSharedValue, useAnimatedStyle, withTiming, runOnJS } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import {
   Text,
   MapRoute,
@@ -36,13 +37,13 @@ import {
   lightMapStyle,
   darkMapStyle,
   StatusBarBlend,
-  formatDepartureLabel,
-  formatTime,
   type AppPalette,
   type MapRegion,
 } from '@vaya/design-system';
 import { router } from 'expo-router';
+import type { SupportedLocale } from '@vaya/config';
 import { useAppDispatch, useAppSelector } from '../../src/state/store';
+import { formatTime, formatCurrency, formatDate, toIntlTag } from '../../src/utils/localeFormat';
 import { resetSearch, swapOriginDestination } from '../../src/state/searchSlice';
 import { setPendingRide, setPendingRideDraft } from '../../src/state/driverOnboardingSlice';
 import { useContextualAuth } from '../../src/features/auth/useContextualAuth';
@@ -115,6 +116,32 @@ interface PublishPoint {
   stopId: string | null;
 }
 
+function isSameCalendarDay(a: Date, b: Date): boolean {
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  );
+}
+
+/** Locale-aware "Aujourd'hui"/"Demain"/short-date label for the Date param
+ *  button — `@vaya/design-system`'s own `formatDepartureLabel` is hardcoded
+ *  to `fr-FR` (out of this screen's scope to change), so the day portion is
+ *  computed here instead, using `common:time.today`/`.tomorrow` and
+ *  `utils/localeFormat.ts`'s real locale-aware `formatDate`. */
+function formatDepartureDayLabel(
+  date: Date,
+  loc: SupportedLocale,
+  todayLabel: string,
+  tomorrowLabel: string,
+  now: Date = new Date(),
+): string {
+  if (isSameCalendarDay(date, now)) return todayLabel;
+  const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+  if (isSameCalendarDay(date, tomorrow)) return tomorrowLabel;
+  return formatDate(date, loc, { weekday: 'short', day: 'numeric', month: 'short' });
+}
+
 // --- Local, theme-aware building blocks -----------------------------------
 // Mirrors the pattern the rider search flow's Stitch rebuild established
 // (search/composer.tsx, bookings/confirmed.tsx): hand-rolled header/CTA
@@ -132,13 +159,14 @@ function StepHeader({
   title: string;
   onBack: () => void;
 }): React.JSX.Element {
+  const { t } = useTranslation('common');
   return (
     <View style={styles.headerRow}>
       <TouchableOpacity
         onPress={onBack}
         hitSlop={12}
         accessibilityRole="button"
-        accessibilityLabel="Retour"
+        accessibilityLabel={t('actions.back')}
       >
         <Icon name="arrow-back" size="sm" color={theme.ink} />
       </TouchableOpacity>
@@ -231,6 +259,8 @@ export default function PublishTabScreen(): React.JSX.Element {
   const insets = useSafeAreaInsets();
   const { height: windowHeight } = useWindowDimensions();
   const { colors: theme, scheme } = useAppTheme();
+  const { t } = useTranslation(['driver', 'common']);
+  const locale = (useAppSelector((s) => s.language.locale) || 'en') as SupportedLocale;
   const dispatch = useAppDispatch();
   const origin = useAppSelector((s) => s.search.origin);
   const destination = useAppSelector((s) => s.search.destination);
@@ -240,6 +270,12 @@ export default function PublishTabScreen(): React.JSX.Element {
   // own Date/Heure fields have no such presets either — see the Date/Heure
   // paramBtn row below, which mirrors explore.tsx's exactly).
   const [departureAt, setDepartureAt] = useState(() => new Date(Date.now() + 30 * 60_000));
+  const departureDayLabel = formatDepartureDayLabel(
+    departureAt,
+    locale,
+    t('common:time.today'),
+    t('common:time.tomorrow'),
+  );
   const [isDateSheetOpen, setIsDateSheetOpen] = useState(false);
   const [isTimeSheetOpen, setIsTimeSheetOpen] = useState(false);
   const [isSeatsSheetOpen, setIsSeatsSheetOpen] = useState(false);
@@ -488,7 +524,7 @@ export default function PublishTabScreen(): React.JSX.Element {
     void fetchReverseGeocode(next)
       .unwrap()
       .then((result) => setCustomPointLabel(result.label))
-      .catch(() => setCustomPointLabel('Position personnalisée'));
+      .catch(() => setCustomPointLabel(t('driver:publish.stopsStep.customPosition')));
   }
 
   function confirmActivePoint(): void {
@@ -652,7 +688,7 @@ export default function PublishTabScreen(): React.JSX.Element {
       }).unwrap();
     } catch {
       haptics.error();
-      setErrorMessage('Impossible de créer ce trajet. Réessayez.');
+      setErrorMessage(t('driver:publish.errors.createFailed'));
       return;
     }
 
@@ -830,7 +866,7 @@ export default function PublishTabScreen(): React.JSX.Element {
       return true;
     } catch {
       haptics.error();
-      setErrorMessage("Impossible d'enregistrer les points de rendez-vous. Réessayez.");
+      setErrorMessage(t('driver:publish.errors.stopsFailed'));
       return false;
     }
   }
@@ -866,7 +902,7 @@ export default function PublishTabScreen(): React.JSX.Element {
         });
       } catch {
         haptics.error();
-        setErrorMessage('Impossible de mettre à jour le prix. Réessayez.');
+        setErrorMessage(t('driver:publish.errors.priceFailed'));
         return;
       }
     }
@@ -926,7 +962,7 @@ export default function PublishTabScreen(): React.JSX.Element {
       router.replace('/(tabs)/trips');
     } catch {
       haptics.error();
-      setErrorMessage('Impossible de publier ce trajet. Réessayez.');
+      setErrorMessage(t('driver:publish.errors.publishFailed'));
     }
   }
 
@@ -986,9 +1022,9 @@ export default function PublishTabScreen(): React.JSX.Element {
   }
 
   const stepTitles: Record<Exclude<Step, 'form'>, string> = {
-    route: "Choisir l'itinéraire",
-    price: 'Prix suggéré',
-    review: 'Vérifier et publier',
+    route: t('driver:publish.steps.route'),
+    price: t('driver:publish.steps.price'),
+    review: t('driver:publish.steps.review'),
   };
 
   // Steps beyond the form move locally within this same tab screen (never a
@@ -1062,7 +1098,7 @@ export default function PublishTabScreen(): React.JSX.Element {
         <GlassSurface theme={theme} scheme={scheme} radius="2xl" style={styles.routeSheet}>
           <ScrollView contentContainerStyle={styles.routeList} showsVerticalScrollIndicator={false}>
             <Text variant="label" color={theme.inkFaint} style={styles.eyebrow}>
-              {routeOptions.length} ITINÉRAIRES DISPONIBLES
+              {t('driver:publish.routeStep.availableCount', { count: routeOptions.length })}
             </Text>
             {routeOptions.map((option) => (
               <RouteOptionCard
@@ -1071,6 +1107,10 @@ export default function PublishTabScreen(): React.JSX.Element {
                 selected={option.token === selectedRouteToken}
                 onPress={() => setSelectedRouteToken(option.token)}
                 theme={theme}
+                tollsLabel={t('driver:publish.routeStep.tollsLabel')}
+                noTollsLabel={t('driver:publish.routeStep.noTollsLabel')}
+                estimateLabel={t('driver:publish.routeStep.estimateLabel')}
+                recommendedLabel={t('driver:publish.routeStep.recommendedLabel')}
               />
             ))}
           </ScrollView>
@@ -1085,7 +1125,7 @@ export default function PublishTabScreen(): React.JSX.Element {
         <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.md }]}>
           <PrimaryButton
             theme={theme}
-            label="Continuer"
+            label={t('common:actions.continue')}
             loading={isCreating}
             disabled={!selectedRouteToken}
             onPress={() => void continueFromRoute()}
@@ -1104,7 +1144,7 @@ export default function PublishTabScreen(): React.JSX.Element {
 
         <Animated.View style={[styles.priceBody, stepMotionStyle]}>
           <Text variant="label" color={theme.inkFaint} style={styles.eyebrow}>
-            PRIX SUGGÉRÉ
+            {t('driver:publish.priceStep.title')}
           </Text>
           <GlassSurface theme={theme} scheme={scheme} radius="2xl" style={styles.priceCard}>
             {pricing ? (
@@ -1115,12 +1155,12 @@ export default function PublishTabScreen(): React.JSX.Element {
                 value={price}
                 onChange={setPrice}
                 isEstimate={routeIsEstimate}
+                label={t('driver:publish.priceStep.contributionLabel')}
               />
             ) : null}
           </GlassSurface>
           <Text variant="bodySmall" color={theme.inkFaint} align="center" style={styles.hint}>
-            Ce montant est calculé pour ce trajet — vous pouvez l&apos;ajuster dans la marge
-            proposée.
+            {t('driver:publish.priceStep.description')}
           </Text>
         </Animated.View>
 
@@ -1133,7 +1173,7 @@ export default function PublishTabScreen(): React.JSX.Element {
         <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.md }]}>
           <PrimaryButton
             theme={theme}
-            label="Continuer"
+            label={t('common:actions.continue')}
             loading={isUpdatingPrice}
             disabled={!pricing}
             onPress={() => void continueFromPriceToReview()}
@@ -1153,26 +1193,25 @@ export default function PublishTabScreen(): React.JSX.Element {
         <ScrollView contentContainerStyle={styles.reviewContent}>
           <Animated.View style={[styles.reviewStack, stepMotionStyle]}>
             <Text variant="headlineDisplay" color={theme.ink} style={styles.reviewTitle}>
-              Prêt à publier votre trajet ?
+              {t('driver:publish.reviewStep.readyToPublish')}
             </Text>
             <Text variant="body" color={theme.inkMuted} style={styles.reviewSubtitle}>
-              Vérifiez les détails ci-dessous — vous pouvez modifier chaque section avant de
-              confirmer.
+              {t('driver:publish.reviewStep.checkDetails')}
             </Text>
 
             <GlassSurface theme={theme} scheme={scheme} radius="2xl" style={styles.reviewCard}>
               <View style={styles.reviewCardHeader}>
                 <Text variant="label" color={theme.inkFaint} style={styles.reviewCardEyebrow}>
-                  ITINÉRAIRE
+                  {t('driver:publish.reviewStep.itinerary')}
                 </Text>
                 <TouchableOpacity
                   style={styles.reviewEditBtn}
                   onPress={() => setStep('form')}
                   accessibilityRole="button"
-                  accessibilityLabel="Modifier l'itinéraire"
+                  accessibilityLabel={t('driver:publish.reviewStep.editItinerary')}
                 >
                   <Text variant="bodySmall" color={theme.inkMuted}>
-                    Modifier
+                    {t('driver:publish.reviewStep.modify')}
                   </Text>
                   <Icon name="pencil-outline" size="xs" color={theme.inkMuted} />
                 </TouchableOpacity>
@@ -1189,7 +1228,7 @@ export default function PublishTabScreen(): React.JSX.Element {
                     setMapMode('pickup');
                   }}
                   accessibilityRole={hasRideData ? 'button' : undefined}
-                  accessibilityLabel={hasRideData ? 'Modifier le point de rendez-vous' : undefined}
+                  accessibilityLabel={hasRideData ? t('driver:publish.stopsStep.editPickup') : undefined}
                 >
                   <View
                     style={[
@@ -1203,11 +1242,11 @@ export default function PublishTabScreen(): React.JSX.Element {
                         {pickup?.label ?? origin?.label}
                       </Text>
                       <Text variant="bodySmall" color={theme.inkFaint}>
-                        Point de rendez-vous
+                        {t('driver:publish.reviewStep.meetingPoint')}
                       </Text>
                     </View>
                     <Text variant="bodySmall" color={theme.inkMuted} style={styles.timelineTime}>
-                      {formatTime(departureAt)}
+                      {formatTime(departureAt, locale)}
                     </Text>
                   </View>
                 </TouchableOpacity>
@@ -1220,7 +1259,7 @@ export default function PublishTabScreen(): React.JSX.Element {
                     setMapMode('dropoff');
                   }}
                   accessibilityRole={hasRideData ? 'button' : undefined}
-                  accessibilityLabel={hasRideData ? 'Modifier le point de dépose' : undefined}
+                  accessibilityLabel={hasRideData ? t('driver:publish.stopsStep.editDropoff') : undefined}
                 >
                   <View
                     style={[
@@ -1239,12 +1278,14 @@ export default function PublishTabScreen(): React.JSX.Element {
                         {dropoff?.label ?? destination?.label}
                       </Text>
                       <Text variant="bodySmall" color={theme.inkFaint}>
-                        Point de dépose
+                        {t('driver:publish.stopsStep.dropoffTitle')}
                       </Text>
                     </View>
                     {estimatedArrivalAt ? (
                       <Text variant="bodySmall" color={theme.inkMuted} style={styles.timelineTime}>
-                        ~{formatTime(estimatedArrivalAt)}
+                        {t('driver:publish.reviewStep.estimatedArrival', {
+                          time: formatTime(estimatedArrivalAt, locale),
+                        })}
                       </Text>
                     ) : null}
                   </View>
@@ -1261,13 +1302,13 @@ export default function PublishTabScreen(): React.JSX.Element {
               >
                 <View style={styles.reviewCardHeader}>
                   <Text variant="label" color={theme.inkFaint} style={styles.reviewCardEyebrow}>
-                    PRIX PAR PLACE
+                    {t('driver:publish.reviewStep.price')}
                   </Text>
                   {hasRideData ? (
                     <TouchableOpacity
                       onPress={() => setStep('price')}
                       accessibilityRole="button"
-                      accessibilityLabel="Modifier le prix"
+                      accessibilityLabel={t('driver:publish.reviewStep.editPrice')}
                     >
                       <Icon name="pencil-outline" size="xs" color={theme.inkMuted} />
                     </TouchableOpacity>
@@ -1276,17 +1317,14 @@ export default function PublishTabScreen(): React.JSX.Element {
                 {hasRideData ? (
                   <View style={styles.reviewStatRow}>
                     <Text variant="h2" color={theme.ink}>
-                      {price.toFixed(2)}
-                    </Text>
-                    <Text variant="body" color={theme.inkMuted} style={styles.reviewUnit}>
-                      TND
+                      {formatCurrency(price, locale)}
                     </Text>
                   </View>
                 ) : (
                   <View style={styles.lockedRow}>
                     <Icon name="lock-closed-outline" size="xs" color={colors.warningDark} />
                     <Text variant="bodySmall" color={colors.warningDark}>
-                      Après vérification
+                      {t('driver:publish.reviewStep.afterVerification')}
                     </Text>
                   </View>
                 )}
@@ -1300,12 +1338,12 @@ export default function PublishTabScreen(): React.JSX.Element {
               >
                 <View style={styles.reviewCardHeader}>
                   <Text variant="label" color={theme.inkFaint} style={styles.reviewCardEyebrow}>
-                    PLACES DISPONIBLES
+                    {t('driver:publish.reviewStep.seatsAvailable')}
                   </Text>
                   <TouchableOpacity
                     onPress={() => setStep('form')}
                     accessibilityRole="button"
-                    accessibilityLabel="Modifier le nombre de places"
+                    accessibilityLabel={t('driver:publish.reviewStep.editSeats')}
                   >
                     <Icon name="pencil-outline" size="xs" color={theme.inkMuted} />
                   </TouchableOpacity>
@@ -1326,7 +1364,7 @@ export default function PublishTabScreen(): React.JSX.Element {
             {vehicle ? (
               <GlassSurface theme={theme} scheme={scheme} radius="2xl" style={styles.reviewCard}>
                 <Text variant="label" color={theme.inkFaint} style={styles.reviewCardEyebrow}>
-                  VÉHICULE
+                  {t('driver:publish.reviewStep.vehicle')}
                 </Text>
                 <View style={styles.vehicleSummaryRow}>
                   <View
@@ -1339,7 +1377,8 @@ export default function PublishTabScreen(): React.JSX.Element {
                       {vehicle.make} {vehicle.model} · {vehicle.color}
                     </Text>
                     <Text variant="bodySmall" color={theme.inkMuted}>
-                      {vehicle.plateNumber} · {vehicle.seatCount} places au total
+                      {vehicle.plateNumber} ·{' '}
+                      {t('driver:publish.reviewStep.totalSeats', { count: vehicle.seatCount })}
                     </Text>
                   </View>
                 </View>
@@ -1347,7 +1386,7 @@ export default function PublishTabScreen(): React.JSX.Element {
             ) : (
               <GlassSurface theme={theme} scheme={scheme} radius="2xl" style={styles.reviewCard}>
                 <Text variant="label" color={theme.inkFaint} style={styles.reviewCardEyebrow}>
-                  VÉHICULE
+                  {t('driver:publish.reviewStep.vehicle')}
                 </Text>
                 <View style={styles.vehicleSummaryRow}>
                   <View
@@ -1360,8 +1399,7 @@ export default function PublishTabScreen(): React.JSX.Element {
                     color={theme.inkMuted}
                     style={styles.vehiclePendingText}
                   >
-                    Vous ajouterez votre véhicule lors de la vérification de votre profil
-                    conducteur.
+                    {t('driver:publish.reviewStep.addAfterVerify')}
                   </Text>
                 </View>
               </GlassSurface>
@@ -1378,7 +1416,11 @@ export default function PublishTabScreen(): React.JSX.Element {
         <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.md }]}>
           <PrimaryButton
             theme={theme}
-            label={hasRideData ? 'Publier ce trajet' : 'Vérifier mon profil pour publier'}
+            label={
+              hasRideData
+                ? t('driver:publish.reviewStep.publishCta')
+                : t('driver:publish.reviewStep.verifyCta')
+            }
             icon={hasRideData ? 'rocket-outline' : 'shield-checkmark-outline'}
             loading={isPublishing}
             disabled={isPublishing}
@@ -1386,8 +1428,8 @@ export default function PublishTabScreen(): React.JSX.Element {
           />
           <Text variant="bodySmall" color={theme.inkFaint} align="center" style={styles.termsHint}>
             {hasRideData
-              ? "En publiant, vous acceptez nos conditions d'utilisation."
-              : 'La vérification de votre profil conducteur prend environ 5 minutes.'}
+              ? t('driver:publish.reviewStep.termsHint')
+              : t('driver:publish.reviewStep.verifyDescription')}
           </Text>
         </View>
 
@@ -1401,27 +1443,25 @@ export default function PublishTabScreen(): React.JSX.Element {
               <Icon name="shield-checkmark" size="lg" color={theme.ink} />
             </View>
             <Text variant="h3" color={theme.ink} align="center">
-              Une dernière étape pour prendre la route
+              {t('driver:publish.verificationSheet.title')}
             </Text>
             <Text variant="body" color={theme.inkMuted} align="center">
-              Pour publier votre premier trajet, nous devons vérifier votre profil de conducteur.
-              Votre trajet est enregistré et sera publié automatiquement dès que votre vérification
-              sera validée.
+              {t('driver:publish.verificationSheet.description')}
             </Text>
             <View style={styles.verificationPill}>
               <Icon name="hourglass-outline" size="xs" color={colors.warningDark} />
               <Text variant="bodySmall" color={colors.warningDark}>
-                Vérification requise
+                {t('driver:publish.verificationSheet.pillLabel')}
               </Text>
             </View>
             <PrimaryButton
               theme={theme}
-              label="Commencer la vérification"
+              label={t('driver:publish.verificationSheet.startCta')}
               onPress={startVerification}
             />
             <GhostButton
               theme={theme}
-              label="Plus tard"
+              label={t('common:actions.later')}
               onPress={() => setIsVerificationPromptVisible(false)}
             />
           </View>
@@ -1523,20 +1563,22 @@ export default function PublishTabScreen(): React.JSX.Element {
               hitSlop={12}
               style={[styles.roundBtn, { backgroundColor: theme.surface, shadowColor: theme.ink }]}
               accessibilityRole="button"
-              accessibilityLabel="Retour"
+              accessibilityLabel={t('common:actions.back')}
             >
               <Icon name="arrow-back" size="sm" color={theme.ink} />
             </TouchableOpacity>
             <GlassSurface theme={theme} scheme={scheme} radius="lg" style={styles.selectionInstructionCard}>
               <Text variant="label" color={theme.ink}>
-                {mapMode === 'pickup' ? 'Point de rendez-vous' : 'Point de dépose'}
+                {mapMode === 'pickup'
+                  ? t('driver:publish.stopsStep.pickupTitle')
+                  : t('driver:publish.stopsStep.dropoffTitle')}
               </Text>
               <Text variant="caption" color={theme.inkMuted}>
                 {isGeneratingStops
-                  ? 'Recherche de suggestions…'
+                  ? t('driver:publish.stopsStep.searching')
                   : osrmUnavailable
-                    ? 'Suggestions indisponibles — placez le point vous-même.'
-                    : 'Choisissez un point suggéré ou placez-le vous-même.'}
+                    ? t('driver:publish.stopsStep.unavailable')
+                    : t('driver:publish.stopsStep.chooseOrPlace')}
               </Text>
             </GlassSurface>
           </View>
@@ -1581,17 +1623,23 @@ export default function PublishTabScreen(): React.JSX.Element {
             </View>
             <View style={styles.confirmTextCol}>
               <Text variant="caption" color={theme.inkFaint}>
-                Point sélectionné
+                {t('driver:publish.stopsStep.selectedPoint')}
               </Text>
               <Text variant="label" color={theme.ink} numberOfLines={1}>
-                {isResolvingPointLabel ? 'Résolution du lieu…' : (resolvedPointLabel ?? 'Déplacez la carte')}
+                {isResolvingPointLabel
+                  ? t('driver:publish.stopsStep.resolvingLabel')
+                  : (resolvedPointLabel ?? t('driver:publish.stopsStep.moveMap'))}
               </Text>
             </View>
           </View>
 
           <PrimaryButton
             theme={theme}
-            label={mapMode === 'pickup' ? 'Confirmer le point de rendez-vous' : 'Confirmer le point de dépose'}
+            label={
+              mapMode === 'pickup'
+                ? t('driver:publish.stopsStep.confirmPickup')
+                : t('driver:publish.stopsStep.confirmDropoff')
+            }
             onPress={confirmActivePoint}
             disabled={!resolvedPointLabel || isResolvingPointLabel}
           />
@@ -1600,7 +1648,7 @@ export default function PublishTabScreen(): React.JSX.Element {
       <ScrollView style={styles.cardScroll} contentContainerStyle={styles.content}>
         <Animated.View style={[styles.formStack, stepMotionStyle]}>
           <Text variant="headlineDisplay" color={theme.ink} style={styles.headline}>
-            Publier un trajet
+            {t('driver:publish.formStep.headline')}
           </Text>
 
           {/* Exact copy of (tabs)/explore.tsx's locationBlock — same
@@ -1625,17 +1673,17 @@ export default function PublishTabScreen(): React.JSX.Element {
               }
               activeOpacity={0.7}
               accessibilityRole="button"
-              accessibilityLabel={`Départ, ${origin?.label ?? 'Point de départ'}`}
+              accessibilityLabel={`${t('common:terms.departure')}, ${origin?.label ?? t('common:terms.departurePoint')}`}
             >
               <View style={[styles.locationIconWrap, { backgroundColor: theme.accentGlow + '33' }]}>
                 <Icon name="locate" size="sm" color={theme.accent} />
               </View>
               <View style={styles.locationTextCol}>
                 <Text variant="caption" color={theme.inkFaint}>
-                  Départ
+                  {t('common:terms.departure')}
                 </Text>
                 <Text variant="body" numberOfLines={1} color={origin ? theme.ink : theme.inkFaint}>
-                  {origin?.label ?? 'Point de départ'}
+                  {origin?.label ?? t('common:terms.departurePoint')}
                 </Text>
               </View>
             </TouchableOpacity>
@@ -1647,17 +1695,17 @@ export default function PublishTabScreen(): React.JSX.Element {
               }
               activeOpacity={0.7}
               accessibilityRole="button"
-              accessibilityLabel={`Arrivée, ${destination?.label ?? 'Où allez-vous ?'}`}
+              accessibilityLabel={`${t('common:terms.arrival')}, ${destination?.label ?? t('common:terms.whereTo')}`}
             >
               <View style={[styles.locationIconWrap, { backgroundColor: theme.surfaceMuted }]}>
                 <Icon name="location" size="sm" color={theme.inkMuted} />
               </View>
               <View style={styles.locationTextCol}>
                 <Text variant="caption" color={theme.inkFaint}>
-                  Arrivée
+                  {t('common:terms.arrival')}
                 </Text>
                 <Text variant="body" numberOfLines={1} color={destination ? theme.ink : theme.inkFaint}>
-                  {destination?.label ?? 'Où allez-vous ?'}
+                  {destination?.label ?? t('common:terms.whereTo')}
                 </Text>
               </View>
             </TouchableOpacity>
@@ -1668,7 +1716,7 @@ export default function PublishTabScreen(): React.JSX.Element {
                 onPress={() => dispatch(swapOriginDestination())}
                 hitSlop={8}
                 accessibilityRole="button"
-                accessibilityLabel="Inverser départ et arrivée"
+                accessibilityLabel={t('common:actions.swap')}
               >
                 <Icon name="swap-vertical" size="sm" color={theme.inkMuted} />
               </TouchableOpacity>
@@ -1681,15 +1729,15 @@ export default function PublishTabScreen(): React.JSX.Element {
               onPress={() => setIsDateSheetOpen(true)}
               activeOpacity={0.7}
               accessibilityRole="button"
-              accessibilityLabel={`Date de départ, ${formatDepartureLabel(departureAt)}`}
+              accessibilityLabel={`${t('driver:publish.formStep.dateLabel')}, ${departureDayLabel}, ${formatTime(departureAt, locale)}`}
             >
               <Icon name="calendar-outline" size="sm" color={theme.inkFaint} />
               <View>
                 <Text variant="caption" color={theme.inkFaint}>
-                  Date
+                  {t('common:terms.date')}
                 </Text>
                 <Text variant="bodySmall" color={theme.ink}>
-                  {formatDepartureLabel(departureAt).split(' · ')[0]}
+                  {departureDayLabel}
                 </Text>
               </View>
             </TouchableOpacity>
@@ -1698,15 +1746,15 @@ export default function PublishTabScreen(): React.JSX.Element {
               onPress={() => setIsTimeSheetOpen(true)}
               activeOpacity={0.7}
               accessibilityRole="button"
-              accessibilityLabel={`Heure de départ, ${formatTime(departureAt)}`}
+              accessibilityLabel={`${t('driver:publish.formStep.timeLabel')}, ${formatTime(departureAt, locale)}`}
             >
               <Icon name="time-outline" size="sm" color={theme.inkFaint} />
               <View>
                 <Text variant="caption" color={theme.inkFaint}>
-                  Heure
+                  {t('common:terms.time')}
                 </Text>
                 <Text variant="bodySmall" color={theme.ink}>
-                  {formatTime(departureAt)}
+                  {formatTime(departureAt, locale)}
                 </Text>
               </View>
             </TouchableOpacity>
@@ -1720,17 +1768,17 @@ export default function PublishTabScreen(): React.JSX.Element {
             onPress={() => setIsSeatsSheetOpen(true)}
             activeOpacity={0.7}
             accessibilityRole="button"
-            accessibilityLabel={`Places disponibles, ${seats}`}
+            accessibilityLabel={`${t('driver:publish.formStep.seatsLabel')}, ${t('common:terms.seat', { count: seats })}`}
           >
             <View style={[styles.seatsIconWrap, { backgroundColor: theme.surfaceMuted }]}>
               <Icon name="person-outline" size="sm" color={theme.inkFaint} />
             </View>
             <View>
               <Text variant="caption" color={theme.inkFaint}>
-                Places disponibles
+                {t('driver:publish.formStep.seatsLabel')}
               </Text>
               <Text variant="bodySmall" color={theme.ink}>
-                {seats} place{seats > 1 ? 's' : ''}
+                {t('common:terms.seat', { count: seats })}
               </Text>
             </View>
           </TouchableOpacity>
@@ -1743,7 +1791,7 @@ export default function PublishTabScreen(): React.JSX.Element {
 
           <PrimaryButton
             theme={theme}
-            label={readyForPrice ? 'Choisir le prix' : 'Suivant'}
+            label={readyForPrice ? t('driver:publish.formStep.choosePriceCta') : t('common:actions.next')}
             icon={readyForPrice ? 'pricetag-outline' : undefined}
             loading={isCreating || isLoadingRouteOptions}
             disabled={!canContinue}
@@ -1759,14 +1807,28 @@ export default function PublishTabScreen(): React.JSX.Element {
         onClose={() => setIsDateSheetOpen(false)}
         value={departureAt}
         onChange={setDepartureAt}
-        title="Date de départ"
+        title={t('driver:publish.formStep.dateLabel')}
+        locale={toIntlTag(locale)}
+        weekdayLabels={
+          t('driver:publish.formStep.weekdayLabels', { returnObjects: true }) as [
+            string, string, string, string, string, string, string,
+          ]
+        }
+        closeLabel={t('common:actions.close')}
+        previousMonthLabel={t('driver:publish.formStep.previousMonth')}
+        nextMonthLabel={t('driver:publish.formStep.nextMonth')}
+        confirmLabel={t('driver:publish.formStep.confirmDate')}
       />
       <TimeWheelSheet
         visible={isTimeSheetOpen}
         onClose={() => setIsTimeSheetOpen(false)}
         value={departureAt}
         onChange={setDepartureAt}
-        title="Heure de départ"
+        title={t('driver:publish.formStep.timeLabel')}
+        closeLabel={t('common:actions.close')}
+        subtitleLabel={t('driver:publish.formStep.timeSheetSubtitle')}
+        summaryLabel={(time) => t('driver:publish.formStep.timeSheetSummary', { time })}
+        confirmLabel={t('common:actions.confirm')}
       />
       <PassengerSheet
         visible={isSeatsSheetOpen}
@@ -1775,9 +1837,14 @@ export default function PublishTabScreen(): React.JSX.Element {
         onChange={setSeats}
         min={1}
         max={8}
-        title="Places disponibles"
-        formatCount={(n) => `${n} place${n > 1 ? 's' : ''} disponible${n > 1 ? 's' : ''}`}
-        hint="Jusqu'à 8 places par trajet"
+        title={t('driver:publish.formStep.seatsLabel')}
+        formatCount={(n) => t('driver:publish.formStep.seatsCount', { count: n })}
+        hint={t('driver:publish.formStep.seatsHint', { count: 8 })}
+        closeLabel={t('common:actions.close')}
+        incrementLabel={t('driver:publish.formStep.incrementSeat')}
+        decrementLabel={t('driver:publish.formStep.decrementSeat')}
+        confirmLabel={t('common:actions.confirm')}
+        confirmAriaLabel={(countLabel) => `${t('common:actions.confirm')} ${countLabel}`}
       />
 
       <ContextualAuthSheet

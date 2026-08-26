@@ -155,7 +155,7 @@ export default function PickupPointScreen(): React.JSX.Element {
           <EmptyState
             icon={<Ionicons name="location-outline" size={40} color={colors.gray400} />}
             title={t('search:pickupPoint.noStopClose')}
-            description="Aucun arrêt de ce trajet n'est assez proche de votre position pour être rejoint à pied. Essayez un autre trajet ou ajustez votre recherche."
+            description={t('search:pickupPoint.noStopCloseDesc')}
             actionLabel={t('search:pickupPoint.backToSearch')}
             onAction={() => router.back()}
           />
@@ -185,7 +185,7 @@ export default function PickupPointScreen(): React.JSX.Element {
               key={stop.stopId}
               coordinate={{ latitude: stop.lat, longitude: stop.lng }}
               onPress={() => pickStop(stop)}
-              accessibilityLabel={`${stop.label}, ${Math.round(stop.walkMinutes)} min à pied`}
+              accessibilityLabel={`${stop.label}, ${t('search:walk.suffix', { minutes: t('common:terms.minute', { count: Math.round(stop.walkMinutes) }) })}`}
             >
               {/* Same numbered pin as the driver publish map (design-system
                *  StopPin); this screen's chrome is still legacy-light, so it
@@ -208,7 +208,7 @@ export default function PickupPointScreen(): React.JSX.Element {
         </TouchableOpacity>
         <View style={styles.hint}>
           <Text variant="bodySmall" color={colors.gray700}>
-            {rankedStops.length} point{rankedStops.length > 1 ? 's' : ''} sur ce trajet
+            {t('search:pickupPoint.stopsOnRoute', { count: rankedStops.length })}
           </Text>
         </View>
       </View>
@@ -220,7 +220,7 @@ export default function PickupPointScreen(): React.JSX.Element {
             onPress={() => setDetailStop(selectedStop)}
             activeOpacity={0.75}
             accessibilityRole="button"
-            accessibilityLabel={`Détails du point ${selectedStop.label}`}
+            accessibilityLabel={t('search:pickupPoint.pointDetails', { label: selectedStop.label })}
           >
             <View style={styles.footerIcon}>
               <Ionicons name="pin" size={16} color={colors.white} />
@@ -228,14 +228,14 @@ export default function PickupPointScreen(): React.JSX.Element {
             <View style={styles.footerTextCol}>
               <Text style={styles.footerLabel}>{selectedStop.label}</Text>
               <Text variant="bodySmall" color={colors.gray500} numberOfLines={1}>
-                {Math.round(selectedStop.walkMinutes)} min à pied
+                {t('search:walk.suffix', { minutes: t('common:terms.minute', { count: Math.round(selectedStop.walkMinutes) }) })}
               </Text>
             </View>
             <Ionicons name="information-circle-outline" size={22} color={colors.gray400} />
           </TouchableOpacity>
         ) : null}
         <Button
-          label="Confirmer ce point de rendez-vous"
+          label={t('search:pickupPoint.confirmPickup')}
           size="lg"
           onPress={confirm}
           disabled={!selectedStop}
@@ -251,10 +251,12 @@ export default function PickupPointScreen(): React.JSX.Element {
         {detailStop ? (
           <View style={styles.sheetContent}>
             <Text variant="body" color={colors.gray700}>
-              {Math.round(detailStop.walkMinutes)} min à pied depuis votre position de départ.
+              {t('search:pickupPoint.walkFromOrigin', {
+                minutes: t('common:terms.minute', { count: Math.round(detailStop.walkMinutes) }),
+              })}
             </Text>
             <Text variant="bodySmall" color={colors.gray500}>
-              Ce point a été validé par le conducteur comme arrêt sur son trajet.
+              {t('search:pickupPoint.driverValidatedStop')}
             </Text>
             <Button
               label={

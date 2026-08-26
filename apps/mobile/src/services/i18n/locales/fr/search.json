@@ -11,7 +11,10 @@
     "departure": "Départ",
     "onYourRoute": "Sur votre trajet",
     "candidateCount_one": "{{count}} trajet disponible aujourd'hui sur cet itinéraire",
-    "candidateCount_other": "{{count}} trajets disponibles aujourd'hui sur cet itinéraire"
+    "candidateCount_other": "{{count}} trajets disponibles aujourd'hui sur cet itinéraire",
+    "meetingPoint": "Point de rendez-vous",
+    "bestMatch": "MEILLEURE CORRESPONDANCE",
+    "timeOffsetNote": "Part {{offsetMin}} après l'heure demandée, vous prend à {{walkMinutes}} à pied."
   },
   "composer": {
     "myLocation": "Ma position actuelle",
@@ -19,27 +22,89 @@
     "searchDestination": "Rechercher une destination",
     "work": "Travail",
     "home": "Domicile",
-    "findRide": "Trouver un trajet"
+    "findRide": "Trouver un trajet",
+    "savedPlaces": "Lieux enregistrés",
+    "clear": "Effacer",
+    "resolveError": "Impossible de récupérer ce lieu. Réessayez.",
+    "resultsSectionLabel": "Résultats",
+    "recentSectionLabel": "Récents",
+    "noResults": "Aucun résultat",
+    "noRecents": "Vos recherches récentes apparaîtront ici"
   },
   "pickupPoint": {
     "noStopClose": "Aucun arrêt de ce trajet n'est assez proche pour la prise en charge.",
+    "noStopCloseDesc": "Aucun arrêt de ce trajet n'est assez proche de votre position pour être rejoint à pied. Essayez un autre trajet ou ajustez votre recherche.",
     "backToSearch": "Retour à la recherche",
     "selected": "Point sélectionné",
-    "choosePoint": "Choisir ce point"
+    "choosePoint": "Choisir ce point",
+    "stopsOnRoute_one": "{{count}} arrêt sur ce trajet",
+    "stopsOnRoute_other": "{{count}} arrêts sur ce trajet",
+    "pointDetails": "Détails du point {{label}}",
+    "walkFromOrigin": "{{minutes}} depuis votre position de départ.",
+    "driverValidatedStop": "Ce point a été validé par le conducteur comme arrêt sur son trajet.",
+    "confirmPickup": "Confirmer ce point de rendez-vous"
   },
   "dropoffPoint": {
     "noDropoff": "Aucun point de dépose accessible",
     "noDropoffDesc": "Aucun arrêt de ce trajet n'est assez proche pour la dépose.",
     "confirmDropoff": "Confirmer ce point de dépose",
     "selected": "Point sélectionné",
-    "choosePoint": "Choisir ce point"
+    "choosePoint": "Choisir ce point",
+    "whereToDropoff": "Où souhaitez-vous descendre ?",
+    "pointDetails": "Détails du point {{label}}",
+    "walkFromDestination": "{{minutes}} de votre destination.",
+    "walkToDestination": "{{minutes}} jusqu'à votre destination.",
+    "driverValidatedStop": "Ce point a été validé par le conducteur comme arrêt sur son trajet."
   },
   "details": {
     "viewRouteFullscreen": "Voir l'itinéraire en plein écran",
-    "back": "Retour"
+    "back": "Retour",
+    "rideNotFound": "Trajet introuvable.",
+    "durationHoursMinutes": "{{hours}} h {{minutes}} min",
+    "durationHoursOnly": "{{hours}} h",
+    "durationMinutesOnly": "{{minutes}} min",
+    "seatsAvailable_one": "{{count}} place disponible",
+    "seatsAvailable_other": "{{count}} places disponibles",
+    "viewDriverProfile": "Voir le profil de {{name}}",
+    "passengersHeader": "passagers · {{booked}}/{{total}} places réservées",
+    "briefStop": "Arrêt bref",
+    "walkToMeetingPoint": "{{minutes}} jusqu'au point de rendez-vous",
+    "requestSeat": "Demander une place",
+    "requestSeatWithPrice": "Demander une place, {{price}} DT",
+    "seatTakenError": "Cette place vient peut-être d'être prise. Réessayez."
   },
   "trust": {
-    "back": "Retour"
+    "back": "Retour",
+    "profileNotFound": "Profil introuvable.",
+    "verified": "Vérifié",
+    "speaks": "Parle {{languages}}",
+    "ratingLabel": "Note",
+    "tripsLabel": "Trajets",
+    "welcomeTitle": "{{name}} débute sur VAYA",
+    "welcomeDescription": "Profil entièrement vérifié, encore sans trajets ni avis — tout le monde débute un jour. Ce que VAYA garantit déjà se trouve ci-dessous.",
+    "welcomeEncourage": "Soyez parmi les premiers passagers de {{name}} : votre avis après le trajet l'aidera à démarrer en confiance.",
+    "pillNew": "Nouveau",
+    "pillReliable": "Fiable",
+    "pillTopRated": "Top VAYA",
+    "verificationsTitle": "Vérifications VAYA",
+    "verificationIdentity": "Identité confirmée par selfie",
+    "verificationDocuments": "Documents de conduite contrôlés",
+    "verificationVehicle": "Véhicule enregistré — plaque visible ci-dessous",
+    "aboutTitle": "À propos de {{name}}",
+    "reviewsTitle": "Avis",
+    "reviewsSubtitle": "Voir tous les avis sur {{name}}",
+    "reviewsEmpty": "{{name}} n'a pas encore reçu d'avis.",
+    "reviewsFirstLine": "Après votre trajet, partagez le vôtre — le premier avis est celui qui compte le plus.",
+    "messageDriver": "Message conducteur",
+    "messageAvailability": "Disponible une fois votre demande de place acceptée."
+  },
+  "reviews": {
+    "fallbackDriverName": "ce conducteur",
+    "mockReviews": [
+      { "when": "il y a 2 jours", "comment": "Trajet impeccable, très ponctuel. La voiture était impeccable et il m'a aidée avec mes bagages." },
+      { "when": "il y a 5 jours", "comment": "Voiture propre et conduite prudente. A bien géré le trafic. Je reprendrais volontiers ce trajet." },
+      { "when": "il y a 1 semaine", "comment": "Bonne expérience dans l'ensemble. Conducteur un peu silencieux, mais trajet fluide et à l'heure." }
+    ]
   },
   "timePicker": {
     "when": "Quand ?",
@@ -48,5 +113,25 @@
     "thisAfternoon": "Cet après-midi",
     "tomorrowMorning": "Demain matin",
     "chooseDate": "Choisir une date"
+  },
+  "datePickerSheet": {
+    "title": "Date de départ",
+    "weekdayLabels": ["L", "M", "M", "J", "V", "S", "D"],
+    "previousMonth": "Mois précédent",
+    "nextMonth": "Mois suivant",
+    "confirm": "Confirmer la date"
+  },
+  "timeWheelSheet": {
+    "title": "Heure",
+    "subtitle": "À quelle heure souhaitez-vous partir ?",
+    "summary": "Rechercher vers {{time}}"
+  },
+  "passengerPicker": {
+    "hint": "Jusqu'à {{count}} passagers par trajet",
+    "increment": "Ajouter un passager",
+    "decrement": "Retirer un passager"
+  },
+  "walk": {
+    "suffix": "{{minutes}} à pied"
   }
 }

@@ -101,7 +101,7 @@ export default function SignInScreen(): React.JSX.Element {
       // 'cancelled': the user closed the browser themselves — no error to show.
     } catch {
       haptics.error();
-      setGoogleError('Connexion Google impossible. Réessayez.');
+      setGoogleError(t('auth:googleSignInError'));
     } finally {
       setIsGoogleLoading(false);
     }

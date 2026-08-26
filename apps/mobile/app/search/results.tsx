@@ -17,13 +17,15 @@ import {
   useAppTheme,
   spacing,
   radii,
-  formatDepartureLabel,
+  isSameDay,
   regionForPoints,
   type AppPalette,
   type DriverListCardData,
 } from '@vaya/design-system';
 import { router } from 'expo-router';
+import type { SupportedLocale } from '@vaya/config';
 import { useAppSelector } from '../../src/state/store';
+import { formatTime, formatDateTime } from '../../src/utils/localeFormat';
 import {
   useMatchingSearchQuery,
   useNotifyMeMutation,
@@ -32,7 +34,34 @@ import {
 } from '../../src/state/api';
 import { useOpenDriver } from '../../src/features/search/useOpenDriver';
 
-function toPinData(candidate: MatchCandidate): {
+type TFn = (key: string, params?: Record<string, unknown>) => string;
+
+/** A localized "{{minutes}} à pied"-style walk label — reused for the map
+ *  pin's ETA and the dropoff walk chip (search:walk.suffix), each built
+ *  from the shared `common:terms.minute` pluralization rather than a
+ *  hand-rolled "X min" string. */
+function walkSuffixLabel(t: TFn, minutes: number): string {
+  return t('search:walk.suffix', { minutes: t('common:terms.minute', { count: Math.round(minutes) }) });
+}
+
+/** "Aujourd'hui, 14:30" / "Demain, 09:00" / "21 août, 18:15"-style label for
+ *  the searched date/time, built locally from `common:time.today`/
+ *  `tomorrow` + the locale-aware `formatTime`/`formatDateTime` rather than
+ *  design-system's `formatDepartureLabel` (scheduling.ts), which is not yet
+ *  locale-parameterized in this codebase — stays translation-agnostic for
+ *  every supported locale without depending on that shared util's signature. */
+function departureBadgeLabel(date: Date, locale: SupportedLocale, t: TFn): string {
+  const now = new Date();
+  if (isSameDay(date, now)) return `${t('common:time.today')}, ${formatTime(date, locale)}`;
+  const tomorrow = new Date(now.getTime() + 24 * 60 * 60_000);
+  if (isSameDay(date, tomorrow)) return `${t('common:time.tomorrow')}, ${formatTime(date, locale)}`;
+  return formatDateTime(date, locale);
+}
+
+function toPinData(
+  candidate: MatchCandidate,
+  t: TFn,
+): {
   id: string;
   name: string;
   priceLabel: string;
@@ -40,9 +69,9 @@ function toPinData(candidate: MatchCandidate): {
 } {
   return {
     id: candidate.rideId,
-    name: (candidate.driverFullName ?? 'Conducteur').split(' ')[0]!,
+    name: (candidate.driverFullName ?? t('search:results.driverFallback')).split(' ')[0]!,
     priceLabel: `${candidate.contributionPerSeat} DT`,
-    etaLabel: `${Math.round(candidate.pickupWalkMinutes)} min à pied`,
+    etaLabel: walkSuffixLabel(t, candidate.pickupWalkMinutes),
   };
 }
 
@@ -77,12 +106,10 @@ function RideResultCard({
   onPress: () => void;
 }): React.JSX.Element {
   const { data: passengers } = useListFellowPassengersQuery(candidate.rideId);
-  const { t } = useTranslation(['search', 'common', 'booking']);
+  const { t, i18n } = useTranslation(['search', 'common', 'booking']);
+  const locale = i18n.language as SupportedLocale;
 
-  const time = new Date(candidate.departureAt).toLocaleTimeString('fr-FR', {
-    hour: '2-digit',
-    minute: '2-digit',
-  });
+  const time = formatTime(new Date(candidate.departureAt), locale);
   const closestStop = candidate.rankedStops[0];
   let timeOffsetNote: string | undefined;
   if (searchAt) {
@@ -90,9 +117,10 @@ function RideResultCard({
       (new Date(candidate.departureAt).getTime() - new Date(searchAt).getTime()) / 60_000,
     );
     if (offsetMin > 2) {
-      timeOffsetNote = `Part ${offsetMin} min après l'heure demandée, vous prend à ${Math.round(
-        candidate.pickupWalkMinutes,
-      )} min à pied.`;
+      timeOffsetNote = t('search:results.timeOffsetNote', {
+        offsetMin: t('common:terms.minute', { count: offsetMin }),
+        walkMinutes: t('common:terms.minute', { count: Math.round(candidate.pickupWalkMinutes) }),
+      });
     }
   }
 
@@ -104,19 +132,22 @@ function RideResultCard({
     timeLabel: time,
     priceLabel: `${candidate.contributionPerSeat} DT`,
     pickupCityLabel: origin?.label ? splitLocationLabel(origin.label).city : t('search:results.departure'),
-    pickupPlaceLabel: closestStop?.label ?? 'Point de rendez-vous',
-    pickupWalkLabel: `${Math.round(candidate.pickupWalkMinutes)} min`,
+    pickupPlaceLabel: closestStop?.label ?? t('search:results.meetingPoint'),
+    pickupWalkLabel: t('common:terms.minute', { count: Math.round(candidate.pickupWalkMinutes) }),
     dropoffCityLabel: dropoffSplit.city,
     dropoffPlaceLabel: dropoffSplit.place,
-    dropoffWalkLabel: `${Math.max(1, Math.round(candidate.dropoffWalkMinutes))} min à pied`,
+    dropoffWalkLabel: walkSuffixLabel(t, Math.max(1, candidate.dropoffWalkMinutes)),
     seatsAvailable: candidate.seatsAvailable,
+    seatsLabel: t('common:terms.seat', { count: candidate.seatsAvailable }),
+    bestMatchLabel: t('search:results.bestMatch'),
+    accessibilityLabel: `${candidate.driverFullName ?? t('search:results.driverFallback')}, ${t('common:terms.departure')} ${time}, ${candidate.contributionPerSeat} DT`,
     timeOffsetNote,
     passengers: passengers?.map((p) => ({ userId: p.userId, name: p.firstName, avatarUrl: p.avatarUrl })),
     routeBadgeLabel:
       candidate.matchType === 'route_passthrough'
         ? t('search:results.onYourRoute')
         : candidate.matchType === 'detour' && candidate.detour
-          ? `Détour +${Math.round(candidate.detour.extraDurationSeconds / 60)} min`
+          ? `${t('common:terms.detour')} +${t('common:terms.minute', { count: Math.round(candidate.detour.extraDurationSeconds / 60) })}`
           : undefined,
   };
 
@@ -125,7 +156,8 @@ function RideResultCard({
 
 export default function ResultsScreen(): React.JSX.Element {
   const insets = useSafeAreaInsets();
-  const { t } = useTranslation(['search', 'common', 'booking']);
+  const { t, i18n } = useTranslation(['search', 'common', 'booking']);
+  const locale = i18n.language as SupportedLocale;
   const { colors: theme } = useAppTheme();
   const origin = useAppSelector((s) => s.search.origin);
   const destination = useAppSelector((s) => s.search.destination);
@@ -234,7 +266,7 @@ export default function ResultsScreen(): React.JSX.Element {
         <View style={styles.subheaderDateRow}>
           <Icon name="calendar-outline" size="xs" color={theme.inkFaint} />
           <Text variant="bodySmall" color={theme.inkFaint} style={styles.subheaderDateText}>
-            {searchAt ? formatDepartureLabel(new Date(searchAt)) : t('common:time.now')}
+            {searchAt ? departureBadgeLabel(new Date(searchAt), locale, t) : t('common:time.now')}
           </Text>
         </View>
 
@@ -267,7 +299,7 @@ export default function ResultsScreen(): React.JSX.Element {
                   onPress={() => openDriver(candidate)}
                   zIndex={candidate.rideId === bestMatchId ? 10 : 1}
                 >
-                  <DriverMapPin data={toPinData(candidate)} recommended={candidate.rideId === bestMatchId} />
+                  <DriverMapPin data={toPinData(candidate, t)} recommended={candidate.rideId === bestMatchId} />
                 </Marker>
               ))}
             </MapView>

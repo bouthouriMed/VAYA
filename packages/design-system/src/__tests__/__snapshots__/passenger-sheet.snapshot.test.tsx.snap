@@ -111,6 +111,7 @@ exports[`PassengerSheet snapshots > renders the stepper stage with the given val
               {
                 "alignItems": "center",
                 "flexDirection": "row",
+                "paddingHorizontal": 20,
               }
             }
           >
