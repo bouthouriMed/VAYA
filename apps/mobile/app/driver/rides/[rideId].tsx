@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { router, useLocalSearchParams } from 'expo-router';
+import type { SupportedLocale } from '@vaya/config';
 import {
   Text,
   Icon,
@@ -28,23 +29,15 @@ import {
   useAcceptBookingMutation,
   useDeclineBookingMutation,
   type Booking,
-  type Ride,
 } from '../../../src/state/api';
 import { decodePolyline } from '../../../src/utils/polyline';
 import { DriverBookingDetailSheet } from '../../../src/features/driver-rides/DriverBookingDetailSheet';
 import { ManageRideSheet } from '../../../src/features/driver-rides/ManageRideSheet';
 import { trackEvent } from '../../../src/services/analytics/analytics';
-import { estimateArrivalLabel } from '../../../src/features/driver-rides/myRidesHelpers';
-import { RouteTimeline } from '../../../src/features/trip-shared/RouteTimeline';
+import { estimateArrivalLabel, computeTripPhase } from '../../../src/features/driver-rides/myRidesHelpers';
+import { formatTime, formatRelativeTime, toIntlTag } from '../../../src/utils/localeFormat';
 
 type ThemeColors = ReturnType<typeof useAppTheme>['colors'];
-
-function formatWhen(iso: string): string {
-  const date = new Date(iso);
-  const time = date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-  if (date.toDateString() === new Date().toDateString()) return `Aujourd'hui, ${time}`;
-  return `${date.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })} · ${time}`;
-}
 
 /** One pending request row — real passenger identity, seats, pickup point,
  *  and the same Accepter/Refuser mutations RideRequestsSheet already uses,
@@ -152,17 +145,10 @@ export default function DriverRideHubScreen(): React.JSX.Element {
   const { rideId } = useLocalSearchParams<{ rideId: string }>();
   const insets = useSafeAreaInsets();
   const { colors: theme, scheme } = useAppTheme();
-  const { t } = useTranslation(['driver', 'booking', 'common']);
+  const { t, i18n } = useTranslation(['driver', 'booking', 'common']);
+  const locale = i18n.language as SupportedLocale;
+  const intlTag = toIntlTag(locale);
   const [managedBooking, setManagedBooking] = useState<Booking | null>(null);
-
-  const RIDE_BADGE: Record<Ride['status'], { label: string; variant: 'default' | 'success' | 'info' | 'warning' | 'error' }> = {
-    draft: { label: t('rides.rideDetail.departure'), variant: 'default' },
-    published: { label: t('rides.rideDetail.departure'), variant: 'success' },
-    full: { label: t('rides.rideDetail.departure'), variant: 'info' },
-    in_progress: { label: t('rides.rideDetail.departure'), variant: 'warning' },
-    completed: { label: t('rides.rideDetail.arrival'), variant: 'info' },
-    cancelled: { label: t('rides.rideDetail.cancelRide'), variant: 'error' },
-  };
 
   const ANSWERED_BADGE: Record<Booking['status'], { label: string; variant: 'default' | 'success' | 'warning' | 'error' }> = {
     pending: { label: t('rides.requestsSheet.sectionPending'), variant: 'warning' },
@@ -191,7 +177,9 @@ export default function DriverRideHubScreen(): React.JSX.Element {
   // none, if the driver picked no additional stops at all — a valid ride,
   // nothing to show here then).
   const selectedStops = [...(stops ?? [])].sort((a, b) => a.sequence - b.sequence);
-  const arrivalLabel = ride ? estimateArrivalLabel(ride.departureAt, ride.estimatedDurationSec) : null;
+  const arrivalLabel = ride
+    ? estimateArrivalLabel(ride.departureAt, ride.estimatedDurationSec, intlTag)
+    : null;
   // The map's premium pickup/dropoff pins only make sense for the normal
   // exactly-2-stops shape (same rule the "Points de rendez-vous" section
   // below uses for role labels) — anything else falls back to MapPreview's
@@ -223,34 +211,32 @@ export default function DriverRideHubScreen(): React.JSX.Element {
     );
   }
 
-  const badge = RIDE_BADGE[ride.status];
   const cancellable = ['draft', 'published', 'full'].includes(ride.status);
-  // One connected route timeline — origin, then every driver-selected stop
-  // in route order, then destination — instead of the origin/destination
-  // pair living in the info card's title while stops sat in a disconnected
-  // "Points de rendez-vous" section further down the page. Endpoints
-  // (origin/destination) get the same accent/ink solid-dot treatment the
-  // map pins already use; stops in between get a quieter hollow dot.
-  const timelineEntries: {
-    key: string;
-    roleLabel: string;
-    placeLabel: string;
-    isEndpoint: boolean;
-  }[] = [
-    { key: 'origin', roleLabel: t('rides.rideDetail.departure'), placeLabel: ride.originLabel, isEndpoint: true },
-    ...selectedStops.map((stop, index) => ({
-      key: stop.id,
-      roleLabel:
-        selectedStops.length === 2
-          ? index === 0
-            ? t('rides.rideDetail.dropoff')
-            : t('rides.rideDetail.dropoff')
-          : `${t('rides.rideDetail.dropoff')} ${index + 1}`,
-      placeLabel: stop.label,
-      isEndpoint: false,
-    })),
-    { key: 'destination', roleLabel: t('rides.rideDetail.arrival'), placeLabel: ride.destinationLabel, isEndpoint: true },
-  ];
+  // Status pill (2026-08-27 itinerary redesign): replaces a badge that used
+  // to show the literal word "Departure" for the ride's entire lifetime
+  // (draft/published/full/in_progress all showed "Departure", only the
+  // color changed) with something reflecting where the trip actually is —
+  // see computeTripPhase's own doc comment for why "in progress" is a
+  // documented departure-time-based proxy, not real live tracking.
+  const tripPhase = computeTripPhase(ride);
+  const statusBadge: { label: string; variant: 'default' | 'success' | 'info' | 'warning' | 'error' } =
+    tripPhase === 'cancelled'
+      ? { label: t('common:terms.cancelled'), variant: 'error' }
+      : tripPhase === 'completed'
+        ? { label: t('rides.rideDetail.finished'), variant: 'info' }
+        : tripPhase === 'in_progress'
+          ? {
+              label: arrivalLabel
+                ? t('rides.rideDetail.startedWithEta', { time: arrivalLabel })
+                : t('rides.rideDetail.started'),
+              variant: 'warning',
+            }
+          : {
+              label: t('rides.rideDetail.departsIn', {
+                relative: formatRelativeTime(new Date(ride.departureAt), locale),
+              }),
+              variant: 'success',
+            };
   // Real revenue insight for the driver — summed from actually-accepted
   // bookings' own contributionTotal (which already accounts for seat count),
   // never seatsTotal × price, so a partially-filled ride never overstates
@@ -285,7 +271,7 @@ export default function DriverRideHubScreen(): React.JSX.Element {
         <View style={styles.mapCard}>
           <MapPreview
             height={160}
-            badge={badge.label}
+            badge={statusBadge.label}
             origin={{ latitude: ride.originLat, longitude: ride.originLng }}
             destination={{ latitude: ride.destinationLat, longitude: ride.destinationLng }}
             pickup={pickupStop ? { latitude: pickupStop.lat, longitude: pickupStop.lng } : undefined}
@@ -318,20 +304,71 @@ export default function DriverRideHubScreen(): React.JSX.Element {
             <Text variant="label" color={theme.inkMuted} style={styles.sectionHeading}>
               {t('rides.rideDetail.itinerary')}
             </Text>
-            <Badge label={badge.label} variant={badge.variant} theme={theme} />
+            <Badge label={statusBadge.label} variant={statusBadge.variant} theme={theme} />
           </View>
 
-          <RouteTimeline entries={timelineEntries} theme={theme} />
+          {/* Compact itinerary (2026-08-27 redesign): departure/arrival time
+           *  integrated directly into the origin/destination row instead of
+           *  a separate fact row below, and the driver's actual confirmed
+           *  pickup/dropoff address shown as an intuitive smaller secondary
+           *  line — replaces the old shared RouteTimeline's role-label rows
+           *  (which, for the normal 2-stop shape, mislabeled BOTH the
+           *  pickup and dropoff stop as "Drop-off point"). */}
+          <View style={styles.compactStop}>
+            <View style={[styles.compactStopDot, { backgroundColor: theme.accent, borderColor: theme.surface }]} />
+            <View style={styles.compactStopTextCol}>
+              <View style={styles.compactStopHeaderRow}>
+                <Text variant="bodySmall" color={theme.inkMuted}>
+                  {t('rides.rideDetail.departure')}
+                </Text>
+                <Text variant="bodySmall" color={theme.inkMuted}>
+                  {formatTime(new Date(ride.departureAt), locale)}
+                </Text>
+              </View>
+              <Text variant="body" color={theme.ink} numberOfLines={1}>
+                {ride.originLabel}
+              </Text>
+              {pickupStop && pickupStop.label !== ride.originLabel ? (
+                <Text variant="caption" color={theme.inkFaint} numberOfLines={1}>
+                  {t('common:terms.pickup')} · {pickupStop.label}
+                </Text>
+              ) : null}
+            </View>
+          </View>
 
-          <View style={styles.factRow}>
-            <Icon name="time-outline" size="sm" color={theme.inkMuted} />
-            <Text variant="bodySmall" color={theme.inkMuted}>
-              {/* Real OSRM/Google-derived duration only — estimateArrivalLabel
-               *  returns null (nothing rendered) rather than inventing an
-               *  arrival time for a haversine-fallback route. */}
-              {arrivalLabel ? `${formatWhen(ride.departureAt)} · ${t('rides.rideDetail.arrivalEta', { time: arrivalLabel })}` : formatWhen(ride.departureAt)}
+          {intermediateStops.length > 0 ? (
+            <Text variant="caption" color={theme.inkFaint} style={styles.compactStopsNote}>
+              {t('rides.rideDetail.intermediateStopsNote', { count: intermediateStops.length })}
             </Text>
+          ) : null}
+
+          <View style={[styles.compactStop, styles.compactStopLast]}>
+            <View style={[styles.compactStopDot, { backgroundColor: theme.ink, borderColor: theme.surface }]} />
+            <View style={styles.compactStopTextCol}>
+              <View style={styles.compactStopHeaderRow}>
+                <Text variant="bodySmall" color={theme.inkMuted}>
+                  {t('rides.rideDetail.arrival')}
+                </Text>
+                {/* Real OSRM/Google-derived duration only — estimateArrivalLabel
+                 *  returns null (nothing rendered) rather than inventing an
+                 *  arrival time for a haversine-fallback route. */}
+                {arrivalLabel ? (
+                  <Text variant="bodySmall" color={theme.inkMuted}>
+                    {arrivalLabel}
+                  </Text>
+                ) : null}
+              </View>
+              <Text variant="body" color={theme.ink} numberOfLines={1}>
+                {ride.destinationLabel}
+              </Text>
+              {dropoffStop && dropoffStop.label !== ride.destinationLabel ? (
+                <Text variant="caption" color={theme.inkFaint} numberOfLines={1}>
+                  {t('common:terms.dropoff')} · {dropoffStop.label}
+                </Text>
+              ) : null}
+            </View>
           </View>
+
           <View style={styles.factRow}>
             <Icon name="people-outline" size="sm" color={theme.inkMuted} />
             <Text variant="bodySmall" color={theme.inkMuted}>
@@ -611,6 +648,32 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
+  },
+  compactStop: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  compactStopLast: {
+    marginBottom: spacing.xs,
+  },
+  compactStopDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    borderWidth: 2,
+    marginTop: 4,
+  },
+  compactStopTextCol: {
+    flex: 1,
+    gap: 1,
+  },
+  compactStopHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  compactStopsNote: {
+    marginLeft: spacing.lg,
   },
   section: {
     paddingHorizontal: spacing.lg,

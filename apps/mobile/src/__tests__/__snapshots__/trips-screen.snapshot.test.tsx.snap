@@ -197,6 +197,7 @@ exports[`trips.tsx snapshots > driver dashboard — hero ride card over segmente
             rotateEnabled={false}
             scrollEnabled={false}
             style={{}}
+            userInterfaceStyle="light"
             zoomEnabled={false}
           >
             <Marker

@@ -210,7 +210,13 @@
       "pricePerSeat": "{{price}} DT per seat",
       "confirmedRevenue": "{{revenue}} DT confirmed · {{count}} passenger",
       "pendingSection": "To answer ({{count}})",
-      "noPendingRequests": "No pending requests."
+      "noPendingRequests": "No pending requests.",
+      "departsIn": "Departs {{relative}}",
+      "started": "Started",
+      "startedWithEta": "Started · ETA {{time}}",
+      "finished": "Finished",
+      "intermediateStopsNote_one": "{{count}} stop along the way",
+      "intermediateStopsNote_other": "{{count}} stops along the way"
     },
     "manageSheet": {
       "title": "Manage this ride",
@@ -238,7 +244,23 @@
       "declineError": "Unable to decline. Try again.",
       "retry": "Retry",
       "seatsAndPickup": "{{seatLabel}} · {{pickup}}",
-      "manageLabel": "Manage {{name}}'s booking"
+      "manageLabel": "Manage {{name}}'s booking",
+      "detailsLabel": "Request details",
+      "viewDetails": "View request details"
+    },
+    "requestDetail": {
+      "title": "Request details",
+      "loadError": "Couldn't load this request's details.",
+      "routeFit": "Route fit",
+      "onRoute": "Already on your route",
+      "notOnRoute": "Not on your planned route",
+      "stopPosition": "Stop {{index}} of {{total}}",
+      "addsDetour": "Adds about {{distance}} · {{duration}} to your route",
+      "estimateNote": "Estimated — this ride's route isn't from a real routing provider.",
+      "ridesWithYou": "Rides with you",
+      "segmentDistance": "{{distance}} · {{duration}}",
+      "viewProfile": "View {{name}}'s profile",
+      "newOnVaya": "New on VAYA"
     },
     "bookingDetail": {
       "passenger": "Passenger",

@@ -36,6 +36,7 @@ import {
   applyCancellationPenalty,
   recordAutomaticNoShowRating,
 } from '../ratings/ratings.service.js';
+import { getRoute } from '../../lib/routing.js';
 
 type Database = ReturnType<typeof getDatabase>;
 
@@ -367,6 +368,7 @@ export async function acceptBooking(db: Database, bookingId: string, requestingU
   await notifyBestEffort(db, booking.riderId, 'booking_accepted', {
     bookingId: booking.id,
     rideId: booking.rideId,
+    driverUserId: booking.ride.driverProfile.userId,
     driverName: await getUserFullNameSafe(db, booking.ride.driverProfile.userId),
     driverAvatarUrl: await getDriverAvatarSafe(db, booking.ride.driverProfile.userId),
     driverRatingAvg: booking.ride.driverProfile.ratingAvg,
@@ -402,6 +404,7 @@ export async function declineBooking(db: Database, bookingId: string, requesting
   await notifyBestEffort(db, booking.riderId, 'booking_declined', {
     bookingId: booking.id,
     rideId: booking.rideId,
+    driverUserId: booking.ride.driverProfile.userId,
     driverName: await getUserFullNameSafe(db, booking.ride.driverProfile.userId),
     originLabel: booking.ride.originLabel,
     destinationLabel: booking.ride.destinationLabel,
@@ -440,6 +443,172 @@ export async function previewBookingCancellation(
   }
 
   return computeCancellationPolicy(booking.ride.departureAt, new Date());
+}
+
+export interface DetourPreviewPoint {
+  label: string;
+  lat: number;
+  lng: number;
+  /** True when this point is one of the driver's own route_stops (or the
+   *  ride's own destination) — meaning it was already part of the route the
+   *  driver committed to when publishing, so accepting this request adds no
+   *  real detour beyond what's already stored/definitional. False only for
+   *  a free-form point on a legacy (zero-route_stops) ride, where a genuine
+   *  detour is possible and is computed live below. */
+  isPlannedStop: boolean;
+  deviationMeters: number | null;
+  deviationSeconds: number | null;
+  /** 1-based position among the ride's selected stops (pickup ordering),
+   *  or null when this point isn't one of them. */
+  stopIndex: number | null;
+  totalStops: number | null;
+}
+
+export interface DetourPreview {
+  pickup: DetourPreviewPoint;
+  dropoff: DetourPreviewPoint;
+  /** The passenger's actual ride: pickup -> dropoff, real routed distance/
+   *  duration (not the whole ride's, since a route-passthrough booking only
+   *  ever rides part of it). */
+  segment: { distanceM: number; durationSec: number; isEstimate: boolean };
+}
+
+/**
+ * "Does this request fit my route?" — the driver-facing detour/route-fit
+ * summary backing the request-detail sheet (a world-class carpooling app's
+ * table-stakes accept/decline signal: BlaBlaCar/Uber-style "this adds X min
+ * to your trip"). The key insight this codebase's own architecture already
+ * gives away for free: a booking's pickupStopId/dropoffStopId, when set,
+ * must be one of the driver's own route_stops (bookings.service.ts's
+ * createBooking enforces this at request time) — and every route_stop's
+ * `deviationMeters`/`deviationSeconds` was already computed once, honestly,
+ * when the driver published the ride (stop-candidates.service.ts). So for
+ * the normal, current, stop-based booking flow this never needs a fresh
+ * routing call at all — it just surfaces data that already exists. A live
+ * getRoute detour computation only ever runs for the one case where it's
+ * actually meaningful: a free-form pickup on a legacy (zero-route_stops)
+ * ride, where the passenger's point genuinely could be anywhere.
+ */
+export async function previewBookingDetour(
+  db: Database,
+  bookingId: string,
+  requestingUserId: string,
+): Promise<DetourPreview> {
+  const booking = await getBookingOrThrow(db, bookingId);
+  if (booking.ride.driverProfile.userId !== requestingUserId) {
+    throw new ForbiddenError('Only the driver can preview this request');
+  }
+
+  const selectedStops = await db.query.routeStops.findMany({
+    where: and(eq(routeStops.rideId, booking.rideId), eq(routeStops.isDriverSelected, true)),
+    orderBy: (stops, { asc }) => [asc(stops.sequence)],
+  });
+  const totalStops = selectedStops.length > 0 ? selectedStops.length : null;
+
+  async function resolveFreeformPoint(lat: number, lng: number): Promise<{
+    deviationMeters: number;
+    deviationSeconds: number;
+  }> {
+    const [baseline, withDetour] = await Promise.all([
+      getRoute(
+        { lat: booking!.ride.originLat, lng: booking!.ride.originLng },
+        { lat: booking!.ride.destinationLat, lng: booking!.ride.destinationLng },
+      ),
+      getRoute(
+        { lat: booking!.ride.originLat, lng: booking!.ride.originLng },
+        { lat: booking!.ride.destinationLat, lng: booking!.ride.destinationLng },
+        [{ lat, lng }],
+      ),
+    ]);
+    return {
+      deviationMeters: Math.max(0, Math.round(withDetour.distanceM - baseline.distanceM)),
+      deviationSeconds: Math.max(0, Math.round(withDetour.durationSec - baseline.durationSec)),
+    };
+  }
+
+  async function resolvePickup(): Promise<DetourPreviewPoint> {
+    if (booking.pickupStopId) {
+      const index = selectedStops.findIndex((s) => s.id === booking.pickupStopId);
+      const stop = index >= 0 ? selectedStops[index] : undefined;
+      return {
+        label: booking.pickupLabel,
+        lat: booking.pickupLat,
+        lng: booking.pickupLng,
+        isPlannedStop: true,
+        deviationMeters: stop?.deviationMeters ?? 0,
+        deviationSeconds: stop?.deviationSeconds ?? 0,
+        stopIndex: index >= 0 ? index + 1 : null,
+        totalStops,
+      };
+    }
+    const detour = await resolveFreeformPoint(booking.pickupLat, booking.pickupLng);
+    return {
+      label: booking.pickupLabel,
+      lat: booking.pickupLat,
+      lng: booking.pickupLng,
+      isPlannedStop: false,
+      ...detour,
+      stopIndex: null,
+      totalStops: null,
+    };
+  }
+
+  async function resolveDropoff(): Promise<DetourPreviewPoint> {
+    if (booking.dropoffStopId) {
+      const index = selectedStops.findIndex((s) => s.id === booking.dropoffStopId);
+      const stop = index >= 0 ? selectedStops[index] : undefined;
+      return {
+        label: booking.dropoffLabel ?? booking.ride.destinationLabel,
+        lat: booking.dropoffLat ?? booking.ride.destinationLat,
+        lng: booking.dropoffLng ?? booking.ride.destinationLng,
+        isPlannedStop: true,
+        deviationMeters: stop?.deviationMeters ?? 0,
+        deviationSeconds: stop?.deviationSeconds ?? 0,
+        stopIndex: index >= 0 ? index + 1 : null,
+        totalStops,
+      };
+    }
+    if (booking.dropoffLat === null || booking.dropoffLng === null) {
+      // No dropoff stop was chosen -- the rider ends the trip at the ride's
+      // own destination, which is trivially on-route by definition, not
+      // something to run through a live detour computation.
+      return {
+        label: booking.ride.destinationLabel,
+        lat: booking.ride.destinationLat,
+        lng: booking.ride.destinationLng,
+        isPlannedStop: true,
+        deviationMeters: 0,
+        deviationSeconds: 0,
+        stopIndex: null,
+        totalStops,
+      };
+    }
+    // A real free-form dropoff shouldn't normally occur under current
+    // validation rules (dropoffStopId is required whenever the ride has
+    // stops), but is handled honestly rather than assumed away.
+    const detour = await resolveFreeformPoint(booking.dropoffLat, booking.dropoffLng);
+    return {
+      label: booking.dropoffLabel!,
+      lat: booking.dropoffLat,
+      lng: booking.dropoffLng,
+      isPlannedStop: false,
+      ...detour,
+      stopIndex: null,
+      totalStops: null,
+    };
+  }
+
+  const [pickup, dropoff] = await Promise.all([resolvePickup(), resolveDropoff()]);
+  const segment = await getRoute(
+    { lat: booking.pickupLat, lng: booking.pickupLng },
+    { lat: dropoff.lat, lng: dropoff.lng },
+  );
+
+  return {
+    pickup,
+    dropoff,
+    segment: { distanceM: segment.distanceM, durationSec: segment.durationSec, isEstimate: segment.isEstimate },
+  };
 }
 
 export async function cancelBooking(db: Database, bookingId: string, requestingUserId: string) {

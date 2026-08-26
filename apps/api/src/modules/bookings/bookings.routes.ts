@@ -14,6 +14,7 @@ import {
   listMyBookings,
   listRequestsForRide,
   previewBookingCancellation,
+  previewBookingDetour,
   reportNoShow,
 } from './bookings.service.js';
 
@@ -77,6 +78,27 @@ const cancellationPolicySchema = z.object({
 
 const cancelBookingResponseSchema = bookingResponseSchema.extend({
   cancellationPolicy: cancellationPolicySchema,
+});
+
+const detourPreviewPointSchema = z.object({
+  label: z.string(),
+  lat: z.number(),
+  lng: z.number(),
+  isPlannedStop: z.boolean(),
+  deviationMeters: z.number().nullable(),
+  deviationSeconds: z.number().nullable(),
+  stopIndex: z.number().nullable(),
+  totalStops: z.number().nullable(),
+});
+
+const detourPreviewResponseSchema = z.object({
+  pickup: detourPreviewPointSchema,
+  dropoff: detourPreviewPointSchema,
+  segment: z.object({
+    distanceM: z.number(),
+    durationSec: z.number(),
+    isEstimate: z.boolean(),
+  }),
 });
 
 export async function bookingsRoutes(fastify: FastifyInstance): Promise<void> {
@@ -197,6 +219,21 @@ export async function bookingsRoutes(fastify: FastifyInstance): Promise<void> {
         getUserId(request),
       );
       reply.send({ ...booking, cancellationPolicy });
+    },
+  );
+
+  // Driver-only "does this fit my route?" preview — GET so it's a pure,
+  // side-effect-free read the request-detail sheet can call freely (unlike
+  // accept/decline, this never changes anything).
+  app.get(
+    '/bookings/:bookingId/detour-preview',
+    {
+      onRequest: [fastify.authenticate],
+      schema: { params: bookingIdParamSchema, response: { 200: detourPreviewResponseSchema } },
+    },
+    async (request, reply) => {
+      const preview = await previewBookingDetour(db, request.params.bookingId, getUserId(request));
+      reply.send(preview);
     },
   );
 

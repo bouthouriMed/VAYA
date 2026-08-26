@@ -4,6 +4,7 @@ import {
   pickNextUpcomingRide,
   orderRemainingRides,
   estimateArrivalLabel,
+  computeTripPhase,
 } from '../myRidesHelpers';
 import type { Ride } from '../../../state/api';
 
@@ -97,5 +98,35 @@ describe('estimateArrivalLabel', () => {
 
   it('returns null when the ride has no real duration (haversine fallback)', () => {
     expect(estimateArrivalLabel(new Date(2026, 7, 21, 14, 30).toISOString(), null)).toBeNull();
+  });
+
+  it('formats in the given BCP-47 locale tag when one is passed', () => {
+    expect(
+      estimateArrivalLabel(new Date(2026, 7, 21, 14, 30).toISOString(), 4500, 'en-GB'),
+    ).toBe('15:45');
+  });
+});
+
+describe('computeTripPhase', () => {
+  it('is "upcoming" while the scheduled departure is still in the future', () => {
+    const ride = makeRide({ status: 'published', departureAt: new Date(2026, 7, 20, 12, 0).toISOString() });
+    expect(computeTripPhase(ride, NOW)).toBe('upcoming');
+  });
+
+  it('is "in_progress" once the scheduled departure has passed, for a still-active ride', () => {
+    for (const status of ['published', 'full', 'draft'] as const) {
+      const ride = makeRide({ status, departureAt: new Date(2026, 7, 20, 9, 0).toISOString() });
+      expect(computeTripPhase(ride, NOW)).toBe('in_progress');
+    }
+  });
+
+  it('is "completed" once the ride is marked completed, even if departure is technically future', () => {
+    const ride = makeRide({ status: 'completed', departureAt: new Date(2026, 7, 21, 9, 0).toISOString() });
+    expect(computeTripPhase(ride, NOW)).toBe('completed');
+  });
+
+  it('is "cancelled" for a cancelled ride regardless of timing', () => {
+    const ride = makeRide({ status: 'cancelled', departureAt: new Date(2026, 7, 21, 9, 0).toISOString() });
+    expect(computeTripPhase(ride, NOW)).toBe('cancelled');
   });
 });

@@ -54,43 +54,48 @@ describe('search/pickup-point.tsx is real-map-backed, not pixel-projection', () 
   });
 });
 
-describe('search/results.tsx routes through pickup-point.tsx for rides with stops', () => {
-  // useOpenDriver() (apps/mobile/src/features/search/useOpenDriver.ts) is
-  // the single source of this branching behavior — results.tsx's list and
-  // inline map both call it. search/cluster.tsx (the old multi-candidate
-  // map) was dropped; search/ride-details.tsx is the new post-selection
-  // screen, reached either directly or after a pickup-point.tsx selection.
+describe('search/results.tsx routes straight to ride-details.tsx, which triggers stop confirmation itself', () => {
+  // useOpenDriver() (apps/mobile/src/features/search/useOpenDriver.ts) used
+  // to branch on rankedStops/rankedDropoffStops to force pickup/dropoff-
+  // point confirmation *before* a rider could even see a ride. It no longer
+  // does — every tap resolves straight to ride-details.tsx (pure browse/
+  // consult), and it's ride-details.tsx's own "Request a seat" CTA
+  // (handleRequestPress) that now branches on rankedStops/rankedDropoffStops
+  // to decide whether stop confirmation is needed before booking.
+  // search/cluster.tsx (the old multi-candidate map) was dropped.
   const hookSource = readFileSync(
     path.resolve(appDir, '../src/features/search/useOpenDriver.ts'),
     'utf-8',
   );
   const resultsSource = readScreen('search/results.tsx');
+  const rideDetailsSource = readScreen('search/ride-details.tsx');
 
-  it('branches on rankedStops before deciding where to navigate', () => {
-    expect(hookSource).toContain('candidate.rankedStops.length > 0');
-    expect(hookSource).toContain("pathname: '/search/pickup-point'");
-  });
-
-  it('resolves a stop-less ride straight to ride-details, not trust', () => {
+  it('always resolves straight to ride-details.tsx, with no stop-selection branching of its own', () => {
     expect(hookSource).toContain("pathname: '/search/ride-details'");
+    expect(hookSource).not.toContain("pathname: '/search/pickup-point'");
+    expect(hookSource).not.toContain("pathname: '/search/dropoff-point'");
   });
 
   it('clears any previously selected pickup/dropoff stop before a fresh ride selection', () => {
     expect(hookSource).toContain('clearSelectedStops');
   });
 
-  it('routes to dropoff-point.tsx for a route-passthrough match with ranked dropoff stops', () => {
-    expect(hookSource).toContain('candidate.rankedDropoffStops.length > 0');
-    expect(hookSource).toContain("pathname: '/search/dropoff-point'");
-  });
-
   it('results.tsx uses the shared hook', () => {
     expect(resultsSource).toContain('useOpenDriver');
   });
 
-  it('pickup-point.tsx hands off to ride-details.tsx after a stop is chosen', () => {
+  it("ride-details.tsx's own Request-a-seat CTA branches on rankedStops/rankedDropoffStops before booking", () => {
+    expect(rideDetailsSource).toContain('candidate?.rankedStops.length');
+    expect(rideDetailsSource).toContain('candidate?.rankedDropoffStops.length');
+    expect(rideDetailsSource).toContain("pathname: '/search/pickup-point'");
+    expect(rideDetailsSource).toContain("pathname: '/search/dropoff-point'");
+  });
+
+  it('pickup-point.tsx and dropoff-point.tsx hand back off to the same ride-details.tsx instance (dismissTo, not push)', () => {
     const pickupPointSource = readScreen('search/pickup-point.tsx');
-    expect(pickupPointSource).toContain("pathname: '/search/ride-details'");
+    const dropoffPointSource = readScreen('search/dropoff-point.tsx');
+    expect(pickupPointSource).toContain("router.dismissTo({ pathname: '/search/ride-details'");
+    expect(dropoffPointSource).toContain("router.dismissTo({ pathname: '/search/ride-details'");
   });
 });
 

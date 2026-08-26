@@ -506,6 +506,23 @@ export interface CancellationPolicy {
   consequence: string;
 }
 
+export interface DetourPreviewPoint {
+  label: string;
+  lat: number;
+  lng: number;
+  isPlannedStop: boolean;
+  deviationMeters: number | null;
+  deviationSeconds: number | null;
+  stopIndex: number | null;
+  totalStops: number | null;
+}
+
+export interface DetourPreview {
+  pickup: DetourPreviewPoint;
+  dropoff: DetourPreviewPoint;
+  segment: { distanceM: number; durationSec: number; isEstimate: boolean };
+}
+
 export interface Booking {
   id: string;
   rideId: string;
@@ -848,6 +865,12 @@ export const api = createApi({
     getCancellationPreview: builder.query<CancellationPolicy, string>({
       query: (bookingId) => `/bookings/${bookingId}/cancellation-preview`,
     }),
+    // Driver-only "does this fit my route?" read — the request-detail
+    // sheet's whole reason to exist. Never invalidated by anything (pure,
+    // side-effect-free on the server), so RTK Query's default cache is fine.
+    getBookingDetourPreview: builder.query<DetourPreview, string>({
+      query: (bookingId) => `/bookings/${bookingId}/detour-preview`,
+    }),
     cancelBooking: builder.mutation<Booking & { cancellationPolicy: CancellationPolicy }, string>({
       query: (bookingId) => ({ url: `/bookings/${bookingId}/cancel`, method: 'POST' }),
       invalidatesTags: ['MyBookings', 'RideRequests', 'MyRides'],
@@ -997,6 +1020,7 @@ export const {
   useAcceptBookingMutation,
   useDeclineBookingMutation,
   useGetCancellationPreviewQuery,
+  useGetBookingDetourPreviewQuery,
   useCancelBookingMutation,
   useReportNoShowMutation,
   useRegisterPushTokenMutation,

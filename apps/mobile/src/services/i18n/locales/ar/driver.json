@@ -222,7 +222,17 @@
       "pricePerSeat": "{{price}} د.ت لكل مقعد",
       "confirmedRevenue": "{{revenue}} د.ت مؤكدة · {{count}} راكب",
       "pendingSection": "للرد ({{count}})",
-      "noPendingRequests": "لا توجد طلبات معلقة."
+      "noPendingRequests": "لا توجد طلبات معلقة.",
+      "departsIn": "المغادرة {{relative}}",
+      "started": "الرحلة جارية",
+      "startedWithEta": "جارية · الوصول {{time}}",
+      "finished": "انتهت",
+      "intermediateStopsNote_zero": "بدون توقفات في الطريق",
+      "intermediateStopsNote_one": "توقف واحد في الطريق",
+      "intermediateStopsNote_two": "توقفان في الطريق",
+      "intermediateStopsNote_few": "{{count}} توقفات في الطريق",
+      "intermediateStopsNote_many": "{{count}} توقفًا في الطريق",
+      "intermediateStopsNote_other": "{{count}} توقف في الطريق"
     },
     "manageSheet": {
       "title": "إدارة هذه الرحلة",
@@ -250,7 +260,23 @@
       "declineError": "تعذر الرفض. حاول مرة أخرى.",
       "retry": "إعادة المحاولة",
       "seatsAndPickup": "{{seatLabel}} · {{pickup}}",
-      "manageLabel": "إدارة حجز {{name}}"
+      "manageLabel": "إدارة حجز {{name}}",
+      "detailsLabel": "تفاصيل الطلب",
+      "viewDetails": "عرض تفاصيل الطلب"
+    },
+    "requestDetail": {
+      "title": "تفاصيل الطلب",
+      "loadError": "تعذر تحميل تفاصيل هذا الطلب.",
+      "routeFit": "ملاءمة المسار",
+      "onRoute": "موجودة بالفعل على مسارك",
+      "notOnRoute": "ليست على مسارك المخطط",
+      "stopPosition": "المحطة {{index}} من {{total}}",
+      "addsDetour": "يضيف حوالي {{distance}} · {{duration}} إلى مسارك",
+      "estimateNote": "تقديري — مسار هذه الرحلة لا يعتمد على خدمة توجيه حقيقية.",
+      "ridesWithYou": "يرافقك",
+      "segmentDistance": "{{distance}} · {{duration}}",
+      "viewProfile": "عرض الملف الشخصي لـ{{name}}",
+      "newOnVaya": "جديد على VAYA"
     },
     "bookingDetail": {
       "passenger": "راكب",

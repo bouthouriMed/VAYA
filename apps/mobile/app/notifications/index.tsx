@@ -130,6 +130,11 @@ function DriverRequestCard({
     if (destination) router.push(destination as Parameters<typeof router.push>[0]);
   }
 
+  function viewProfile(): void {
+    if (!info.counterpartUserId) return;
+    router.push({ pathname: '/search/trust', params: { driverUserId: info.counterpartUserId } });
+  }
+
   const isBusy = acceptState.isLoading || declineState.isLoading;
   const hasRoute = Boolean(info.originLabel && info.destinationLabel);
   const pickupTime = formatPickupTime(info.departureAt, locale);
@@ -143,13 +148,27 @@ function DriverRequestCard({
         accessibilityLabel={t('notifications:driverRequest.accessibilityLabel', { name: info.counterpartName ?? t('booking:passenger') })}
       >
         <View style={styles.requestHeaderRow}>
-          <Avatar
-            uri={info.counterpartAvatarUrl}
-            name={info.counterpartName ?? '?'}
-            sizePx={44}
-            fallbackBackgroundColor={theme.surfaceMuted}
-            fallbackTextColor={theme.ink}
-          />
+          <TouchableOpacity
+            onPress={viewProfile}
+            disabled={!info.counterpartUserId}
+            hitSlop={6}
+            accessibilityRole={info.counterpartUserId ? 'button' : undefined}
+            accessibilityLabel={
+              info.counterpartUserId
+                ? t('notifications:driverRequest.viewProfile', {
+                    name: info.counterpartName ?? t('booking:passenger'),
+                  })
+                : undefined
+            }
+          >
+            <Avatar
+              uri={info.counterpartAvatarUrl}
+              name={info.counterpartName ?? '?'}
+              sizePx={44}
+              fallbackBackgroundColor={theme.surfaceMuted}
+              fallbackTextColor={theme.ink}
+            />
+          </TouchableOpacity>
           <View style={styles.requestIdentityText}>
             <Text variant="label" color={theme.ink} numberOfLines={1}>
               {info.counterpartName ?? t('booking:passenger')}
@@ -167,9 +186,19 @@ function DriverRequestCard({
               </Text>
             )}
           </View>
-          {!notification.readAt ? (
-            <View style={[styles.unreadDot, { backgroundColor: theme.accent }]} />
-          ) : null}
+          <TouchableOpacity
+            onPress={openInTrips}
+            hitSlop={6}
+            style={styles.openInTripsBtn}
+            accessibilityRole="button"
+            accessibilityLabel={t('notifications:driverRequest.openInTrips')}
+          >
+            <Icon
+              name={notification.readAt ? 'chevron-forward-circle-outline' : 'chevron-forward-circle'}
+              size="sm"
+              color={theme.accent}
+            />
+          </TouchableOpacity>
         </View>
 
         {hasRoute ? (
@@ -486,6 +515,12 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
+  },
+  openInTripsBtn: {
+    width: 28,
+    height: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   timestamp: {
     marginTop: 2,

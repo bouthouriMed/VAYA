@@ -40,6 +40,8 @@
     "actionError": "Une erreur est survenue. Réessayez.",
     "accessibilityLabel": "Demande de réservation de {{name}}",
     "resolvedAccepted": "Acceptée",
-    "resolvedDeclined": "Refusée"
+    "resolvedDeclined": "Refusée",
+    "viewProfile": "Voir le profil de {{name}}",
+    "openInTrips": "Ouvrir dans Mes trajets"
   }
 }

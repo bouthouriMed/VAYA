@@ -210,7 +210,13 @@
       "pricePerSeat": "{{price}} DT par place",
       "confirmedRevenue": "{{revenue}} DT confirmés · {{count}} passager",
       "pendingSection": "À répondre ({{count}})",
-      "noPendingRequests": "Aucune demande en attente."
+      "noPendingRequests": "Aucune demande en attente.",
+      "departsIn": "Départ {{relative}}",
+      "started": "Trajet en cours",
+      "startedWithEta": "En cours · Arrivée {{time}}",
+      "finished": "Terminé",
+      "intermediateStopsNote_one": "{{count}} arrêt en cours de route",
+      "intermediateStopsNote_other": "{{count}} arrêts en cours de route"
     },
     "manageSheet": {
       "title": "Gérer ce trajet",
@@ -238,7 +244,23 @@
       "declineError": "Impossible de refuser. Réessayez.",
       "retry": "Réessayer",
       "seatsAndPickup": "{{seatLabel}} · {{pickup}}",
-      "manageLabel": "Gérer la réservation de {{name}}"
+      "manageLabel": "Gérer la réservation de {{name}}",
+      "detailsLabel": "Détails de la demande",
+      "viewDetails": "Voir les détails de la demande"
+    },
+    "requestDetail": {
+      "title": "Détails de la demande",
+      "loadError": "Impossible de charger les détails de cette demande.",
+      "routeFit": "Adéquation avec l'itinéraire",
+      "onRoute": "Déjà sur votre itinéraire",
+      "notOnRoute": "Pas sur votre itinéraire prévu",
+      "stopPosition": "Arrêt {{index}} sur {{total}}",
+      "addsDetour": "Ajoute environ {{distance}} · {{duration}} à votre itinéraire",
+      "estimateNote": "Estimation — l'itinéraire de ce trajet ne provient pas d'un service de calcul d'itinéraire réel.",
+      "ridesWithYou": "Voyage avec vous",
+      "segmentDistance": "{{distance}} · {{duration}}",
+      "viewProfile": "Voir le profil de {{name}}",
+      "newOnVaya": "Nouveau sur VAYA"
     },
     "bookingDetail": {
       "passenger": "Passager",

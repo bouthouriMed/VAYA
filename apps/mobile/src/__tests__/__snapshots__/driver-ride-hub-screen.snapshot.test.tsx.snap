@@ -119,6 +119,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
           rotateEnabled={false}
           scrollEnabled={false}
           style={{}}
+          userInterfaceStyle="light"
           zoomEnabled={false}
         >
           <Marker
@@ -307,7 +308,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
               }
             }
           >
-            rides.rideDetail.departure
+            rides.rideDetail.startedWithEta
           </Text>
         </View>
       </View>
@@ -422,7 +423,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
           rides.rideDetail.itinerary
         </Text>
         <View
-          accessibilityLabel="rides.rideDetail.departure"
+          accessibilityLabel="rides.rideDetail.startedWithEta"
           accessibilityRole="text"
           accessible={true}
           style={
@@ -434,7 +435,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                 "paddingVertical": 4,
               },
               {
-                "backgroundColor": "#8FD9B4",
+                "backgroundColor": "#F3E8CE",
               },
               undefined,
             ]
@@ -448,20 +449,20 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                   "fontWeight": "500",
                 },
                 {
-                  "color": "#22794F",
+                  "color": "#B58A2E",
                 },
               ]
             }
           >
-            rides.rideDetail.departure
+            rides.rideDetail.startedWithEta
           </Text>
         </View>
       </View>
       <View
         style={
           {
-            "marginBottom": 8,
-            "marginTop": 4,
+            "flexDirection": "row",
+            "gap": 8,
           }
         }
       >
@@ -469,15 +470,25 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
           style={
             [
               {
-                "borderBottomWidth": 1,
-                "gap": 2,
-                "marginBottom": 8,
-                "paddingBottom": 8,
+                "borderRadius": 5,
+                "borderWidth": 2,
+                "height": 10,
+                "marginTop": 4,
+                "width": 10,
               },
               {
-                "borderBottomColor": "#E4EDFB",
+                "backgroundColor": "#2E9E6C",
+                "borderColor": "#FFFFFF",
               },
             ]
+          }
+        />
+        <View
+          style={
+            {
+              "flex": 1,
+              "gap": 1,
+            }
           }
         >
           <View
@@ -485,36 +496,20 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
               {
                 "alignItems": "center",
                 "flexDirection": "row",
-                "gap": 4,
+                "justifyContent": "space-between",
               }
             }
           >
-            <View
-              style={
-                [
-                  {
-                    "borderRadius": 4,
-                    "borderWidth": 1.5,
-                    "height": 8,
-                    "width": 8,
-                  },
-                  {
-                    "backgroundColor": "#2E9E6C",
-                    "borderColor": "#FFFFFF",
-                  },
-                ]
-              }
-            />
             <Text
               style={
                 [
                   {
-                    "fontSize": 12,
+                    "fontSize": 14,
                     "fontWeight": "400",
-                    "lineHeight": 18,
+                    "lineHeight": 21,
                   },
                   {
-                    "color": "#8B93A3",
+                    "color": "#5B6572",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -524,126 +519,106 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
             >
               rides.rideDetail.departure
             </Text>
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "lineHeight": 21,
+                  },
+                  {
+                    "color": "#5B6572",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              8:30
+            </Text>
           </View>
           <Text
-            numberOfLines={2}
+            numberOfLines={1}
             style={
               [
                 {
-                  "fontSize": 14,
+                  "fontSize": 16,
                   "fontWeight": "400",
-                  "lineHeight": 21,
+                  "lineHeight": 24,
                 },
                 {
                   "color": "#14201B",
                   "textAlign": undefined,
                   "writingDirection": "ltr",
                 },
-                {
-                  "marginLeft": 16,
-                },
+                undefined,
               ]
             }
           >
             Tunis
           </Text>
-        </View>
-        <View
-          style={
-            [
-              {
-                "borderBottomWidth": 1,
-                "gap": 2,
-                "marginBottom": 8,
-                "paddingBottom": 8,
-              },
-              {
-                "borderBottomColor": "#E4EDFB",
-              },
-            ]
-          }
-        >
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "flexDirection": "row",
-                "gap": 4,
-              }
-            }
-          >
-            <View
-              style={
-                [
-                  {
-                    "borderRadius": 4,
-                    "borderWidth": 1.5,
-                    "height": 8,
-                    "width": 8,
-                  },
-                  {
-                    "backgroundColor": "#E4EDFB",
-                    "borderColor": "#14201B",
-                  },
-                ]
-              }
-            />
-            <Text
-              style={
-                [
-                  {
-                    "fontSize": 12,
-                    "fontWeight": "400",
-                    "lineHeight": 18,
-                  },
-                  {
-                    "color": "#8B93A3",
-                    "textAlign": undefined,
-                    "writingDirection": "ltr",
-                  },
-                  undefined,
-                ]
-              }
-            >
-              rides.rideDetail.dropoff
-            </Text>
-          </View>
           <Text
-            numberOfLines={2}
+            numberOfLines={1}
             style={
               [
                 {
-                  "fontSize": 14,
+                  "fontSize": 12,
                   "fontWeight": "400",
-                  "lineHeight": 21,
+                  "lineHeight": 18,
                 },
                 {
-                  "color": "#14201B",
+                  "color": "#8B93A3",
                   "textAlign": undefined,
                   "writingDirection": "ltr",
                 },
-                {
-                  "marginLeft": 16,
-                },
+                undefined,
               ]
             }
           >
+            common:terms.pickup
+             · 
             Avenue Habib Bourguiba, Tunis
           </Text>
         </View>
+      </View>
+      <View
+        style={
+          [
+            {
+              "flexDirection": "row",
+              "gap": 8,
+            },
+            {
+              "marginBottom": 4,
+            },
+          ]
+        }
+      >
         <View
           style={
             [
               {
-                "borderBottomWidth": 1,
-                "gap": 2,
-                "marginBottom": 8,
-                "paddingBottom": 8,
+                "borderRadius": 5,
+                "borderWidth": 2,
+                "height": 10,
+                "marginTop": 4,
+                "width": 10,
               },
               {
-                "borderBottomColor": "#E4EDFB",
+                "backgroundColor": "#14201B",
+                "borderColor": "#FFFFFF",
               },
             ]
+          }
+        />
+        <View
+          style={
+            {
+              "flex": 1,
+              "gap": 1,
+            }
           }
         >
           <View
@@ -651,107 +626,20 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
               {
                 "alignItems": "center",
                 "flexDirection": "row",
-                "gap": 4,
+                "justifyContent": "space-between",
               }
             }
           >
-            <View
-              style={
-                [
-                  {
-                    "borderRadius": 4,
-                    "borderWidth": 1.5,
-                    "height": 8,
-                    "width": 8,
-                  },
-                  {
-                    "backgroundColor": "#E4EDFB",
-                    "borderColor": "#14201B",
-                  },
-                ]
-              }
-            />
             <Text
               style={
                 [
                   {
-                    "fontSize": 12,
+                    "fontSize": 14,
                     "fontWeight": "400",
-                    "lineHeight": 18,
+                    "lineHeight": 21,
                   },
                   {
-                    "color": "#8B93A3",
-                    "textAlign": undefined,
-                    "writingDirection": "ltr",
-                  },
-                  undefined,
-                ]
-              }
-            >
-              rides.rideDetail.dropoff
-            </Text>
-          </View>
-          <Text
-            numberOfLines={2}
-            style={
-              [
-                {
-                  "fontSize": 14,
-                  "fontWeight": "400",
-                  "lineHeight": 21,
-                },
-                {
-                  "color": "#14201B",
-                  "textAlign": undefined,
-                  "writingDirection": "ltr",
-                },
-                {
-                  "marginLeft": 16,
-                },
-              ]
-            }
-          >
-            Boulevard Hedi Chaker, Sousse
-          </Text>
-        </View>
-        <View
-          style={false}
-        >
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "flexDirection": "row",
-                "gap": 4,
-              }
-            }
-          >
-            <View
-              style={
-                [
-                  {
-                    "borderRadius": 4,
-                    "borderWidth": 1.5,
-                    "height": 8,
-                    "width": 8,
-                  },
-                  {
-                    "backgroundColor": "#14201B",
-                    "borderColor": "#FFFFFF",
-                  },
-                ]
-              }
-            />
-            <Text
-              style={
-                [
-                  {
-                    "fontSize": 12,
-                    "fontWeight": "400",
-                    "lineHeight": 18,
-                  },
-                  {
-                    "color": "#8B93A3",
+                    "color": "#5B6572",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -761,66 +649,69 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
             >
               rides.rideDetail.arrival
             </Text>
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "lineHeight": 21,
+                  },
+                  {
+                    "color": "#5B6572",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              10:30
+            </Text>
           </View>
           <Text
-            numberOfLines={2}
+            numberOfLines={1}
             style={
               [
                 {
-                  "fontSize": 14,
+                  "fontSize": 16,
                   "fontWeight": "400",
-                  "lineHeight": 21,
+                  "lineHeight": 24,
                 },
                 {
                   "color": "#14201B",
                   "textAlign": undefined,
                   "writingDirection": "ltr",
                 },
-                {
-                  "marginLeft": 16,
-                },
+                undefined,
               ]
             }
           >
             Sousse
           </Text>
+          <Text
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "lineHeight": 18,
+                },
+                {
+                  "color": "#8B93A3",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            common:terms.dropoff
+             · 
+            Boulevard Hedi Chaker, Sousse
+          </Text>
         </View>
-      </View>
-      <View
-        style={
-          {
-            "alignItems": "center",
-            "flexDirection": "row",
-            "gap": 8,
-          }
-        }
-      >
-        <Ionicons
-          accessibilityElementsHidden={true}
-          color="#5B6572"
-          importantForAccessibility="no-hide-descendants"
-          name="time-outline"
-          size={20}
-        />
-        <Text
-          style={
-            [
-              {
-                "fontSize": 14,
-                "fontWeight": "400",
-                "lineHeight": 21,
-              },
-              {
-                "color": "#5B6572",
-                "textAlign": undefined,
-                "writingDirection": "ltr",
-              },
-              undefined,
-            ]
-          }
-        >
-          mar. 25 août · 08:30 · rides.rideDetail.arrivalEta
-        </Text>
       </View>
       <View
         style={
@@ -1379,6 +1270,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
           rotateEnabled={false}
           scrollEnabled={false}
           style={{}}
+          userInterfaceStyle="light"
           zoomEnabled={false}
         >
           <Marker
@@ -1567,7 +1459,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
               }
             }
           >
-            rides.rideDetail.departure
+            rides.rideDetail.startedWithEta
           </Text>
         </View>
       </View>
@@ -1682,7 +1574,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
           rides.rideDetail.itinerary
         </Text>
         <View
-          accessibilityLabel="rides.rideDetail.departure"
+          accessibilityLabel="rides.rideDetail.startedWithEta"
           accessibilityRole="text"
           accessible={true}
           style={
@@ -1694,7 +1586,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                 "paddingVertical": 4,
               },
               {
-                "backgroundColor": "#8FD9B4",
+                "backgroundColor": "#F3E8CE",
               },
               undefined,
             ]
@@ -1708,20 +1600,20 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                   "fontWeight": "500",
                 },
                 {
-                  "color": "#22794F",
+                  "color": "#B58A2E",
                 },
               ]
             }
           >
-            rides.rideDetail.departure
+            rides.rideDetail.startedWithEta
           </Text>
         </View>
       </View>
       <View
         style={
           {
-            "marginBottom": 8,
-            "marginTop": 4,
+            "flexDirection": "row",
+            "gap": 8,
           }
         }
       >
@@ -1729,15 +1621,25 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
           style={
             [
               {
-                "borderBottomWidth": 1,
-                "gap": 2,
-                "marginBottom": 8,
-                "paddingBottom": 8,
+                "borderRadius": 5,
+                "borderWidth": 2,
+                "height": 10,
+                "marginTop": 4,
+                "width": 10,
               },
               {
-                "borderBottomColor": "#E4EDFB",
+                "backgroundColor": "#2E9E6C",
+                "borderColor": "#FFFFFF",
               },
             ]
+          }
+        />
+        <View
+          style={
+            {
+              "flex": 1,
+              "gap": 1,
+            }
           }
         >
           <View
@@ -1745,36 +1647,20 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
               {
                 "alignItems": "center",
                 "flexDirection": "row",
-                "gap": 4,
+                "justifyContent": "space-between",
               }
             }
           >
-            <View
-              style={
-                [
-                  {
-                    "borderRadius": 4,
-                    "borderWidth": 1.5,
-                    "height": 8,
-                    "width": 8,
-                  },
-                  {
-                    "backgroundColor": "#2E9E6C",
-                    "borderColor": "#FFFFFF",
-                  },
-                ]
-              }
-            />
             <Text
               style={
                 [
                   {
-                    "fontSize": 12,
+                    "fontSize": 14,
                     "fontWeight": "400",
-                    "lineHeight": 18,
+                    "lineHeight": 21,
                   },
                   {
-                    "color": "#8B93A3",
+                    "color": "#5B6572",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -1784,126 +1670,106 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
             >
               rides.rideDetail.departure
             </Text>
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "lineHeight": 21,
+                  },
+                  {
+                    "color": "#5B6572",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              8:30
+            </Text>
           </View>
           <Text
-            numberOfLines={2}
+            numberOfLines={1}
             style={
               [
                 {
-                  "fontSize": 14,
+                  "fontSize": 16,
                   "fontWeight": "400",
-                  "lineHeight": 21,
+                  "lineHeight": 24,
                 },
                 {
                   "color": "#14201B",
                   "textAlign": undefined,
                   "writingDirection": "ltr",
                 },
-                {
-                  "marginLeft": 16,
-                },
+                undefined,
               ]
             }
           >
             Tunis
           </Text>
-        </View>
-        <View
-          style={
-            [
-              {
-                "borderBottomWidth": 1,
-                "gap": 2,
-                "marginBottom": 8,
-                "paddingBottom": 8,
-              },
-              {
-                "borderBottomColor": "#E4EDFB",
-              },
-            ]
-          }
-        >
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "flexDirection": "row",
-                "gap": 4,
-              }
-            }
-          >
-            <View
-              style={
-                [
-                  {
-                    "borderRadius": 4,
-                    "borderWidth": 1.5,
-                    "height": 8,
-                    "width": 8,
-                  },
-                  {
-                    "backgroundColor": "#E4EDFB",
-                    "borderColor": "#14201B",
-                  },
-                ]
-              }
-            />
-            <Text
-              style={
-                [
-                  {
-                    "fontSize": 12,
-                    "fontWeight": "400",
-                    "lineHeight": 18,
-                  },
-                  {
-                    "color": "#8B93A3",
-                    "textAlign": undefined,
-                    "writingDirection": "ltr",
-                  },
-                  undefined,
-                ]
-              }
-            >
-              rides.rideDetail.dropoff
-            </Text>
-          </View>
           <Text
-            numberOfLines={2}
+            numberOfLines={1}
             style={
               [
                 {
-                  "fontSize": 14,
+                  "fontSize": 12,
                   "fontWeight": "400",
-                  "lineHeight": 21,
+                  "lineHeight": 18,
                 },
                 {
-                  "color": "#14201B",
+                  "color": "#8B93A3",
                   "textAlign": undefined,
                   "writingDirection": "ltr",
                 },
-                {
-                  "marginLeft": 16,
-                },
+                undefined,
               ]
             }
           >
+            common:terms.pickup
+             · 
             Avenue Habib Bourguiba, Tunis
           </Text>
         </View>
+      </View>
+      <View
+        style={
+          [
+            {
+              "flexDirection": "row",
+              "gap": 8,
+            },
+            {
+              "marginBottom": 4,
+            },
+          ]
+        }
+      >
         <View
           style={
             [
               {
-                "borderBottomWidth": 1,
-                "gap": 2,
-                "marginBottom": 8,
-                "paddingBottom": 8,
+                "borderRadius": 5,
+                "borderWidth": 2,
+                "height": 10,
+                "marginTop": 4,
+                "width": 10,
               },
               {
-                "borderBottomColor": "#E4EDFB",
+                "backgroundColor": "#14201B",
+                "borderColor": "#FFFFFF",
               },
             ]
+          }
+        />
+        <View
+          style={
+            {
+              "flex": 1,
+              "gap": 1,
+            }
           }
         >
           <View
@@ -1911,107 +1777,20 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
               {
                 "alignItems": "center",
                 "flexDirection": "row",
-                "gap": 4,
+                "justifyContent": "space-between",
               }
             }
           >
-            <View
-              style={
-                [
-                  {
-                    "borderRadius": 4,
-                    "borderWidth": 1.5,
-                    "height": 8,
-                    "width": 8,
-                  },
-                  {
-                    "backgroundColor": "#E4EDFB",
-                    "borderColor": "#14201B",
-                  },
-                ]
-              }
-            />
             <Text
               style={
                 [
                   {
-                    "fontSize": 12,
+                    "fontSize": 14,
                     "fontWeight": "400",
-                    "lineHeight": 18,
+                    "lineHeight": 21,
                   },
                   {
-                    "color": "#8B93A3",
-                    "textAlign": undefined,
-                    "writingDirection": "ltr",
-                  },
-                  undefined,
-                ]
-              }
-            >
-              rides.rideDetail.dropoff
-            </Text>
-          </View>
-          <Text
-            numberOfLines={2}
-            style={
-              [
-                {
-                  "fontSize": 14,
-                  "fontWeight": "400",
-                  "lineHeight": 21,
-                },
-                {
-                  "color": "#14201B",
-                  "textAlign": undefined,
-                  "writingDirection": "ltr",
-                },
-                {
-                  "marginLeft": 16,
-                },
-              ]
-            }
-          >
-            Boulevard Hedi Chaker, Sousse
-          </Text>
-        </View>
-        <View
-          style={false}
-        >
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "flexDirection": "row",
-                "gap": 4,
-              }
-            }
-          >
-            <View
-              style={
-                [
-                  {
-                    "borderRadius": 4,
-                    "borderWidth": 1.5,
-                    "height": 8,
-                    "width": 8,
-                  },
-                  {
-                    "backgroundColor": "#14201B",
-                    "borderColor": "#FFFFFF",
-                  },
-                ]
-              }
-            />
-            <Text
-              style={
-                [
-                  {
-                    "fontSize": 12,
-                    "fontWeight": "400",
-                    "lineHeight": 18,
-                  },
-                  {
-                    "color": "#8B93A3",
+                    "color": "#5B6572",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -2021,66 +1800,69 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
             >
               rides.rideDetail.arrival
             </Text>
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "lineHeight": 21,
+                  },
+                  {
+                    "color": "#5B6572",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              10:30
+            </Text>
           </View>
           <Text
-            numberOfLines={2}
+            numberOfLines={1}
             style={
               [
                 {
-                  "fontSize": 14,
+                  "fontSize": 16,
                   "fontWeight": "400",
-                  "lineHeight": 21,
+                  "lineHeight": 24,
                 },
                 {
                   "color": "#14201B",
                   "textAlign": undefined,
                   "writingDirection": "ltr",
                 },
-                {
-                  "marginLeft": 16,
-                },
+                undefined,
               ]
             }
           >
             Sousse
           </Text>
+          <Text
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "lineHeight": 18,
+                },
+                {
+                  "color": "#8B93A3",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            common:terms.dropoff
+             · 
+            Boulevard Hedi Chaker, Sousse
+          </Text>
         </View>
-      </View>
-      <View
-        style={
-          {
-            "alignItems": "center",
-            "flexDirection": "row",
-            "gap": 8,
-          }
-        }
-      >
-        <Ionicons
-          accessibilityElementsHidden={true}
-          color="#5B6572"
-          importantForAccessibility="no-hide-descendants"
-          name="time-outline"
-          size={20}
-        />
-        <Text
-          style={
-            [
-              {
-                "fontSize": 14,
-                "fontWeight": "400",
-                "lineHeight": 21,
-              },
-              {
-                "color": "#5B6572",
-                "textAlign": undefined,
-                "writingDirection": "ltr",
-              },
-              undefined,
-            ]
-          }
-        >
-          mar. 25 août · 08:30 · rides.rideDetail.arrivalEta
-        </Text>
       </View>
       <View
         style={

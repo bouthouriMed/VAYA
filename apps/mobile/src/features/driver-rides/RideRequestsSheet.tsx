@@ -1,6 +1,18 @@
 import { useState } from 'react';
 import { View, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
-import { BottomSheet, Badge, Button, Text, Avatar, Icon, EmptyState, useAppTheme, spacing, radii, haptics } from '@vaya/design-system';
+import {
+  BottomSheet,
+  Badge,
+  Button,
+  Text,
+  Avatar,
+  Icon,
+  EmptyState,
+  useAppTheme,
+  spacing,
+  radii,
+  haptics,
+} from '@vaya/design-system';
 import { useTranslation } from 'react-i18next';
 import {
   useListRequestsForRideQuery,
@@ -9,6 +21,7 @@ import {
   type Booking,
 } from '../../state/api';
 import { trackEvent } from '../../services/analytics/analytics';
+import { RequestDetailSheet } from './RequestDetailSheet';
 
 interface RideRequestsSheetProps {
   visible: boolean;
@@ -38,7 +51,13 @@ export function RideRequestsSheet({
   const { t } = useTranslation();
   const theme = useAppTheme().colors;
   const [actionError, setActionError] = useState<string | null>(null);
-  const { data: requests, isLoading, isError, refetch } = useListRequestsForRideQuery(rideId, {
+  const [detailBooking, setDetailBooking] = useState<Booking | null>(null);
+  const {
+    data: requests,
+    isLoading,
+    isError,
+    refetch,
+  } = useListRequestsForRideQuery(rideId, {
     skip: !visible || !rideId,
   });
   const [acceptBooking, acceptState] = useAcceptBookingMutation();
@@ -68,137 +87,188 @@ export function RideRequestsSheet({
   }
 
   return (
-    <BottomSheet
-      visible={visible}
-      onClose={onClose}
-      title={t('driver:rides.requestsSheet.title')}
-      heightRatio={0.62}
-      theme={theme}
-    >
-      <View style={styles.content}>
-        {isLoading ? (
-          <ActivityIndicator size="small" color={theme.accent} style={styles.loading} />
-        ) : isError ? (
-          <EmptyState
-            icon={<Icon name="cloud-offline-outline" size="lg" color={theme.inkFaint} />}
-            title={t('driver:rides.requestsSheet.loadError')}
-            description={t('driver:rides.requestsSheet.loadErrorDescription')}
-            actionLabel={t('common:actions.retry')}
-            onAction={() => void refetch()}
-          />
-        ) : (requests?.length ?? 0) === 0 ? (
-          <EmptyState
-            icon={<Icon name="mail-outline" size="lg" color={theme.inkFaint} />}
-            title={t('driver:rides.requestsSheet.empty')}
-            description={t('driver:rides.requestsSheet.emptyDescription')}
-          />
-        ) : (
-          <View style={styles.list}>
-            {pending.length > 0 ? (
-              <>
-                <Text variant="label" color={theme.inkMuted} style={styles.sectionLabel}>
-                  {t('driver:rides.requestsSheet.toAnswer', { count: pending.length })}
-                </Text>
-                {pending.map((request) => (
-                  <View key={request.id} style={[styles.requestRow, { backgroundColor: theme.surfaceMuted }]}>
-                    <View style={styles.identityCol}>
-                      <Avatar
-                        uri={request.rider?.avatarUrl}
-                        name={request.rider?.fullName ?? '?'}
-                        sizePx={40}
-                        fallbackBackgroundColor={theme.surface}
-                        fallbackTextColor={theme.ink}
-                      />
-                      <View style={styles.identityText}>
-                        <Text variant="body" color={theme.ink} numberOfLines={1} style={styles.riderName}>
-                          {request.rider?.fullName ?? t('booking:passenger')}
-                        </Text>
-                        <Text variant="caption" color={theme.inkMuted} numberOfLines={1}>
-                          {t('driver:rides.requestsSheet.seatsAndPickup', { seatLabel: t('common:terms.seat', { count: request.seatsRequested }), pickup: request.pickupLabel })}
-                        </Text>
-                      </View>
-                    </View>
-                    <View style={styles.actions}>
-                      <Button
-                        label={t('common:actions.decline')}
-                        size="sm"
-                        variant="outline"
-                        disabled={declineState.isLoading}
-                        onPress={() => void respond(request.id, 'decline', declineBooking)}
-                        style={styles.actionButton}
-                      />
-                      <Button
-                        label={t('common:actions.accept')}
-                        size="sm"
-                        disabled={acceptState.isLoading}
-                        onPress={() => void respond(request.id, 'accept', acceptBooking)}
-                        style={styles.actionButton}
-                      />
-                    </View>
-                  </View>
-                ))}
-              </>
-            ) : (
-              <Text variant="bodySmall" color={theme.inkMuted} style={styles.allAnswered}>
-                {t('driver:rides.requestsSheet.allAnswered')}
-              </Text>
-            )}
-
-            {answered.length > 0 ? (
-              <>
-                <Text variant="label" color={theme.inkMuted} style={[styles.sectionLabel, styles.answeredLabel]}>
-                  {t('driver:rides.requestsSheet.answered')}
-                </Text>
-                {answered.map((request) => {
-                  const requestStatus = t(`booking:status_${request.status}`);
-                  const manageable = request.status === 'accepted' && Boolean(onManageBooking);
-                  return (
-                    <TouchableOpacity
+    <>
+      <BottomSheet
+        visible={visible}
+        onClose={onClose}
+        title={t('driver:rides.requestsSheet.title')}
+        heightRatio={0.62}
+        theme={theme}
+      >
+        <View style={styles.content}>
+          {isLoading ? (
+            <ActivityIndicator size="small" color={theme.accent} style={styles.loading} />
+          ) : isError ? (
+            <EmptyState
+              icon={<Icon name="cloud-offline-outline" size="lg" color={theme.inkFaint} />}
+              title={t('driver:rides.requestsSheet.loadError')}
+              description={t('driver:rides.requestsSheet.loadErrorDescription')}
+              actionLabel={t('common:actions.retry')}
+              onAction={() => void refetch()}
+            />
+          ) : (requests?.length ?? 0) === 0 ? (
+            <EmptyState
+              icon={<Icon name="mail-outline" size="lg" color={theme.inkFaint} />}
+              title={t('driver:rides.requestsSheet.empty')}
+              description={t('driver:rides.requestsSheet.emptyDescription')}
+            />
+          ) : (
+            <View style={styles.list}>
+              {pending.length > 0 ? (
+                <>
+                  <Text variant="label" color={theme.inkMuted} style={styles.sectionLabel}>
+                    {t('driver:rides.requestsSheet.toAnswer', { count: pending.length })}
+                  </Text>
+                  {pending.map((request) => (
+                    <View
                       key={request.id}
-                      style={styles.answeredRow}
-                      disabled={!manageable}
-                      onPress={manageable ? () => onManageBooking!(request) : undefined}
-                      accessibilityRole={manageable ? 'button' : 'text'}
-                      accessibilityLabel={
-                        manageable
-                          ? t('driver:rides.requestsSheet.manageLabel', { name: request.rider?.fullName ?? t('booking:passenger') })
-                          : undefined
-                      }
+                      style={[styles.requestRow, { backgroundColor: theme.surfaceMuted }]}
                     >
-                      <Avatar
-                        uri={request.rider?.avatarUrl}
-                        name={request.rider?.fullName ?? '?'}
-                        sizePx={36}
-                        fallbackBackgroundColor={theme.surfaceMuted}
-                        fallbackTextColor={theme.ink}
-                      />
-                      <View style={styles.identityText}>
-                        <Text variant="bodySmall" color={theme.ink} numberOfLines={1}>
-                          {request.rider?.fullName ?? t('booking:passenger')}
-                        </Text>
-                        <Text variant="caption" color={theme.inkMuted}>
-                          {t('common:terms.seat', { count: request.seatsRequested })}
-                        </Text>
+                      <View style={styles.identityCol}>
+                        <Avatar
+                          uri={request.rider?.avatarUrl}
+                          name={request.rider?.fullName ?? '?'}
+                          sizePx={40}
+                          fallbackBackgroundColor={theme.surface}
+                          fallbackTextColor={theme.ink}
+                        />
+                        <View style={styles.identityText}>
+                          <Text
+                            variant="body"
+                            color={theme.ink}
+                            numberOfLines={1}
+                            style={styles.riderName}
+                          >
+                            {request.rider?.fullName ?? t('booking:passenger')}
+                          </Text>
+                          <Text variant="caption" color={theme.inkMuted} numberOfLines={1}>
+                            {t('driver:rides.requestsSheet.seatsAndPickup', {
+                              seatLabel: t('common:terms.seat', { count: request.seatsRequested }),
+                              pickup: request.pickupLabel,
+                            })}
+                          </Text>
+                        </View>
+                        <TouchableOpacity
+                          onPress={() => setDetailBooking(request)}
+                          hitSlop={10}
+                          style={styles.detailsBtn}
+                          accessibilityRole="button"
+                          accessibilityLabel={t('driver:rides.requestsSheet.viewDetails')}
+                        >
+                          <Icon
+                            name="information-circle-outline"
+                            size="sm"
+                            color={theme.inkMuted}
+                          />
+                        </TouchableOpacity>
                       </View>
-                      <Badge label={requestStatus} variant={request.status === 'accepted' ? 'success' : request.status === 'declined' || request.status === 'cancelled_by_driver' || request.status === 'no_show' ? 'error' : request.status === 'pending' ? 'warning' : 'default'} />
-                      {manageable ? (
-                        <Icon name="chevron-forward" size="xs" color={theme.outline} />
-                      ) : null}
-                    </TouchableOpacity>
-                  );
-                })}
-              </>
-            ) : null}
+                      <View style={styles.actions}>
+                        <Button
+                          label={t('common:actions.decline')}
+                          size="sm"
+                          variant="outline"
+                          disabled={declineState.isLoading}
+                          onPress={() => void respond(request.id, 'decline', declineBooking)}
+                          style={styles.actionButton}
+                        />
+                        <Button
+                          label={t('common:actions.accept')}
+                          size="sm"
+                          disabled={acceptState.isLoading}
+                          onPress={() => void respond(request.id, 'accept', acceptBooking)}
+                          style={styles.actionButton}
+                        />
+                      </View>
+                    </View>
+                  ))}
+                </>
+              ) : (
+                <Text variant="bodySmall" color={theme.inkMuted} style={styles.allAnswered}>
+                  {t('driver:rides.requestsSheet.allAnswered')}
+                </Text>
+              )}
 
-            {actionError ? (
-              <Text variant="bodySmall" color={theme.error} style={styles.actionError}>
-                {actionError}
-              </Text>
-            ) : null}
-          </View>
-        )}
-      </View>
-    </BottomSheet>
+              {answered.length > 0 ? (
+                <>
+                  <Text
+                    variant="label"
+                    color={theme.inkMuted}
+                    style={[styles.sectionLabel, styles.answeredLabel]}
+                  >
+                    {t('driver:rides.requestsSheet.answered')}
+                  </Text>
+                  {answered.map((request) => {
+                    const requestStatus = t(`booking:status_${request.status}`);
+                    const manageable = request.status === 'accepted' && Boolean(onManageBooking);
+                    return (
+                      <TouchableOpacity
+                        key={request.id}
+                        style={styles.answeredRow}
+                        disabled={!manageable}
+                        onPress={manageable ? () => onManageBooking!(request) : undefined}
+                        accessibilityRole={manageable ? 'button' : 'text'}
+                        accessibilityLabel={
+                          manageable
+                            ? t('driver:rides.requestsSheet.manageLabel', {
+                                name: request.rider?.fullName ?? t('booking:passenger'),
+                              })
+                            : undefined
+                        }
+                      >
+                        <Avatar
+                          uri={request.rider?.avatarUrl}
+                          name={request.rider?.fullName ?? '?'}
+                          sizePx={36}
+                          fallbackBackgroundColor={theme.surfaceMuted}
+                          fallbackTextColor={theme.ink}
+                        />
+                        <View style={styles.identityText}>
+                          <Text variant="bodySmall" color={theme.ink} numberOfLines={1}>
+                            {request.rider?.fullName ?? t('booking:passenger')}
+                          </Text>
+                          <Text variant="caption" color={theme.inkMuted}>
+                            {t('common:terms.seat', { count: request.seatsRequested })}
+                          </Text>
+                        </View>
+                        <Badge
+                          label={requestStatus}
+                          variant={
+                            request.status === 'accepted'
+                              ? 'success'
+                              : request.status === 'declined' ||
+                                  request.status === 'cancelled_by_driver' ||
+                                  request.status === 'no_show'
+                                ? 'error'
+                                : request.status === 'pending'
+                                  ? 'warning'
+                                  : 'default'
+                          }
+                        />
+                        {manageable ? (
+                          <Icon name="chevron-forward" size="xs" color={theme.outline} />
+                        ) : null}
+                      </TouchableOpacity>
+                    );
+                  })}
+                </>
+              ) : null}
+
+              {actionError ? (
+                <Text variant="bodySmall" color={theme.error} style={styles.actionError}>
+                  {actionError}
+                </Text>
+              ) : null}
+            </View>
+          )}
+        </View>
+      </BottomSheet>
+
+      <RequestDetailSheet
+        visible={detailBooking !== null}
+        booking={detailBooking}
+        onClose={() => setDetailBooking(null)}
+      />
+    </>
   );
 }
 
@@ -233,6 +303,12 @@ const styles = StyleSheet.create({
   identityText: {
     flex: 1,
     gap: 1,
+  },
+  detailsBtn: {
+    width: 28,
+    height: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   riderName: {
     fontWeight: '600',

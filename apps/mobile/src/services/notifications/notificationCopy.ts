@@ -123,6 +123,13 @@ function num(v: unknown): number | undefined {
 export interface NotificationCounterpartPayload {
   bookingId?: string;
   rideId?: string;
+  /** The counterpart's real userId — riderId (booking_requested) or
+   *  driverUserId (booking_accepted/declined), both added to the
+   *  notification payload server-side (bookings.service.ts) — lets a tap on
+   *  the counterpart's photo open their real public profile (search/trust.tsx,
+   *  which works for any userId despite its driver-oriented name — see its
+   *  own component doc comment) instead of only the ride/booking itself. */
+  counterpartUserId?: string;
   counterpartName?: string;
   counterpartAvatarUrl?: string;
   counterpartRatingAvg?: number;
@@ -138,12 +145,14 @@ export function readNotificationCounterpartPayload(
   payload: Record<string, unknown>,
 ): NotificationCounterpartPayload {
   const isDriverFacing = type === 'booking_requested';
+  const userIdKey = isDriverFacing ? 'riderId' : 'driverUserId';
   const nameKey = isDriverFacing ? 'riderName' : 'driverName';
   const avatarKey = isDriverFacing ? 'riderAvatarUrl' : 'driverAvatarUrl';
   const ratingKey = isDriverFacing ? 'riderRatingAvg' : 'driverRatingAvg';
   return {
     bookingId: str(payload.bookingId),
     rideId: str(payload.rideId),
+    counterpartUserId: str(payload[userIdKey]),
     counterpartName: str(payload[nameKey]),
     counterpartAvatarUrl: str(payload[avatarKey]),
     counterpartRatingAvg: num(payload[ratingKey]),

@@ -120,6 +120,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
           rotateEnabled={false}
           scrollEnabled={false}
           style={{}}
+          userInterfaceStyle="light"
           zoomEnabled={false}
         >
           <Marker

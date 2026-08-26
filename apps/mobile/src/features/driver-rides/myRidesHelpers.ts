@@ -55,10 +55,36 @@ export function orderRemainingRides(
 export function estimateArrivalLabel(
   departureAt: string,
   estimatedDurationSec: number | null,
+  intlTag = 'fr-FR',
 ): string | null {
   if (estimatedDurationSec === null || !Number.isFinite(estimatedDurationSec)) return null;
   const departure = new Date(departureAt);
   if (Number.isNaN(departure.getTime())) return null;
   const arrival = new Date(departure.getTime() + estimatedDurationSec * 1000);
-  return arrival.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  return arrival.toLocaleTimeString(intlTag, { hour: '2-digit', minute: '2-digit' });
+}
+
+export type TripPhase = 'upcoming' | 'in_progress' | 'completed' | 'cancelled';
+
+/**
+ * The driver ride-hub's status pill (2026-08-27 itinerary redesign):
+ * replaces a badge that used to show the literal word "Departure" the
+ * entire time a ride was draft/published/full/in_progress (only the color
+ * changed) with something that actually reflects where the trip is right
+ * now. `rides.status` never genuinely reaches 'in_progress' in this
+ * codebase today (no live-GPS/trip-start mechanism sets it — see the
+ * project's own audit notes on the active-trip system being unbuilt), so
+ * "in progress" is honestly derived here from the one real signal that
+ * does exist: the scheduled departure time has passed and the ride hasn't
+ * been marked completed/cancelled. This is a deliberate, documented proxy,
+ * not a claim of real live tracking.
+ */
+export function computeTripPhase(ride: Ride, now: Date = new Date()): TripPhase {
+  if (ride.status === 'cancelled') return 'cancelled';
+  if (ride.status === 'completed') return 'completed';
+  const departure = new Date(ride.departureAt);
+  if (!Number.isNaN(departure.getTime()) && now.getTime() >= departure.getTime()) {
+    return 'in_progress';
+  }
+  return 'upcoming';
 }

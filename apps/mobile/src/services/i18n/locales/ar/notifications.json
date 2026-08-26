@@ -48,6 +48,8 @@
     "actionError": "حدث خطأ ما. يرجى المحاولة مرة أخرى.",
     "accessibilityLabel": "طلب حجز من {{name}}",
     "resolvedAccepted": "تم القبول",
-    "resolvedDeclined": "تم الرفض"
+    "resolvedDeclined": "تم الرفض",
+    "viewProfile": "عرض الملف الشخصي لـ{{name}}",
+    "openInTrips": "فتح في رحلاتي"
   }
 }

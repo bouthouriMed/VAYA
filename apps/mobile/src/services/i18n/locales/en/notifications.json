@@ -40,6 +40,8 @@
     "actionError": "Something went wrong. Please try again.",
     "accessibilityLabel": "Booking request from {{name}}",
     "resolvedAccepted": "Accepted",
-    "resolvedDeclined": "Declined"
+    "resolvedDeclined": "Declined",
+    "viewProfile": "View {{name}}'s profile",
+    "openInTrips": "Open in My trips"
   }
 }
