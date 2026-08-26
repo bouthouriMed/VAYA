@@ -22,6 +22,10 @@ interface RouteOptionCardProps {
   selected: boolean;
   onPress: () => void;
   theme: AppPalette;
+  tollsLabel?: string;
+  noTollsLabel?: string;
+  estimateLabel?: string;
+  recommendedLabel?: string;
 }
 
 const KIND_ICON: Record<RouteOptionKind, IconName> = {
@@ -58,6 +62,10 @@ export function RouteOptionCard({
   selected,
   onPress,
   theme,
+  tollsLabel = 'péages',
+  noTollsLabel = 'sans péage',
+  estimateLabel = 'estimation',
+  recommendedLabel = 'Recommandé',
 }: RouteOptionCardProps): React.JSX.Element {
   const iconWrapStyle = selected
     ? { backgroundColor: theme.onAccent + '33' }
@@ -67,9 +75,9 @@ export function RouteOptionCard({
   const captionColor = selected ? theme.onAccent + 'CC' : theme.inkFaint;
 
   const captionParts = [formatDistanceKm(option.distanceM), formatDuration(option.durationSec)];
-  if (option.hasTolls === true) captionParts.push('péages');
-  if (option.hasTolls === false) captionParts.push('sans péage');
-  if (option.isEstimate) captionParts.push('estimation');
+  if (option.hasTolls === true) captionParts.push(tollsLabel);
+  if (option.hasTolls === false) captionParts.push(noTollsLabel);
+  if (option.isEstimate) captionParts.push(estimateLabel);
 
   return (
     <TouchableOpacity
@@ -106,7 +114,7 @@ export function RouteOptionCard({
                 color={selected ? theme.onAccent : theme.accent}
                 style={styles.badgeText}
               >
-                Recommandé
+                {recommendedLabel}
               </Text>
             </View>
           ) : null}

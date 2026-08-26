@@ -2211,10 +2211,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                 ]
               }
             >
-              Rechercher vers 
-              18
-              :
-              30
+              Rechercher vers 18:30
             </Text>
           </View>
           <View
@@ -3521,7 +3518,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
             }
           >
             <TouchableOpacity
-              accessibilityLabel="Confirmer l'heure"
+              accessibilityLabel="Confirmer"
               accessibilityRole="button"
               onPress={[Function]}
               style={

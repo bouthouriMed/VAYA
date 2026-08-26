@@ -819,7 +819,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
             ]
           }
         >
-          Aujourd'hui, 08:30 · rides.rideDetail.arrivalEta
+          mar. 25 août · 08:30 · rides.rideDetail.arrivalEta
         </Text>
       </View>
       <View
@@ -2079,7 +2079,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
             ]
           }
         >
-          Aujourd'hui, 08:30 · rides.rideDetail.arrivalEta
+          mar. 25 août · 08:30 · rides.rideDetail.arrivalEta
         </Text>
       </View>
       <View

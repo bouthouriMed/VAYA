@@ -79,7 +79,7 @@ export function DriverBookingDetailSheet({
                 {booking.rider?.fullName ?? t('booking:passenger')}
               </Text>
               <Text variant="caption" color={theme.inkMuted} numberOfLines={1}>
-                {t('driver:rides.bookingDetail.seatsAndPrice', { seats: booking.seatsRequested, seatLabel: booking.seatsRequested > 1 ? t('common:status.seats_plural') : t('common:status.seats_singular'), price: booking.contributionTotal })}
+                {t('driver:rides.bookingDetail.seatsAndPrice', { seatLabel: t('common:terms.seat', { count: booking.seatsRequested }), price: booking.contributionTotal })}
               </Text>
             </View>
           </View>
@@ -113,10 +113,10 @@ export function DriverBookingDetailSheet({
           <TouchableOpacity
             onPress={() => setCancelling(true)}
             accessibilityRole="button"
-            accessibilityLabel={t('driver:rides.bookingDetail.cancelLabel')}
+            accessibilityLabel={t('driver:rides.bookingDetail.cancelBooking')}
           >
             <Text variant="body" color={theme.error} style={styles.cancelLabel}>
-              {t('driver:rides.bookingDetail.cancelLabel')}
+              {t('driver:rides.bookingDetail.cancelBooking')}
             </Text>
           </TouchableOpacity>
         </View>

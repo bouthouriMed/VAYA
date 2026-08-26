@@ -24,6 +24,13 @@ export interface PassengerSheetProps {
   formatCount?: (count: number) => string;
   /** Bound hint under the count — defaults to a passenger-count cap note. */
   hint?: string;
+  closeLabel?: string;
+  incrementLabel?: string;
+  decrementLabel?: string;
+  confirmLabel?: string;
+  /** "Confirmer {{count}}" by default — pass a function so callers can
+   *  place the count label however their language's word order needs. */
+  confirmAriaLabel?: (countLabel: string) => string;
 }
 
 /** Shared bound with searchSlice's clamp — kept here so the stepper's
@@ -55,6 +62,11 @@ export function PassengerSheet({
   title = 'Passagers',
   formatCount = formatPassengerCount,
   hint,
+  closeLabel = 'Fermer',
+  incrementLabel = 'Ajouter un passager',
+  decrementLabel = 'Retirer un passager',
+  confirmLabel = 'Confirmer',
+  confirmAriaLabel = (countLabel) => `Confirmer ${countLabel}`,
 }: PassengerSheetProps): React.JSX.Element | null {
   // useAppTheme() hands back { colors, scheme } — the palette lives under
   // .colors (same destructure every other themed primitive uses).
@@ -87,7 +99,7 @@ export function PassengerSheet({
           <TouchableOpacity
             onPress={onClose}
             accessibilityRole="button"
-            accessibilityLabel="Fermer"
+            accessibilityLabel={closeLabel}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
             <Icon name="close" size="sm" color={theme.ink} />
@@ -101,8 +113,8 @@ export function PassengerSheet({
           accessible
           accessibilityRole="adjustable"
           accessibilityActions={[
-            { name: 'increment', label: 'Ajouter un passager' },
-            { name: 'decrement', label: 'Retirer un passager' },
+            { name: 'increment', label: incrementLabel },
+            { name: 'decrement', label: decrementLabel },
           ]}
           onAccessibilityAction={(event) => {
             if (event.nativeEvent.actionName === 'increment' && canIncrement) {
@@ -122,7 +134,7 @@ export function PassengerSheet({
               !canDecrement && styles.stepButtonDisabled,
             ]}
             accessibilityRole="button"
-            accessibilityLabel="Retirer un passager"
+            accessibilityLabel={decrementLabel}
             accessibilityState={{ disabled: !canDecrement }}
             hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
           >
@@ -130,14 +142,14 @@ export function PassengerSheet({
               name="remove"
               size="md"
               color={canDecrement ? theme.ink : theme.inkFaint}
-              accessibilityLabel="Retirer un passager"
+              accessibilityLabel={decrementLabel}
             />
           </TouchableOpacity>
 
           <Text
             variant="headlineDisplay"
             style={[styles.count, { color: theme.ink }]}
-            accessibilityLabel={formatPassengerCount(draft)}
+            accessibilityLabel={formatCount(draft)}
             accessibilityLiveRegion="polite"
           >
             {draft}
@@ -153,7 +165,7 @@ export function PassengerSheet({
               !canIncrement && styles.stepButtonDisabled,
             ]}
             accessibilityRole="button"
-            accessibilityLabel="Ajouter un passager"
+            accessibilityLabel={incrementLabel}
             accessibilityState={{ disabled: !canIncrement }}
             hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
           >
@@ -161,7 +173,7 @@ export function PassengerSheet({
               name="add"
               size="md"
               color={canIncrement ? theme.ink : theme.inkFaint}
-              accessibilityLabel="Ajouter un passager"
+              accessibilityLabel={incrementLabel}
             />
           </TouchableOpacity>
         </View>
@@ -182,11 +194,11 @@ export function PassengerSheet({
         }}
         style={[styles.confirmButton, { backgroundColor: theme.ink }]}
         accessibilityRole="button"
-        accessibilityLabel={`Confirmer ${formatCount(draft)}`}
+        accessibilityLabel={confirmAriaLabel(formatCount(draft))}
         activeOpacity={0.85}
       >
         <Text variant="bodySmall" style={[styles.confirmLabel, { color: theme.background }]}>
-          Confirmer
+          {confirmLabel}
         </Text>
       </TouchableOpacity>
     </BottomSheet>

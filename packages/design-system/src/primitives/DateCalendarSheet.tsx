@@ -20,6 +20,15 @@ export interface DateCalendarSheetProps {
   value: Date;
   onChange: (date: Date) => void;
   title?: string;
+  /** BCP-47 tag for month/year headings and the day-cell accessibility
+   *  label — defaults to the sheet's original fr-FR behavior. */
+  locale?: string;
+  /** Mon-first weekday header letters (L/M/M/J/V/S/D by default). */
+  weekdayLabels?: [string, string, string, string, string, string, string];
+  closeLabel?: string;
+  previousMonthLabel?: string;
+  nextMonthLabel?: string;
+  confirmLabel?: string;
 }
 
 const CELL_SIZE = 40;
@@ -39,6 +48,12 @@ export function DateCalendarSheet({
   value,
   onChange,
   title = 'Date de départ',
+  locale = 'fr-FR',
+  weekdayLabels = ['L', 'M', 'M', 'J', 'V', 'S', 'D'],
+  closeLabel = 'Fermer',
+  previousMonthLabel = 'Mois précédent',
+  nextMonthLabel = 'Mois suivant',
+  confirmLabel = 'Confirmer la date',
 }: DateCalendarSheetProps): React.JSX.Element {
   const { colors: theme } = useAppTheme();
   const now = useMemo(() => new Date(), []);
@@ -149,7 +164,7 @@ export function DateCalendarSheet({
             hitSlop={12}
             style={styles.closeBtn}
             accessibilityRole="button"
-            accessibilityLabel="Fermer"
+            accessibilityLabel={closeLabel}
           >
             <Icon name="close" size="sm" color={theme.ink} />
           </TouchableOpacity>
@@ -169,7 +184,7 @@ export function DateCalendarSheet({
               isCurrentMonth && styles.navBtnDisabled,
             ]}
             accessibilityRole="button"
-            accessibilityLabel="Mois précédent"
+            accessibilityLabel={previousMonthLabel}
           >
             <Icon
               name="chevron-back"
@@ -180,10 +195,10 @@ export function DateCalendarSheet({
         </View>
         <View style={styles.monthTitleWrap}>
           <Text variant="h3" color={theme.ink}>
-            {formatMonthName(monthAnchor)}
+            {formatMonthName(monthAnchor, locale)}
           </Text>
           <Text variant="caption" color={theme.inkFaint}>
-            {formatYearLabel(monthAnchor)}
+            {formatYearLabel(monthAnchor, locale)}
           </Text>
         </View>
         <View style={styles.navCell}>
@@ -191,7 +206,7 @@ export function DateCalendarSheet({
             onPress={() => goToMonth(1)}
             style={[styles.navBtn, { borderColor: theme.outlineVariant }]}
             accessibilityRole="button"
-            accessibilityLabel="Mois suivant"
+            accessibilityLabel={nextMonthLabel}
           >
             <Icon name="chevron-forward" size="sm" color={theme.ink} />
           </TouchableOpacity>
@@ -199,7 +214,7 @@ export function DateCalendarSheet({
       </View>
 
       <View style={styles.weekdayRow}>
-        {['L', 'M', 'M', 'J', 'V', 'S', 'D'].map((label, i) => (
+        {weekdayLabels.map((label, i) => (
           <Text
             key={`${label}-${i}`}
             variant="caption"
@@ -236,7 +251,7 @@ export function DateCalendarSheet({
                       : null,
                 ]}
                 accessibilityRole="button"
-                accessibilityLabel={cell.date.toLocaleDateString('fr-FR', {
+                accessibilityLabel={cell.date.toLocaleDateString(locale, {
                   day: 'numeric',
                   month: 'long',
                 })}
@@ -263,10 +278,10 @@ export function DateCalendarSheet({
           onPress={confirm}
           style={[styles.confirmBtn, { backgroundColor: theme.ink }]}
           accessibilityRole="button"
-          accessibilityLabel="Confirmer la date"
+          accessibilityLabel={confirmLabel}
         >
           <Text variant="label" color={theme.onInk}>
-            Confirmer la date
+            {confirmLabel}
           </Text>
         </TouchableOpacity>
       </View>

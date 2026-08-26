@@ -123,8 +123,8 @@ export default function ConfirmedScreen(): React.JSX.Element {
 
         <Text variant="h1" color={theme.ink} align="center" style={styles.title}>
           {declined
-            ? t('booking:status_declined', { name: driverFirstName })
-            : t('booking:status_pending', { name: driverFirstName })}
+            ? t('booking:declined_title', { name: driverFirstName })
+            : t('booking:pending_title', { name: driverFirstName })}
         </Text>
 
         {declined ? (

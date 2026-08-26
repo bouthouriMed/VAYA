@@ -1,1 +1,90 @@
-{}
+{
+  "sections": {
+    "identity": "الهوية",
+    "account": "الحساب",
+    "security": "الأمان",
+    "preferences": "التفضيلات"
+  },
+  "rows": {
+    "personalInfo": "المعلومات الشخصية",
+    "payment": "الدفع",
+    "notifications": "الإشعارات",
+    "history": "سجل الرحلات",
+    "securityPassword": "الأمان وكلمة المرور",
+    "privacy": "الخصوصية",
+    "ridePrefs": "تفضيلات الرحلة",
+    "language": "اللغة",
+    "appearance": "المظهر"
+  },
+  "driver": {
+    "verified": "سائق موثّق",
+    "pending": "التحقق قيد المعالجة",
+    "pendingDescription": "نحن بصدد مراجعة وثائقك. ستتمكن من نشر رحلاتك بمجرد الموافقة عليها.",
+    "rejected": "تم رفض التحقق",
+    "rejectedDescription": "استأنف عملية التحقق لتتمكن من نشر رحلاتك.",
+    "noneTitle": "شارك رحلاتك",
+    "noneDescription": "انضم إلى مجتمع VAYA كسائق.",
+    "verifiedAria": "سائق موثّق، انشر رحلة",
+    "verifiedWithVehicleAria": "سائق موثّق، {{make}} {{model}}، انشر رحلة",
+    "pendingAria": "التحقق من السائق قيد المعالجة",
+    "rejectedAria": "تم رفض التحقق، استأنف عملية التحقق",
+    "noneAria": "انضم إلى VAYA كسائق"
+  },
+  "trust": {
+    "new": "جديد على VAYA"
+  },
+  "photo": {
+    "changeAria": "تغيير الصورة الشخصية",
+    "addAria": "إضافة صورة شخصية",
+    "changeText": "تغيير الصورة الشخصية",
+    "addText": "إضافة صورة شخصية"
+  },
+  "toast": {
+    "galleryRequired": "يلزم الوصول إلى معرض الصور لاختيار صورة.",
+    "photoUpdated": "تم تحديث الصورة الشخصية.",
+    "photoFailed": "فشل تحميل الصورة. حاول مرة أخرى.",
+    "localeNotSaved": "لم يتم حفظ اللغة.",
+    "appearanceNotSaved": "لم يتم حفظ تفضيل المظهر."
+  },
+  "guest": {
+    "title": "ملفك الشخصي في VAYA",
+    "description": "سجّل الدخول لإدارة ملفك الشخصي وتتبع رحلاتك والوصول إلى إعداداتك.",
+    "signIn": "تسجيل الدخول"
+  },
+  "logout": {
+    "title": "تسجيل الخروج؟",
+    "cta": "تسجيل الخروج",
+    "description": "ستحتاج إلى تسجيل الدخول مجددًا باستخدام رقم هاتفك.",
+    "accessibility": "تسجيل الخروج"
+  },
+  "infoSheet": {
+    "title": "المعلومات الشخصية",
+    "fullName": "الاسم الكامل",
+    "phone": "الهاتف",
+    "email": "البريد الإلكتروني",
+    "memberSince": "عضو منذ",
+    "addVerify": "إضافة وتوثيق"
+  },
+  "phoneSheet": {
+    "addTitle": "أضف رقمك",
+    "verifyTitle": "التحقق",
+    "description": "يُستخدم للتحقق ولربطك بشركاء التنقل الجماعي.",
+    "placeholder": "98 123 456",
+    "sendCode": "إرسال الرمز",
+    "verify": "تحقق",
+    "changeNumber": "تغيير الرقم",
+    "codeSentTo": "تم إرسال الرمز إلى ‎+216 {{phone}}",
+    "codePlaceholder": "000000",
+    "testCode": "رمز الاختبار: {{code}}",
+    "ariaPhone": "رقم الهاتف",
+    "ariaCode": "رمز التحقق",
+    "invalidOrUnsent": "رقم غير صالح أو تعذّر الإرسال. حاول مرة أخرى.",
+    "alreadyLinked": "هذا الرقم مرتبط بالفعل بحساب VAYA آخر.",
+    "invalidOrExpired": "رمز غير صالح أو منتهي الصلاحية. حاول مرة أخرى.",
+    "verified": "تم توثيق رقم الهاتف."
+  },
+  "fallbacks": {
+    "myProfile": "ملفي الشخصي",
+    "trips": "{{count}} رحلة"
+  }
+}

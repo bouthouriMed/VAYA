@@ -1,6 +1,11 @@
 {
   "pending_title": "في انتظار {{name}}…",
   "pending_subtitle": "عادة ما يرد خلال بضع دقائق.",
+  "declined_title": "رفض {{name}} طلبك",
+  "status_pending_hint": "سنُعلمك بمجرد رد {{name}}.",
+  "status_pending_notification": "ستصلك إشعار بمجرد وجود أي جديد.",
+  "status_declined_hint": "لا مشكلة — جرّب رحلة أخرى على هذا المسار.",
+  "status_cancelling": "جارٍ الإلغاء…",
   "cancel_request": "إلغاء الطلب",
   "mine_title": "رحلاتي",
   "status_pending": "قيد الانتظار",
@@ -96,6 +101,24 @@
     "driversLicense": "رخصة القيادة",
     "insuranceProof": "إثبات التأمين",
     "identitySelfie": "صورة هوية"
+  },
+  "detail": {
+    "title": "حجزي",
+    "notFound": "الحجز غير موجود.",
+    "viewRoute": "عرض المسار",
+    "viewRouteFullscreen": "عرض المسار في وضع ملء الشاشة",
+    "sendMessage": "إرسال رسالة",
+    "newOnVaya": "جديد على VAYA",
+    "pickupPoint": "نقطة الالتقاء",
+    "dropoffPoint": "نقطة التوصيل",
+    "distanceToPickup": "{{distance}} من موقعك · ≈ {{minutes}} سيرًا حتى نقطة الالتقاء",
+    "priceAndSeats": "{{price}} · {{seats}}",
+    "tripsSuffix_zero": "· بدون رحلات",
+    "tripsSuffix_one": "· رحلة واحدة",
+    "tripsSuffix_two": "· رحلتان",
+    "tripsSuffix_few": "· {{count}} رحلات",
+    "tripsSuffix_many": "· {{count}} رحلة",
+    "tripsSuffix_other": "· {{count}} رحلة"
   },
   "days": {
     "mon": "اثنين",

@@ -241,7 +241,7 @@ export default function SearchComposerScreen(): React.JSX.Element {
               onPress={() => setQuery('')}
               hitSlop={8}
               accessibilityRole="button"
-              accessibilityLabel="Effacer"
+              accessibilityLabel={t('search:composer.clear')}
             >
               <Icon name="close" size="sm" color={theme.inkMuted} />
             </TouchableOpacity>
@@ -252,7 +252,7 @@ export default function SearchComposerScreen(): React.JSX.Element {
 
         {resolveError ? (
           <Text variant="caption" color={theme.error} style={styles.errorText}>
-            Impossible de récupérer ce lieu. Réessayez.
+            {t('search:composer.resolveError')}
           </Text>
         ) : null}
 
@@ -277,7 +277,7 @@ export default function SearchComposerScreen(): React.JSX.Element {
         {!isSearching ? (
           <View style={styles.savedSection}>
             <Text variant="caption" color={theme.inkFaint} style={styles.sectionLabel}>
-              LIEUX ENREGISTRÉS
+              {t('search:composer.savedPlaces').toUpperCase()}
             </Text>
             <View style={styles.savedGrid}>
               {(['work', 'home'] as const).map((key) => (
@@ -299,7 +299,7 @@ export default function SearchComposerScreen(): React.JSX.Element {
                       {key === 'work' ? t('search:composer.work') : t('search:composer.home')}
                     </Text>
                     <Text variant="caption" color={theme.inkFaint}>
-                      Bientôt
+                      {t('common:status.comingSoon')}
                     </Text>
                   </View>
                 </TouchableOpacity>
@@ -309,7 +309,10 @@ export default function SearchComposerScreen(): React.JSX.Element {
         ) : null}
 
         <Text variant="caption" color={theme.inkFaint} style={styles.sectionLabel}>
-          {isSearching ? 'RÉSULTATS' : 'RÉCENTS'}
+          {(isSearching
+            ? t('search:composer.resultsSectionLabel')
+            : t('search:composer.recentSectionLabel')
+          ).toUpperCase()}
         </Text>
 
         {/* One continuous white panel instead of a per-row bordered/grey
@@ -354,11 +357,11 @@ export default function SearchComposerScreen(): React.JSX.Element {
             ListEmptyComponent={
               isSearching && !isFetching ? (
                 <Text variant="body" color={theme.inkFaint} style={styles.empty}>
-                  Aucun résultat
+                  {t('search:composer.noResults')}
                 </Text>
               ) : !isSearching ? (
                 <Text variant="body" color={theme.inkFaint} style={styles.empty}>
-                  Vos recherches récentes apparaîtront ici
+                  {t('search:composer.noRecents')}
                 </Text>
               ) : null
             }

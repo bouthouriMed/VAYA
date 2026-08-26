@@ -313,7 +313,7 @@ exports[`trips.tsx snapshots > driver dashboard — hero ride card over segmente
                 }
               }
             >
-              booking.status_published
+              booking:status_published
             </Text>
           </View>
         </View>
@@ -405,7 +405,7 @@ exports[`trips.tsx snapshots > driver dashboard — hero ride card over segmente
                   ]
                 }
               >
-                12.5 DT
+                12,50 DT
               </Text>
               <Text
                 style={
@@ -771,7 +771,7 @@ exports[`trips.tsx snapshots > driver dashboard — hero ride card over segmente
       }
     >
       <TouchableOpacity
-        accessibilityLabel="Tunis → Sousse, sam. 15 août · 8:30 AM, booking.status_completed"
+        accessibilityLabel="Tunis → Sousse, sam. 15 août · 8:30 AM, booking:status_completed"
         accessibilityRole="button"
         activeOpacity={0.7}
         onPress={[Function]}
@@ -825,7 +825,7 @@ exports[`trips.tsx snapshots > driver dashboard — hero ride card over segmente
             sam. 15 août · 8:30 AM
           </Text>
           <View
-            accessibilityLabel="booking.status_completed"
+            accessibilityLabel="booking:status_completed"
             accessibilityRole="text"
             accessible={true}
             style={
@@ -856,7 +856,7 @@ exports[`trips.tsx snapshots > driver dashboard — hero ride card over segmente
                 ]
               }
             >
-              booking.status_completed
+              booking:status_completed
             </Text>
           </View>
         </View>
@@ -1044,7 +1044,7 @@ exports[`trips.tsx snapshots > driver dashboard — hero ride card over segmente
               ]
             }
           >
-            12.5 DT
+            12,50 DT
           </Text>
         </View>
       </TouchableOpacity>
@@ -1674,7 +1674,7 @@ exports[`trips.tsx snapshots > rider view — booking card shows the real driver
       }
     >
       <TouchableOpacity
-        accessibilityLabel="Tunis → Hammamet, dim. 23 août · 8:30 AM, booking.status_accepted"
+        accessibilityLabel="Tunis → Hammamet, dim. 23 août · 8:30 AM, booking:status_accepted"
         accessibilityRole="button"
         activeOpacity={0.7}
         onPress={[Function]}
@@ -1726,7 +1726,7 @@ exports[`trips.tsx snapshots > rider view — booking card shows the real driver
             dim. 23 août · 8:30 AM
           </Text>
           <View
-            accessibilityLabel="booking.status_accepted"
+            accessibilityLabel="booking:status_accepted"
             accessibilityRole="text"
             accessible={true}
             style={
@@ -1757,7 +1757,7 @@ exports[`trips.tsx snapshots > rider view — booking card shows the real driver
                 ]
               }
             >
-              booking.status_accepted
+              booking:status_accepted
             </Text>
           </View>
         </View>

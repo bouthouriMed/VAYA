@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { View, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { Text, Avatar, Icon, useAppTheme, spacing, radii } from '@vaya/design-system';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useGetUserPublicProfileQuery, useGetUserTrustSummaryQuery } from '../../src/state/api';
@@ -34,6 +35,7 @@ export default function TrustScreen(): React.JSX.Element {
   const { driverUserId } = useLocalSearchParams<{ rideId: string; driverUserId: string }>();
   const insets = useSafeAreaInsets();
   const { colors: theme } = useAppTheme();
+  const { t } = useTranslation(['search', 'common']);
 
   const { data: profile, isLoading: isProfileLoading } = useGetUserPublicProfileQuery(driverUserId);
   const { data: trustSummary } = useGetUserTrustSummaryQuery(driverUserId);
@@ -56,7 +58,7 @@ export default function TrustScreen(): React.JSX.Element {
     return (
       <View style={[styles.loadingWrap, { backgroundColor: theme.background }]}>
         <Text variant="body" color={theme.inkFaint}>
-          Profil introuvable.
+          {t('search:trust.profileNotFound')}
         </Text>
       </View>
     );
@@ -82,7 +84,7 @@ export default function TrustScreen(): React.JSX.Element {
           onPress={() => router.back()}
           hitSlop={12}
           accessibilityRole="button"
-          accessibilityLabel="Retour"
+          accessibilityLabel={t('common:actions.back')}
         >
           <Ionicons name="chevron-back" size={22} color={theme.ink} />
         </TouchableOpacity>
@@ -117,14 +119,14 @@ export default function TrustScreen(): React.JSX.Element {
               <View style={[styles.verifiedPill, { backgroundColor: theme.surfaceMuted }]}>
                 <Icon name="shield-checkmark" size="xs" color={theme.inkMuted} />
                 <Text variant="caption" color={theme.inkMuted}>
-                  Vérifié
+                  {t('search:trust.verified')}
                 </Text>
               </View>
             ) : null}
           </View>
           {driverStats?.languages && driverStats.languages.length > 0 ? (
             <Text variant="bodySmall" color={theme.inkFaint}>
-              Parle {driverStats.languages.join(', ')}
+              {t('search:trust.speaks', { languages: driverStats.languages.join(', ') })}
             </Text>
           ) : null}
         </View>
@@ -139,7 +141,7 @@ export default function TrustScreen(): React.JSX.Element {
                 <Icon name="star" size="xs" color={theme.accent} />
               </View>
               <Text variant="caption" color={theme.inkFaint}>
-                Note
+                {t('search:trust.ratingLabel')}
               </Text>
             </View>
             <View style={[styles.statTile, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
@@ -147,7 +149,7 @@ export default function TrustScreen(): React.JSX.Element {
                 {tripCount}
               </Text>
               <Text variant="caption" color={theme.inkFaint}>
-                Trajets
+                {t('search:trust.tripsLabel')}
               </Text>
             </View>
           </View>
@@ -165,16 +167,16 @@ export default function TrustScreen(): React.JSX.Element {
                 <Icon name="sparkles" size="sm" color={theme.onAccent} />
               </View>
               <Text variant="label" color={theme.ink}>
-                {`${firstName} débute sur VAYA`}
+                {t('search:trust.welcomeTitle', { name: firstName })}
               </Text>
             </View>
             <Text variant="bodySmall" color={theme.inkMuted}>
-              {`Profil entièrement vérifié, encore sans trajets ni avis — tout le monde débute un jour. Ce que VAYA garantit déjà se trouve ci-dessous.`}
+              {t('search:trust.welcomeDescription')}
             </Text>
             <View style={styles.encourageRow}>
               <Icon name="heart" size="xs" color={theme.accent} />
               <Text variant="bodySmall" color={theme.ink}>
-                {`Soyez parmi les premiers passagers de ${firstName} : votre avis après le trajet l’aidera à démarrer en confiance.`}
+                {t('search:trust.welcomeEncourage', { name: firstName })}
               </Text>
             </View>
           </View>
@@ -186,7 +188,7 @@ export default function TrustScreen(): React.JSX.Element {
               <View style={[styles.pill, { backgroundColor: theme.surfaceMuted }]}>
                 <Icon name="sparkles" size="xs" color={theme.accent} />
                 <Text variant="bodySmall" color={theme.ink}>
-                  Nouveau
+                  {t('search:trust.pillNew')}
                 </Text>
               </View>
             ) : null}
@@ -194,7 +196,7 @@ export default function TrustScreen(): React.JSX.Element {
               <View style={[styles.pill, { backgroundColor: theme.surfaceMuted }]}>
                 <Icon name="thumbs-up" size="xs" color={theme.accent} />
                 <Text variant="bodySmall" color={theme.ink}>
-                  Fiable
+                  {t('search:trust.pillReliable')}
                 </Text>
               </View>
             ) : null}
@@ -202,7 +204,7 @@ export default function TrustScreen(): React.JSX.Element {
               <View style={[styles.pill, { backgroundColor: theme.surfaceMuted }]}>
                 <Icon name="ribbon-outline" size="xs" color={theme.accent} />
                 <Text variant="bodySmall" color={theme.ink}>
-                  Top VAYA
+                  {t('search:trust.pillTopRated')}
                 </Text>
               </View>
             ) : null}
@@ -214,26 +216,26 @@ export default function TrustScreen(): React.JSX.Element {
             <View style={styles.cardTitleRow}>
               <Icon name="shield-checkmark-outline" size="sm" color={theme.accent} />
               <Text variant="label" color={theme.ink}>
-                Vérifications VAYA
+                {t('search:trust.verificationsTitle')}
               </Text>
             </View>
             <View style={styles.verifyRow}>
               <Icon name="person-circle-outline" size="sm" color={theme.accent} />
               <Text variant="bodySmall" color={theme.inkMuted}>
-                Identité confirmée par selfie
+                {t('search:trust.verificationIdentity')}
               </Text>
             </View>
             <View style={styles.verifyRow}>
               <Icon name="document-text-outline" size="sm" color={theme.accent} />
               <Text variant="bodySmall" color={theme.inkMuted}>
-                Documents de conduite contrôlés
+                {t('search:trust.verificationDocuments')}
               </Text>
             </View>
             {driverStats.vehicle ? (
               <View style={styles.verifyRow}>
                 <Icon name="car-sport-outline" size="sm" color={theme.accent} />
                 <Text variant="bodySmall" color={theme.inkMuted}>
-                  Véhicule enregistré — plaque visible ci-dessous
+                  {t('search:trust.verificationVehicle')}
                 </Text>
               </View>
             ) : null}
@@ -245,7 +247,7 @@ export default function TrustScreen(): React.JSX.Element {
             <View style={styles.cardTitleRow}>
               <Icon name="information-circle-outline" size="sm" color={theme.inkFaint} />
               <Text variant="label" color={theme.ink}>
-                À propos de {firstName}
+                {t('search:trust.aboutTitle', { name: firstName })}
               </Text>
             </View>
             <Text variant="bodySmall" color={theme.inkMuted}>
@@ -259,7 +261,7 @@ export default function TrustScreen(): React.JSX.Element {
             <View style={styles.cardTitleRow}>
               <Icon name="car-sport-outline" size="sm" color={theme.inkFaint} />
               <Text variant="label" color={theme.ink}>
-                Véhicule
+                {t('common:terms.vehicle')}
               </Text>
             </View>
             <View style={styles.vehicleRow}>
@@ -290,12 +292,12 @@ export default function TrustScreen(): React.JSX.Element {
               <View style={styles.cardTitleRow}>
                 <Icon name="chatbubble-ellipses-outline" size="sm" color={theme.inkFaint} />
                 <Text variant="label" color={theme.ink} style={styles.reviewsTitle}>
-                  Avis
+                  {t('search:trust.reviewsTitle')}
                 </Text>
                 <Icon name="chevron-forward" size="sm" color={theme.inkFaint} />
               </View>
               <Text variant="bodySmall" color={theme.inkFaint}>
-                Voir tous les avis sur {firstName}
+                {t('search:trust.reviewsSubtitle', { name: firstName })}
               </Text>
             </TouchableOpacity>
           ) : (
@@ -303,14 +305,14 @@ export default function TrustScreen(): React.JSX.Element {
               <View style={styles.cardTitleRow}>
                 <Icon name="chatbubble-ellipses-outline" size="sm" color={theme.inkFaint} />
                 <Text variant="label" color={theme.ink} style={styles.reviewsTitle}>
-                  Avis
+                  {t('search:trust.reviewsTitle')}
                 </Text>
               </View>
               <Text variant="bodySmall" color={theme.inkMuted}>
-                {`${firstName} n’a pas encore reçu d’avis.`}
+                {t('search:trust.reviewsEmpty', { name: firstName })}
               </Text>
               <Text variant="bodySmall" color={theme.accent} style={styles.firstReviewLine}>
-                {`Après votre trajet, partagez le vôtre — le premier avis est celui qui compte le plus.`}
+                {t('search:trust.reviewsFirstLine')}
               </Text>
             </View>
           )
@@ -328,11 +330,11 @@ export default function TrustScreen(): React.JSX.Element {
         <View style={[styles.cta, styles.ctaDisabled, { backgroundColor: theme.ink }]}>
           <Icon name="chatbubble-outline" size="sm" color={theme.onInk} />
           <Text variant="label" color={theme.onInk}>
-            Message conducteur
+            {t('search:trust.messageDriver')}
           </Text>
         </View>
         <Text variant="caption" color={theme.inkFaint} align="center">
-          Disponible une fois votre demande de place acceptée.
+          {t('search:trust.messageAvailability')}
         </Text>
       </View>
     </View>

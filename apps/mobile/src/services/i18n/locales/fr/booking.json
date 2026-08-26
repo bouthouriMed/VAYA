@@ -1,6 +1,11 @@
 {
   "pending_title": "En attente de {{name}}…",
   "pending_subtitle": "Réponse habituelle sous quelques minutes.",
+  "declined_title": "{{name}} a refusé votre demande",
+  "status_pending_hint": "Nous vous prévenons dès que {{name}} répond.",
+  "status_pending_notification": "Vous recevrez une notification dès qu'il y aura du nouveau.",
+  "status_declined_hint": "Pas de souci — essayez un autre trajet sur cet itinéraire.",
+  "status_cancelling": "Annulation…",
   "cancel_request": "Annuler la demande",
   "mine_title": "Mes trajets",
   "status_pending": "En attente",
@@ -96,6 +101,20 @@
     "driversLicense": "Permis de conduire",
     "insuranceProof": "Attestation d'assurance",
     "identitySelfie": "Selfie d'identité"
+  },
+  "detail": {
+    "title": "Ma réservation",
+    "notFound": "Réservation introuvable.",
+    "viewRoute": "Voir l'itinéraire",
+    "viewRouteFullscreen": "Voir l'itinéraire en plein écran",
+    "sendMessage": "Envoyer un message",
+    "newOnVaya": "Nouveau sur VAYA",
+    "pickupPoint": "Point de rendez-vous",
+    "dropoffPoint": "Point de dépose",
+    "distanceToPickup": "{{distance}} de votre position · ≈ {{minutes}} à pied jusqu'au point de rendez-vous",
+    "priceAndSeats": "{{price}} · {{seats}}",
+    "tripsSuffix_one": "· {{count}} trajet",
+    "tripsSuffix_other": "· {{count}} trajets"
   },
   "days": {
     "mon": "Lun",

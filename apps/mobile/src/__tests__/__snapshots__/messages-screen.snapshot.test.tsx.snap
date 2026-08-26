@@ -865,7 +865,7 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
       }
     >
       <TouchableOpacity
-        accessibilityLabel="booking.filters.all"
+        accessibilityLabel="booking:filters.all"
         accessibilityRole="button"
         accessibilityState={
           {
@@ -937,12 +937,12 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
               ]
             }
           >
-            booking.filters.all
+            booking:filters.all
           </Text>
         </LinearGradient>
       </TouchableOpacity>
       <TouchableOpacity
-        accessibilityLabel="booking.filters.upcoming"
+        accessibilityLabel="booking:filters.upcoming"
         accessibilityRole="button"
         accessibilityState={
           {
@@ -988,11 +988,11 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
             ]
           }
         >
-          booking.filters.upcoming
+          booking:filters.upcoming
         </Text>
       </TouchableOpacity>
       <TouchableOpacity
-        accessibilityLabel="booking.filters.active"
+        accessibilityLabel="booking:filters.active"
         accessibilityRole="button"
         accessibilityState={
           {
@@ -1038,11 +1038,11 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
             ]
           }
         >
-          booking.filters.active
+          booking:filters.active
         </Text>
       </TouchableOpacity>
       <TouchableOpacity
-        accessibilityLabel="booking.filters.past"
+        accessibilityLabel="booking:filters.past"
         accessibilityRole="button"
         accessibilityState={
           {
@@ -1088,7 +1088,7 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
             ]
           }
         >
-          booking.filters.past
+          booking:filters.past
         </Text>
       </TouchableOpacity>
     </ScrollView>

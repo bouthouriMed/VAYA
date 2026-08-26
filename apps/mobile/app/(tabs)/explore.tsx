@@ -14,7 +14,6 @@ import {
   PassengerSheet,
   PickupPin,
   DropoffPin,
-  formatPassengerCount,
   formatDepartureLabel,
   useAppTheme,
   spacing,
@@ -26,8 +25,9 @@ import {
   type MapRegion,
 } from '@vaya/design-system';
 import { router } from 'expo-router';
+import type { SupportedLocale } from '@vaya/config';
 import { useAppDispatch, useAppSelector } from '../../src/state/store';
-import { formatTime } from '../../src/utils/localeFormat';
+import { formatTime, toIntlTag } from '../../src/utils/localeFormat';
 import {
   setOrigin,
   swapOriginDestination,
@@ -139,11 +139,13 @@ export default function HomeSearchScreen(): React.JSX.Element {
     router.push({ pathname: '/search/composer', params: { field } });
   }
 
+  const intlTag = toIntlTag(locale as SupportedLocale);
+  const departureWords = { today: t('common:time.today'), tomorrow: t('common:time.tomorrow') };
   const dateLabel = desiredDepartureAt
-    ? formatDepartureLabel(new Date(desiredDepartureAt)).split(' · ')[0]
+    ? formatDepartureLabel(new Date(desiredDepartureAt), new Date(), intlTag, departureWords).split(', ')[0]
     : t('common:time.today');
   const timeLabel = desiredDepartureAt
-    ? formatTime(new Date(desiredDepartureAt), locale as any)
+    ? formatTime(new Date(desiredDepartureAt), locale as SupportedLocale)
     : t('search:timePicker.now');
 
   return (
@@ -353,7 +355,7 @@ export default function HomeSearchScreen(): React.JSX.Element {
             onPress={() => setIsPassengerSheetOpen(true)}
             activeOpacity={0.7}
             accessibilityRole="button"
-              accessibilityLabel={`${t('common:terms.passengers')}, ${formatPassengerCount(passengers)}`}
+              accessibilityLabel={`${t('common:terms.passengers')}, ${t('common:terms.passenger', { count: passengers })}`}
           >
             <View style={[styles.locationIconWrap, styles.filterIconWrap, { backgroundColor: theme.surfaceMuted }]}>
               <Icon name="person-outline" size="sm" color={theme.inkFaint} />
@@ -363,7 +365,7 @@ export default function HomeSearchScreen(): React.JSX.Element {
                 {t('common:terms.passengers')}
               </Text>
               <Text variant="bodySmall" color={theme.ink}>
-                {formatPassengerCount(passengers)}
+                {t('common:terms.passenger', { count: passengers })}
               </Text>
             </View>
           </TouchableOpacity>
@@ -406,18 +408,38 @@ export default function HomeSearchScreen(): React.JSX.Element {
         onClose={() => setIsDateSheetOpen(false)}
         value={desiredDepartureAt ? new Date(desiredDepartureAt) : new Date()}
         onChange={(date) => dispatch(setDesiredDepartureAt(date.toISOString()))}
+        title={t('search:datePicker.title')}
+        locale={intlTag}
+        weekdayLabels={t('search:datePicker.weekdayLabels', { returnObjects: true }) as [string, string, string, string, string, string, string]}
+        closeLabel={t('common:actions.close')}
+        previousMonthLabel={t('search:datePicker.previousMonth')}
+        nextMonthLabel={t('search:datePicker.nextMonth')}
+        confirmLabel={t('search:datePicker.confirm')}
       />
       <TimeWheelSheet
         visible={isTimeSheetOpen}
         onClose={() => setIsTimeSheetOpen(false)}
         value={desiredDepartureAt ? new Date(desiredDepartureAt) : new Date()}
         onChange={(date) => dispatch(setDesiredDepartureAt(date.toISOString()))}
+        title={t('search:timePicker.title')}
+        closeLabel={t('common:actions.close')}
+        subtitleLabel={t('search:timePicker.subtitle')}
+        summaryLabel={(time) => t('search:timePicker.summary', { time })}
+        confirmLabel={t('common:actions.confirm')}
       />
       <PassengerSheet
         visible={isPassengerSheetOpen}
         onClose={() => setIsPassengerSheetOpen(false)}
         value={passengers}
         onChange={(count) => dispatch(setPassengers(count))}
+        title={t('common:terms.passengers')}
+        formatCount={(count) => t('common:terms.passenger', { count })}
+        hint={t('search:passengerPicker.hint', { count: 8 })}
+        closeLabel={t('common:actions.close')}
+        incrementLabel={t('search:passengerPicker.increment')}
+        decrementLabel={t('search:passengerPicker.decrement')}
+        confirmLabel={t('common:actions.confirm')}
+        confirmAriaLabel={(countLabel) => `${t('common:actions.confirm')} ${countLabel}`}
       />
     </View>
   );

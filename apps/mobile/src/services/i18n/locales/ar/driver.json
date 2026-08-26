@@ -6,13 +6,46 @@
       "stops": "نقاط التوقف",
       "review": "المراجعة والنشر"
     },
+    "formStep": {
+      "headline": "نشر رحلة",
+      "dateLabel": "تاريخ المغادرة",
+      "timeLabel": "وقت المغادرة",
+      "seatsLabel": "المقاعد المتاحة",
+      "seatsHint": "حتى {{count}} مقاعد لكل رحلة",
+      "seatsCount_zero": "لا مقاعد متاحة",
+      "seatsCount_one": "مقعد واحد متاح",
+      "seatsCount_two": "مقعدان متاحان",
+      "seatsCount_few": "{{count}} مقاعد متاحة",
+      "seatsCount_many": "{{count}} مقعدًا متاحًا",
+      "seatsCount_other": "{{count}} مقعد متاح",
+      "incrementSeat": "إضافة مقعد",
+      "decrementSeat": "إزالة مقعد",
+      "timeSheetSubtitle": "في أي وقت تريد الانطلاق؟",
+      "timeSheetSummary": "الانطلاق الساعة {{time}}",
+      "weekdayLabels": ["ن", "ث", "ر", "خ", "ج", "س", "ح"],
+      "previousMonth": "الشهر السابق",
+      "nextMonth": "الشهر التالي",
+      "confirmDate": "تأكيد التاريخ",
+      "choosePriceCta": "اختيار السعر"
+    },
     "routeStep": {
       "title": "المسارات المتاحة",
-      "continue": "متابعة"
+      "continue": "متابعة",
+      "availableCount_zero": "لا مسارات متاحة",
+      "availableCount_one": "مسار واحد متاح",
+      "availableCount_two": "مساران متاحان",
+      "availableCount_few": "{{count}} مسارات متاحة",
+      "availableCount_many": "{{count}} مسارًا متاحًا",
+      "availableCount_other": "{{count}} مسار متاح",
+      "tollsLabel": "طرق ذات معاليم",
+      "noTollsLabel": "بدون معاليم",
+      "estimateLabel": "تقديري",
+      "recommendedLabel": "موصى به"
     },
     "priceStep": {
       "title": "السعر المقترح",
-      "description": "يتم حساب هذا المبلغ لهذه الرحلة بناءً على المسافة والمدة. يمكنك تعديله ضمن النطاق المسموح.",
+      "description": "يتم حساب هذا المبلغ لهذه الرحلة — يمكنك تعديله ضمن الهامش المقترح.",
+      "contributionLabel": "المساهمة لكل مقعد",
       "suggested": "مقترح",
       "min": "الحد الأدنى",
       "max": "الحد الأقصى"
@@ -21,34 +54,71 @@
       "pickupTitle": "نقطة الالتقاء",
       "dropoffTitle": "نقطة التوصيل",
       "confirm": "تأكيد",
+      "confirmPickup": "تأكيد نقطة الالتقاء",
+      "confirmDropoff": "تأكيد نقطة التوصيل",
       "customPosition": "موقع مخصص",
       "editPickup": "تعديل نقطة الالتقاء",
       "editDropoff": "تعديل نقطة التوصيل",
       "selectedPoint": "النقطة المحددة",
-      "choosePoint": "اختيار هذه النقطة"
+      "choosePoint": "اختيار هذه النقطة",
+      "searching": "البحث عن اقتراحات…",
+      "unavailable": "الاقتراحات غير متاحة — حدد النقطة بنفسك.",
+      "chooseOrPlace": "اختر نقطة مقترحة أو حددها بنفسك.",
+      "resolvingLabel": "جارٍ تحديد الموقع…",
+      "moveMap": "حرّك الخريطة"
     },
     "reviewStep": {
       "readyToPublish": "مستعد لنشر رحلتك؟",
-      "checkDetails": "تحقق من التفاصيل أدناه قبل النشر.",
+      "checkDetails": "تحقق من التفاصيل أدناه — يمكنك تعديل كل قسم قبل التأكيد.",
       "itinerary": "المسار",
+      "editItinerary": "تعديل المسار",
       "modify": "تعديل",
       "meetingPoint": "نقطة الالتقاء",
-      "price": "السعر",
+      "estimatedArrival": "~{{time}}",
+      "price": "السعر لكل مقعد",
+      "editPrice": "تعديل السعر",
       "afterVerification": "بعد التحقق",
+      "seatsAvailable": "المقاعد المتاحة",
+      "editSeats": "تعديل عدد المقاعد",
+      "totalSeats_zero": "بدون مقاعد",
+      "totalSeats_one": "مقعد واحد إجمالاً",
+      "totalSeats_two": "مقعدان إجمالاً",
+      "totalSeats_few": "{{count}} مقاعد إجمالاً",
+      "totalSeats_many": "{{count}} مقعدًا إجمالاً",
+      "totalSeats_other": "{{count}} مقعد إجمالاً",
       "vehicle": "المركبة",
-      "addAfterVerify": "ستضيف مركبتك بعد التحقق…",
+      "addAfterVerify": "ستضيف مركبتك عند التحقق من ملفك الشخصي كسائق.",
       "publishCta": "نشر هذه الرحلة",
       "verifyCta": "تحقق من ملفك الشخصي للنشر",
-      "verifyDescription": "التحقق يستغرق حوالي 5 دقائق."
+      "verifyDescription": "التحقق من ملفك الشخصي كسائق يستغرق حوالي 5 دقائق.",
+      "termsHint": "بالنشر، فإنك توافق على شروط استخدامنا."
+    },
+    "verificationSheet": {
+      "title": "خطوة أخيرة قبل الانطلاق",
+      "description": "لنشر رحلتك الأولى، نحتاج إلى التحقق من ملفك الشخصي كسائق. رحلتك محفوظة وستُنشر تلقائيًا بمجرد الموافقة على تحققك.",
+      "pillLabel": "التحقق مطلوب",
+      "startCta": "بدء التحقق"
     },
     "errors": {
       "createFailed": "تعذر إنشاء هذه الرحلة. حاول مرة أخرى.",
-      "stopsFailed": "تعذر حفظ نقاط التوقف. حاول مرة أخرى.",
+      "stopsFailed": "تعذر حفظ نقاط الالتقاء. حاول مرة أخرى.",
       "priceFailed": "تعذر تحديث السعر. حاول مرة أخرى.",
       "publishFailed": "تعذر نشر هذه الرحلة. حاول مرة أخرى."
     }
   },
   "onboarding": {
+    "capture": {
+      "permissionTitle": "الوصول إلى الكاميرا مطلوب",
+      "permissionBody": "تحتاج VAYA إلى الكاميرا للتحقق من رخصتك وتأمينك وهويتك مباشرة — أبدًا من معرض الصور.",
+      "allowCamera": "السماح بالكاميرا",
+      "back": "رجوع",
+      "reviewPrompt": "هل الصورة واضحة وبالإطار الصحيح؟",
+      "usePhoto": "استخدام هذه الصورة",
+      "retake": "إعادة الالتقاط",
+      "takePhoto": "التقاط الصورة",
+      "cameraNotReady": "الكاميرا غير جاهزة بعد. انتظر لحظة وأعد المحاولة.",
+      "captureFailed": "تعذر التقاط الصورة. أعد المحاولة."
+    },
     "index": {
       "title": "كن سائق VAYA",
       "subtitle": "شارك رحلاتك واكسب وأنت تقود.",
@@ -158,27 +228,36 @@
       "cannotCancel": "لا يمكن إلغاء رحلة بها حجوزات نشطة.",
       "cancelRide": "إلغاء هذه الرحلة",
       "doNotCancel": "لا تلغِ",
-      "confirmCancel": "تأكيد إلغاء الرحلة"
+      "confirmCancel": "تأكيد إلغاء الرحلة",
+      "cancelError": "تعذر إلغاء هذه الرحلة. حاول مرة أخرى.",
+      "cancelWarning": "سيؤدي هذا إلى إلغاء الرحلة لكل راكب حجز مقعدًا بالفعل."
     },
     "requestsSheet": {
       "title": "طلبات الحجز",
       "loadError": "تعذر تحميل الطلبات",
+      "loadErrorDescription": "تحقق من اتصالك وأعد المحاولة.",
       "empty": "لا توجد طلبات",
       "emptyAccepted": "لا توجد طلبات مقبولة",
       "sectionPending": "جديدة",
       "sectionAccepted": "تمت معالجتها",
+      "toAnswer": "للرد ({{count}})",
+      "answered": "تمت معالجتها",
+      "allAnswered": "تمت معالجة جميع الطلبات",
       "decline": "رفض",
       "accept": "قبول",
       "acceptError": "تعذر القبول. حاول مرة أخرى.",
       "declineError": "تعذر الرفض. حاول مرة أخرى.",
-      "retry": "إعادة المحاولة"
+      "retry": "إعادة المحاولة",
+      "seatsAndPickup": "{{seatLabel}} · {{pickup}}",
+      "manageLabel": "إدارة حجز {{name}}"
     },
     "bookingDetail": {
       "passenger": "راكب",
       "destination": "وجهة الرحلة",
       "message": "رسالة",
       "reportNoShow": "الإبلاغ عن عدم الحضور",
-      "cancelBooking": "إلغاء هذا الحجز"
+      "cancelBooking": "إلغاء هذا الحجز",
+      "seatsAndPrice": "{{seatLabel}} · {{price}} د.ت"
     }
   }
 }

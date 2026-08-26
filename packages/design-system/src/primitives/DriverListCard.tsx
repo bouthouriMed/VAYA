@@ -39,6 +39,20 @@ export interface DriverListCardData {
    *  just a lower score, so it renders as a distinct badge rather than
    *  folding into `timeOffsetNote`. */
   routeBadgeLabel?: string;
+  /** Translated "MEILLEURE CORRESPONDANCE" label — this primitive stays
+   *  translation-agnostic (no i18n dependency, mirroring
+   *  scheduling.ts's `formatDepartureLabel` convention), so the caller
+   *  supplies its own already-translated copy. Defaults to the original
+   *  French text for any caller that hasn't been threaded a real
+   *  translation yet. */
+  bestMatchLabel?: string;
+  /** Translated "{{count}} place(s)" fallback shown when there are no real
+   *  fellow-passenger avatars to render instead. Same translation-agnostic
+   *  convention as `bestMatchLabel`. */
+  seatsLabel?: string;
+  /** Full translated accessibility label for the card's touch target.
+   *  Defaults to the original French template. */
+  accessibilityLabel?: string;
 }
 
 interface DriverListCardProps {
@@ -108,7 +122,7 @@ export function DriverListCard({ data, bestMatch, onPress, theme }: DriverListCa
         <View style={styles.bestMatchRow}>
           <Icon name="star" size="xs" color={theme.info} />
           <Text variant="caption" color={theme.info} style={styles.bestMatchLabel}>
-            MEILLEURE CORRESPONDANCE
+            {data.bestMatchLabel ?? 'MEILLEURE CORRESPONDANCE'}
           </Text>
         </View>
       ) : null}
@@ -118,7 +132,7 @@ export function DriverListCard({ data, bestMatch, onPress, theme }: DriverListCa
         onPress={onPress}
         activeOpacity={0.85}
         accessibilityRole="button"
-        accessibilityLabel={`${data.driverName}, départ ${data.timeLabel}, ${data.priceLabel}`}
+        accessibilityLabel={data.accessibilityLabel ?? `${data.driverName}, départ ${data.timeLabel}, ${data.priceLabel}`}
       >
         <View style={styles.body}>
           <View style={styles.headerRow}>
@@ -200,7 +214,13 @@ export function DriverListCard({ data, bestMatch, onPress, theme }: DriverListCa
               </View>
             ) : (
               <Text variant="caption" color={theme.inkFaint}>
-                {data.seatsAvailable} place{data.seatsAvailable > 1 ? 's' : ''}
+                {data.seatsLabel !== undefined ? (
+                  data.seatsLabel
+                ) : (
+                  <>
+                    {data.seatsAvailable} place{data.seatsAvailable > 1 ? 's' : ''}
+                  </>
+                )}
               </Text>
             )}
           </View>

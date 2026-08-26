@@ -38,7 +38,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
       }
     >
       <TouchableOpacity
-        accessibilityLabel="Retour"
+        accessibilityLabel="common:actions.back"
         accessibilityRole="button"
         hitSlop={12}
         onPress={[Function]}
@@ -69,7 +69,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
           ]
         }
       >
-        Ma réservation
+        booking:detail.title
       </Text>
       <View
         style={
@@ -308,12 +308,12 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
               }
             }
           >
-            Confirmé
+            booking:status_accepted
           </Text>
         </View>
       </View>
       <TouchableOpacity
-        accessibilityLabel="Voir l'itinéraire en plein écran"
+        accessibilityLabel="booking:detail.viewRouteFullscreen"
         accessibilityRole="button"
         activeOpacity={0.85}
         onPress={[Function]}
@@ -368,7 +368,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
             ]
           }
         >
-          Voir l'itinéraire
+          booking:detail.viewRoute
         </Text>
       </TouchableOpacity>
     </View>
@@ -422,7 +422,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
           Tunis → Hammamet
         </Text>
         <View
-          accessibilityLabel="Confirmé"
+          accessibilityLabel="booking:status_accepted"
           accessibilityRole="text"
           accessible={true}
           style={
@@ -453,7 +453,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
               ]
             }
           >
-            Confirmé
+            booking:status_accepted
           </Text>
         </View>
       </View>
@@ -522,7 +522,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
                 ]
               }
             >
-              Départ
+              booking:departure
             </Text>
           </View>
           <Text
@@ -605,7 +605,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
                 ]
               }
             >
-              Point de rendez-vous
+              booking:detail.pickupPoint
             </Text>
           </View>
           <Text
@@ -676,7 +676,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
                 ]
               }
             >
-              Arrivée
+              booking:arrival
             </Text>
           </View>
           <Text
@@ -736,7 +736,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
             ]
           }
         >
-          Aujourd'hui, 08:30
+          mar. 25 août · 8:30
         </Text>
       </View>
       <View
@@ -772,7 +772,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
             ]
           }
         >
-          21 DT · 2 places
+          booking:detail.priceAndSeats
         </Text>
       </View>
     </View>
@@ -918,7 +918,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
                 ]
               }
             >
-              · 130 trajets
+              booking:detail.tripsSuffix
             </Text>
           </View>
         </View>
@@ -967,7 +967,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
         }
       >
         <TouchableOpacity
-          accessibilityLabel="Envoyer un message"
+          accessibilityLabel="booking:detail.sendMessage"
           accessibilityRole="button"
           activeOpacity={0.7}
           onPress={[Function]}
@@ -1012,7 +1012,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
               ]
             }
           >
-            Message
+            common:actions.message
           </Text>
         </TouchableOpacity>
         <View
@@ -1060,7 +1060,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
               ]
             }
           >
-            Appeler
+            common:actions.call
           </Text>
         </View>
       </View>
@@ -1129,7 +1129,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
             ]
           }
         >
-          Véhicule
+          common:terms.vehicle
         </Text>
         <Text
           style={
@@ -1196,7 +1196,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
     }
   >
     <Pressable
-      accessibilityLabel="Annuler ma réservation"
+      accessibilityLabel="booking:cancelBooking"
       accessibilityRole="button"
       accessibilityState={
         {
@@ -1223,7 +1223,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
           ]
         }
       >
-        Annuler ma réservation
+        booking:cancelBooking
       </Text>
     </Pressable>
   </View>
@@ -1406,7 +1406,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
         />
       </View>
       <TouchableOpacity
-        accessibilityLabel="Fermer"
+        accessibilityLabel="common:actions.close"
         accessibilityRole="button"
         hitSlop={12}
         onPress={[Function]}

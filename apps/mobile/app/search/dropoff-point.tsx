@@ -166,7 +166,7 @@ export default function DropoffPointScreen(): React.JSX.Element {
               key={stop.stopId}
               coordinate={{ latitude: stop.lat, longitude: stop.lng }}
               onPress={() => pickStop(stop)}
-              accessibilityLabel={`${stop.label}, ${Math.round(stop.walkMinutes)} min à pied`}
+              accessibilityLabel={`${stop.label}, ${t('search:walk.suffix', { minutes: t('common:terms.minute', { count: Math.round(stop.walkMinutes) }) })}`}
             >
               {/* Same numbered pin as the driver publish map (design-system
                *  StopPin); this screen's chrome is still legacy-light, so it
@@ -189,7 +189,7 @@ export default function DropoffPointScreen(): React.JSX.Element {
         </TouchableOpacity>
         <View style={styles.hint}>
           <Text variant="bodySmall" color={colors.gray700}>
-            Où souhaitez-vous descendre ?
+            {t('search:dropoffPoint.whereToDropoff')}
           </Text>
         </View>
       </View>
@@ -201,7 +201,7 @@ export default function DropoffPointScreen(): React.JSX.Element {
             onPress={() => setDetailStop(selectedStop)}
             activeOpacity={0.75}
             accessibilityRole="button"
-            accessibilityLabel={`Détails du point ${selectedStop.label}`}
+            accessibilityLabel={t('search:dropoffPoint.pointDetails', { label: selectedStop.label })}
           >
             <View style={styles.footerIcon}>
               <Ionicons name="flag" size={16} color={colors.white} />
@@ -209,7 +209,9 @@ export default function DropoffPointScreen(): React.JSX.Element {
             <View style={styles.footerTextCol}>
               <Text style={styles.footerLabel}>{selectedStop.label}</Text>
               <Text variant="bodySmall" color={colors.gray500} numberOfLines={1}>
-                {Math.round(selectedStop.walkMinutes)} min à pied de votre destination
+                {t('search:dropoffPoint.walkFromDestination', {
+                  minutes: t('common:terms.minute', { count: Math.round(selectedStop.walkMinutes) }),
+                })}
               </Text>
             </View>
             <Ionicons name="information-circle-outline" size={22} color={colors.gray400} />
@@ -232,10 +234,12 @@ export default function DropoffPointScreen(): React.JSX.Element {
         {detailStop ? (
           <View style={styles.sheetContent}>
             <Text variant="body" color={colors.gray700}>
-              {Math.round(detailStop.walkMinutes)} min à pied jusqu&apos;à votre destination.
+              {t('search:dropoffPoint.walkToDestination', {
+                minutes: t('common:terms.minute', { count: Math.round(detailStop.walkMinutes) }),
+              })}
             </Text>
             <Text variant="bodySmall" color={colors.gray500}>
-              Ce point a été validé par le conducteur comme arrêt sur son trajet.
+              {t('search:dropoffPoint.driverValidatedStop')}
             </Text>
             <Button
               label={detailStop.stopId === selectedStopId ? t('search:dropoffPoint.selected') : t('search:dropoffPoint.choosePoint')}

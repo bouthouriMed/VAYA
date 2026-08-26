@@ -177,7 +177,7 @@ exports[`search/composer.tsx snapshots > renders the destination field active �
           ]
         }
       >
-        LIEUX ENREGISTRÉS
+        SEARCH:COMPOSER.SAVEDPLACES
       </Text>
       <View
         style={
@@ -281,7 +281,7 @@ exports[`search/composer.tsx snapshots > renders the destination field active �
                 ]
               }
             >
-              Bientôt
+              common:status.comingSoon
             </Text>
           </View>
         </TouchableOpacity>
@@ -379,7 +379,7 @@ exports[`search/composer.tsx snapshots > renders the destination field active �
                 ]
               }
             >
-              Bientôt
+              common:status.comingSoon
             </Text>
           </View>
         </TouchableOpacity>
@@ -406,7 +406,7 @@ exports[`search/composer.tsx snapshots > renders the destination field active �
         ]
       }
     >
-      RÉCENTS
+      SEARCH:COMPOSER.RECENTSECTIONLABEL
     </Text>
     <View
       style={
@@ -443,7 +443,7 @@ exports[`search/composer.tsx snapshots > renders the destination field active �
             ]
           }
         >
-          Vos recherches récentes apparaîtront ici
+          search:composer.noRecents
         </Text>
       </FlatList>
     </View>
@@ -671,7 +671,7 @@ exports[`search/composer.tsx snapshots > renders the origin field active — tit
           ]
         }
       >
-        LIEUX ENREGISTRÉS
+        SEARCH:COMPOSER.SAVEDPLACES
       </Text>
       <View
         style={
@@ -775,7 +775,7 @@ exports[`search/composer.tsx snapshots > renders the origin field active — tit
                 ]
               }
             >
-              Bientôt
+              common:status.comingSoon
             </Text>
           </View>
         </TouchableOpacity>
@@ -873,7 +873,7 @@ exports[`search/composer.tsx snapshots > renders the origin field active — tit
                 ]
               }
             >
-              Bientôt
+              common:status.comingSoon
             </Text>
           </View>
         </TouchableOpacity>
@@ -900,7 +900,7 @@ exports[`search/composer.tsx snapshots > renders the origin field active — tit
         ]
       }
     >
-      RÉCENTS
+      SEARCH:COMPOSER.RECENTSECTIONLABEL
     </Text>
     <View
       style={
@@ -937,7 +937,7 @@ exports[`search/composer.tsx snapshots > renders the origin field active — tit
             ]
           }
         >
-          Vos recherches récentes apparaîtront ici
+          search:composer.noRecents
         </Text>
       </FlatList>
     </View>

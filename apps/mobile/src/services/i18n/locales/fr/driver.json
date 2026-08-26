@@ -6,13 +6,38 @@
       "stops": "Points d'arrêt",
       "review": "Vérifier et publier"
     },
+    "formStep": {
+      "headline": "Publier un trajet",
+      "dateLabel": "Date de départ",
+      "timeLabel": "Heure de départ",
+      "seatsLabel": "Places disponibles",
+      "seatsHint": "Jusqu'à {{count}} places par trajet",
+      "seatsCount_one": "{{count}} place disponible",
+      "seatsCount_other": "{{count}} places disponibles",
+      "incrementSeat": "Ajouter une place",
+      "decrementSeat": "Retirer une place",
+      "timeSheetSubtitle": "À quelle heure partez-vous ?",
+      "timeSheetSummary": "Départ à {{time}}",
+      "weekdayLabels": ["L", "M", "M", "J", "V", "S", "D"],
+      "previousMonth": "Mois précédent",
+      "nextMonth": "Mois suivant",
+      "confirmDate": "Confirmer la date",
+      "choosePriceCta": "Choisir le prix"
+    },
     "routeStep": {
       "title": "ITINÉRAIRES DISPONIBLES",
-      "continue": "Continuer"
+      "continue": "Continuer",
+      "availableCount_one": "{{count}} itinéraire disponible",
+      "availableCount_other": "{{count}} itinéraires disponibles",
+      "tollsLabel": "péages",
+      "noTollsLabel": "sans péage",
+      "estimateLabel": "estimation",
+      "recommendedLabel": "Recommandé"
     },
     "priceStep": {
       "title": "PRIX SUGGÉRÉ",
-      "description": "Ce montant est calculé pour ce trajet en fonction de la distance et de la durée. Vous pouvez l'ajuster dans la plage autorisée.",
+      "description": "Ce montant est calculé pour ce trajet — vous pouvez l'ajuster dans la marge proposée.",
+      "contributionLabel": "Contribution par place",
       "suggested": "Suggéré",
       "min": "Minimum",
       "max": "Maximum"
@@ -21,34 +46,67 @@
       "pickupTitle": "Point de rendez-vous",
       "dropoffTitle": "Point de dépose",
       "confirm": "Confirmer",
+      "confirmPickup": "Confirmer le point de rendez-vous",
+      "confirmDropoff": "Confirmer le point de dépose",
       "customPosition": "Position personnalisée",
       "editPickup": "Modifier le point de rendez-vous",
       "editDropoff": "Modifier le point de dépose",
       "selectedPoint": "Point sélectionné",
-      "choosePoint": "Choisir ce point"
+      "choosePoint": "Choisir ce point",
+      "searching": "Recherche de suggestions…",
+      "unavailable": "Suggestions indisponibles — placez le point vous-même.",
+      "chooseOrPlace": "Choisissez un point suggéré ou placez-le vous-même.",
+      "resolvingLabel": "Résolution du lieu…",
+      "moveMap": "Déplacez la carte"
     },
     "reviewStep": {
       "readyToPublish": "Prêt à publier votre trajet ?",
-      "checkDetails": "Vérifiez les détails ci-dessous avant de publier.",
-      "itinerary": "ITINÉRAIRES",
+      "checkDetails": "Vérifiez les détails ci-dessous — vous pouvez modifier chaque section avant de confirmer.",
+      "itinerary": "ITINÉRAIRE",
+      "editItinerary": "Modifier l'itinéraire",
       "modify": "Modifier",
       "meetingPoint": "Point de rendez-vous",
-      "price": "PRIX",
+      "estimatedArrival": "~{{time}}",
+      "price": "PRIX PAR PLACE",
+      "editPrice": "Modifier le prix",
       "afterVerification": "Après vérification",
+      "seatsAvailable": "PLACES DISPONIBLES",
+      "editSeats": "Modifier le nombre de places",
+      "totalSeats_one": "{{count}} place au total",
+      "totalSeats_other": "{{count}} places au total",
       "vehicle": "VÉHICULE",
-      "addAfterVerify": "vous ajouterez votre véhicule…",
-      "publishCta": "PUBLIER CE TRAJET",
+      "addAfterVerify": "Vous ajouterez votre véhicule lors de la vérification de votre profil conducteur.",
+      "publishCta": "Publier ce trajet",
       "verifyCta": "Vérifier mon profil pour publier",
-      "verifyDescription": "Vérification prend environ 5 minutes."
+      "verifyDescription": "La vérification de votre profil conducteur prend environ 5 minutes.",
+      "termsHint": "En publiant, vous acceptez nos conditions d'utilisation."
+    },
+    "verificationSheet": {
+      "title": "Une dernière étape pour prendre la route",
+      "description": "Pour publier votre premier trajet, nous devons vérifier votre profil de conducteur. Votre trajet est enregistré et sera publié automatiquement dès que votre vérification sera validée.",
+      "pillLabel": "Vérification requise",
+      "startCta": "Commencer la vérification"
     },
     "errors": {
       "createFailed": "Impossible de créer ce trajet. Réessayez.",
-      "stopsFailed": "Impossible d'enregistrer vos arrêts. Réessayez.",
+      "stopsFailed": "Impossible d'enregistrer les points de rendez-vous. Réessayez.",
       "priceFailed": "Impossible de mettre à jour le prix. Réessayez.",
       "publishFailed": "Impossible de publier ce trajet. Réessayez."
     }
   },
   "onboarding": {
+    "capture": {
+      "permissionTitle": "Accès à la caméra requis",
+      "permissionBody": "VAYA a besoin de la caméra pour vérifier votre permis, votre assurance et votre identité en direct — jamais depuis votre galerie.",
+      "allowCamera": "Autoriser la caméra",
+      "back": "Retour",
+      "reviewPrompt": "Photo nette et bien cadrée ?",
+      "usePhoto": "Utiliser cette photo",
+      "retake": "Reprendre",
+      "takePhoto": "Prendre la photo",
+      "cameraNotReady": "La caméra n'est pas prête. Attendez une seconde et réessayez.",
+      "captureFailed": "Impossible de prendre la photo. Réessayez."
+    },
     "index": {
       "title": "Devenir conducteur VAYA",
       "subtitle": "Partagez vos trajets, gagnez en roulant.",
@@ -158,27 +216,36 @@
       "cannotCancel": "Impossible d'annuler un trajet avec des réservations actives.",
       "cancelRide": "Annuler ce trajet",
       "doNotCancel": "Ne pas annuler",
-      "confirmCancel": "Confirmer l'annulation du trajet"
+      "confirmCancel": "Confirmer l'annulation du trajet",
+      "cancelError": "Impossible d'annuler ce trajet. Réessayez.",
+      "cancelWarning": "Cela annulera le trajet pour tous les passagers ayant déjà réservé une place."
     },
     "requestsSheet": {
       "title": "Demandes de réservation",
       "loadError": "Impossible de charger les demandes",
+      "loadErrorDescription": "Vérifiez votre connexion et réessayez.",
       "empty": "Aucune demande",
       "emptyAccepted": "Aucune demande acceptée",
       "sectionPending": "Nouvelles",
       "sectionAccepted": "Déjà traitées",
+      "toAnswer": "À répondre ({{count}})",
+      "answered": "Déjà traitées",
+      "allAnswered": "Toutes les demandes ont été traitées",
       "decline": "Refuser",
       "accept": "Accepter",
       "acceptError": "Impossible d'accepter. Réessayez.",
       "declineError": "Impossible de refuser. Réessayez.",
-      "retry": "Réessayer"
+      "retry": "Réessayer",
+      "seatsAndPickup": "{{seatLabel}} · {{pickup}}",
+      "manageLabel": "Gérer la réservation de {{name}}"
     },
     "bookingDetail": {
       "passenger": "Passager",
       "destination": "Destination du trajet",
       "message": "Message",
       "reportNoShow": "Signaler une absence",
-      "cancelBooking": "Annuler cette réservation"
+      "cancelBooking": "Annuler cette réservation",
+      "seatsAndPrice": "{{seatLabel}} · {{price}} DT"
     }
   }
 }

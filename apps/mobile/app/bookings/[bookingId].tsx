@@ -4,6 +4,8 @@ import { Marker, Polyline } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
+import { useTranslation } from 'react-i18next';
+import type { SupportedLocale } from '@vaya/config';
 import {
   Text,
   Icon,
@@ -29,6 +31,7 @@ import {
   type TrustTier,
 } from '../../src/state/api';
 import { decodePolyline, estimateWalkMinutes, haversineKm } from '../../src/utils/polyline';
+import { formatDate, formatTime, formatDistance, formatCurrency } from '../../src/utils/localeFormat';
 import { CancellationSheet } from '../../src/features/bookings/CancellationSheet';
 import { trackEvent } from '../../src/services/analytics/analytics';
 import { trustTierBadge } from '../../src/features/ratings/ratingHelpers';
@@ -36,17 +39,23 @@ import { useCurrentPosition } from '../../src/services/location/useCurrentPositi
 import { RouteTimeline, type RouteTimelineEntry } from '../../src/features/trip-shared/RouteTimeline';
 
 type ThemeColors = ReturnType<typeof useAppTheme>['colors'];
+type TFn = (key: string, options?: Record<string, unknown>) => string;
 
-const BOOKING_BADGE: Record<Booking['status'], { label: string; variant: 'default' | 'success' | 'warning' | 'error' | 'info' }> = {
-  pending: { label: 'En attente', variant: 'warning' },
-  accepted: { label: 'Confirmé', variant: 'success' },
-  declined: { label: 'Refusé', variant: 'error' },
-  cancelled_by_rider: { label: 'Annulé', variant: 'default' },
-  cancelled_by_driver: { label: 'Annulé par le conducteur', variant: 'error' },
-  expired: { label: 'Expiré', variant: 'default' },
-  completed: { label: 'Terminé', variant: 'info' },
-  no_show: { label: 'Absence', variant: 'error' },
+const BOOKING_BADGE_KEY: Record<Booking['status'], { key: string; variant: 'default' | 'success' | 'warning' | 'error' | 'info' }> = {
+  pending: { key: 'booking:status_pending', variant: 'warning' },
+  accepted: { key: 'booking:status_accepted', variant: 'success' },
+  declined: { key: 'booking:status_declined', variant: 'error' },
+  cancelled_by_rider: { key: 'booking:status_cancelled_by_rider', variant: 'default' },
+  cancelled_by_driver: { key: 'booking:status_cancelled_by_driver', variant: 'error' },
+  expired: { key: 'booking:status_expired', variant: 'default' },
+  completed: { key: 'booking:status_completed', variant: 'info' },
+  no_show: { key: 'booking:status_no_show', variant: 'error' },
 };
+
+function getBookingBadge(t: TFn, status: Booking['status']): { label: string; variant: 'default' | 'success' | 'warning' | 'error' | 'info' } {
+  const { key, variant } = BOOKING_BADGE_KEY[status];
+  return { label: t(key), variant };
+}
 
 const CANCELLABLE_STATUSES: Booking['status'][] = ['pending', 'accepted'];
 // Only an upcoming, still-live booking has a meaningful "distance to
@@ -54,19 +63,17 @@ const CANCELLABLE_STATUSES: Booking['status'][] = ['pending', 'accepted'];
 // either stale or meaningless.
 const LIVE_DISTANCE_STATUSES: Booking['status'][] = ['pending', 'accepted'];
 
-function formatWhen(iso: string): string {
+function formatWhen(iso: string, t: TFn, locale: SupportedLocale): string {
   const date = new Date(iso);
-  const time = date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-  if (date.toDateString() === new Date().toDateString()) return `Aujourd'hui, ${time}`;
-  return `${date.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })} · ${time}`;
-}
-
-function formatDistance(km: number): string {
-  return km < 1 ? `${Math.round(km * 1000)} m` : `${km.toFixed(1)} km`;
+  const isToday = date.toDateString() === new Date().toDateString();
+  const time = formatTime(date, locale);
+  if (isToday) return `${t('common:time.today')}, ${time}`;
+  return `${formatDate(date, locale, { weekday: 'short', day: 'numeric', month: 'short' })} · ${time}`;
 }
 
 function DriverCard({
   theme,
+  t,
   fullName,
   avatarUrl,
   ratingAvg,
@@ -75,6 +82,7 @@ function DriverCard({
   onOpenConversation,
 }: {
   theme: ThemeColors;
+  t: TFn;
   fullName: string;
   avatarUrl: string | null;
   ratingAvg?: number;
@@ -105,13 +113,13 @@ function DriverCard({
               </Text>
               {tripCount ? (
                 <Text variant="caption" color={theme.inkFaint}>
-                  {`· ${tripCount} trajet${tripCount > 1 ? 's' : ''}`}
+                  {t('booking:detail.tripsSuffix', { count: tripCount })}
                 </Text>
               ) : null}
             </View>
           ) : (
             <Text variant="caption" color={theme.inkFaint}>
-              Nouveau sur VAYA
+              {t('booking:detail.newOnVaya')}
             </Text>
           )}
         </View>
@@ -123,11 +131,11 @@ function DriverCard({
           onPress={onOpenConversation}
           activeOpacity={0.7}
           accessibilityRole="button"
-          accessibilityLabel="Envoyer un message"
+          accessibilityLabel={t('booking:detail.sendMessage')}
         >
           <Icon name="chatbubble-outline" size="sm" color={theme.ink} />
           <Text variant="bodySmall" color={theme.ink}>
-            Message
+            {t('common:actions.message')}
           </Text>
         </TouchableOpacity>
         {/* No phone number is ever exposed via the public API (search/
@@ -136,7 +144,7 @@ function DriverCard({
         <View style={[styles.quickAction, styles.quickActionDisabled, { backgroundColor: theme.surfaceMuted }]}>
           <Icon name="call-outline" size="sm" color={theme.inkFaint} />
           <Text variant="bodySmall" color={theme.inkFaint}>
-            Appeler
+            {t('common:actions.call')}
           </Text>
         </View>
       </View>
@@ -173,6 +181,8 @@ export default function BookingDetailScreen(): React.JSX.Element {
   const { bookingId } = useLocalSearchParams<{ bookingId: string }>();
   const insets = useSafeAreaInsets();
   const { colors: theme } = useAppTheme();
+  const { t, i18n } = useTranslation(['booking', 'common']);
+  const locale = i18n.language as SupportedLocale;
   const [cancelling, setCancelling] = useState(false);
   const [routeModalOpen, setRouteModalOpen] = useState(false);
   const { position } = useCurrentPosition();
@@ -210,13 +220,13 @@ export default function BookingDetailScreen(): React.JSX.Element {
     return (
       <View style={[styles.loadingWrap, { backgroundColor: theme.background }]}>
         <Text variant="body" color={theme.inkFaint}>
-          Réservation introuvable.
+          {t('booking:detail.notFound')}
         </Text>
       </View>
     );
   }
 
-  const badge = BOOKING_BADGE[booking.status];
+  const badge = getBookingBadge(t, booking.status);
   const cancellable = CANCELLABLE_STATUSES.includes(booking.status);
   const dropoffPoint =
     booking.dropoffLat != null && booking.dropoffLng != null
@@ -229,12 +239,12 @@ export default function BookingDetailScreen(): React.JSX.Element {
   // ride's origin/destination, and the driver's own default stops (shown on
   // driver/rides/[rideId].tsx) may not be exactly this passenger's stops.
   const timelineEntries: RouteTimelineEntry[] = [
-    { key: 'origin', roleLabel: 'Départ', placeLabel: booking.ride.originLabel, isEndpoint: true },
-    { key: 'pickup', roleLabel: 'Point de rendez-vous', placeLabel: booking.pickupLabel, isEndpoint: false },
+    { key: 'origin', roleLabel: t('booking:departure'), placeLabel: booking.ride.originLabel, isEndpoint: true },
+    { key: 'pickup', roleLabel: t('booking:detail.pickupPoint'), placeLabel: booking.pickupLabel, isEndpoint: false },
     ...(booking.dropoffLabel
-      ? [{ key: 'dropoff', roleLabel: 'Point de dépose', placeLabel: booking.dropoffLabel, isEndpoint: false }]
+      ? [{ key: 'dropoff', roleLabel: t('booking:detail.dropoffPoint'), placeLabel: booking.dropoffLabel, isEndpoint: false }]
       : []),
-    { key: 'destination', roleLabel: 'Arrivée', placeLabel: booking.ride.destinationLabel, isEndpoint: true },
+    { key: 'destination', roleLabel: t('booking:arrival'), placeLabel: booking.ride.destinationLabel, isEndpoint: true },
   ];
 
   const showLiveDistance = LIVE_DISTANCE_STATUSES.includes(booking.status) && position != null;
@@ -273,12 +283,12 @@ export default function BookingDetailScreen(): React.JSX.Element {
             onPress={() => (router.canGoBack() ? router.back() : router.replace('/(tabs)/trips'))}
             hitSlop={12}
             accessibilityRole="button"
-            accessibilityLabel="Retour"
+            accessibilityLabel={t('common:actions.back')}
           >
             <Ionicons name="chevron-back" size={24} color={theme.ink} />
           </TouchableOpacity>
           <Text variant="h3" color={theme.ink} style={styles.headerTitle}>
-            Ma réservation
+            {t('booking:detail.title')}
           </Text>
           <View style={styles.headerSpacer} />
         </View>
@@ -305,11 +315,11 @@ export default function BookingDetailScreen(): React.JSX.Element {
             onPress={() => setRouteModalOpen(true)}
             activeOpacity={0.85}
             accessibilityRole="button"
-            accessibilityLabel="Voir l'itinéraire en plein écran"
+            accessibilityLabel={t('booking:detail.viewRouteFullscreen')}
           >
             <Icon name="expand-outline" size="xs" color={theme.ink} />
             <Text variant="caption" color={theme.ink}>
-              Voir l&apos;itinéraire
+              {t('booking:detail.viewRoute')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -327,28 +337,35 @@ export default function BookingDetailScreen(): React.JSX.Element {
           <View style={styles.factRow}>
             <Icon name="time-outline" size="sm" color={theme.inkMuted} />
             <Text variant="bodySmall" color={theme.inkMuted}>
-              {formatWhen(booking.ride.departureAt)}
+              {formatWhen(booking.ride.departureAt, t, locale)}
             </Text>
           </View>
           {showLiveDistance && distanceToPickupKm !== null && walkToPickupMin !== null ? (
             <View style={styles.factRow}>
               <Icon name="walk-outline" size="sm" color={theme.inkMuted} />
               <Text variant="bodySmall" color={theme.inkMuted}>
-                {`${formatDistance(distanceToPickupKm)} de votre position · ≈ ${walkToPickupMin} min à pied jusqu'au point de rendez-vous`}
+                {t('booking:detail.distanceToPickup', {
+                  distance: formatDistance(distanceToPickupKm * 1000, locale),
+                  minutes: t('common:terms.minute', { count: walkToPickupMin }),
+                })}
               </Text>
             </View>
           ) : null}
           <View style={styles.factRow}>
             <Icon name="cash-outline" size="sm" color={theme.inkMuted} />
             <Text variant="bodySmall" color={theme.inkMuted}>
-              {`${booking.contributionTotal} DT · ${booking.seatsRequested} place${booking.seatsRequested > 1 ? 's' : ''}`}
+              {t('booking:detail.priceAndSeats', {
+                price: formatCurrency(booking.contributionTotal, locale),
+                seats: t('common:terms.seat', { count: booking.seatsRequested }),
+              })}
             </Text>
           </View>
         </View>
 
         <DriverCard
           theme={theme}
-          fullName={driverProfile?.fullName ?? booking.ride.driverFullName ?? 'Conducteur'}
+          t={t}
+          fullName={driverProfile?.fullName ?? booking.ride.driverFullName ?? t('common:terms.driver')}
           avatarUrl={driverProfile?.avatarUrl ?? null}
           ratingAvg={driverProfile?.driver?.ratingAvg}
           tripCount={driverProfile?.driver?.tripCount}
@@ -363,7 +380,7 @@ export default function BookingDetailScreen(): React.JSX.Element {
             </View>
             <View>
               <Text variant="label" color={theme.ink}>
-                Véhicule
+                {t('common:terms.vehicle')}
               </Text>
               <Text variant="bodySmall" color={theme.inkMuted}>
                 {`${driverProfile.driver.vehicle.make} ${driverProfile.driver.vehicle.model} · ${driverProfile.driver.vehicle.color}`}
@@ -381,7 +398,7 @@ export default function BookingDetailScreen(): React.JSX.Element {
       {cancellable ? (
         <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.md, backgroundColor: theme.background, borderTopColor: theme.outlineVariant }]}>
           <Button
-            label="Annuler ma réservation"
+            label={t('booking:cancelBooking')}
             variant="outline"
             theme={theme}
             onPress={() => setCancelling(true)}
@@ -423,7 +440,7 @@ export default function BookingDetailScreen(): React.JSX.Element {
             onPress={() => setRouteModalOpen(false)}
             hitSlop={12}
             accessibilityRole="button"
-            accessibilityLabel="Fermer"
+            accessibilityLabel={t('common:actions.close')}
           >
             <Ionicons name="close" size={22} color={theme.ink} />
           </TouchableOpacity>

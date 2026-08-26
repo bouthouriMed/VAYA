@@ -80,7 +80,7 @@ export function ContextualAuthSheet({
       setDevCode(result.devCode);
       setPhoneStep('code');
     } catch {
-      setErrorMessage('Numéro invalide ou envoi impossible. Réessayez.');
+      setErrorMessage(t('auth:sheet.phoneError'));
     }
   }
 
@@ -98,7 +98,7 @@ export function ContextualAuthSheet({
       onAuthenticated();
     } catch {
       haptics.error();
-      setErrorMessage('Code invalide ou expiré. Réessayez.');
+      setErrorMessage(t('auth:sheet.codeError'));
       setCode('');
     }
   }
@@ -119,12 +119,12 @@ export function ContextualAuthSheet({
       }
       if (result.status === 'error') {
         haptics.error();
-        setErrorMessage('Connexion Google impossible. Réessayez.');
+        setErrorMessage(t('auth:googleSignInError'));
       }
       // 'cancelled': the guest closed the browser themselves — no error.
     } catch {
       haptics.error();
-      setErrorMessage('Connexion Google impossible. Réessayez.');
+      setErrorMessage(t('auth:googleSignInError'));
     } finally {
       setIsGoogleLoading(false);
     }
@@ -134,7 +134,7 @@ export function ContextualAuthSheet({
     <BottomSheet
       visible={visible}
       onClose={onClose}
-      title={phoneStep === 'phone' ? copy.title : 'Vérification'}
+      title={phoneStep === 'phone' ? copy.title : t('auth:sheet.verificationTitle')}
       heightRatio={phoneStep === 'phone' ? 0.56 : 0.42}
       theme={theme}
     >
@@ -149,7 +149,7 @@ export function ContextualAuthSheet({
             disabled={isGoogleLoading}
             activeOpacity={0.85}
             accessibilityRole="button"
-            accessibilityLabel="Continuer avec Google"
+            accessibilityLabel={t('auth:sheet.continueWithGoogle')}
             accessibilityState={{ disabled: isGoogleLoading, busy: isGoogleLoading }}
             style={[
               styles.googleCta,
@@ -163,7 +163,7 @@ export function ContextualAuthSheet({
               <>
                 <Ionicons name="logo-google" size={18} color={theme.ink} />
                 <Text variant="label" color={theme.ink}>
-                  Continuer avec Google
+                  {t('auth:sheet.continueWithGoogle')}
                 </Text>
               </>
             )}
@@ -172,7 +172,7 @@ export function ContextualAuthSheet({
           <View style={styles.dividerRow}>
             <View style={[styles.dividerLine, { backgroundColor: theme.outlineVariant }]} />
             <Text variant="caption" color={theme.inkFaint}>
-              ou avec votre numéro
+              {t('auth:sheet.orWithPhone')}
             </Text>
             <View style={[styles.dividerLine, { backgroundColor: theme.outlineVariant }]} />
           </View>
@@ -191,13 +191,13 @@ export function ContextualAuthSheet({
             <TextInput
               value={phone}
               onChangeText={setPhone}
-              placeholder="98 123 456"
+              placeholder={t('auth:phone.placeholder')}
               placeholderTextColor={theme.inkFaint}
               keyboardType="phone-pad"
               returnKeyType="done"
               onSubmitEditing={() => void sendCode()}
               style={[styles.phoneInput, { color: theme.ink }]}
-              accessibilityLabel="Numéro de téléphone"
+              accessibilityLabel={t('auth:sheet.phoneLabel')}
             />
           </View>
 
@@ -212,7 +212,7 @@ export function ContextualAuthSheet({
             disabled={!canSendPhone}
             activeOpacity={0.85}
             accessibilityRole="button"
-            accessibilityLabel="Continuer"
+            accessibilityLabel={t('common:actions.continue')}
             accessibilityState={{ disabled: !canSendPhone, busy: isSendingOtp }}
             style={[styles.cta, { backgroundColor: theme.ink }, !canSendPhone && styles.disabled]}
           >
@@ -220,24 +220,24 @@ export function ContextualAuthSheet({
               <ActivityIndicator color={theme.onInk} size="small" />
             ) : (
               <Text variant="label" color={theme.onInk}>
-                Continuer
+                {t('common:actions.continue')}
               </Text>
             )}
           </TouchableOpacity>
 
           <Text variant="caption" color={theme.inkFaint} align="center" style={styles.legal}>
-            En continuant, vous acceptez nos conditions d&apos;utilisation.
+            {t('auth:landing.legal')}
           </Text>
         </View>
       ) : (
         <View style={styles.body}>
           <Text variant="bodySmall" color={theme.inkMuted} align="center">
-            Code envoyé au +216 {phone}
+            {t('auth:sheet.codeSentTo', { phone })}
           </Text>
           <TextInput
             value={code}
             onChangeText={(v) => setCode(v.replace(/[^0-9]/g, '').slice(0, 6))}
-            placeholder="000000"
+            placeholder={t('auth:sheet.codePlaceholder')}
             placeholderTextColor={theme.inkFaint}
             keyboardType="number-pad"
             maxLength={6}
@@ -247,12 +247,12 @@ export function ContextualAuthSheet({
               styles.otpInput,
               { color: theme.ink, borderColor: theme.outlineVariant, backgroundColor: theme.surfaceMuted },
             ]}
-            accessibilityLabel="Code de vérification"
+            accessibilityLabel={t('auth:sheet.codeLabel')}
             autoFocus
           />
           {devCode ? (
             <Text variant="bodySmall" color={theme.inkFaint} align="center">
-              Code de test : {devCode}
+              {t('auth:sheet.testCode', { code: devCode })}
             </Text>
           ) : null}
           {errorMessage ? (
@@ -265,7 +265,7 @@ export function ContextualAuthSheet({
             disabled={!canVerifyCode}
             activeOpacity={0.85}
             accessibilityRole="button"
-            accessibilityLabel="Vérifier"
+            accessibilityLabel={t('auth:otp.cta')}
             accessibilityState={{ disabled: !canVerifyCode, busy: isVerifyingOtp }}
             style={[styles.cta, { backgroundColor: theme.ink }, !canVerifyCode && styles.disabled]}
           >
@@ -273,13 +273,13 @@ export function ContextualAuthSheet({
               <ActivityIndicator color={theme.onInk} size="small" />
             ) : (
               <Text variant="label" color={theme.onInk}>
-                Vérifier
+                {t('auth:otp.cta')}
               </Text>
             )}
           </TouchableOpacity>
           <TouchableOpacity onPress={() => setPhoneStep('phone')} accessibilityRole="button">
             <Text variant="bodySmall" color={theme.accent} align="center">
-              Changer de numéro
+              {t('auth:otp.changeNumber')}
             </Text>
           </TouchableOpacity>
         </View>
