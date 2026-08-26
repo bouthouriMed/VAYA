@@ -408,23 +408,23 @@ export default function HomeSearchScreen(): React.JSX.Element {
         onClose={() => setIsDateSheetOpen(false)}
         value={desiredDepartureAt ? new Date(desiredDepartureAt) : new Date()}
         onChange={(date) => dispatch(setDesiredDepartureAt(date.toISOString()))}
-        title={t('search:datePicker.title')}
+        title={t('search:datePickerSheet.title')}
         locale={intlTag}
-        weekdayLabels={t('search:datePicker.weekdayLabels', { returnObjects: true }) as [string, string, string, string, string, string, string]}
+        weekdayLabels={t('search:datePickerSheet.weekdayLabels', { returnObjects: true }) as [string, string, string, string, string, string, string]}
         closeLabel={t('common:actions.close')}
-        previousMonthLabel={t('search:datePicker.previousMonth')}
-        nextMonthLabel={t('search:datePicker.nextMonth')}
-        confirmLabel={t('search:datePicker.confirm')}
+        previousMonthLabel={t('search:datePickerSheet.previousMonth')}
+        nextMonthLabel={t('search:datePickerSheet.nextMonth')}
+        confirmLabel={t('search:datePickerSheet.confirm')}
       />
       <TimeWheelSheet
         visible={isTimeSheetOpen}
         onClose={() => setIsTimeSheetOpen(false)}
         value={desiredDepartureAt ? new Date(desiredDepartureAt) : new Date()}
         onChange={(date) => dispatch(setDesiredDepartureAt(date.toISOString()))}
-        title={t('search:timePicker.title')}
+        title={t('search:timeWheelSheet.title')}
         closeLabel={t('common:actions.close')}
-        subtitleLabel={t('search:timePicker.subtitle')}
-        summaryLabel={(time) => t('search:timePicker.summary', { time })}
+        subtitleLabel={t('search:timeWheelSheet.subtitle')}
+        summaryLabel={(time) => t('search:timeWheelSheet.summary', { time })}
         confirmLabel={t('common:actions.confirm')}
       />
       <PassengerSheet
