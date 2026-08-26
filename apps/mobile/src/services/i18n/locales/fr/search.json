@@ -70,6 +70,7 @@
     "briefStop": "Arrêt bref",
     "walkToMeetingPoint": "{{minutes}} jusqu'au point de rendez-vous",
     "requestSeat": "Demander une place",
+    "alreadyRequested": "Demande envoyée",
     "requestSeatWithPrice": "Demander une place, {{price}} DT",
     "seatTakenError": "Cette place vient peut-être d'être prise. Réessayez."
   },

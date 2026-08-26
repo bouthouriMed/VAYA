@@ -29,6 +29,8 @@ import {
   useListFellowPassengersQuery,
   useCreateBookingMutation,
   useRegisterPushTokenMutation,
+  useGetMeQuery,
+  useListMyBookingsQuery,
 } from '../../src/state/api';
 import { useAppDispatch, useAppSelector } from '../../src/state/store';
 import { clearSelectedStops } from '../../src/state/searchSlice';
@@ -72,6 +74,7 @@ export default function RideDetailsScreen(): React.JSX.Element {
   const searchAt = useAppSelector((s) => s.search.searchAt);
   const selectedStop = useAppSelector((s) => s.search.selectedStop);
   const selectedDropoffStop = useAppSelector((s) => s.search.selectedDropoffStop);
+  const accessToken = useAppSelector((s) => s.auth.accessToken);
   const [bookingError, setBookingError] = useState<string | undefined>();
   const [routeModalOpen, setRouteModalOpen] = useState(false);
 
@@ -80,6 +83,16 @@ export default function RideDetailsScreen(): React.JSX.Element {
   const { data: stops } = useGetRideStopsQuery(rideId);
   const { data: passengers } = useListFellowPassengersQuery(rideId);
   const [createBooking, { isLoading: isBooking }] = useCreateBookingMutation();
+  // Guest-skipped (a signed-out browser has neither an identity nor
+  // bookings to compare against) — both feed the two guards below: a rider
+  // can't book their own published ride, and can't send a second request
+  // for one they already have pending/accepted.
+  const { data: me } = useGetMeQuery(undefined, { skip: !accessToken });
+  const { data: myBookings } = useListMyBookingsQuery(undefined, { skip: !accessToken });
+  const isOwnRide = Boolean(me && me.id === driverUserId);
+  const existingBooking = myBookings?.find(
+    (b) => b.rideId === rideId && (b.status === 'pending' || b.status === 'accepted'),
+  );
   const [registerPushToken] = useRegisterPushTokenMutation();
   const { requireAuth, isAuthSheetVisible, authTrigger, handleAuthenticated, cancelAuth } =
     useContextualAuth();
@@ -176,6 +189,11 @@ export default function RideDetailsScreen(): React.JSX.Element {
     (candidate?.rankedDropoffStops.length ?? 0) > 0 && !selectedDropoffStop;
 
   function handleRequestPress(): void {
+    // Defense in depth — the CTA is already disabled in both cases below,
+    // but a driver viewing their own listing or a rider who already has an
+    // active request for this ride must never be able to trigger a second
+    // createBooking call regardless of how the tap reaches here.
+    if (isOwnRide || existingBooking) return;
     if (needsPickupSelection) {
       router.push({ pathname: '/search/pickup-point', params: { rideId, driverUserId } });
       return;
@@ -519,43 +537,51 @@ export default function RideDetailsScreen(): React.JSX.Element {
         <View style={styles.scrollSpacer} />
       </ScrollView>
 
-      <View style={[styles.footer, { backgroundColor: theme.surface, borderTopColor: theme.outlineVariant, paddingBottom: insets.bottom + spacing.sm }]}>
-        {bookingError ? (
-          <Text variant="bodySmall" color={theme.error} align="center">
-            {bookingError}
-          </Text>
-        ) : null}
-        <TouchableOpacity
-          style={[
-            styles.cta,
-            { backgroundColor: theme.ink },
-            (!needsPickupSelection &&
-              !needsDropoffSelection &&
-              !selectedStop &&
-              !origin) ||
-            ride.seatsAvailable < 1
-              ? styles.ctaDisabled
-              : null,
-          ]}
-          disabled={
-            isBooking ||
-            ride.seatsAvailable < 1 ||
-            (!needsPickupSelection && !needsDropoffSelection && !selectedStop && !origin)
-          }
-          activeOpacity={0.85}
-          onPress={() => requireAuth(handleRequestPress, 'booking')}
-          accessibilityRole="button"
-          accessibilityLabel={t('search:details.requestSeatWithPrice', { price: ride.contributionPerSeat })}
-        >
-          {isBooking ? (
-            <ActivityIndicator color={theme.onInk} size="small" />
-          ) : (
-            <Text variant="label" color={theme.onInk}>
-              {t('search:details.requestSeat')}
+      {isOwnRide ? null : (
+        <View style={[styles.footer, { backgroundColor: theme.surface, borderTopColor: theme.outlineVariant, paddingBottom: insets.bottom + spacing.sm }]}>
+          {bookingError ? (
+            <Text variant="bodySmall" color={theme.error} align="center">
+              {bookingError}
             </Text>
-          )}
-        </TouchableOpacity>
-      </View>
+          ) : null}
+          <TouchableOpacity
+            style={[
+              styles.cta,
+              { backgroundColor: theme.ink },
+              Boolean(existingBooking) ||
+              (!needsPickupSelection &&
+                !needsDropoffSelection &&
+                !selectedStop &&
+                !origin) ||
+              ride.seatsAvailable < 1
+                ? styles.ctaDisabled
+                : null,
+            ]}
+            disabled={
+              isBooking ||
+              Boolean(existingBooking) ||
+              ride.seatsAvailable < 1 ||
+              (!needsPickupSelection && !needsDropoffSelection && !selectedStop && !origin)
+            }
+            activeOpacity={0.85}
+            onPress={() => requireAuth(handleRequestPress, 'booking')}
+            accessibilityRole="button"
+            accessibilityLabel={
+              existingBooking
+                ? t('search:details.alreadyRequested')
+                : t('search:details.requestSeatWithPrice', { price: ride.contributionPerSeat })
+            }
+          >
+            {isBooking ? (
+              <ActivityIndicator color={theme.onInk} size="small" />
+            ) : (
+              <Text variant="label" color={theme.onInk}>
+                {existingBooking ? t('search:details.alreadyRequested') : t('search:details.requestSeat')}
+              </Text>
+            )}
+          </TouchableOpacity>
+        </View>
+      )}
 
       <Modal
         visible={routeModalOpen}

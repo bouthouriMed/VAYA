@@ -29,6 +29,24 @@ describe('bookings.service — pickup-stop enforcement', () => {
   let stopId: string;
   let secondStopId: string;
   let otherRideStopId: string;
+  const createdRiderIds: string[] = [];
+
+  // One active (pending/accepted) booking per rider per ride is now
+  // enforced server-side — each of these tests exercises a distinct
+  // validation path via createBooking, several against the *same* ride, so
+  // each needs its own rider rather than reusing the single seeded
+  // `riderId` (which would otherwise collide with an earlier test's already
+  // -accepted booking on that ride, regardless of what this call is
+  // actually trying to test).
+  async function freshRider(label: string): Promise<string> {
+    const base = Date.now() % 10_000_000;
+    const [rider] = await db
+      .insert(users)
+      .values({ phone: `+216${base}${createdRiderIds.length}`, fullName: label })
+      .returning();
+    createdRiderIds.push(rider!.id);
+    return rider!.id;
+  }
 
   beforeAll(async () => {
     const base = Date.now() % 10_000_000;
@@ -181,6 +199,9 @@ describe('bookings.service — pickup-stop enforcement', () => {
     await db.delete(driverProfiles).where(eq(driverProfiles.id, driverProfileId));
     await db.delete(users).where(eq(users.id, driverUserId));
     await db.delete(users).where(eq(users.id, riderId));
+    for (const id of createdRiderIds) {
+      await db.delete(users).where(eq(users.id, id));
+    }
     await closeDatabase();
   });
 
@@ -196,8 +217,9 @@ describe('bookings.service — pickup-stop enforcement', () => {
   });
 
   it('rejects a pickupStopId belonging to a different ride', async () => {
+    const otherRiderId = await freshRider('Pickup Stop Test Rider 2');
     await expect(
-      createBooking(db, rideWithStopsId, riderId, {
+      createBooking(db, rideWithStopsId, otherRiderId, {
         seatsRequested: 1,
         pickupStopId: otherRideStopId,
       }),
@@ -205,8 +227,9 @@ describe('bookings.service — pickup-stop enforcement', () => {
   });
 
   it('rejects free-form pickup coordinates for a ride that has stops', async () => {
+    const otherRiderId = await freshRider('Pickup Stop Test Rider 3');
     await expect(
-      createBooking(db, rideWithStopsId, riderId, {
+      createBooking(db, rideWithStopsId, otherRiderId, {
         seatsRequested: 1,
         pickup: { label: 'Arbitrary pin', lat: 36.82, lng: 10.2 },
       }),
@@ -223,8 +246,9 @@ describe('bookings.service — pickup-stop enforcement', () => {
   });
 
   it('rejects a pickupStopId for a ride with zero route_stops', async () => {
+    const otherRiderId = await freshRider('Pickup Stop Test Rider 4');
     await expect(
-      createBooking(db, legacyRideId, riderId, {
+      createBooking(db, legacyRideId, otherRiderId, {
         seatsRequested: 1,
         pickupStopId: stopId,
       }),
@@ -236,7 +260,8 @@ describe('bookings.service — pickup-stop enforcement', () => {
   // sequence check that pickup alone has no equivalent for.
   describe('dropoffStopId', () => {
     it('accepts a valid dropoffStopId after the pickup stop and copies label/lat/lng', async () => {
-      const booking = await createBooking(db, rideWithStopsId, riderId, {
+      const otherRiderId = await freshRider('Pickup Stop Test Rider 5');
+      const booking = await createBooking(db, rideWithStopsId, otherRiderId, {
         seatsRequested: 1,
         pickupStopId: stopId,
         dropoffStopId: secondStopId,
@@ -248,7 +273,8 @@ describe('bookings.service — pickup-stop enforcement', () => {
     });
 
     it('defaults dropoff fields to null when dropoffStopId is omitted (rides at the ride\'s own destination)', async () => {
-      const booking = await createBooking(db, rideWithStopsId, riderId, {
+      const otherRiderId = await freshRider('Pickup Stop Test Rider 6');
+      const booking = await createBooking(db, rideWithStopsId, otherRiderId, {
         seatsRequested: 1,
         pickupStopId: stopId,
       });
@@ -257,8 +283,9 @@ describe('bookings.service — pickup-stop enforcement', () => {
     });
 
     it('rejects a dropoffStopId at or before the pickup stop on the route', async () => {
+      const otherRiderId = await freshRider('Pickup Stop Test Rider 7');
       await expect(
-        createBooking(db, rideWithStopsId, riderId, {
+        createBooking(db, rideWithStopsId, otherRiderId, {
           seatsRequested: 1,
           pickupStopId: stopId,
           dropoffStopId: stopId,
@@ -267,8 +294,9 @@ describe('bookings.service — pickup-stop enforcement', () => {
     });
 
     it('rejects a dropoffStopId belonging to a different ride', async () => {
+      const otherRiderId = await freshRider('Pickup Stop Test Rider 8');
       await expect(
-        createBooking(db, rideWithStopsId, riderId, {
+        createBooking(db, rideWithStopsId, otherRiderId, {
           seatsRequested: 1,
           pickupStopId: stopId,
           dropoffStopId: otherRideStopId,
@@ -277,8 +305,9 @@ describe('bookings.service — pickup-stop enforcement', () => {
     });
 
     it('rejects a dropoffStopId for a ride with zero route_stops', async () => {
+      const otherRiderId = await freshRider('Pickup Stop Test Rider 9');
       await expect(
-        createBooking(db, legacyRideId, riderId, {
+        createBooking(db, legacyRideId, otherRiderId, {
           seatsRequested: 1,
           pickup: { label: 'Legacy free-form pin', lat: 36.71, lng: 10.11 },
           dropoffStopId: stopId,

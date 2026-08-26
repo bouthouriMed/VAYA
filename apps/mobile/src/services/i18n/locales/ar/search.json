@@ -78,6 +78,7 @@
     "briefStop": "توقف قصير",
     "walkToMeetingPoint": "{{minutes}} حتى نقطة الالتقاء",
     "requestSeat": "طلب مقعد",
+    "alreadyRequested": "تم إرسال الطلب",
     "requestSeatWithPrice": "طلب مقعد، {{price}} د.ت",
     "seatTakenError": "قد يكون هذا المقعد قد أُخذ للتو. أعد المحاولة."
   },

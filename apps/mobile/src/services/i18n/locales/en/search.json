@@ -70,6 +70,7 @@
     "briefStop": "Brief stop",
     "walkToMeetingPoint": "{{minutes}} to the meeting point",
     "requestSeat": "Request a seat",
+    "alreadyRequested": "Requested",
     "requestSeatWithPrice": "Request a seat, {{price}} DT",
     "seatTakenError": "This seat may have just been taken. Try again."
   },

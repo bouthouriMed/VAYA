@@ -1,4 +1,4 @@
-import { and, eq, gte, sql } from 'drizzle-orm';
+import { and, eq, gte, inArray, sql } from 'drizzle-orm';
 import type { getDatabase } from '../../lib/database.js';
 import { bookings, rides, routeStops, riderProfiles, trips, users } from '../../db/schema/index.js';
 import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from '../../lib/errors.js';
@@ -120,6 +120,25 @@ export async function createBooking(
   }
   if (ride.seatsAvailable < input.seatsRequested) {
     throw new ConflictError('Not enough seats available on this ride');
+  }
+  // A driver can't book a seat on their own listing — this is the real,
+  // server-side enforcement of that rule; the mobile client's own CTA
+  // guard (ride-details.tsx) is a UI nicety, not what this depends on.
+  if (ride.driverProfile.userId === riderId) {
+    throw new ForbiddenError('You cannot request a seat on your own ride');
+  }
+  // One active request per rider per ride — declined/cancelled/expired
+  // bookings don't block a fresh attempt, only a still-pending or
+  // already-accepted one does.
+  const existingActiveBooking = await db.query.bookings.findFirst({
+    where: and(
+      eq(bookings.rideId, rideId),
+      eq(bookings.riderId, riderId),
+      inArray(bookings.status, ['pending', 'accepted']),
+    ),
+  });
+  if (existingActiveBooking) {
+    throw new ConflictError('You already have a request for this ride');
   }
 
   // A ride with at least one driver-selected route_stop must be booked via
