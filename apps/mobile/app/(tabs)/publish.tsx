@@ -19,6 +19,7 @@ import {
   MapRoute,
   PickupPin,
   DropoffPin,
+  StopPin,
   BottomSheet,
   DateCalendarSheet,
   TimeWheelSheet,
@@ -63,6 +64,7 @@ import {
   type RouteStop,
   type SuggestedPrice,
   type RouteOption,
+  type TripProfileType,
 } from '../../src/state/api';
 import { decodePolyline } from '../../src/utils/polyline';
 import { trackEvent } from '../../src/services/analytics/analytics';
@@ -89,6 +91,13 @@ const TUNIS_REGION: MapRegion = {
 // everything above this, never the full screen — leaving zero room here
 // was the bug that made the confirm bar invisible.
 const SELECTION_CARD_HEIGHT = 168;
+// The card's height for the "add stops along your route" phase (mapMode
+// 'stops') — taller than the single-confirm-row pickup/dropoff card since
+// it hosts a horizontally-scrolling row of suggested stops plus its own
+// CTA, not just one confirm button. Both heights feed the same continuous
+// map-expansion transform (see `cardHeight` below) — switching phases
+// animates the map/card split smoothly rather than snapping.
+const STOPS_CARD_HEIGHT = 220;
 
 // 'route' is the route-selection step (world-class-carpooling-app UX:
 // Google/Waze-style route picker) inserted between the origin/destination
@@ -106,7 +115,13 @@ type Step = 'form' | 'route' | 'price' | 'review';
 // actual data. "Ready for price" is derived (`Boolean(pickup && dropoff)`),
 // not stored, so it can never drift out of sync with the two points it
 // depends on.
-type MapMode = 'none' | 'pickup' | 'dropoff';
+// 'stops' is the "add stops along your route" phase (system-recommended
+// intermediate stops + a freehand "add your own" option), entered right
+// after pickup+dropoff are both confirmed — reuses the exact same
+// map-expansion mechanism as pickup/dropoff instead of a separate wizard
+// step, so the whole journey-configuration sequence stays one continuous,
+// fluid map interaction rather than a scene cut.
+type MapMode = 'none' | 'pickup' | 'dropoff' | 'stops';
 
 interface PublishPoint {
   label: string;
@@ -303,6 +318,22 @@ export default function PublishTabScreen(): React.JSX.Element {
   const [candidates, setCandidates] = useState<RouteStop[]>([]);
   const [isGeneratingStops, setIsGeneratingStops] = useState(false);
   const [osrmUnavailable, setOsrmUnavailable] = useState(false);
+  // Route-length classification (@vaya/domain's classifyTripProfile, via
+  // generateCandidateStopsForRide) — drives the "add stops along your
+  // route" phase's copy: a short commute/urban hop and a long intercity
+  // haul get different framing, never one fixed script for every trip.
+  const [tripProfileType, setTripProfileType] = useState<TripProfileType | null>(null);
+  // Ids of generated candidates (or freshly-added custom 'via' stops) the
+  // driver has opted to additionally offer along the route, beyond the
+  // precise pickup/dropoff meeting points — distinct from `pickup`/
+  // `dropoff`'s own stopId, since a stop can be offered here without being
+  // either endpoint.
+  const [selectedViaIds, setSelectedViaIds] = useState<ReadonlySet<string>>(new Set());
+  // True while the driver is dragging a freehand pin to place a NEW
+  // mid-route stop (the "add stops" phase's own "place it yourself" path,
+  // reusing pickup/dropoff's exact CenterPin-drag mechanism) — only ever
+  // meaningful while mapMode === 'stops'.
+  const [isPlacingCustomStop, setIsPlacingCustomStop] = useState(false);
 
   // Route-selection step: a small set of real, distinct route alternatives
   // (fastest/toll-avoiding/highway-avoiding/algorithmic-alternate) fetched
@@ -406,6 +437,9 @@ export default function PublishTabScreen(): React.JSX.Element {
     setRidePolyline(null);
     setPricing(null);
     setCandidates([]);
+    setTripProfileType(null);
+    setSelectedViaIds(new Set());
+    setIsPlacingCustomStop(false);
     setMapMode('none');
     setPickup(null);
     setDropoff(null);
@@ -449,9 +483,37 @@ export default function PublishTabScreen(): React.JSX.Element {
   // interpolated, and animating a real height keeps the card (a flex:1
   // sibling) shrinking/growing in lockstep for free, with no separate
   // animation needed on the card itself.
+  // Continuous target for the card's height (see `cardHeightForMode` below)
+  // — a shared value animated via `withTiming` rather than a plain JS
+  // number, so switching from pickup/dropoff's compact confirm card to the
+  // taller "add stops" card (or back) animates the map/card split smoothly
+  // instead of snapping, even though `mapAnim` itself stays at 1 the whole
+  // time (both phases are "expanded").
+  const cardHeightSV = useSharedValue(SELECTION_CARD_HEIGHT);
+
   useEffect(() => {
     if (mapMode === 'none') {
       mapAnim.value = withTiming(0, { duration: 380 });
+      return;
+    }
+    cardHeightSV.value = withTiming(mapMode === 'stops' ? STOPS_CARD_HEIGHT : SELECTION_CARD_HEIGHT, {
+      duration: 320,
+    });
+    if (mapMode === 'stops') {
+      // No single anchor point to focus a pin on here — this phase shows
+      // every candidate stop across the whole route at once, so the camera
+      // fits the real route instead (journeyMapRegion, already computed
+      // below to include the route polyline + confirmed pickup/dropoff).
+      setSelectedPointId(null);
+      setSelectionCenter(null);
+      setCustomPointLabel(null);
+      setIsPlacingCustomStop(false);
+      const region = journeyMapRegion;
+      mapAnim.value = withTiming(1, { duration: 380 }, (finished) => {
+        'worklet';
+        if (!finished || !region) return;
+        runOnJS(focusMapOnRegion)(region);
+      });
       return;
     }
     if (!activeAnchor) return;
@@ -465,8 +527,9 @@ export default function PublishTabScreen(): React.JSX.Element {
       runOnJS(focusMapOn)(anchor);
     });
     // Only re-runs when the phase itself changes, not on every unrelated
-    // re-render (activeAnchor is derived from origin/destination, which
-    // are stable references between renders here).
+    // re-render (activeAnchor/journeyMapRegion are derived from origin/
+    // destination/pickup/dropoff, which are stable references between
+    // renders here).
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mapMode]);
 
@@ -477,10 +540,12 @@ export default function PublishTabScreen(): React.JSX.Element {
   // to windowHeight only for the brief instant before the first onLayout.
   const effectiveHeight = containerHeight || windowHeight;
   const collapsedMapHeight = effectiveHeight * MAP_HEIGHT_RATIO;
-  const expandedMapHeight = Math.max(effectiveHeight - SELECTION_CARD_HEIGHT, collapsedMapHeight);
-  const mapSectionAnimatedStyle = useAnimatedStyle(() => ({
-    height: collapsedMapHeight + (expandedMapHeight - collapsedMapHeight) * mapAnim.value,
-  }));
+  const mapSectionAnimatedStyle = useAnimatedStyle(() => {
+    const expandedMapHeight = Math.max(effectiveHeight - cardHeightSV.value, collapsedMapHeight);
+    return {
+      height: collapsedMapHeight + (expandedMapHeight - collapsedMapHeight) * mapAnim.value,
+    };
+  });
 
   function focusMapOn(point: { lat: number; lng: number }): void {
     isProgrammaticMapMove.current = true;
@@ -490,6 +555,14 @@ export default function PublishTabScreen(): React.JSX.Element {
     );
   }
 
+  /** Same as `focusMapOn` but for a full region (center + zoom) rather than
+   *  a single point — used to fit the camera to the whole route when
+   *  entering the "add stops" phase, instead of zooming in on one anchor. */
+  function focusMapOnRegion(region: MapRegion): void {
+    isProgrammaticMapMove.current = true;
+    mapRef.current?.animateToRegion(region, 350);
+  }
+
   function pickRecommendedPoint(point: RecommendedPoint): void {
     haptics.selection();
     setSelectedPointId(point.id);
@@ -497,6 +570,15 @@ export default function PublishTabScreen(): React.JSX.Element {
     setCustomPointLabel(null);
     focusMapOn(point);
   }
+
+  // Whether a freehand pin-drop confirmation is on screen right now — true
+  // for pickup/dropoff picking (always pin-based) and for the "add stops"
+  // phase's own "place it yourself" sub-mode, but NOT for the "add stops"
+  // phase's default list/map-toggle view, which pans freely without
+  // resolving a reverse-geocoded label for wherever the map happens to be
+  // centered.
+  const isPinPlacementActive =
+    mapMode === 'pickup' || mapMode === 'dropoff' || isPlacingCustomStop;
 
   // `onRegionChange` (fires continuously during any region change, gesture
   // or programmatic) instead of `onPanDrag` — react-native-maps' onPanDrag
@@ -509,7 +591,7 @@ export default function PublishTabScreen(): React.JSX.Element {
   // switching events changes nothing about the logic, only which native
   // hook triggers it.
   function handleMapRegionChange(): void {
-    if (mapMode === 'none' || isProgrammaticMapMove.current) return;
+    if (!isPinPlacementActive || isProgrammaticMapMove.current) return;
     if (!isDraggingPin) setIsDraggingPin(true);
     if (selectedPointId !== null) setSelectedPointId(null);
   }
@@ -520,7 +602,7 @@ export default function PublishTabScreen(): React.JSX.Element {
       isProgrammaticMapMove.current = false;
       return;
     }
-    if (mapMode === 'none' || selectedPointId !== null) return;
+    if (!isPinPlacementActive || selectedPointId !== null) return;
     const next = { lat: region.latitude, lng: region.longitude };
     setSelectionCenter(next);
     void fetchReverseGeocode(next)
@@ -530,6 +612,10 @@ export default function PublishTabScreen(): React.JSX.Element {
   }
 
   function confirmActivePoint(): void {
+    if (isPlacingCustomStop) {
+      void confirmCustomStop();
+      return;
+    }
     if (!resolvedPointLabel || !selectionCenter) return;
     haptics.success();
     const point: PublishPoint = {
@@ -540,6 +626,62 @@ export default function PublishTabScreen(): React.JSX.Element {
     };
     if (mapMode === 'pickup') confirmPickup(point);
     else if (mapMode === 'dropoff') confirmDropoff(point);
+  }
+
+  /** Persists a freehand mid-route stop placed via the "add stops" phase's
+   *  "place it yourself" path — unlike pickup/dropoff (deferred to
+   *  `saveStopSelections` at the price step), a via-stop is written
+   *  immediately: it isn't the ride's own origin/destination fallback, so
+   *  there's no later point that would otherwise persist it. */
+  async function confirmCustomStop(): Promise<void> {
+    if (!resolvedPointLabel || !selectionCenter || !rideId) return;
+    haptics.success();
+    try {
+      const inserted = await addCustomStop({
+        rideId,
+        label: resolvedPointLabel,
+        lat: selectionCenter.lat,
+        lng: selectionCenter.lng,
+        role: 'via',
+      }).unwrap();
+      setCandidates((prev) => [...prev, inserted]);
+      setSelectedViaIds((prev) => new Set(prev).add(inserted.id));
+      trackEvent('ride_via_stop_added', { rideId, isCustom: true });
+      cancelPlacingCustomStop();
+    } catch {
+      haptics.error();
+      setErrorMessage(t('driver:publish.errors.stopsFailed'));
+    }
+  }
+
+  function startPlacingCustomStop(): void {
+    haptics.selection();
+    setSelectedPointId(null);
+    setSelectionCenter(null);
+    setCustomPointLabel(null);
+    setIsPlacingCustomStop(true);
+  }
+
+  function cancelPlacingCustomStop(): void {
+    setIsPlacingCustomStop(false);
+    setSelectedPointId(null);
+    setSelectionCenter(null);
+    setCustomPointLabel(null);
+  }
+
+  /** Toggles a generated candidate's membership in the driver's "additional
+   *  stops" offer — the "add stops" phase's default (non-placing) tap
+   *  target, both on its map markers and its chip list. Persisted together
+   *  at the phase's "Continuer" via `saveStopSelections`, not on every tap,
+   *  so rapid toggling never fires a network call per tap. */
+  function toggleViaStop(stopId: string): void {
+    haptics.selection();
+    setSelectedViaIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(stopId)) next.delete(stopId);
+      else next.add(stopId);
+      return next;
+    });
   }
 
   const vehicle = driverProfile?.vehicles[0];
@@ -605,6 +747,28 @@ export default function PublishTabScreen(): React.JSX.Element {
     () => (destination ? buildRecommendedPoints(destination, candidates) : []),
     [destination, candidates],
   );
+  // The "add stops" phase's own candidate pool: every generated/custom stop
+  // that ISN'T the driver's chosen pickup or dropoff point — those two
+  // already have their own dedicated markers/pins on this same map, so
+  // showing them again here (as toggleable "add to route" options) would
+  // be confusing and redundant. Sorted by route order (sequence) so the
+  // numbered pins/chips read left-to-right the same way the real route
+  // runs.
+  const viaCandidateStops = useMemo(
+    () =>
+      candidates
+        .filter((c) => c.id !== pickup?.stopId && c.id !== dropoff?.stopId)
+        .sort((a, b) => a.sequence - b.sequence),
+    [candidates, pickup?.stopId, dropoff?.stopId],
+  );
+  // Only the ones the driver has actually opted into, for the review
+  // step's itinerary timeline — never the full candidate pool, which would
+  // show suggestions the driver explicitly didn't pick as if they were part
+  // of the offer.
+  const selectedViaStops = useMemo(
+    () => viaCandidateStops.filter((s) => selectedViaIds.has(s.id)),
+    [viaCandidateStops, selectedViaIds],
+  );
   const readyForPrice = Boolean(pickup && dropoff);
   const activeAnchor = mapMode === 'pickup' ? origin : mapMode === 'dropoff' ? destination : null;
   const activeRecommended: RecommendedPoint[] =
@@ -634,6 +798,7 @@ export default function PublishTabScreen(): React.JSX.Element {
       const result = await generateCandidateStops(newRideId).unwrap();
       setCandidates(result.stops);
       setOsrmUnavailable(result.osrmUnavailable);
+      setTripProfileType(result.tripProfileType);
       trackEvent('ride_stop_candidates_generated', {
         rideId: newRideId,
         count: result.stops.length,
@@ -783,7 +948,12 @@ export default function PublishTabScreen(): React.JSX.Element {
   async function proceedFromForm(): Promise<void> {
     if (!origin || !destination) return;
     if (readyForPrice) {
-      await goToPrice();
+      // Both endpoints were already confirmed on an earlier pass (the
+      // driver fully backed out of pickup/dropoff picking and is
+      // re-entering from here) — re-open the "add stops" phase rather than
+      // jumping straight to price, so any additional-stop selection stays
+      // reachable the same way it was the first time through.
+      setMapMode('stops');
       return;
     }
     if (rideId) {
@@ -817,17 +987,21 @@ export default function PublishTabScreen(): React.JSX.Element {
       rideId: rideId ?? undefined,
       isCustom: point.stopId === null,
     });
-    setMapMode('none');
+    // Both endpoints are now confirmed — flow straight into the "add stops
+    // along your route" phase rather than collapsing the map, so the whole
+    // journey-configuration sequence (pickup -> dropoff -> stops) reads as
+    // one continuous map interaction with no jarring stop in between.
+    setMapMode('stops');
   }
 
-  /** Persists whichever of pickup/dropoff resolved to a real route_stop via
-   *  the existing driver-stop-selection endpoint — reused exactly as the
-   *  old multi-select "stops" step used it, just with a selection of at
-   *  most two ids instead of an arbitrary set. A freehand/custom pin (no
-   *  `stopId`) has no route_stop row to mark selected — the ride's own
-   *  origin/destination (already precise, from Places autocomplete) remains
-   *  the meeting point for that end, same as before this pass. */
-  async function savePickupDropoffStops(): Promise<boolean> {
+  /** Persists pickup/dropoff/additional-stop selection via the existing
+   *  driver-stop-selection endpoint: whichever of pickup/dropoff resolved
+   *  to a real route_stop, plus every candidate the driver toggled on in
+   *  the "add stops" phase. A freehand/custom pin (no `stopId`) has no
+   *  route_stop row to mark selected — the ride's own origin/destination
+   *  (already precise, from Places autocomplete) remains the meeting point
+   *  for that end, same as before this pass. */
+  async function saveStopSelections(): Promise<boolean> {
     if (!rideId) return true;
     try {
       // A freehand pin (dragged off any recommended point) has no real
@@ -866,7 +1040,9 @@ export default function PublishTabScreen(): React.JSX.Element {
 
       if (candidates.length > 0) {
         const selectedIds = new Set(
-          [pickupStopId, dropoffStopId].filter((id): id is string => Boolean(id)),
+          [pickupStopId, dropoffStopId, ...selectedViaIds].filter((id): id is string =>
+            Boolean(id),
+          ),
         );
         await updateRideStops({
           rideId,
@@ -881,12 +1057,18 @@ export default function PublishTabScreen(): React.JSX.Element {
     }
   }
 
-  /** The normal Explorer's "Choisir le prix" CTA (§16) — only reachable once
-   *  `readyForPrice`. Persists the pickup/dropoff selection, then enters the
-   *  existing, unchanged price step. */
-  async function goToPrice(): Promise<void> {
-    const saved = await savePickupDropoffStops();
+  /** The "add stops" phase's "Continuer" — persists the full stop selection
+   *  (pickup, dropoff, and every additional stop toggled on), then enters
+   *  the existing, unchanged price step. */
+  async function continueFromStopsToPrice(): Promise<void> {
+    const saved = await saveStopSelections();
     if (!saved) return;
+    trackEvent('ride_via_stops_selected', {
+      rideId: rideId ?? undefined,
+      count: selectedViaIds.size,
+      tripProfileType,
+    });
+    setMapMode('none');
     setStep('price');
   }
 
@@ -941,6 +1123,9 @@ export default function PublishTabScreen(): React.JSX.Element {
     setCandidates([]);
     setIsGeneratingStops(false);
     setOsrmUnavailable(false);
+    setTripProfileType(null);
+    setSelectedViaIds(new Set());
+    setIsPlacingCustomStop(false);
     setRouteOptions([]);
     setSelectedRouteToken(null);
     vehicleIdRef.current = null;
@@ -954,6 +1139,7 @@ export default function PublishTabScreen(): React.JSX.Element {
     setIsVerificationPromptVisible(false);
     rideBuiltFromRef.current = null;
     mapAnim.value = 0;
+    cardHeightSV.value = SELECTION_CARD_HEIGHT;
   }
 
   async function publishNow(): Promise<void> {
@@ -995,7 +1181,7 @@ export default function PublishTabScreen(): React.JSX.Element {
       return;
     }
 
-    const saved = await savePickupDropoffStops();
+    const saved = await saveStopSelections();
     if (!saved) return;
 
     if (!isVerifiedDriver(driverProfile)) {
@@ -1315,6 +1501,31 @@ export default function PublishTabScreen(): React.JSX.Element {
                   </View>
                 </TouchableOpacity>
 
+                {selectedViaStops.map((stop) => (
+                  <TouchableOpacity
+                    key={stop.id}
+                    style={styles.timelineRow}
+                    onPress={() => {
+                      setStep('form');
+                      setMapMode('stops');
+                    }}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${t('driver:publish.reviewStep.editStops')}: ${stop.label}`}
+                  >
+                    <View
+                      style={[
+                        styles.timelineDotStop,
+                        { backgroundColor: theme.surface, borderColor: theme.accent },
+                      ]}
+                    />
+                    <View style={styles.timelineRowContent}>
+                      <Text variant="bodySmall" color={theme.inkMuted} numberOfLines={1}>
+                        {stop.label}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                ))}
+
                 <TouchableOpacity
                   style={styles.timelineRow}
                   disabled={!hasRideData}
@@ -1355,6 +1566,26 @@ export default function PublishTabScreen(): React.JSX.Element {
                   </View>
                 </TouchableOpacity>
               </View>
+
+              {hasRideData ? (
+                <TouchableOpacity
+                  style={[styles.stopsSummaryRow, { borderTopColor: theme.outlineVariant }]}
+                  onPress={() => {
+                    setStep('form');
+                    setMapMode('stops');
+                  }}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('driver:publish.reviewStep.editStops')}
+                >
+                  <Icon name="git-branch-outline" size="xs" color={theme.inkMuted} />
+                  <Text variant="bodySmall" color={theme.inkMuted} style={styles.stopsSummaryText}>
+                    {selectedViaStops.length > 0
+                      ? t('driver:publish.reviewStep.stopsCount', { count: selectedViaStops.length })
+                      : t('driver:publish.reviewStep.stopsNone')}
+                  </Text>
+                  <Icon name="chevron-forward" size="xs" color={theme.inkFaint} />
+                </TouchableOpacity>
+              ) : null}
             </GlassSurface>
 
             <View style={styles.reviewRow}>
@@ -1535,6 +1766,11 @@ export default function PublishTabScreen(): React.JSX.Element {
   }
 
   const isMapExpanded = mapMode !== 'none';
+  // The "add stops" phase's default view — every candidate/route marker at
+  // once, toggle-to-add — as opposed to its own "place it yourself"
+  // sub-mode, which reuses the single-pin confirm UI pickup/dropoff already
+  // use.
+  const isStopsListMode = mapMode === 'stops' && !isPlacingCustomStop;
 
   return (
     <View
@@ -1562,7 +1798,35 @@ export default function PublishTabScreen(): React.JSX.Element {
           customMapStyle={scheme === 'dark' ? darkMapStyle : lightMapStyle}
           userInterfaceStyle={scheme}
         >
-          {isMapExpanded ? (
+          {isStopsListMode ? (
+            <>
+              {routeCoordinates.length > 1 ? <MapRoute coordinates={routeCoordinates} showCorridor /> : null}
+              {pickup ? (
+                <Marker coordinate={{ latitude: pickup.lat, longitude: pickup.lng }} anchor={{ x: 0.5, y: 0.5 }}>
+                  <PickupPin theme={theme} />
+                </Marker>
+              ) : null}
+              {dropoff ? (
+                <Marker coordinate={{ latitude: dropoff.lat, longitude: dropoff.lng }} anchor={{ x: 0.5, y: 0.5 }}>
+                  <DropoffPin theme={theme} />
+                </Marker>
+              ) : null}
+              {viaCandidateStops.map((stop, index) => {
+                const selected = selectedViaIds.has(stop.id);
+                return (
+                  <Marker
+                    key={stop.id}
+                    coordinate={{ latitude: stop.lat, longitude: stop.lng }}
+                    onPress={() => toggleViaStop(stop.id)}
+                    accessibilityLabel={stop.label}
+                    zIndex={selected ? 10 : 1}
+                  >
+                    <StopPin theme={theme} index={index + 1} selected={selected} />
+                  </Marker>
+                );
+              })}
+            </>
+          ) : isMapExpanded ? (
             activeRecommended.map((point, index) => (
               <RecommendedPointMarker
                 key={point.id}
@@ -1611,7 +1875,7 @@ export default function PublishTabScreen(): React.JSX.Element {
           )}
         </MapView>
 
-        {isMapExpanded ? <CenterPin theme={theme} isDragging={isDraggingPin} /> : null}
+        {isPinPlacementActive ? <CenterPin theme={theme} isDragging={isDraggingPin} /> : null}
 
         <StatusBarBlend theme={theme} scheme={scheme} height={insets.top - spacing.sm} />
 
@@ -1624,6 +1888,14 @@ export default function PublishTabScreen(): React.JSX.Element {
           <View style={[styles.selectionTopBar, { paddingTop: insets.top + spacing.sm }]} pointerEvents="box-none">
             <TouchableOpacity
               onPress={() => {
+                if (isPlacingCustomStop) {
+                  cancelPlacingCustomStop();
+                  return;
+                }
+                if (mapMode === 'stops') {
+                  setMapMode('dropoff');
+                  return;
+                }
                 if (mapMode === 'dropoff') {
                   setMapMode('pickup');
                   return;
@@ -1648,16 +1920,28 @@ export default function PublishTabScreen(): React.JSX.Element {
             </TouchableOpacity>
             <GlassSurface theme={theme} scheme={scheme} radius="lg" style={styles.selectionInstructionCard}>
               <Text variant="label" color={theme.ink}>
-                {mapMode === 'pickup'
-                  ? t('driver:publish.stopsStep.pickupTitle')
-                  : t('driver:publish.stopsStep.dropoffTitle')}
+                {isPlacingCustomStop
+                  ? t('driver:publish.stopsStep.addStop')
+                  : mapMode === 'stops'
+                    ? t('driver:publish.stopsStep.viaTitle')
+                    : mapMode === 'pickup'
+                      ? t('driver:publish.stopsStep.pickupTitle')
+                      : t('driver:publish.stopsStep.dropoffTitle')}
               </Text>
               <Text variant="caption" color={theme.inkMuted}>
-                {isGeneratingStops
-                  ? t('driver:publish.stopsStep.searching')
-                  : osrmUnavailable
-                    ? t('driver:publish.stopsStep.unavailable')
-                    : t('driver:publish.stopsStep.chooseOrPlace')}
+                {isPlacingCustomStop
+                  ? t('driver:publish.stopsStep.placingInstruction')
+                  : mapMode === 'stops'
+                    ? viaCandidateStops.length === 0
+                      ? t('driver:publish.stopsStep.viaSubtitleEmpty')
+                      : tripProfileType === 'intercity'
+                        ? t('driver:publish.stopsStep.viaSubtitleIntercity')
+                        : t('driver:publish.stopsStep.viaSubtitleUrban')
+                    : isGeneratingStops
+                      ? t('driver:publish.stopsStep.searching')
+                      : osrmUnavailable
+                        ? t('driver:publish.stopsStep.unavailable')
+                        : t('driver:publish.stopsStep.chooseOrPlace')}
               </Text>
             </GlassSurface>
           </View>
@@ -1690,7 +1974,87 @@ export default function PublishTabScreen(): React.JSX.Element {
           <View style={[styles.handleBar, { backgroundColor: theme.outlineVariant }]} />
         </View>
 
-      {isMapExpanded ? (
+      {isStopsListMode ? (
+        <View style={styles.stopsPhaseContent}>
+          {isGeneratingStops && viaCandidateStops.length === 0 ? (
+            <View style={styles.stopsLoadingRow}>
+              <ActivityIndicator size="small" color={theme.ink} />
+              <Text variant="bodySmall" color={theme.inkMuted}>
+                {t('driver:publish.stopsStep.searching')}
+              </Text>
+            </View>
+          ) : (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.stopsChipRowContent}
+            >
+              {viaCandidateStops.map((stop, index) => {
+                const selected = selectedViaIds.has(stop.id);
+                const isRecommended = !selected && stop.suitabilityScore >= 0.75;
+                return (
+                  <TouchableOpacity
+                    key={stop.id}
+                    onPress={() => toggleViaStop(stop.id)}
+                    style={[
+                      styles.stopChip,
+                      {
+                        borderColor: selected ? theme.ink : theme.outlineVariant,
+                        backgroundColor: selected ? theme.ink : theme.surface,
+                      },
+                    ]}
+                    activeOpacity={0.8}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected }}
+                    accessibilityLabel={`${index + 1}. ${stop.label}`}
+                  >
+                    <Icon
+                      name={selected ? 'checkmark-circle' : 'add-circle-outline'}
+                      size="xs"
+                      color={selected ? theme.onInk : theme.inkFaint}
+                    />
+                    <View style={styles.stopChipTextCol}>
+                      <Text
+                        variant="bodySmall"
+                        color={selected ? theme.onInk : theme.ink}
+                        numberOfLines={1}
+                        style={styles.stopChipLabel}
+                      >
+                        {stop.label}
+                      </Text>
+                      {isRecommended ? (
+                        <Text variant="caption" color={theme.accent}>
+                          {t('driver:publish.stopsStep.recommended')}
+                        </Text>
+                      ) : null}
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
+              <TouchableOpacity
+                onPress={startPlacingCustomStop}
+                style={[styles.stopChip, styles.addStopChip, { borderColor: theme.outlineVariant }]}
+                activeOpacity={0.8}
+                accessibilityRole="button"
+                accessibilityLabel={t('driver:publish.stopsStep.addStop')}
+              >
+                <Icon name="add" size="sm" color={theme.ink} />
+                <Text variant="bodySmall" color={theme.ink}>
+                  {t('driver:publish.stopsStep.addStop')}
+                </Text>
+              </TouchableOpacity>
+            </ScrollView>
+          )}
+
+          <PrimaryButton
+            theme={theme}
+            label={t('common:actions.continue')}
+            loading={isSavingStops}
+            disabled={isSavingStops}
+            onPress={() => void continueFromStopsToPrice()}
+          />
+        </View>
+      ) : isMapExpanded ? (
         <View style={styles.selectionCardContent}>
           <View style={[styles.selectionConfirmRow, { borderColor: theme.outlineVariant }]}>
             <View style={[styles.confirmIcon, { backgroundColor: theme.surfaceMuted }]}>
@@ -1715,9 +2079,11 @@ export default function PublishTabScreen(): React.JSX.Element {
           <PrimaryButton
             theme={theme}
             label={
-              mapMode === 'pickup'
-                ? t('driver:publish.stopsStep.confirmPickup')
-                : t('driver:publish.stopsStep.confirmDropoff')
+              isPlacingCustomStop
+                ? t('driver:publish.stopsStep.confirmCustomStop')
+                : mapMode === 'pickup'
+                  ? t('driver:publish.stopsStep.confirmPickup')
+                  : t('driver:publish.stopsStep.confirmDropoff')
             }
             onPress={confirmActivePoint}
             disabled={!resolvedPointLabel || isResolvingPointLabel}
@@ -2030,6 +2396,46 @@ const styles = StyleSheet.create({
   },
   confirmTextCol: {
     flex: 1,
+  },
+  // The "add stops" phase's own card content — a horizontally-scrolling
+  // row of suggested/added stop chips plus a trailing "add your own" chip,
+  // sized to fit within STOPS_CARD_HEIGHT (taller than the single-confirm
+  // pickup/dropoff card, see that constant's own doc comment).
+  stopsPhaseContent: {
+    flex: 1,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.sm,
+    gap: spacing.md,
+    justifyContent: 'space-between',
+  },
+  stopsLoadingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.md,
+  },
+  stopsChipRowContent: {
+    gap: spacing.sm,
+    paddingRight: spacing.md,
+  },
+  stopChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    borderWidth: 1.5,
+    borderRadius: radii.lg,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    maxWidth: 180,
+  },
+  addStopChip: {
+    borderStyle: 'dashed',
+  },
+  stopChipTextCol: {
+    flexShrink: 1,
+  },
+  stopChipLabel: {
+    maxWidth: 130,
   },
   header: {
     paddingHorizontal: spacing.lg,
@@ -2370,6 +2776,17 @@ const styles = StyleSheet.create({
     width: 5,
     height: 5,
     borderRadius: 2.5,
+  },
+  stopsSummaryRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    marginTop: spacing.sm,
+    paddingTop: spacing.sm,
+    borderTopWidth: 1,
+  },
+  stopsSummaryText: {
+    flex: 1,
   },
   timelineDotStop: {
     position: 'absolute',

@@ -7,10 +7,11 @@ import { getRedis } from '../../lib/redis.js';
 import { getLogger } from '../../config/logger.js';
 import { haversineDistanceMeters } from '../../lib/geo.js';
 import { nearestRoad, getRouteWithSpeedProfile, type RoutePoint } from '../../lib/routing.js';
+import { decodePolyline, projectPointOntoRoute, type LatLng } from '../../lib/polyline.js';
 import { reverseGeocode } from '../geocoding/geocoding.service.js';
 import { OVERLAP_CORRIDOR_WIDTH_M } from '../matching/matching.service.js';
-import { ForbiddenError, NotFoundError } from '../../lib/errors.js';
-import { classifyTripProfile, type TripProfile } from '@vaya/domain';
+import { ForbiddenError, NotFoundError, ValidationError } from '../../lib/errors.js';
+import { classifyTripProfile, type TripProfile, type TripProfileType } from '@vaya/domain';
 
 type Database = ReturnType<typeof getDatabase>;
 type RouteStopRow = typeof routeStops.$inferSelect;
@@ -144,6 +145,18 @@ export function sampleRoutePoints(
   }
 
   return samples;
+}
+
+/** Total length of a decoded polyline — used purely to classify a ride's
+ *  trip profile (@vaya/domain's `classifyTripProfile`) without a second
+ *  OSRM round-trip: the ride's own stored `routePolyline` already has
+ *  everything needed. */
+export function polylineDistanceMeters(points: RoutePoint[]): number {
+  let total = 0;
+  for (let i = 0; i < points.length - 1; i++) {
+    total += haversineDistanceMeters(points[i]!, points[i + 1]!);
+  }
+  return total;
 }
 
 // --- Deviation cost ----------------------------------------------------
@@ -354,6 +367,15 @@ export interface GenerateStopsResult {
   /** False when this call returned already-generated stops for an
    *  unchanged route (the idempotent fast path). */
   regenerated: boolean;
+  /** Which `classifyTripProfile` bucket this route falls into — lets the
+   *  mobile "add stops along your route" step frame its copy and map
+   *  camera appropriately for a short in-town hop vs. a long intercity
+   *  haul, instead of showing one fixed script for every trip length.
+   *  Derived straight from the route's own polyline length (no OSRM call
+   *  needed), so it's available on both the freshly-generated and the
+   *  already-generated/cached-hit paths below. Null only when the ride has
+   *  no route yet at all. */
+  tripProfileType: TripProfileType | null;
 }
 
 async function getDriverOwnedRideOrThrow(db: Database, rideId: string, userId: string) {
@@ -391,8 +413,12 @@ export async function generateCandidateStopsForRide(
   const ride = await getDriverOwnedRideOrThrow(db, rideId, userId);
 
   if (!ride.routePolyline) {
-    return { stops: [], osrmUnavailable: true, regenerated: false };
+    return { stops: [], osrmUnavailable: true, regenerated: false, tripProfileType: null };
   }
+
+  const tripProfileType = classifyTripProfile(
+    polylineDistanceMeters(decodePolyline(ride.routePolyline)),
+  ).type;
 
   const hash = hashPolyline(ride.routePolyline);
   const redis = getRedis();
@@ -405,7 +431,7 @@ export async function generateCandidateStopsForRide(
 
   const storedHash = redis ? await redis.get(hashKey) : null;
   if (existing.length > 0 && storedHash === hash) {
-    return { stops: existing, osrmUnavailable: false, regenerated: false };
+    return { stops: existing, osrmUnavailable: false, regenerated: false, tripProfileType };
   }
 
   const candidates = await computeCandidatesForRoute(
@@ -417,7 +443,7 @@ export async function generateCandidateStopsForRide(
   if (candidates === null) {
     // Transient OSRM outage — keep serving whatever was already generated
     // rather than wiping valid stops because of an unrelated infra blip.
-    return { stops: existing, osrmUnavailable: true, regenerated: false };
+    return { stops: existing, osrmUnavailable: true, regenerated: false, tripProfileType };
   }
 
   if (existing.length > 0) {
@@ -434,7 +460,7 @@ export async function generateCandidateStopsForRide(
 
   if (redis) await redis.set(hashKey, hash, 'EX', RIDE_HASH_TTL_SEC);
 
-  return { stops: inserted, osrmUnavailable: false, regenerated: true };
+  return { stops: inserted, osrmUnavailable: false, regenerated: true, tripProfileType };
 }
 
 export interface StopSelectionInput {
@@ -489,8 +515,12 @@ export interface CustomStopInput {
    *  every generated candidate; a dropoff pin sits near the destination,
    *  so it sorts after all of them — sequence is what listSelectedRideStops'
    *  route-order-based consumers (ride-details.tsx's timeline, the
-   *  driver's own stop list) rely on for correct ordering. */
-  role: 'pickup' | 'dropoff';
+   *  driver's own stop list) rely on for correct ordering. 'via' is a
+   *  third, later addition: a freehand mid-route stop added from the
+   *  "add stops along your route" step, which needs its sequence computed
+   *  from its actual position along the road route instead of either
+   *  extreme — see `computeViaStopInsertion` below. */
+  role: 'pickup' | 'dropoff' | 'via';
 }
 
 /** Pure so the ordering rule is directly unit-testable without a DB —
@@ -506,17 +536,71 @@ export function computeCustomStopSequence(
     : (existingSequences.length > 0 ? Math.max(...existingSequences) : 0) + 1;
 }
 
+export interface ViaInsertionCandidate {
+  id: string;
+  sequence: number;
+  /** 0..1 position along the route (`projectPointOntoRoute`'s `fraction`),
+   *  precomputed by the caller for every existing stop against the same
+   *  decoded route the new point is projected onto. */
+  fraction: number;
+}
+
+export interface ViaStopInsertion {
+  /** The sequence to give the new stop. */
+  newSequence: number;
+  /** Existing stops that must shift one sequence slot later to make room —
+   *  every stop whose current sequence is >= `newSequence`, pickup/dropoff
+   *  included, so "pickup first, dropoff last" always holds regardless of
+   *  where a via-stop lands between them. */
+  bumps: { id: string; sequence: number }[];
+}
+
 /**
- * Persists a freehand pickup/dropoff pin that didn't match any generated
- * route_stop candidate — Publish Explorer spec §7's "place it yourself"
- * path. Without this, a custom pin was display-only local state that
- * vanished the moment the driver left the publish screen: absent from the
- * ride's own stop list, invisible to the passenger matching/booking flow
- * (which reads route_stops, not the driver's ephemeral publish-screen
- * state), and absent from the driver's own ride-hub screen. Marked
- * `isDriverSelected: true` immediately — a custom pin the driver just
- * placed and confirmed IS the offer, there's no separate "generated, not
- * yet chosen" state for it the way there is for route-sampled candidates.
+ * Computes where a freehand mid-route stop belongs among a ride's existing
+ * stops, ordered by actual position along the road route rather than
+ * insertion order. Pure — takes pre-computed route fractions rather than a
+ * route/DB itself — so the ordering logic is directly unit-testable with
+ * fixed synthetic fractions, matching this file's existing pattern for
+ * `computeCustomStopSequence`/`scoreStopCandidate`/`clusterAndRank`.
+ *
+ * Existing stops occupy consecutive-ish integer sequences (generated
+ * candidates are 0..N-1 in route order; a custom pickup/dropoff sits below/
+ * above that range — see `computeCustomStopSequence`). Rather than trying to
+ * carve out a fractional slot between two adjacent integers, this always
+ * inserts at the *sequence value already held* by the first stop whose
+ * fraction is greater than the new point's, and bumps that stop (and every
+ * stop after it, transitively — a dropoff pin included) up by one. This
+ * keeps sequence values a clean, gap-free integer ordering after every
+ * insertion instead of letting them drift into fractions.
+ */
+export function computeViaStopInsertion(
+  existing: ViaInsertionCandidate[],
+  pointFraction: number,
+): ViaStopInsertion {
+  const sortedByFraction = [...existing].sort((a, b) => a.fraction - b.fraction);
+  const after = sortedByFraction.find((s) => s.fraction > pointFraction);
+  const newSequence = after
+    ? after.sequence
+    : (sortedByFraction.at(-1)?.sequence ?? -1) + 1;
+  const bumps = existing
+    .filter((s) => s.sequence >= newSequence)
+    .map((s) => ({ id: s.id, sequence: s.sequence + 1 }));
+  return { newSequence, bumps };
+}
+
+/**
+ * Persists a freehand pickup/dropoff/via pin that didn't match any
+ * generated route_stop candidate — Publish Explorer spec §7's "place it
+ * yourself" path, extended by the "add stops along your route" step for the
+ * mid-route ('via') case. Without this, a custom pin was display-only local
+ * state that vanished the moment the driver left the publish screen: absent
+ * from the ride's own stop list, invisible to the passenger matching/
+ * booking flow (which reads route_stops, not the driver's ephemeral
+ * publish-screen state), and absent from the driver's own ride-hub screen.
+ * Marked `isDriverSelected: true` immediately — a custom pin the driver
+ * just placed and confirmed IS the offer, there's no separate "generated,
+ * not yet chosen" state for it the way there is for route-sampled
+ * candidates.
  */
 export async function addCustomStop(
   db: Database,
@@ -524,15 +608,42 @@ export async function addCustomStop(
   userId: string,
   input: CustomStopInput,
 ): Promise<RouteStopRow> {
-  await getDriverOwnedRideOrThrow(db, rideId, userId);
+  const ride = await getDriverOwnedRideOrThrow(db, rideId, userId);
 
   const existing = await db.query.routeStops.findMany({
     where: eq(routeStops.rideId, rideId),
   });
-  const sequence = computeCustomStopSequence(
-    existing.map((s) => s.sequence),
-    input.role,
-  );
+
+  let sequence: number;
+  if (input.role === 'via') {
+    if (!ride.routePolyline) {
+      throw new ValidationError('A route is required to add a stop along the route');
+    }
+    const route: LatLng[] = decodePolyline(ride.routePolyline);
+    const pointFraction = projectPointOntoRoute({ lat: input.lat, lng: input.lng }, route).fraction;
+    const existingWithFraction: ViaInsertionCandidate[] = existing.map((s) => ({
+      id: s.id,
+      sequence: s.sequence,
+      fraction: projectPointOntoRoute({ lat: s.lat, lng: s.lng }, route).fraction,
+    }));
+    const { newSequence, bumps } = computeViaStopInsertion(existingWithFraction, pointFraction);
+    if (bumps.length > 0) {
+      await Promise.all(
+        bumps.map((b) =>
+          db
+            .update(routeStops)
+            .set({ sequence: b.sequence, updatedAt: new Date() })
+            .where(eq(routeStops.id, b.id)),
+        ),
+      );
+    }
+    sequence = newSequence;
+  } else {
+    sequence = computeCustomStopSequence(
+      existing.map((s) => s.sequence),
+      input.role,
+    );
+  }
 
   const [inserted] = await db
     .insert(routeStops)
