@@ -1,6 +1,6 @@
 import { desc, eq, inArray, sql } from 'drizzle-orm';
 import type { getDatabase } from '../../lib/database.js';
-import { driverProfiles } from '../../db/schema/index.js';
+import { driverProfiles, verificationDocuments } from '../../db/schema/index.js';
 import { canTransitionVerificationStatus, type VerificationStatus } from '@vaya/domain';
 import { ConflictError, NotFoundError } from '../../lib/errors.js';
 import type {
@@ -10,6 +10,7 @@ import type {
 } from '@vaya/validation';
 import { notifyBestEffort } from '../notifications/notifications.service.js';
 import { logAdminAction, listAuditLogs } from './audit-log.service.js';
+import { getStorage } from '../../lib/storage/index.js';
 
 type Database = ReturnType<typeof getDatabase>;
 
@@ -58,6 +59,25 @@ export async function getVerificationDetail(db: Database, driverProfileId: strin
 
   const history = await listAuditLogs(db, 'driver_profile', driverProfileId);
   return { profile, history };
+}
+
+/** Streams one submitted document's actual bytes for the admin review
+ *  screen — never the raw `fileUrl` a client could bookmark or share,
+ *  since that would defeat the point of `saveSecure` (docs/domain/
+ *  verification-workflow.md's "Document security" section). Only reachable
+ *  behind `authenticateAdmin` (admin.routes.ts). */
+export async function getVerificationDocumentFile(
+  db: Database,
+  documentId: string,
+): Promise<{ buffer: Buffer; contentType: string }> {
+  const doc = await db.query.verificationDocuments.findFirst({
+    where: eq(verificationDocuments.id, documentId),
+  });
+  if (!doc) throw new NotFoundError('Document');
+
+  const file = await getStorage().readSecure(doc.fileUrl);
+  if (!file) throw new NotFoundError('Document file');
+  return file;
 }
 
 async function markUnderReview(db: Database, profile: { id: string; verificationStatus: VerificationStatus }) {

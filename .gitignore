@@ -67,6 +67,7 @@ packages/api-client/src/generated/
 
 # Local file storage (dev)
 apps/api/uploads/
+apps/api/secure-uploads/
 
 # Misc
 *.pem

@@ -9,6 +9,7 @@ import type {
   UpdateVehicleInput,
 } from '@vaya/validation';
 import { notifyBestEffort } from '../notifications/notifications.service.js';
+import { getStorage } from '../../lib/storage/index.js';
 
 type Database = ReturnType<typeof getDatabase>;
 
@@ -133,6 +134,28 @@ export async function getMyDriverProfile(db: Database, userId: string) {
   });
   if (!profile) throw new NotFoundError('Driver profile');
   return profile;
+}
+
+/** A driver viewing their own previously-submitted document (the
+ *  resubmission screen's "here's what you sent before" preview) — the same
+ *  secure-storage read path admin review uses, gated by ownership instead
+ *  of `authenticateAdmin`. Never another driver's document: a mismatched
+ *  driverProfileId is a 404, not a 403, to avoid confirming the document id
+ *  exists at all to a caller who doesn't own it. */
+export async function getMyVerificationDocumentFile(
+  db: Database,
+  userId: string,
+  documentId: string,
+): Promise<{ buffer: Buffer; contentType: string }> {
+  const doc = await db.query.verificationDocuments.findFirst({
+    where: eq(verificationDocuments.id, documentId),
+    with: { driverProfile: true },
+  });
+  if (!doc || doc.driverProfile.userId !== userId) throw new NotFoundError('Document');
+
+  const file = await getStorage().readSecure(doc.fileUrl);
+  if (!file) throw new NotFoundError('Document file');
+  return file;
 }
 
 export async function updateVehicle(db: Database, userId: string, input: UpdateVehicleInput) {

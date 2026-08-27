@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import type { getDatabase } from '../../lib/database.js';
 import {
   bookings,
@@ -10,6 +10,7 @@ import {
 } from '../../db/schema/index.js';
 import { ConflictError, ForbiddenError, NotFoundError } from '../../lib/errors.js';
 import {
+  canTransitionRideStatus,
   canTransitionTripStatus,
   computeAutoTripStatusTransition,
   deriveTrackingStatus,
@@ -128,6 +129,50 @@ async function refreshTripCounts(
   }
 }
 
+const TERMINAL_TRIP_STATUSES_FOR_RIDE: readonly TripStatus[] = ['completed', 'no_show', 'cancelled'];
+
+/**
+ * Live tracking (docs/domain/live-tracking.md): before this feature,
+ * `rides.status` reaching `in_progress`/`completed` never actually happened
+ * anywhere — the driver ride-hub screen's own `computeTripPhase` treated
+ * `in_progress` as a documented departure-time-based *proxy* precisely
+ * because nothing real ever set it. Now that a real trip-status state
+ * machine exists per booking, the ride's own status can finally reflect
+ * reality: the first trip to start flips the ride to `in_progress` (a
+ * multi-passenger ride's second/third trip starting sees it already there
+ * and no-ops), and the last non-terminal trip completing flips it to
+ * `completed`. A ride with zero accepted bookings never transitions here —
+ * nothing to start or complete.
+ */
+async function syncRideStatusOnTripStart(db: Database, rideId: string): Promise<void> {
+  const ride = await db.query.rides.findFirst({ where: eq(rides.id, rideId) });
+  if (ride && canTransitionRideStatus(ride.status, 'in_progress')) {
+    await db
+      .update(rides)
+      .set({ status: 'in_progress', updatedAt: new Date() })
+      .where(and(eq(rides.id, rideId), eq(rides.status, ride.status)));
+  }
+}
+
+async function syncRideStatusOnTripComplete(db: Database, rideId: string): Promise<void> {
+  const ride = await db.query.rides.findFirst({
+    where: eq(rides.id, rideId),
+    with: { bookings: { with: { trip: true } } },
+  });
+  if (!ride || !canTransitionRideStatus(ride.status, 'completed')) return;
+
+  const bookingsWithATrip = ride.bookings.filter((b) => b.status === 'accepted' || b.status === 'completed');
+  const allTripsTerminal =
+    bookingsWithATrip.length > 0 &&
+    bookingsWithATrip.every((b) => b.trip && TERMINAL_TRIP_STATUSES_FOR_RIDE.includes(b.trip.status));
+  if (!allTripsTerminal) return;
+
+  await db
+    .update(rides)
+    .set({ status: 'completed', updatedAt: new Date() })
+    .where(and(eq(rides.id, rideId), eq(rides.status, ride.status)));
+}
+
 /**
  * `POST /trips/:id/complete` — the minimal trip-completion trigger Phase 9
  * needs (docs/roadmap/phase-09-ratings-trust.md's rating prompt fires off
@@ -178,6 +223,7 @@ export async function completeTrip(db: Database, tripId: string, requestingUserI
   const riderId = trip.booking.riderId;
 
   await refreshTripCounts(db, trip.booking.ride.driverProfileId, riderId);
+  await syncRideStatusOnTripComplete(db, trip.booking.ride.id);
 
   // Phase 7/8 pattern: extend the existing dispatch mechanism with a new
   // trigger point rather than build a second one. `trip_completed` already
@@ -220,6 +266,7 @@ export async function startTrip(db: Database, tripId: string, requestingUserId: 
     bookingId: trip.bookingId,
   });
   await publishTripUpdate(tripId, { type: 'status', tripStatus: updated.status });
+  await syncRideStatusOnTripStart(db, trip.booking.ride.id);
 
   return updated;
 }

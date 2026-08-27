@@ -5,6 +5,7 @@ import {
   createDriverOnboardingSchema,
   resubmitVerificationSchema,
   updateVehicleSchema,
+  idParamSchema,
 } from '@vaya/validation';
 import { VERIFICATION_DOCUMENT_TYPES, VERIFICATION_STATUSES, VERIFICATION_DECLINE_REASONS } from '@vaya/domain';
 import { getDatabase } from '../../lib/database.js';
@@ -12,6 +13,7 @@ import { getUserId } from '../../lib/auth-context.js';
 import {
   createOnboarding,
   getMyDriverProfile,
+  getMyVerificationDocumentFile,
   resubmitVerification,
   updateVehicle,
 } from './drivers.service.js';
@@ -89,6 +91,19 @@ export async function driversRoutes(fastify: FastifyInstance): Promise<void> {
     async (request, reply) => {
       const profile = await getMyDriverProfile(db, getUserId(request));
       reply.send(profile);
+    },
+  );
+
+  // Driver's own preview of a previously-submitted document (resubmission
+  // screen's "here's what you sent before") — same secure-storage read path
+  // admin review uses (admin.routes.ts's mirror endpoint), gated by
+  // ownership instead of authenticateAdmin.
+  app.get(
+    '/drivers/me/documents/:id/file',
+    { onRequest: [fastify.authenticate], schema: { params: idParamSchema } },
+    async (request, reply) => {
+      const file = await getMyVerificationDocumentFile(db, getUserId(request), request.params.id);
+      reply.type(file.contentType).send(file.buffer);
     },
   );
 

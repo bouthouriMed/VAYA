@@ -27,6 +27,7 @@ import {
   approveVerification,
   declineVerification,
   getVerificationDetail,
+  getVerificationDocumentFile,
   listVerificationQueue,
 } from './admin-verification.service.js';
 import { listReportsForAdmin, updateReportForAdmin } from './admin-reports.service.js';
@@ -104,6 +105,14 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
   });
   app.post('/verifications/:id/decline', { ...adminAuth, schema: { params: idParamSchema, body: declineVerificationSchema, response: { 200: anyResponse } } }, async (request, reply) => {
     reply.send(await declineVerification(db, { driverProfileId: request.params.id, adminUserId: getAdminId(request), input: request.body }));
+  });
+  // Streams the actual document bytes — never a bookmarkable/shareable URL
+  // (docs/domain/verification-workflow.md's "Document security" section).
+  // idParamSchema's `:id` here is the verification_documents row id, not a
+  // driver profile id (unlike every other /verifications/:id route above).
+  app.get('/verifications/documents/:id/file', { ...adminAuth, schema: { params: idParamSchema } }, async (request, reply) => {
+    const file = await getVerificationDocumentFile(db, request.params.id);
+    reply.type(file.contentType).send(file.buffer);
   });
 
   // --- Reports / safety ---
