@@ -27,6 +27,7 @@ const matchCandidateSchema = z.object({
   rideId: z.string().uuid(),
   driverUserId: z.string().uuid(),
   driverFullName: z.string().nullable(),
+  driverAvatarUrl: z.string().nullable(),
   ratingAvg: z.number(),
   tripCount: z.number(),
   departureAt: z.date(),

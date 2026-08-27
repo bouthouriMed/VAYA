@@ -138,6 +138,7 @@ export interface MatchCandidate {
   rideId: string;
   driverUserId: string;
   driverFullName: string | null;
+  driverAvatarUrl: string | null;
   ratingAvg: number;
   tripCount: number;
   departureAt: Date;
@@ -392,6 +393,7 @@ function buildEndpointCandidate(
     rideId: ride.id,
     driverUserId: ride.driverProfile.userId,
     driverFullName: ride.driverProfile.user?.fullName ?? null,
+    driverAvatarUrl: ride.driverProfile.user?.avatarUrl ?? null,
     ratingAvg: ride.driverProfile.ratingAvg,
     tripCount: ride.driverProfile.tripCount,
     departureAt: ride.departureAt,
@@ -580,6 +582,7 @@ async function scorePassThroughCandidates(
       rideId: ride.id,
       driverUserId: ride.driverProfile.userId,
       driverFullName: ride.driverProfile.user?.fullName ?? null,
+      driverAvatarUrl: ride.driverProfile.user?.avatarUrl ?? null,
       ratingAvg: ride.driverProfile.ratingAvg,
       tripCount: ride.driverProfile.tripCount,
       departureAt: ride.departureAt,
@@ -738,6 +741,7 @@ async function scoreDetourCandidates(
       rideId: ride.id,
       driverUserId: ride.driverProfile.userId,
       driverFullName: ride.driverProfile.user?.fullName ?? null,
+      driverAvatarUrl: ride.driverProfile.user?.avatarUrl ?? null,
       ratingAvg: ride.driverProfile.ratingAvg,
       tripCount: ride.driverProfile.tripCount,
       departureAt: ride.departureAt,
