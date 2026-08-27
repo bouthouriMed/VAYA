@@ -7,6 +7,7 @@ import * as schema from './schema/index.js';
 import { getRoute } from '../lib/routing.js';
 import { upsertRouteGeometry } from '../lib/spatial.js';
 import { generateCandidateStopsForRide, updateDriverStopSelection } from '../modules/rides/stop-candidates.service.js';
+import { hashPassword } from '../lib/password.js';
 import {
   computeSuggestedPrice,
   DEFAULT_PRICING_CONFIG,
@@ -30,6 +31,7 @@ const {
   notifications,
   pricingConfigs,
   recurringDetectionConfigs,
+  adminUsers,
 } = schema;
 
 function hoursFromNow(h: number): Date {
@@ -1648,6 +1650,25 @@ async function main(): Promise<void> {
     await upsertRouteGeometry(db, r.id, r.routePolyline);
   }
   console.log(`Backfilled route_geom for ${ridesWithPolyline.length} seeded rides.`);
+
+  // ── Admin platform (docs/domain/admin-platform.md) ──────────────────
+  // Dev-only seed credential — there is no signup flow for admin_users
+  // (an internal-tool login, deliberately separate from the OTP/Google
+  // consumer auth), so this is the only way to reach the admin panel at
+  // all in a fresh environment. The password below is documented in
+  // docs/implementation/vaya-live-tracking-admin-progress.md; change it in
+  // any real deployment.
+  const adminPasswordHash = await hashPassword('VayaAdmin2026!');
+  await db
+    .insert(adminUsers)
+    .values({
+      email: 'admin@vaya.tn',
+      passwordHash: adminPasswordHash,
+      fullName: 'Admin VAYA',
+      role: 'superadmin',
+    })
+    .onConflictDoNothing({ target: adminUsers.email });
+  console.log('Seeded admin login: admin@vaya.tn / VayaAdmin2026!');
 
   console.log('Seed complete.');
   console.log(

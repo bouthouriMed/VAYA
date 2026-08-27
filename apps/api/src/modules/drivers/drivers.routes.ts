@@ -1,11 +1,20 @@
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
-import { createDriverOnboardingSchema, updateVehicleSchema } from '@vaya/validation';
-import { VERIFICATION_DOCUMENT_TYPES } from '@vaya/domain';
+import {
+  createDriverOnboardingSchema,
+  resubmitVerificationSchema,
+  updateVehicleSchema,
+} from '@vaya/validation';
+import { VERIFICATION_DOCUMENT_TYPES, VERIFICATION_STATUSES, VERIFICATION_DECLINE_REASONS } from '@vaya/domain';
 import { getDatabase } from '../../lib/database.js';
 import { getUserId } from '../../lib/auth-context.js';
-import { createOnboarding, getMyDriverProfile, updateVehicle } from './drivers.service.js';
+import {
+  createOnboarding,
+  getMyDriverProfile,
+  resubmitVerification,
+  updateVehicle,
+} from './drivers.service.js';
 
 const vehicleSchema = z.object({
   id: z.string().uuid(),
@@ -29,13 +38,16 @@ const documentSchema = z.object({
 const driverProfileSchema = z.object({
   id: z.string().uuid(),
   userId: z.string().uuid(),
-  verificationStatus: z.enum(['pending', 'approved', 'rejected']),
+  verificationStatus: z.enum(VERIFICATION_STATUSES),
   bio: z.string().nullable(),
   ratingAvg: z.number(),
   tripCount: z.number(),
   punctualityScore: z.number(),
   reliabilityScore: z.number(),
   approvedAt: z.date().nullable(),
+  verificationDeclineReason: z.enum(VERIFICATION_DECLINE_REASONS).nullable(),
+  verificationDeclineMessage: z.string().nullable(),
+  verificationAttempt: z.number(),
   vehicles: z.array(vehicleSchema),
   documents: z.array(documentSchema),
 });
@@ -52,6 +64,18 @@ export async function driversRoutes(fastify: FastifyInstance): Promise<void> {
     },
     async (request, reply) => {
       const profile = await createOnboarding(db, getUserId(request), request.body);
+      reply.send(profile);
+    },
+  );
+
+  app.post(
+    '/drivers/verification/resubmit',
+    {
+      onRequest: [fastify.authenticate],
+      schema: { body: resubmitVerificationSchema, response: { 200: driverProfileSchema } },
+    },
+    async (request, reply) => {
+      const profile = await resubmitVerification(db, getUserId(request), request.body);
       reply.send(profile);
     },
   );

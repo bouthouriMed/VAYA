@@ -15,6 +15,14 @@ export const NOTIFICATION_EVENT_TYPES = [
   // when either party reports the other as a no-show.
   'booking_cancelled',
   'booking_no_show_reported',
+  // Live tracking (docs/domain/live-tracking.md).
+  'trip_arriving',
+  'trip_tracking_unavailable',
+  // Admin verification workflow (docs/domain/verification-workflow.md).
+  'verification_submitted',
+  'verification_approved',
+  'verification_declined',
+  'verification_resubmission_required',
 ] as const;
 export type NotificationEventType = (typeof NOTIFICATION_EVENT_TYPES)[number];
 

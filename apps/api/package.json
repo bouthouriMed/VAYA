@@ -28,6 +28,7 @@
     "@fastify/static": "^8.0.2",
     "@fastify/swagger": "^9.2.0",
     "@fastify/swagger-ui": "^5.2.0",
+    "@fastify/websocket": "^11.0.2",
     "@vaya/config": "workspace:*",
     "@vaya/domain": "workspace:*",
     "@vaya/validation": "workspace:*",
@@ -46,6 +47,7 @@
   "devDependencies": {
     "@types/node": "^22.5.5",
     "@types/pg": "^8.11.10",
+    "@types/ws": "^8.5.13",
     "drizzle-kit": "^0.24.2",
     "eslint": "^9.11.1",
     "tsx": "^4.19.1",

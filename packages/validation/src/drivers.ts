@@ -22,6 +22,19 @@ export const createDriverOnboardingSchema = z.object({
 });
 export type CreateDriverOnboardingInput = z.infer<typeof createDriverOnboardingSchema>;
 
+export const resubmitVerificationSchema = z.object({
+  documents: z
+    .array(
+      z.object({
+        type: z.enum(VERIFICATION_DOCUMENT_TYPES),
+        fileUrl: z.string().url(),
+      }),
+    )
+    .min(1),
+  bio: z.string().max(300).optional(),
+});
+export type ResubmitVerificationInput = z.infer<typeof resubmitVerificationSchema>;
+
 export const updateVehicleSchema = z.object({
   make: z.string().min(1).max(40).optional(),
   model: z.string().min(1).max(40).optional(),

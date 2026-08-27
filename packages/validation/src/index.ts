@@ -28,6 +28,7 @@ export * from './geocoding';
 export * from './rides';
 export * from './bookings';
 export * from './matching';
+export * from './admin';
 export * from './trips';
 export * from './ratings';
 export * from './recurring';

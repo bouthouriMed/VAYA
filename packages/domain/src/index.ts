@@ -5,6 +5,7 @@ export * from './user/user.types';
 export * from './driver/driver-profile.types';
 export * from './driver/vehicle.types';
 export * from './driver/verification-document.types';
+export * from './driver/verification-transitions';
 
 export * from './route/route.types';
 export * from './route/trip-profile.types';
@@ -19,6 +20,8 @@ export * from './booking/cancellation-policy';
 
 export * from './trip/trip.types';
 export * from './trip/trip-status';
+export * from './trip/tracking-status';
+export * from './trip/tracking-transitions';
 
 export * from './rating/rating.types';
 export * from './rating/trust-tier';
@@ -40,6 +43,9 @@ export * from './relationship/relationship-signal.types';
 export * from './demand/demand-signal.types';
 
 export * from './notification/notification-event.types';
+
+export * from './analytics/analytics-event.types';
+export * from './analytics/corridor-key';
 
 export * from './pricing/pricing.types';
 export * from './pricing/compute-suggested-price';

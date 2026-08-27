@@ -101,7 +101,7 @@ describe('Phase 11 — recurring rides (detection, enable, auto-draft, proactive
 
     const [driverProfile] = await db
       .insert(driverProfiles)
-      .values({ userId: driverUserId })
+      .values({ userId: driverUserId, verificationStatus: 'approved' })
       .returning();
     driverProfileId = driverProfile!.id;
 
@@ -157,7 +157,7 @@ describe('Phase 11 — recurring rides (detection, enable, auto-draft, proactive
 
     const [matchDriverProfile] = await db
       .insert(driverProfiles)
-      .values({ userId: matchDriverUserId })
+      .values({ userId: matchDriverUserId, verificationStatus: 'approved' })
       .returning();
     matchDriverProfileId = matchDriverProfile!.id;
 

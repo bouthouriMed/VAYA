@@ -42,7 +42,7 @@ describe('POST/PATCH /rides — Phase 6 pricing bound enforcement', () => {
 
     const [driverProfile] = await db
       .insert(driverProfiles)
-      .values({ userId: driverUserId })
+      .values({ userId: driverUserId, verificationStatus: 'approved' })
       .returning();
     driverProfileId = driverProfile!.id;
 

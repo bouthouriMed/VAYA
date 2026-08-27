@@ -90,8 +90,27 @@ test.describe('Search → match → stop-select → book (real ride engine)', ()
       },
     });
     expect(onboardingRes.ok()).toBeTruthy();
-    const driverProfile = (await onboardingRes.json()) as { vehicles: { id: string }[] };
+    const driverProfile = (await onboardingRes.json()) as { id: string; vehicles: { id: string }[] };
     vehicleId = driverProfile.vehicles[0]!.id;
+
+    // Admin verification workflow (docs/domain/verification-workflow.md):
+    // onboarding now leaves a driver `pending`, not auto-approved — a real
+    // review step, matching how it actually happens in production, keeps
+    // this suite honest about the full flow rather than reintroducing a
+    // bypass. Relies on the seeded admin login (apps/api/src/db/seed.ts) —
+    // the same "real dev environment" precondition this suite already has
+    // via `devCode` (the dev-mode OTP bypass) above.
+    const adminLoginRes = await request.post(`${API_PREFIX}/admin/login`, {
+      data: { email: 'admin@vaya.tn', password: 'VayaAdmin2026!' },
+    });
+    expect(adminLoginRes.ok()).toBeTruthy();
+    const { accessToken: adminToken } = (await adminLoginRes.json()) as { accessToken: string };
+
+    const approveRes = await request.post(
+      `${API_PREFIX}/admin/verifications/${driverProfile.id}/approve`,
+      { headers: { Authorization: `Bearer ${adminToken}` }, data: {} },
+    );
+    expect(approveRes.ok()).toBeTruthy();
 
     // Same real intra-Tunis route used by apps/api's own stop-candidates
     // integration test (Avenue Habib Bourguiba → Lac 1) — short enough to

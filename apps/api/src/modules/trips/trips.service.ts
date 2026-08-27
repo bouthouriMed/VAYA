@@ -9,8 +9,17 @@ import {
   trips,
 } from '../../db/schema/index.js';
 import { ConflictError, ForbiddenError, NotFoundError } from '../../lib/errors.js';
-import { canTransitionTripStatus, isWithinRatingWindow } from '@vaya/domain';
+import {
+  canTransitionTripStatus,
+  computeAutoTripStatusTransition,
+  deriveTrackingStatus,
+  isWithinRatingWindow,
+  type TripStatus,
+} from '@vaya/domain';
 import { notifyBestEffort } from '../notifications/notifications.service.js';
+import { publishTripUpdate } from '../../lib/realtime.js';
+import { getRoute } from '../../lib/routing.js';
+import { getLogger } from '../../config/logger.js';
 
 type Database = ReturnType<typeof getDatabase>;
 
@@ -32,6 +41,25 @@ function assertIsParty(
   if (!isRider && !isDriver) {
     throw new ForbiddenError('Not authorized to access this trip');
   }
+}
+
+function assertIsDriver(
+  trip: Awaited<ReturnType<typeof getTripWithPartiesOrThrow>>,
+  userId: string,
+): void {
+  if (trip.booking.ride.driverProfile.userId !== userId) {
+    throw new ForbiddenError('Only the driver can perform this action');
+  }
+}
+
+function pickupPoint(trip: Awaited<ReturnType<typeof getTripWithPartiesOrThrow>>) {
+  return { lat: trip.booking.pickupLat, lng: trip.booking.pickupLng };
+}
+
+function destinationPoint(trip: Awaited<ReturnType<typeof getTripWithPartiesOrThrow>>) {
+  return trip.booking.dropoffLat != null && trip.booking.dropoffLng != null
+    ? { lat: trip.booking.dropoffLat, lng: trip.booking.dropoffLng }
+    : { lat: trip.booking.ride.destinationLat, lng: trip.booking.ride.destinationLng };
 }
 
 export async function getTripByBookingId(db: Database, bookingId: string, requestingUserId: string) {
@@ -163,6 +191,256 @@ export async function completeTrip(db: Database, tripId: string, requestingUserI
   await notifyBestEffort(db, riderId, 'trip_completed', { tripId, bookingId: trip.bookingId });
 
   return updated;
+}
+
+// --- Live tracking (docs/domain/live-tracking.md) -------------------------
+
+/** Driver taps "Démarrer le trajet" — the one action that starts tracking.
+ *  Only valid from `scheduled`; notifies the rider using the pre-modeled
+ *  `trip_driver_approaching` event type (Phase 7 added it to the schema but
+ *  nothing ever dispatched it until now). */
+export async function startTrip(db: Database, tripId: string, requestingUserId: string) {
+  const trip = await getTripWithPartiesOrThrow(db, tripId);
+  assertIsDriver(trip, requestingUserId);
+
+  if (!canTransitionTripStatus(trip.status, 'driver_approaching')) {
+    throw new ConflictError(`Cannot start a trip in status "${trip.status}"`);
+  }
+
+  const now = new Date();
+  const [updated] = await db
+    .update(trips)
+    .set({ status: 'driver_approaching', startedAt: now, updatedAt: now })
+    .where(eq(trips.id, tripId))
+    .returning();
+  if (!updated) throw new Error('Failed to start trip');
+
+  await notifyBestEffort(db, trip.booking.riderId, 'trip_driver_approaching', {
+    tripId,
+    bookingId: trip.bookingId,
+  });
+  await publishTripUpdate(tripId, { type: 'status', tripStatus: updated.status });
+
+  return updated;
+}
+
+/** Driver taps "Passager à bord" — the one journey-progress step GPS can't
+ *  infer on its own (proximity alone can't tell a parked-nearby driver from
+ *  a driver who genuinely has the rider in the car). Accepts either
+ *  `driver_approaching` (the proximity auto-transition to `pickup` hasn't
+ *  fired yet — GPS accuracy, a rider who walked to the driver, etc.) or
+ *  `pickup`, always landing on `active` via a `pickup` pass-through so the
+ *  domain state machine's `driver_approaching -> active` non-edge is never
+ *  violated. */
+export async function confirmPassengerAboard(db: Database, tripId: string, requestingUserId: string) {
+  const trip = await getTripWithPartiesOrThrow(db, tripId);
+  assertIsDriver(trip, requestingUserId);
+
+  if (trip.status !== 'driver_approaching' && trip.status !== 'pickup') {
+    throw new ConflictError(`Cannot confirm boarding for a trip in status "${trip.status}"`);
+  }
+
+  const now = new Date();
+  if (trip.status === 'driver_approaching') {
+    await db
+      .update(trips)
+      .set({ status: 'pickup', pickupConfirmedAt: now, updatedAt: now })
+      .where(eq(trips.id, tripId));
+  }
+
+  const [updated] = await db
+    .update(trips)
+    .set({ status: 'active', pickupConfirmedAt: trip.pickupConfirmedAt ?? now, updatedAt: now })
+    .where(eq(trips.id, tripId))
+    .returning();
+  if (!updated) throw new Error('Failed to confirm boarding');
+
+  await publishTripUpdate(tripId, { type: 'status', tripStatus: updated.status });
+  return updated;
+}
+
+export interface LocationUpdateInput {
+  lat: number;
+  lng: number;
+  headingDeg?: number | null;
+  speedMps?: number | null;
+  accuracyM?: number | null;
+}
+
+const TRACKABLE_STATUSES: readonly TripStatus[] = [
+  'driver_approaching',
+  'pickup',
+  'active',
+  'arriving',
+];
+
+// Throttles the (paid, external) ETA recompute — a driver location ping
+// arrives every ~6-10s (mobile throttling policy, docs/domain/
+// live-tracking.md) but a fresh route/ETA doesn't need recomputing nearly
+// that often. In-process only: at most a handful of duplicate calls across
+// a multi-instance deployment within one throttle window, an acceptable
+// trade for not adding a shared-state dependency to this hot path.
+const ETA_RECOMPUTE_INTERVAL_MS = 20_000;
+const lastEtaComputedAt = new Map<string, number>();
+
+/** Driver's location ping. Persists only the latest fix (no history table —
+ *  CLAUDE.md's live-tracking brief: minimize retention), evaluates the
+ *  pure proximity auto-transition, best-effort recomputes a real
+ *  road-routed ETA, and broadcasts everything over the trip's WebSocket
+ *  room. */
+export async function updateTripLocation(
+  db: Database,
+  tripId: string,
+  requestingUserId: string,
+  input: LocationUpdateInput,
+) {
+  const trip = await getTripWithPartiesOrThrow(db, tripId);
+  assertIsDriver(trip, requestingUserId);
+
+  if (!TRACKABLE_STATUSES.includes(trip.status)) {
+    throw new ConflictError(`Cannot update location for a trip in status "${trip.status}"`);
+  }
+
+  const now = new Date();
+  const currentPos = { lat: input.lat, lng: input.lng };
+  const pickup = pickupPoint(trip);
+  const destination = destinationPoint(trip);
+
+  const autoNextStatus = computeAutoTripStatusTransition(
+    trip.status,
+    currentPos,
+    pickup,
+    destination,
+  );
+
+  const [updated] = await db
+    .update(trips)
+    .set({
+      currentLat: input.lat,
+      currentLng: input.lng,
+      currentHeadingDeg: input.headingDeg ?? null,
+      currentSpeedMps: input.speedMps ?? null,
+      currentAccuracyM: input.accuracyM ?? null,
+      locationUpdatedAt: now,
+      updatedAt: now,
+      ...(autoNextStatus ? { status: autoNextStatus } : {}),
+      ...(autoNextStatus === 'pickup' ? { pickupConfirmedAt: now } : {}),
+    })
+    .where(eq(trips.id, tripId))
+    .returning();
+  if (!updated) throw new Error('Failed to update trip location');
+
+  if (autoNextStatus === 'arriving') {
+    await notifyBestEffort(db, trip.booking.riderId, 'trip_arriving', { tripId, bookingId: trip.bookingId });
+  }
+
+  let etaSec: number | null = null;
+  let distanceRemainingM: number | null = null;
+  const lastComputed = lastEtaComputedAt.get(tripId) ?? 0;
+  if (now.getTime() - lastComputed >= ETA_RECOMPUTE_INTERVAL_MS) {
+    lastEtaComputedAt.set(tripId, now.getTime());
+    try {
+      const route = await getRoute(currentPos, destination);
+      etaSec = route.durationSec;
+      distanceRemainingM = route.distanceM;
+    } catch (err) {
+      getLogger().warn({ err, tripId }, 'Live ETA recompute failed — continuing without it');
+    }
+  }
+
+  const trackingStatus = deriveTrackingStatus({
+    tripStatus: updated.status,
+    locationUpdatedAt: updated.locationUpdatedAt,
+    now,
+  });
+
+  const payload = {
+    type: 'location' as const,
+    tripStatus: updated.status,
+    trackingStatus,
+    currentLat: updated.currentLat,
+    currentLng: updated.currentLng,
+    currentHeadingDeg: updated.currentHeadingDeg,
+    currentSpeedMps: updated.currentSpeedMps,
+    locationUpdatedAt: updated.locationUpdatedAt,
+    ...(etaSec !== null ? { etaSec, distanceRemainingM } : {}),
+  };
+  await publishTripUpdate(tripId, payload);
+
+  return { trip: updated, trackingStatus, etaSec, distanceRemainingM };
+}
+
+/** Driver's app explicitly signals a real tracking problem (GPS permission
+ *  revoked, location services disabled) — client-detected, not server-
+ *  inferred from silence, since silence alone is just as often a normal
+ *  network hiccup the next ping will resolve. Sent at most once per real
+ *  episode (the client is responsible for not spamming this on every
+ *  failed attempt). */
+export async function reportTrackingIssue(
+  db: Database,
+  tripId: string,
+  requestingUserId: string,
+): Promise<void> {
+  const trip = await getTripWithPartiesOrThrow(db, tripId);
+  assertIsDriver(trip, requestingUserId);
+
+  await notifyBestEffort(db, trip.booking.riderId, 'trip_tracking_unavailable', {
+    tripId,
+    bookingId: trip.bookingId,
+  });
+  await publishTripUpdate(tripId, { type: 'tracking_issue' });
+}
+
+export interface TrackingState {
+  tripStatus: TripStatus;
+  trackingStatus: ReturnType<typeof deriveTrackingStatus>;
+  currentLat: number | null;
+  currentLng: number | null;
+  currentHeadingDeg: number | null;
+  currentSpeedMps: number | null;
+  locationUpdatedAt: Date | null;
+  routePolyline: string | null;
+  pickup: { lat: number; lng: number; label: string };
+  destination: { lat: number; lng: number; label: string };
+}
+
+/** Read model for the passenger/driver tracking screen's initial fetch and
+ *  polling fallback (the same shape the WebSocket pushes incrementally) —
+ *  RTK Query can poll this exactly like every other list in this app when a
+ *  socket connection isn't available. */
+export async function getTrackingState(
+  db: Database,
+  tripId: string,
+  requestingUserId: string,
+): Promise<TrackingState> {
+  const trip = await getTripWithPartiesOrThrow(db, tripId);
+  assertIsParty(trip, requestingUserId);
+
+  const destination = destinationPoint(trip);
+  return {
+    tripStatus: trip.status,
+    trackingStatus: deriveTrackingStatus({
+      tripStatus: trip.status,
+      locationUpdatedAt: trip.locationUpdatedAt,
+      now: new Date(),
+    }),
+    currentLat: trip.currentLat,
+    currentLng: trip.currentLng,
+    currentHeadingDeg: trip.currentHeadingDeg,
+    currentSpeedMps: trip.currentSpeedMps,
+    locationUpdatedAt: trip.locationUpdatedAt,
+    routePolyline: trip.booking.ride.routePolyline,
+    pickup: {
+      lat: trip.booking.pickupLat,
+      lng: trip.booking.pickupLng,
+      label: trip.booking.pickupLabel,
+    },
+    destination: {
+      lat: destination.lat,
+      lng: destination.lng,
+      label: trip.booking.dropoffLabel ?? trip.booking.ride.destinationLabel,
+    },
+  };
 }
 
 interface PendingRatingCandidate {
