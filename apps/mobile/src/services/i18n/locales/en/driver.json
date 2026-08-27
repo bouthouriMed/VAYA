@@ -260,7 +260,8 @@
       "ridesWithYou": "Rides with you",
       "segmentDistance": "{{distance}} · {{duration}}",
       "viewProfile": "View {{name}}'s profile",
-      "newOnVaya": "New on VAYA"
+      "newOnVaya": "New on VAYA",
+      "openInMaps": "Open {{label}} in Maps"
     },
     "bookingDetail": {
       "passenger": "Passenger",

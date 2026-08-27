@@ -2134,6 +2134,20 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
               → Sousse
             </Text>
           </View>
+          <TouchableOpacity
+            accessibilityLabel="rides.requestsSheet.viewDetails"
+            accessibilityRole="button"
+            hitSlop={10}
+            onPress={[Function]}
+          >
+            <Ionicons
+              accessibilityElementsHidden={true}
+              color="#5B6572"
+              importantForAccessibility="no-hide-descendants"
+              name="information-circle-outline"
+              size={20}
+            />
+          </TouchableOpacity>
         </View>
         <View
           style={

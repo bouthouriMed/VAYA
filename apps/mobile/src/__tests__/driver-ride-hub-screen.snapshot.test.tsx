@@ -116,6 +116,9 @@ function mockApi(requests: Booking[]): void {
     useCancelBookingMutation: (): MutationTuple => [vi.fn(), { isLoading: false }],
     useGetCancellationPreviewQuery: (): QueryResult<unknown> => ({}),
     useReportNoShowMutation: (): MutationTuple => [vi.fn(), { isLoading: false }],
+    // RequestDetailSheet's transitive hook — rendered closed (visible=false)
+    // so an inert stub suffices, same as the other closed sheets above.
+    useGetBookingDetourPreviewQuery: (): QueryResult<unknown> => ({}),
   }));
 }
 

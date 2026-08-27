@@ -276,7 +276,8 @@
       "ridesWithYou": "يرافقك",
       "segmentDistance": "{{distance}} · {{duration}}",
       "viewProfile": "عرض الملف الشخصي لـ{{name}}",
-      "newOnVaya": "جديد على VAYA"
+      "newOnVaya": "جديد على VAYA",
+      "openInMaps": "فتح {{label}} في الخرائط"
     },
     "bookingDetail": {
       "passenger": "راكب",

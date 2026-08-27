@@ -32,6 +32,7 @@ import {
 } from '../../../src/state/api';
 import { decodePolyline } from '../../../src/utils/polyline';
 import { DriverBookingDetailSheet } from '../../../src/features/driver-rides/DriverBookingDetailSheet';
+import { RequestDetailSheet } from '../../../src/features/driver-rides/RequestDetailSheet';
 import { ManageRideSheet } from '../../../src/features/driver-rides/ManageRideSheet';
 import { trackEvent } from '../../../src/services/analytics/analytics';
 import { estimateArrivalLabel, computeTripPhase } from '../../../src/features/driver-rides/myRidesHelpers';
@@ -46,10 +47,12 @@ function PendingRequestRow({
   booking,
   rideDestinationLabel,
   theme,
+  onOpenDetails,
 }: {
   booking: Booking;
   rideDestinationLabel: string;
   theme: ThemeColors;
+  onOpenDetails: () => void;
 }): React.JSX.Element {
   const { t } = useTranslation('driver');
   const [acceptBooking, acceptState] = useAcceptBookingMutation();
@@ -95,6 +98,14 @@ function PendingRequestRow({
             {`→ ${booking.dropoffLabel ?? rideDestinationLabel}`}
           </Text>
         </View>
+        <TouchableOpacity
+          onPress={onOpenDetails}
+          hitSlop={10}
+          accessibilityRole="button"
+          accessibilityLabel={t('rides.requestsSheet.viewDetails')}
+        >
+          <Icon name="information-circle-outline" size="sm" color={theme.inkMuted} />
+        </TouchableOpacity>
       </View>
       <View style={styles.requestActions}>
         <TouchableOpacity
@@ -149,6 +160,7 @@ export default function DriverRideHubScreen(): React.JSX.Element {
   const locale = i18n.language as SupportedLocale;
   const intlTag = toIntlTag(locale);
   const [managedBooking, setManagedBooking] = useState<Booking | null>(null);
+  const [detailBooking, setDetailBooking] = useState<Booking | null>(null);
 
   const ANSWERED_BADGE: Record<Booking['status'], { label: string; variant: 'default' | 'success' | 'warning' | 'error' }> = {
     pending: { label: t('rides.requestsSheet.sectionPending'), variant: 'warning' },
@@ -408,6 +420,7 @@ export default function DriverRideHubScreen(): React.JSX.Element {
                 booking={booking}
                 rideDestinationLabel={ride.destinationLabel}
                 theme={theme}
+                onOpenDetails={() => setDetailBooking(booking)}
               />
             ))
           )}
@@ -536,6 +549,11 @@ export default function DriverRideHubScreen(): React.JSX.Element {
         booking={managedBooking}
         rideDestinationLabel={ride.destinationLabel}
         onClose={() => setManagedBooking(null)}
+      />
+      <RequestDetailSheet
+        visible={detailBooking !== null}
+        booking={detailBooking}
+        onClose={() => setDetailBooking(null)}
       />
       <ManageRideSheet
         visible={cancellingRide}

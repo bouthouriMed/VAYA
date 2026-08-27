@@ -22,6 +22,7 @@ import {
   useDeclineBookingMutation,
 } from '../../state/api';
 import { formatDistance } from '../../utils/localeFormat';
+import { openInMaps } from '../../utils/openInMaps';
 import { trackEvent } from '../../services/analytics/analytics';
 
 interface RequestDetailSheetProps {
@@ -74,10 +75,10 @@ function RouteFitRow({
         </Text>
         {point.isPlannedStop ? (
           <View style={styles.fitBadgeRow}>
-            <Badge label={t('driver:requestDetail.onRoute')} variant="success" theme={theme} />
+            <Badge label={t('driver:rides.requestDetail.onRoute')} variant="success" theme={theme} />
             {point.stopIndex && point.totalStops ? (
               <Text variant="caption" color={theme.inkFaint}>
-                {t('driver:requestDetail.stopPosition', {
+                {t('driver:rides.requestDetail.stopPosition', {
                   index: point.stopIndex,
                   total: point.totalStops,
                 })}
@@ -86,13 +87,21 @@ function RouteFitRow({
           </View>
         ) : (
           <Text variant="caption" color={theme.warning}>
-            {t('driver:requestDetail.addsDetour', {
+            {t('driver:rides.requestDetail.addsDetour', {
               distance: formatDistance(point.deviationMeters ?? 0, locale),
               duration: durationLabel(point.deviationSeconds ?? 0, t),
             })}
           </Text>
         )}
       </View>
+      <TouchableOpacity
+        onPress={() => openInMaps(point.lat, point.lng, point.label)}
+        hitSlop={10}
+        accessibilityRole="button"
+        accessibilityLabel={t('driver:rides.requestDetail.openInMaps', { label: point.label })}
+      >
+        <Icon name="map-outline" size="sm" color={theme.inkMuted} />
+      </TouchableOpacity>
     </View>
   );
 }
@@ -165,6 +174,7 @@ export function RequestDetailSheet({
   function viewProfile(): void {
     if (!booking!.rider) return;
     haptics.selection();
+    onClose();
     router.push({ pathname: '/search/trust', params: { driverUserId: booking!.riderId } });
   }
 
@@ -174,7 +184,7 @@ export function RequestDetailSheet({
     <BottomSheet
       visible={visible}
       onClose={onClose}
-      title={t('driver:requestDetail.title')}
+      title={t('driver:rides.requestDetail.title')}
       heightRatio={0.72}
       theme={theme}
     >
@@ -186,7 +196,7 @@ export function RequestDetailSheet({
           accessibilityRole={booking.rider ? 'button' : undefined}
           accessibilityLabel={
             booking.rider
-              ? t('driver:requestDetail.viewProfile', { name: booking.rider.fullName })
+              ? t('driver:rides.requestDetail.viewProfile', { name: booking.rider.fullName })
               : undefined
           }
         >
@@ -213,12 +223,12 @@ export function RequestDetailSheet({
           <ActivityIndicator size="small" color={theme.accent} style={styles.loading} />
         ) : isError || !preview ? (
           <Text variant="bodySmall" color={theme.error}>
-            {t('driver:requestDetail.loadError')}
+            {t('driver:rides.requestDetail.loadError')}
           </Text>
         ) : (
           <>
             <Text variant="label" color={theme.inkMuted} style={styles.sectionLabel}>
-              {t('driver:requestDetail.routeFit')}
+              {t('driver:rides.requestDetail.routeFit')}
             </Text>
             <RouteFitRow
               icon="navigate-outline"
@@ -239,7 +249,7 @@ export function RequestDetailSheet({
             {preview.pickup.isPlannedStop === false || preview.dropoff.isPlannedStop === false ? (
               preview.segment.isEstimate ? (
                 <Text variant="caption" color={theme.inkFaint}>
-                  {t('driver:requestDetail.estimateNote')}
+                  {t('driver:rides.requestDetail.estimateNote')}
                 </Text>
               ) : null
             ) : null}
@@ -247,9 +257,9 @@ export function RequestDetailSheet({
             <View style={[styles.segmentRow, { borderColor: theme.outlineVariant }]}>
               <Icon name="car-sport-outline" size="sm" color={theme.inkMuted} />
               <Text variant="bodySmall" color={theme.ink}>
-                {t('driver:requestDetail.ridesWithYou')}
+                {t('driver:rides.requestDetail.ridesWithYou')}
                 {': '}
-                {t('driver:requestDetail.segmentDistance', {
+                {t('driver:rides.requestDetail.segmentDistance', {
                   distance: formatDistance(preview.segment.distanceM, locale),
                   duration: durationLabel(preview.segment.durationSec, t),
                 })}

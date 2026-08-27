@@ -1,0 +1,319 @@
+You are resuming the Vaya implementation after a previous Claude Code session reached its usage limit.
+
+DO NOT START OVER.
+
+First inspect the repository and recover the exact current state from:
+
+1. Git status
+2. Current branch
+3. Recent commits
+4. docs/implementation/vaya-live-tracking-admin-progress.md
+5. Existing implementation and tests
+
+The previous session was implementing:
+
+- production-quality live ride tracking for passengers and drivers
+- realtime driver location
+- Google Routes API road-route display
+- tracking lifecycle and failure handling
+- push notifications
+- Vaya admin panel
+- marketplace dashboard
+- search analytics
+- missed-search / unmet-demand analytics
+- driver/passenger/ride analytics
+- admin user and ride operations
+- driver document verification
+- admin approval / decline / resubmission workflow
+- user notifications after verification decisions
+- secure document access
+- admin audit logging
+
+The objective is to FINISH the implementation, not merely inspect it.
+
+==================================================
+EXECUTION RULES
+==================================================
+
+1. Continue from the existing implementation.
+2. Do not rebuild working functionality.
+3. Do not reset or discard existing work.
+4. Do not work on main.
+5. Work on the existing dedicated feature branch.
+6. Read the progress file before deciding what remains.
+7. Inspect the actual code rather than trusting the previous session's description.
+8. Fix incomplete implementations rather than documenting them as complete.
+9. Run tests continuously.
+10. Continue autonomously without asking me for routine decisions.
+
+==================================================
+PRODUCT STANDARD
+==================================================
+
+Think like:
+
+- world-class carpooling product expert
+- senior staff engineer
+- senior mobile engineer
+- backend architect
+- UX/product designer
+- QA/reliability engineer
+
+Think:
+
+USER → PRODUCT → BUSINESS → ENGINEERING → QUALITY
+
+Everything must feel:
+
+- frictionless
+- smooth
+- modern
+- premium
+- intuitive
+- trustworthy
+- coherent with the existing Vaya experience
+
+Use the existing Vaya Search experience and design system as the primary reference.
+
+Do not introduce generic AI-generated UI.
+
+==================================================
+LIVE TRACKING
+==================================================
+
+Verify the complete journey:
+
+DRIVER:
+upcoming ride
+→ start journey
+→ location sharing starts
+→ live ride
+→ complete journey
+
+PASSENGER:
+upcoming ride
+→ ride becomes active
+→ live driver location
+→ real road route
+→ journey progress
+→ useful ETA where reliable
+→ completion
+
+Use Google Routes API road geometry.
+
+Never use a straight line between origin and destination.
+
+Verify:
+
+- realtime transport
+- authorization
+- GPS handling
+- location throttling
+- battery/network efficiency
+- smooth marker animation
+- stale location handling
+- reconnect
+- background/foreground
+- GPS failure
+- network failure
+- ride cancellation
+- ride completion
+
+Only authorized participants of the active ride may access tracking.
+
+==================================================
+DRIVER VERIFICATION
+==================================================
+
+Verify the complete workflow:
+
+USER:
+submit documents
+→ pending
+→ admin review
+→ approved OR resubmission/declined
+→ user notified
+→ driver eligibility updated
+
+ADMIN:
+verification queue
+→ open request
+→ securely inspect documents
+→ approve OR request resubmission/decline
+→ decision audited
+
+Ensure:
+
+- secure document access
+- backend authorization
+- clear verification states
+- structured decline reasons
+- actionable resubmission UX
+- push notification
+- frontend cache/state invalidation
+- no logout/login required
+- complete audit trail
+
+The user should never feel stuck or punished by the verification process.
+
+==================================================
+ADMIN + ANALYTICS
+==================================================
+
+Verify the admin dashboard provides actionable marketplace intelligence.
+
+Important metrics include:
+
+- users
+- active users
+- drivers
+- verified drivers
+- rides
+- bookings
+- completions
+- cancellations
+- seats offered
+- seats booked
+- utilization
+- searches
+- zero-result searches
+- search → result conversion
+- result → booking conversion
+- unmet demand
+- demand by corridor
+- supply by corridor
+- demand by day/time
+- trends
+
+Most importantly:
+
+Identify MISSED DEMAND.
+
+Example:
+
+Tunis → Sousse
+Friday evening
+high search volume
+insufficient rides
+
+The admin should be able to identify where Vaya needs more drivers.
+
+Verify search events, analytics aggregation, performance and privacy.
+
+==================================================
+ADMIN OPERATIONS
+==================================================
+
+Verify:
+
+- user search/detail
+- ride search/detail
+- driver verification
+- reports/safety where implemented
+- admin actions
+- permissions
+- confirmation for sensitive actions
+- audit logs
+
+Admin actions must be server-authorized and auditable.
+
+==================================================
+QUALITY
+==================================================
+
+Do not stop at the happy path.
+
+Test:
+
+- network loss
+- reconnect
+- stale state
+- GPS unavailable
+- permissions
+- app background
+- app foreground
+- duplicate requests
+- unauthorized access
+- notification failure
+- realtime failure
+- cancelled rides
+- completed rides
+- verification resubmission
+- admin permissions
+- analytics correctness
+
+Run:
+
+- unit tests
+- integration tests
+- relevant E2E tests
+- TypeScript/typecheck
+- lint
+- relevant builds
+
+Fix failures instead of merely reporting them.
+
+==================================================
+IMPORTANT: KEEP WORKING
+==================================================
+
+Do not stop when you discover incomplete work.
+
+Prioritize unfinished implementation over writing a long report.
+
+If something is partially implemented:
+
+→ inspect it
+→ finish it
+→ test it
+
+If architecture needs adjustment:
+
+→ make the smallest robust change
+→ migrate safely
+→ test it
+
+If you reach another usage/context limit:
+
+1. Save all progress.
+2. Commit safe completed work.
+3. Push the branch.
+4. Update:
+
+docs/implementation/vaya-live-tracking-admin-progress.md
+
+with the exact remaining work.
+
+The next Claude session must be able to continue without starting over.
+
+==================================================
+FINALIZATION
+==================================================
+
+When everything is genuinely complete:
+
+1. Run the full relevant test suite.
+2. Run typecheck.
+3. Run lint.
+4. Inspect git diff.
+5. Verify migrations.
+6. Verify no secrets or accidental files.
+7. Commit with meaningful commits.
+8. Push the feature branch to GitHub.
+9. Confirm git status is clean.
+
+Do NOT merge into main.
+
+Only then provide a concise final report containing:
+
+- what was completed
+- important architecture decisions
+- tests run
+- remaining limitations, if any
+- branch
+- commits
+- anything requiring manual external configuration
+
+DO NOT CLAIM COMPLETION IF SOMETHING IS STILL MISSING.
+
+START BY RECOVERING THE CURRENT STATE FROM GIT AND THE PROGRESS FILE, THEN CONTINUE IMPLEMENTATION.

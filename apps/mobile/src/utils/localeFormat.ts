@@ -1,3 +1,4 @@
+import './intlPolyfills';
 import type { SupportedLocale } from '@vaya/config';
 
 /** BCP-47 tags for `Intl.*`, region-pinned to Tunisia's actual conventions
