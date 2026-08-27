@@ -129,4 +129,9 @@ describe('computeTripPhase', () => {
     const ride = makeRide({ status: 'cancelled', departureAt: new Date(2026, 7, 21, 9, 0).toISOString() });
     expect(computeTripPhase(ride, NOW)).toBe('cancelled');
   });
+
+  it('trusts a real in_progress ride status even before the scheduled departure time (live tracking started early)', () => {
+    const ride = makeRide({ status: 'in_progress', departureAt: new Date(2026, 7, 20, 12, 0).toISOString() });
+    expect(computeTripPhase(ride, NOW)).toBe('in_progress');
+  });
 });

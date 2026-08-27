@@ -84,9 +84,20 @@
     "publishedToast": "Votre trajet est publié !",
     "verificationSheet": {
       "title": "Une dernière étape pour prendre la route",
-      "description": "Pour publier votre premier trajet, nous devons vérifier votre profil de conducteur. Votre trajet est enregistré et sera publié automatiquement dès que votre vérification sera validée.",
+      "description": "Pour publier votre premier trajet, nous devons vérifier votre profil de conducteur. Votre trajet est enregistré en brouillon — vous pourrez le publier vous-même une fois votre profil vérifié.",
       "pillLabel": "Vérification requise",
-      "startCta": "Commencer la vérification"
+      "startCta": "Commencer la vérification",
+      "pendingTitle": "Vérification en cours",
+      "pendingDescription": "Votre profil est en cours d'examen. Votre trajet reste enregistré en brouillon — vous pourrez le publier dès que votre profil sera vérifié.",
+      "pendingCta": "Voir le statut",
+      "resubmitTitle": "Documents à mettre à jour",
+      "resubmitDescription": "Certains de vos documents doivent être renvoyés pour continuer la vérification.",
+      "resubmitPillLabel": "Action requise",
+      "resubmitCta": "Mettre à jour mes documents",
+      "rejectedTitle": "Vérification refusée",
+      "rejectedDescription": "Votre vérification n'a pas été approuvée.",
+      "rejectedPillLabel": "Vérification refusée",
+      "rejectedCta": "Voir les détails"
     },
     "errors": {
       "createFailed": "Impossible de créer ce trajet. Réessayez.",
@@ -188,8 +199,32 @@
       "errorDescription": "Votre trajet n'a pas pu être publié automatiquement. Vous pouvez réessayer depuis Mes Trajets.",
       "errorCta": "Aller à Mes Trajets",
       "publishSuccess": "Votre trajet a été publié !",
-      "publishError": "Profil vérifié mais le trajet n'a pas pu être publié. Réessayez depuis Mes Trajets."
+      "publishError": "Profil vérifié mais le trajet n'a pas pu être publié. Réessayez depuis Mes Trajets.",
+      "pendingTitle": "Vérification en cours",
+      "pendingDescription": "Nous examinons vos documents. Vous serez averti dès que votre profil sera vérifié — aucune action n'est requise pour le moment.",
+      "pendingRideSavedNote": "Votre trajet est enregistré en brouillon. Vous pourrez le publier vous-même dès que votre profil sera vérifié.",
+      "resubmitTitle": "Documents à mettre à jour",
+      "resubmitCta": "Mettre à jour mes documents",
+      "rejectedTitle": "Vérification refusée",
+      "backCta": "Retour"
     }
+  },
+  "verificationReasons": {
+    "documentUnclear": "Document peu lisible",
+    "expired": "Document expiré",
+    "informationMismatch": "Informations non concordantes",
+    "missingDocument": "Document manquant",
+    "invalidDocument": "Document non valide",
+    "additionalInfoRequired": "Informations complémentaires requises",
+    "other": "Autre motif"
+  },
+  "resubmit": {
+    "title": "Mettre à jour vos documents",
+    "intro": "Reprenez la capture de vos documents pour continuer la vérification.",
+    "submit": "Envoyer à nouveau",
+    "submitting": "Envoi en cours…",
+    "submitError": "Impossible d'envoyer vos documents. Réessayez.",
+    "documentsSection": "Documents"
   },
   "rides": {
     "rideDetail": {
@@ -216,7 +251,22 @@
       "startedWithEta": "En cours · Arrivée {{time}}",
       "finished": "Terminé",
       "intermediateStopsNote_one": "{{count}} arrêt en cours de route",
-      "intermediateStopsNote_other": "{{count}} arrêts en cours de route"
+      "intermediateStopsNote_other": "{{count}} arrêts en cours de route",
+      "journeyStartCta": "Démarrer le trajet",
+      "journeyCompleteCta": "Terminer le trajet",
+      "journeyStartPartialError": "Certains trajets n'ont pas pu démarrer. Réessayez.",
+      "journeyCompletePartialError": "Certains trajets n'ont pas pu être terminés. Réessayez.",
+      "passengerAboard": "Passager à bord",
+      "passengerAboardError": "Impossible de confirmer l'embarquement. Réessayez.",
+      "locationPermissionBanner": "Activez la localisation pour partager votre position avec vos passagers.",
+      "locationPermissionRetry": "Réessayer",
+      "tripStatus": {
+        "driverApproaching": "En route",
+        "pickup": "Sur place",
+        "active": "À bord",
+        "arriving": "Arrivée proche",
+        "completed": "Terminé"
+      }
     },
     "manageSheet": {
       "title": "Gérer ce trajet",

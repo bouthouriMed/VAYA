@@ -1005,13 +1005,28 @@ export default function PublishTabScreen(): React.JSX.Element {
     await publishNow();
   }
 
+  // Branches on the driver profile's REAL verification status (docs/domain/
+  // verification-workflow.md — a real admin review queue now exists, so
+  // this sheet can genuinely fire for pending/under_review/resubmission_
+  // required/rejected, not just "never onboarded" as this codebase's
+  // backend used to guarantee before that workflow existed).
   function startVerification(): void {
-    if (!origin || !destination) return;
     setIsVerificationPromptVisible(false);
+    const status = driverProfile?.verificationStatus;
+
+    if (status === 'resubmission_required') {
+      router.push('/driver/onboarding/resubmit');
+      return;
+    }
+    if (status === 'pending' || status === 'under_review' || status === 'rejected') {
+      router.push('/driver/onboarding/confirmation');
+      return;
+    }
+
+    // No driver profile yet — genuinely never onboarded.
+    if (!origin || !destination) return;
     if (rideId) {
-      // A real ride already exists (draft) — only reachable today for a
-      // profile whose verificationStatus isn't 'approved', which this
-      // codebase's backend never actually produces (see verificationGate.ts).
+      // A real ride already exists (draft).
       dispatch(
         setPendingRide({ rideId, originLabel: origin.label, destinationLabel: destination.label }),
       );
@@ -1194,6 +1209,44 @@ export default function PublishTabScreen(): React.JSX.Element {
   }
 
   if (step === 'review') {
+    // Verification-requirement sheet copy branches on the driver profile's
+    // REAL status (docs/domain/verification-workflow.md) — a driver who
+    // already onboarded and is merely pending/under_review must never see
+    // "Commencer la vérification" again (there's nothing to start), and a
+    // resubmission_required driver needs a real actionable CTA, not the
+    // generic one.
+    const verificationStatus = driverProfile?.verificationStatus;
+    const verificationSheetCopy =
+      verificationStatus === 'resubmission_required'
+        ? {
+            title: t('driver:publish.verificationSheet.resubmitTitle'),
+            description:
+              driverProfile?.verificationDeclineMessage ?? t('driver:publish.verificationSheet.resubmitDescription'),
+            pillLabel: t('driver:publish.verificationSheet.resubmitPillLabel'),
+            cta: t('driver:publish.verificationSheet.resubmitCta'),
+          }
+        : verificationStatus === 'pending' || verificationStatus === 'under_review'
+          ? {
+              title: t('driver:publish.verificationSheet.pendingTitle'),
+              description: t('driver:publish.verificationSheet.pendingDescription'),
+              pillLabel: t('driver:publish.verificationSheet.pillLabel'),
+              cta: t('driver:publish.verificationSheet.pendingCta'),
+            }
+          : verificationStatus === 'rejected'
+            ? {
+                title: t('driver:publish.verificationSheet.rejectedTitle'),
+                description:
+                  driverProfile?.verificationDeclineMessage ?? t('driver:publish.verificationSheet.rejectedDescription'),
+                pillLabel: t('driver:publish.verificationSheet.rejectedPillLabel'),
+                cta: t('driver:publish.verificationSheet.rejectedCta'),
+              }
+            : {
+                title: t('driver:publish.verificationSheet.title'),
+                description: t('driver:publish.verificationSheet.description'),
+                pillLabel: t('driver:publish.verificationSheet.pillLabel'),
+                cta: t('driver:publish.verificationSheet.startCta'),
+              };
+
     return (
       <View style={[styles.container, { backgroundColor: theme.background }]}>
         <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
@@ -1453,20 +1506,20 @@ export default function PublishTabScreen(): React.JSX.Element {
               <Icon name="shield-checkmark" size="lg" color={theme.ink} />
             </View>
             <Text variant="h3" color={theme.ink} align="center">
-              {t('driver:publish.verificationSheet.title')}
+              {verificationSheetCopy.title}
             </Text>
             <Text variant="body" color={theme.inkMuted} align="center">
-              {t('driver:publish.verificationSheet.description')}
+              {verificationSheetCopy.description}
             </Text>
             <View style={styles.verificationPill}>
               <Icon name="hourglass-outline" size="xs" color={colors.warningDark} />
               <Text variant="bodySmall" color={colors.warningDark}>
-                {t('driver:publish.verificationSheet.pillLabel')}
+                {verificationSheetCopy.pillLabel}
               </Text>
             </View>
             <PrimaryButton
               theme={theme}
-              label={t('driver:publish.verificationSheet.startCta')}
+              label={verificationSheetCopy.cta}
               onPress={startVerification}
             />
             <GhostButton

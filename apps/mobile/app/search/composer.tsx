@@ -6,9 +6,10 @@ import { useTranslation } from 'react-i18next';
 import { Text, Icon, useAppTheme, spacing, radii } from '@vaya/design-system';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useAppDispatch, useAppSelector } from '../../src/state/store';
-import { setOrigin, setDestination, type SearchLocation } from '../../src/state/searchSlice';
+import { setOrigin, setDestination, ensureSearchSession, type SearchLocation } from '../../src/state/searchSlice';
 import { useCurrentPosition } from '../../src/services/location/useCurrentPosition';
 import { loadRecentPlaces, addRecentPlace } from '../../src/services/search/recentPlacesStorage';
+import { trackEvent } from '../../src/services/analytics/analytics';
 import {
   useLazyGeocodeAutocompleteQuery,
   useLazyGeocodePlaceDetailsQuery,
@@ -95,6 +96,7 @@ export default function SearchComposerScreen(): React.JSX.Element {
   const { colors: theme } = useAppTheme();
   const origin = useAppSelector((s) => s.search.origin);
   const destination = useAppSelector((s) => s.search.destination);
+  const searchId = useAppSelector((s) => s.search.searchId);
   const [activeField, setActiveField] = useState<ActiveField>(field === 'destination' ? 'destination' : 'origin');
   const [query, setQuery] = useState('');
   const { status, position } = useCurrentPosition();
@@ -149,14 +151,30 @@ export default function SearchComposerScreen(): React.JSX.Element {
 
   function choose(place: SearchLocation): void {
     void addRecentPlace(place).then(setRecentPlaces);
+    // search_started may not have fired yet if this screen was reached some
+    // other way than explore.tsx's own field taps (e.g. a future deep link)
+    // — ensureSearchSession is idempotent, safe to call again here.
+    dispatch(ensureSearchSession());
     if (activeField === 'origin') {
       dispatch(setOrigin(place));
+      trackEvent('origin_selected', {
+        searchId,
+        originLabel: place.label,
+        originLat: place.lat,
+        originLng: place.lng,
+      });
       if (!destination) {
         activate('destination');
         return;
       }
     } else {
       dispatch(setDestination(place));
+      trackEvent('destination_selected', {
+        searchId,
+        destinationLabel: place.label,
+        destinationLat: place.lat,
+        destinationLng: place.lng,
+      });
       if (!origin) {
         activate('origin');
         return;

@@ -1,1703 +1,364 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty state, not a fabricated list 1`] = `
-<View
-  style={
-    [
-      {
-        "flex": 1,
-      },
-      {
-        "backgroundColor": "#FFFFFF",
-      },
-    ]
-  }
->
-  <ScrollView
-    contentContainerStyle={
-      {
-        "paddingBottom": 20,
-      }
-    }
-    showsVerticalScrollIndicator={false}
-  >
-    <View
-      style={
-        [
-          {
-            "alignItems": "center",
-            "flexDirection": "row",
-            "paddingBottom": 8,
-            "paddingHorizontal": 16,
-          },
-          {
-            "paddingTop": 8,
-          },
-        ]
-      }
-    >
-      <TouchableOpacity
-        accessibilityLabel="rides.rideDetail.back"
-        accessibilityRole="button"
-        hitSlop={12}
-        onPress={[Function]}
-      >
-        <Ionicons
-          color="#14201B"
-          name="chevron-back"
-          size={24}
-        />
-      </TouchableOpacity>
-      <Text
-        style={
-          [
-            {
-              "fontSize": 24,
-              "fontWeight": "600",
-              "lineHeight": 28.799999999999997,
-            },
-            {
-              "color": "#14201B",
-              "textAlign": undefined,
-              "writingDirection": "ltr",
-            },
-            {
-              "flex": 1,
-              "textAlign": "center",
-            },
-          ]
-        }
-      >
-        rides.rideDetail.myRide
-      </Text>
-      <View
-        style={
-          {
-            "width": 24,
-          }
-        }
-      />
-    </View>
-    <View
-      style={
-        {
-          "marginHorizontal": 16,
-          "position": "relative",
-        }
-      }
-    >
-      <View
-        style={
-          [
-            {
-              "backgroundColor": "#EDEBE1",
-              "borderRadius": 16,
-              "overflow": "hidden",
-              "position": "relative",
-            },
-            {
-              "height": 160,
-            },
-            {},
-          ]
-        }
-      >
-        <MapView
-          customMapStyle={[]}
-          initialRegion={
-            {
-              "latitude": 36.31,
-              "latitudeDelta": 1.5679999999999952,
-              "longitude": 10.405000000000001,
-              "longitudeDelta": 0.7200000000000017,
-            }
-          }
-          onMapReady={[Function]}
-          pitchEnabled={false}
-          pointerEvents="none"
-          provider="default"
-          rotateEnabled={false}
-          scrollEnabled={false}
-          style={{}}
-          userInterfaceStyle="light"
-          zoomEnabled={false}
-        >
-          <Marker
-            anchor={
-              {
-                "x": 0.5,
-                "y": 0.5,
-              }
-            }
-            coordinate={
-              {
-                "latitude": 36.8,
-                "longitude": 10.18,
-              }
-            }
-          >
-            <View
-              style={
-                [
-                  {
-                    "alignItems": "center",
-                    "borderBottomLeftRadius": 2,
-                    "borderRadius": 13,
-                    "borderWidth": 2.5,
-                    "elevation": 3,
-                    "height": 26,
-                    "justifyContent": "center",
-                    "shadowColor": "#000",
-                    "shadowOffset": {
-                      "height": 2,
-                      "width": 0,
-                    },
-                    "shadowOpacity": 0.2,
-                    "shadowRadius": 4,
-                    "transform": [
-                      {
-                        "rotate": "-45deg",
-                      },
-                    ],
-                    "width": 26,
-                  },
-                  {
-                    "backgroundColor": "#2E9E6C",
-                    "borderColor": "#FFFFFF",
-                  },
-                ]
-              }
-            >
-              <View
-                style={
-                  [
-                    {
-                      "borderRadius": 3.5,
-                      "height": 7,
-                      "transform": [
-                        {
-                          "rotate": "45deg",
-                        },
-                      ],
-                      "width": 7,
-                    },
-                    {
-                      "backgroundColor": "#0D1512",
-                    },
-                  ]
-                }
-              />
-            </View>
-          </Marker>
-          <Marker
-            anchor={
-              {
-                "x": 0.5,
-                "y": 0.5,
-              }
-            }
-            coordinate={
-              {
-                "latitude": 35.82,
-                "longitude": 10.63,
-              }
-            }
-          >
-            <View
-              style={
-                [
-                  {
-                    "alignItems": "center",
-                    "borderBottomLeftRadius": 2,
-                    "borderRadius": 13,
-                    "borderWidth": 2.5,
-                    "elevation": 3,
-                    "height": 26,
-                    "justifyContent": "center",
-                    "shadowColor": "#000",
-                    "shadowOffset": {
-                      "height": 2,
-                      "width": 0,
-                    },
-                    "shadowOpacity": 0.2,
-                    "shadowRadius": 4,
-                    "transform": [
-                      {
-                        "rotate": "-45deg",
-                      },
-                    ],
-                    "width": 26,
-                  },
-                  {
-                    "backgroundColor": "#14201B",
-                    "borderColor": "#FFFFFF",
-                  },
-                ]
-              }
-            >
-              <View
-                style={
-                  [
-                    {
-                      "borderRadius": 3.5,
-                      "height": 7,
-                      "transform": [
-                        {
-                          "rotate": "45deg",
-                        },
-                      ],
-                      "width": 7,
-                    },
-                    {
-                      "backgroundColor": "#FFFFFF",
-                    },
-                  ]
-                }
-              />
-            </View>
-          </Marker>
-        </MapView>
-        <View
-          pointerEvents="none"
-          style={
-            {
-              "backgroundColor": "#EDEBE1",
-              "opacity": 0.18,
-            }
-          }
-        />
-        <Animated.View
-          accessibilityElementsHidden={true}
-          importantForAccessibility="no-hide-descendants"
-          style={
-            [
-              {
-                "backgroundColor": "#EAE7DC",
-              },
-              {
-                "borderRadius": 0,
-                "height": 16,
-                "opacity": AnimatedValue {
-                  "value": 0.45,
-                },
-                "width": "100%",
-              },
-              {},
-            ]
-          }
-        />
-        <View
-          style={
-            {
-              "backgroundColor": "#2E3B42",
-              "borderRadius": 9999,
-              "left": 8,
-              "paddingHorizontal": 8,
-              "paddingVertical": 4,
-              "position": "absolute",
-              "top": 8,
-            }
-          }
-        >
-          <Text
-            style={
-              {
-                "color": "#F3F1E9",
-                "fontSize": 12,
-                "fontWeight": "600",
-              }
-            }
-          >
-            rides.rideDetail.startedWithEta
-          </Text>
-        </View>
-      </View>
-      <TouchableOpacity
-        accessibilityLabel="rides.rideDetail.viewRouteFullscreen"
-        accessibilityRole="button"
-        activeOpacity={0.85}
-        onPress={[Function]}
-        style={
-          [
-            {
-              "alignItems": "center",
-              "borderRadius": 9999,
-              "bottom": 8,
-              "elevation": 2,
-              "flexDirection": "row",
-              "gap": 4,
-              "paddingHorizontal": 8,
-              "paddingVertical": 4,
-              "position": "absolute",
-              "right": 8,
-              "shadowColor": "#000",
-              "shadowOffset": {
-                "height": 2,
-                "width": 0,
-              },
-              "shadowOpacity": 0.12,
-              "shadowRadius": 6,
-            },
-            {
-              "backgroundColor": "#FFFFFF",
-            },
-          ]
-        }
-      >
-        <Ionicons
-          accessibilityElementsHidden={true}
-          color="#14201B"
-          importantForAccessibility="no-hide-descendants"
-          name="expand-outline"
-          size={16}
-        />
-        <Text
-          style={
-            [
-              {
-                "fontSize": 12,
-                "fontWeight": "400",
-                "lineHeight": 18,
-              },
-              {
-                "color": "#14201B",
-                "textAlign": undefined,
-                "writingDirection": "ltr",
-              },
-              undefined,
-            ]
-          }
-        >
-          rides.rideDetail.viewRouteFullscreen
-        </Text>
-      </TouchableOpacity>
-    </View>
-    <View
-      style={
-        [
-          {
-            "borderRadius": 16,
-            "borderWidth": 1,
-            "gap": 8,
-            "marginHorizontal": 16,
-            "marginTop": 12,
-            "padding": 12,
-          },
-          {
-            "backgroundColor": "#FFFFFF",
-            "borderColor": "#E4EDFB",
-          },
-        ]
-      }
-    >
-      <View
-        style={
-          {
-            "alignItems": "center",
-            "flexDirection": "row",
-            "gap": 8,
-            "justifyContent": "space-between",
-          }
-        }
-      >
-        <Text
-          style={
-            [
-              {
-                "fontSize": 14,
-                "fontWeight": "500",
-                "lineHeight": 21,
-              },
-              {
-                "color": "#5B6572",
-                "textAlign": undefined,
-                "writingDirection": "ltr",
-              },
-              {
-                "letterSpacing": 0.4,
-                "textTransform": "uppercase",
-              },
-            ]
-          }
-        >
-          rides.rideDetail.itinerary
-        </Text>
-        <View
-          accessibilityLabel="rides.rideDetail.startedWithEta"
-          accessibilityRole="text"
-          accessible={true}
-          style={
-            [
-              {
-                "alignSelf": "flex-start",
-                "borderRadius": 9999,
-                "paddingHorizontal": 8,
-                "paddingVertical": 4,
-              },
-              {
-                "backgroundColor": "#F3E8CE",
-              },
-              undefined,
-            ]
-          }
-        >
-          <Text
-            style={
-              [
-                {
-                  "fontSize": 12,
-                  "fontWeight": "500",
-                },
-                {
-                  "color": "#B58A2E",
-                },
-              ]
-            }
-          >
-            rides.rideDetail.startedWithEta
-          </Text>
-        </View>
-      </View>
-      <View
-        style={
-          {
-            "flexDirection": "row",
-            "gap": 8,
-          }
-        }
-      >
-        <View
-          style={
-            [
-              {
-                "borderRadius": 5,
-                "borderWidth": 2,
-                "height": 10,
-                "marginTop": 4,
-                "width": 10,
-              },
-              {
-                "backgroundColor": "#2E9E6C",
-                "borderColor": "#FFFFFF",
-              },
-            ]
-          }
-        />
-        <View
-          style={
-            {
-              "flex": 1,
-              "gap": 1,
-            }
-          }
-        >
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "flexDirection": "row",
-                "justifyContent": "space-between",
-              }
-            }
-          >
-            <Text
-              style={
-                [
-                  {
-                    "fontSize": 14,
-                    "fontWeight": "400",
-                    "lineHeight": 21,
-                  },
-                  {
-                    "color": "#5B6572",
-                    "textAlign": undefined,
-                    "writingDirection": "ltr",
-                  },
-                  undefined,
-                ]
-              }
-            >
-              rides.rideDetail.departure
-            </Text>
-            <Text
-              style={
-                [
-                  {
-                    "fontSize": 14,
-                    "fontWeight": "400",
-                    "lineHeight": 21,
-                  },
-                  {
-                    "color": "#5B6572",
-                    "textAlign": undefined,
-                    "writingDirection": "ltr",
-                  },
-                  undefined,
-                ]
-              }
-            >
-              8:30
-            </Text>
-          </View>
-          <Text
-            numberOfLines={1}
-            style={
-              [
-                {
-                  "fontSize": 16,
-                  "fontWeight": "400",
-                  "lineHeight": 24,
-                },
-                {
-                  "color": "#14201B",
-                  "textAlign": undefined,
-                  "writingDirection": "ltr",
-                },
-                undefined,
-              ]
-            }
-          >
-            Tunis
-          </Text>
-          <Text
-            numberOfLines={1}
-            style={
-              [
-                {
-                  "fontSize": 12,
-                  "fontWeight": "400",
-                  "lineHeight": 18,
-                },
-                {
-                  "color": "#8B93A3",
-                  "textAlign": undefined,
-                  "writingDirection": "ltr",
-                },
-                undefined,
-              ]
-            }
-          >
-            common:terms.pickup
-             · 
-            Avenue Habib Bourguiba, Tunis
-          </Text>
-        </View>
-      </View>
-      <View
-        style={
-          [
-            {
-              "flexDirection": "row",
-              "gap": 8,
-            },
-            {
-              "marginBottom": 4,
-            },
-          ]
-        }
-      >
-        <View
-          style={
-            [
-              {
-                "borderRadius": 5,
-                "borderWidth": 2,
-                "height": 10,
-                "marginTop": 4,
-                "width": 10,
-              },
-              {
-                "backgroundColor": "#14201B",
-                "borderColor": "#FFFFFF",
-              },
-            ]
-          }
-        />
-        <View
-          style={
-            {
-              "flex": 1,
-              "gap": 1,
-            }
-          }
-        >
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "flexDirection": "row",
-                "justifyContent": "space-between",
-              }
-            }
-          >
-            <Text
-              style={
-                [
-                  {
-                    "fontSize": 14,
-                    "fontWeight": "400",
-                    "lineHeight": 21,
-                  },
-                  {
-                    "color": "#5B6572",
-                    "textAlign": undefined,
-                    "writingDirection": "ltr",
-                  },
-                  undefined,
-                ]
-              }
-            >
-              rides.rideDetail.arrival
-            </Text>
-            <Text
-              style={
-                [
-                  {
-                    "fontSize": 14,
-                    "fontWeight": "400",
-                    "lineHeight": 21,
-                  },
-                  {
-                    "color": "#5B6572",
-                    "textAlign": undefined,
-                    "writingDirection": "ltr",
-                  },
-                  undefined,
-                ]
-              }
-            >
-              10:30
-            </Text>
-          </View>
-          <Text
-            numberOfLines={1}
-            style={
-              [
-                {
-                  "fontSize": 16,
-                  "fontWeight": "400",
-                  "lineHeight": 24,
-                },
-                {
-                  "color": "#14201B",
-                  "textAlign": undefined,
-                  "writingDirection": "ltr",
-                },
-                undefined,
-              ]
-            }
-          >
-            Sousse
-          </Text>
-          <Text
-            numberOfLines={1}
-            style={
-              [
-                {
-                  "fontSize": 12,
-                  "fontWeight": "400",
-                  "lineHeight": 18,
-                },
-                {
-                  "color": "#8B93A3",
-                  "textAlign": undefined,
-                  "writingDirection": "ltr",
-                },
-                undefined,
-              ]
-            }
-          >
-            common:terms.dropoff
-             · 
-            Boulevard Hedi Chaker, Sousse
-          </Text>
-        </View>
-      </View>
-      <View
-        style={
-          {
-            "alignItems": "center",
-            "flexDirection": "row",
-            "gap": 8,
-          }
-        }
-      >
-        <Ionicons
-          accessibilityElementsHidden={true}
-          color="#5B6572"
-          importantForAccessibility="no-hide-descendants"
-          name="people-outline"
-          size={20}
-        />
-        <Text
-          style={
-            [
-              {
-                "fontSize": 14,
-                "fontWeight": "400",
-                "lineHeight": 21,
-              },
-              {
-                "color": "#5B6572",
-                "textAlign": undefined,
-                "writingDirection": "ltr",
-              },
-              undefined,
-            ]
-          }
-        >
-          rides.rideDetail.seatsAvailable
-        </Text>
-      </View>
-      <View
-        style={
-          {
-            "alignItems": "center",
-            "flexDirection": "row",
-            "gap": 8,
-          }
-        }
-      >
-        <Ionicons
-          accessibilityElementsHidden={true}
-          color="#5B6572"
-          importantForAccessibility="no-hide-descendants"
-          name="cash-outline"
-          size={20}
-        />
-        <Text
-          style={
-            [
-              {
-                "fontSize": 14,
-                "fontWeight": "400",
-                "lineHeight": 21,
-              },
-              {
-                "color": "#5B6572",
-                "textAlign": undefined,
-                "writingDirection": "ltr",
-              },
-              undefined,
-            ]
-          }
-        >
-          rides.rideDetail.pricePerSeat
-        </Text>
-      </View>
-    </View>
-    <View
-      style={
-        {
-          "gap": 8,
-          "marginTop": 16,
-          "paddingHorizontal": 16,
-        }
-      }
-    >
-      <Text
-        style={
-          [
-            {
-              "fontSize": 14,
-              "fontWeight": "500",
-              "lineHeight": 21,
-            },
-            {
-              "color": "#5B6572",
-              "textAlign": undefined,
-              "writingDirection": "ltr",
-            },
-            {
-              "letterSpacing": 0.4,
-              "textTransform": "uppercase",
-            },
-          ]
-        }
-      >
-        rides.rideDetail.pendingSection
-      </Text>
-      <Text
-        style={
-          [
-            {
-              "fontSize": 14,
-              "fontWeight": "400",
-              "lineHeight": 21,
-            },
-            {
-              "color": "#8B93A3",
-              "textAlign": undefined,
-              "writingDirection": "ltr",
-            },
-            {
-              "paddingVertical": 8,
-            },
-          ]
-        }
-      >
-        rides.rideDetail.noPendingRequests
-      </Text>
-    </View>
-    <View
-      style={
-        {
-          "height": 32,
-        }
-      }
-    />
-  </ScrollView>
+[
   <View
     style={
       [
         {
-          "borderTopWidth": 1,
-          "paddingHorizontal": 16,
-          "paddingTop": 8,
+          "flex": 1,
         },
         {
           "backgroundColor": "#FFFFFF",
-          "borderTopColor": "#E4EDFB",
-          "paddingBottom": 12,
         },
       ]
     }
   >
-    <Pressable
-      accessibilityLabel="rides.rideDetail.cancelRide"
-      accessibilityRole="button"
-      accessibilityState={
+    <ScrollView
+      contentContainerStyle={
         {
-          "busy": false,
-          "disabled": false,
+          "paddingBottom": 20,
         }
       }
-      disabled={false}
-      onPress={[Function]}
-      style={[Function]}
-    >
-      <Text
-        style={
-          [
-            {
-              "fontWeight": "600",
-            },
-            {
-              "fontSize": 16,
-            },
-            {
-              "color": "#14201B",
-            },
-          ]
-        }
-      >
-        rides.rideDetail.cancelRide
-      </Text>
-    </Pressable>
-  </View>
-  <Modal
-    animationType="slide"
-    onRequestClose={[Function]}
-    visible={false}
-  >
-    <View
-      style={
-        [
-          {
-            "flex": 1,
-          },
-          {
-            "backgroundColor": "#FFFFFF",
-          },
-        ]
-      }
+      showsVerticalScrollIndicator={false}
     >
       <View
-        style={
-          [
-            {
-              "borderRadius": 16,
-              "overflow": "hidden",
-              "position": "relative",
-            },
-            {
-              "flex": 1,
-              "minHeight": 200,
-            },
-            {
-              "flex": 1,
-            },
-          ]
-        }
-      >
-        <MapView
-          customMapStyle={[]}
-          initialRegion={
-            {
-              "latitude": 36.31,
-              "latitudeDelta": 1.5679999999999952,
-              "longitude": 10.405000000000001,
-              "longitudeDelta": 0.7200000000000017,
-            }
-          }
-          onMapReady={[Function]}
-          provider="google"
-          style={{}}
-        >
-          <Marker
-            anchor={
-              {
-                "x": 0.5,
-                "y": 0.5,
-              }
-            }
-            coordinate={
-              {
-                "latitude": 36.8,
-                "longitude": 10.18,
-              }
-            }
-          >
-            <View
-              style={
-                [
-                  {
-                    "alignItems": "center",
-                    "borderBottomLeftRadius": 2,
-                    "borderRadius": 13,
-                    "borderWidth": 2.5,
-                    "elevation": 3,
-                    "height": 26,
-                    "justifyContent": "center",
-                    "shadowColor": "#000",
-                    "shadowOffset": {
-                      "height": 2,
-                      "width": 0,
-                    },
-                    "shadowOpacity": 0.2,
-                    "shadowRadius": 4,
-                    "transform": [
-                      {
-                        "rotate": "-45deg",
-                      },
-                    ],
-                    "width": 26,
-                  },
-                  {
-                    "backgroundColor": "#2E9E6C",
-                    "borderColor": "#FFFFFF",
-                  },
-                ]
-              }
-            >
-              <View
-                style={
-                  [
-                    {
-                      "borderRadius": 3.5,
-                      "height": 7,
-                      "transform": [
-                        {
-                          "rotate": "45deg",
-                        },
-                      ],
-                      "width": 7,
-                    },
-                    {
-                      "backgroundColor": "#0D1512",
-                    },
-                  ]
-                }
-              />
-            </View>
-          </Marker>
-          <Marker
-            anchor={
-              {
-                "x": 0.5,
-                "y": 0.5,
-              }
-            }
-            coordinate={
-              {
-                "latitude": 35.82,
-                "longitude": 10.63,
-              }
-            }
-          >
-            <View
-              style={
-                [
-                  {
-                    "alignItems": "center",
-                    "borderBottomLeftRadius": 2,
-                    "borderRadius": 13,
-                    "borderWidth": 2.5,
-                    "elevation": 3,
-                    "height": 26,
-                    "justifyContent": "center",
-                    "shadowColor": "#000",
-                    "shadowOffset": {
-                      "height": 2,
-                      "width": 0,
-                    },
-                    "shadowOpacity": 0.2,
-                    "shadowRadius": 4,
-                    "transform": [
-                      {
-                        "rotate": "-45deg",
-                      },
-                    ],
-                    "width": 26,
-                  },
-                  {
-                    "backgroundColor": "#14201B",
-                    "borderColor": "#FFFFFF",
-                  },
-                ]
-              }
-            >
-              <View
-                style={
-                  [
-                    {
-                      "borderRadius": 3.5,
-                      "height": 7,
-                      "transform": [
-                        {
-                          "rotate": "45deg",
-                        },
-                      ],
-                      "width": 7,
-                    },
-                    {
-                      "backgroundColor": "#FFFFFF",
-                    },
-                  ]
-                }
-              />
-            </View>
-          </Marker>
-        </MapView>
-        <View
-          pointerEvents="none"
-          style={
-            {
-              "backgroundColor": "#EDEBE1",
-              "opacity": 0.18,
-            }
-          }
-        />
-        <Animated.View
-          accessibilityElementsHidden={true}
-          importantForAccessibility="no-hide-descendants"
-          style={
-            [
-              {
-                "backgroundColor": "#EAE7DC",
-              },
-              {
-                "borderRadius": 0,
-                "height": 16,
-                "opacity": AnimatedValue {
-                  "value": 0.45,
-                },
-                "width": "100%",
-              },
-              {},
-            ]
-          }
-        />
-      </View>
-      <TouchableOpacity
-        accessibilityLabel="rides.rideDetail.close"
-        accessibilityRole="button"
-        hitSlop={12}
-        onPress={[Function]}
         style={
           [
             {
               "alignItems": "center",
-              "borderRadius": 20,
-              "elevation": 3,
-              "height": 40,
-              "justifyContent": "center",
-              "position": "absolute",
-              "right": 16,
-              "shadowColor": "#000",
-              "shadowOffset": {
-                "height": 2,
-                "width": 0,
-              },
-              "shadowOpacity": 0.15,
-              "shadowRadius": 6,
-              "width": 40,
-            },
-            {
-              "backgroundColor": "#FFFFFF",
-              "top": 8,
-            },
-          ]
-        }
-      >
-        <Ionicons
-          color="#14201B"
-          name="close"
-          size={22}
-        />
-      </TouchableOpacity>
-    </View>
-  </Modal>
-</View>
-`;
-
-exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accepter/Refuser) and one confirmed passenger 1`] = `
-<View
-  style={
-    [
-      {
-        "flex": 1,
-      },
-      {
-        "backgroundColor": "#FFFFFF",
-      },
-    ]
-  }
->
-  <ScrollView
-    contentContainerStyle={
-      {
-        "paddingBottom": 20,
-      }
-    }
-    showsVerticalScrollIndicator={false}
-  >
-    <View
-      style={
-        [
-          {
-            "alignItems": "center",
-            "flexDirection": "row",
-            "paddingBottom": 8,
-            "paddingHorizontal": 16,
-          },
-          {
-            "paddingTop": 8,
-          },
-        ]
-      }
-    >
-      <TouchableOpacity
-        accessibilityLabel="rides.rideDetail.back"
-        accessibilityRole="button"
-        hitSlop={12}
-        onPress={[Function]}
-      >
-        <Ionicons
-          color="#14201B"
-          name="chevron-back"
-          size={24}
-        />
-      </TouchableOpacity>
-      <Text
-        style={
-          [
-            {
-              "fontSize": 24,
-              "fontWeight": "600",
-              "lineHeight": 28.799999999999997,
-            },
-            {
-              "color": "#14201B",
-              "textAlign": undefined,
-              "writingDirection": "ltr",
-            },
-            {
-              "flex": 1,
-              "textAlign": "center",
-            },
-          ]
-        }
-      >
-        rides.rideDetail.myRide
-      </Text>
-      <View
-        style={
-          {
-            "width": 24,
-          }
-        }
-      />
-    </View>
-    <View
-      style={
-        {
-          "marginHorizontal": 16,
-          "position": "relative",
-        }
-      }
-    >
-      <View
-        style={
-          [
-            {
-              "backgroundColor": "#EDEBE1",
-              "borderRadius": 16,
-              "overflow": "hidden",
-              "position": "relative",
-            },
-            {
-              "height": 160,
-            },
-            {},
-          ]
-        }
-      >
-        <MapView
-          customMapStyle={[]}
-          initialRegion={
-            {
-              "latitude": 36.31,
-              "latitudeDelta": 1.5679999999999952,
-              "longitude": 10.405000000000001,
-              "longitudeDelta": 0.7200000000000017,
-            }
-          }
-          onMapReady={[Function]}
-          pitchEnabled={false}
-          pointerEvents="none"
-          provider="default"
-          rotateEnabled={false}
-          scrollEnabled={false}
-          style={{}}
-          userInterfaceStyle="light"
-          zoomEnabled={false}
-        >
-          <Marker
-            anchor={
-              {
-                "x": 0.5,
-                "y": 0.5,
-              }
-            }
-            coordinate={
-              {
-                "latitude": 36.8,
-                "longitude": 10.18,
-              }
-            }
-          >
-            <View
-              style={
-                [
-                  {
-                    "alignItems": "center",
-                    "borderBottomLeftRadius": 2,
-                    "borderRadius": 13,
-                    "borderWidth": 2.5,
-                    "elevation": 3,
-                    "height": 26,
-                    "justifyContent": "center",
-                    "shadowColor": "#000",
-                    "shadowOffset": {
-                      "height": 2,
-                      "width": 0,
-                    },
-                    "shadowOpacity": 0.2,
-                    "shadowRadius": 4,
-                    "transform": [
-                      {
-                        "rotate": "-45deg",
-                      },
-                    ],
-                    "width": 26,
-                  },
-                  {
-                    "backgroundColor": "#2E9E6C",
-                    "borderColor": "#FFFFFF",
-                  },
-                ]
-              }
-            >
-              <View
-                style={
-                  [
-                    {
-                      "borderRadius": 3.5,
-                      "height": 7,
-                      "transform": [
-                        {
-                          "rotate": "45deg",
-                        },
-                      ],
-                      "width": 7,
-                    },
-                    {
-                      "backgroundColor": "#0D1512",
-                    },
-                  ]
-                }
-              />
-            </View>
-          </Marker>
-          <Marker
-            anchor={
-              {
-                "x": 0.5,
-                "y": 0.5,
-              }
-            }
-            coordinate={
-              {
-                "latitude": 35.82,
-                "longitude": 10.63,
-              }
-            }
-          >
-            <View
-              style={
-                [
-                  {
-                    "alignItems": "center",
-                    "borderBottomLeftRadius": 2,
-                    "borderRadius": 13,
-                    "borderWidth": 2.5,
-                    "elevation": 3,
-                    "height": 26,
-                    "justifyContent": "center",
-                    "shadowColor": "#000",
-                    "shadowOffset": {
-                      "height": 2,
-                      "width": 0,
-                    },
-                    "shadowOpacity": 0.2,
-                    "shadowRadius": 4,
-                    "transform": [
-                      {
-                        "rotate": "-45deg",
-                      },
-                    ],
-                    "width": 26,
-                  },
-                  {
-                    "backgroundColor": "#14201B",
-                    "borderColor": "#FFFFFF",
-                  },
-                ]
-              }
-            >
-              <View
-                style={
-                  [
-                    {
-                      "borderRadius": 3.5,
-                      "height": 7,
-                      "transform": [
-                        {
-                          "rotate": "45deg",
-                        },
-                      ],
-                      "width": 7,
-                    },
-                    {
-                      "backgroundColor": "#FFFFFF",
-                    },
-                  ]
-                }
-              />
-            </View>
-          </Marker>
-        </MapView>
-        <View
-          pointerEvents="none"
-          style={
-            {
-              "backgroundColor": "#EDEBE1",
-              "opacity": 0.18,
-            }
-          }
-        />
-        <Animated.View
-          accessibilityElementsHidden={true}
-          importantForAccessibility="no-hide-descendants"
-          style={
-            [
-              {
-                "backgroundColor": "#EAE7DC",
-              },
-              {
-                "borderRadius": 0,
-                "height": 16,
-                "opacity": AnimatedValue {
-                  "value": 0.45,
-                },
-                "width": "100%",
-              },
-              {},
-            ]
-          }
-        />
-        <View
-          style={
-            {
-              "backgroundColor": "#2E3B42",
-              "borderRadius": 9999,
-              "left": 8,
-              "paddingHorizontal": 8,
-              "paddingVertical": 4,
-              "position": "absolute",
-              "top": 8,
-            }
-          }
-        >
-          <Text
-            style={
-              {
-                "color": "#F3F1E9",
-                "fontSize": 12,
-                "fontWeight": "600",
-              }
-            }
-          >
-            rides.rideDetail.startedWithEta
-          </Text>
-        </View>
-      </View>
-      <TouchableOpacity
-        accessibilityLabel="rides.rideDetail.viewRouteFullscreen"
-        accessibilityRole="button"
-        activeOpacity={0.85}
-        onPress={[Function]}
-        style={
-          [
-            {
-              "alignItems": "center",
-              "borderRadius": 9999,
-              "bottom": 8,
-              "elevation": 2,
               "flexDirection": "row",
-              "gap": 4,
-              "paddingHorizontal": 8,
-              "paddingVertical": 4,
-              "position": "absolute",
-              "right": 8,
-              "shadowColor": "#000",
-              "shadowOffset": {
-                "height": 2,
-                "width": 0,
-              },
-              "shadowOpacity": 0.12,
-              "shadowRadius": 6,
+              "paddingBottom": 8,
+              "paddingHorizontal": 16,
             },
             {
-              "backgroundColor": "#FFFFFF",
+              "paddingTop": 8,
             },
           ]
         }
       >
-        <Ionicons
-          accessibilityElementsHidden={true}
-          color="#14201B"
-          importantForAccessibility="no-hide-descendants"
-          name="expand-outline"
-          size={16}
-        />
+        <TouchableOpacity
+          accessibilityLabel="rides.rideDetail.back"
+          accessibilityRole="button"
+          hitSlop={12}
+          onPress={[Function]}
+        >
+          <Ionicons
+            color="#14201B"
+            name="chevron-back"
+            size={24}
+          />
+        </TouchableOpacity>
         <Text
           style={
             [
               {
-                "fontSize": 12,
-                "fontWeight": "400",
-                "lineHeight": 18,
+                "fontSize": 24,
+                "fontWeight": "600",
+                "lineHeight": 28.799999999999997,
               },
               {
                 "color": "#14201B",
                 "textAlign": undefined,
                 "writingDirection": "ltr",
               },
-              undefined,
+              {
+                "flex": 1,
+                "textAlign": "center",
+              },
             ]
           }
         >
-          rides.rideDetail.viewRouteFullscreen
+          rides.rideDetail.myRide
         </Text>
-      </TouchableOpacity>
-    </View>
-    <View
-      style={
-        [
-          {
-            "borderRadius": 16,
-            "borderWidth": 1,
-            "gap": 8,
-            "marginHorizontal": 16,
-            "marginTop": 12,
-            "padding": 12,
-          },
-          {
-            "backgroundColor": "#FFFFFF",
-            "borderColor": "#E4EDFB",
-          },
-        ]
-      }
-    >
+        <View
+          style={
+            {
+              "width": 24,
+            }
+          }
+        />
+      </View>
       <View
         style={
           {
-            "alignItems": "center",
-            "flexDirection": "row",
-            "gap": 8,
-            "justifyContent": "space-between",
+            "marginHorizontal": 16,
+            "position": "relative",
           }
         }
       >
-        <Text
+        <View
           style={
             [
               {
-                "fontSize": 14,
-                "fontWeight": "500",
-                "lineHeight": 21,
+                "backgroundColor": "#EDEBE1",
+                "borderRadius": 16,
+                "overflow": "hidden",
+                "position": "relative",
               },
               {
-                "color": "#5B6572",
-                "textAlign": undefined,
-                "writingDirection": "ltr",
+                "height": 160,
               },
-              {
-                "letterSpacing": 0.4,
-                "textTransform": "uppercase",
-              },
+              {},
             ]
           }
         >
-          rides.rideDetail.itinerary
-        </Text>
-        <View
-          accessibilityLabel="rides.rideDetail.startedWithEta"
-          accessibilityRole="text"
-          accessible={true}
-          style={
-            [
+          <MapView
+            customMapStyle={[]}
+            initialRegion={
               {
-                "alignSelf": "flex-start",
+                "latitude": 36.31,
+                "latitudeDelta": 1.5679999999999952,
+                "longitude": 10.405000000000001,
+                "longitudeDelta": 0.7200000000000017,
+              }
+            }
+            onMapReady={[Function]}
+            pitchEnabled={false}
+            pointerEvents="none"
+            provider="default"
+            rotateEnabled={false}
+            scrollEnabled={false}
+            style={{}}
+            userInterfaceStyle="light"
+            zoomEnabled={false}
+          >
+            <Marker
+              anchor={
+                {
+                  "x": 0.5,
+                  "y": 0.5,
+                }
+              }
+              coordinate={
+                {
+                  "latitude": 36.8,
+                  "longitude": 10.18,
+                }
+              }
+            >
+              <View
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "borderBottomLeftRadius": 2,
+                      "borderRadius": 13,
+                      "borderWidth": 2.5,
+                      "elevation": 3,
+                      "height": 26,
+                      "justifyContent": "center",
+                      "shadowColor": "#000",
+                      "shadowOffset": {
+                        "height": 2,
+                        "width": 0,
+                      },
+                      "shadowOpacity": 0.2,
+                      "shadowRadius": 4,
+                      "transform": [
+                        {
+                          "rotate": "-45deg",
+                        },
+                      ],
+                      "width": 26,
+                    },
+                    {
+                      "backgroundColor": "#2E9E6C",
+                      "borderColor": "#FFFFFF",
+                    },
+                  ]
+                }
+              >
+                <View
+                  style={
+                    [
+                      {
+                        "borderRadius": 3.5,
+                        "height": 7,
+                        "transform": [
+                          {
+                            "rotate": "45deg",
+                          },
+                        ],
+                        "width": 7,
+                      },
+                      {
+                        "backgroundColor": "#0D1512",
+                      },
+                    ]
+                  }
+                />
+              </View>
+            </Marker>
+            <Marker
+              anchor={
+                {
+                  "x": 0.5,
+                  "y": 0.5,
+                }
+              }
+              coordinate={
+                {
+                  "latitude": 35.82,
+                  "longitude": 10.63,
+                }
+              }
+            >
+              <View
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "borderBottomLeftRadius": 2,
+                      "borderRadius": 13,
+                      "borderWidth": 2.5,
+                      "elevation": 3,
+                      "height": 26,
+                      "justifyContent": "center",
+                      "shadowColor": "#000",
+                      "shadowOffset": {
+                        "height": 2,
+                        "width": 0,
+                      },
+                      "shadowOpacity": 0.2,
+                      "shadowRadius": 4,
+                      "transform": [
+                        {
+                          "rotate": "-45deg",
+                        },
+                      ],
+                      "width": 26,
+                    },
+                    {
+                      "backgroundColor": "#14201B",
+                      "borderColor": "#FFFFFF",
+                    },
+                  ]
+                }
+              >
+                <View
+                  style={
+                    [
+                      {
+                        "borderRadius": 3.5,
+                        "height": 7,
+                        "transform": [
+                          {
+                            "rotate": "45deg",
+                          },
+                        ],
+                        "width": 7,
+                      },
+                      {
+                        "backgroundColor": "#FFFFFF",
+                      },
+                    ]
+                  }
+                />
+              </View>
+            </Marker>
+          </MapView>
+          <View
+            pointerEvents="none"
+            style={
+              {
+                "backgroundColor": "#EDEBE1",
+                "opacity": 0.18,
+              }
+            }
+          />
+          <Animated.View
+            accessibilityElementsHidden={true}
+            importantForAccessibility="no-hide-descendants"
+            style={
+              [
+                {
+                  "backgroundColor": "#EAE7DC",
+                },
+                {
+                  "borderRadius": 0,
+                  "height": 16,
+                  "opacity": AnimatedValue {
+                    "value": 0.45,
+                  },
+                  "width": "100%",
+                },
+                {},
+              ]
+            }
+          />
+          <View
+            style={
+              {
+                "backgroundColor": "#2E3B42",
                 "borderRadius": 9999,
+                "left": 8,
                 "paddingHorizontal": 8,
                 "paddingVertical": 4,
+                "position": "absolute",
+                "top": 8,
+              }
+            }
+          >
+            <Text
+              style={
+                {
+                  "color": "#F3F1E9",
+                  "fontSize": 12,
+                  "fontWeight": "600",
+                }
+              }
+            >
+              rides.rideDetail.startedWithEta
+            </Text>
+          </View>
+        </View>
+        <TouchableOpacity
+          accessibilityLabel="rides.rideDetail.viewRouteFullscreen"
+          accessibilityRole="button"
+          activeOpacity={0.85}
+          onPress={[Function]}
+          style={
+            [
+              {
+                "alignItems": "center",
+                "borderRadius": 9999,
+                "bottom": 8,
+                "elevation": 2,
+                "flexDirection": "row",
+                "gap": 4,
+                "paddingHorizontal": 8,
+                "paddingVertical": 4,
+                "position": "absolute",
+                "right": 8,
+                "shadowColor": "#000",
+                "shadowOffset": {
+                  "height": 2,
+                  "width": 0,
+                },
+                "shadowOpacity": 0.12,
+                "shadowRadius": 6,
               },
               {
-                "backgroundColor": "#F3E8CE",
+                "backgroundColor": "#FFFFFF",
               },
-              undefined,
             ]
           }
         >
+          <Ionicons
+            accessibilityElementsHidden={true}
+            color="#14201B"
+            importantForAccessibility="no-hide-descendants"
+            name="expand-outline"
+            size={16}
+          />
           <Text
             style={
               [
                 {
                   "fontSize": 12,
-                  "fontWeight": "500",
-                },
-                {
-                  "color": "#B58A2E",
-                },
-              ]
-            }
-          >
-            rides.rideDetail.startedWithEta
-          </Text>
-        </View>
-      </View>
-      <View
-        style={
-          {
-            "flexDirection": "row",
-            "gap": 8,
-          }
-        }
-      >
-        <View
-          style={
-            [
-              {
-                "borderRadius": 5,
-                "borderWidth": 2,
-                "height": 10,
-                "marginTop": 4,
-                "width": 10,
-              },
-              {
-                "backgroundColor": "#2E9E6C",
-                "borderColor": "#FFFFFF",
-              },
-            ]
-          }
-        />
-        <View
-          style={
-            {
-              "flex": 1,
-              "gap": 1,
-            }
-          }
-        >
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "flexDirection": "row",
-                "justifyContent": "space-between",
-              }
-            }
-          >
-            <Text
-              style={
-                [
-                  {
-                    "fontSize": 14,
-                    "fontWeight": "400",
-                    "lineHeight": 21,
-                  },
-                  {
-                    "color": "#5B6572",
-                    "textAlign": undefined,
-                    "writingDirection": "ltr",
-                  },
-                  undefined,
-                ]
-              }
-            >
-              rides.rideDetail.departure
-            </Text>
-            <Text
-              style={
-                [
-                  {
-                    "fontSize": 14,
-                    "fontWeight": "400",
-                    "lineHeight": 21,
-                  },
-                  {
-                    "color": "#5B6572",
-                    "textAlign": undefined,
-                    "writingDirection": "ltr",
-                  },
-                  undefined,
-                ]
-              }
-            >
-              8:30
-            </Text>
-          </View>
-          <Text
-            numberOfLines={1}
-            style={
-              [
-                {
-                  "fontSize": 16,
                   "fontWeight": "400",
-                  "lineHeight": 24,
+                  "lineHeight": 18,
                 },
                 {
                   "color": "#14201B",
@@ -1708,302 +369,10 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
               ]
             }
           >
-            Tunis
+            rides.rideDetail.viewRouteFullscreen
           </Text>
-          <Text
-            numberOfLines={1}
-            style={
-              [
-                {
-                  "fontSize": 12,
-                  "fontWeight": "400",
-                  "lineHeight": 18,
-                },
-                {
-                  "color": "#8B93A3",
-                  "textAlign": undefined,
-                  "writingDirection": "ltr",
-                },
-                undefined,
-              ]
-            }
-          >
-            common:terms.pickup
-             · 
-            Avenue Habib Bourguiba, Tunis
-          </Text>
-        </View>
+        </TouchableOpacity>
       </View>
-      <View
-        style={
-          [
-            {
-              "flexDirection": "row",
-              "gap": 8,
-            },
-            {
-              "marginBottom": 4,
-            },
-          ]
-        }
-      >
-        <View
-          style={
-            [
-              {
-                "borderRadius": 5,
-                "borderWidth": 2,
-                "height": 10,
-                "marginTop": 4,
-                "width": 10,
-              },
-              {
-                "backgroundColor": "#14201B",
-                "borderColor": "#FFFFFF",
-              },
-            ]
-          }
-        />
-        <View
-          style={
-            {
-              "flex": 1,
-              "gap": 1,
-            }
-          }
-        >
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "flexDirection": "row",
-                "justifyContent": "space-between",
-              }
-            }
-          >
-            <Text
-              style={
-                [
-                  {
-                    "fontSize": 14,
-                    "fontWeight": "400",
-                    "lineHeight": 21,
-                  },
-                  {
-                    "color": "#5B6572",
-                    "textAlign": undefined,
-                    "writingDirection": "ltr",
-                  },
-                  undefined,
-                ]
-              }
-            >
-              rides.rideDetail.arrival
-            </Text>
-            <Text
-              style={
-                [
-                  {
-                    "fontSize": 14,
-                    "fontWeight": "400",
-                    "lineHeight": 21,
-                  },
-                  {
-                    "color": "#5B6572",
-                    "textAlign": undefined,
-                    "writingDirection": "ltr",
-                  },
-                  undefined,
-                ]
-              }
-            >
-              10:30
-            </Text>
-          </View>
-          <Text
-            numberOfLines={1}
-            style={
-              [
-                {
-                  "fontSize": 16,
-                  "fontWeight": "400",
-                  "lineHeight": 24,
-                },
-                {
-                  "color": "#14201B",
-                  "textAlign": undefined,
-                  "writingDirection": "ltr",
-                },
-                undefined,
-              ]
-            }
-          >
-            Sousse
-          </Text>
-          <Text
-            numberOfLines={1}
-            style={
-              [
-                {
-                  "fontSize": 12,
-                  "fontWeight": "400",
-                  "lineHeight": 18,
-                },
-                {
-                  "color": "#8B93A3",
-                  "textAlign": undefined,
-                  "writingDirection": "ltr",
-                },
-                undefined,
-              ]
-            }
-          >
-            common:terms.dropoff
-             · 
-            Boulevard Hedi Chaker, Sousse
-          </Text>
-        </View>
-      </View>
-      <View
-        style={
-          {
-            "alignItems": "center",
-            "flexDirection": "row",
-            "gap": 8,
-          }
-        }
-      >
-        <Ionicons
-          accessibilityElementsHidden={true}
-          color="#5B6572"
-          importantForAccessibility="no-hide-descendants"
-          name="people-outline"
-          size={20}
-        />
-        <Text
-          style={
-            [
-              {
-                "fontSize": 14,
-                "fontWeight": "400",
-                "lineHeight": 21,
-              },
-              {
-                "color": "#5B6572",
-                "textAlign": undefined,
-                "writingDirection": "ltr",
-              },
-              undefined,
-            ]
-          }
-        >
-          rides.rideDetail.seatsAvailable
-        </Text>
-      </View>
-      <View
-        style={
-          {
-            "alignItems": "center",
-            "flexDirection": "row",
-            "gap": 8,
-          }
-        }
-      >
-        <Ionicons
-          accessibilityElementsHidden={true}
-          color="#5B6572"
-          importantForAccessibility="no-hide-descendants"
-          name="cash-outline"
-          size={20}
-        />
-        <Text
-          style={
-            [
-              {
-                "fontSize": 14,
-                "fontWeight": "400",
-                "lineHeight": 21,
-              },
-              {
-                "color": "#5B6572",
-                "textAlign": undefined,
-                "writingDirection": "ltr",
-              },
-              undefined,
-            ]
-          }
-        >
-          rides.rideDetail.pricePerSeat
-        </Text>
-      </View>
-      <View
-        style={
-          {
-            "alignItems": "center",
-            "flexDirection": "row",
-            "gap": 8,
-          }
-        }
-      >
-        <Ionicons
-          accessibilityElementsHidden={true}
-          color="#5B6572"
-          importantForAccessibility="no-hide-descendants"
-          name="wallet-outline"
-          size={20}
-        />
-        <Text
-          style={
-            [
-              {
-                "fontSize": 14,
-                "fontWeight": "400",
-                "lineHeight": 21,
-              },
-              {
-                "color": "#5B6572",
-                "textAlign": undefined,
-                "writingDirection": "ltr",
-              },
-              undefined,
-            ]
-          }
-        >
-          rides.rideDetail.confirmedRevenue
-        </Text>
-      </View>
-    </View>
-    <View
-      style={
-        {
-          "gap": 8,
-          "marginTop": 16,
-          "paddingHorizontal": 16,
-        }
-      }
-    >
-      <Text
-        style={
-          [
-            {
-              "fontSize": 14,
-              "fontWeight": "500",
-              "lineHeight": 21,
-            },
-            {
-              "color": "#5B6572",
-              "textAlign": undefined,
-              "writingDirection": "ltr",
-            },
-            {
-              "letterSpacing": 0.4,
-              "textTransform": "uppercase",
-            },
-          ]
-        }
-      >
-        rides.rideDetail.pendingSection
-      </Text>
       <View
         style={
           [
@@ -2011,10 +380,12 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
               "borderRadius": 16,
               "borderWidth": 1,
               "gap": 8,
+              "marginHorizontal": 16,
+              "marginTop": 12,
               "padding": 12,
             },
             {
-              "backgroundColor": "#E4EDFB",
+              "backgroundColor": "#FFFFFF",
               "borderColor": "#E4EDFB",
             },
           ]
@@ -2026,25 +397,48 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
               "alignItems": "center",
               "flexDirection": "row",
               "gap": 8,
+              "justifyContent": "space-between",
             }
           }
         >
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 14,
+                  "fontWeight": "500",
+                  "lineHeight": 21,
+                },
+                {
+                  "color": "#5B6572",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                {
+                  "letterSpacing": 0.4,
+                  "textTransform": "uppercase",
+                },
+              ]
+            }
+          >
+            rides.rideDetail.itinerary
+          </Text>
           <View
-            accessibilityLabel="Photo de Dinara Kochakajeva"
-            accessibilityRole="image"
+            accessibilityLabel="rides.rideDetail.startedWithEta"
+            accessibilityRole="text"
             accessible={true}
             style={
               [
                 {
-                  "alignItems": "center",
-                  "justifyContent": "center",
+                  "alignSelf": "flex-start",
+                  "borderRadius": 9999,
+                  "paddingHorizontal": 8,
+                  "paddingVertical": 4,
                 },
                 {
-                  "backgroundColor": "#FFFFFF",
-                  "borderRadius": 20,
-                  "height": 40,
-                  "width": 40,
+                  "backgroundColor": "#F3E8CE",
                 },
+                undefined,
               ]
             }
           >
@@ -2052,19 +446,44 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
               style={
                 [
                   {
-                    "color": "#FFFFFF",
-                    "fontWeight": "600",
+                    "fontSize": 12,
+                    "fontWeight": "500",
                   },
                   {
-                    "color": "#14201B",
-                    "fontSize": 16,
+                    "color": "#B58A2E",
                   },
                 ]
               }
             >
-              DK
+              rides.rideDetail.startedWithEta
             </Text>
           </View>
+        </View>
+        <View
+          style={
+            {
+              "flexDirection": "row",
+              "gap": 8,
+            }
+          }
+        >
+          <View
+            style={
+              [
+                {
+                  "borderRadius": 5,
+                  "borderWidth": 2,
+                  "height": 10,
+                  "marginTop": 4,
+                  "width": 10,
+                },
+                {
+                  "backgroundColor": "#2E9E6C",
+                  "borderColor": "#FFFFFF",
+                },
+              ]
+            }
+          />
           <View
             style={
               {
@@ -2073,6 +492,54 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
               }
             }
           >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "justifyContent": "space-between",
+                }
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "lineHeight": 21,
+                    },
+                    {
+                      "color": "#5B6572",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                rides.rideDetail.departure
+              </Text>
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "lineHeight": 21,
+                    },
+                    {
+                      "color": "#5B6572",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                8:30
+              </Text>
+            </View>
             <Text
               numberOfLines={1}
               style={
@@ -2091,27 +558,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                 ]
               }
             >
-              Dinara Kochakajeva
-            </Text>
-            <Text
-              numberOfLines={1}
-              style={
-                [
-                  {
-                    "fontSize": 12,
-                    "fontWeight": "400",
-                    "lineHeight": 18,
-                  },
-                  {
-                    "color": "#5B6572",
-                    "textAlign": undefined,
-                    "writingDirection": "ltr",
-                  },
-                  undefined,
-                ]
-              }
-            >
-              1 place · Angle Rue de Kairouan
+              Tunis
             </Text>
             <Text
               numberOfLines={1}
@@ -2131,7 +578,1050 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                 ]
               }
             >
-              → Sousse
+              common:terms.pickup
+               · 
+              Avenue Habib Bourguiba, Tunis
+            </Text>
+          </View>
+        </View>
+        <View
+          style={
+            [
+              {
+                "flexDirection": "row",
+                "gap": 8,
+              },
+              {
+                "marginBottom": 4,
+              },
+            ]
+          }
+        >
+          <View
+            style={
+              [
+                {
+                  "borderRadius": 5,
+                  "borderWidth": 2,
+                  "height": 10,
+                  "marginTop": 4,
+                  "width": 10,
+                },
+                {
+                  "backgroundColor": "#14201B",
+                  "borderColor": "#FFFFFF",
+                },
+              ]
+            }
+          />
+          <View
+            style={
+              {
+                "flex": 1,
+                "gap": 1,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "justifyContent": "space-between",
+                }
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "lineHeight": 21,
+                    },
+                    {
+                      "color": "#5B6572",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                rides.rideDetail.arrival
+              </Text>
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "lineHeight": 21,
+                    },
+                    {
+                      "color": "#5B6572",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                10:30
+              </Text>
+            </View>
+            <Text
+              numberOfLines={1}
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  {
+                    "color": "#14201B",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              Sousse
+            </Text>
+            <Text
+              numberOfLines={1}
+              style={
+                [
+                  {
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "lineHeight": 18,
+                  },
+                  {
+                    "color": "#8B93A3",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              common:terms.dropoff
+               · 
+              Boulevard Hedi Chaker, Sousse
+            </Text>
+          </View>
+        </View>
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "gap": 8,
+            }
+          }
+        >
+          <Ionicons
+            accessibilityElementsHidden={true}
+            color="#5B6572"
+            importantForAccessibility="no-hide-descendants"
+            name="people-outline"
+            size={20}
+          />
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "lineHeight": 21,
+                },
+                {
+                  "color": "#5B6572",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            rides.rideDetail.seatsAvailable
+          </Text>
+        </View>
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "gap": 8,
+            }
+          }
+        >
+          <Ionicons
+            accessibilityElementsHidden={true}
+            color="#5B6572"
+            importantForAccessibility="no-hide-descendants"
+            name="cash-outline"
+            size={20}
+          />
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "lineHeight": 21,
+                },
+                {
+                  "color": "#5B6572",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            rides.rideDetail.pricePerSeat
+          </Text>
+        </View>
+      </View>
+      <View
+        style={
+          {
+            "gap": 8,
+            "marginTop": 16,
+            "paddingHorizontal": 16,
+          }
+        }
+      >
+        <Text
+          style={
+            [
+              {
+                "fontSize": 14,
+                "fontWeight": "500",
+                "lineHeight": 21,
+              },
+              {
+                "color": "#5B6572",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              {
+                "letterSpacing": 0.4,
+                "textTransform": "uppercase",
+              },
+            ]
+          }
+        >
+          rides.rideDetail.pendingSection
+        </Text>
+        <Text
+          style={
+            [
+              {
+                "fontSize": 14,
+                "fontWeight": "400",
+                "lineHeight": 21,
+              },
+              {
+                "color": "#8B93A3",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              {
+                "paddingVertical": 8,
+              },
+            ]
+          }
+        >
+          rides.rideDetail.noPendingRequests
+        </Text>
+      </View>
+      <View
+        style={
+          {
+            "height": 32,
+          }
+        }
+      />
+    </ScrollView>
+    <View
+      style={
+        [
+          {
+            "borderTopWidth": 1,
+            "gap": 8,
+            "paddingHorizontal": 16,
+            "paddingTop": 8,
+          },
+          {
+            "backgroundColor": "#FFFFFF",
+            "borderTopColor": "#E4EDFB",
+            "paddingBottom": 12,
+          },
+        ]
+      }
+    >
+      <Pressable
+        accessibilityLabel="rides.rideDetail.cancelRide"
+        accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": false,
+            "disabled": false,
+          }
+        }
+        disabled={false}
+        onPress={[Function]}
+        style={[Function]}
+      >
+        <Text
+          style={
+            [
+              {
+                "fontWeight": "600",
+              },
+              {
+                "fontSize": 16,
+              },
+              {
+                "color": "#14201B",
+              },
+            ]
+          }
+        >
+          rides.rideDetail.cancelRide
+        </Text>
+      </Pressable>
+    </View>
+    <Modal
+      animationType="slide"
+      onRequestClose={[Function]}
+      visible={false}
+    >
+      <View
+        style={
+          [
+            {
+              "flex": 1,
+            },
+            {
+              "backgroundColor": "#FFFFFF",
+            },
+          ]
+        }
+      >
+        <View
+          style={
+            [
+              {
+                "borderRadius": 16,
+                "overflow": "hidden",
+                "position": "relative",
+              },
+              {
+                "flex": 1,
+                "minHeight": 200,
+              },
+              {
+                "flex": 1,
+              },
+            ]
+          }
+        >
+          <MapView
+            customMapStyle={[]}
+            initialRegion={
+              {
+                "latitude": 36.31,
+                "latitudeDelta": 1.5679999999999952,
+                "longitude": 10.405000000000001,
+                "longitudeDelta": 0.7200000000000017,
+              }
+            }
+            onMapReady={[Function]}
+            provider="google"
+            style={{}}
+          >
+            <Marker
+              anchor={
+                {
+                  "x": 0.5,
+                  "y": 0.5,
+                }
+              }
+              coordinate={
+                {
+                  "latitude": 36.8,
+                  "longitude": 10.18,
+                }
+              }
+            >
+              <View
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "borderBottomLeftRadius": 2,
+                      "borderRadius": 13,
+                      "borderWidth": 2.5,
+                      "elevation": 3,
+                      "height": 26,
+                      "justifyContent": "center",
+                      "shadowColor": "#000",
+                      "shadowOffset": {
+                        "height": 2,
+                        "width": 0,
+                      },
+                      "shadowOpacity": 0.2,
+                      "shadowRadius": 4,
+                      "transform": [
+                        {
+                          "rotate": "-45deg",
+                        },
+                      ],
+                      "width": 26,
+                    },
+                    {
+                      "backgroundColor": "#2E9E6C",
+                      "borderColor": "#FFFFFF",
+                    },
+                  ]
+                }
+              >
+                <View
+                  style={
+                    [
+                      {
+                        "borderRadius": 3.5,
+                        "height": 7,
+                        "transform": [
+                          {
+                            "rotate": "45deg",
+                          },
+                        ],
+                        "width": 7,
+                      },
+                      {
+                        "backgroundColor": "#0D1512",
+                      },
+                    ]
+                  }
+                />
+              </View>
+            </Marker>
+            <Marker
+              anchor={
+                {
+                  "x": 0.5,
+                  "y": 0.5,
+                }
+              }
+              coordinate={
+                {
+                  "latitude": 35.82,
+                  "longitude": 10.63,
+                }
+              }
+            >
+              <View
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "borderBottomLeftRadius": 2,
+                      "borderRadius": 13,
+                      "borderWidth": 2.5,
+                      "elevation": 3,
+                      "height": 26,
+                      "justifyContent": "center",
+                      "shadowColor": "#000",
+                      "shadowOffset": {
+                        "height": 2,
+                        "width": 0,
+                      },
+                      "shadowOpacity": 0.2,
+                      "shadowRadius": 4,
+                      "transform": [
+                        {
+                          "rotate": "-45deg",
+                        },
+                      ],
+                      "width": 26,
+                    },
+                    {
+                      "backgroundColor": "#14201B",
+                      "borderColor": "#FFFFFF",
+                    },
+                  ]
+                }
+              >
+                <View
+                  style={
+                    [
+                      {
+                        "borderRadius": 3.5,
+                        "height": 7,
+                        "transform": [
+                          {
+                            "rotate": "45deg",
+                          },
+                        ],
+                        "width": 7,
+                      },
+                      {
+                        "backgroundColor": "#FFFFFF",
+                      },
+                    ]
+                  }
+                />
+              </View>
+            </Marker>
+          </MapView>
+          <View
+            pointerEvents="none"
+            style={
+              {
+                "backgroundColor": "#EDEBE1",
+                "opacity": 0.18,
+              }
+            }
+          />
+          <Animated.View
+            accessibilityElementsHidden={true}
+            importantForAccessibility="no-hide-descendants"
+            style={
+              [
+                {
+                  "backgroundColor": "#EAE7DC",
+                },
+                {
+                  "borderRadius": 0,
+                  "height": 16,
+                  "opacity": AnimatedValue {
+                    "value": 0.45,
+                  },
+                  "width": "100%",
+                },
+                {},
+              ]
+            }
+          />
+        </View>
+        <TouchableOpacity
+          accessibilityLabel="rides.rideDetail.close"
+          accessibilityRole="button"
+          hitSlop={12}
+          onPress={[Function]}
+          style={
+            [
+              {
+                "alignItems": "center",
+                "borderRadius": 20,
+                "elevation": 3,
+                "height": 40,
+                "justifyContent": "center",
+                "position": "absolute",
+                "right": 16,
+                "shadowColor": "#000",
+                "shadowOffset": {
+                  "height": 2,
+                  "width": 0,
+                },
+                "shadowOpacity": 0.15,
+                "shadowRadius": 6,
+                "width": 40,
+              },
+              {
+                "backgroundColor": "#FFFFFF",
+                "top": 8,
+              },
+            ]
+          }
+        >
+          <Ionicons
+            color="#14201B"
+            name="close"
+            size={22}
+          />
+        </TouchableOpacity>
+      </View>
+    </Modal>
+  </View>,
+  <View
+    pointerEvents="box-none"
+    style={
+      {
+        "gap": 8,
+        "left": 16,
+        "position": "absolute",
+        "right": 16,
+        "top": 32,
+      }
+    }
+  />,
+]
+`;
+
+exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accepter/Refuser) and one confirmed passenger 1`] = `
+[
+  <View
+    style={
+      [
+        {
+          "flex": 1,
+        },
+        {
+          "backgroundColor": "#FFFFFF",
+        },
+      ]
+    }
+  >
+    <ScrollView
+      contentContainerStyle={
+        {
+          "paddingBottom": 20,
+        }
+      }
+      showsVerticalScrollIndicator={false}
+    >
+      <View
+        style={
+          [
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "paddingBottom": 8,
+              "paddingHorizontal": 16,
+            },
+            {
+              "paddingTop": 8,
+            },
+          ]
+        }
+      >
+        <TouchableOpacity
+          accessibilityLabel="rides.rideDetail.back"
+          accessibilityRole="button"
+          hitSlop={12}
+          onPress={[Function]}
+        >
+          <Ionicons
+            color="#14201B"
+            name="chevron-back"
+            size={24}
+          />
+        </TouchableOpacity>
+        <Text
+          style={
+            [
+              {
+                "fontSize": 24,
+                "fontWeight": "600",
+                "lineHeight": 28.799999999999997,
+              },
+              {
+                "color": "#14201B",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              {
+                "flex": 1,
+                "textAlign": "center",
+              },
+            ]
+          }
+        >
+          rides.rideDetail.myRide
+        </Text>
+        <View
+          style={
+            {
+              "width": 24,
+            }
+          }
+        />
+      </View>
+      <View
+        style={
+          {
+            "marginHorizontal": 16,
+            "position": "relative",
+          }
+        }
+      >
+        <View
+          style={
+            [
+              {
+                "backgroundColor": "#EDEBE1",
+                "borderRadius": 16,
+                "overflow": "hidden",
+                "position": "relative",
+              },
+              {
+                "height": 160,
+              },
+              {},
+            ]
+          }
+        >
+          <MapView
+            customMapStyle={[]}
+            initialRegion={
+              {
+                "latitude": 36.31,
+                "latitudeDelta": 1.5679999999999952,
+                "longitude": 10.405000000000001,
+                "longitudeDelta": 0.7200000000000017,
+              }
+            }
+            onMapReady={[Function]}
+            pitchEnabled={false}
+            pointerEvents="none"
+            provider="default"
+            rotateEnabled={false}
+            scrollEnabled={false}
+            style={{}}
+            userInterfaceStyle="light"
+            zoomEnabled={false}
+          >
+            <Marker
+              anchor={
+                {
+                  "x": 0.5,
+                  "y": 0.5,
+                }
+              }
+              coordinate={
+                {
+                  "latitude": 36.8,
+                  "longitude": 10.18,
+                }
+              }
+            >
+              <View
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "borderBottomLeftRadius": 2,
+                      "borderRadius": 13,
+                      "borderWidth": 2.5,
+                      "elevation": 3,
+                      "height": 26,
+                      "justifyContent": "center",
+                      "shadowColor": "#000",
+                      "shadowOffset": {
+                        "height": 2,
+                        "width": 0,
+                      },
+                      "shadowOpacity": 0.2,
+                      "shadowRadius": 4,
+                      "transform": [
+                        {
+                          "rotate": "-45deg",
+                        },
+                      ],
+                      "width": 26,
+                    },
+                    {
+                      "backgroundColor": "#2E9E6C",
+                      "borderColor": "#FFFFFF",
+                    },
+                  ]
+                }
+              >
+                <View
+                  style={
+                    [
+                      {
+                        "borderRadius": 3.5,
+                        "height": 7,
+                        "transform": [
+                          {
+                            "rotate": "45deg",
+                          },
+                        ],
+                        "width": 7,
+                      },
+                      {
+                        "backgroundColor": "#0D1512",
+                      },
+                    ]
+                  }
+                />
+              </View>
+            </Marker>
+            <Marker
+              anchor={
+                {
+                  "x": 0.5,
+                  "y": 0.5,
+                }
+              }
+              coordinate={
+                {
+                  "latitude": 35.82,
+                  "longitude": 10.63,
+                }
+              }
+            >
+              <View
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "borderBottomLeftRadius": 2,
+                      "borderRadius": 13,
+                      "borderWidth": 2.5,
+                      "elevation": 3,
+                      "height": 26,
+                      "justifyContent": "center",
+                      "shadowColor": "#000",
+                      "shadowOffset": {
+                        "height": 2,
+                        "width": 0,
+                      },
+                      "shadowOpacity": 0.2,
+                      "shadowRadius": 4,
+                      "transform": [
+                        {
+                          "rotate": "-45deg",
+                        },
+                      ],
+                      "width": 26,
+                    },
+                    {
+                      "backgroundColor": "#14201B",
+                      "borderColor": "#FFFFFF",
+                    },
+                  ]
+                }
+              >
+                <View
+                  style={
+                    [
+                      {
+                        "borderRadius": 3.5,
+                        "height": 7,
+                        "transform": [
+                          {
+                            "rotate": "45deg",
+                          },
+                        ],
+                        "width": 7,
+                      },
+                      {
+                        "backgroundColor": "#FFFFFF",
+                      },
+                    ]
+                  }
+                />
+              </View>
+            </Marker>
+          </MapView>
+          <View
+            pointerEvents="none"
+            style={
+              {
+                "backgroundColor": "#EDEBE1",
+                "opacity": 0.18,
+              }
+            }
+          />
+          <Animated.View
+            accessibilityElementsHidden={true}
+            importantForAccessibility="no-hide-descendants"
+            style={
+              [
+                {
+                  "backgroundColor": "#EAE7DC",
+                },
+                {
+                  "borderRadius": 0,
+                  "height": 16,
+                  "opacity": AnimatedValue {
+                    "value": 0.45,
+                  },
+                  "width": "100%",
+                },
+                {},
+              ]
+            }
+          />
+          <View
+            style={
+              {
+                "backgroundColor": "#2E3B42",
+                "borderRadius": 9999,
+                "left": 8,
+                "paddingHorizontal": 8,
+                "paddingVertical": 4,
+                "position": "absolute",
+                "top": 8,
+              }
+            }
+          >
+            <Text
+              style={
+                {
+                  "color": "#F3F1E9",
+                  "fontSize": 12,
+                  "fontWeight": "600",
+                }
+              }
+            >
+              rides.rideDetail.startedWithEta
+            </Text>
+          </View>
+        </View>
+        <TouchableOpacity
+          accessibilityLabel="rides.rideDetail.viewRouteFullscreen"
+          accessibilityRole="button"
+          activeOpacity={0.85}
+          onPress={[Function]}
+          style={
+            [
+              {
+                "alignItems": "center",
+                "borderRadius": 9999,
+                "bottom": 8,
+                "elevation": 2,
+                "flexDirection": "row",
+                "gap": 4,
+                "paddingHorizontal": 8,
+                "paddingVertical": 4,
+                "position": "absolute",
+                "right": 8,
+                "shadowColor": "#000",
+                "shadowOffset": {
+                  "height": 2,
+                  "width": 0,
+                },
+                "shadowOpacity": 0.12,
+                "shadowRadius": 6,
+              },
+              {
+                "backgroundColor": "#FFFFFF",
+              },
+            ]
+          }
+        >
+          <Ionicons
+            accessibilityElementsHidden={true}
+            color="#14201B"
+            importantForAccessibility="no-hide-descendants"
+            name="expand-outline"
+            size={16}
+          />
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "lineHeight": 18,
+                },
+                {
+                  "color": "#14201B",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            rides.rideDetail.viewRouteFullscreen
+          </Text>
+        </TouchableOpacity>
+      </View>
+      <View
+        style={
+          [
+            {
+              "borderRadius": 16,
+              "borderWidth": 1,
+              "gap": 8,
+              "marginHorizontal": 16,
+              "marginTop": 12,
+              "padding": 12,
+            },
+            {
+              "backgroundColor": "#FFFFFF",
+              "borderColor": "#E4EDFB",
+            },
+          ]
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "gap": 8,
+              "justifyContent": "space-between",
+            }
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 14,
+                  "fontWeight": "500",
+                  "lineHeight": 21,
+                },
+                {
+                  "color": "#5B6572",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                {
+                  "letterSpacing": 0.4,
+                  "textTransform": "uppercase",
+                },
+              ]
+            }
+          >
+            rides.rideDetail.itinerary
+          </Text>
+          <View
+            accessibilityLabel="rides.rideDetail.startedWithEta"
+            accessibilityRole="text"
+            accessible={true}
+            style={
+              [
+                {
+                  "alignSelf": "flex-start",
+                  "borderRadius": 9999,
+                  "paddingHorizontal": 8,
+                  "paddingVertical": 4,
+                },
+                {
+                  "backgroundColor": "#F3E8CE",
+                },
+                undefined,
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 12,
+                    "fontWeight": "500",
+                  },
+                  {
+                    "color": "#B58A2E",
+                  },
+                ]
+              }
+            >
+              rides.rideDetail.startedWithEta
             </Text>
           </View>
         </View>
@@ -2143,81 +1633,90 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
             }
           }
         >
-          <TouchableOpacity
-            accessibilityLabel="rides.requestsSheet.decline Dinara Kochakajeva"
-            accessibilityRole="button"
-            activeOpacity={0.7}
-            disabled={false}
-            onPress={[Function]}
+          <View
             style={
               [
                 {
-                  "alignItems": "center",
-                  "borderRadius": 9999,
-                  "flex": 1,
-                  "justifyContent": "center",
-                  "paddingVertical": 8,
-                },
-                {
-                  "borderWidth": 1,
-                },
-                {
-                  "borderColor": "#D3E1F5",
-                },
-              ]
-            }
-          >
-            <Text
-              style={
-                [
-                  {
-                    "fontSize": 14,
-                    "fontWeight": "500",
-                    "lineHeight": 21,
-                  },
-                  {
-                    "color": "#B5503C",
-                    "textAlign": undefined,
-                    "writingDirection": "ltr",
-                  },
-                  undefined,
-                ]
-              }
-            >
-              rides.requestsSheet.decline
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            accessibilityLabel="rides.requestsSheet.accept Dinara Kochakajeva"
-            accessibilityRole="button"
-            activeOpacity={0.85}
-            disabled={false}
-            onPress={[Function]}
-            style={
-              [
-                {
-                  "alignItems": "center",
-                  "borderRadius": 9999,
-                  "flex": 1,
-                  "justifyContent": "center",
-                  "paddingVertical": 8,
+                  "borderRadius": 5,
+                  "borderWidth": 2,
+                  "height": 10,
+                  "marginTop": 4,
+                  "width": 10,
                 },
                 {
                   "backgroundColor": "#2E9E6C",
+                  "borderColor": "#FFFFFF",
                 },
               ]
             }
+          />
+          <View
+            style={
+              {
+                "flex": 1,
+                "gap": 1,
+              }
+            }
           >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "justifyContent": "space-between",
+                }
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "lineHeight": 21,
+                    },
+                    {
+                      "color": "#5B6572",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                rides.rideDetail.departure
+              </Text>
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "lineHeight": 21,
+                    },
+                    {
+                      "color": "#5B6572",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                8:30
+              </Text>
+            </View>
             <Text
+              numberOfLines={1}
               style={
                 [
                   {
-                    "fontSize": 14,
-                    "fontWeight": "500",
-                    "lineHeight": 21,
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
                   },
                   {
-                    "color": "#0D1512",
+                    "color": "#14201B",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -2225,140 +1724,185 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                 ]
               }
             >
-              rides.requestsSheet.accept
+              Tunis
             </Text>
-          </TouchableOpacity>
+            <Text
+              numberOfLines={1}
+              style={
+                [
+                  {
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "lineHeight": 18,
+                  },
+                  {
+                    "color": "#8B93A3",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              common:terms.pickup
+               · 
+              Avenue Habib Bourguiba, Tunis
+            </Text>
+          </View>
         </View>
-      </View>
-    </View>
-    <View
-      style={
-        {
-          "gap": 8,
-          "marginTop": 16,
-          "paddingHorizontal": 16,
-        }
-      }
-    >
-      <Text
-        style={
-          [
-            {
-              "fontSize": 14,
-              "fontWeight": "500",
-              "lineHeight": 21,
-            },
-            {
-              "color": "#5B6572",
-              "textAlign": undefined,
-              "writingDirection": "ltr",
-            },
-            {
-              "letterSpacing": 0.4,
-              "textTransform": "uppercase",
-            },
-          ]
-        }
-      >
-        rides.rideDetail.passengers
-      </Text>
-      <TouchableOpacity
-        accessibilityLabel="rides.manageSheet.title Karim Fassi"
-        accessibilityRole="button"
-        activeOpacity={0.7}
-        disabled={false}
-        onPress={[Function]}
-        style={
-          [
-            {
-              "borderRadius": 16,
-              "borderWidth": 1,
-              "gap": 8,
-              "padding": 12,
-            },
-            {
-              "alignItems": "center",
-              "flexDirection": "row",
-              "gap": 8,
-            },
-            {
-              "backgroundColor": "#E4EDFB",
-              "borderColor": "#E4EDFB",
-            },
-          ]
-        }
-      >
         <View
-          accessibilityLabel="Photo de Karim Fassi"
-          accessibilityRole="image"
-          accessible={true}
           style={
             [
               {
-                "alignItems": "center",
-                "justifyContent": "center",
+                "flexDirection": "row",
+                "gap": 8,
               },
               {
-                "backgroundColor": "#FFFFFF",
-                "borderRadius": 18,
-                "height": 36,
-                "width": 36,
+                "marginBottom": 4,
               },
             ]
           }
         >
-          <Text
+          <View
             style={
               [
                 {
-                  "color": "#FFFFFF",
-                  "fontWeight": "600",
+                  "borderRadius": 5,
+                  "borderWidth": 2,
+                  "height": 10,
+                  "marginTop": 4,
+                  "width": 10,
                 },
                 {
-                  "color": "#14201B",
-                  "fontSize": 14,
+                  "backgroundColor": "#14201B",
+                  "borderColor": "#FFFFFF",
                 },
               ]
             }
+          />
+          <View
+            style={
+              {
+                "flex": 1,
+                "gap": 1,
+              }
+            }
           >
-            KF
-          </Text>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "justifyContent": "space-between",
+                }
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "lineHeight": 21,
+                    },
+                    {
+                      "color": "#5B6572",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                rides.rideDetail.arrival
+              </Text>
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "lineHeight": 21,
+                    },
+                    {
+                      "color": "#5B6572",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                10:30
+              </Text>
+            </View>
+            <Text
+              numberOfLines={1}
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  {
+                    "color": "#14201B",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              Sousse
+            </Text>
+            <Text
+              numberOfLines={1}
+              style={
+                [
+                  {
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "lineHeight": 18,
+                  },
+                  {
+                    "color": "#8B93A3",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              common:terms.dropoff
+               · 
+              Boulevard Hedi Chaker, Sousse
+            </Text>
+          </View>
         </View>
         <View
           style={
             {
-              "flex": 1,
-              "gap": 1,
+              "alignItems": "center",
+              "flexDirection": "row",
+              "gap": 8,
             }
           }
         >
+          <Ionicons
+            accessibilityElementsHidden={true}
+            color="#5B6572"
+            importantForAccessibility="no-hide-descendants"
+            name="people-outline"
+            size={20}
+          />
           <Text
-            numberOfLines={1}
             style={
               [
                 {
                   "fontSize": 14,
                   "fontWeight": "400",
                   "lineHeight": 21,
-                },
-                {
-                  "color": "#14201B",
-                  "textAlign": undefined,
-                  "writingDirection": "ltr",
-                },
-                undefined,
-              ]
-            }
-          >
-            Karim Fassi
-          </Text>
-          <Text
-            style={
-              [
-                {
-                  "fontSize": 12,
-                  "fontWeight": "400",
-                  "lineHeight": 18,
                 },
                 {
                   "color": "#5B6572",
@@ -2369,361 +1913,886 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
               ]
             }
           >
-            1 place
+            rides.rideDetail.seatsAvailable
           </Text>
         </View>
         <View
-          accessibilityLabel="rides.requestsSheet.sectionAccepted"
-          accessibilityRole="text"
-          accessible={true}
           style={
-            [
-              {
-                "alignSelf": "flex-start",
-                "borderRadius": 9999,
-                "paddingHorizontal": 8,
-                "paddingVertical": 4,
-              },
-              {
-                "backgroundColor": "#8FD9B4",
-              },
-              undefined,
-            ]
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "gap": 8,
+            }
           }
         >
+          <Ionicons
+            accessibilityElementsHidden={true}
+            color="#5B6572"
+            importantForAccessibility="no-hide-descendants"
+            name="cash-outline"
+            size={20}
+          />
           <Text
             style={
               [
                 {
-                  "fontSize": 12,
-                  "fontWeight": "500",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "lineHeight": 21,
                 },
                 {
-                  "color": "#22794F",
+                  "color": "#5B6572",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            rides.rideDetail.pricePerSeat
+          </Text>
+        </View>
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "gap": 8,
+            }
+          }
+        >
+          <Ionicons
+            accessibilityElementsHidden={true}
+            color="#5B6572"
+            importantForAccessibility="no-hide-descendants"
+            name="wallet-outline"
+            size={20}
+          />
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "lineHeight": 21,
+                },
+                {
+                  "color": "#5B6572",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            rides.rideDetail.confirmedRevenue
+          </Text>
+        </View>
+      </View>
+      <View
+        style={
+          {
+            "gap": 8,
+            "marginTop": 16,
+            "paddingHorizontal": 16,
+          }
+        }
+      >
+        <Text
+          style={
+            [
+              {
+                "fontSize": 14,
+                "fontWeight": "500",
+                "lineHeight": 21,
+              },
+              {
+                "color": "#5B6572",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              {
+                "letterSpacing": 0.4,
+                "textTransform": "uppercase",
+              },
+            ]
+          }
+        >
+          rides.rideDetail.pendingSection
+        </Text>
+        <View
+          style={
+            [
+              {
+                "borderRadius": 16,
+                "borderWidth": 1,
+                "gap": 8,
+                "padding": 12,
+              },
+              {
+                "backgroundColor": "#E4EDFB",
+                "borderColor": "#E4EDFB",
+              },
+            ]
+          }
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+                "gap": 8,
+              }
+            }
+          >
+            <View
+              accessibilityLabel="Photo de Dinara Kochakajeva"
+              accessibilityRole="image"
+              accessible={true}
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "justifyContent": "center",
+                  },
+                  {
+                    "backgroundColor": "#FFFFFF",
+                    "borderRadius": 20,
+                    "height": 40,
+                    "width": 40,
+                  },
+                ]
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "color": "#FFFFFF",
+                      "fontWeight": "600",
+                    },
+                    {
+                      "color": "#14201B",
+                      "fontSize": 16,
+                    },
+                  ]
+                }
+              >
+                DK
+              </Text>
+            </View>
+            <View
+              style={
+                {
+                  "flex": 1,
+                  "gap": 1,
+                }
+              }
+            >
+              <Text
+                numberOfLines={1}
+                style={
+                  [
+                    {
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "lineHeight": 24,
+                    },
+                    {
+                      "color": "#14201B",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                Dinara Kochakajeva
+              </Text>
+              <Text
+                numberOfLines={1}
+                style={
+                  [
+                    {
+                      "fontSize": 12,
+                      "fontWeight": "400",
+                      "lineHeight": 18,
+                    },
+                    {
+                      "color": "#5B6572",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                1 place · Angle Rue de Kairouan
+              </Text>
+              <Text
+                numberOfLines={1}
+                style={
+                  [
+                    {
+                      "fontSize": 12,
+                      "fontWeight": "400",
+                      "lineHeight": 18,
+                    },
+                    {
+                      "color": "#8B93A3",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                → Sousse
+              </Text>
+            </View>
+          </View>
+          <View
+            style={
+              {
+                "flexDirection": "row",
+                "gap": 8,
+              }
+            }
+          >
+            <TouchableOpacity
+              accessibilityLabel="rides.requestsSheet.decline Dinara Kochakajeva"
+              accessibilityRole="button"
+              activeOpacity={0.7}
+              disabled={false}
+              onPress={[Function]}
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "borderRadius": 9999,
+                    "flex": 1,
+                    "justifyContent": "center",
+                    "paddingVertical": 8,
+                  },
+                  {
+                    "borderWidth": 1,
+                  },
+                  {
+                    "borderColor": "#D3E1F5",
+                  },
+                ]
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 14,
+                      "fontWeight": "500",
+                      "lineHeight": 21,
+                    },
+                    {
+                      "color": "#B5503C",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                rides.requestsSheet.decline
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              accessibilityLabel="rides.requestsSheet.accept Dinara Kochakajeva"
+              accessibilityRole="button"
+              activeOpacity={0.85}
+              disabled={false}
+              onPress={[Function]}
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "borderRadius": 9999,
+                    "flex": 1,
+                    "justifyContent": "center",
+                    "paddingVertical": 8,
+                  },
+                  {
+                    "backgroundColor": "#2E9E6C",
+                  },
+                ]
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 14,
+                      "fontWeight": "500",
+                      "lineHeight": 21,
+                    },
+                    {
+                      "color": "#0D1512",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                rides.requestsSheet.accept
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+      <View
+        style={
+          {
+            "gap": 8,
+            "marginTop": 16,
+            "paddingHorizontal": 16,
+          }
+        }
+      >
+        <Text
+          style={
+            [
+              {
+                "fontSize": 14,
+                "fontWeight": "500",
+                "lineHeight": 21,
+              },
+              {
+                "color": "#5B6572",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              {
+                "letterSpacing": 0.4,
+                "textTransform": "uppercase",
+              },
+            ]
+          }
+        >
+          rides.rideDetail.passengers
+        </Text>
+        <View
+          style={
+            {
+              "gap": 4,
+            }
+          }
+        >
+          <TouchableOpacity
+            accessibilityLabel="rides.manageSheet.title Karim Fassi"
+            accessibilityRole="button"
+            activeOpacity={0.7}
+            disabled={false}
+            onPress={[Function]}
+            style={
+              [
+                {
+                  "borderRadius": 16,
+                  "borderWidth": 1,
+                  "gap": 8,
+                  "padding": 12,
+                },
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 8,
+                },
+                {
+                  "backgroundColor": "#E4EDFB",
+                  "borderColor": "#E4EDFB",
                 },
               ]
             }
           >
-            rides.requestsSheet.sectionAccepted
-          </Text>
+            <View
+              accessibilityLabel="Photo de Karim Fassi"
+              accessibilityRole="image"
+              accessible={true}
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "justifyContent": "center",
+                  },
+                  {
+                    "backgroundColor": "#FFFFFF",
+                    "borderRadius": 18,
+                    "height": 36,
+                    "width": 36,
+                  },
+                ]
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "color": "#FFFFFF",
+                      "fontWeight": "600",
+                    },
+                    {
+                      "color": "#14201B",
+                      "fontSize": 14,
+                    },
+                  ]
+                }
+              >
+                KF
+              </Text>
+            </View>
+            <View
+              style={
+                {
+                  "flex": 1,
+                  "gap": 1,
+                }
+              }
+            >
+              <Text
+                numberOfLines={1}
+                style={
+                  [
+                    {
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "lineHeight": 21,
+                    },
+                    {
+                      "color": "#14201B",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                Karim Fassi
+              </Text>
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 12,
+                      "fontWeight": "400",
+                      "lineHeight": 18,
+                    },
+                    {
+                      "color": "#5B6572",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                1 place
+              </Text>
+            </View>
+            <View
+              accessibilityLabel="rides.requestsSheet.sectionAccepted"
+              accessibilityRole="text"
+              accessible={true}
+              style={
+                [
+                  {
+                    "alignSelf": "flex-start",
+                    "borderRadius": 9999,
+                    "paddingHorizontal": 8,
+                    "paddingVertical": 4,
+                  },
+                  {
+                    "backgroundColor": "#8FD9B4",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 12,
+                      "fontWeight": "500",
+                    },
+                    {
+                      "color": "#22794F",
+                    },
+                  ]
+                }
+              >
+                rides.requestsSheet.sectionAccepted
+              </Text>
+            </View>
+            <Ionicons
+              accessibilityElementsHidden={true}
+              color="#D3E1F5"
+              importantForAccessibility="no-hide-descendants"
+              name="chevron-forward"
+              size={16}
+            />
+          </TouchableOpacity>
         </View>
-        <Ionicons
-          accessibilityElementsHidden={true}
-          color="#D3E1F5"
-          importantForAccessibility="no-hide-descendants"
-          name="chevron-forward"
-          size={16}
-        />
-      </TouchableOpacity>
-    </View>
-    <View
-      style={
-        {
-          "height": 32,
-        }
-      }
-    />
-  </ScrollView>
-  <View
-    style={
-      [
-        {
-          "borderTopWidth": 1,
-          "paddingHorizontal": 16,
-          "paddingTop": 8,
-        },
-        {
-          "backgroundColor": "#FFFFFF",
-          "borderTopColor": "#E4EDFB",
-          "paddingBottom": 12,
-        },
-      ]
-    }
-  >
-    <Pressable
-      accessibilityLabel="rides.rideDetail.cancelRide"
-      accessibilityRole="button"
-      accessibilityState={
-        {
-          "busy": false,
-          "disabled": false,
-        }
-      }
-      disabled={false}
-      onPress={[Function]}
-      style={[Function]}
-    >
-      <Text
+      </View>
+      <View
         style={
-          [
-            {
-              "fontWeight": "600",
-            },
-            {
-              "fontSize": 16,
-            },
-            {
-              "color": "#14201B",
-            },
-          ]
+          {
+            "height": 32,
+          }
         }
-      >
-        rides.rideDetail.cancelRide
-      </Text>
-    </Pressable>
-  </View>
-  <Modal
-    animationType="slide"
-    onRequestClose={[Function]}
-    visible={false}
-  >
+      />
+    </ScrollView>
     <View
       style={
         [
           {
-            "flex": 1,
+            "borderTopWidth": 1,
+            "gap": 8,
+            "paddingHorizontal": 16,
+            "paddingTop": 8,
           },
           {
             "backgroundColor": "#FFFFFF",
+            "borderTopColor": "#E4EDFB",
+            "paddingBottom": 12,
           },
         ]
       }
+    >
+      <Pressable
+        accessibilityLabel="rides.rideDetail.journeyStartCta"
+        accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": false,
+            "disabled": false,
+          }
+        }
+        disabled={false}
+        onPress={[Function]}
+        style={[Function]}
+      >
+        <Text
+          style={
+            [
+              {
+                "fontWeight": "600",
+              },
+              {
+                "fontSize": 16,
+              },
+              {
+                "color": "#0D1512",
+              },
+            ]
+          }
+        >
+          rides.rideDetail.journeyStartCta
+        </Text>
+      </Pressable>
+      <Pressable
+        accessibilityLabel="rides.rideDetail.cancelRide"
+        accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": false,
+            "disabled": false,
+          }
+        }
+        disabled={false}
+        onPress={[Function]}
+        style={[Function]}
+      >
+        <Text
+          style={
+            [
+              {
+                "fontWeight": "600",
+              },
+              {
+                "fontSize": 16,
+              },
+              {
+                "color": "#14201B",
+              },
+            ]
+          }
+        >
+          rides.rideDetail.cancelRide
+        </Text>
+      </Pressable>
+    </View>
+    <Modal
+      animationType="slide"
+      onRequestClose={[Function]}
+      visible={false}
     >
       <View
         style={
           [
             {
-              "borderRadius": 16,
-              "overflow": "hidden",
-              "position": "relative",
-            },
-            {
               "flex": 1,
-              "minHeight": 200,
-            },
-            {
-              "flex": 1,
-            },
-          ]
-        }
-      >
-        <MapView
-          customMapStyle={[]}
-          initialRegion={
-            {
-              "latitude": 36.31,
-              "latitudeDelta": 1.5679999999999952,
-              "longitude": 10.405000000000001,
-              "longitudeDelta": 0.7200000000000017,
-            }
-          }
-          onMapReady={[Function]}
-          provider="google"
-          style={{}}
-        >
-          <Marker
-            anchor={
-              {
-                "x": 0.5,
-                "y": 0.5,
-              }
-            }
-            coordinate={
-              {
-                "latitude": 36.8,
-                "longitude": 10.18,
-              }
-            }
-          >
-            <View
-              style={
-                [
-                  {
-                    "alignItems": "center",
-                    "borderBottomLeftRadius": 2,
-                    "borderRadius": 13,
-                    "borderWidth": 2.5,
-                    "elevation": 3,
-                    "height": 26,
-                    "justifyContent": "center",
-                    "shadowColor": "#000",
-                    "shadowOffset": {
-                      "height": 2,
-                      "width": 0,
-                    },
-                    "shadowOpacity": 0.2,
-                    "shadowRadius": 4,
-                    "transform": [
-                      {
-                        "rotate": "-45deg",
-                      },
-                    ],
-                    "width": 26,
-                  },
-                  {
-                    "backgroundColor": "#2E9E6C",
-                    "borderColor": "#FFFFFF",
-                  },
-                ]
-              }
-            >
-              <View
-                style={
-                  [
-                    {
-                      "borderRadius": 3.5,
-                      "height": 7,
-                      "transform": [
-                        {
-                          "rotate": "45deg",
-                        },
-                      ],
-                      "width": 7,
-                    },
-                    {
-                      "backgroundColor": "#0D1512",
-                    },
-                  ]
-                }
-              />
-            </View>
-          </Marker>
-          <Marker
-            anchor={
-              {
-                "x": 0.5,
-                "y": 0.5,
-              }
-            }
-            coordinate={
-              {
-                "latitude": 35.82,
-                "longitude": 10.63,
-              }
-            }
-          >
-            <View
-              style={
-                [
-                  {
-                    "alignItems": "center",
-                    "borderBottomLeftRadius": 2,
-                    "borderRadius": 13,
-                    "borderWidth": 2.5,
-                    "elevation": 3,
-                    "height": 26,
-                    "justifyContent": "center",
-                    "shadowColor": "#000",
-                    "shadowOffset": {
-                      "height": 2,
-                      "width": 0,
-                    },
-                    "shadowOpacity": 0.2,
-                    "shadowRadius": 4,
-                    "transform": [
-                      {
-                        "rotate": "-45deg",
-                      },
-                    ],
-                    "width": 26,
-                  },
-                  {
-                    "backgroundColor": "#14201B",
-                    "borderColor": "#FFFFFF",
-                  },
-                ]
-              }
-            >
-              <View
-                style={
-                  [
-                    {
-                      "borderRadius": 3.5,
-                      "height": 7,
-                      "transform": [
-                        {
-                          "rotate": "45deg",
-                        },
-                      ],
-                      "width": 7,
-                    },
-                    {
-                      "backgroundColor": "#FFFFFF",
-                    },
-                  ]
-                }
-              />
-            </View>
-          </Marker>
-        </MapView>
-        <View
-          pointerEvents="none"
-          style={
-            {
-              "backgroundColor": "#EDEBE1",
-              "opacity": 0.18,
-            }
-          }
-        />
-        <Animated.View
-          accessibilityElementsHidden={true}
-          importantForAccessibility="no-hide-descendants"
-          style={
-            [
-              {
-                "backgroundColor": "#EAE7DC",
-              },
-              {
-                "borderRadius": 0,
-                "height": 16,
-                "opacity": AnimatedValue {
-                  "value": 0.45,
-                },
-                "width": "100%",
-              },
-              {},
-            ]
-          }
-        />
-      </View>
-      <TouchableOpacity
-        accessibilityLabel="rides.rideDetail.close"
-        accessibilityRole="button"
-        hitSlop={12}
-        onPress={[Function]}
-        style={
-          [
-            {
-              "alignItems": "center",
-              "borderRadius": 20,
-              "elevation": 3,
-              "height": 40,
-              "justifyContent": "center",
-              "position": "absolute",
-              "right": 16,
-              "shadowColor": "#000",
-              "shadowOffset": {
-                "height": 2,
-                "width": 0,
-              },
-              "shadowOpacity": 0.15,
-              "shadowRadius": 6,
-              "width": 40,
             },
             {
               "backgroundColor": "#FFFFFF",
-              "top": 8,
             },
           ]
         }
       >
-        <Ionicons
-          color="#14201B"
-          name="close"
-          size={22}
-        />
-      </TouchableOpacity>
-    </View>
-  </Modal>
-</View>
+        <View
+          style={
+            [
+              {
+                "borderRadius": 16,
+                "overflow": "hidden",
+                "position": "relative",
+              },
+              {
+                "flex": 1,
+                "minHeight": 200,
+              },
+              {
+                "flex": 1,
+              },
+            ]
+          }
+        >
+          <MapView
+            customMapStyle={[]}
+            initialRegion={
+              {
+                "latitude": 36.31,
+                "latitudeDelta": 1.5679999999999952,
+                "longitude": 10.405000000000001,
+                "longitudeDelta": 0.7200000000000017,
+              }
+            }
+            onMapReady={[Function]}
+            provider="google"
+            style={{}}
+          >
+            <Marker
+              anchor={
+                {
+                  "x": 0.5,
+                  "y": 0.5,
+                }
+              }
+              coordinate={
+                {
+                  "latitude": 36.8,
+                  "longitude": 10.18,
+                }
+              }
+            >
+              <View
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "borderBottomLeftRadius": 2,
+                      "borderRadius": 13,
+                      "borderWidth": 2.5,
+                      "elevation": 3,
+                      "height": 26,
+                      "justifyContent": "center",
+                      "shadowColor": "#000",
+                      "shadowOffset": {
+                        "height": 2,
+                        "width": 0,
+                      },
+                      "shadowOpacity": 0.2,
+                      "shadowRadius": 4,
+                      "transform": [
+                        {
+                          "rotate": "-45deg",
+                        },
+                      ],
+                      "width": 26,
+                    },
+                    {
+                      "backgroundColor": "#2E9E6C",
+                      "borderColor": "#FFFFFF",
+                    },
+                  ]
+                }
+              >
+                <View
+                  style={
+                    [
+                      {
+                        "borderRadius": 3.5,
+                        "height": 7,
+                        "transform": [
+                          {
+                            "rotate": "45deg",
+                          },
+                        ],
+                        "width": 7,
+                      },
+                      {
+                        "backgroundColor": "#0D1512",
+                      },
+                    ]
+                  }
+                />
+              </View>
+            </Marker>
+            <Marker
+              anchor={
+                {
+                  "x": 0.5,
+                  "y": 0.5,
+                }
+              }
+              coordinate={
+                {
+                  "latitude": 35.82,
+                  "longitude": 10.63,
+                }
+              }
+            >
+              <View
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "borderBottomLeftRadius": 2,
+                      "borderRadius": 13,
+                      "borderWidth": 2.5,
+                      "elevation": 3,
+                      "height": 26,
+                      "justifyContent": "center",
+                      "shadowColor": "#000",
+                      "shadowOffset": {
+                        "height": 2,
+                        "width": 0,
+                      },
+                      "shadowOpacity": 0.2,
+                      "shadowRadius": 4,
+                      "transform": [
+                        {
+                          "rotate": "-45deg",
+                        },
+                      ],
+                      "width": 26,
+                    },
+                    {
+                      "backgroundColor": "#14201B",
+                      "borderColor": "#FFFFFF",
+                    },
+                  ]
+                }
+              >
+                <View
+                  style={
+                    [
+                      {
+                        "borderRadius": 3.5,
+                        "height": 7,
+                        "transform": [
+                          {
+                            "rotate": "45deg",
+                          },
+                        ],
+                        "width": 7,
+                      },
+                      {
+                        "backgroundColor": "#FFFFFF",
+                      },
+                    ]
+                  }
+                />
+              </View>
+            </Marker>
+          </MapView>
+          <View
+            pointerEvents="none"
+            style={
+              {
+                "backgroundColor": "#EDEBE1",
+                "opacity": 0.18,
+              }
+            }
+          />
+          <Animated.View
+            accessibilityElementsHidden={true}
+            importantForAccessibility="no-hide-descendants"
+            style={
+              [
+                {
+                  "backgroundColor": "#EAE7DC",
+                },
+                {
+                  "borderRadius": 0,
+                  "height": 16,
+                  "opacity": AnimatedValue {
+                    "value": 0.45,
+                  },
+                  "width": "100%",
+                },
+                {},
+              ]
+            }
+          />
+        </View>
+        <TouchableOpacity
+          accessibilityLabel="rides.rideDetail.close"
+          accessibilityRole="button"
+          hitSlop={12}
+          onPress={[Function]}
+          style={
+            [
+              {
+                "alignItems": "center",
+                "borderRadius": 20,
+                "elevation": 3,
+                "height": 40,
+                "justifyContent": "center",
+                "position": "absolute",
+                "right": 16,
+                "shadowColor": "#000",
+                "shadowOffset": {
+                  "height": 2,
+                  "width": 0,
+                },
+                "shadowOpacity": 0.15,
+                "shadowRadius": 6,
+                "width": 40,
+              },
+              {
+                "backgroundColor": "#FFFFFF",
+                "top": 8,
+              },
+            ]
+          }
+        >
+          <Ionicons
+            color="#14201B"
+            name="close"
+            size={22}
+          />
+        </TouchableOpacity>
+      </View>
+    </Modal>
+  </View>,
+  <View
+    pointerEvents="box-none"
+    style={
+      {
+        "gap": 8,
+        "left": 16,
+        "position": "absolute",
+        "right": 16,
+        "top": 32,
+      }
+    }
+  />,
+]
 `;

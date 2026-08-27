@@ -29,6 +29,14 @@ const NOTIFICATION_TYPE_META: Record<NotificationEventType, (t: TFunction) => No
   // Phase 10 (docs/roadmap/phase-10-cancellation-no-show.md).
   booking_cancelled: (t) => ({ title: t('notifications:events.booking_cancelled'), icon: 'close-circle-outline' }),
   booking_no_show_reported: (t) => ({ title: t('notifications:events.booking_no_show_reported'), icon: 'alert-circle-outline' }),
+  // Live tracking (docs/domain/live-tracking.md).
+  trip_arriving: (t) => ({ title: t('notifications:events.trip_arriving'), icon: 'navigate-outline' }),
+  trip_tracking_unavailable: (t) => ({ title: t('notifications:events.trip_tracking_unavailable'), icon: 'warning-outline' }),
+  // Admin verification workflow (docs/domain/verification-workflow.md).
+  verification_submitted: (t) => ({ title: t('notifications:events.verification_submitted'), icon: 'time-outline' }),
+  verification_approved: (t) => ({ title: t('notifications:events.verification_approved'), icon: 'shield-checkmark-outline' }),
+  verification_declined: (t) => ({ title: t('notifications:events.verification_declined'), icon: 'close-circle-outline' }),
+  verification_resubmission_required: (t) => ({ title: t('notifications:events.verification_resubmission_required'), icon: 'refresh-outline' }),
 };
 
 const FALLBACK_META: (t: TFunction) => NotificationTypeMeta = (t) => ({ title: t('notifications:events.fallback'), icon: 'notifications-outline' });
@@ -53,6 +61,12 @@ const NOTIFICATION_TONE: Partial<Record<NotificationEventType, NotificationTone>
   recurring_pattern_detected: 'info',
   recurring_proactive_match: 'info',
   demand_signal_matched: 'info',
+  trip_arriving: 'accent',
+  trip_tracking_unavailable: 'error',
+  verification_submitted: 'info',
+  verification_approved: 'accent',
+  verification_declined: 'error',
+  verification_resubmission_required: 'error',
 };
 
 export function notificationTone(type: NotificationEventType): NotificationTone {
@@ -99,6 +113,18 @@ export function notificationDescription(
       return t('notifications:descriptions.recurring_proactive_match', { origin: typeof payload.originLabel === 'string' ? payload.originLabel : undefined, destination: typeof payload.destinationLabel === 'string' ? payload.destinationLabel : undefined });
     case 'demand_signal_matched':
       return t('notifications:descriptions.demand_signal_matched', { origin: typeof payload.originLabel === 'string' ? payload.originLabel : undefined, destination: typeof payload.destinationLabel === 'string' ? payload.destinationLabel : undefined });
+    case 'trip_arriving':
+      return t('notifications:descriptions.trip_arriving');
+    case 'trip_tracking_unavailable':
+      return t('notifications:descriptions.trip_tracking_unavailable');
+    case 'verification_submitted':
+      return t('notifications:descriptions.verification_submitted');
+    case 'verification_approved':
+      return t('notifications:descriptions.verification_approved');
+    case 'verification_declined':
+      return t('notifications:descriptions.verification_declined');
+    case 'verification_resubmission_required':
+      return t('notifications:descriptions.verification_resubmission_required');
     default:
       return notificationTypeMeta(type, t).title;
   }

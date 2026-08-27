@@ -71,17 +71,24 @@ export type TripPhase = 'upcoming' | 'in_progress' | 'completed' | 'cancelled';
  * replaces a badge that used to show the literal word "Departure" the
  * entire time a ride was draft/published/full/in_progress (only the color
  * changed) with something that actually reflects where the trip is right
- * now. `rides.status` never genuinely reaches 'in_progress' in this
- * codebase today (no live-GPS/trip-start mechanism sets it — see the
- * project's own audit notes on the active-trip system being unbuilt), so
- * "in progress" is honestly derived here from the one real signal that
- * does exist: the scheduled departure time has passed and the ride hasn't
- * been marked completed/cancelled. This is a deliberate, documented proxy,
- * not a claim of real live tracking.
+ * now.
+ *
+ * Updated for live tracking (docs/domain/live-tracking.md): `rides.status`
+ * now genuinely reaches `in_progress`/`completed` — the first accepted
+ * booking's trip starting flips the ride to `in_progress`
+ * (`syncRideStatusOnTripStart`, trips.service.ts) and the last one
+ * completing flips it to `completed` (`syncRideStatusOnTripComplete`) — so
+ * both are checked first and trusted directly when present. The
+ * departure-time heuristic below is now only a fallback for the window
+ * before any accepted booking's trip has actually started (a published/full
+ * ride whose departure time has passed but no driver action has happened
+ * yet) — a real, narrower gap than before, not a claim this fallback no
+ * longer exists.
  */
 export function computeTripPhase(ride: Ride, now: Date = new Date()): TripPhase {
   if (ride.status === 'cancelled') return 'cancelled';
   if (ride.status === 'completed') return 'completed';
+  if (ride.status === 'in_progress') return 'in_progress';
   const departure = new Date(ride.departureAt);
   if (!Number.isNaN(departure.getTime()) && now.getTime() >= departure.getTime()) {
     return 'in_progress';

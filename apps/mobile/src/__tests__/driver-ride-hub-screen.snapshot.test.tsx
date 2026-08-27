@@ -1,7 +1,43 @@
 import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
 import { renderJSON } from './test-utils/renderJSON';
-import type { Booking, Ride, RouteStop } from '../state/api';
+import type { Booking, Ride, RouteStop, Trip } from '../state/api';
+import type DriverRideHubScreenComponent from '../../app/driver/rides/[rideId]';
+import type { ToastProvider as ToastProviderComponent } from '@vaya/design-system';
+
+/**
+ * `ToastProvider` must come from the *same* `vi.resetModules()` graph as
+ * `DriverRideHubScreen` — see search-results-screen.snapshot.test.tsx's
+ * identical note: a statically-imported `ToastProvider` binds to a
+ * `ToastContext` object from the pre-reset module instance, which a
+ * post-reset `useToast()` call won't match.
+ */
+async function loadScreen(): Promise<{
+  DriverRideHubScreen: typeof DriverRideHubScreenComponent;
+  ToastProvider: typeof ToastProviderComponent;
+}> {
+  const [{ default: DriverRideHubScreen }, { ToastProvider }] = await Promise.all([
+    import('../../app/driver/rides/[rideId]'),
+    import('@vaya/design-system'),
+  ]);
+  return { DriverRideHubScreen, ToastProvider };
+}
+
+vi.mock('expo-location', () => ({
+  requestForegroundPermissionsAsync: vi.fn(async () => ({ status: 'denied' })),
+  watchPositionAsync: vi.fn(async () => ({ remove: vi.fn() })),
+  Accuracy: { High: 4 },
+}));
+
+// analytics.ts's real sink now dispatches through the real Redux store
+// (docs/domain/admin-platform.md) — this suite's `vi.doMock('../state/api',
+// ...)` below only stubs the handful of hooks this screen calls, which
+// would otherwise crash `configureStore` when `store.ts` itself resolves
+// the same mocked module for `api.reducerPath`/`api.reducer`. Matches the
+// existing precedent in search-trust-screen.snapshot.test.tsx.
+vi.mock('../services/analytics/analytics', () => ({
+  trackEvent: vi.fn(),
+}));
 
 /**
  * Real react-test-renderer snapshots of driver/rides/[rideId].tsx
@@ -100,38 +136,88 @@ const ACCEPTED_REQUEST: Booking = {
   rider: { id: 'u-rider-2', fullName: 'Karim Fassi', avatarUrl: null },
 };
 
-type QueryResult<T> = { data?: T; isLoading?: boolean };
-type MutationTuple = [unknown, { isLoading: boolean }];
+// Live tracking (docs/domain/live-tracking.md): every accepted booking gets
+// its own `trips` row (created at acceptance) — 'scheduled' here is the
+// real starting state, exercising the "Démarrer le trajet" footer action.
+const ACCEPTED_TRIP: Trip = {
+  id: 'trip-accepted',
+  bookingId: 'booking-accepted',
+  rideId: 'ride-1',
+  status: 'scheduled',
+  simulationStartedAt: null,
+  pickupConfirmedAt: null,
+  dropoffAt: null,
+  completedAt: null,
+  riderSettlementConfirmedAt: null,
+  driverSettlementConfirmedAt: null,
+  startedAt: null,
+};
 
-function mockApi(requests: Booking[]): void {
+type QueryResult<T> = { data?: T; isLoading?: boolean };
+type MutationTuple = [() => { unwrap: () => Promise<unknown> }, { isLoading: boolean }];
+
+function mockMutation(): MutationTuple {
+  return [() => ({ unwrap: async () => ({}) }), { isLoading: false }];
+}
+
+function mockApi(requests: Booking[], tripsByBookingId: Record<string, Trip> = {}): void {
   vi.doMock('../state/api', () => ({
     useGetRideQuery: (): QueryResult<Ride> => ({ data: RIDE }),
     useGetRideStopsQuery: (): QueryResult<RouteStop[]> => ({ data: RIDE_STOPS }),
     useListRequestsForRideQuery: (): QueryResult<Booking[]> => ({ data: requests }),
-    useAcceptBookingMutation: (): MutationTuple => [vi.fn(), { isLoading: false }],
-    useDeclineBookingMutation: (): MutationTuple => [vi.fn(), { isLoading: false }],
+    useAcceptBookingMutation: (): MutationTuple => mockMutation(),
+    useDeclineBookingMutation: (): MutationTuple => mockMutation(),
     // ManageRideSheet + DriverBookingDetailSheet's transitive hooks — both
     // rendered closed (visible=false) so inert stubs suffice.
-    useCancelRideMutation: (): MutationTuple => [vi.fn(), { isLoading: false }],
-    useCancelBookingMutation: (): MutationTuple => [vi.fn(), { isLoading: false }],
+    useCancelRideMutation: (): MutationTuple => mockMutation(),
+    useCancelBookingMutation: (): MutationTuple => mockMutation(),
     useGetCancellationPreviewQuery: (): QueryResult<unknown> => ({}),
-    useReportNoShowMutation: (): MutationTuple => [vi.fn(), { isLoading: false }],
+    useReportNoShowMutation: (): MutationTuple => mockMutation(),
+    // Live tracking (docs/domain/live-tracking.md): one trip subscription
+    // per accepted booking (AcceptedBookingTripBridge), plus the journey
+    // actions and GPS-broadcast mutations the footer/board-button wire up.
+    useGetTripByBookingQuery: (bookingId: string): QueryResult<Trip> => ({ data: tripsByBookingId[bookingId] }),
+    useStartTripMutation: (): MutationTuple => mockMutation(),
+    useConfirmPassengerAboardMutation: (): MutationTuple => mockMutation(),
+    useCompleteTripMutation: (): MutationTuple => mockMutation(),
+    useUpdateTripLocationMutation: (): MutationTuple => mockMutation(),
+    useReportTrackingIssueMutation: (): MutationTuple => mockMutation(),
   }));
 }
 
-async function renderScreen(requests: Booking[]): Promise<ReturnType<typeof renderJSON>> {
+async function renderScreen(
+  requests: Booking[],
+  tripsByBookingId: Record<string, Trip> = {},
+): Promise<ReturnType<typeof renderJSON>> {
   vi.resetModules();
-  mockApi(requests);
-  const { default: DriverRideHubScreen } = await import('../../app/driver/rides/[rideId]');
-  return renderJSON(<DriverRideHubScreen />);
+  mockApi(requests, tripsByBookingId);
+  const { DriverRideHubScreen, ToastProvider } = await loadScreen();
+  return renderJSON(
+    <ToastProvider>
+      <DriverRideHubScreen />
+    </ToastProvider>,
+  );
 }
 
 describe('driver/rides/[rideId].tsx snapshots', () => {
   it('one pending request (inline Accepter/Refuser) and one confirmed passenger', async () => {
-    expect(await renderScreen([PENDING_REQUEST, ACCEPTED_REQUEST])).toMatchSnapshot();
+    expect(
+      await renderScreen([PENDING_REQUEST, ACCEPTED_REQUEST], { 'booking-accepted': ACCEPTED_TRIP }),
+    ).toMatchSnapshot();
   });
 
   it('no requests yet — honest empty state, not a fabricated list', async () => {
     expect(await renderScreen([])).toMatchSnapshot();
+  });
+
+  it('an active trip shows its real status and the "Terminer le trajet" footer action, not "Démarrer"', async () => {
+    const tree = await renderScreen([ACCEPTED_REQUEST], {
+      'booking-accepted': { ...ACCEPTED_TRIP, status: 'active', startedAt: '2026-08-24T09:10:00' },
+    });
+    const json = JSON.stringify(tree);
+    expect(json).toContain('rides.rideDetail.tripStatus.active');
+    expect(json).toContain('rides.rideDetail.journeyCompleteCta');
+    expect(json).not.toContain('rides.rideDetail.journeyStartCta');
+    expect(json).not.toContain('rides.rideDetail.passengerAboard"');
   });
 });

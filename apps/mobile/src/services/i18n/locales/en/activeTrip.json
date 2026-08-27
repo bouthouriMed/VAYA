@@ -5,5 +5,13 @@
   "liveTracking": "Live tracking",
   "arrived": "I've arrived",
   "cancel": "Cancel",
-  "waitingConfirmation": "Waiting for confirmation"
+  "waitingConfirmation": "Waiting for confirmation",
+  "noShowReport": "Report a no-show",
+  "waitingForDriver": "Waiting for the driver…",
+  "etaLabel": "≈ {{minutes}} min",
+  "staleSignal": "GPS signal unstable…",
+  "unavailable": "Tracking temporarily unavailable",
+  "retry": "Retry",
+  "trackingIssueBanner": "The driver reported a tracking issue",
+  "unauthorized": "Unable to access tracking for this trip."
 }
