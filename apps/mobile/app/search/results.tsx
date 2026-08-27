@@ -129,6 +129,7 @@ function RideResultCard({
 
   const data: DriverListCardData = {
     driverName: candidate.driverFullName ?? t('search:results.driverFallback'),
+    driverAvatarUrl: candidate.driverAvatarUrl,
     ratingAvg: candidate.ratingAvg,
     timeLabel: time,
     priceLabel: `${candidate.contributionPerSeat} DT`,

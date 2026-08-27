@@ -121,6 +121,7 @@ export interface MatchCandidate {
   rideId: string;
   driverUserId: string;
   driverFullName: string | null;
+  driverAvatarUrl: string | null;
   ratingAvg: number;
   tripCount: number;
   departureAt: string;

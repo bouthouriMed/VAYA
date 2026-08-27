@@ -14,6 +14,10 @@ export interface DriverListCardPassenger {
 
 export interface DriverListCardData {
   driverName: string;
+  /** Real profile photo URL, or null for a rider/driver who hasn't set one
+   *  — `Avatar` falls back to initials only when this is absent, never as
+   *  the default presentation. */
+  driverAvatarUrl?: string | null;
   ratingAvg: number;
   timeLabel: string;
   priceLabel: string;
@@ -184,7 +188,7 @@ export function DriverListCard({ data, bestMatch, onPress, theme }: DriverListCa
 
           <View style={styles.footerRow}>
             <View style={styles.driverRow}>
-              <Avatar name={data.driverName} size="sm" />
+              <Avatar uri={data.driverAvatarUrl ?? null} name={data.driverName} size="sm" />
               <View>
                 <Text variant="bodySmall" color={theme.ink} style={styles.driverName}>
                   {data.driverName}
