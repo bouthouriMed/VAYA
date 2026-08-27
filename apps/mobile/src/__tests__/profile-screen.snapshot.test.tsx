@@ -46,6 +46,9 @@ function makeDriverProfile(
     punctualityScore: 96,
     reliabilityScore: 94,
     approvedAt: '2026-08-22T10:00:00',
+    verificationDeclineReason: null,
+    verificationDeclineMessage: null,
+    verificationAttempt: 1,
     vehicles: [
       {
         id: 'veh-1',

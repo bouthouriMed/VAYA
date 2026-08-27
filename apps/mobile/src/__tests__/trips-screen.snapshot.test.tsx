@@ -45,6 +45,9 @@ const DRIVER_PROFILE: DriverProfile = {
   punctualityScore: 95,
   reliabilityScore: 92,
   approvedAt: '2026-07-01T09:00:00',
+  verificationDeclineReason: null,
+  verificationDeclineMessage: null,
+  verificationAttempt: 1,
   vehicles: [],
   documents: [],
 };

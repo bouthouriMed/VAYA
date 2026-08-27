@@ -46,7 +46,7 @@ describe('trips + ratings — full lifecycle (Phase 9)', () => {
 
     const [driverProfile] = await db
       .insert(driverProfiles)
-      .values({ userId: driverUserId })
+      .values({ userId: driverUserId, verificationStatus: 'approved' })
       .returning();
     driverProfileId = driverProfile!.id;
 

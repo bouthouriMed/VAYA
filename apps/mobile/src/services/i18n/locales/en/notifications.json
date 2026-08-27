@@ -19,6 +19,12 @@
     "recurring_pattern_detected": "We noticed a pattern",
     "recurring_proactive_match": "Ride suggestion",
     "demand_signal_matched": "A ride just became available",
+    "trip_arriving": "Your driver is nearly there",
+    "trip_tracking_unavailable": "Tracking temporarily unavailable",
+    "verification_submitted": "Verification submitted",
+    "verification_approved": "You're verified",
+    "verification_declined": "Verification declined",
+    "verification_resubmission_required": "Verification needs an update",
     "fallback": "Notification"
   },
   "descriptions": {
@@ -33,7 +39,13 @@
     "message_received": "You have a new message from {{name}}.",
     "recurring_pattern_detected": "You've taken this route often lately — set it up as a recurring ride.",
     "recurring_proactive_match": "We found a ride matching your frequent route from {{origin}} to {{destination}}.",
-    "demand_signal_matched": "A ride from {{origin}} to {{destination}} matching your search is now available."
+    "demand_signal_matched": "A ride from {{origin}} to {{destination}} matching your search is now available.",
+    "trip_arriving": "Your driver is nearly at your pickup point.",
+    "trip_tracking_unavailable": "Your driver reported a tracking issue — it may resume shortly.",
+    "verification_submitted": "We're reviewing your documents. No action is needed right now.",
+    "verification_approved": "Your driver profile is verified. You can now publish rides.",
+    "verification_declined": "Your verification wasn't approved. See the details in your profile.",
+    "verification_resubmission_required": "Please update your documents to continue verification."
   },
   "driverRequest": {
     "newOnVaya": "New on VAYA",

@@ -1,4 +1,4 @@
-﻿import { pgEnum, pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
+﻿import { pgEnum, pgTable, text, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
 
 export const localeEnum = pgEnum('locale', ['fr', 'ar', 'en']);
 export const authProviderEnum = pgEnum('auth_provider', ['phone', 'google']);
@@ -15,6 +15,13 @@ export const users = pgTable('users', {
   fullName: varchar('full_name', { length: 80 }).notNull(),
   avatarUrl: varchar('avatar_url', { length: 500 }),
   locale: localeEnum('locale').notNull().default('fr'),
+  // Admin platform (docs/domain/admin-platform.md): account-level suspension,
+  // independent of driver-privilege restriction (driver_profiles.suspendedAt)
+  // — a suspended user loses all app access; a restricted driver keeps
+  // riding as a passenger but can't publish rides. Enforced server-side in
+  // the `authenticate` hook (app.ts), not just hidden in the UI.
+  suspendedAt: timestamp('suspended_at', { withTimezone: true }),
+  suspendedReason: text('suspended_reason'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });

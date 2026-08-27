@@ -2,14 +2,31 @@
   "name": "@vaya/admin",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
-    "dev": "echo 'Admin dashboard - not yet implemented'",
-    "build": "echo 'Admin dashboard - not yet implemented'",
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint src/"
+    "lint": "eslint src/",
+    "test": "vitest run"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.2",
+    "@types/react": "~19.1.0",
+    "@types/react-dom": "^19.1.11",
+    "@vitejs/plugin-react": "^6.1.0",
     "eslint": "^9.11.1",
-    "typescript": "^5.5.4"
+    "jsdom": "^30.0.1",
+    "typescript": "^5.5.4",
+    "vite": "^8.2.2",
+    "vitest": "^2.1.9"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.102.6",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "react-router-dom": "^7.18.2"
   }
 }

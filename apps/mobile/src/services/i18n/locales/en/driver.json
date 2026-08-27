@@ -84,9 +84,20 @@
     "publishedToast": "Your ride is published!",
     "verificationSheet": {
       "title": "One last step before you hit the road",
-      "description": "To publish your first ride, we need to verify your driver profile. Your ride is saved and will publish automatically as soon as your verification is approved.",
+      "description": "To publish your first ride, we need to verify your driver profile. Your ride is saved as a draft — you'll be able to publish it yourself once your profile is verified.",
       "pillLabel": "Verification required",
-      "startCta": "Start verification"
+      "startCta": "Start verification",
+      "pendingTitle": "Verification in progress",
+      "pendingDescription": "Your profile is being reviewed. Your ride stays saved as a draft — you'll be able to publish it once your profile is verified.",
+      "pendingCta": "View status",
+      "resubmitTitle": "Documents need an update",
+      "resubmitDescription": "Some of your documents need to be resubmitted to continue verification.",
+      "resubmitPillLabel": "Action needed",
+      "resubmitCta": "Update my documents",
+      "rejectedTitle": "Verification declined",
+      "rejectedDescription": "Your verification wasn't approved.",
+      "rejectedPillLabel": "Verification declined",
+      "rejectedCta": "View details"
     },
     "errors": {
       "createFailed": "Unable to create this ride. Try again.",
@@ -188,8 +199,32 @@
       "errorDescription": "Your ride couldn't be published automatically. You can try from My Trips.",
       "errorCta": "Go to My Trips",
       "publishSuccess": "Your ride has been published!",
-      "publishError": "Profile verified but the ride couldn't be published. Try from My Trips."
+      "publishError": "Profile verified but the ride couldn't be published. Try from My Trips.",
+      "pendingTitle": "Verification in progress",
+      "pendingDescription": "We're reviewing your documents. You'll be notified as soon as your profile is verified — no action is needed right now.",
+      "pendingRideSavedNote": "Your ride is saved as a draft. You'll be able to publish it yourself once your profile is verified.",
+      "resubmitTitle": "Documents need an update",
+      "resubmitCta": "Update my documents",
+      "rejectedTitle": "Verification declined",
+      "backCta": "Back"
     }
+  },
+  "verificationReasons": {
+    "documentUnclear": "Document not clear enough",
+    "expired": "Expired document",
+    "informationMismatch": "Information doesn't match",
+    "missingDocument": "Missing document",
+    "invalidDocument": "Invalid document",
+    "additionalInfoRequired": "Additional information required",
+    "other": "Other reason"
+  },
+  "resubmit": {
+    "title": "Update your documents",
+    "intro": "Recapture your documents to continue verification.",
+    "submit": "Resubmit",
+    "submitting": "Sending…",
+    "submitError": "Could not submit your documents. Please try again.",
+    "documentsSection": "Documents"
   },
   "rides": {
     "rideDetail": {
@@ -216,7 +251,22 @@
       "startedWithEta": "Started · ETA {{time}}",
       "finished": "Finished",
       "intermediateStopsNote_one": "{{count}} stop along the way",
-      "intermediateStopsNote_other": "{{count}} stops along the way"
+      "intermediateStopsNote_other": "{{count}} stops along the way",
+      "journeyStartCta": "Start the trip",
+      "journeyCompleteCta": "Finish the trip",
+      "journeyStartPartialError": "Some trips could not be started. Please try again.",
+      "journeyCompletePartialError": "Some trips could not be finished. Please try again.",
+      "passengerAboard": "Passenger aboard",
+      "passengerAboardError": "Could not confirm boarding. Please try again.",
+      "locationPermissionBanner": "Turn on location so your passengers can see where you are.",
+      "locationPermissionRetry": "Retry",
+      "tripStatus": {
+        "driverApproaching": "On the way",
+        "pickup": "At pickup",
+        "active": "Onboard",
+        "arriving": "Almost there",
+        "completed": "Finished"
+      }
     },
     "manageSheet": {
       "title": "Manage this ride",

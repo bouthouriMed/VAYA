@@ -5,5 +5,13 @@
   "liveTracking": "التتبع المباشر",
   "arrived": "وصلت",
   "cancel": "إلغاء",
-  "waitingConfirmation": "في انتظار التأكيد"
+  "waitingConfirmation": "في انتظار التأكيد",
+  "noShowReport": "الإبلاغ عن عدم حضور",
+  "waitingForDriver": "في انتظار السائق…",
+  "etaLabel": "≈ {{minutes}} د",
+  "staleSignal": "إشارة GPS غير مستقرة…",
+  "unavailable": "التتبع غير متاح مؤقتًا",
+  "retry": "إعادة المحاولة",
+  "trackingIssueBanner": "أبلغ السائق عن مشكلة في التتبع",
+  "unauthorized": "تعذّر الوصول إلى تتبع هذه الرحلة."
 }

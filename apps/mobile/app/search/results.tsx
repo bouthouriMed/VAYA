@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { View, StyleSheet, ActivityIndicator, TouchableOpacity, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps';
@@ -33,6 +33,7 @@ import {
   type MatchCandidate,
 } from '../../src/state/api';
 import { useOpenDriver } from '../../src/features/search/useOpenDriver';
+import { trackEvent } from '../../src/services/analytics/analytics';
 
 type TFn = (key: string, params?: Record<string, unknown>) => string;
 
@@ -162,7 +163,13 @@ export default function ResultsScreen(): React.JSX.Element {
   const origin = useAppSelector((s) => s.search.origin);
   const destination = useAppSelector((s) => s.search.destination);
   const searchAt = useAppSelector((s) => s.search.searchAt);
+  const searchId = useAppSelector((s) => s.search.searchId);
   const openDriver = useOpenDriver();
+  // search_abandoned (docs/domain/admin-platform.md's funnel): true once a
+  // result was tapped via openDriver — checked on unmount so leaving this
+  // screen any other way (back button, app close) without ever selecting a
+  // ride is honestly counted as abandonment.
+  const selectedRef = useRef(false);
 
   const searchArgs =
     origin && destination
@@ -201,6 +208,32 @@ export default function ResultsScreen(): React.JSX.Element {
     () => [...(searchResult?.candidates ?? [])].sort((a, b) => b.score - a.score)[0]?.rideId,
     [searchResult],
   );
+
+  useEffect(() => {
+    if (!searchResult) return;
+    if (searchResult.candidates.length > 0) {
+      trackEvent('search_results_shown', {
+        searchId,
+        resultCount: searchResult.candidates.length,
+        matchTier: searchResult.tier,
+      });
+    } else {
+      trackEvent('search_no_results', { searchId, resultCount: 0, matchTier: searchResult.tier });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchResult]);
+
+  useEffect(() => {
+    return () => {
+      if (!selectedRef.current) trackEvent('search_abandoned', { searchId });
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function selectCandidate(candidate: MatchCandidate): void {
+    selectedRef.current = true;
+    openDriver(candidate);
+  }
 
   async function handleNotifyMe(): Promise<void> {
     if (!origin || !destination) return;
@@ -296,7 +329,7 @@ export default function ResultsScreen(): React.JSX.Element {
                 <Marker
                   key={candidate.rideId}
                   coordinate={{ latitude: candidate.originLat, longitude: candidate.originLng }}
-                  onPress={() => openDriver(candidate)}
+                  onPress={() => selectCandidate(candidate)}
                   zIndex={candidate.rideId === bestMatchId ? 10 : 1}
                 >
                   <DriverMapPin data={toPinData(candidate, t)} recommended={candidate.rideId === bestMatchId} />
@@ -347,7 +380,7 @@ export default function ResultsScreen(): React.JSX.Element {
                   origin={origin}
                   destination={destination}
                   searchAt={searchAt}
-                  onPress={() => openDriver(candidate)}
+                  onPress={() => selectCandidate(candidate)}
                 />
               ))}
             </View>

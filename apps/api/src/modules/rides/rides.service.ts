@@ -41,12 +41,29 @@ async function suggestPriceForRoute(db: Database, route: RouteResult): Promise<S
   });
 }
 
+/**
+ * Admin verification workflow (docs/domain/verification-workflow.md): the
+ * mobile publish wizard already gates on `isVerifiedDriver` client-side
+ * (verificationGate.ts), but per CLAUDE.md's server-authoritative-bounds
+ * principle that check must never be trusted alone — a driver whose
+ * verification is pending/declined, or whose driving privileges an admin
+ * has restricted, must be rejected here too, independent of what the
+ * client shows. This previously never fired in practice (createOnboarding
+ * always synchronously auto-approved every driver) — with a real review
+ * queue now in place, it does.
+ */
 async function getDriverProfileOrThrow(db: Database, userId: string) {
   const profile = await db.query.driverProfiles.findFirst({
     where: eq(driverProfiles.userId, userId),
   });
   if (!profile) {
     throw new ForbiddenError('Complete driver onboarding before publishing a ride');
+  }
+  if (profile.verificationStatus !== 'approved') {
+    throw new ForbiddenError('Your driver verification must be approved before publishing a ride');
+  }
+  if (profile.suspendedAt) {
+    throw new ForbiddenError('Your driving privileges have been restricted');
   }
   return profile;
 }

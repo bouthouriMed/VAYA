@@ -54,7 +54,7 @@ describe('bookings.service -> notifications dispatch (Phase 7)', () => {
 
     const [driverProfile] = await db
       .insert(driverProfiles)
-      .values({ userId: driverUserId })
+      .values({ userId: driverUserId, verificationStatus: 'approved' })
       .returning();
     driverProfileId = driverProfile!.id;
 

@@ -14,6 +14,17 @@ export const notificationEventTypeEnum = pgEnum('notification_event_type', [
   // Phase 10 (docs/roadmap/phase-10-cancellation-no-show.md).
   'booking_cancelled',
   'booking_no_show_reported',
+  // Live tracking (docs/domain/live-tracking.md). trip_driver_approaching
+  // above (previously schema-only, never dispatched) is reused for "driver
+  // started the journey to pickup" — this adds the remaining two states a
+  // passenger needs mid-journey.
+  'trip_arriving',
+  'trip_tracking_unavailable',
+  // Admin verification workflow (docs/domain/verification-workflow.md).
+  'verification_submitted',
+  'verification_approved',
+  'verification_declined',
+  'verification_resubmission_required',
 ]);
 
 export const notifications = pgTable('notifications', {

@@ -67,6 +67,19 @@ interface SearchState {
    *  Kept here (rather than local component state) only so it survives
    *  navigating between explore.tsx and search/composer.tsx. */
   passengers: number;
+  /** A client-generated correlation id for the search-funnel analytics
+   *  events (docs/domain/admin-platform.md's `analytics_events.search_id`)
+   *  — set once per search session (explore.tsx's `ensureSearchSession`,
+   *  called the first time a rider opens either field with a clean slate),
+   *  threaded through origin_selected/destination_selected/search_submitted/
+   *  search_results_shown/etc. so the funnel can be joined server-side.
+   *  Not a security-sensitive id — a Math.random()-based generator is fine,
+   *  same reasoning as search/composer.tsx's own Places-API session token. */
+  searchId: string | null;
+}
+
+function generateSearchId(): string {
+  return `s_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}`;
 }
 
 const initialState: SearchState = {
@@ -77,6 +90,7 @@ const initialState: SearchState = {
   selectedStop: null,
   selectedDropoffStop: null,
   passengers: 1,
+  searchId: null,
 };
 
 const searchSlice = createSlice({
@@ -122,6 +136,12 @@ const searchSlice = createSlice({
     setPassengers(state, action: PayloadAction<number>) {
       state.passengers = Math.min(8, Math.max(1, action.payload));
     },
+    /** Idempotent — a searchId already set (mid-session, still picking
+     *  origin/destination) is never replaced, so origin_selected/
+     *  destination_selected/search_submitted all share the same id. */
+    ensureSearchSession(state) {
+      if (!state.searchId) state.searchId = generateSearchId();
+    },
     resetSearch() {
       return initialState;
     },
@@ -140,6 +160,7 @@ export const {
   clearDropoffStop,
   clearSelectedStops,
   setPassengers,
+  ensureSearchSession,
   resetSearch,
 } = searchSlice.actions;
 export default searchSlice.reducer;

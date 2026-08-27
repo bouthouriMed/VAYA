@@ -23,6 +23,12 @@
     "recurring_pattern_detected": "لاحظنا نمطًا متكررًا",
     "recurring_proactive_match": "اقتراح رحلة",
     "demand_signal_matched": "رحلة متاحة الآن",
+    "trip_arriving": "سائقك على وشك الوصول",
+    "trip_tracking_unavailable": "التتبع غير متاح مؤقتًا",
+    "verification_submitted": "تم إرسال طلب التحقق",
+    "verification_approved": "تم التحقق من حسابك",
+    "verification_declined": "تم رفض طلب التحقق",
+    "verification_resubmission_required": "يلزم تحديث طلب التحقق",
     "fallback": "إشعار"
   },
   "descriptions": {
@@ -41,7 +47,13 @@
     "message_received": "لديك رسالة جديدة من {{name}}.",
     "recurring_pattern_detected": "تسلك هذا المسار كثيرًا مؤخرًا — اجعله رحلة متكررة.",
     "recurring_proactive_match": "وجدنا رحلة تطابق مسارك المعتاد من {{origin}} إلى {{destination}}.",
-    "demand_signal_matched": "أصبحت رحلة من {{origin}} إلى {{destination}} تطابق بحثك متاحة الآن."
+    "demand_signal_matched": "أصبحت رحلة من {{origin}} إلى {{destination}} تطابق بحثك متاحة الآن.",
+    "trip_arriving": "سائقك على وشك الوصول إلى نقطة انطلاقك.",
+    "trip_tracking_unavailable": "أبلغ سائقك عن مشكلة في التتبع — من المتوقع أن يستأنف قريبًا.",
+    "verification_submitted": "نراجع مستنداتك حاليًا. لا حاجة لأي إجراء الآن.",
+    "verification_approved": "تم التحقق من ملفك كسائق. يمكنك الآن نشر رحلات.",
+    "verification_declined": "لم تتم الموافقة على طلب التحقق. راجع التفاصيل في ملفك الشخصي.",
+    "verification_resubmission_required": "يرجى تحديث مستنداتك لمتابعة عملية التحقق."
   },
   "driverRequest": {
     "newOnVaya": "جديد على VAYA",

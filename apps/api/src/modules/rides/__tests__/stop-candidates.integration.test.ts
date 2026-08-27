@@ -53,7 +53,7 @@ describe('stop-candidates.service — real OSRM + real Postgres', () => {
 
     const [driverProfile] = await db
       .insert(driverProfiles)
-      .values({ userId: driverUserId })
+      .values({ userId: driverUserId, verificationStatus: 'approved' })
       .returning();
     driverProfileId = driverProfile!.id;
 
