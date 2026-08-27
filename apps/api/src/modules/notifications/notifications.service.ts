@@ -138,6 +138,7 @@ const TITLES: Partial<Record<NotificationEventType, string>> = {
   trip_pickup_arrived: 'Votre conducteur est arrivé',
   trip_arriving: 'Votre conducteur arrive',
   trip_tracking_unavailable: 'Suivi temporairement indisponible',
+  trip_completion_reminder: 'Votre trajet est-il terminé ?',
   verification_submitted: 'Vérification soumise',
   verification_approved: 'Vous êtes vérifié',
   verification_declined: 'Vérification refusée',
@@ -212,6 +213,9 @@ function bodyFor(type: NotificationEventType, payload: Record<string, unknown>):
       return 'Votre conducteur arrive à destination dans quelques instants.';
     case 'trip_tracking_unavailable':
       return 'Le suivi en direct est temporairement indisponible — le trajet continue normalement.';
+    // Trip-staleness sweep (packages/domain/src/trip/trip-staleness.ts).
+    case 'trip_completion_reminder':
+      return 'Ce trajet semble terminé depuis un moment. Confirmez pour clore le trajet et permettre l’évaluation.';
     // Admin verification workflow (docs/domain/verification-workflow.md).
     case 'verification_submitted':
       return 'Votre vérification a été soumise. Aucune action supplémentaire n’est requise pour le moment.';

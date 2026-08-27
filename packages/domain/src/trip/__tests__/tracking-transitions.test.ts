@@ -3,6 +3,7 @@ import {
   computeAutoTripStatusTransition,
   PICKUP_ARRIVAL_RADIUS_M,
   DESTINATION_APPROACH_RADIUS_M,
+  DESTINATION_ARRIVED_RADIUS_M,
 } from '../tracking-transitions';
 
 const PICKUP = { lat: 36.8065, lng: 10.1815 }; // Tunis
@@ -42,8 +43,31 @@ describe('computeAutoTripStatusTransition', () => {
     expect(computeAutoTripStatusTransition('scheduled', PICKUP, PICKUP, DESTINATION)).toBeNull();
   });
 
+  it('auto-completes arriving -> completed once genuinely at the destination (tight radius)', () => {
+    const atDestination = { lat: DESTINATION.lat + 0.0003, lng: DESTINATION.lng }; // ~33m
+    expect(
+      computeAutoTripStatusTransition('arriving', atDestination, PICKUP, DESTINATION),
+    ).toBe('completed');
+  });
+
+  it('does not auto-complete while merely "arriving" (inside the approach radius but outside the tighter arrived radius)', () => {
+    const stillApproaching = { lat: DESTINATION.lat + 0.002, lng: DESTINATION.lng }; // ~220m
+    expect(
+      computeAutoTripStatusTransition('arriving', stillApproaching, PICKUP, DESTINATION),
+    ).toBeNull();
+  });
+
+  it('never auto-completes directly from active — arriving must be confirmed first', () => {
+    const atDestination = { lat: DESTINATION.lat + 0.0003, lng: DESTINATION.lng };
+    expect(computeAutoTripStatusTransition('active', atDestination, PICKUP, DESTINATION)).toBe(
+      'arriving',
+    );
+  });
+
   it('exports sane, positive radii', () => {
     expect(PICKUP_ARRIVAL_RADIUS_M).toBeGreaterThan(0);
+    expect(DESTINATION_ARRIVED_RADIUS_M).toBeGreaterThan(0);
     expect(DESTINATION_APPROACH_RADIUS_M).toBeGreaterThan(PICKUP_ARRIVAL_RADIUS_M);
+    expect(DESTINATION_APPROACH_RADIUS_M).toBeGreaterThan(DESTINATION_ARRIVED_RADIUS_M);
   });
 });

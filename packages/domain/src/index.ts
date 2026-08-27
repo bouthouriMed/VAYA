@@ -22,6 +22,7 @@ export * from './trip/trip.types';
 export * from './trip/trip-status';
 export * from './trip/tracking-status';
 export * from './trip/tracking-transitions';
+export * from './trip/trip-staleness';
 
 export * from './rating/rating.types';
 export * from './rating/trust-tier';

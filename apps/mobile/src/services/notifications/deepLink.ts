@@ -76,6 +76,7 @@ export type NotificationDeepLinkType =
   | 'trip_pickup_arrived'
   | 'trip_arriving'
   | 'trip_tracking_unavailable'
+  | 'trip_completion_reminder'
   | 'verification_submitted'
   | 'verification_approved'
   | 'verification_declined'
@@ -96,6 +97,14 @@ export function resolveNotificationDeepLink(
     case 'booking_accepted':
     case 'booking_declined':
     case 'trip_completed':
+    // Sent to both driver and rider (trips.service.ts's
+    // applyTripCompletionSideEffects/runTripStalenessSweep) — unlike the
+    // other live-tracking types below, there's no single rider-only screen
+    // that's right for both audiences, so this resolves the same way
+    // trip_completed already does: "Mes trajets", where the driver has
+    // "Terminer le trajet" and the rider has the live-tracking re-entry
+    // card, whichever actually applies to them.
+    case 'trip_completion_reminder':
       return '/(tabs)/trips';
     case 'trip_driver_approaching':
     case 'trip_pickup_arrived':

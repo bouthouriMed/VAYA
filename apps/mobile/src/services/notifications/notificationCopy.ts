@@ -33,6 +33,8 @@ const NOTIFICATION_TYPE_META: Record<NotificationEventType, (t: TFunction) => No
   trip_pickup_arrived: (t) => ({ title: t('notifications:events.trip_pickup_arrived'), icon: 'location-outline' }),
   trip_arriving: (t) => ({ title: t('notifications:events.trip_arriving'), icon: 'navigate-outline' }),
   trip_tracking_unavailable: (t) => ({ title: t('notifications:events.trip_tracking_unavailable'), icon: 'warning-outline' }),
+  // Trip-staleness sweep (packages/domain/src/trip/trip-staleness.ts).
+  trip_completion_reminder: (t) => ({ title: t('notifications:events.trip_completion_reminder'), icon: 'checkmark-done-outline' }),
   // Admin verification workflow (docs/domain/verification-workflow.md).
   verification_submitted: (t) => ({ title: t('notifications:events.verification_submitted'), icon: 'time-outline' }),
   verification_approved: (t) => ({ title: t('notifications:events.verification_approved'), icon: 'shield-checkmark-outline' }),
@@ -65,6 +67,7 @@ const NOTIFICATION_TONE: Partial<Record<NotificationEventType, NotificationTone>
   trip_pickup_arrived: 'accent',
   trip_arriving: 'accent',
   trip_tracking_unavailable: 'error',
+  trip_completion_reminder: 'info',
   verification_submitted: 'info',
   verification_approved: 'accent',
   verification_declined: 'error',
@@ -121,6 +124,8 @@ export function notificationDescription(
       return t('notifications:descriptions.trip_arriving');
     case 'trip_tracking_unavailable':
       return t('notifications:descriptions.trip_tracking_unavailable');
+    case 'trip_completion_reminder':
+      return t('notifications:descriptions.trip_completion_reminder');
     case 'verification_submitted':
       return t('notifications:descriptions.verification_submitted');
     case 'verification_approved':

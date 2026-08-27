@@ -1,4 +1,4 @@
-import { and, eq } from 'drizzle-orm';
+import { and, eq, inArray } from 'drizzle-orm';
 import type { getDatabase } from '../../lib/database.js';
 import {
   bookings,
@@ -13,6 +13,7 @@ import {
   canTransitionRideStatus,
   canTransitionTripStatus,
   computeAutoTripStatusTransition,
+  computeStaleTripAction,
   deriveTrackingStatus,
   isWithinRatingWindow,
   type TripStatus,
@@ -193,22 +194,17 @@ async function syncRideStatusOnTripComplete(db: Database, rideId: string): Promi
  * bookings.service.ts's cancelBooking already lets either party trigger a
  * status transition.
  */
-export async function completeTrip(db: Database, tripId: string, requestingUserId: string) {
-  const trip = await getTripWithPartiesOrThrow(db, tripId);
-  assertIsParty(trip, requestingUserId);
-
-  if (!canTransitionTripStatus(trip.status, 'completed')) {
-    throw new ConflictError(`Cannot complete a trip in status "${trip.status}"`);
-  }
-
-  const completedAt = new Date();
-  const [updated] = await db
-    .update(trips)
-    .set({ status: 'completed', completedAt, updatedAt: completedAt })
-    .where(eq(trips.id, tripId))
-    .returning();
-  if (!updated) throw new Error('Failed to complete trip');
-
+/** Everything that must happen once a trip's row is *already* written as
+ *  `completed` — shared between the driver/rider's manual "Terminer le
+ *  trajet" (completeTrip below) and live tracking's own GPS-confirmed
+ *  auto-completion (updateTripLocation), so the two paths can never drift:
+ *  a trip closed automatically gets exactly the same booking-sync/trip-
+ *  count/rating-prompt treatment as one closed by a tap. */
+async function applyTripCompletionSideEffects(
+  db: Database,
+  trip: Awaited<ReturnType<typeof getTripWithPartiesOrThrow>>,
+  completedAt: Date,
+): Promise<void> {
   // The booking itself also models a `completed` status
   // (packages/domain/src/booking/booking-status.ts's `accepted -> completed`
   // edge) that nothing was ever setting either — keep the two in lockstep
@@ -233,8 +229,27 @@ export async function completeTrip(db: Database, tripId: string, requestingUserI
   // please rate" rather than minting a distinct `rating_prompted` event
   // type, per the phase doc's explicit "reuse trip_completed if that event
   // type already exists" option.
-  await notifyBestEffort(db, driverUserId, 'trip_completed', { tripId, bookingId: trip.bookingId });
-  await notifyBestEffort(db, riderId, 'trip_completed', { tripId, bookingId: trip.bookingId });
+  await notifyBestEffort(db, driverUserId, 'trip_completed', { tripId: trip.id, bookingId: trip.bookingId });
+  await notifyBestEffort(db, riderId, 'trip_completed', { tripId: trip.id, bookingId: trip.bookingId });
+}
+
+export async function completeTrip(db: Database, tripId: string, requestingUserId: string) {
+  const trip = await getTripWithPartiesOrThrow(db, tripId);
+  assertIsParty(trip, requestingUserId);
+
+  if (!canTransitionTripStatus(trip.status, 'completed')) {
+    throw new ConflictError(`Cannot complete a trip in status "${trip.status}"`);
+  }
+
+  const completedAt = new Date();
+  const [updated] = await db
+    .update(trips)
+    .set({ status: 'completed', completedAt, updatedAt: completedAt })
+    .where(eq(trips.id, tripId))
+    .returning();
+  if (!updated) throw new Error('Failed to complete trip');
+
+  await applyTripCompletionSideEffects(db, trip, completedAt);
 
   return updated;
 }
@@ -372,6 +387,10 @@ export async function updateTripLocation(
       updatedAt: now,
       ...(autoNextStatus ? { status: autoNextStatus } : {}),
       ...(autoNextStatus === 'pickup' ? { pickupConfirmedAt: now } : {}),
+      // completeTrip's manual path sets this too — the 24h rating-submission
+      // window (packages/domain's isWithinRatingWindow) anchors on it, so a
+      // GPS-auto-completed trip needs the same real timestamp, not null.
+      ...(autoNextStatus === 'completed' ? { completedAt: now } : {}),
     })
     .where(eq(trips.id, tripId))
     .returning();
@@ -382,6 +401,16 @@ export async function updateTripLocation(
   }
   if (autoNextStatus === 'arriving') {
     await notifyBestEffort(db, trip.booking.riderId, 'trip_arriving', { tripId, bookingId: trip.bookingId });
+  }
+  if (autoNextStatus === 'completed') {
+    // GPS confirmed real arrival at the destination (computeAutoTripStatusTransition's
+    // tight DESTINATION_ARRIVED_RADIUS_M check) — the trip row above is
+    // already written as `completed`; this is the same booking-sync/trip-
+    // count/rating-prompt path the manual "Terminer le trajet" tap uses
+    // (completeTrip), so a trip that closes itself is indistinguishable
+    // downstream from one a party closed by hand. Never left "in progress"
+    // forever just because nobody tapped the button.
+    await applyTripCompletionSideEffects(db, trip, now);
   }
 
   let etaSec: number | null = null;
@@ -565,4 +594,88 @@ export async function getPendingRatingForUser(
     .sort((a, b) => b.completedAt.getTime() - a.completedAt.getTime());
 
   return unratedSorted[0] ?? null;
+}
+
+// --- Trip-staleness sweep ---------------------------------------------
+// packages/domain/src/trip/trip-staleness.ts's own doc comment explains the
+// "why": GPS-confirmed tight-radius auto-completion (computeAutoTripStatusTransition)
+// handles the common case where the driver's phone is still broadcasting;
+// this periodic sweep is the safety net for when it isn't — the driver
+// forgot, backgrounded the app, or the trip is simply abandoned. Run as a
+// BullMQ repeatable job (lib/queue.ts, worker.ts), same "one queue, routed
+// by job.name" pattern Phase 11's recurring-pattern scan established.
+
+export interface TripStalenessSweepResult {
+  scanned: number;
+  reminded: number;
+  autoCompleted: number;
+}
+
+/**
+ * One pass over every trip still in a trackable (non-terminal, already-
+ * started) status: for each, asks the pure computeStaleTripAction whether
+ * it's overdue enough to nudge or to close outright, and applies whichever
+ * it says. Never throws on a single trip's failure — one bad row must not
+ * abort the sweep for every other trip in the batch (mirrors
+ * notification-dispatch.worker.ts's per-job isolation).
+ */
+export async function runTripStalenessSweep(db: Database): Promise<TripStalenessSweepResult> {
+  const staleCandidates = await db.query.trips.findMany({
+    where: inArray(trips.status, [...TRACKABLE_STATUSES]),
+    with: { booking: { with: { ride: { with: { driverProfile: true } } } } },
+  });
+
+  const now = new Date();
+  const result: TripStalenessSweepResult = { scanned: staleCandidates.length, reminded: 0, autoCompleted: 0 };
+
+  for (const trip of staleCandidates) {
+    // Always set once startTrip runs (the only way a trip reaches a
+    // TRACKABLE_STATUSES status) — defensive null-check only, not an
+    // expected real case.
+    if (!trip.startedAt) continue;
+
+    const action = computeStaleTripAction({
+      startedAt: trip.startedAt,
+      locationUpdatedAt: trip.locationUpdatedAt,
+      estimatedDurationSec: trip.booking.ride.estimatedDurationSec,
+      reminderAlreadySent: trip.completionReminderSentAt != null,
+      now,
+    });
+
+    try {
+      if (action === 'remind') {
+        await db
+          .update(trips)
+          .set({ completionReminderSentAt: now, updatedAt: now })
+          .where(eq(trips.id, trip.id));
+        const driverUserId = trip.booking.ride.driverProfile.userId;
+        const riderId = trip.booking.riderId;
+        await notifyBestEffort(db, driverUserId, 'trip_completion_reminder', {
+          tripId: trip.id,
+          bookingId: trip.bookingId,
+        });
+        await notifyBestEffort(db, riderId, 'trip_completion_reminder', {
+          tripId: trip.id,
+          bookingId: trip.bookingId,
+        });
+        result.reminded += 1;
+      } else if (action === 'auto_complete') {
+        const [updated] = await db
+          .update(trips)
+          .set({ status: 'completed', completedAt: now, updatedAt: now })
+          .where(and(eq(trips.id, trip.id), eq(trips.status, trip.status)))
+          .returning();
+        // A concurrent GPS ping or manual "Terminer" already closed it
+        // between the query above and this write — nothing left to do.
+        if (updated) {
+          await applyTripCompletionSideEffects(db, trip, now);
+          result.autoCompleted += 1;
+        }
+      }
+    } catch (err) {
+      getLogger().error({ err, tripId: trip.id, action }, 'Trip-staleness sweep failed for one trip — continuing with the rest');
+    }
+  }
+
+  return result;
 }

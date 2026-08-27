@@ -20,18 +20,30 @@ export const NOTIFICATION_DISPATCH_QUEUE = 'notification-dispatch';
 
 export const DISPATCH_JOB_NAME = 'dispatch';
 export const RECURRING_PATTERN_SCAN_JOB_NAME = 'recurring-pattern-scan';
+// Trip-staleness sweep (packages/domain/src/trip/trip-staleness.ts) — a
+// third job type on this same one queue, same "job.name routes it" pattern
+// Phase 11 already established for the recurring-pattern scan.
+export const TRIP_STALENESS_SWEEP_JOB_NAME = 'trip-staleness-sweep';
 
 // Stable id for the repeatable recurring-pattern-scan job — BullMQ
 // deduplicates repeatable jobs registered with the same id/options, so
 // re-registering it on every worker process start (worker.ts) is an
 // idempotent no-op rather than accumulating duplicate schedules.
 export const RECURRING_PATTERN_SCAN_REPEATABLE_JOB_ID = 'recurring-pattern-scan-schedule';
+export const TRIP_STALENESS_SWEEP_REPEATABLE_JOB_ID = 'trip-staleness-sweep-schedule';
 
 // How often the recurring-pattern scan runs — an operational cadence
 // constant, not a business threshold (those live in
 // recurring_detection_configs, per this phase's externalized-tunable
 // requirement), so it's fine as a plain constant here.
 export const RECURRING_PATTERN_SCAN_INTERVAL_MS = 24 * 60 * 60 * 1000;
+
+// Every 15 minutes — frequent enough that the sweep's own
+// TRIP_COMPLETION_REMINDER_GRACE_MS (30 min) and TRIP_AUTO_CLOSE_GRACE_MS
+// (3h) thresholds (packages/domain/src/trip/trip-staleness.ts) don't drift
+// far past their intended timing, cheap enough (a handful of trips at any
+// moment, at most) not to matter running this often.
+export const TRIP_STALENESS_SWEEP_INTERVAL_MS = 15 * 60 * 1000;
 
 export interface NotificationDispatchJobData {
   notificationId: string;
@@ -41,7 +53,11 @@ export interface NotificationDispatchJobData {
 // not a specific target passed at enqueue time.
 export type RecurringPatternScanJobData = Record<string, never>;
 
-export type QueueJobData = NotificationDispatchJobData | RecurringPatternScanJobData;
+// No payload: the sweep always operates over every currently-trackable
+// trip, not a specific target passed at enqueue time.
+export type TripStalenessSweepJobData = Record<string, never>;
+
+export type QueueJobData = NotificationDispatchJobData | RecurringPatternScanJobData | TripStalenessSweepJobData;
 
 let _connection: IORedis | null = null;
 let _queue: Queue<QueueJobData> | null = null;
@@ -139,6 +155,35 @@ export async function scheduleRecurringPatternScanJob(): Promise<void> {
     );
   } catch (err) {
     getLogger().error({ err }, 'Failed to schedule recurring-pattern-scan job');
+  }
+}
+
+/**
+ * Registers the periodic trip-staleness sweep as a BullMQ repeatable job —
+ * same mechanism/idempotency contract as scheduleRecurringPatternScanJob
+ * above (upsertJobScheduler, stable id, safe to call on every worker
+ * process start).
+ */
+export async function scheduleTripStalenessSweepJob(): Promise<void> {
+  const queue = getNotificationDispatchQueue();
+  if (!queue) {
+    getLogger().warn(
+      'Notification queue unavailable (no REDIS_URL) — skipping trip-staleness-sweep schedule',
+    );
+    return;
+  }
+  try {
+    await queue.upsertJobScheduler(
+      TRIP_STALENESS_SWEEP_REPEATABLE_JOB_ID,
+      { every: TRIP_STALENESS_SWEEP_INTERVAL_MS },
+      {
+        name: TRIP_STALENESS_SWEEP_JOB_NAME,
+        data: {},
+        opts: { removeOnComplete: { count: 50 }, removeOnFail: { count: 50 } },
+      },
+    );
+  } catch (err) {
+    getLogger().error({ err }, 'Failed to schedule trip-staleness-sweep job');
   }
 }
 

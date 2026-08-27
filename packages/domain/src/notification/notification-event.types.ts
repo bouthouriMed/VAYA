@@ -19,6 +19,10 @@ export const NOTIFICATION_EVENT_TYPES = [
   'trip_pickup_arrived',
   'trip_arriving',
   'trip_tracking_unavailable',
+  // Trip-staleness sweep (packages/domain/src/trip/trip-staleness.ts) — a
+  // trip that's still non-terminal well past its expected arrival gets one
+  // reminder nudge before the sweep eventually closes it on its own.
+  'trip_completion_reminder',
   // Admin verification workflow (docs/domain/verification-workflow.md).
   'verification_submitted',
   'verification_approved',

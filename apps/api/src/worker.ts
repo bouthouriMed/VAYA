@@ -7,12 +7,16 @@ import {
   NOTIFICATION_DISPATCH_QUEUE,
   RECURRING_PATTERN_SCAN_JOB_NAME,
   scheduleRecurringPatternScanJob,
+  TRIP_STALENESS_SWEEP_JOB_NAME,
+  scheduleTripStalenessSweepJob,
   type NotificationDispatchJobData,
   type QueueJobData,
   type RecurringPatternScanJobData,
+  type TripStalenessSweepJobData,
 } from './lib/queue.js';
 import { processNotificationDispatchJob } from './modules/notifications/notification-dispatch.worker.js';
 import { processRecurringPatternScanJob } from './modules/recurring/recurring-pattern-scan.worker.js';
+import { processTripStalenessSweepJob } from './modules/trips/trip-staleness-sweep.worker.js';
 
 /**
  * Standalone process entry point for the notification-dispatch queue — the
@@ -40,6 +44,9 @@ if (!connection) {
       if (job.name === RECURRING_PATTERN_SCAN_JOB_NAME) {
         return processRecurringPatternScanJob(db, job as Job<RecurringPatternScanJobData>);
       }
+      if (job.name === TRIP_STALENESS_SWEEP_JOB_NAME) {
+        return processTripStalenessSweepJob(db, job as Job<TripStalenessSweepJobData>);
+      }
       return processNotificationDispatchJob(db, job as Job<NotificationDispatchJobData>);
     },
     { connection, concurrency: 5 },
@@ -56,8 +63,9 @@ if (!connection) {
     logger.error({ jobId: job?.id, jobName: job?.name, err }, 'Background job failed (will retry per BullMQ backoff, up to the configured attempt limit)');
   });
 
-  logger.info('Background worker started (notification dispatch + recurring-pattern scan)');
+  logger.info('Background worker started (notification dispatch + recurring-pattern scan + trip-staleness sweep)');
 
   // Idempotent (stable jobId) — safe to call on every worker process start.
   void scheduleRecurringPatternScanJob();
+  void scheduleTripStalenessSweepJob();
 }

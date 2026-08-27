@@ -9,6 +9,14 @@ import { canTransitionTripStatus, type TripStatus } from './trip-status';
 // own position already tells us.
 export const PICKUP_ARRIVAL_RADIUS_M = 150;
 export const DESTINATION_APPROACH_RADIUS_M = 500;
+// Tighter than DESTINATION_APPROACH_RADIUS_M on purpose — "arriving" (500m)
+// just means "nearly there", not "actually parked at the destination".
+// World-class carpooling apps (BlaBlaCar included) auto-close a trip once
+// GPS genuinely confirms arrival rather than leaving it "in progress"
+// forever if the driver forgets or skips "Terminer le trajet" — this is
+// that confirmation radius, tight enough that a driver merely passing
+// nearby on the way to somewhere else can't trigger it.
+export const DESTINATION_ARRIVED_RADIUS_M = 80;
 
 export interface LatLng {
   lat: number;
@@ -42,6 +50,22 @@ export function computeAutoTripStatusTransition(
       canTransitionTripStatus(currentStatus, 'arriving')
     ) {
       return 'arriving';
+    }
+  }
+
+  // Auto-completion: only from `arriving`, never straight from `active` —
+  // a single close-enough fix isn't proof of arrival on its own (GPS jumps,
+  // a route that happens to pass within range), but *already being*
+  // `arriving` means a prior ping already confirmed the driver was
+  // genuinely closing in, so a second, tighter-radius confirmation is
+  // trustworthy enough to close the loop without a manual tap.
+  if (currentStatus === 'arriving') {
+    const distanceToDestination = haversineDistanceMeters(currentPos, destinationPos);
+    if (
+      distanceToDestination <= DESTINATION_ARRIVED_RADIUS_M &&
+      canTransitionTripStatus(currentStatus, 'completed')
+    ) {
+      return 'completed';
     }
   }
 

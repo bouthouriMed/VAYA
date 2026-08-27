@@ -55,6 +55,12 @@ describe('resolveNotificationDeepLink', () => {
     },
   );
 
+  it('resolves trip_completion_reminder to the trips tab (sent to both driver and rider — no single screen fits both)', () => {
+    expect(resolveNotificationDeepLink('trip_completion_reminder', { tripId: 't1', bookingId: 'b1' })).toBe(
+      '/(tabs)/trips',
+    );
+  });
+
   it.each(['verification_submitted', 'verification_approved', 'verification_declined'])(
     'resolves verification event %s to the confirmation screen',
     (type) => {

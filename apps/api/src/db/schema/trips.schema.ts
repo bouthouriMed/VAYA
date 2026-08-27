@@ -55,6 +55,13 @@ export const trips = pgTable(
     currentSpeedMps: doublePrecision('current_speed_mps'),
     currentAccuracyM: doublePrecision('current_accuracy_m'),
     locationUpdatedAt: timestamp('location_updated_at', { withTimezone: true }),
+    // Trip-staleness sweep (packages/domain/src/trip/trip-staleness.ts,
+    // apps/api/src/modules/trips/trip-staleness-sweep.worker.ts) — set the
+    // first time the periodic sweep sends the "did your trip end?" reminder,
+    // so a still-abandoned trip doesn't get re-notified on every sweep
+    // cycle. Never cleared: a manual/GPS completion makes the trip terminal
+    // anyway, and a resubmission scenario doesn't exist for trips.
+    completionReminderSentAt: timestamp('completion_reminder_sent_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },

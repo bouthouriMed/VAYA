@@ -390,6 +390,8 @@ export type NotificationEventType =
   | 'trip_pickup_arrived'
   | 'trip_arriving'
   | 'trip_tracking_unavailable'
+  // Trip-staleness sweep (packages/domain/src/trip/trip-staleness.ts).
+  | 'trip_completion_reminder'
   // Admin verification workflow (docs/domain/verification-workflow.md).
   | 'verification_submitted'
   | 'verification_approved'
