@@ -722,6 +722,20 @@ export async function cancelBooking(db: Database, bookingId: string, requestingU
     bookingId: booking.id,
     rideId: booking.rideId,
     cancelledBy: isRider ? 'rider' : 'driver',
+    // Email dispatch (notifications/email-templates.ts's
+    // renderBookingCancelled) only ever emails the driver, and only for a
+    // booking that had actually reached `accepted` before this
+    // cancellation — a still-pending request being withdrawn is not the
+    // "confirmed booking canceled" case product asked for.
+    recipientRole: isRider ? 'driver' : 'rider',
+    wasConfirmed: booking.status === 'accepted',
+    cancelledByName: await getUserFullNameSafe(
+      db,
+      isRider ? booking.riderId : booking.ride.driverProfile.userId,
+    ),
+    originLabel: booking.ride.originLabel,
+    destinationLabel: booking.ride.destinationLabel,
+    departureAt: booking.ride.departureAt.toISOString(),
     tier: cancellationPolicy.tier,
   });
 
