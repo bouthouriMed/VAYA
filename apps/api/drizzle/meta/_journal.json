@@ -134,6 +134,13 @@
       "when": 1787838106058,
       "tag": "0018_misty_shadow_king",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1787850842064,
+      "tag": "0019_silent_crystal",
+      "breakpoints": true
     }
   ]
 }

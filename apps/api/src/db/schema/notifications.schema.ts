@@ -28,6 +28,9 @@ export const notificationEventTypeEnum = pgEnum('notification_event_type', [
   'verification_approved',
   'verification_declined',
   'verification_resubmission_required',
+  // Ratings & trust (docs/domain/model.md): ratings.service.ts's createRating
+  // notifies whichever party was just rated.
+  'rating_received',
 ]);
 
 export const notifications = pgTable('notifications', {

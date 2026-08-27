@@ -177,7 +177,15 @@ describe('bookings.service — cancellation & no-show (Phase 10)', () => {
       orderBy: desc(notifications.createdAt),
     });
     expect(notification).toBeDefined();
-    expect((notification!.payload as Record<string, unknown>).cancelledBy).toBe('rider');
+    const payload = notification!.payload as Record<string, unknown>;
+    expect(payload.cancelledBy).toBe('rider');
+    // Email-dispatch gating fields (notifications/email-templates.ts's
+    // renderBookingCancelled): this was a confirmed (accepted) booking
+    // cancelled by the rider, so the driver is the emailable recipient.
+    expect(payload.recipientRole).toBe('driver');
+    expect(payload.wasConfirmed).toBe(true);
+    expect(payload.originLabel).toBe(ride.originLabel);
+    expect(payload.destinationLabel).toBe(ride.destinationLabel);
 
     // Reputation penalty landed on the *cancelling* party (the rider), not the driver.
     const riderProfile = await db.query.riderProfiles.findFirst({
