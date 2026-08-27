@@ -12,8 +12,21 @@ import {
   type TrustTier,
 } from '@vaya/domain';
 import { getUserById } from '../users/users.service.js';
+import { notifyBestEffort } from '../notifications/notifications.service.js';
 
 type Database = ReturnType<typeof getDatabase>;
+
+/** Best-effort display name for a notification/email body — mirrors
+ *  bookings.service.ts's getUserFullNameSafe; never blocks the triggering
+ *  rating submission if the lookup itself fails for any reason. */
+async function getRaterNameSafe(db: Database, userId: string): Promise<string | undefined> {
+  try {
+    const user = await getUserById(db, userId);
+    return user.fullName;
+  } catch {
+    return undefined;
+  }
+}
 
 async function upsertRelationshipSignal(db: Database, userAId: string, userBId: string, at: Date) {
   const [first, second] = [userAId, userBId].sort();
@@ -262,6 +275,17 @@ export async function createRating(
   } else {
     await recomputeRiderAggregates(db, riderId);
   }
+
+  // Notifies (and, via notifications/email-templates.ts, emails) whichever
+  // party was just rated — symmetric for both roles, unlike most other
+  // notifyBestEffort call sites in this codebase which are role-specific.
+  await notifyBestEffort(db, rateeUserId, 'rating_received', {
+    tripId,
+    raterUserId,
+    raterName: await getRaterNameSafe(db, raterUserId),
+    stars: rating.stars,
+    comment: rating.comment,
+  });
 
   return rating;
 }

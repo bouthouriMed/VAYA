@@ -45,6 +45,15 @@ const envSchema = z.object({
     .string()
     .optional()
     .transform((v) => v !== 'false'),
+  // Transactional email (docs/domain/notifications.md's email-dispatch
+  // extension of Phase 7): a direct HTTP call to Resend's API — same
+  // "dependency-free, direct fetch to the provider's HTTP API" pattern
+  // Phase 7 already established for Expo push (expo-push.ts), not an SDK.
+  // Unset in dev/test by default: getEmailProvider() (lib/email/index.ts)
+  // falls back to a DevEmailProvider that logs instead of sending, mirroring
+  // lib/sms's DevSmsProvider fallback.
+  RESEND_API_KEY: z.string().optional(),
+  EMAIL_FROM: z.string().default('VAYA <no-reply@vaya-app.com>'),
 });
 
 export type Env = z.infer<typeof envSchema>;

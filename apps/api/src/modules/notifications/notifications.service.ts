@@ -2,11 +2,13 @@ import { desc, eq } from 'drizzle-orm';
 import type { NotificationEventType } from '@vaya/domain';
 import type { RegisterPushTokenInput } from '@vaya/validation';
 import type { getDatabase } from '../../lib/database.js';
-import { deviceTokens, notifications } from '../../db/schema/index.js';
+import { deviceTokens, notifications, users } from '../../db/schema/index.js';
 import { ForbiddenError, NotFoundError } from '../../lib/errors.js';
 import { getLogger } from '../../config/logger.js';
 import { enqueueNotificationDispatch } from '../../lib/queue.js';
 import { sendExpoPushMessages } from './expo-push.js';
+import { buildEmailTemplate } from './email-templates.js';
+import { getEmailProvider } from '../../lib/email/index.js';
 
 type Database = ReturnType<typeof getDatabase>;
 
@@ -143,6 +145,7 @@ const TITLES: Partial<Record<NotificationEventType, string>> = {
   verification_approved: 'Vous êtes vérifié',
   verification_declined: 'Vérification refusée',
   verification_resubmission_required: 'Vérification à mettre à jour',
+  rating_received: 'Nouvel avis reçu',
 };
 
 function titleFor(type: NotificationEventType): string {
@@ -229,6 +232,12 @@ function bodyFor(type: NotificationEventType, payload: Record<string, unknown>):
       return typeof payload.declineMessage === 'string'
         ? payload.declineMessage
         : 'Votre vérification nécessite une mise à jour.';
+    // Ratings & trust (docs/domain/model.md): ratings.service.ts's
+    // createRating/recordAutomaticNoShowRating.
+    case 'rating_received':
+      return typeof payload.raterName === 'string' && typeof payload.stars === 'number'
+        ? `${payload.raterName} vous a laissé un avis (${payload.stars.toFixed(1)}/5).`
+        : 'Vous avez reçu un nouvel avis.';
     default:
       return 'Vous avez une nouvelle notification.';
   }
@@ -269,4 +278,41 @@ export async function dispatchPushForNotification(db: Database, notificationId: 
   }));
 
   await sendExpoPushMessages(messages);
+}
+
+/**
+ * Worker-side email dispatch, run alongside dispatchPushForNotification for
+ * the same `notifications` row (notification-dispatch.worker.ts) — reuses
+ * Phase 7's single queue/job rather than a second job type, per this
+ * codebase's "one minimal queue" rule. A no-op, not a failure, whenever:
+ *  - buildEmailTemplate has no template for this event type (most types
+ *    don't emit email at all — see its own doc comment), or
+ *  - the recipient has no email on file (phone-first auth — users.email is
+ *    nullable; a phone-only account simply gets no email, same posture as
+ *    dispatchPushForNotification's "zero device tokens" no-op).
+ * Throws on an actual send failure so BullMQ's native retry picks it up,
+ * mirroring dispatchPushForNotification's contract exactly.
+ */
+export async function dispatchEmailForNotification(db: Database, notificationId: string): Promise<void> {
+  const notification = await db.query.notifications.findFirst({
+    where: eq(notifications.id, notificationId),
+  });
+  if (!notification) {
+    getLogger().warn({ notificationId }, 'Notification row not found for email dispatch — skipping');
+    return;
+  }
+
+  const payload = (notification.payload ?? {}) as Record<string, unknown>;
+  const template = buildEmailTemplate(notification.type, payload);
+  if (!template) return;
+
+  const user = await db.query.users.findFirst({ where: eq(users.id, notification.userId) });
+  if (!user?.email) return;
+
+  await getEmailProvider().sendEmail({
+    to: user.email,
+    subject: template.subject,
+    html: template.html,
+    text: template.text,
+  });
 }

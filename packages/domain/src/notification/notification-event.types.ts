@@ -28,6 +28,12 @@ export const NOTIFICATION_EVENT_TYPES = [
   'verification_approved',
   'verification_declined',
   'verification_resubmission_required',
+  // Ratings & trust (docs/domain/model.md): dispatched to whichever party
+  // (driver or rider) was just rated, the moment the other party submits a
+  // rating (ratings.service.ts's createRating) or an automatic no-show
+  // rating is recorded (recordAutomaticNoShowRating) — symmetric for both
+  // roles, unlike most other event types here which are role-specific.
+  'rating_received',
 ] as const;
 export type NotificationEventType = (typeof NOTIFICATION_EVENT_TYPES)[number];
 

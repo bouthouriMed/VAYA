@@ -352,12 +352,19 @@ export interface RouteStop {
   isDriverSelected: boolean;
 }
 
+/** Mirrors @vaya/domain's `TripProfileType` — the ride-engine's route-length
+ *  classification, surfaced here so the "add stops along your route" step
+ *  can frame its copy/camera for a short in-town hop vs. a long intercity
+ *  haul instead of one fixed script for every trip length. */
+export type TripProfileType = 'commute' | 'urban' | 'intercity';
+
 export interface GenerateStopsResult {
   stops: RouteStop[];
   /** True when OSRM was unreachable for this attempt — show an honest
    *  "unavailable right now" message, never fabricated candidates. */
   osrmUnavailable: boolean;
   regenerated: boolean;
+  tripProfileType: TripProfileType | null;
 }
 
 export interface DeviceTokenRegistration {
@@ -930,7 +937,7 @@ export const api = createApi({
     // rides.service.ts's addCustomStop doc comment for the full reasoning.
     addCustomStop: builder.mutation<
       RouteStop,
-      { rideId: string; label: string; lat: number; lng: number; role: 'pickup' | 'dropoff' }
+      { rideId: string; label: string; lat: number; lng: number; role: 'pickup' | 'dropoff' | 'via' }
     >({
       query: ({ rideId, ...body }) => ({
         url: `/rides/${rideId}/stops/custom`,
