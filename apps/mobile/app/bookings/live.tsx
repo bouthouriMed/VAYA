@@ -355,13 +355,22 @@ export default function LiveScreen(): React.JSX.Element {
               size="sm"
               onPress={() => setReportingNoShow(true)}
             />
-            <Button
-              theme={theme}
-              label={t('activeTrip:cancel')}
-              variant="ghost"
-              size="sm"
-              onPress={() => setCancelling(true)}
-            />
+            {/* Server-enforced too (bookings.service.ts's
+                assertTripNotStarted) — once the driver has actually
+                started the trip, cancelling stops being the right action;
+                this screen only ever exists once a trip is at least
+                trackable, so 'scheduled' here just means the rider got
+                here before the driver started (e.g. via the old
+                pending -> pickup -> live chain). */}
+            {!trip || trip.status === 'scheduled' ? (
+              <Button
+                theme={theme}
+                label={t('activeTrip:cancel')}
+                variant="ghost"
+                size="sm"
+                onPress={() => setCancelling(true)}
+              />
+            ) : null}
           </View>
         ) : null}
         </Reanimated.View>

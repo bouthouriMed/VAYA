@@ -498,11 +498,13 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
                       "textAlign": undefined,
                       "writingDirection": "ltr",
                     },
-                    undefined,
+                    {
+                      "fontWeight": "700",
+                    },
                   ]
                 }
               >
-                booking:detail.pickupPoint · 8:30
+                Tunis
               </Text>
               <Text
                 numberOfLines={1}
@@ -522,7 +524,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
                   ]
                 }
               >
-                Arrêt Menzah 6
+                8:30 · Arrêt Menzah 6
               </Text>
             </View>
             <TouchableOpacity
@@ -616,27 +618,9 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
                       "textAlign": undefined,
                       "writingDirection": "ltr",
                     },
-                    undefined,
-                  ]
-                }
-              >
-                booking:detail.dropoffPoint
-              </Text>
-              <Text
-                numberOfLines={1}
-                style={
-                  [
                     {
-                      "fontSize": 12,
-                      "fontWeight": "400",
-                      "lineHeight": 18,
+                      "fontWeight": "700",
                     },
-                    {
-                      "color": "#5B6572",
-                      "textAlign": undefined,
-                      "writingDirection": "ltr",
-                    },
-                    undefined,
                   ]
                 }
               >

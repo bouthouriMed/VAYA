@@ -49,6 +49,21 @@ async function getRideOrThrow(db: Database, rideId: string) {
   return ride;
 }
 
+/** Live tracking (docs/domain/live-tracking.md): once the driver has
+ *  actually started the trip, cancelling stops being the right action for
+ *  either party — the ride is genuinely underway (GPS is live, the driver
+ *  may already be en route to or with the rider). Reused by both the
+ *  cancel mutation and its preview so the rider/driver never sees a
+ *  cancellable-looking preview for a trip that's already moving. A booking
+ *  with no trip row yet (still `pending`, never accepted) has nothing to
+ *  check here — trips are only created at acceptance. */
+async function assertTripNotStarted(db: Database, bookingId: string): Promise<void> {
+  const trip = await db.query.trips.findFirst({ where: eq(trips.bookingId, bookingId) });
+  if (trip && trip.status !== 'scheduled') {
+    throw new ForbiddenError('Cannot cancel a booking once the trip has started');
+  }
+}
+
 async function getBookingOrThrow(db: Database, bookingId: string) {
   const booking = await db.query.bookings.findFirst({
     where: eq(bookings.id, bookingId),
@@ -452,6 +467,7 @@ export async function previewBookingCancellation(
   if (!canTransitionBookingStatus(booking.status, nextStatus)) {
     throw new ConflictError(`Cannot cancel a booking in status "${booking.status}"`);
   }
+  await assertTripNotStarted(db, booking.id);
 
   return computeCancellationPolicy(booking.ride.departureAt, new Date());
 }
@@ -634,6 +650,7 @@ export async function cancelBooking(db: Database, bookingId: string, requestingU
   if (!canTransitionBookingStatus(booking.status, nextStatus)) {
     throw new ConflictError(`Cannot cancel a booking in status "${booking.status}"`);
   }
+  await assertTripNotStarted(db, booking.id);
 
   // Phase 10: the policy tier is computed once, at the instant this
   // cancellation actually happens, and reused for both the reputation

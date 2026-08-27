@@ -272,7 +272,11 @@ export default function BookingDetailScreen(): React.JSX.Element {
   const bookingRide = booking.ride;
 
   const badge = getBookingBadge(t, booking.status);
-  const cancellable = CANCELLABLE_STATUSES.includes(booking.status);
+  // Server-enforced too (bookings.service.ts's assertTripNotStarted) — once
+  // the driver has actually started the trip, cancelling stops being the
+  // right action for either party; this is the UI half of that rule, not
+  // the source of truth for it.
+  const cancellable = CANCELLABLE_STATUSES.includes(booking.status) && (!trip || trip.status === 'scheduled');
   const dropoffPoint =
     booking.dropoffLat != null && booking.dropoffLng != null
       ? { latitude: booking.dropoffLat, longitude: booking.dropoffLng }
@@ -391,19 +395,20 @@ export default function BookingDetailScreen(): React.JSX.Element {
             {formatWhen(booking.ride.departureAt, t, locale)}
           </Text>
 
-          {/* Compact 2-row itinerary: the passenger's actual boarding/
-              alighting points, each carrying its own time and a one-tap
-              directions icon — not 4 separate rows repeating the
-              origin/destination text already shown in the title above. */}
+          {/* Compact 2-row itinerary — the FULL origin/destination location
+              is the prominent line in each row (the h3 title above stays
+              the short primaryText name), with this passenger's actual
+              pickup/dropoff point, its time, and a one-tap directions icon
+              underneath — not 4 separate rows all fighting for attention. */}
           <View style={styles.itinerary}>
             <View style={styles.itineraryRow}>
               <View style={[styles.itineraryDot, { backgroundColor: theme.accent, borderColor: theme.surface }]} />
               <View style={styles.itineraryText}>
-                <Text variant="bodySmall" color={theme.ink} numberOfLines={1}>
-                  {`${t('booking:detail.pickupPoint')} · ${pickupTimeLabel}`}
+                <Text variant="bodySmall" color={theme.ink} numberOfLines={1} style={styles.itineraryPrimary}>
+                  {booking.ride.originLabel}
                 </Text>
                 <Text variant="caption" color={theme.inkMuted} numberOfLines={1}>
-                  {booking.pickupLabel}
+                  {`${pickupTimeLabel} · ${booking.pickupLabel}`}
                 </Text>
               </View>
               <TouchableOpacity
@@ -430,14 +435,22 @@ export default function BookingDetailScreen(): React.JSX.Element {
             <View style={styles.itineraryRow}>
               <View style={[styles.itineraryDot, { backgroundColor: theme.ink, borderColor: theme.surface }]} />
               <View style={styles.itineraryText}>
-                <Text variant="bodySmall" color={theme.ink} numberOfLines={1}>
-                  {dropoffTimeLabel
-                    ? `${t('booking:detail.dropoffPoint')} · ≈ ${dropoffTimeLabel}`
-                    : t('booking:detail.dropoffPoint')}
+                <Text variant="bodySmall" color={theme.ink} numberOfLines={1} style={styles.itineraryPrimary}>
+                  {booking.ride.destinationLabel}
                 </Text>
-                <Text variant="caption" color={theme.inkMuted} numberOfLines={1}>
-                  {dropoffPlaceLabel}
-                </Text>
+                {/* Only a genuinely distinct mid-route dropoff (or an
+                    estimated arrival time) adds real information here — the
+                    destination name is already the line above; repeating it
+                    verbatim as a fallback caption would just be noise. */}
+                {booking.dropoffLabel ? (
+                  <Text variant="caption" color={theme.inkMuted} numberOfLines={1}>
+                    {dropoffTimeLabel ? `≈ ${dropoffTimeLabel} · ${booking.dropoffLabel}` : booking.dropoffLabel}
+                  </Text>
+                ) : dropoffTimeLabel ? (
+                  <Text variant="caption" color={theme.inkMuted} numberOfLines={1}>
+                    {`${t('trips:estimated')} ${dropoffTimeLabel}`}
+                  </Text>
+                ) : null}
               </View>
               <TouchableOpacity
                 onPress={() => openInMaps(dropoffPoint.latitude, dropoffPoint.longitude, dropoffPlaceLabel)}
@@ -743,6 +756,9 @@ const styles = StyleSheet.create({
   itineraryText: {
     flex: 1,
     gap: 1,
+  },
+  itineraryPrimary: {
+    fontWeight: '700',
   },
   itineraryWalkNote: {
     marginLeft: spacing.lg + spacing.xs,

@@ -19,7 +19,8 @@ import {
   previewBookingCancellation,
   reportNoShow,
 } from '../bookings.service.js';
-import { ConflictError } from '../../../lib/errors.js';
+import { startTrip } from '../../trips/trips.service.js';
+import { ConflictError, ForbiddenError } from '../../../lib/errors.js';
 
 /**
  * Phase 10 (docs/roadmap/phase-10-cancellation-no-show.md) — real Postgres,
@@ -228,6 +229,40 @@ describe('bookings.service — cancellation & no-show (Phase 10)', () => {
     const [rideAfterCancel] = await db.select().from(rides).where(eq(rides.id, ride.id));
     expect(rideAfterCancel!.seatsAvailable).toBe(3);
     expect(rideAfterCancel!.seatsAvailable).toBeLessThanOrEqual(rideAfterCancel!.seatsTotal);
+  });
+
+  it('rejects cancellation (and its preview) once the trip has actually started, for both rider and driver', async () => {
+    const rider = await makeRider('6');
+    const ride = await makeRide(new Date(Date.now() + 6 * 60 * 60_000), 2);
+
+    const booking = await createBooking(db, ride.id, rider.id, {
+      seatsRequested: 1,
+      pickup: { label: 'Pickup', lat: 36.8, lng: 10.18 },
+    });
+    await acceptBooking(db, booking.id, driverUserId);
+
+    const tripBeforeStart = await db.query.trips.findFirst({ where: eq(trips.bookingId, booking.id) });
+    expect(tripBeforeStart!.status).toBe('scheduled');
+
+    // Still scheduled — both the preview and the real cancel work normally.
+    await expect(previewBookingCancellation(db, booking.id, rider.id)).resolves.toBeDefined();
+
+    await startTrip(db, tripBeforeStart!.id, driverUserId);
+
+    // Once genuinely underway, neither party can cancel through this path
+    // anymore — a driver_approaching+ trip needs completion or a no-show
+    // report, not a cancellation.
+    await expect(previewBookingCancellation(db, booking.id, rider.id)).rejects.toBeInstanceOf(
+      ForbiddenError,
+    );
+    await expect(cancelBooking(db, booking.id, rider.id)).rejects.toBeInstanceOf(ForbiddenError);
+    await expect(cancelBooking(db, booking.id, driverUserId)).rejects.toBeInstanceOf(ForbiddenError);
+
+    // The booking is untouched — still accepted, seat still held.
+    const stillAccepted = await db.query.bookings.findFirst({ where: eq(bookings.id, booking.id) });
+    expect(stillAccepted!.status).toBe('accepted');
+    const [rideAfter] = await db.select().from(rides).where(eq(rides.id, ride.id));
+    expect(rideAfter!.seatsAvailable).toBe(1);
   });
 
   it('rejects reporting a no-show before the scheduled departure time', async () => {
