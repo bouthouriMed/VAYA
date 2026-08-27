@@ -17,6 +17,9 @@ import { deviceTokens } from './device-tokens.schema';
 import { conversations } from './conversations.schema';
 import { messages } from './messages.schema';
 import { riderProfiles } from './rider-profiles.schema';
+import { adminUsers } from './admin-users.schema';
+import { auditLogs } from './audit-logs.schema';
+import { reports } from './reports.schema';
 
 export * from './users.schema';
 export * from './driver-profiles.schema';
@@ -38,6 +41,10 @@ export * from './recurring-detection-configs.schema';
 export * from './device-tokens.schema';
 export * from './conversations.schema';
 export * from './messages.schema';
+export * from './admin-users.schema';
+export * from './audit-logs.schema';
+export * from './analytics-events.schema';
+export * from './reports.schema';
 
 export const usersRelations = relations(users, ({ one, many }) => ({
   driverProfile: one(driverProfiles, {
@@ -156,4 +163,23 @@ export const conversationsRelations = relations(conversations, ({ one, many }) =
 export const messagesRelations = relations(messages, ({ one }) => ({
   conversation: one(conversations, { fields: [messages.conversationId], references: [conversations.id] }),
   sender: one(users, { fields: [messages.senderUserId], references: [users.id] }),
+}));
+
+export const adminUsersRelations = relations(adminUsers, ({ many }) => ({
+  auditLogs: many(auditLogs),
+}));
+
+export const auditLogsRelations = relations(auditLogs, ({ one }) => ({
+  adminUser: one(adminUsers, { fields: [auditLogs.adminUserId], references: [adminUsers.id] }),
+}));
+
+export const reportsRelations = relations(reports, ({ one }) => ({
+  reporter: one(users, { fields: [reports.reporterUserId], references: [users.id] }),
+  reportedUser: one(users, { fields: [reports.reportedUserId], references: [users.id] }),
+  booking: one(bookings, { fields: [reports.bookingId], references: [bookings.id] }),
+  trip: one(trips, { fields: [reports.tripId], references: [trips.id] }),
+  resolvedByAdmin: one(adminUsers, {
+    fields: [reports.resolvedByAdminId],
+    references: [adminUsers.id],
+  }),
 }));

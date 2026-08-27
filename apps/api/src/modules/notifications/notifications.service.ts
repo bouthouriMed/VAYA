@@ -135,6 +135,12 @@ const TITLES: Partial<Record<NotificationEventType, string>> = {
   message_received: 'Nouveau message',
   booking_cancelled: 'Réservation annulée',
   booking_no_show_reported: 'Absence signalée',
+  trip_arriving: 'Votre conducteur arrive',
+  trip_tracking_unavailable: 'Suivi temporairement indisponible',
+  verification_submitted: 'Vérification soumise',
+  verification_approved: 'Vous êtes vérifié',
+  verification_declined: 'Vérification refusée',
+  verification_resubmission_required: 'Vérification à mettre à jour',
 };
 
 function titleFor(type: NotificationEventType): string {
@@ -198,6 +204,24 @@ function bodyFor(type: NotificationEventType, payload: Record<string, unknown>):
       return 'Vous avez pris cet itinéraire plusieurs fois récemment — voulez-vous en faire un trajet régulier ?';
     case 'recurring_proactive_match':
       return 'Un trajet correspondant à votre itinéraire régulier vient d’être publié.';
+    // Live tracking (docs/domain/live-tracking.md).
+    case 'trip_arriving':
+      return 'Votre conducteur arrive à destination dans quelques instants.';
+    case 'trip_tracking_unavailable':
+      return 'Le suivi en direct est temporairement indisponible — le trajet continue normalement.';
+    // Admin verification workflow (docs/domain/verification-workflow.md).
+    case 'verification_submitted':
+      return 'Votre vérification a été soumise. Aucune action supplémentaire n’est requise pour le moment.';
+    case 'verification_approved':
+      return 'Votre profil conducteur est vérifié — vous pouvez publier des trajets.';
+    case 'verification_declined':
+      return typeof payload.declineMessage === 'string'
+        ? payload.declineMessage
+        : 'Votre vérification n’a pas été approuvée.';
+    case 'verification_resubmission_required':
+      return typeof payload.declineMessage === 'string'
+        ? payload.declineMessage
+        : 'Votre vérification nécessite une mise à jour.';
     default:
       return 'Vous avez une nouvelle notification.';
   }

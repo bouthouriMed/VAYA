@@ -19,6 +19,12 @@
     "recurring_pattern_detected": "Nous avons remarqué une habitude",
     "recurring_proactive_match": "Suggestion de trajet",
     "demand_signal_matched": "Un trajet vient de se libérer",
+    "trip_arriving": "Votre conducteur est presque arrivé",
+    "trip_tracking_unavailable": "Suivi temporairement indisponible",
+    "verification_submitted": "Vérification soumise",
+    "verification_approved": "Vous êtes vérifié",
+    "verification_declined": "Vérification refusée",
+    "verification_resubmission_required": "Vérification à mettre à jour",
     "fallback": "Notification"
   },
   "descriptions": {
@@ -33,7 +39,13 @@
     "message_received": "Vous avez un nouveau message de {{name}}.",
     "recurring_pattern_detected": "Vous prenez souvent cet itinéraire — configurez-le en trajet récurrent.",
     "recurring_proactive_match": "Nous avons trouvé un trajet correspondant à votre itinéraire habituel de {{origin}} à {{destination}}.",
-    "demand_signal_matched": "Un trajet de {{origin}} à {{destination}} correspondant à votre recherche est disponible."
+    "demand_signal_matched": "Un trajet de {{origin}} à {{destination}} correspondant à votre recherche est disponible.",
+    "trip_arriving": "Votre conducteur est presque arrivé à votre point de prise en charge.",
+    "trip_tracking_unavailable": "Votre conducteur a signalé un problème de suivi — il devrait reprendre bientôt.",
+    "verification_submitted": "Nous examinons vos documents. Aucune action n'est requise pour le moment.",
+    "verification_approved": "Votre profil conducteur est vérifié. Vous pouvez maintenant publier des trajets.",
+    "verification_declined": "Votre vérification n'a pas été approuvée. Consultez les détails dans votre profil.",
+    "verification_resubmission_required": "Merci de mettre à jour vos documents pour continuer la vérification."
   },
   "driverRequest": {
     "newOnVaya": "Nouveau sur VAYA",

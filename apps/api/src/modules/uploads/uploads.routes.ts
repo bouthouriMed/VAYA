@@ -42,4 +42,33 @@ export async function uploadsRoutes(fastify: FastifyInstance): Promise<void> {
       reply.send({ url: relativeUrl });
     },
   );
+
+  // Driver KYC documents (license/registration/insurance/selfie) go through
+  // this endpoint instead of the one above — saveSecure writes outside the
+  // publicly-served uploads directory (docs/domain/verification-workflow.md's
+  // "Document security" section). Mobile's CaptureCamera consumers
+  // (license.tsx/insurance.tsx/selfie.tsx) are the only intended callers;
+  // avatar/vehicle-photo uploads keep using the public /uploads endpoint
+  // above unchanged, since those are meant to be visible to matched
+  // counterparts.
+  app.post(
+    '/uploads/secure',
+    {
+      onRequest: [fastify.authenticate],
+      schema: { response: { 200: z.object({ url: z.string() }) } },
+    },
+    async (request, reply) => {
+      const file = await request.file({ limits: { fileSize: MAX_FILE_BYTES } });
+      if (!file) throw new ValidationError('No file provided');
+
+      const buffer = await file.toBuffer();
+      const relativeUrl = await storage.saveSecure({
+        buffer,
+        filename: file.filename,
+        contentType: file.mimetype,
+      });
+
+      reply.send({ url: relativeUrl });
+    },
+  );
 }

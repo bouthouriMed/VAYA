@@ -25,7 +25,7 @@ import { router } from 'expo-router';
 import { useAppDispatch, useAppSelector } from '../../../src/state/store';
 import { setSelfieUri, resetDriverOnboarding } from '../../../src/state/driverOnboardingSlice';
 import {
-  useUploadFileMutation,
+  useUploadSecureFileMutation,
   useCreateDriverOnboardingMutation,
   useCreateRideMutation,
   usePublishRideMutation,
@@ -73,7 +73,7 @@ export default function SelfieCaptureScreen(): React.JSX.Element {
   const [phase, setPhase] = useState<'capture' | 'review'>(draft.selfieUri ? 'review' : 'capture');
   const [errorMessage, setErrorMessage] = useState<string | undefined>();
 
-  const [uploadFile] = useUploadFileMutation();
+  const [uploadSecureFile] = useUploadSecureFileMutation();
   const [createOnboarding, { isLoading: isSubmitting }] = useCreateDriverOnboardingMutation();
   const [createRide] = useCreateRideMutation();
   const [publishRide] = usePublishRideMutation();
@@ -165,10 +165,15 @@ export default function SelfieCaptureScreen(): React.JSX.Element {
     // so the rendered error can say what actually went wrong.
     let stage: 'documents' | 'profile' = 'documents';
     try {
+      // Driver KYC documents go through /uploads/secure, not the public
+      // /uploads endpoint avatar/vehicle photos use (docs/domain/
+      // verification-workflow.md's "Document security" section — a real
+      // gap fixed alongside this feature: these files must never be
+      // reachable by anyone who merely learns the URL).
       const [licenseUpload, insuranceUpload, selfieUpload] = await Promise.all([
-        uploadFile(fileFromUri(licenseUri!, 'license')).unwrap(),
-        uploadFile(fileFromUri(insuranceUri!, 'insurance')).unwrap(),
-        uploadFile(fileFromUri(selfieUri!, 'selfie')).unwrap(),
+        uploadSecureFile(fileFromUri(licenseUri!, 'license')).unwrap(),
+        uploadSecureFile(fileFromUri(insuranceUri!, 'insurance')).unwrap(),
+        uploadSecureFile(fileFromUri(selfieUri!, 'selfie')).unwrap(),
       ]);
       stage = 'profile';
       const onboardingProfile = await createOnboarding({
@@ -231,15 +236,16 @@ export default function SelfieCaptureScreen(): React.JSX.Element {
       const info = describeVerificationSubmitError(err, stage);
       if (info.kind === 'conflict') {
         // The server's only CONFLICT trigger on createOnboarding is a
-        // pre-existing driver_profile, and profiles are created approved
-        // synchronously — so verification is genuinely already done (this
-        // is the retry-after-lost-response case). Route to the real
-        // confirmation instead of a dead-end error.
+        // pre-existing driver_profile — this used to mean verification was
+        // genuinely already done, back when createOnboarding always
+        // synchronously auto-approved. That's no longer true (docs/domain/
+        // verification-workflow.md): a pre-existing profile could just as
+        // easily be pending/under_review/resubmission_required/rejected.
+        // Route to the real confirmation screen without asserting a status
+        // this branch can't actually back — it derives the true state
+        // itself from useGetMyDriverProfileQuery.
         dispatch(resetDriverOnboarding());
-        router.replace({
-          pathname: '/driver/onboarding/confirmation',
-          params: { originLabel, destinationLabel, status: 'done' },
-        });
+        router.replace({ pathname: '/driver/onboarding/confirmation', params: { originLabel, destinationLabel } });
         return;
       }
       setErrorMessage(info.message);

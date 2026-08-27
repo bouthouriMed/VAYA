@@ -96,9 +96,20 @@
     "publishedToast": "تم نشر رحلتك!",
     "verificationSheet": {
       "title": "خطوة أخيرة قبل الانطلاق",
-      "description": "لنشر رحلتك الأولى، نحتاج إلى التحقق من ملفك الشخصي كسائق. رحلتك محفوظة وستُنشر تلقائيًا بمجرد الموافقة على تحققك.",
+      "description": "لنشر رحلتك الأولى، نحتاج إلى التحقق من ملفك الشخصي كسائق. رحلتك محفوظة كمسودة — يمكنك نشرها بنفسك بمجرد التحقق من ملفك.",
       "pillLabel": "التحقق مطلوب",
-      "startCta": "بدء التحقق"
+      "startCta": "بدء التحقق",
+      "pendingTitle": "التحقق قيد المعالجة",
+      "pendingDescription": "يتم حاليًا مراجعة ملفك. تبقى رحلتك محفوظة كمسودة — يمكنك نشرها بمجرد التحقق من ملفك.",
+      "pendingCta": "عرض الحالة",
+      "resubmitTitle": "المستندات بحاجة إلى تحديث",
+      "resubmitDescription": "بعض مستنداتك بحاجة إلى إعادة إرسال لمتابعة التحقق.",
+      "resubmitPillLabel": "إجراء مطلوب",
+      "resubmitCta": "تحديث مستنداتي",
+      "rejectedTitle": "تم رفض التحقق",
+      "rejectedDescription": "لم تتم الموافقة على طلب التحقق الخاص بك.",
+      "rejectedPillLabel": "تم رفض التحقق",
+      "rejectedCta": "عرض التفاصيل"
     },
     "errors": {
       "createFailed": "تعذر إنشاء هذه الرحلة. حاول مرة أخرى.",
@@ -200,8 +211,32 @@
       "errorDescription": "تعذر نشر رحلتك تلقائيًا. يمكنك المحاولة من رحلاتي.",
       "errorCta": "الذهاب إلى رحلاتي",
       "publishSuccess": "تم نشر رحلتك!",
-      "publishError": "تم التحقق من الملف لكن تعذر نشر الرحلة. حاول من رحلاتي."
+      "publishError": "تم التحقق من الملف لكن تعذر نشر الرحلة. حاول من رحلاتي.",
+      "pendingTitle": "التحقق قيد المعالجة",
+      "pendingDescription": "نراجع مستنداتك حاليًا. سيتم إعلامك فور التحقق من ملفك — لا حاجة لأي إجراء الآن.",
+      "pendingRideSavedNote": "تم حفظ رحلتك كمسودة. يمكنك نشرها بنفسك فور التحقق من ملفك.",
+      "resubmitTitle": "المستندات بحاجة إلى تحديث",
+      "resubmitCta": "تحديث مستنداتي",
+      "rejectedTitle": "تم رفض التحقق",
+      "backCta": "رجوع"
     }
+  },
+  "verificationReasons": {
+    "documentUnclear": "المستند غير واضح",
+    "expired": "مستند منتهي الصلاحية",
+    "informationMismatch": "المعلومات غير متطابقة",
+    "missingDocument": "مستند مفقود",
+    "invalidDocument": "مستند غير صالح",
+    "additionalInfoRequired": "مطلوب معلومات إضافية",
+    "other": "سبب آخر"
+  },
+  "resubmit": {
+    "title": "تحديث مستنداتك",
+    "intro": "أعد التقاط مستنداتك لمتابعة عملية التحقق.",
+    "submit": "إعادة الإرسال",
+    "submitting": "جارٍ الإرسال…",
+    "submitError": "تعذّر إرسال مستنداتك. حاول مرة أخرى.",
+    "documentsSection": "المستندات"
   },
   "rides": {
     "rideDetail": {
@@ -232,7 +267,22 @@
       "intermediateStopsNote_two": "توقفان في الطريق",
       "intermediateStopsNote_few": "{{count}} توقفات في الطريق",
       "intermediateStopsNote_many": "{{count}} توقفًا في الطريق",
-      "intermediateStopsNote_other": "{{count}} توقف في الطريق"
+      "intermediateStopsNote_other": "{{count}} توقف في الطريق",
+      "journeyStartCta": "بدء الرحلة",
+      "journeyCompleteCta": "إنهاء الرحلة",
+      "journeyStartPartialError": "تعذّر بدء بعض الرحلات. حاول مرة أخرى.",
+      "journeyCompletePartialError": "تعذّر إنهاء بعض الرحلات. حاول مرة أخرى.",
+      "passengerAboard": "الراكب في السيارة",
+      "passengerAboardError": "تعذّر تأكيد صعود الراكب. حاول مرة أخرى.",
+      "locationPermissionBanner": "فعّل خدمة الموقع ليتمكن ركابك من رؤية موقعك.",
+      "locationPermissionRetry": "إعادة المحاولة",
+      "tripStatus": {
+        "driverApproaching": "في الطريق",
+        "pickup": "عند نقطة الانطلاق",
+        "active": "الراكب في السيارة",
+        "arriving": "على وشك الوصول",
+        "completed": "انتهت"
+      }
     },
     "manageSheet": {
       "title": "إدارة هذه الرحلة",

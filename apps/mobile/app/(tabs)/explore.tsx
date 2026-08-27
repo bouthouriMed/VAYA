@@ -34,9 +34,11 @@ import {
   setDesiredDepartureAt,
   setPassengers,
   startSearch,
+  ensureSearchSession,
 } from '../../src/state/searchSlice';
 import { useCurrentPosition } from '../../src/services/location/useCurrentPosition';
 import { useMatchingSearchQuery, useListNotificationsQuery } from '../../src/state/api';
+import { trackEvent } from '../../src/services/analytics/analytics';
 
 // A tight, "you are here" urban crop — not a whole-metro overview. Stitch's
 // own reference map is a close-in neighborhood view, not a zoomed-out city;
@@ -71,6 +73,7 @@ export default function HomeSearchScreen(): React.JSX.Element {
   const destination = useAppSelector((s) => s.search.destination);
   const desiredDepartureAt = useAppSelector((s) => s.search.desiredDepartureAt);
   const passengers = useAppSelector((s) => s.search.passengers);
+  const searchId = useAppSelector((s) => s.search.searchId);
   const { status, position } = useCurrentPosition();
   const accessToken = useAppSelector((s) => s.auth.accessToken);
   const [isDateSheetOpen, setIsDateSheetOpen] = useState(false);
@@ -136,6 +139,11 @@ export default function HomeSearchScreen(): React.JSX.Element {
   }
 
   function openField(field: 'origin' | 'destination'): void {
+    // search_started (docs/domain/admin-platform.md's funnel) fires exactly
+    // once per session — a fresh searchId is only ever minted the first
+    // time a rider opens either field with a clean slate.
+    if (!searchId) trackEvent('search_started', {});
+    dispatch(ensureSearchSession());
     router.push({ pathname: '/search/composer', params: { field } });
   }
 
@@ -380,6 +388,19 @@ export default function HomeSearchScreen(): React.JSX.Element {
             activeOpacity={0.85}
             onPress={() => {
               dispatch(startSearch());
+              if (origin && destination) {
+                trackEvent('search_submitted', {
+                  searchId,
+                  originLabel: origin.label,
+                  originLat: origin.lat,
+                  originLng: origin.lng,
+                  destinationLabel: destination.label,
+                  destinationLat: destination.lat,
+                  destinationLng: destination.lng,
+                  desiredDepartureAt,
+                  seats: passengers,
+                });
+              }
               router.push('/search/results');
             }}
             accessibilityRole="button"

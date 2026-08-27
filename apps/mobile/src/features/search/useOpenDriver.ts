@@ -1,7 +1,8 @@
 import { router } from 'expo-router';
-import { useAppDispatch } from '../../state/store';
+import { useAppDispatch, useAppSelector } from '../../state/store';
 import { clearSelectedStops } from '../../state/searchSlice';
 import type { MatchCandidate } from '../../state/api';
+import { trackEvent } from '../../services/analytics/analytics';
 
 /**
  * Shared by every screen that lets a rider tap a specific matched ride
@@ -16,12 +17,18 @@ import type { MatchCandidate } from '../../state/api';
  */
 export function useOpenDriver(): (candidate: MatchCandidate) => void {
   const dispatch = useAppDispatch();
+  const searchId = useAppSelector((s) => s.search.searchId);
 
   return (candidate: MatchCandidate) => {
     // A fresh ride selection always starts with a clean pickup/dropoff-stop
     // slate — otherwise a stop chosen for a previous ride could leak into
     // this one.
     dispatch(clearSelectedStops());
+    trackEvent('search_result_selected', {
+      searchId,
+      selectedRideId: candidate.rideId,
+      matchTier: candidate.matchType,
+    });
     router.push({
       pathname: '/search/ride-details',
       params: { rideId: candidate.rideId, driverUserId: candidate.driverUserId },

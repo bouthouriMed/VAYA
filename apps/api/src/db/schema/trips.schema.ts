@@ -1,4 +1,4 @@
-﻿import { index, pgEnum, pgTable, timestamp, uuid } from 'drizzle-orm/pg-core';
+﻿import { doublePrecision, index, pgEnum, pgTable, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { bookings } from './bookings.schema';
 import { rides } from './rides.schema';
 
@@ -40,6 +40,21 @@ export const trips = pgTable(
     driverSettlementConfirmedAt: timestamp('driver_settlement_confirmed_at', {
       withTimezone: true,
     }),
+    // Live tracking (docs/domain/live-tracking.md): the journey's real start,
+    // distinct from `createdAt` (row creation, at booking-acceptance time).
+    // Set once by POST /trips/:id/start.
+    startedAt: timestamp('started_at', { withTimezone: true }),
+    // Deliberately *not* a location-history table — CLAUDE.md's live-tracking
+    // brief explicitly calls for minimizing GPS retention. Only the driver's
+    // latest reported fix is ever stored; every prior fix is overwritten
+    // in place by POST /trips/:id/location. Nullable: never set until the
+    // driver's device has produced a first fix after `start`.
+    currentLat: doublePrecision('current_lat'),
+    currentLng: doublePrecision('current_lng'),
+    currentHeadingDeg: doublePrecision('current_heading_deg'),
+    currentSpeedMps: doublePrecision('current_speed_mps'),
+    currentAccuracyM: doublePrecision('current_accuracy_m'),
+    locationUpdatedAt: timestamp('location_updated_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },

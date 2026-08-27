@@ -40,6 +40,29 @@
  * RatingPromptBridge established), so a tap here just needs to land
  * somewhere that shows the pattern (its list of patterns), not open the
  * sheet directly — there's no dedicated single-pattern detail screen.
+ *
+ * trip_arriving/trip_tracking_unavailable (live tracking, docs/domain/
+ * live-tracking.md) both carry `{tripId, bookingId}` (trips.service.ts's
+ * updateTripLocation/reportTrackingIssue notifyBestEffort calls) — neither
+ * carries the driverName/destinationLabel/etc. bookings/live.tsx's screen
+ * params currently expect (it's normally reached via bookings/pickup.tsx's
+ * "J'y suis" button, which already has all of that in hand). Rather than
+ * open a live-tracking screen mid-render with half its expected params
+ * missing, this resolves to the "Mes trajets" tab — same honest "good
+ * enough, not perfect" tradeoff this file already documents for
+ * booking_accepted/declined above; the rider can tap into the real booking
+ * from there and reach live.tsx with everything it needs.
+ *
+ * verification_submitted/approved/declined all resolve to
+ * `/driver/onboarding/confirmation`, which now reads the driver's REAL
+ * current `verificationStatus` (not a one-time `status` param) — a tap on
+ * any of these three always shows the true current state, not just what
+ * the notification was about. verification_resubmission_required is the
+ * one type that resolves more specifically, matching this file's
+ * `booking_requested`/`message_received` precedent: it sends the driver
+ * straight to `/driver/onboarding/resubmit`, the exact actionable screen,
+ * since there is real, specific work to do there and nothing to gain by
+ * making them navigate to it themselves.
  */
 export type NotificationDeepLinkType =
   | 'booking_requested'
@@ -49,6 +72,12 @@ export type NotificationDeepLinkType =
   | 'trip_completed'
   | 'recurring_pattern_detected'
   | 'recurring_proactive_match'
+  | 'trip_arriving'
+  | 'trip_tracking_unavailable'
+  | 'verification_submitted'
+  | 'verification_approved'
+  | 'verification_declined'
+  | 'verification_resubmission_required'
   | (string & {});
 
 export function resolveNotificationDeepLink(
@@ -65,6 +94,8 @@ export function resolveNotificationDeepLink(
     case 'booking_accepted':
     case 'booking_declined':
     case 'trip_completed':
+    case 'trip_arriving':
+    case 'trip_tracking_unavailable':
       return '/(tabs)/trips';
     case 'message_received': {
       const bookingId = payload?.bookingId;
@@ -73,6 +104,12 @@ export function resolveNotificationDeepLink(
     case 'recurring_pattern_detected':
     case 'recurring_proactive_match':
       return '/recurring';
+    case 'verification_submitted':
+    case 'verification_approved':
+    case 'verification_declined':
+      return '/driver/onboarding/confirmation';
+    case 'verification_resubmission_required':
+      return '/driver/onboarding/resubmit';
     default:
       return null;
   }

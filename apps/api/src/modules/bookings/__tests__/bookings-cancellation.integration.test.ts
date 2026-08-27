@@ -78,7 +78,10 @@ describe('bookings.service — cancellation & no-show (Phase 10)', () => {
       .returning();
     driverUserId = driverUser!.id;
 
-    const [driverProfile] = await db.insert(driverProfiles).values({ userId: driverUserId }).returning();
+    const [driverProfile] = await db
+      .insert(driverProfiles)
+      .values({ userId: driverUserId, verificationStatus: 'approved' })
+      .returning();
     driverProfileId = driverProfile!.id;
 
     const [vehicle] = await db

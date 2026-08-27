@@ -71,7 +71,10 @@ describe('matching.service — tier cascade, real Postgres (+ real OSRM for rout
       .returning();
     driverUserId = driverUser!.id;
 
-    const [driverProfile] = await db.insert(driverProfiles).values({ userId: driverUserId }).returning();
+    const [driverProfile] = await db
+      .insert(driverProfiles)
+      .values({ userId: driverUserId, verificationStatus: 'approved' })
+      .returning();
     driverProfileId = driverProfile!.id;
 
     const [vehicle] = await db

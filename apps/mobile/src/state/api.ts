@@ -35,7 +35,15 @@ const mediaOrigin = new URL(getBaseUrl()).origin;
 
 function resolveMediaUrls<T>(value: T): T {
   if (typeof value === 'string') {
-    return (value.startsWith('/uploads/') ? `${mediaOrigin}${value}` : value) as T;
+    // `/secure-uploads/` (driver KYC documents, uploadSecureFile) needs the
+    // exact same absolute-URL resolution as `/uploads/` — createOnboarding/
+    // resubmitVerification's schema requires fileUrl to be an absolute URL
+    // (packages/validation/src/drivers.ts's `.url()`), and the resolved
+    // origin is never itself a public read path for secure-uploads (the
+    // static prefix is never registered for that directory server-side —
+    // see docs/domain/verification-workflow.md's "Document security").
+    const isMediaPath = value.startsWith('/uploads/') || value.startsWith('/secure-uploads/');
+    return (isMediaPath ? `${mediaOrigin}${value}` : value) as T;
   }
   if (Array.isArray(value)) {
     return value.map(resolveMediaUrls) as T;
@@ -223,24 +231,49 @@ export interface Vehicle {
   photoUrl: string | null;
 }
 
+export type VerificationDocumentType = 'license' | 'registration' | 'insurance' | 'selfie';
+
 export interface VerificationDocument {
   id: string;
   driverProfileId: string;
-  type: 'license' | 'registration';
+  type: VerificationDocumentType;
   fileUrl: string;
   status: 'pending' | 'approved' | 'rejected';
 }
 
+/** Mirrors the server's extended verification_status enum (docs/domain/
+ *  verification-workflow.md) — `under_review`/`resubmission_required` are
+ *  new states a real admin review queue can now actually produce (this used
+ *  to be a synchronous 'pending'|'approved'|'rejected' auto-approve). */
+export type VerificationStatus = 'pending' | 'under_review' | 'approved' | 'rejected' | 'resubmission_required';
+
+/** The 7 structured decline reasons an admin picks from (docs/domain/
+ *  verification-workflow.md) — mirrors @vaya/domain's VERIFICATION_DECLINE_REASONS. */
+export type VerificationDeclineReason =
+  | 'document_unclear'
+  | 'expired'
+  | 'information_mismatch'
+  | 'missing_document'
+  | 'invalid_document'
+  | 'additional_info_required'
+  | 'other';
+
 export interface DriverProfile {
   id: string;
   userId: string;
-  verificationStatus: 'pending' | 'approved' | 'rejected';
+  verificationStatus: VerificationStatus;
   bio: string | null;
   ratingAvg: number;
   tripCount: number;
   punctualityScore: number;
   reliabilityScore: number;
   approvedAt: string | null;
+  /** Only ever set alongside verificationStatus 'rejected'/'resubmission_required'.
+   *  `verificationDeclineMessage` is the required, human-readable admin
+   *  explanation — always show this, never just the raw reason code. */
+  verificationDeclineReason: VerificationDeclineReason | null;
+  verificationDeclineMessage: string | null;
+  verificationAttempt: number;
   vehicles: Vehicle[];
   documents: VerificationDocument[];
 }
@@ -351,7 +384,15 @@ export type NotificationEventType =
   | 'demand_signal_matched'
   | 'message_received'
   | 'booking_cancelled'
-  | 'booking_no_show_reported';
+  | 'booking_no_show_reported'
+  // Live tracking (docs/domain/live-tracking.md).
+  | 'trip_arriving'
+  | 'trip_tracking_unavailable'
+  // Admin verification workflow (docs/domain/verification-workflow.md).
+  | 'verification_submitted'
+  | 'verification_approved'
+  | 'verification_declined'
+  | 'verification_resubmission_required';
 
 export interface AppNotification {
   id: string;
@@ -428,6 +469,72 @@ export interface Trip {
   completedAt: string | null;
   riderSettlementConfirmedAt: string | null;
   driverSettlementConfirmedAt: string | null;
+  /** Set the moment `POST /trips/:id/start` succeeds — live tracking's own
+   *  addition (docs/domain/live-tracking.md), null until then. */
+  startedAt: string | null;
+}
+
+/** Live tracking (docs/domain/live-tracking.md) — the GPS feed's own health,
+ *  deliberately orthogonal to `TripStatus`: a trip can be `active` while its
+ *  tracking feed is `stale`/`unavailable`. Mirrors @vaya/domain's
+ *  TRACKING_STATUSES exactly. */
+export type TrackingStatus = 'not_started' | 'starting' | 'live' | 'stale' | 'unavailable' | 'completed';
+
+/** `GET /trips/:id/tracking`'s shape — also exactly what the WebSocket's
+ *  first `{type:'snapshot', ...}` message carries. */
+export interface TrackingState {
+  tripStatus: TripStatus;
+  trackingStatus: TrackingStatus;
+  currentLat: number | null;
+  currentLng: number | null;
+  currentHeadingDeg: number | null;
+  currentSpeedMps: number | null;
+  locationUpdatedAt: string | null;
+  routePolyline: string | null;
+  pickup: { lat: number; lng: number; label: string };
+  destination: { lat: number; lng: number; label: string };
+}
+
+export interface LocationUpdateResult {
+  trackingStatus: TrackingStatus;
+  tripStatus: TripStatus;
+  etaSec: number | null;
+  distanceRemainingM: number | null;
+}
+
+export interface LocationUpdateInput {
+  tripId: string;
+  lat: number;
+  lng: number;
+  headingDeg?: number | null;
+  speedMps?: number | null;
+  accuracyM?: number | null;
+}
+
+/** Mirrors packages/validation/src/admin.ts's analyticsEventsIngestSchema
+ *  per-event shape — every field but `eventName` is optional, and anything
+ *  that doesn't map to a named column belongs in `metadata`. */
+export interface AnalyticsEventInput {
+  eventName: string;
+  searchId?: string | null;
+  originLabel?: string | null;
+  originLat?: number | null;
+  originLng?: number | null;
+  destinationLabel?: string | null;
+  destinationLat?: number | null;
+  destinationLng?: number | null;
+  desiredDepartureAt?: string | null;
+  seats?: number | null;
+  resultCount?: number | null;
+  matchTier?: string | null;
+  selectedRideId?: string | null;
+  durationMs?: number | null;
+  metadata?: Record<string, unknown>;
+}
+
+export interface ResubmitVerificationBody {
+  documents: { type: VerificationDocumentType; fileUrl: string }[];
+  bio?: string;
 }
 
 // Phase 9 (docs/roadmap/phase-09-ratings-trust.md). Mirrors
@@ -959,6 +1066,53 @@ export const api = createApi({
       providesTags: ['PendingRating'],
     }),
 
+    // Live tracking (docs/domain/live-tracking.md). The WebSocket channel
+    // (`useTripTracking`, src/features/tracking/) is the primary transport;
+    // `getTrackingState` below is both the initial fetch and the fully
+    // functional REST-polling fallback.
+    startTrip: builder.mutation<Trip, string>({
+      query: (tripId) => ({ url: `/trips/${tripId}/start`, method: 'POST' }),
+      invalidatesTags: ['Trip', 'MyRides'],
+    }),
+    confirmPassengerAboard: builder.mutation<Trip, string>({
+      query: (tripId) => ({ url: `/trips/${tripId}/passenger-aboard`, method: 'POST' }),
+      invalidatesTags: ['Trip'],
+    }),
+    updateTripLocation: builder.mutation<LocationUpdateResult, LocationUpdateInput>({
+      query: ({ tripId, ...body }) => ({ url: `/trips/${tripId}/location`, method: 'POST', body }),
+    }),
+    reportTrackingIssue: builder.mutation<{ ok: boolean }, string>({
+      query: (tripId) => ({ url: `/trips/${tripId}/tracking-issue`, method: 'POST' }),
+    }),
+    getTrackingState: builder.query<TrackingState, string>({
+      query: (tripId) => `/trips/${tripId}/tracking`,
+    }),
+
+    // Real analytics sink (src/services/analytics/analytics.ts) — batched,
+    // best-effort, never blocking a real user action.
+    ingestAnalyticsEvents: builder.mutation<{ ok: boolean }, AnalyticsEventInput[]>({
+      query: (events) => ({ url: '/analytics/events', method: 'POST', body: { events } }),
+    }),
+
+    // Admin verification workflow (docs/domain/verification-workflow.md).
+    resubmitVerification: builder.mutation<DriverProfile, ResubmitVerificationBody>({
+      query: (body) => ({ url: '/drivers/verification/resubmit', method: 'POST', body }),
+      invalidatesTags: ['DriverProfile'],
+    }),
+    // Driver KYC documents (license/registration/insurance/selfie) go
+    // through this instead of `uploadFile`/`POST /uploads` above — that
+    // endpoint's files sit behind a fully public static prefix with no
+    // auth at all, wrong for identity documents. `/uploads/secure` writes
+    // outside any publicly-served directory; only an authenticated,
+    // ownership-checked streaming endpoint can read it back (see
+    // `GET /drivers/me/documents/:id/file` — not modeled as an RTK Query
+    // endpoint since it's a raw binary GET, not JSON; build the URL and
+    // Authorization header manually where needed, e.g. the resubmission
+    // screen's "here's what you sent before" preview).
+    uploadSecureFile: builder.mutation<{ url: string }, FormData>({
+      query: (formData) => ({ url: '/uploads/secure', method: 'POST', body: formData }),
+    }),
+
     // Phase 11 (docs/roadmap/phase-11-recurring-rides.md).
     listMyRecurringPatterns: builder.query<RecurringPattern[], void>({
       query: () => '/recurring-patterns',
@@ -1035,6 +1189,15 @@ export const {
   useCreateTripRatingMutation,
   useGetUserTrustSummaryQuery,
   useGetPendingRatingQuery,
+  useStartTripMutation,
+  useConfirmPassengerAboardMutation,
+  useUpdateTripLocationMutation,
+  useReportTrackingIssueMutation,
+  useGetTrackingStateQuery,
+  useLazyGetTrackingStateQuery,
+  useIngestAnalyticsEventsMutation,
+  useResubmitVerificationMutation,
+  useUploadSecureFileMutation,
   useListMyRecurringPatternsQuery,
   useUpdateRecurringPatternMutation,
 } = api;

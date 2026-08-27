@@ -39,4 +39,24 @@ describe('resolveNotificationDeepLink', () => {
     expect(resolveNotificationDeepLink('message_received')).toBe('/(tabs)/trips');
     expect(resolveNotificationDeepLink('message_received', {})).toBe('/(tabs)/trips');
   });
+
+  it.each(['trip_arriving', 'trip_tracking_unavailable'])(
+    'resolves live-tracking event %s to the trips tab',
+    (type) => {
+      expect(resolveNotificationDeepLink(type, { tripId: 't1', bookingId: 'b1' })).toBe('/(tabs)/trips');
+    },
+  );
+
+  it.each(['verification_submitted', 'verification_approved', 'verification_declined'])(
+    'resolves verification event %s to the confirmation screen',
+    (type) => {
+      expect(resolveNotificationDeepLink(type)).toBe('/driver/onboarding/confirmation');
+    },
+  );
+
+  it('resolves verification_resubmission_required directly to the resubmit screen', () => {
+    expect(resolveNotificationDeepLink('verification_resubmission_required')).toBe(
+      '/driver/onboarding/resubmit',
+    );
+  });
 });

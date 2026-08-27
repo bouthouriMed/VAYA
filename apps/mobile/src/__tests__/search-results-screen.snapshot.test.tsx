@@ -51,6 +51,7 @@ const searchState: RootState['search'] = {
   selectedStop: null,
   selectedDropoffStop: null,
   passengers: 1,
+  searchId: 'search-1',
 };
 
 function mockStore(): void {

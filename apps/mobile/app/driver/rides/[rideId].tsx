@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { View, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Modal } from 'react-native';
 import { Marker, Polyline } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -17,6 +17,7 @@ import {
   PickupPin,
   DropoffPin,
   useAppTheme,
+  useToast,
   spacing,
   radii,
   haptics,
@@ -28,15 +29,31 @@ import {
   useListRequestsForRideQuery,
   useAcceptBookingMutation,
   useDeclineBookingMutation,
+  useGetTripByBookingQuery,
+  useStartTripMutation,
+  useConfirmPassengerAboardMutation,
+  useCompleteTripMutation,
   type Booking,
+  type Trip,
+  type TripStatus,
 } from '../../../src/state/api';
 import { decodePolyline } from '../../../src/utils/polyline';
 import { DriverBookingDetailSheet } from '../../../src/features/driver-rides/DriverBookingDetailSheet';
 import { RequestDetailSheet } from '../../../src/features/driver-rides/RequestDetailSheet';
 import { ManageRideSheet } from '../../../src/features/driver-rides/ManageRideSheet';
+import { useDriverLocationBroadcast } from '../../../src/features/driver-rides/useDriverLocationBroadcast';
 import { trackEvent } from '../../../src/services/analytics/analytics';
 import { estimateArrivalLabel, computeTripPhase } from '../../../src/features/driver-rides/myRidesHelpers';
 import { formatTime, formatRelativeTime, toIntlTag } from '../../../src/utils/localeFormat';
+
+const TRACKABLE_TRIP_STATUSES: readonly TripStatus[] = ['driver_approaching', 'pickup', 'active', 'arriving'];
+const TRIP_STATUS_LABEL_KEY: Partial<Record<TripStatus, string>> = {
+  driver_approaching: 'rides.rideDetail.tripStatus.driverApproaching',
+  pickup: 'rides.rideDetail.tripStatus.pickup',
+  active: 'rides.rideDetail.tripStatus.active',
+  arriving: 'rides.rideDetail.tripStatus.arriving',
+  completed: 'rides.rideDetail.tripStatus.completed',
+};
 
 type ThemeColors = ReturnType<typeof useAppTheme>['colors'];
 
@@ -143,6 +160,27 @@ function PendingRequestRow({
 }
 
 /**
+ * Invisible per-accepted-booking trip subscription. A ride with N accepted
+ * bookings has N independent `trips` rows (one per booking) sharing one
+ * driver's physical position — this lets the parent screen aggregate every
+ * accepted booking's own trip without calling a variable number of hooks
+ * in a loop (illegal in React). Renders nothing; reports up via callback.
+ */
+function AcceptedBookingTripBridge({
+  bookingId,
+  onTripChange,
+}: {
+  bookingId: string;
+  onTripChange: (bookingId: string, trip: Trip | undefined) => void;
+}): null {
+  const { data: trip } = useGetTripByBookingQuery(bookingId);
+  useEffect(() => {
+    onTripChange(bookingId, trip);
+  }, [bookingId, trip, onTripChange]);
+  return null;
+}
+
+/**
  * Driver's real-time ride management hub (2026-08-23 trips/notifications
  * redesign) — consolidates what RideRequestsSheet + ManageRideSheet used to
  * split across two separate bottom sheets into one screen: a real route
@@ -181,6 +219,75 @@ export default function DriverRideHubScreen(): React.JSX.Element {
 
   const pending = (requests ?? []).filter((r) => r.status === 'pending');
   const answered = (requests ?? []).filter((r) => r.status !== 'pending');
+  const acceptedBookings = answered.filter((b) => b.status === 'accepted');
+
+  // Live tracking (docs/domain/live-tracking.md): the driver's three real
+  // actions (Démarrer/Passager à bord/Terminer) plus foreground GPS
+  // broadcast — all hooks called unconditionally here, before either early
+  // return below, per React's rules of hooks.
+  const [tripsByBooking, setTripsByBooking] = useState<Record<string, Trip | undefined>>({});
+  const handleTripChange = useCallback((bookingId: string, trip: Trip | undefined) => {
+    setTripsByBooking((prev) => (prev[bookingId] === trip ? prev : { ...prev, [bookingId]: trip }));
+  }, []);
+  const acceptedTrips = acceptedBookings
+    .map((b) => tripsByBooking[b.id])
+    .filter((trip): trip is Trip => Boolean(trip));
+  const scheduledTripIds = acceptedTrips.filter((trip) => trip.status === 'scheduled').map((trip) => trip.id);
+  const trackableTripIds = acceptedTrips
+    .filter((trip) => TRACKABLE_TRIP_STATUSES.includes(trip.status))
+    .map((trip) => trip.id);
+  const completableTripIds = acceptedTrips
+    .filter((trip) => trip.status === 'active' || trip.status === 'arriving')
+    .map((trip) => trip.id);
+  const anyNotYetCompletable = acceptedTrips.some(
+    (trip) => trip.status === 'scheduled' || trip.status === 'driver_approaching' || trip.status === 'pickup',
+  );
+  const canStartJourney = scheduledTripIds.length > 0;
+  const canCompleteJourney = completableTripIds.length > 0 && !anyNotYetCompletable;
+
+  const { status: locationBroadcastStatus, retryPermission: retryLocationPermission } =
+    useDriverLocationBroadcast(trackableTripIds);
+
+  const [startTrip] = useStartTripMutation();
+  const [confirmPassengerAboard] = useConfirmPassengerAboardMutation();
+  const [completeTripMutation] = useCompleteTripMutation();
+  const [journeyActionBusy, setJourneyActionBusy] = useState(false);
+  const showToast = useToast();
+
+  async function handleStartJourney(): Promise<void> {
+    setJourneyActionBusy(true);
+    const results = await Promise.allSettled(scheduledTripIds.map((id) => startTrip(id).unwrap()));
+    setJourneyActionBusy(false);
+    if (results.some((r) => r.status === 'rejected')) {
+      showToast({ message: t('rides.rideDetail.journeyStartPartialError'), tone: 'error' });
+    } else {
+      haptics.success();
+      trackEvent('driver_journey_started', { rideId });
+    }
+  }
+
+  async function handleCompleteJourney(): Promise<void> {
+    setJourneyActionBusy(true);
+    const results = await Promise.allSettled(completableTripIds.map((id) => completeTripMutation(id).unwrap()));
+    setJourneyActionBusy(false);
+    if (results.some((r) => r.status === 'rejected')) {
+      showToast({ message: t('rides.rideDetail.journeyCompletePartialError'), tone: 'error' });
+    } else {
+      haptics.success();
+      trackEvent('driver_journey_completed', { rideId });
+    }
+  }
+
+  async function handlePassengerAboard(tripId: string): Promise<void> {
+    try {
+      await confirmPassengerAboard(tripId).unwrap();
+      haptics.success();
+      trackEvent('driver_passenger_aboard', { rideId, tripId });
+    } catch {
+      showToast({ message: t('rides.rideDetail.passengerAboardError'), tone: 'error' });
+    }
+  }
+
   const routeCoordinates = ride?.routePolyline ? decodePolyline(ride.routePolyline) : [];
   // Only the driver-selected stops (the endpoint already filters to these —
   // see getRideStops's own comment), in route order. The publish flow
@@ -228,8 +335,10 @@ export default function DriverRideHubScreen(): React.JSX.Element {
   // to show the literal word "Departure" for the ride's entire lifetime
   // (draft/published/full/in_progress all showed "Departure", only the
   // color changed) with something reflecting where the trip actually is —
-  // see computeTripPhase's own doc comment for why "in progress" is a
-  // documented departure-time-based proxy, not real live tracking.
+  // see computeTripPhase's own doc comment: `in_progress`/`completed` are
+  // now real signals from live tracking (docs/domain/live-tracking.md) when
+  // present, with a departure-time heuristic as a narrower fallback only
+  // for the window before any accepted booking's trip has started.
   const tripPhase = computeTripPhase(ride);
   const statusBadge: { label: string; variant: 'default' | 'success' | 'info' | 'warning' | 'error' } =
     tripPhase === 'cancelled'
@@ -264,6 +373,9 @@ export default function DriverRideHubScreen(): React.JSX.Element {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
+      {acceptedBookings.map((booking) => (
+        <AcceptedBookingTripBridge key={booking.id} bookingId={booking.id} onTripChange={handleTripChange} />
+      ))}
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
           <TouchableOpacity
@@ -434,36 +546,57 @@ export default function DriverRideHubScreen(): React.JSX.Element {
             {answered.map((booking) => {
               const meta = ANSWERED_BADGE[booking.status];
               const manageable = booking.status === 'accepted';
+              const trip = tripsByBooking[booking.id];
+              // Once this passenger's own trip has genuinely started, its
+              // real status is more useful than the generic "Confirmé"
+              // badge every accepted booking otherwise shows forever.
+              const tripStatusKey = trip ? TRIP_STATUS_LABEL_KEY[trip.status] : undefined;
+              const badgeLabel = tripStatusKey ? t(tripStatusKey) : meta.label;
+              const showBoardButton = trip && (trip.status === 'driver_approaching' || trip.status === 'pickup');
               return (
-                <TouchableOpacity
-                  key={booking.id}
-                  style={[styles.glassRow, styles.answeredRow, { backgroundColor: theme.surfaceMuted, borderColor: theme.outlineVariant }]}
-                  disabled={!manageable}
-                  onPress={manageable ? () => setManagedBooking(booking) : undefined}
-                  activeOpacity={0.7}
-                  accessibilityRole={manageable ? 'button' : undefined}
-                  accessibilityLabel={
-                    manageable ? `${t('rides.manageSheet.title')} ${booking.rider?.fullName ?? t('rides.bookingDetail.passenger')}` : undefined
-                  }
-                >
-                  <Avatar
-                    uri={booking.rider?.avatarUrl}
-                    name={booking.rider?.fullName ?? '?'}
-                    sizePx={36}
-                    fallbackBackgroundColor={theme.surface}
-                    fallbackTextColor={theme.ink}
-                  />
-                  <View style={styles.requestIdentityText}>
-                    <Text variant="bodySmall" color={theme.ink} numberOfLines={1}>
-                      {booking.rider?.fullName ?? t('rides.bookingDetail.passenger')}
-                    </Text>
-                    <Text variant="caption" color={theme.inkMuted}>
-                      {`${booking.seatsRequested} place${booking.seatsRequested > 1 ? 's' : ''}`}
-                    </Text>
-                  </View>
-                  <Badge label={meta.label} variant={meta.variant} theme={theme} />
-                  {manageable ? <Icon name="chevron-forward" size="xs" color={theme.outline} /> : null}
-                </TouchableOpacity>
+                <View key={booking.id} style={styles.answeredGroup}>
+                  <TouchableOpacity
+                    style={[styles.glassRow, styles.answeredRow, { backgroundColor: theme.surfaceMuted, borderColor: theme.outlineVariant }]}
+                    disabled={!manageable}
+                    onPress={manageable ? () => setManagedBooking(booking) : undefined}
+                    activeOpacity={0.7}
+                    accessibilityRole={manageable ? 'button' : undefined}
+                    accessibilityLabel={
+                      manageable ? `${t('rides.manageSheet.title')} ${booking.rider?.fullName ?? t('rides.bookingDetail.passenger')}` : undefined
+                    }
+                  >
+                    <Avatar
+                      uri={booking.rider?.avatarUrl}
+                      name={booking.rider?.fullName ?? '?'}
+                      sizePx={36}
+                      fallbackBackgroundColor={theme.surface}
+                      fallbackTextColor={theme.ink}
+                    />
+                    <View style={styles.requestIdentityText}>
+                      <Text variant="bodySmall" color={theme.ink} numberOfLines={1}>
+                        {booking.rider?.fullName ?? t('rides.bookingDetail.passenger')}
+                      </Text>
+                      <Text variant="caption" color={theme.inkMuted}>
+                        {`${booking.seatsRequested} place${booking.seatsRequested > 1 ? 's' : ''}`}
+                      </Text>
+                    </View>
+                    <Badge label={badgeLabel} variant={meta.variant} theme={theme} />
+                    {manageable ? <Icon name="chevron-forward" size="xs" color={theme.outline} /> : null}
+                  </TouchableOpacity>
+                  {showBoardButton ? (
+                    <TouchableOpacity
+                      style={[styles.boardButton, { backgroundColor: theme.accent }]}
+                      onPress={() => void handlePassengerAboard(trip!.id)}
+                      activeOpacity={0.85}
+                      accessibilityRole="button"
+                      accessibilityLabel={`${t('rides.rideDetail.passengerAboard')} ${booking.rider?.fullName ?? ''}`}
+                    >
+                      <Text variant="label" color={theme.onAccent}>
+                        {t('rides.rideDetail.passengerAboard')}
+                      </Text>
+                    </TouchableOpacity>
+                  ) : null}
+                </View>
               );
             })}
           </View>
@@ -472,15 +605,51 @@ export default function DriverRideHubScreen(): React.JSX.Element {
         <View style={styles.scrollSpacer} />
       </ScrollView>
 
-      {cancellable ? (
-        <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.md, backgroundColor: theme.background, borderTopColor: theme.outlineVariant }]}>
+      {locationBroadcastStatus === 'permission_denied' ? (
+        <View style={[styles.permissionBanner, { backgroundColor: theme.surfaceMuted, borderColor: theme.outlineVariant }]}>
+          <Icon name="location-outline" size="sm" color={theme.error} />
+          <Text variant="bodySmall" color={theme.ink} style={styles.permissionBannerText}>
+            {t('rides.rideDetail.locationPermissionBanner')}
+          </Text>
           <Button
-            label={t('rides.rideDetail.cancelRide')}
-            variant="outline"
             theme={theme}
-            onPress={() => setCancellingRide(true)}
-            style={styles.footerButton}
+            label={t('rides.rideDetail.locationPermissionRetry')}
+            variant="ghost"
+            size="sm"
+            onPress={retryLocationPermission}
           />
+        </View>
+      ) : null}
+
+      {cancellable || canStartJourney || canCompleteJourney ? (
+        <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.md, backgroundColor: theme.background, borderTopColor: theme.outlineVariant }]}>
+          {canStartJourney ? (
+            <Button
+              label={t('rides.rideDetail.journeyStartCta')}
+              theme={theme}
+              disabled={journeyActionBusy}
+              onPress={() => void handleStartJourney()}
+              style={styles.footerButton}
+            />
+          ) : null}
+          {canCompleteJourney ? (
+            <Button
+              label={t('rides.rideDetail.journeyCompleteCta')}
+              theme={theme}
+              disabled={journeyActionBusy}
+              onPress={() => void handleCompleteJourney()}
+              style={styles.footerButton}
+            />
+          ) : null}
+          {cancellable ? (
+            <Button
+              label={t('rides.rideDetail.cancelRide')}
+              variant="outline"
+              theme={theme}
+              onPress={() => setCancellingRide(true)}
+              style={styles.footerButton}
+            />
+          ) : null}
         </View>
       ) : null}
 
@@ -745,12 +914,35 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.sm,
   },
+  answeredGroup: {
+    gap: spacing.xs,
+  },
+  boardButton: {
+    borderRadius: radii.lg,
+    paddingVertical: spacing.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   scrollSpacer: {
     height: spacing['3xl'],
+  },
+  permissionBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginHorizontal: spacing.lg,
+    marginBottom: spacing.sm,
+    borderRadius: radii.lg,
+    borderWidth: 1,
+    padding: spacing.sm,
+  },
+  permissionBannerText: {
+    flex: 1,
   },
   footer: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.sm,
+    gap: spacing.sm,
     borderTopWidth: StyleSheet.hairlineWidth,
   },
   footerButton: {
