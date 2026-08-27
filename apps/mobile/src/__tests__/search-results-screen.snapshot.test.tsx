@@ -66,6 +66,7 @@ function candidate(overrides: Partial<MatchCandidate>): MatchCandidate {
     rideId: 'ride-1',
     driverUserId: 'user-1',
     driverFullName: 'Mehdi Gharbi',
+    driverAvatarUrl: null,
     ratingAvg: 4.7,
     tripCount: 50,
     departureAt: '2026-08-21T21:28:00.000Z',
