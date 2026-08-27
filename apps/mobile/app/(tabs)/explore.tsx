@@ -26,7 +26,7 @@ import {
 } from '@vaya/design-system';
 import { router } from 'expo-router';
 import type { SupportedLocale } from '@vaya/config';
-import { useAppDispatch, useAppSelector } from '../../src/state/store';
+import { useAppDispatch, useAppSelector, store } from '../../src/state/store';
 import { formatTime, toIntlTag } from '../../src/utils/localeFormat';
 import {
   setOrigin,
@@ -37,7 +37,7 @@ import {
   ensureSearchSession,
 } from '../../src/state/searchSlice';
 import { useCurrentPosition } from '../../src/services/location/useCurrentPosition';
-import { useMatchingSearchQuery, useListNotificationsQuery } from '../../src/state/api';
+import { useMatchingSearchQuery, useListNotificationsQuery, useLazyGeocodeReverseQuery } from '../../src/state/api';
 import { trackEvent } from '../../src/services/analytics/analytics';
 
 // A tight, "you are here" urban crop — not a whole-metro overview. Stitch's
@@ -75,6 +75,7 @@ export default function HomeSearchScreen(): React.JSX.Element {
   const passengers = useAppSelector((s) => s.search.passengers);
   const searchId = useAppSelector((s) => s.search.searchId);
   const { status, position } = useCurrentPosition();
+  const [triggerReverseGeocode] = useLazyGeocodeReverseQuery();
   const accessToken = useAppSelector((s) => s.auth.accessToken);
   const [isDateSheetOpen, setIsDateSheetOpen] = useState(false);
   const [isTimeSheetOpen, setIsTimeSheetOpen] = useState(false);
@@ -94,18 +95,52 @@ export default function HomeSearchScreen(): React.JSX.Element {
 
   // Silently adopt the device's GPS fix as the default departure point the
   // moment it resolves — mirrors Uber/BlaBlaCar's "we already know where you
-  // are" opener. Never overwrites a value the rider already chose.
+  // are" opener. Never overwrites a value the rider already chose. The label
+  // shown is the real reverse-geocoded address under that fix, not a generic
+  // "Current Location" placeholder — falls back to the placeholder only if
+  // the reverse lookup itself fails.
+  //
+  // This screen stays mounted underneath search/composer.tsx (a pushed
+  // route, not a replace), so its own reverse-geocode call and composer's
+  // "use my location" tap race independently — a rider can pick a real
+  // address in composer and navigate back before this effect's promise
+  // settles. `origin` here is the value captured when the effect *started*,
+  // not the live one, so both callbacks re-read the store directly right
+  // before dispatching — otherwise this stale effect would blindly clobber
+  // whatever composer just set (including with this same effect's own
+  // fallback string, which is exactly the "current location" regression
+  // this guard exists to prevent).
   useEffect(() => {
     if (origin || status !== 'granted' || !position) return;
-      dispatch(
-        setOrigin({
-          label: t('common:terms.currentPosition'),
-          lat: position.lat,
-          lng: position.lng,
-          isCurrentPosition: true,
-        }),
-      );
-  }, [origin, status, position, dispatch]);
+    let cancelled = false;
+    void triggerReverseGeocode(position)
+      .unwrap()
+      .then((result) => {
+        if (cancelled || store.getState().search.origin) return;
+        dispatch(
+          setOrigin({
+            label: result.label,
+            lat: position.lat,
+            lng: position.lng,
+            isCurrentPosition: true,
+          }),
+        );
+      })
+      .catch(() => {
+        if (cancelled || store.getState().search.origin) return;
+        dispatch(
+          setOrigin({
+            label: t('common:terms.currentPosition'),
+            lat: position.lat,
+            lng: position.lng,
+            isCurrentPosition: true,
+          }),
+        );
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [origin, status, position, dispatch, t, triggerReverseGeocode]);
 
   const canSearch = Boolean(origin && destination);
 

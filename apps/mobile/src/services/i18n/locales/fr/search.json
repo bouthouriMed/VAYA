@@ -26,6 +26,7 @@
     "savedPlaces": "Lieux enregistrés",
     "clear": "Effacer",
     "resolveError": "Impossible de récupérer ce lieu. Réessayez.",
+    "locationDenied": "Localisation indisponible. Vérifiez les autorisations de position.",
     "resultsSectionLabel": "Résultats",
     "recentSectionLabel": "Récents",
     "noResults": "Aucun résultat",
@@ -72,7 +73,10 @@
     "requestSeat": "Demander une place",
     "alreadyRequested": "Demande envoyée",
     "requestSeatWithPrice": "Demander une place, {{price}} DT",
-    "seatTakenError": "Cette place vient peut-être d'être prise. Réessayez."
+    "seatTakenError": "Cette place vient peut-être d'être prise. Réessayez.",
+    "selfBookingError": "Vous ne pouvez pas demander une place sur votre propre trajet.",
+    "duplicateBookingError": "Vous avez déjà une demande pour ce trajet.",
+    "rideNotBookableError": "Ce trajet n'accepte plus de demandes."
   },
   "trust": {
     "back": "Retour",

@@ -26,6 +26,7 @@
     "savedPlaces": "الأماكن المحفوظة",
     "clear": "مسح",
     "resolveError": "تعذر جلب هذا المكان. أعد المحاولة.",
+    "locationDenied": "الموقع غير متاح. تحقق من أذونات الموقع.",
     "resultsSectionLabel": "النتائج",
     "recentSectionLabel": "الأخيرة",
     "noResults": "لا توجد نتائج",
@@ -80,7 +81,10 @@
     "requestSeat": "طلب مقعد",
     "alreadyRequested": "تم إرسال الطلب",
     "requestSeatWithPrice": "طلب مقعد، {{price}} د.ت",
-    "seatTakenError": "قد يكون هذا المقعد قد أُخذ للتو. أعد المحاولة."
+    "seatTakenError": "قد يكون هذا المقعد قد أُخذ للتو. أعد المحاولة.",
+    "selfBookingError": "لا يمكنك طلب مقعد في رحلتك الخاصة.",
+    "duplicateBookingError": "لديك بالفعل طلب لهذه الرحلة.",
+    "rideNotBookableError": "لم تعد هذه الرحلة تقبل الطلبات."
   },
   "trust": {
     "back": "رجوع",

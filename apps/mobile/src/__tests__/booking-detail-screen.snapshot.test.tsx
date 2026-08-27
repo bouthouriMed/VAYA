@@ -47,6 +47,7 @@ const ACCEPTED_BOOKING: Booking = {
     contributionPerSeat: 10.5,
     driverFullName: 'Amine Ben Salah',
     driverUserId: 'driver-amine',
+    status: 'published',
   },
 };
 
@@ -99,6 +100,16 @@ function mockApi(): void {
     // so inert stubs suffice; they just have to exist.
     useCancelBookingMutation: (): MutationTuple => [vi.fn(), { isLoading: false }],
     useGetCancellationPreviewQuery: (): QueryResult<unknown> => ({}),
+    // Live tracking re-entry point (docs/domain/live-tracking.md) — no trip
+    // yet in this fixture, so the "Suivre le trajet en direct" card simply
+    // doesn't render (isTrackable stays false).
+    useGetTripByBookingQuery: (): QueryResult<unknown> => ({}),
+    // The Call button (useCallCounterpart) — never actually pressed in this
+    // snapshot, an inert stub suffices.
+    useLazyGetBookingContactPhoneQuery: (): [() => { unwrap: () => Promise<{ phone: string | null }> }, { isFetching: boolean }] => [
+      () => ({ unwrap: async () => ({ phone: null }) }),
+      { isFetching: false },
+    ],
   }));
   // useCurrentPosition triggers a real expo-location permission request on
   // mount — irrelevant to what this snapshot verifies, and expo-location
@@ -109,11 +120,24 @@ function mockApi(): void {
   }));
 }
 
+// ToastProvider must come from the *same* vi.resetModules() graph as
+// BookingDetailScreen — see driver-ride-hub-screen.snapshot.test.tsx's
+// identical note: a statically-imported ToastProvider binds to a
+// ToastContext object from the pre-reset module instance, which a
+// post-reset useToast() call (DriverCard's Call button, useCallCounterpart)
+// won't match.
 async function renderScreen(): Promise<ReturnType<typeof renderJSON>> {
   vi.resetModules();
   mockApi();
-  const { default: BookingDetailScreen } = await import('../../app/bookings/[bookingId]');
-  return renderJSON(<BookingDetailScreen />);
+  const [{ default: BookingDetailScreen }, { ToastProvider }] = await Promise.all([
+    import('../../app/bookings/[bookingId]'),
+    import('@vaya/design-system'),
+  ]);
+  return renderJSON(
+    <ToastProvider>
+      <BookingDetailScreen />
+    </ToastProvider>,
+  );
 }
 
 describe('bookings/[bookingId].tsx snapshots', () => {

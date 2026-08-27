@@ -6,6 +6,7 @@ import { router } from 'expo-router';
 import type { Booking } from '../../state/api';
 import { CancellationSheet } from '../bookings/CancellationSheet';
 import { NoShowReportSheet } from '../bookings/NoShowReportSheet';
+import { useCallCounterpart } from '../bookings/useCallCounterpart';
 
 interface DriverBookingDetailSheetProps {
   visible: boolean;
@@ -40,6 +41,7 @@ export function DriverBookingDetailSheet({
   const theme = useAppTheme().colors;
   const [cancelling, setCancelling] = useState(false);
   const [reportingNoShow, setReportingNoShow] = useState(false);
+  const { call, isLoading: isCalling } = useCallCounterpart(booking?.id ?? '');
 
   useEffect(() => {
     if (!visible) {
@@ -97,12 +99,22 @@ export function DriverBookingDetailSheet({
             </Text>
           </View>
 
-          <Button
-            label={t('booking:conversation.unavailable')}
-            theme={theme}
-            onPress={openConversation}
-            style={styles.actionButton}
-          />
+          <View style={styles.actionRow}>
+            <Button
+              label={t('common:actions.call')}
+              variant="outline"
+              theme={theme}
+              onPress={call}
+              disabled={isCalling}
+              style={styles.actionRowButton}
+            />
+            <Button
+              label={t('common:actions.message')}
+              theme={theme}
+              onPress={openConversation}
+              style={styles.actionRowButton}
+            />
+          </View>
           <Button
             label={t('booking:noShow.reportCta')}
             variant="outline"
@@ -170,6 +182,13 @@ const styles = StyleSheet.create({
   },
   actionButton: {
     width: '100%',
+  },
+  actionRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  actionRowButton: {
+    flex: 1,
   },
   cancelLabel: {
     textAlign: 'center',

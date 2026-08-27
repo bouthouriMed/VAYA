@@ -10,6 +10,16 @@ function normalize(value: number | null | undefined): number | null {
   return typeof value === 'number' && value >= 0 ? value : null;
 }
 
+// The actual outbound cadence guard, independent of native delivery rate.
+// With distanceInterval: 0 (see the watchPositionAsync call below), iOS can
+// hand back a new fix roughly as fast as the GPS chip itself updates
+// (~1/s) — this keeps what we actually POST at the intended ~7-10s cadence
+// regardless of platform, so a driver with several accepted passengers
+// can't multiply that into a burst that trips POST /trips/:id/location's
+// server-side rate-limit ceiling (20 req/10s, shared per IP across every
+// trip: id that route matches).
+const MIN_SEND_INTERVAL_MS = 7000;
+
 /**
  * Foreground-only GPS broadcast for the driver ride-hub screen
  * (docs/domain/live-tracking.md's throttling policy: ~6-10s cadence,
@@ -36,6 +46,7 @@ export function useDriverLocationBroadcast(trackableTripIds: string[]): {
   const tripIdsRef = useRef<string[]>(trackableTripIds);
   tripIdsRef.current = trackableTripIds;
   const [retryToken, setRetryToken] = useState(0);
+  const lastSentAtRef = useRef(0);
 
   const hasTrackableTrips = trackableTripIds.length > 0;
 
@@ -64,8 +75,22 @@ export function useDriverLocationBroadcast(trackableTripIds: string[]): {
       issueReportedRef.current = false;
       try {
         const subscription = await Location.watchPositionAsync(
-          { accuracy: Location.Accuracy.High, timeInterval: 7000, distanceInterval: 15 },
+          // `timeInterval` is Android-only (expo-location docs: "Available
+          // only for Android") — on iOS, `distanceInterval` (CLLocationManager's
+          // `distanceFilter`) is the *only* thing that gates delivery, with
+          // no time-based fallback at all. The previous 15m threshold meant
+          // an iOS driver stopped at a light, in traffic, or waiting at the
+          // pickup point for more than ~90s produced *zero* updates —
+          // tracking correctly (if confusingly) showed "unavailable" even
+          // though the app was fully active the whole time. 0 removes the
+          // distance gate so delivery is effectively continuous (throttled
+          // naturally by the GPS hardware's own ~1Hz rate) on both
+          // platforms; `timeInterval` still governs Android's cadence.
+          { accuracy: Location.Accuracy.High, timeInterval: 7000, distanceInterval: 0 },
           (loc) => {
+            const now = Date.now();
+            if (now - lastSentAtRef.current < MIN_SEND_INTERVAL_MS) return;
+            lastSentAtRef.current = now;
             tripIdsRef.current.forEach((tripId) => {
               void updateTripLocation({
                 tripId,

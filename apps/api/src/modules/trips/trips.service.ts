@@ -377,6 +377,9 @@ export async function updateTripLocation(
     .returning();
   if (!updated) throw new Error('Failed to update trip location');
 
+  if (autoNextStatus === 'pickup') {
+    await notifyBestEffort(db, trip.booking.riderId, 'trip_pickup_arrived', { tripId, bookingId: trip.bookingId });
+  }
   if (autoNextStatus === 'arriving') {
     await notifyBestEffort(db, trip.booking.riderId, 'trip_arriving', { tripId, bookingId: trip.bookingId });
   }

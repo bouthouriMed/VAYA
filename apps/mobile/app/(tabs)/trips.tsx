@@ -21,6 +21,7 @@ import { useAppSelector } from '../../src/state/store';
 import {
   useListMyBookingsQuery,
   useListMyRidesQuery,
+  useGetRideQuery,
   useGetMyDriverProfileQuery,
   useListNotificationsQuery,
   type Booking,
@@ -30,6 +31,7 @@ import {
   pickNextUpcomingRide,
   orderRemainingRides,
   estimateArrivalLabel,
+  computeTripPhase,
 } from '../../src/features/driver-rides/myRidesHelpers';
 import { decodePolyline } from '../../src/utils/polyline';
 
@@ -209,7 +211,22 @@ export default function TripsScreen(): React.JSX.Element {
   });
   const hasUnreadNotifications = notifications?.some((n) => !n.readAt) ?? false;
 
-  const heroRide = useMemo(() => pickNextUpcomingRide(myRides ?? []), [myRides]);
+  // An actually in-progress ride (the driver already tapped "Démarrer") is
+  // more hero-worthy than a merely soonest-scheduled one — isUpcomingRide/
+  // pickNextUpcomingRide deliberately treat in_progress as *not* upcoming
+  // (myRidesHelpers.test.ts's "rejects terminal-status rides even in the
+  // future" case, in_progress included — a real trip underway isn't
+  // "upcoming", it's a distinct phase, computeTripPhase's own reason to
+  // exist), so this list screen needs its own priority rule on top rather
+  // than changing what "upcoming" means everywhere else.
+  const inProgressRide = useMemo(
+    () => (myRides ?? []).find((ride) => computeTripPhase(ride) === 'in_progress') ?? null,
+    [myRides],
+  );
+  const heroRide = useMemo(
+    () => inProgressRide ?? pickNextUpcomingRide(myRides ?? []),
+    [myRides, inProgressRide],
+  );
   const remainingRides = useMemo(
     () => orderRemainingRides(myRides ?? [], heroRide?.id ?? null),
     [myRides, heroRide],
@@ -220,6 +237,36 @@ export default function TripsScreen(): React.JSX.Element {
   const pastBookings = (bookings ?? []).filter(
     (booking) => !['pending', 'accepted'].includes(booking.status),
   );
+  // Mirrors heroRide above: an in-progress booking (its ride already
+  // started) takes priority over a merely soonest-departing one — a
+  // booking's own status stays 'accepted' throughout both, only the
+  // embedded ride.status can tell them apart.
+  const riderHeroBooking = useMemo(() => {
+    if (upcomingBookings.length === 0) return null;
+    const inProgress = upcomingBookings.find((booking) => booking.ride?.status === 'in_progress');
+    if (inProgress) return inProgress;
+    return upcomingBookings.reduce((soonest, booking) => {
+      if (!booking.ride) return soonest;
+      if (!soonest.ride) return booking;
+      return new Date(booking.ride.departureAt).getTime() < new Date(soonest.ride.departureAt).getTime()
+        ? booking
+        : soonest;
+    });
+  }, [upcomingBookings]);
+  const remainingUpcomingBookings = upcomingBookings.filter(
+    (booking) => booking.id !== riderHeroBooking?.id,
+  );
+  const { data: riderHeroRide } = useGetRideQuery(riderHeroBooking?.rideId ?? '', {
+    skip: !riderHeroBooking,
+  });
+  const riderHeroPolyline = useMemo(
+    () => (riderHeroRide?.routePolyline ? decodePolyline(riderHeroRide.routePolyline) : []),
+    [riderHeroRide],
+  );
+  const riderHeroArrivalLabel =
+    riderHeroBooking?.ride && riderHeroRide
+      ? estimateArrivalLabel(riderHeroBooking.ride.departureAt, riderHeroRide.estimatedDurationSec)
+      : null;
 
   useEffect(() => {
     if (segmentTouched) return;
@@ -377,6 +424,91 @@ export default function TripsScreen(): React.JSX.Element {
           </View>
         ) : null}
 
+        {/* Rider hero — same unconditional-regardless-of-segment treatment
+            as the driver hero above, for the same reason: a passenger's own
+            upcoming/ongoing booking used to only ever appear buried in the
+            plain "Recent Rides" list below, exactly as easy to miss as a
+            driver's next ride would have been without this same card. */}
+        {riderHeroBooking?.ride ? (
+          <View style={styles.heroSection}>
+            <Text variant="label" color={theme.inkMuted} style={styles.sectionHeading}>
+              {t('trips:nextBooking')}
+            </Text>
+            <View style={[styles.heroCard, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
+              <MapPreview
+                height={128}
+                badge={getBookingStatus(t, riderHeroBooking.status).label}
+                origin={riderHeroRide ? { latitude: riderHeroRide.originLat, longitude: riderHeroRide.originLng } : undefined}
+                destination={
+                  riderHeroRide
+                    ? { latitude: riderHeroRide.destinationLat, longitude: riderHeroRide.destinationLng }
+                    : undefined
+                }
+                routeCoordinates={riderHeroPolyline}
+                isDark={scheme === 'dark'}
+                style={styles.heroMap}
+              />
+              <View style={styles.heroBody}>
+                <View style={styles.heroHeaderRow}>
+                  <View style={styles.heroTitleCol}>
+                    <Text variant="h3" color={theme.ink}>
+                      {`${riderHeroBooking.ride.originLabel} → ${riderHeroBooking.ride.destinationLabel}`}
+                    </Text>
+                    <Text variant="bodySmall" color={theme.inkMuted}>
+                      {`${formatWhen(riderHeroBooking.ride.departureAt, t, locale)} • ${riderHeroBooking.ride.driverFullName ?? t('booking:driver')}`}
+                    </Text>
+                  </View>
+                  <View style={styles.priceCol}>
+                    <Text variant="h3" color={theme.ink}>
+                      {formatCurrency(riderHeroBooking.contributionTotal, locale as SupportedLocale)}
+                    </Text>
+                    <Text variant="caption" color={theme.inkMuted}>
+                      {t('trips:total')}
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={styles.timeline}>
+                  <View style={styles.timelineDots}>
+                    <View style={[styles.dotOutline, { borderColor: theme.ink }]} />
+                    <View style={[styles.dotConnector, { backgroundColor: theme.outlineVariant }]} />
+                    <View style={[styles.dotFilled, { backgroundColor: theme.accent }]} />
+                  </View>
+                  <View style={styles.timelineEntries}>
+                    <View style={styles.timelineEntry}>
+                      <Text variant="caption" color={theme.inkMuted}>
+                        {formatTime(new Date(riderHeroBooking.ride.departureAt), locale as any)}
+                      </Text>
+                      <Text variant="body" color={theme.ink} numberOfLines={1}>
+                        {riderHeroBooking.pickupLabel}
+                      </Text>
+                    </View>
+                    <View style={styles.timelineEntry}>
+                      {riderHeroArrivalLabel ? (
+                        <Text variant="caption" color={theme.inkMuted}>
+                          {`${riderHeroArrivalLabel} ${t('trips:estimated')}`}
+                        </Text>
+                      ) : null}
+                      <Text variant="body" color={theme.ink} numberOfLines={1}>
+                        {riderHeroBooking.dropoffLabel ?? riderHeroBooking.ride.destinationLabel}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+
+                <Button
+                  label={t('trips:viewBooking')}
+                  theme={theme}
+                  onPress={() =>
+                    router.push({ pathname: '/bookings/[bookingId]', params: { bookingId: riderHeroBooking.id } })
+                  }
+                  style={styles.heroButton}
+                />
+              </View>
+            </View>
+          </View>
+        ) : null}
+
         {/* List header — Stitch's "Recent Rides" heading with the
             Riding/Driving toggle inline beside it, scoped only to the list
             below (the hero above is unconditional, see above). */}
@@ -434,7 +566,13 @@ export default function TripsScreen(): React.JSX.Element {
               />
             ) : (
               remainingRides.map((ride) => {
-                const past = !UPCOMING_RIDE_STATUSES.includes(ride.status);
+                // in_progress isn't in UPCOMING_RIDE_STATUSES (it's its own
+                // phase, not "upcoming" — see the hero-selection comment
+                // above), but it's just as clearly not "past" either; a
+                // second in-progress ride beyond the single one the hero
+                // above already claimed shouldn't render dimmed like a
+                // completed one would.
+                const past = ride.status !== 'in_progress' && !UPCOMING_RIDE_STATUSES.includes(ride.status);
                 return (
                   <TripCard
                     key={ride.id}
@@ -471,7 +609,7 @@ export default function TripsScreen(): React.JSX.Element {
               />
             ) : (
               <>
-                {upcomingBookings.map((booking) => (
+                {remainingUpcomingBookings.map((booking) => (
                   <TripCard
                     key={booking.id}
                     theme={theme}

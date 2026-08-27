@@ -16,6 +16,7 @@ export const NOTIFICATION_EVENT_TYPES = [
   'booking_cancelled',
   'booking_no_show_reported',
   // Live tracking (docs/domain/live-tracking.md).
+  'trip_pickup_arrived',
   'trip_arriving',
   'trip_tracking_unavailable',
   // Admin verification workflow (docs/domain/verification-workflow.md).

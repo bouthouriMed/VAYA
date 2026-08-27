@@ -8,6 +8,8 @@
   "waitingConfirmation": "Waiting for confirmation",
   "noShowReport": "Report a no-show",
   "waitingForDriver": "Waiting for the driver…",
+  "driverArrived": "Your driver has arrived",
+  "arrivingSoon": "Almost there — get ready to get off",
   "etaLabel": "≈ {{minutes}} min",
   "staleSignal": "GPS signal unstable…",
   "unavailable": "Tracking temporarily unavailable",

@@ -8,6 +8,8 @@
   "waitingConfirmation": "En attente de confirmation",
   "noShowReport": "Signaler une absence",
   "waitingForDriver": "En attente du conducteur…",
+  "driverArrived": "Votre conducteur est arrivé",
+  "arrivingSoon": "Vous arrivez bientôt — préparez-vous à descendre",
   "etaLabel": "≈ {{minutes}} min",
   "staleSignal": "Signal GPS instable…",
   "unavailable": "Suivi temporairement indisponible",

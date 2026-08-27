@@ -57,7 +57,8 @@
     "guidance": "هل حاولت التواصل مع الطرف الآخر؟ نوصي بالتواصل قبل الإبلاغ عن عدم الحضور.",
     "reportCta": "الإبلاغ عن عدم الحضور",
     "cancelCta": "إلغاء",
-    "error": "تعذر الإبلاغ. أعد المحاولة."
+    "error": "تعذر الإبلاغ. أعد المحاولة.",
+    "followUp": "يُسجَّل هذا في ملف {{name}} — لا تُبلغ إلا إذا لم يحضر الشخص فعلاً."
   },
   "rating": {
     "punctual": "دقيق الموعد",
@@ -68,6 +69,9 @@
   "conversation": {
     "unavailable": "المحادثة غير متاحة",
     "closed": "تم إغلاق هذه المحادثة.",
+    "viewRide": "عرض الرحلة",
+    "sayHello": "قل مرحبًا!",
+    "sayHelloDescription": "ابدأ المحادثة مع {{role}}.",
     "placeholder": "اكتب رسالة…",
     "send": "إرسال",
     "quickReplies": {
@@ -112,13 +116,22 @@
     "pickupPoint": "نقطة الالتقاء",
     "dropoffPoint": "نقطة التوصيل",
     "distanceToPickup": "{{distance}} من موقعك · ≈ {{minutes}} سيرًا حتى نقطة الالتقاء",
+    "getDirections": "الحصول على الاتجاهات",
     "priceAndSeats": "{{price}} · {{seats}}",
     "tripsSuffix_zero": "· بدون رحلات",
     "tripsSuffix_one": "· رحلة واحدة",
     "tripsSuffix_two": "· رحلتان",
     "tripsSuffix_few": "· {{count}} رحلات",
     "tripsSuffix_many": "· {{count}} رحلة",
-    "tripsSuffix_other": "· {{count}} رحلة"
+    "tripsSuffix_other": "· {{count}} رحلة",
+    "joinLiveTracking": "تتبع الرحلة مباشرة",
+    "statusInProgress": "قيد التنفيذ",
+    "tripStatusLabel": {
+      "driver_approaching": "سائقك في الطريق",
+      "pickup": "وصل سائقك",
+      "active": "الرحلة جارية",
+      "arriving": "أنت على وشك الوصول إلى وجهتك"
+    }
   },
   "days": {
     "mon": "اثنين",

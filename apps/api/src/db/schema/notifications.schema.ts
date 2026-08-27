@@ -16,10 +16,13 @@ export const notificationEventTypeEnum = pgEnum('notification_event_type', [
   'booking_no_show_reported',
   // Live tracking (docs/domain/live-tracking.md). trip_driver_approaching
   // above (previously schema-only, never dispatched) is reused for "driver
-  // started the journey to pickup" — this adds the remaining two states a
-  // passenger needs mid-journey.
+  // started the journey to pickup" — this adds the remaining states a
+  // passenger needs mid-journey. trip_pickup_arrived added later: the
+  // driver_approaching -> pickup proximity auto-transition updated the trip
+  // row but never actually told the rider their driver had arrived.
   'trip_arriving',
   'trip_tracking_unavailable',
+  'trip_pickup_arrived',
   // Admin verification workflow (docs/domain/verification-workflow.md).
   'verification_submitted',
   'verification_approved',

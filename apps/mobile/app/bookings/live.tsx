@@ -1,7 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { View, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, ActivityIndicator, type LayoutChangeEvent } from 'react-native';
 import { Marker, MarkerAnimated, AnimatedRegion } from 'react-native-maps';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import Reanimated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  clamp,
+} from 'react-native-reanimated';
 import {
   Text,
   Icon,
@@ -22,6 +30,13 @@ import { NoShowReportSheet } from '../../src/features/bookings/NoShowReportSheet
 import { useGetTripByBookingQuery, type TrackingStatus } from '../../src/state/api';
 import { useTripTracking } from '../../src/features/tracking/useTripTracking';
 import { decodePolyline } from '../../src/utils/polyline';
+import { useCallCounterpart } from '../../src/features/bookings/useCallCounterpart';
+
+// How much of the bottom sheet stays visible when dragged down — enough for
+// the drag handle, the status line, and the Call/Message row, so the sheet
+// never fully disappears (there's always a way to see it's still there and
+// pull it back up).
+const PEEK_HEIGHT = 132;
 
 /** A small colored dot conveying the tracking feed's own health at a
  *  glance (live-tracking.md's core principle: never present a stale/missing
@@ -94,6 +109,7 @@ function AnimatedDriverMarker({
 }
 
 export default function LiveScreen(): React.JSX.Element {
+  const insets = useSafeAreaInsets();
   const { colors: theme } = useAppTheme();
   const { t } = useTranslation(['booking', 'activeTrip', 'common']);
   const params = useLocalSearchParams<{
@@ -109,6 +125,7 @@ export default function LiveScreen(): React.JSX.Element {
   const [issueBannerDismissed, setIssueBannerDismissed] = useState(false);
 
   const { data: trip } = useGetTripByBookingQuery(params.bookingId ?? '', { skip: !params.bookingId });
+  const { call, isLoading: isCalling } = useCallCounterpart(params.bookingId ?? '');
   const {
     trackingState,
     connectionState,
@@ -151,7 +168,55 @@ export default function LiveScreen(): React.JSX.Element {
 
   const dotColor = toneForTrackingStatus(trackingStatus, theme);
 
+  // Draggable bottom sheet (pull down to see the full map, pull back up for
+  // trip details) — the map now fills the whole screen behind it
+  // (styles.mapWrap is absolute-fill) rather than sharing space as a flex
+  // sibling, so collapsing the sheet actually reveals more map instead of
+  // the map staying whatever fixed size it already was.
+  const sheetHeight = useSharedValue(0);
+  const translateY = useSharedValue(0);
+  const dragStartY = useSharedValue(0);
+  const collapsedOffset = useSharedValue(0);
+
+  function onCardLayout(event: LayoutChangeEvent): void {
+    const height = event.nativeEvent.layout.height;
+    sheetHeight.value = height;
+    // Peek height ~= header row + its vertical padding — enough to still
+    // read the live-tracking status line and reach Call/Message while
+    // collapsed.
+    collapsedOffset.value = Math.max(0, height - PEEK_HEIGHT);
+  }
+
+  const panGesture = Gesture.Pan()
+    .onStart(() => {
+      dragStartY.value = translateY.value;
+    })
+    .onUpdate((event) => {
+      translateY.value = clamp(dragStartY.value + event.translationY, 0, collapsedOffset.value);
+    })
+    .onEnd((event) => {
+      const shouldCollapse =
+        event.velocityY > 300 || (event.velocityY > -300 && translateY.value > collapsedOffset.value / 2);
+      translateY.value = withSpring(shouldCollapse ? collapsedOffset.value : 0, {
+        damping: 22,
+        stiffness: 220,
+      });
+    });
+
+  const sheetAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: translateY.value }],
+  }));
+
   function headerLine(): string {
+    // Trip-progress state takes priority over the raw ETA countdown once
+    // it says something more specific and actionable — "you're arriving,
+    // get ready to get off" matters more than "3 min" once it's true.
+    if (trackingStatus === 'live' && trackingState?.tripStatus === 'pickup') {
+      return t('activeTrip:driverArrived');
+    }
+    if (trackingStatus === 'live' && trackingState?.tripStatus === 'arriving') {
+      return t('activeTrip:arrivingSoon');
+    }
     if (trackingStatus === 'live' && etaSec !== null) {
       return t('activeTrip:etaLabel', { minutes: Math.max(1, Math.round(etaSec / 60)) });
     }
@@ -220,32 +285,52 @@ export default function LiveScreen(): React.JSX.Element {
         ) : null}
       </View>
 
-      <View style={[styles.card, { backgroundColor: theme.surface }]}>
-        <View style={styles.headerRow}>
-          <View style={styles.headerTextRow}>
-            <TrackingStatusDot color={dotColor} />
-            <Text variant="h1" color={theme.ink}>
-              {headerLine()}
-            </Text>
-          </View>
+      <GestureDetector gesture={panGesture}>
+        <Reanimated.View
+          onLayout={onCardLayout}
+          style={[
+            styles.card,
+            { backgroundColor: theme.surface, paddingBottom: spacing.xl + insets.bottom },
+            sheetAnimatedStyle,
+          ]}
+        >
+          <View style={[styles.dragHandle, { backgroundColor: theme.outlineVariant }]} />
+          <View style={styles.headerRow}>
+            <View style={styles.headerTextRow}>
+              <TrackingStatusDot color={dotColor} />
+              <Text variant="h1" color={theme.ink}>
+                {headerLine()}
+              </Text>
+            </View>
           {params.bookingId ? (
-            <Button
-              theme={theme}
-              label={t('common:actions.message')}
-              variant="outline"
-              size="sm"
-              accessibilityLabel={t('common:actions.message', { name: driverName.split(' ')[0] })}
-              onPress={() =>
-                router.push({
-                  pathname: '/conversations/[bookingId]',
-                  params: {
-                    bookingId: params.bookingId!,
-                    role: 'rider',
-                    otherPartyName: driverName,
-                  },
-                })
-              }
-            />
+            <View style={styles.headerActions}>
+              <Button
+                theme={theme}
+                label={t('common:actions.call')}
+                variant="outline"
+                size="sm"
+                accessibilityLabel={t('common:actions.call', { name: driverName.split(' ')[0] })}
+                onPress={call}
+                disabled={isCalling}
+              />
+              <Button
+                theme={theme}
+                label={t('common:actions.message')}
+                variant="outline"
+                size="sm"
+                accessibilityLabel={t('common:actions.message', { name: driverName.split(' ')[0] })}
+                onPress={() =>
+                  router.push({
+                    pathname: '/conversations/[bookingId]',
+                    params: {
+                      bookingId: params.bookingId!,
+                      role: 'rider',
+                      otherPartyName: driverName,
+                    },
+                  })
+                }
+              />
+            </View>
           ) : null}
         </View>
         <Text variant="body" color={theme.inkMuted}>
@@ -279,7 +364,8 @@ export default function LiveScreen(): React.JSX.Element {
             />
           </View>
         ) : null}
-      </View>
+        </Reanimated.View>
+      </GestureDetector>
 
       {params.bookingId ? (
         <>
@@ -309,8 +395,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   mapWrap: {
-    flex: 1,
-    position: 'relative',
+    ...StyleSheet.absoluteFillObject,
   },
   map: {
     borderRadius: 0,
@@ -320,7 +405,11 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: spacing.md,
     right: spacing.md,
-    bottom: spacing.md,
+    // Anchored above the sheet's collapsed peek height, not just
+    // spacing.md — the sheet is now an absolutely-positioned overlay on
+    // top of the full-screen map (draggable), not a flex sibling below it,
+    // so a fixed small offset would sit underneath it.
+    bottom: PEEK_HEIGHT + spacing.sm,
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
@@ -347,10 +436,23 @@ const styles = StyleSheet.create({
     borderColor: '#FFFFFF',
   },
   card: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
     borderTopLeftRadius: radii['2xl'],
     borderTopRightRadius: radii['2xl'],
-    padding: spacing.xl,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.xl,
     gap: spacing.xs,
+  },
+  dragHandle: {
+    alignSelf: 'center',
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    marginBottom: spacing.sm,
   },
   headerRow: {
     flexDirection: 'row',
@@ -362,6 +464,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     flexShrink: 1,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    gap: spacing.xs,
   },
   tripActions: {
     flexDirection: 'row',

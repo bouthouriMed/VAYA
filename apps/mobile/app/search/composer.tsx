@@ -13,6 +13,7 @@ import { trackEvent } from '../../src/services/analytics/analytics';
 import {
   useLazyGeocodeAutocompleteQuery,
   useLazyGeocodePlaceDetailsQuery,
+  useLazyGeocodeReverseQuery,
   type LocationType,
 } from '../../src/state/api';
 
@@ -99,8 +100,10 @@ export default function SearchComposerScreen(): React.JSX.Element {
   const searchId = useAppSelector((s) => s.search.searchId);
   const [activeField, setActiveField] = useState<ActiveField>(field === 'destination' ? 'destination' : 'origin');
   const [query, setQuery] = useState('');
-  const { status, position } = useCurrentPosition();
+  const { position, refresh: refreshPosition } = useCurrentPosition();
   const [recentPlaces, setRecentPlaces] = useState<SearchLocation[]>([]);
+  const [isLocating, setIsLocating] = useState(false);
+  const [locationDenied, setLocationDenied] = useState(false);
 
   useEffect(() => {
     void loadRecentPlaces().then(setRecentPlaces);
@@ -116,6 +119,7 @@ export default function SearchComposerScreen(): React.JSX.Element {
 
   const [triggerAutocomplete, { data: predictions, isFetching }] = useLazyGeocodeAutocompleteQuery();
   const [triggerDetails, { isFetching: isResolving }] = useLazyGeocodePlaceDetailsQuery();
+  const [triggerReverseGeocode, { isFetching: isResolvingPosition }] = useLazyGeocodeReverseQuery();
 
   useEffect(() => {
     const trimmed = query.trim();
@@ -215,9 +219,37 @@ export default function SearchComposerScreen(): React.JSX.Element {
     });
   }
 
-  function useMyPosition(): void {
-    if (!position) return;
-    choose({ label: t('search:composer.myLocation'), lat: position.lat, lng: position.lng, isCurrentPosition: true });
+  // The row itself is tappable the instant the screen renders — it never
+  // waits on (or gets disabled by) the background permission/GPS fetch that
+  // starts on mount. Tapping either grabs an already-resolved fix instantly
+  // or awaits that same in-flight fetch (useCurrentPosition dedupes, so this
+  // never starts a second one) — the spinner only ever appears in response
+  // to the tap itself, not before it.
+  async function selectCurrentPosition(): Promise<void> {
+    setLocationDenied(false);
+    setIsLocating(true);
+    try {
+      const current = position ?? (await refreshPosition());
+      if (!current) {
+        setLocationDenied(true);
+        return;
+      }
+      // Resolve the device fix to the real address under it (reverse
+      // geocode) instead of a generic "My Location" label — the rider
+      // should see the actual position that was picked, not a placeholder
+      // string, matching the same reverse-geocode pattern (tabs)/publish.tsx
+      // uses for a dragged map pin. Falls back to the generic label only if
+      // the reverse lookup fails.
+      const result = await triggerReverseGeocode(current).unwrap().catch(() => null);
+      choose({
+        label: result?.label ?? t('search:composer.myLocation'),
+        lat: current.lat,
+        lng: current.lng,
+        isCurrentPosition: true,
+      });
+    } finally {
+      setIsLocating(false);
+    }
   }
 
   const isOrigin = activeField === 'origin';
@@ -275,21 +307,28 @@ export default function SearchComposerScreen(): React.JSX.Element {
         ) : null}
 
         {isOrigin && !isSearching ? (
-          <TouchableOpacity
-            style={[styles.currentPositionRow, status !== 'granted' && styles.currentPositionDisabled]}
-            onPress={useMyPosition}
-            disabled={status !== 'granted'}
-            activeOpacity={0.7}
-          >
-            {status === 'loading' ? (
-              <ActivityIndicator size="small" color={theme.info} />
-            ) : (
-              <Icon name="locate" size="sm" color={theme.info} />
-            )}
-            <Text variant="label" color={theme.ink}>
-              {t('search:composer.myLocation')}
-            </Text>
-          </TouchableOpacity>
+          <>
+            <TouchableOpacity
+              style={[styles.currentPositionRow, isLocating && styles.currentPositionDisabled]}
+              onPress={() => void selectCurrentPosition()}
+              disabled={isLocating}
+              activeOpacity={0.7}
+            >
+              {isLocating || isResolvingPosition ? (
+                <ActivityIndicator size="small" color={theme.info} />
+              ) : (
+                <Icon name="locate" size="sm" color={theme.info} />
+              )}
+              <Text variant="label" color={theme.ink}>
+                {t('search:composer.myLocation')}
+              </Text>
+            </TouchableOpacity>
+            {locationDenied ? (
+              <Text variant="caption" color={theme.error} style={styles.errorText}>
+                {t('search:composer.locationDenied')}
+              </Text>
+            ) : null}
+          </>
         ) : null}
 
         {!isSearching ? (

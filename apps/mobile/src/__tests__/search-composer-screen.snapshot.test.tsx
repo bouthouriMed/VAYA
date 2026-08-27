@@ -17,7 +17,11 @@ vi.mock('expo-router', () => ({
 }));
 
 vi.mock('../services/location/useCurrentPosition', () => ({
-  useCurrentPosition: () => ({ status: 'granted', position: { lat: 36.8, lng: 10.18 } }),
+  useCurrentPosition: () => ({
+    status: 'granted',
+    position: { lat: 36.8, lng: 10.18 },
+    refresh: () => Promise.resolve({ lat: 36.8, lng: 10.18 }),
+  }),
 }));
 
 // renderJSON's synchronous act() captures the tree before this promise's
@@ -47,6 +51,10 @@ function mockApi(): void {
   vi.doMock('../state/api', () => ({
     useLazyGeocodeAutocompleteQuery: () => [vi.fn(), { data: undefined, isFetching: false }],
     useLazyGeocodePlaceDetailsQuery: () => [vi.fn(), { isFetching: false }],
+    useLazyGeocodeReverseQuery: () => [
+      vi.fn(() => ({ unwrap: () => Promise.resolve({ label: 'Ma position actuelle', lat: 36.8, lng: 10.18 }) })),
+      { isFetching: false },
+    ],
   }));
 }
 

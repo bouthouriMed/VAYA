@@ -83,6 +83,10 @@
     "required": "Permission required",
     "openSettings": "Open settings"
   },
+  "call": {
+    "noPhoneOnFile": "This user has no phone number on file.",
+    "error": "Couldn't fetch the phone number. Try again."
+  },
   "language": {
     "title": "Language",
     "restartTitle": "Restart required",

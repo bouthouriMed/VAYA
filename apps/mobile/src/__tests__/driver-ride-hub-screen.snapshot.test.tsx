@@ -185,6 +185,13 @@ function mockApi(requests: Booking[], tripsByBookingId: Record<string, Trip> = {
     // RequestDetailSheet's transitive hook — rendered closed (visible=false)
     // so an inert stub suffices, same as the other closed sheets above.
     useGetBookingDetourPreviewQuery: (): QueryResult<unknown> => ({}),
+    // DriverBookingDetailSheet's Call button (useCallCounterpart) — rendered
+    // closed (visible=false) so an inert stub suffices, same as the other
+    // closed-sheet hooks above.
+    useLazyGetBookingContactPhoneQuery: (): [() => { unwrap: () => Promise<{ phone: string | null }> }, { isFetching: boolean }] => [
+      () => ({ unwrap: async () => ({ phone: null }) }),
+      { isFetching: false },
+    ],
   }));
 }
 

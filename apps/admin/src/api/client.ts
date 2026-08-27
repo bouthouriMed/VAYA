@@ -88,9 +88,15 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
     let message = `Request failed (${response.status})`;
     let code: string | undefined;
     try {
-      const data = (await response.json()) as { message?: string; code?: string };
-      if (data.message) message = data.message;
-      code = data.code;
+      // The API always nests its error under `error` (AppError's shape,
+      // e.g. {"error":{"code":"CONFLICT","message":"..."}}), not at the
+      // response body's top level — reading data.message/data.code
+      // directly here always came back undefined, so every admin-panel
+      // error silently fell back to the generic "Request failed (N)"
+      // regardless of what the server actually said.
+      const data = (await response.json()) as { error?: { message?: string; code?: string } };
+      if (data.error?.message) message = data.error.message;
+      code = data.error?.code;
     } catch {
       // non-JSON error body — keep the generic message
     }

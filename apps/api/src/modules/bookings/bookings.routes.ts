@@ -2,7 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { createBookingSchema } from '@vaya/validation';
-import { BOOKING_STATUSES, CANCELLATION_TIERS } from '@vaya/domain';
+import { BOOKING_STATUSES, CANCELLATION_TIERS, RIDE_STATUSES } from '@vaya/domain';
 import { getDatabase } from '../../lib/database.js';
 import { getUserId } from '../../lib/auth-context.js';
 import {
@@ -10,6 +10,7 @@ import {
   cancelBooking,
   createBooking,
   declineBooking,
+  getBookingContactPhone,
   listFellowPassengers,
   listMyBookings,
   listRequestsForRide,
@@ -54,6 +55,10 @@ const bookingResponseSchema = z.object({
       // vehicle) for the booking detail screen — driverFullName alone
       // wasn't enough to look anything else up.
       driverUserId: z.string().uuid(),
+      // (tabs)/trips.tsx's rider hero card: tells an actually in-progress
+      // ride apart from a merely-scheduled one — booking.status alone stays
+      // 'accepted' throughout both.
+      status: z.enum(RIDE_STATUSES),
     })
     .optional(),
 });
@@ -234,6 +239,25 @@ export async function bookingsRoutes(fastify: FastifyInstance): Promise<void> {
     async (request, reply) => {
       const preview = await previewBookingDetour(db, request.params.bookingId, getUserId(request));
       reply.send(preview);
+    },
+  );
+
+  // Reveals the counterpart's phone number for an accepted booking only —
+  // never a public lookup (bookings.service.ts's getBookingContactPhone
+  // doc comment). `phone: null` is a valid, honest response (a
+  // Google-auth-only account has none), not an error.
+  app.get(
+    '/bookings/:bookingId/contact-phone',
+    {
+      onRequest: [fastify.authenticate],
+      schema: {
+        params: bookingIdParamSchema,
+        response: { 200: z.object({ phone: z.string().nullable() }) },
+      },
+    },
+    async (request, reply) => {
+      const contact = await getBookingContactPhone(db, request.params.bookingId, getUserId(request));
+      reply.send(contact);
     },
   );
 

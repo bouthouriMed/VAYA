@@ -83,6 +83,10 @@
     "required": "Autorisation requise",
     "openSettings": "Ouvrir les réglages"
   },
+  "call": {
+    "noPhoneOnFile": "Cet utilisateur n'a pas de numéro de téléphone enregistré.",
+    "error": "Impossible de récupérer le numéro. Réessayez."
+  },
   "language": {
     "title": "Langue",
     "restartTitle": "Redémarrage nécessaire",

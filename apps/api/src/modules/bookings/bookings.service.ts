@@ -1,7 +1,7 @@
 import { and, eq, gte, inArray, sql } from 'drizzle-orm';
 import type { getDatabase } from '../../lib/database.js';
 import { bookings, rides, routeStops, riderProfiles, trips, users } from '../../db/schema/index.js';
-import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from '../../lib/errors.js';
+import { AppError, ConflictError, ForbiddenError, NotFoundError, ValidationError } from '../../lib/errors.js';
 import {
   canReportNoShow,
   canTransitionBookingStatus,
@@ -116,17 +116,23 @@ export async function createBooking(
 ) {
   const ride = await getRideOrThrow(db, rideId);
 
+  // Each of these four rejections gets its own error code (rather than
+  // reusing ConflictError/ForbiddenError's shared 'CONFLICT'/'FORBIDDEN'
+  // codes) so the client can tell a genuine "someone else took the last
+  // seat" race from "you already requested this" or "you can't book your
+  // own ride" — collapsing them into one generic message actively misled
+  // testers into thinking every rejection meant the seat was gone.
   if (ride.status !== 'published') {
-    throw new ConflictError('This ride is no longer accepting requests');
+    throw new AppError('This ride is no longer accepting requests', 409, 'RIDE_NOT_BOOKABLE');
   }
   if (ride.seatsAvailable < input.seatsRequested) {
-    throw new ConflictError('Not enough seats available on this ride');
+    throw new AppError('Not enough seats available on this ride', 409, 'SEATS_UNAVAILABLE');
   }
   // A driver can't book a seat on their own listing — this is the real,
   // server-side enforcement of that rule; the mobile client's own CTA
   // guard (ride-details.tsx) is a UI nicety, not what this depends on.
   if (ride.driverProfile.userId === riderId) {
-    throw new ForbiddenError('You cannot request a seat on your own ride');
+    throw new AppError('You cannot request a seat on your own ride', 403, 'SELF_BOOKING_FORBIDDEN');
   }
   // One active request per rider per ride — declined/cancelled/expired
   // bookings don't block a fresh attempt, only a still-pending or
@@ -139,7 +145,7 @@ export async function createBooking(
     ),
   });
   if (existingActiveBooking) {
-    throw new ConflictError('You already have a request for this ride');
+    throw new AppError('You already have a request for this ride', 409, 'DUPLICATE_BOOKING');
   }
 
   // A ride with at least one driver-selected route_stop must be booked via
@@ -273,6 +279,11 @@ export async function listMyBookings(db: Database, riderId: string) {
       contributionPerSeat: ride.contributionPerSeat,
       driverFullName: ride.driverProfile.user?.fullName ?? null,
       driverUserId: ride.driverProfile.userId,
+      // (tabs)/trips.tsx's rider hero card needs this to tell an actually
+      // in-progress ride apart from a merely-scheduled one — the booking's
+      // own status stays 'accepted' throughout both, so it can't say this
+      // on its own.
+      status: ride.status,
     },
   }));
 }
@@ -787,4 +798,35 @@ export async function reportNoShow(db: Database, bookingId: string, requestingUs
   });
 
   return updatedBooking;
+}
+
+/** Reveals the *other* party's phone number for an in-progress ride —
+ *  never a public lookup (search/ride-details.tsx's own precedent: no
+ *  phone number is ever exposed via the public profile API). Scoped to
+ *  `accepted` bookings only: before acceptance there's no real commitment
+ *  to coordinate around, and after cancellation/completion there's no
+ *  ongoing ride to call about. Returns `phone: null` rather than throwing
+ *  when the counterpart genuinely has none (Google-auth-only accounts
+ *  never collect a phone number, `users.phone` is nullable) — an honest
+ *  "no number on file" case, not an error. */
+export async function getBookingContactPhone(
+  db: Database,
+  bookingId: string,
+  requestingUserId: string,
+) {
+  const booking = await getBookingOrThrow(db, bookingId);
+  const isRider = booking.riderId === requestingUserId;
+  const isDriver = booking.ride.driverProfile.userId === requestingUserId;
+  if (!isRider && !isDriver) {
+    throw new ForbiddenError('Not authorized to view this booking');
+  }
+  if (booking.status !== 'accepted') {
+    throw new ForbiddenError('Contact details are only available for an accepted booking');
+  }
+
+  const counterpartUserId = isRider ? booking.ride.driverProfile.userId : booking.riderId;
+  const counterpart = await db.query.users.findFirst({ where: eq(users.id, counterpartUserId) });
+  if (!counterpart) throw new NotFoundError('User');
+
+  return { phone: counterpart.phone };
 }

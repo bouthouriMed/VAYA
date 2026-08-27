@@ -57,7 +57,8 @@
     "guidance": "Have you tried contacting the other party? We recommend reaching out before reporting a no-show.",
     "reportCta": "Report no-show",
     "cancelCta": "Cancel",
-    "error": "Unable to report. Try again."
+    "error": "Unable to report. Try again.",
+    "followUp": "This is recorded on {{name}}'s profile — only report it if they genuinely never showed up."
   },
   "rating": {
     "punctual": "Punctual",
@@ -68,6 +69,9 @@
   "conversation": {
     "unavailable": "Conversation unavailable",
     "closed": "This conversation is closed.",
+    "viewRide": "View ride",
+    "sayHello": "Say hello!",
+    "sayHelloDescription": "Start the conversation with your {{role}}.",
     "placeholder": "Type a message…",
     "send": "Send",
     "quickReplies": {
@@ -112,9 +116,18 @@
     "pickupPoint": "Meeting point",
     "dropoffPoint": "Drop-off point",
     "distanceToPickup": "{{distance}} from your location · ≈ {{minutes}} walk to the meeting point",
+    "getDirections": "Get directions",
     "priceAndSeats": "{{price}} · {{seats}}",
     "tripsSuffix_one": "· {{count}} trip",
-    "tripsSuffix_other": "· {{count}} trips"
+    "tripsSuffix_other": "· {{count}} trips",
+    "joinLiveTracking": "Follow the trip live",
+    "statusInProgress": "In progress",
+    "tripStatusLabel": {
+      "driver_approaching": "Your driver is on the way",
+      "pickup": "Your driver has arrived",
+      "active": "Trip in progress",
+      "arriving": "Almost at your destination"
+    }
   },
   "days": {
     "mon": "Mon",

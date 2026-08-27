@@ -54,6 +54,30 @@ function durationLabel(seconds: number, t: TFn): string {
   return t('search:details.durationHoursMinutes', { hours, minutes });
 }
 
+/** Maps createBooking's real rejection reason to an honest i18n key —
+ *  every rejection used to render as "this seat was just taken" regardless
+ *  of cause, which actively misled testers hitting the self-booking or
+ *  duplicate-request guards (bookings.service.ts) into thinking the ride
+ *  had sold out. Falls back to the seat-taken copy only when the server's
+ *  error code is genuinely unknown or unreachable. */
+function bookingErrorKey(error: unknown): string {
+  const code =
+    typeof error === 'object' && error !== null && 'data' in error
+      ? (error as { data?: { error?: { code?: unknown } } }).data?.error?.code
+      : undefined;
+  switch (code) {
+    case 'SELF_BOOKING_FORBIDDEN':
+      return 'search:details.selfBookingError';
+    case 'DUPLICATE_BOOKING':
+      return 'search:details.duplicateBookingError';
+    case 'RIDE_NOT_BOOKABLE':
+      return 'search:details.rideNotBookableError';
+    case 'SEATS_UNAVAILABLE':
+    default:
+      return 'search:details.seatTakenError';
+  }
+}
+
 /**
  * Stitch's "Ride Details - Stops & Distance" — the new intermediate screen
  * between search/results.tsx and search/trust.tsx. This is where the actual
@@ -245,9 +269,9 @@ export default function RideDetailsScreen(): React.JSX.Element {
           destinationLng: String(booking.dropoffLng ?? ride!.destinationLng),
         },
       });
-    } catch {
+    } catch (err) {
       haptics.error();
-      setBookingError(t('search:details.seatTakenError'));
+      setBookingError(t(bookingErrorKey(err)));
     }
   }
 

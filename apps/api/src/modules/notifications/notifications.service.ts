@@ -135,6 +135,7 @@ const TITLES: Partial<Record<NotificationEventType, string>> = {
   message_received: 'Nouveau message',
   booking_cancelled: 'Réservation annulée',
   booking_no_show_reported: 'Absence signalée',
+  trip_pickup_arrived: 'Votre conducteur est arrivé',
   trip_arriving: 'Votre conducteur arrive',
   trip_tracking_unavailable: 'Suivi temporairement indisponible',
   verification_submitted: 'Vérification soumise',
@@ -205,6 +206,8 @@ function bodyFor(type: NotificationEventType, payload: Record<string, unknown>):
     case 'recurring_proactive_match':
       return 'Un trajet correspondant à votre itinéraire régulier vient d’être publié.';
     // Live tracking (docs/domain/live-tracking.md).
+    case 'trip_pickup_arrived':
+      return 'Votre conducteur est arrivé au point de rendez-vous.';
     case 'trip_arriving':
       return 'Votre conducteur arrive à destination dans quelques instants.';
     case 'trip_tracking_unavailable':

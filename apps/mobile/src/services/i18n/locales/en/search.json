@@ -26,6 +26,7 @@
     "savedPlaces": "Saved places",
     "clear": "Clear",
     "resolveError": "Couldn't retrieve this place. Try again.",
+    "locationDenied": "Location unavailable. Check your location permissions.",
     "resultsSectionLabel": "Results",
     "recentSectionLabel": "Recent",
     "noResults": "No results",
@@ -72,7 +73,10 @@
     "requestSeat": "Request a seat",
     "alreadyRequested": "Requested",
     "requestSeatWithPrice": "Request a seat, {{price}} DT",
-    "seatTakenError": "This seat may have just been taken. Try again."
+    "seatTakenError": "This seat may have just been taken. Try again.",
+    "selfBookingError": "You can't request a seat on your own ride.",
+    "duplicateBookingError": "You already have a request for this ride.",
+    "rideNotBookableError": "This ride is no longer accepting requests."
   },
   "trust": {
     "back": "Back",

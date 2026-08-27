@@ -21,7 +21,6 @@ describe('resolveNotificationDeepLink', () => {
   });
 
   it('returns null for an event type this phase does not dispatch a tap-through for', () => {
-    expect(resolveNotificationDeepLink('trip_driver_approaching')).toBeNull();
     expect(resolveNotificationDeepLink('demand_signal_matched')).toBeNull();
   });
 
@@ -40,10 +39,19 @@ describe('resolveNotificationDeepLink', () => {
     expect(resolveNotificationDeepLink('message_received', {})).toBe('/(tabs)/trips');
   });
 
-  it.each(['trip_arriving', 'trip_tracking_unavailable'])(
-    'resolves live-tracking event %s to the trips tab',
+  it.each(['trip_driver_approaching', 'trip_pickup_arrived', 'trip_arriving', 'trip_tracking_unavailable'])(
+    'resolves live-tracking event %s directly to the live-tracking screen when bookingId is present',
     (type) => {
-      expect(resolveNotificationDeepLink(type, { tripId: 't1', bookingId: 'b1' })).toBe('/(tabs)/trips');
+      expect(resolveNotificationDeepLink(type, { tripId: 't1', bookingId: 'b1' })).toBe(
+        '/bookings/live?bookingId=b1',
+      );
+    },
+  );
+
+  it.each(['trip_driver_approaching', 'trip_pickup_arrived', 'trip_arriving', 'trip_tracking_unavailable'])(
+    'falls back to the trips tab for live-tracking event %s without a bookingId',
+    (type) => {
+      expect(resolveNotificationDeepLink(type)).toBe('/(tabs)/trips');
     },
   );
 

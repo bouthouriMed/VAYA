@@ -483,26 +483,6 @@ export default function ProfileScreen(): React.JSX.Element {
                 </Text>
               </View>
             ) : null}
-
-            {!isMeLoading && me ? (
-              <TouchableOpacity
-                onPress={handleChangePhoto}
-                disabled={isUploadingPhoto}
-                accessibilityRole="button"
-                accessibilityLabel={
-                  me.avatarUrl ? t('profile:photo.changeAria') : t('profile:photo.addAria')
-                }
-                style={styles.photoCta}
-              >
-                {isUploadingPhoto ? (
-                  <ActivityIndicator size="small" color={theme.accent} />
-                ) : (
-                  <Text variant="bodySmall" color={theme.inkFaint}>
-                    {me.avatarUrl ? t('profile:photo.changeText') : t('profile:photo.addText')}
-                  </Text>
-                )}
-              </TouchableOpacity>
-            ) : null}
           </View>
         </View>
 
@@ -1007,8 +987,8 @@ const styles = StyleSheet.create({
   identity: {
     alignItems: 'center',
     paddingHorizontal: spacing.xl,
-    paddingTop: spacing.sm,
-    paddingBottom: spacing.lg,
+    paddingTop: spacing.md,
+    paddingBottom: spacing['3xl'],
   },
   avatarWrap: {
     width: 96,

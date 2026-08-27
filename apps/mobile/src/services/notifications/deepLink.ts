@@ -41,17 +41,17 @@
  * somewhere that shows the pattern (its list of patterns), not open the
  * sheet directly — there's no dedicated single-pattern detail screen.
  *
- * trip_arriving/trip_tracking_unavailable (live tracking, docs/domain/
- * live-tracking.md) both carry `{tripId, bookingId}` (trips.service.ts's
- * updateTripLocation/reportTrackingIssue notifyBestEffort calls) — neither
- * carries the driverName/destinationLabel/etc. bookings/live.tsx's screen
- * params currently expect (it's normally reached via bookings/pickup.tsx's
- * "J'y suis" button, which already has all of that in hand). Rather than
- * open a live-tracking screen mid-render with half its expected params
- * missing, this resolves to the "Mes trajets" tab — same honest "good
- * enough, not perfect" tradeoff this file already documents for
- * booking_accepted/declined above; the rider can tap into the real booking
- * from there and reach live.tsx with everything it needs.
+ * trip_driver_approaching/trip_pickup_arrived/trip_arriving/
+ * trip_tracking_unavailable (live tracking, docs/domain/live-tracking.md)
+ * all carry `{tripId, bookingId}` (trips.service.ts's startTrip/
+ * updateTripLocation/reportTrackingIssue notifyBestEffort calls). bookings/
+ * live.tsx only strictly needs `bookingId` — it fetches the trip and its
+ * live tracking state itself (useGetTripByBookingQuery/useTripTracking) and
+ * falls back to generic copy for the display-only params (driverName,
+ * destinationLabel) it would otherwise get from the normal
+ * pending.tsx/pickup.tsx navigation chain — so a tap here can open the real
+ * live screen directly instead of just the "Mes trajets" tab the rider
+ * would then have to navigate from manually.
  *
  * verification_submitted/approved/declined all resolve to
  * `/driver/onboarding/confirmation`, which now reads the driver's REAL
@@ -72,6 +72,8 @@ export type NotificationDeepLinkType =
   | 'trip_completed'
   | 'recurring_pattern_detected'
   | 'recurring_proactive_match'
+  | 'trip_driver_approaching'
+  | 'trip_pickup_arrived'
   | 'trip_arriving'
   | 'trip_tracking_unavailable'
   | 'verification_submitted'
@@ -94,9 +96,16 @@ export function resolveNotificationDeepLink(
     case 'booking_accepted':
     case 'booking_declined':
     case 'trip_completed':
-    case 'trip_arriving':
-    case 'trip_tracking_unavailable':
       return '/(tabs)/trips';
+    case 'trip_driver_approaching':
+    case 'trip_pickup_arrived':
+    case 'trip_arriving':
+    case 'trip_tracking_unavailable': {
+      const bookingId = payload?.bookingId;
+      return typeof bookingId === 'string'
+        ? `/bookings/live?bookingId=${encodeURIComponent(bookingId)}`
+        : '/(tabs)/trips';
+    }
     case 'message_received': {
       const bookingId = payload?.bookingId;
       return typeof bookingId === 'string' ? `/conversations/${bookingId}` : '/(tabs)/trips';

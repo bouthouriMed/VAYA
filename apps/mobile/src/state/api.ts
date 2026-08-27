@@ -386,6 +386,7 @@ export type NotificationEventType =
   | 'booking_cancelled'
   | 'booking_no_show_reported'
   // Live tracking (docs/domain/live-tracking.md).
+  | 'trip_pickup_arrived'
   | 'trip_arriving'
   | 'trip_tracking_unavailable'
   // Admin verification workflow (docs/domain/verification-workflow.md).
@@ -667,6 +668,10 @@ export interface Booking {
     contributionPerSeat: number;
     driverFullName: string | null;
     driverUserId: string;
+    // (tabs)/trips.tsx's rider hero card: tells an actually in-progress
+    // ride apart from a merely-scheduled one — booking.status alone stays
+    // 'accepted' throughout both.
+    status: Ride['status'];
   };
   /** Only present on driver-facing results from listRequestsForRide —
    *  who is asking, so a request sheet isn't a list of opaque UUIDs. */
@@ -978,6 +983,13 @@ export const api = createApi({
     getBookingDetourPreview: builder.query<DetourPreview, string>({
       query: (bookingId) => `/bookings/${bookingId}/detour-preview`,
     }),
+    // The counterpart's phone number for an accepted booking, fetched
+    // on-demand (not stored/cached alongside the booking itself) right
+    // before placing a call — never a public lookup
+    // (bookings.service.ts's getBookingContactPhone doc comment).
+    getBookingContactPhone: builder.query<{ phone: string | null }, string>({
+      query: (bookingId) => `/bookings/${bookingId}/contact-phone`,
+    }),
     cancelBooking: builder.mutation<Booking & { cancellationPolicy: CancellationPolicy }, string>({
       query: (bookingId) => ({ url: `/bookings/${bookingId}/cancel`, method: 'POST' }),
       invalidatesTags: ['MyBookings', 'RideRequests', 'MyRides'],
@@ -1175,6 +1187,7 @@ export const {
   useDeclineBookingMutation,
   useGetCancellationPreviewQuery,
   useGetBookingDetourPreviewQuery,
+  useLazyGetBookingContactPhoneQuery,
   useCancelBookingMutation,
   useReportNoShowMutation,
   useRegisterPushTokenMutation,

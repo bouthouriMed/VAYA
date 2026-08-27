@@ -36,7 +36,16 @@ import { CancellationSheet } from '../../src/features/bookings/CancellationSheet
 import { trackEvent } from '../../src/services/analytics/analytics';
 import { trustTierBadge } from '../../src/features/ratings/ratingHelpers';
 import { useCurrentPosition } from '../../src/services/location/useCurrentPosition';
-import { RouteTimeline, type RouteTimelineEntry } from '../../src/features/trip-shared/RouteTimeline';
+import { estimateArrivalLabel } from '../../src/features/driver-rides/myRidesHelpers';
+import { useCallCounterpart } from '../../src/features/bookings/useCallCounterpart';
+import { openInMaps } from '../../src/utils/openInMaps';
+import { useGetTripByBookingQuery, type TripStatus } from '../../src/state/api';
+
+// Mirrors driver/rides/[rideId].tsx's own TRACKABLE_TRIP_STATUSES — a trip
+// in any of these statuses has a real GPS feed worth joining; docs/domain/
+// live-tracking.md's own lifecycle section is the source of truth both
+// files independently match.
+const TRACKABLE_TRIP_STATUSES: readonly TripStatus[] = ['driver_approaching', 'pickup', 'active', 'arriving'];
 
 type ThemeColors = ReturnType<typeof useAppTheme>['colors'];
 type TFn = (key: string, options?: Record<string, unknown>) => string;
@@ -80,6 +89,8 @@ function DriverCard({
   tripCount,
   trustTier,
   onOpenConversation,
+  callEnabled,
+  bookingId,
 }: {
   theme: ThemeColors;
   t: TFn;
@@ -89,8 +100,11 @@ function DriverCard({
   tripCount?: number;
   trustTier?: TrustTier;
   onOpenConversation: () => void;
+  callEnabled: boolean;
+  bookingId: string;
 }): React.JSX.Element {
   const tierMeta = trustTier ? trustTierBadge(trustTier) : null;
+  const { call, isLoading: isCalling } = useCallCounterpart(bookingId);
   return (
     <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
       <View style={styles.driverRow}>
@@ -138,15 +152,32 @@ function DriverCard({
             {t('common:actions.message')}
           </Text>
         </TouchableOpacity>
-        {/* No phone number is ever exposed via the public API (search/
-            ride-details.tsx's own precedent) — rendered disabled with an
-            honest reason rather than a dead tap. */}
-        <View style={[styles.quickAction, styles.quickActionDisabled, { backgroundColor: theme.surfaceMuted }]}>
-          <Icon name="call-outline" size="sm" color={theme.inkFaint} />
-          <Text variant="bodySmall" color={theme.inkFaint}>
-            {t('common:actions.call')}
-          </Text>
-        </View>
+        {/* The phone number itself is never fetched or shown here — only
+            resolved on tap, right before dialing (useCallCounterpart), and
+            only once the booking is actually accepted (before that there's
+            no real commitment to coordinate around). */}
+        {callEnabled ? (
+          <TouchableOpacity
+            style={[styles.quickAction, { backgroundColor: theme.surfaceMuted }]}
+            onPress={call}
+            disabled={isCalling}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={t('common:actions.call')}
+          >
+            <Icon name="call-outline" size="sm" color={theme.ink} />
+            <Text variant="bodySmall" color={theme.ink}>
+              {t('common:actions.call')}
+            </Text>
+          </TouchableOpacity>
+        ) : (
+          <View style={[styles.quickAction, styles.quickActionDisabled, { backgroundColor: theme.surfaceMuted }]}>
+            <Icon name="call-outline" size="sm" color={theme.inkFaint} />
+            <Text variant="bodySmall" color={theme.inkFaint}>
+              {t('common:actions.call')}
+            </Text>
+          </View>
+        )}
       </View>
     </View>
   );
@@ -199,6 +230,16 @@ export default function BookingDetailScreen(): React.JSX.Element {
   const { data: trustSummary } = useGetUserTrustSummaryQuery(booking?.ride?.driverUserId ?? '', {
     skip: !booking?.ride?.driverUserId,
   });
+  // Live tracking (docs/domain/live-tracking.md): a trip row only exists
+  // once the driver has accepted (bookings.service.ts's acceptBooking), and
+  // 404s otherwise — this is the persistent "Mes trajets" hub a rider lands
+  // on any time they return to this booking, not just right after
+  // requesting it, so it needs its own awareness of whether there's a live
+  // journey to join, independent of the one-shot confirmed->pending->
+  // pickup->live navigation chain.
+  const { data: trip } = useGetTripByBookingQuery(booking?.id ?? '', {
+    skip: !booking || booking.status !== 'accepted',
+  });
 
   const routeCoordinates = ride?.routePolyline ? decodePolyline(ride.routePolyline) : [];
 
@@ -225,6 +266,10 @@ export default function BookingDetailScreen(): React.JSX.Element {
       </View>
     );
   }
+  // A plain local binding, not a property access — TS narrowing of
+  // `booking.ride` above doesn't persist into the onPress closure below,
+  // but narrowing of a simple const does.
+  const bookingRide = booking.ride;
 
   const badge = getBookingBadge(t, booking.status);
   const cancellable = CANCELLABLE_STATUSES.includes(booking.status);
@@ -234,19 +279,30 @@ export default function BookingDetailScreen(): React.JSX.Element {
       : { latitude: ride.destinationLat, longitude: ride.destinationLng };
   const hasDropoffStop = booking.dropoffLat != null && booking.dropoffLng != null;
 
-  // This booking's own pickup/dropoff, not just the ride's own endpoints —
-  // a route-passthrough match's pickup/dropoff can sit well inside the
-  // ride's origin/destination, and the driver's own default stops (shown on
-  // driver/rides/[rideId].tsx) may not be exactly this passenger's stops.
-  const timelineEntries: RouteTimelineEntry[] = [
-    { key: 'origin', roleLabel: t('booking:departure'), placeLabel: booking.ride.originLabel, isEndpoint: true },
-    { key: 'pickup', roleLabel: t('booking:detail.pickupPoint'), placeLabel: booking.pickupLabel, isEndpoint: false },
-    ...(booking.dropoffLabel
-      ? [{ key: 'dropoff', roleLabel: t('booking:detail.dropoffPoint'), placeLabel: booking.dropoffLabel, isEndpoint: false }]
-      : []),
-    { key: 'destination', roleLabel: t('booking:arrival'), placeLabel: booking.ride.destinationLabel, isEndpoint: true },
-  ];
+  // Compact itinerary (2 rows, not 4): the passenger's own pickup/dropoff
+  // *is* their departure/arrival — showing the ride's general origin/
+  // destination as separate rows on top of that was redundant (the
+  // origin->destination text already sits in the title above) and made a
+  // route-passthrough booking's real boarding/alighting points look like an
+  // afterthought instead of the two things that actually matter here.
+  const pickupTimeLabel = formatTime(new Date(booking.ride.departureAt), locale);
+  const dropoffTimeLabel = ride.estimatedDurationSec
+    ? estimateArrivalLabel(booking.ride.departureAt, ride.estimatedDurationSec, locale)
+    : null;
+  const dropoffPlaceLabel = booking.dropoffLabel ?? booking.ride.destinationLabel;
 
+  const isTrackable = trip != null && TRACKABLE_TRIP_STATUSES.includes(trip.status);
+  // One status badge, not two: the map's own top-left badge is now the
+  // single source of truth (the info card below no longer repeats it), and
+  // it prefers the trip's real progress state once there's a trip worth
+  // tracking — "Accepted" is a request-lifecycle word that stops meaning
+  // much the moment the journey is actually underway.
+  const mapBadgeLabel =
+    trip && isTrackable
+      ? t(`booking:detail.tripStatusLabel.${trip.status}`)
+      : booking.status === 'accepted'
+        ? t('booking:detail.statusInProgress')
+        : badge.label;
   const showLiveDistance = LIVE_DISTANCE_STATUSES.includes(booking.status) && position != null;
   const distanceToPickupKm = position
     ? haversineKm(
@@ -296,7 +352,7 @@ export default function BookingDetailScreen(): React.JSX.Element {
         <View style={styles.mapCard}>
           <MapPreview
             height={160}
-            badge={badge.label}
+            badge={mapBadgeLabel}
             origin={{ latitude: ride.originLat, longitude: ride.originLng }}
             destination={{ latitude: ride.destinationLat, longitude: ride.destinationLng }}
             pickup={{ latitude: booking.pickupLat, longitude: booking.pickupLng }}
@@ -330,28 +386,71 @@ export default function BookingDetailScreen(): React.JSX.Element {
             <Text variant="h3" color={theme.ink} style={styles.infoTitle} numberOfLines={2}>
               {`${booking.ride.originLabel} → ${booking.ride.destinationLabel}`}
             </Text>
-            <Badge label={badge.label} variant={badge.variant} theme={theme} />
           </View>
+          <Text variant="caption" color={theme.inkFaint}>
+            {formatWhen(booking.ride.departureAt, t, locale)}
+          </Text>
 
-          <RouteTimeline entries={timelineEntries} theme={theme} />
-
-          <View style={styles.factRow}>
-            <Icon name="time-outline" size="sm" color={theme.inkMuted} />
-            <Text variant="bodySmall" color={theme.inkMuted}>
-              {formatWhen(booking.ride.departureAt, t, locale)}
-            </Text>
-          </View>
-          {showLiveDistance && distanceToPickupKm !== null && walkToPickupMin !== null ? (
-            <View style={styles.factRow}>
-              <Icon name="walk-outline" size="sm" color={theme.inkMuted} />
-              <Text variant="bodySmall" color={theme.inkMuted}>
+          {/* Compact 2-row itinerary: the passenger's actual boarding/
+              alighting points, each carrying its own time and a one-tap
+              directions icon — not 4 separate rows repeating the
+              origin/destination text already shown in the title above. */}
+          <View style={styles.itinerary}>
+            <View style={styles.itineraryRow}>
+              <View style={[styles.itineraryDot, { backgroundColor: theme.accent, borderColor: theme.surface }]} />
+              <View style={styles.itineraryText}>
+                <Text variant="bodySmall" color={theme.ink} numberOfLines={1}>
+                  {`${t('booking:detail.pickupPoint')} · ${pickupTimeLabel}`}
+                </Text>
+                <Text variant="caption" color={theme.inkMuted} numberOfLines={1}>
+                  {booking.pickupLabel}
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => openInMaps(booking.pickupLat, booking.pickupLng, booking.pickupLabel)}
+                hitSlop={8}
+                style={[styles.directionsIconBtn, { backgroundColor: theme.surfaceMuted }]}
+                accessibilityRole="button"
+                accessibilityLabel={t('booking:detail.getDirections')}
+              >
+                <Icon name="navigate-outline" size="xs" color={theme.ink} />
+              </TouchableOpacity>
+            </View>
+            {showLiveDistance && distanceToPickupKm !== null && walkToPickupMin !== null ? (
+              <Text variant="caption" color={theme.inkFaint} style={styles.itineraryWalkNote}>
                 {t('booking:detail.distanceToPickup', {
                   distance: formatDistance(distanceToPickupKm * 1000, locale),
                   minutes: t('common:terms.minute', { count: walkToPickupMin }),
                 })}
               </Text>
+            ) : null}
+
+            <View style={[styles.itineraryConnector, { backgroundColor: theme.outlineVariant }]} />
+
+            <View style={styles.itineraryRow}>
+              <View style={[styles.itineraryDot, { backgroundColor: theme.ink, borderColor: theme.surface }]} />
+              <View style={styles.itineraryText}>
+                <Text variant="bodySmall" color={theme.ink} numberOfLines={1}>
+                  {dropoffTimeLabel
+                    ? `${t('booking:detail.dropoffPoint')} · ≈ ${dropoffTimeLabel}`
+                    : t('booking:detail.dropoffPoint')}
+                </Text>
+                <Text variant="caption" color={theme.inkMuted} numberOfLines={1}>
+                  {dropoffPlaceLabel}
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => openInMaps(dropoffPoint.latitude, dropoffPoint.longitude, dropoffPlaceLabel)}
+                hitSlop={8}
+                style={[styles.directionsIconBtn, { backgroundColor: theme.surfaceMuted }]}
+                accessibilityRole="button"
+                accessibilityLabel={t('booking:detail.getDirections')}
+              >
+                <Icon name="navigate-outline" size="xs" color={theme.ink} />
+              </TouchableOpacity>
             </View>
-          ) : null}
+          </View>
+
           <View style={styles.factRow}>
             <Icon name="cash-outline" size="sm" color={theme.inkMuted} />
             <Text variant="bodySmall" color={theme.inkMuted}>
@@ -363,6 +462,42 @@ export default function BookingDetailScreen(): React.JSX.Element {
           </View>
         </View>
 
+        {/* Live tracking (docs/domain/live-tracking.md) re-entry point — the
+            one thing missing from this screen before: a rider who leaves
+            live.tsx (back button, or just switches apps) and comes back to
+            this booking later via "Mes trajets" had no way back into it at
+            all. `trip` here only needs a status, not the live GPS feed
+            itself (live.tsx owns that via useTripTracking) — this is just
+            the door back in. */}
+        {isTrackable && trip ? (
+          <TouchableOpacity
+            style={[styles.trackingCard, { backgroundColor: theme.ink }]}
+            onPress={() =>
+              router.push({
+                pathname: '/bookings/live',
+                params: {
+                  bookingId: booking.id,
+                  driverName: driverProfile?.fullName ?? bookingRide.driverFullName ?? undefined,
+                  destinationLabel: booking.dropoffLabel ?? bookingRide.destinationLabel,
+                },
+              })
+            }
+            activeOpacity={0.85}
+            accessibilityRole="button"
+            accessibilityLabel={t('booking:detail.joinLiveTracking')}
+          >
+            <View style={styles.trackingCardText}>
+              <Text variant="label" color={theme.onInk}>
+                {t(`booking:detail.tripStatusLabel.${trip.status}`)}
+              </Text>
+              <Text variant="caption" color={theme.onInk} style={styles.trackingCardSubtext}>
+                {t('booking:detail.joinLiveTracking')}
+              </Text>
+            </View>
+            <Icon name="chevron-forward" size="sm" color={theme.onInk} />
+          </TouchableOpacity>
+        ) : null}
+
         <DriverCard
           theme={theme}
           t={t}
@@ -372,6 +507,8 @@ export default function BookingDetailScreen(): React.JSX.Element {
           tripCount={driverProfile?.driver?.tripCount}
           trustTier={trustSummary?.driver?.tier}
           onOpenConversation={openConversation}
+          callEnabled={booking.status === 'accepted'}
+          bookingId={booking.id}
         />
 
         {driverProfile?.driver?.vehicle ? (
@@ -552,6 +689,22 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     gap: spacing.sm,
   },
+  trackingCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginHorizontal: spacing.lg,
+    borderRadius: radii.xl,
+    padding: spacing.md,
+    gap: spacing.sm,
+  },
+  trackingCardText: {
+    flex: 1,
+    gap: 2,
+  },
+  trackingCardSubtext: {
+    opacity: 0.85,
+  },
   infoTitleRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -565,6 +718,42 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
+  },
+  itinerary: {
+    marginTop: spacing.xs,
+    marginBottom: spacing.xs,
+  },
+  itineraryRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  itineraryDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    borderWidth: 2,
+  },
+  itineraryConnector: {
+    width: 1,
+    height: spacing.md,
+    marginLeft: 4.5,
+    marginVertical: 2,
+  },
+  itineraryText: {
+    flex: 1,
+    gap: 1,
+  },
+  itineraryWalkNote: {
+    marginLeft: spacing.lg + spacing.xs,
+    marginTop: 2,
+  },
+  directionsIconBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   driverRow: {
     flexDirection: 'row',

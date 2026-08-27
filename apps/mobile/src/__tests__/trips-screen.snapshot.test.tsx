@@ -81,6 +81,31 @@ const PAST_RIDE: Ride = {
   seatsAvailable: 0,
 };
 
+// Full ride detail behind ACCEPTED_BOOKING.rideId — the rider hero card
+// (unlike the plain TripCard list rows) needs real coordinates/polyline for
+// its map preview, which listMyBookings' slim embedded `ride` summary
+// doesn't carry, so trips.tsx fetches it separately via useGetRideQuery.
+const RIDER_HERO_RIDE: Ride = {
+  id: 'ride-other',
+  driverProfileId: 'dp-amine',
+  vehicleId: 'veh-amine',
+  routeId: null,
+  originLabel: 'Tunis',
+  originLat: 36.8065,
+  originLng: 10.1815,
+  destinationLabel: 'Hammamet',
+  destinationLat: 36.4,
+  destinationLng: 10.6,
+  departureAt: FUTURE_DEPARTURE,
+  seatsTotal: 4,
+  seatsAvailable: 2,
+  contributionPerSeat: 10.5,
+  status: 'published',
+  routePolyline: null,
+  estimatedDurationSec: 3600,
+  routeKind: null,
+};
+
 const ACCEPTED_BOOKING: Booking = {
   id: 'booking-1',
   rideId: 'ride-other',
@@ -105,6 +130,7 @@ const ACCEPTED_BOOKING: Booking = {
     contributionPerSeat: 10.5,
     driverFullName: 'Amine Ben Salah',
     driverUserId: 'driver-amine',
+    status: 'published',
   },
 };
 
@@ -130,6 +156,10 @@ function mockApi({
       data: driverProfile ?? undefined,
     }),
     useListMyRidesQuery: (): QueryResult<Ride[]> => ({ data: myRides }),
+    // The rider hero card's own full-ride fetch (see RIDER_HERO_RIDE above).
+    useGetRideQuery: (rideId: string): QueryResult<Ride> => ({
+      data: rideId === RIDER_HERO_RIDE.id ? RIDER_HERO_RIDE : undefined,
+    }),
     // Header notification bell — same query the explore tab's bell uses.
     useListNotificationsQuery: (): QueryResult<unknown[]> => ({ data: [] }),
   }));

@@ -57,7 +57,8 @@
     "guidance": "Avez-vous essayé de contacter l'autre partie ? Nous vous recommandons de le faire avant de signaler une absence.",
     "reportCta": "Signaler l'absence",
     "cancelCta": "Annuler",
-    "error": "Impossible de signaler. Réessayez."
+    "error": "Impossible de signaler. Réessayez.",
+    "followUp": "Ceci est enregistré sur le profil de {{name}} — ne le signalez que si la personne ne s'est vraiment pas présentée."
   },
   "rating": {
     "punctual": "Ponctuel",
@@ -68,6 +69,9 @@
   "conversation": {
     "unavailable": "Conversation indisponible",
     "closed": "Cette conversation est terminée.",
+    "viewRide": "Voir le trajet",
+    "sayHello": "Dites bonjour !",
+    "sayHelloDescription": "Démarrez la conversation avec votre {{role}}.",
     "placeholder": "Écrivez un message…",
     "send": "Envoyer",
     "quickReplies": {
@@ -112,9 +116,18 @@
     "pickupPoint": "Point de rendez-vous",
     "dropoffPoint": "Point de dépose",
     "distanceToPickup": "{{distance}} de votre position · ≈ {{minutes}} à pied jusqu'au point de rendez-vous",
+    "getDirections": "Itinéraire",
     "priceAndSeats": "{{price}} · {{seats}}",
     "tripsSuffix_one": "· {{count}} trajet",
-    "tripsSuffix_other": "· {{count}} trajets"
+    "tripsSuffix_other": "· {{count}} trajets",
+    "joinLiveTracking": "Suivre le trajet en direct",
+    "statusInProgress": "En cours",
+    "tripStatusLabel": {
+      "driver_approaching": "Votre conducteur est en route",
+      "pickup": "Votre conducteur est arrivé",
+      "active": "Trajet en cours",
+      "arriving": "Vous arrivez bientôt à destination"
+    }
   },
   "days": {
     "mon": "Lun",

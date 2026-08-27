@@ -1096,6 +1096,7 @@ export default function PublishTabScreen(): React.JSX.Element {
             style={StyleSheet.absoluteFillObject}
             provider={PROVIDER_DEFAULT}
             customMapStyle={scheme === 'dark' ? darkMapStyle : lightMapStyle}
+            userInterfaceStyle={scheme}
             initialRegion={routeOptionsRegion}
           >
             {/* A single stable-order pass, never two filtered/reordered

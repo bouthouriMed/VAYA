@@ -30,6 +30,7 @@ const NOTIFICATION_TYPE_META: Record<NotificationEventType, (t: TFunction) => No
   booking_cancelled: (t) => ({ title: t('notifications:events.booking_cancelled'), icon: 'close-circle-outline' }),
   booking_no_show_reported: (t) => ({ title: t('notifications:events.booking_no_show_reported'), icon: 'alert-circle-outline' }),
   // Live tracking (docs/domain/live-tracking.md).
+  trip_pickup_arrived: (t) => ({ title: t('notifications:events.trip_pickup_arrived'), icon: 'location-outline' }),
   trip_arriving: (t) => ({ title: t('notifications:events.trip_arriving'), icon: 'navigate-outline' }),
   trip_tracking_unavailable: (t) => ({ title: t('notifications:events.trip_tracking_unavailable'), icon: 'warning-outline' }),
   // Admin verification workflow (docs/domain/verification-workflow.md).
@@ -61,6 +62,7 @@ const NOTIFICATION_TONE: Partial<Record<NotificationEventType, NotificationTone>
   recurring_pattern_detected: 'info',
   recurring_proactive_match: 'info',
   demand_signal_matched: 'info',
+  trip_pickup_arrived: 'accent',
   trip_arriving: 'accent',
   trip_tracking_unavailable: 'error',
   verification_submitted: 'info',
@@ -113,6 +115,8 @@ export function notificationDescription(
       return t('notifications:descriptions.recurring_proactive_match', { origin: typeof payload.originLabel === 'string' ? payload.originLabel : undefined, destination: typeof payload.destinationLabel === 'string' ? payload.destinationLabel : undefined });
     case 'demand_signal_matched':
       return t('notifications:descriptions.demand_signal_matched', { origin: typeof payload.originLabel === 'string' ? payload.originLabel : undefined, destination: typeof payload.destinationLabel === 'string' ? payload.destinationLabel : undefined });
+    case 'trip_pickup_arrived':
+      return t('notifications:descriptions.trip_pickup_arrived');
     case 'trip_arriving':
       return t('notifications:descriptions.trip_arriving');
     case 'trip_tracking_unavailable':

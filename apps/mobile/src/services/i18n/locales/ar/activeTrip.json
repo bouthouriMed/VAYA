@@ -8,6 +8,8 @@
   "waitingConfirmation": "في انتظار التأكيد",
   "noShowReport": "الإبلاغ عن عدم حضور",
   "waitingForDriver": "في انتظار السائق…",
+  "driverArrived": "وصل سائقك",
+  "arrivingSoon": "أنت على وشك الوصول — استعد للنزول",
   "etaLabel": "≈ {{minutes}} د",
   "staleSignal": "إشارة GPS غير مستقرة…",
   "unavailable": "التتبع غير متاح مؤقتًا",
