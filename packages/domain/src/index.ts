@@ -11,6 +11,9 @@ export * from './route/route.types';
 export * from './route/trip-profile.types';
 export * from './route/classify-trip-profile';
 
+export * from './matching/matching-thresholds.types';
+export * from './matching/matching-thresholds';
+
 export * from './ride/ride.types';
 export * from './ride/ride-status';
 

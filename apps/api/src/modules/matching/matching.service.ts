@@ -13,17 +13,40 @@ import {
   projectPointOntoRoute,
   type LatLng,
 } from '../../lib/polyline.js';
+import {
+  classifyTripProfile,
+  getMatchingThresholds,
+  type MatchingThresholds,
+} from '@vaya/domain';
 import type { MatchingSearchInput, NotifyMeInput } from '@vaya/validation';
 
 type Database = ReturnType<typeof getDatabase>;
 
+// TIGHT_PICKUP_RADIUS_M/TIGHT_DROPOFF_RADIUS_M/TIGHT_TIME_WINDOW_MIN are the
+// "urban" row of packages/domain's getMatchingThresholds, kept here as the
+// fixed (never profile-scaled) radii findBestMatchForRecurringPattern
+// deliberately keeps using, per that function's own doc comment — a
+// proactive "your usual ride is available" check should always use the
+// same tight test regardless of the pattern's own trip length. searchRides
+// itself no longer reads these three directly for its tier calls — see
+// deriveMatchingThresholds below, whose 'urban' output is required-equal to
+// these same numbers (guarded by a domain-level regression test,
+// packages/domain/src/matching/__tests__/matching-thresholds.test.ts) so
+// this comment can't silently go stale.
 const TIGHT_PICKUP_RADIUS_M = 2000;
 const TIGHT_DROPOFF_RADIUS_M = 3000;
 const TIGHT_TIME_WINDOW_MIN = 90;
 
+// WIDE_PICKUP_RADIUS_M also survives as rankStopsByWalkDistance's own
+// standalone default cutoff (used when a caller doesn't pass a radius) —
+// everything else that used to read a flat "wide" radius now reads
+// deriveMatchingThresholds's profile-scaled equivalent instead.
 const WIDE_PICKUP_RADIUS_M = 8000;
-const WIDE_DROPOFF_RADIUS_M = 10000;
 const WIDE_TIME_WINDOW_MIN = 240;
+
+// Time windows are deliberately NOT profile-scaled (matching-engine
+// architecture plan, §G) — only distance/corridor/detour thresholds are.
+// Both tiers' time windows stay flat across every trip profile.
 
 const WALK_SPEED_M_PER_MIN = 80;
 // How close the rider's own route needs to run to a candidate ride's actual
@@ -102,9 +125,35 @@ const MAX_DETOUR_RATIO = 0.25;
 const MIN_DETOUR_ALLOWANCE_SEC = 3 * 60;
 const MAX_DETOUR_ALLOWANCE_SEC = 12 * 60;
 
-export function detourAllowanceSec(baselineDurationSec: number): number {
+export function detourAllowanceSec(
+  baselineDurationSec: number,
+  floorSec: number = MIN_DETOUR_ALLOWANCE_SEC,
+  ceilingSec: number = MAX_DETOUR_ALLOWANCE_SEC,
+): number {
   const ratioAllowance = baselineDurationSec * MAX_DETOUR_RATIO;
-  return Math.min(MAX_DETOUR_ALLOWANCE_SEC, Math.max(MIN_DETOUR_ALLOWANCE_SEC, ratioAllowance));
+  return Math.min(ceilingSec, Math.max(floorSec, ratioAllowance));
+}
+
+/**
+ * Derives this search's profile-scaled matching thresholds (matching-engine
+ * architecture plan §G) from the rider's own requested origin/destination —
+ * a straight-line (haversine) distance is deliberately used here rather
+ * than a real routed distance, matching `classifyTripProfile`'s own "no
+ * network call" contract: classification only needs to distinguish a
+ * multi-kilometer commute from a cross-country haul, not a precise route
+ * length, and every tier below still runs its own real route/corridor logic
+ * on top of these thresholds regardless. `getMatchingThresholds('urban')` is
+ * exactly today's pre-existing flat constants (TIGHT_PICKUP_RADIUS_M etc.)
+ * — a mid-length trip's search behavior is unchanged by this function's
+ * introduction.
+ */
+export function deriveMatchingThresholds(input: MatchingSearchInput): MatchingThresholds {
+  const straightLineDistanceM = haversineDistanceMeters(
+    { lat: input.originLat, lng: input.originLng },
+    { lat: input.destinationLat, lng: input.destinationLng },
+  );
+  const profile = classifyTripProfile(straightLineDistanceM);
+  return getMatchingThresholds(profile.type);
 }
 
 /** Cheap, local approximation of a decoded route's total length — used only
@@ -648,6 +697,7 @@ async function scoreDetourCandidates(
   db: Database,
   input: MatchingSearchInput,
   timeWindowMin: number,
+  thresholds: MatchingThresholds,
 ): Promise<MatchCandidate[]> {
   const windowStart = new Date(input.when.getTime() - timeWindowMin * 60_000);
   const windowEnd = new Date(input.when.getTime() + timeWindowMin * 60_000);
@@ -690,9 +740,12 @@ async function scoreDetourCandidates(
     const routePoints = decodePolyline(ride.routePolyline);
     const originProj = projectPointOntoRoute(origin, routePoints);
     const destProj = projectPointOntoRoute(destination, routePoints);
+    // Same profile-scaled corridor route_passthrough itself uses for this
+    // search — a ride that tier would already surface shouldn't also cost a
+    // real routing call here.
     const alreadyOnRoute =
-      originProj.distanceM <= OVERLAP_CORRIDOR_WIDTH_M &&
-      destProj.distanceM <= OVERLAP_CORRIDOR_WIDTH_M &&
+      originProj.distanceM <= thresholds.corridorWidthM &&
+      destProj.distanceM <= thresholds.corridorWidthM &&
       destProj.fraction - originProj.fraction >= MIN_ROUTE_FRACTION_GAP;
     if (alreadyOnRoute) continue;
 
@@ -707,7 +760,11 @@ async function scoreDetourCandidates(
     if (withInsertion.isEstimate) continue; // No real routing engine reachable — never fabricate a detour number from a haversine fallback.
 
     const extraDurationSeconds = Math.max(0, withInsertion.durationSec - ride.estimatedDurationSec);
-    const allowanceSec = detourAllowanceSec(ride.estimatedDurationSec);
+    const allowanceSec = detourAllowanceSec(
+      ride.estimatedDurationSec,
+      thresholds.detourFloorSec,
+      thresholds.detourCeilingSec,
+    );
     if (extraDurationSeconds > allowanceSec) continue;
 
     const baselineDistanceM = polylineLengthMeters(routePoints);
@@ -735,7 +792,7 @@ async function scoreDetourCandidates(
     const score =
       clamp01(1 - detourRatio / (MAX_DETOUR_RATIO * 1.2)) * 0.5 +
       clamp01(1 - timeDeltaMin / TIGHT_TIME_WINDOW_MIN) * 0.3 +
-      clamp01(1 - extraDurationSeconds / MAX_DETOUR_ALLOWANCE_SEC) * 0.2;
+      clamp01(1 - extraDurationSeconds / thresholds.detourCeilingSec) * 0.2;
 
     results.push({
       rideId: ride.id,
@@ -786,6 +843,7 @@ async function scoreDetourCandidates(
 async function findClosestDepartures(
   db: Database,
   input: MatchingSearchInput,
+  thresholds: MatchingThresholds,
 ): Promise<MatchCandidate[]> {
   const now = new Date();
   const lookaheadEnd = new Date(
@@ -806,8 +864,8 @@ async function findClosestDepartures(
     db,
     origin,
     destination,
-    WIDE_PICKUP_RADIUS_M,
-    WIDE_DROPOFF_RADIUS_M,
+    thresholds.widePickupRadiusM,
+    thresholds.wideDropoffRadiusM,
     windowStart,
     lookaheadEnd,
     POSTGIS_CANDIDATE_CAP,
@@ -832,8 +890,8 @@ async function findClosestDepartures(
       destination,
       riderRoutePoints,
       stopsByRide,
-      pickupRadiusM: WIDE_PICKUP_RADIUS_M,
-      dropoffRadiusM: WIDE_DROPOFF_RADIUS_M,
+      pickupRadiusM: thresholds.widePickupRadiusM,
+      dropoffRadiusM: thresholds.wideDropoffRadiusM,
     });
     if (candidate) built.push(candidate);
   }
@@ -890,11 +948,17 @@ const TIER_MESSAGES: Record<
  * illusion built by widening one radius twice.
  */
 export async function searchRides(db: Database, input: MatchingSearchInput): Promise<SearchResult> {
+  // Profile-scaled once per search (matching-engine architecture plan §G) —
+  // every tier below uses these instead of the old flat module-level
+  // constants. A mid-length ("urban") request is numerically unaffected;
+  // see deriveMatchingThresholds's own doc comment.
+  const thresholds = deriveMatchingThresholds(input);
+
   const exact = await scoreCandidates(
     db,
     input,
-    TIGHT_PICKUP_RADIUS_M,
-    TIGHT_DROPOFF_RADIUS_M,
+    thresholds.tightPickupRadiusM,
+    thresholds.tightDropoffRadiusM,
     TIGHT_TIME_WINDOW_MIN,
   );
   if (exact.length > 0) return { tier: 'exact', candidates: exact, message: null };
@@ -902,8 +966,8 @@ export async function searchRides(db: Database, input: MatchingSearchInput): Pro
   const wide = await scoreCandidates(
     db,
     input,
-    WIDE_PICKUP_RADIUS_M,
-    WIDE_DROPOFF_RADIUS_M,
+    thresholds.widePickupRadiusM,
+    thresholds.wideDropoffRadiusM,
     WIDE_TIME_WINDOW_MIN,
   );
   if (wide.length > 0) {
@@ -913,7 +977,7 @@ export async function searchRides(db: Database, input: MatchingSearchInput): Pro
   const passThrough = await scorePassThroughCandidates(
     db,
     input,
-    OVERLAP_CORRIDOR_WIDTH_M,
+    thresholds.corridorWidthM,
     WIDE_TIME_WINDOW_MIN,
   );
   if (passThrough.length > 0) {
@@ -924,12 +988,12 @@ export async function searchRides(db: Database, input: MatchingSearchInput): Pro
     };
   }
 
-  const detour = await scoreDetourCandidates(db, input, WIDE_TIME_WINDOW_MIN);
+  const detour = await scoreDetourCandidates(db, input, WIDE_TIME_WINDOW_MIN, thresholds);
   if (detour.length > 0) {
     return { tier: 'detour_match', candidates: detour, message: TIER_MESSAGES.detour_match };
   }
 
-  const closest = await findClosestDepartures(db, input);
+  const closest = await findClosestDepartures(db, input, thresholds);
   if (closest.length > 0) {
     return {
       tier: 'closest_departure',

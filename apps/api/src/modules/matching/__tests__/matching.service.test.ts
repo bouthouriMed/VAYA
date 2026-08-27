@@ -5,7 +5,9 @@ import {
   isDropoffViable,
   detourAllowanceSec,
   polylineLengthMeters,
+  deriveMatchingThresholds,
 } from '../matching.service.js';
+import { getMatchingThresholds } from '@vaya/domain';
 
 // Pure functions, no DB/OSRM dependency — exercised the same way
 // stop-candidates.service.test.ts exercises its own pure scoring/
@@ -142,5 +144,53 @@ describe('polylineLengthMeters', () => {
   it('returns 0 for a degenerate single-point or empty route', () => {
     expect(polylineLengthMeters([{ lat: 36.8, lng: 10.18 }])).toBe(0);
     expect(polylineLengthMeters([])).toBe(0);
+  });
+});
+
+// Matching-engine architecture plan §G / §A ("trip-profile-aware matching
+// thresholds", the first phase of that plan) — deriveMatchingThresholds is
+// searchRides's only entry point into packages/domain's profile-scaled
+// thresholds table, so this locks in exactly which real-world trip lengths
+// land in which bucket, from the caller's actual input shape (lat/lng/when),
+// not just classifyTripProfile's own already-tested distance-only contract.
+describe('deriveMatchingThresholds', () => {
+  const when = new Date('2026-09-01T08:00:00Z');
+
+  // 0.01 degrees latitude ~= 1113m regardless of longitude — same
+  // easy-to-reason-about spacing this file's other tests already use.
+  function inputAtLatOffset(deg: number) {
+    return { originLat: origin.lat, originLng: origin.lng, destinationLat: origin.lat + deg, destinationLng: origin.lng, when };
+  }
+
+  it('derives commute-profile thresholds for a short (~3km) requested trip', () => {
+    const thresholds = deriveMatchingThresholds(inputAtLatOffset(0.027));
+    expect(thresholds).toEqual(getMatchingThresholds('commute'));
+  });
+
+  it('derives urban-profile thresholds for a mid-length (~30km) requested trip', () => {
+    const thresholds = deriveMatchingThresholds(inputAtLatOffset(0.27));
+    expect(thresholds).toEqual(getMatchingThresholds('urban'));
+  });
+
+  it('derives intercity-profile thresholds for a long (~120km) requested trip', () => {
+    const thresholds = deriveMatchingThresholds(inputAtLatOffset(1.08));
+    expect(thresholds).toEqual(getMatchingThresholds('intercity'));
+  });
+
+  it('is symmetric — swapping origin and destination derives the same thresholds', () => {
+    const forward = inputAtLatOffset(0.27);
+    const reversed = {
+      originLat: forward.destinationLat,
+      originLng: forward.destinationLng,
+      destinationLat: forward.originLat,
+      destinationLng: forward.originLng,
+      when,
+    };
+    expect(deriveMatchingThresholds(reversed)).toEqual(deriveMatchingThresholds(forward));
+  });
+
+  it('never throws for an identical origin/destination (a degenerate zero-distance request)', () => {
+    const thresholds = deriveMatchingThresholds(inputAtLatOffset(0));
+    expect(thresholds).toEqual(getMatchingThresholds('commute'));
   });
 });
