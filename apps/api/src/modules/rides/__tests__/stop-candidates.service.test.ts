@@ -6,6 +6,8 @@ import {
   scoreStopCandidate,
   clusterAndRank,
   computeCustomStopSequence,
+  computeViaStopInsertion,
+  polylineDistanceMeters,
   MAX_DEVIATION_METERS,
   MAX_DEVIATION_SECONDS,
   type ScoredStopCandidate,
@@ -257,5 +259,76 @@ describe('computeCustomStopSequence', () => {
   it('the first custom stop for a ride with zero generated candidates gets a sensible sequence', () => {
     expect(computeCustomStopSequence([], 'pickup')).toBe(-1);
     expect(computeCustomStopSequence([], 'dropoff')).toBe(1);
+  });
+});
+
+describe('computeViaStopInsertion', () => {
+  // The "add a stop along your route" step's core ordering rule: a
+  // freehand mid-route stop must slot into the ride's existing stop list at
+  // its real position along the road route, not at the end of the list —
+  // otherwise the ride's own stop timeline (and passenger pickup/dropoff
+  // ordering, which reads the same `sequence` column) would show it out of
+  // route order.
+  it('inserts between two existing stops by route fraction, bumping everything after it', () => {
+    const existing = [
+      { id: 'pickup', sequence: -1, fraction: 0.05 },
+      { id: 'a', sequence: 0, fraction: 0.3 },
+      { id: 'b', sequence: 1, fraction: 0.7 },
+      { id: 'dropoff', sequence: 2, fraction: 0.95 },
+    ];
+    const result = computeViaStopInsertion(existing, 0.5);
+    expect(result.newSequence).toBe(1);
+    expect(result.bumps.sort((x, y) => x.sequence - y.sequence)).toEqual([
+      { id: 'b', sequence: 2 },
+      { id: 'dropoff', sequence: 3 },
+    ]);
+  });
+
+  it('inserts before every existing stop when its fraction is the smallest', () => {
+    const existing = [
+      { id: 'a', sequence: 0, fraction: 0.4 },
+      { id: 'b', sequence: 1, fraction: 0.8 },
+    ];
+    const result = computeViaStopInsertion(existing, 0.1);
+    expect(result.newSequence).toBe(0);
+    expect(result.bumps.sort((x, y) => x.sequence - y.sequence)).toEqual([
+      { id: 'a', sequence: 1 },
+      { id: 'b', sequence: 2 },
+    ]);
+  });
+
+  it('inserts after every existing stop (including a custom dropoff) when its fraction is the largest', () => {
+    const existing = [
+      { id: 'pickup', sequence: -1, fraction: 0.05 },
+      { id: 'a', sequence: 0, fraction: 0.4 },
+      { id: 'dropoff', sequence: 1, fraction: 0.95 },
+    ];
+    const result = computeViaStopInsertion(existing, 0.99);
+    expect(result.newSequence).toBe(2);
+    expect(result.bumps).toEqual([]);
+  });
+
+  it('inserting into an empty stop list gets sequence 0', () => {
+    expect(computeViaStopInsertion([], 0.5)).toEqual({ newSequence: 0, bumps: [] });
+  });
+});
+
+describe('polylineDistanceMeters', () => {
+  it('sums haversine distance across every segment', () => {
+    const points = [
+      { lat: 36.8, lng: 10.18 },
+      { lat: 36.81, lng: 10.18 },
+      { lat: 36.81, lng: 10.19 },
+    ];
+    const total = polylineDistanceMeters(points);
+    const leg1 = polylineDistanceMeters([points[0]!, points[1]!]);
+    const leg2 = polylineDistanceMeters([points[1]!, points[2]!]);
+    expect(total).toBeCloseTo(leg1 + leg2, 5);
+    expect(total).toBeGreaterThan(0);
+  });
+
+  it('is zero for a single point or empty input', () => {
+    expect(polylineDistanceMeters([])).toBe(0);
+    expect(polylineDistanceMeters([{ lat: 36.8, lng: 10.18 }])).toBe(0);
   });
 });

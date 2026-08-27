@@ -106,6 +106,9 @@ const generateStopsResponseSchema = z.object({
   stops: z.array(routeStopSchema),
   osrmUnavailable: z.boolean(),
   regenerated: z.boolean(),
+  // Drives the "add stops along your route" step's trip-aware copy/camera
+  // (apps/mobile's publish wizard) — null only when the ride has no route.
+  tripProfileType: z.enum(['commute', 'urban', 'intercity']).nullable(),
 });
 
 const rideStopsQuerySchema = z.object({

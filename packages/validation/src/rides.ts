@@ -79,8 +79,12 @@ export type UpdateRideStopsInput = z.infer<typeof updateRideStopsSchema>;
 // shows up everywhere a real stop does: the driver's own ride hub, the
 // passenger's matching/booking flow. Previously these were display-only
 // and vanished the moment the driver left the publish screen.
+// 'via' (the "add a stop along your route" step) is a third, later addition:
+// a freehand mid-route stop that didn't match any generated candidate
+// either — see stop-candidates.service.ts's addCustomStop for how its
+// insertion position among the ride's other stops is computed.
 export const addCustomStopSchema = z.object({
   ...pointSchema,
-  role: z.enum(['pickup', 'dropoff']),
+  role: z.enum(['pickup', 'dropoff', 'via']),
 });
 export type AddCustomStopInput = z.infer<typeof addCustomStopSchema>;
