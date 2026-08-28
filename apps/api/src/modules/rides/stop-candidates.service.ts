@@ -378,7 +378,7 @@ export interface GenerateStopsResult {
   tripProfileType: TripProfileType | null;
 }
 
-async function getDriverOwnedRideOrThrow(db: Database, rideId: string, userId: string) {
+export async function getDriverOwnedRideOrThrow(db: Database, rideId: string, userId: string) {
   const ride = await db.query.rides.findFirst({
     where: eq(rides.id, rideId),
     with: { driverProfile: true },

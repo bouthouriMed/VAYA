@@ -17,14 +17,32 @@ import type { LocationProvider } from './location-provider.types.js';
  */
 
 const NOMINATIM_BASE_URL = 'https://nominatim.openstreetmap.org';
+// Overpass has no per-key auth/quota — a free, public OSM query engine.
+// Used only for searchNearbyLocalities: Nominatim's own /reverse and
+// /search endpoints have no "find real places of type X within radius Y
+// of point Z" query shape at all (reverse only resolves what CONTAINS
+// the exact point — nothing, for a point on a highway between towns,
+// which is most of a route's actual sampled geometry).
+const OVERPASS_URL = 'https://overpass-api.de/api/interpreter';
 const USER_AGENT = 'VAYA-dev/0.1 (contact: dev@vaya.local)';
 const FETCH_TIMEOUT_MS = 4000;
+const OVERPASS_TIMEOUT_MS = 8000;
 const TUNISIA_VIEWBOX = '7.5,37.6,11.6,30.2';
 // Nominatim has no session-token/two-call concept at all — a "session"
 // here is purely a short-lived server-side cache so resolveLocation doesn't
 // need a second network call for a result autocomplete() already fetched.
 // 10 minutes comfortably covers "user picked a result shortly after typing".
 const SESSION_CACHE_TTL_SEC = 600;
+
+interface OverpassResponse {
+  elements?: Array<{
+    type?: string;
+    id?: number;
+    lat?: number;
+    lon?: number;
+    tags?: Record<string, string>;
+  }>;
+}
 
 interface NominatimResult {
   display_name: string;
@@ -199,6 +217,74 @@ export class NominatimProvider implements LocationProvider {
     } catch (err) {
       getLogger().warn({ err, provider: 'nominatim', lat, lng }, 'Nominatim reverse geocode failed');
       return null;
+    }
+  }
+
+  async searchNearbyLocalities(
+    point: { lat: number; lng: number },
+    radiusM: number,
+  ): Promise<LocationPoint[]> {
+    try {
+      // OSM's real place-node taxonomy for a named settlement — city/town/
+      // village all count as a real, offerable detour destination here
+      // (the same three OSM place values Nominatim's own reverseGeocode
+      // mapping already collapses into LocationType 'city' — see
+      // mapNominatimTypeToLocationType above).
+      const query = `[out:json][timeout:${Math.floor(OVERPASS_TIMEOUT_MS / 1000)}];node["place"~"^(city|town|village)$"](around:${radiusM},${point.lat},${point.lng});out body 10;`;
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), OVERPASS_TIMEOUT_MS);
+      let response: Response;
+      try {
+        response = await fetch(OVERPASS_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            Accept: 'application/json',
+            'User-Agent': USER_AGENT,
+          },
+          body: `data=${encodeURIComponent(query)}`,
+          signal: controller.signal,
+        });
+      } finally {
+        clearTimeout(timeout);
+      }
+      if (!response.ok) throw new Error(`Overpass query failed: ${response.status}`);
+      const data = (await response.json()) as OverpassResponse;
+
+      return (data.elements ?? [])
+        .filter(
+          (el): el is { type?: string; id?: number; lat: number; lon: number; tags?: Record<string, string> } =>
+            typeof el.lat === 'number' && typeof el.lon === 'number',
+        )
+        .map((el): LocationPoint | null => {
+          // Prefer a Latin-script name (this app's primary UI language is
+          // French) over OSM's bare `name` tag, which for Tunisia is often
+          // Arabic script — falls back to it only when no French/English
+          // variant exists.
+          const label = el.tags?.['name:fr'] ?? el.tags?.['name:en'] ?? el.tags?.name ?? null;
+          if (!label) return null;
+          return {
+            placeId: el.type && el.id !== undefined ? `nominatim:${el.type}:${el.id}` : null,
+            label,
+            primaryText: label,
+            secondaryText: null,
+            latitude: el.lat,
+            longitude: el.lon,
+            type: 'city',
+            formattedAddress: null,
+            city: label,
+            governorate: null,
+            countryCode: null,
+            source: 'nominatim',
+          };
+        })
+        .filter((p): p is LocationPoint => p !== null);
+    } catch (err) {
+      getLogger().warn(
+        { err, provider: 'nominatim', point, radiusM },
+        'Overpass nearby-localities query failed',
+      );
+      return [];
     }
   }
 }

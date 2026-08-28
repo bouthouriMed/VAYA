@@ -7,17 +7,16 @@ import type { LocationProvider } from './location-provider.types.js';
  * LocationProvider once GOOGLE_MAPS_SERVER_API_KEY is configured (see
  * providers/index.ts for the auto/google/nominatim selection logic).
  *
- * NOT exercised against a live Google endpoint in this environment: this
- * sandbox's outbound proxy returns 403 for external hosts outside a fixed
- * allowlist (confirmed directly against nominatim.openstreetmap.org in an
- * earlier pass of this same work — Google's Places/Geocoding hosts were not
- * tested but are not on that allowlist either), and no real API key was
- * provided (per this task's explicit instruction not to ask for one before
- * implementing). Every request/response shape below is written directly
- * against Google's current, documented Places API (New) and Geocoding API
- * contracts — not fabricated — but has not been confirmed against a live
- * response in this session. Verify with a real key + reachable network
- * before relying on this in production.
+ * Live-verified (2026-08-28, matching-engine-redesign worktree): this
+ * environment's outbound network reaches places.googleapis.com and
+ * maps.googleapis.com directly, and a real key was already present in
+ * this worktree's own .env — reverseGeocode, Places Nearby Search, and
+ * Autocomplete were each exercised against real responses for real
+ * Tunisia coordinates while building searchNearbyLocalities below. An
+ * earlier version of this comment claimed the opposite (blocked outbound,
+ * no real key) — that was true of a different, earlier sandbox session,
+ * not this one; don't assume it still applies without checking again in
+ * whatever environment actually runs this.
  */
 
 const PLACES_BASE_URL = 'https://places.googleapis.com/v1';
@@ -73,6 +72,15 @@ interface GeocodingApiResponse {
     address_components: Array<{ long_name: string; short_name: string; types: string[] }>;
     place_id: string;
     types: string[];
+  }>;
+}
+
+interface NearbySearchResponse {
+  places?: Array<{
+    id: string;
+    displayName?: { text: string };
+    formattedAddress?: string;
+    location?: { latitude: number; longitude: number };
   }>;
 }
 
@@ -279,6 +287,54 @@ export class GooglePlacesProvider implements LocationProvider {
     } catch (err) {
       getLogger().warn({ err, provider: 'google', lat, lng }, 'Reverse geocode request failed');
       return null;
+    }
+  }
+
+  async searchNearbyLocalities(
+    point: { lat: number; lng: number },
+    radiusM: number,
+  ): Promise<LocationPoint[]> {
+    try {
+      const response = await fetchWithTimeout(`${PLACES_BASE_URL}/places:searchNearby`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Goog-Api-Key': this.apiKey,
+          // Minimal field mask — this feature only ever renders a name +
+          // coordinate per candidate (brief §7/§23's field-mask cost
+          // discipline, same as every other Places call in this file).
+          'X-Goog-FieldMask':
+            'places.id,places.displayName,places.formattedAddress,places.location',
+        },
+        body: JSON.stringify({
+          includedTypes: ['locality'],
+          maxResultCount: 10,
+          locationRestriction: {
+            circle: { center: { latitude: point.lat, longitude: point.lng }, radius: radiusM },
+          },
+        }),
+      });
+      if (!response.ok) throw new Error(`Places Nearby Search responded ${response.status}`);
+      const data = (await response.json()) as NearbySearchResponse;
+      return (data.places ?? [])
+        .filter((p) => p.location && p.displayName)
+        .map((p) => ({
+          placeId: p.id,
+          label: p.formattedAddress ?? p.displayName!.text,
+          primaryText: p.displayName!.text,
+          secondaryText: p.formattedAddress ?? null,
+          latitude: p.location!.latitude,
+          longitude: p.location!.longitude,
+          type: 'city' as const,
+          formattedAddress: p.formattedAddress ?? null,
+          city: p.displayName!.text,
+          governorate: null,
+          countryCode: null,
+          source: 'google' as const,
+        }));
+    } catch (err) {
+      getLogger().warn({ err, provider: 'google', point, radiusM }, 'Places Nearby Search request failed');
+      return [];
     }
   }
 }

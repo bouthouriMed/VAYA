@@ -26,6 +26,7 @@ import {
   listRideStopsForDriver,
   addCustomStop,
 } from './stop-candidates.service.js';
+import { listCityDetourCandidates } from './city-detour-candidates.service.js';
 import { getRouteOptions } from './route-options.service.js';
 
 const rideSchema = z.object({
@@ -108,6 +109,17 @@ const generateStopsResponseSchema = z.object({
   regenerated: z.boolean(),
   // Drives the "add stops along your route" step's trip-aware copy/camera
   // (apps/mobile's publish wizard) — null only when the ride has no route.
+  tripProfileType: z.enum(['commute', 'urban', 'intercity']).nullable(),
+});
+
+const cityDetourCandidateSchema = z.object({
+  label: z.string(),
+  lat: z.number(),
+  lng: z.number(),
+});
+
+const cityDetourCandidatesResponseSchema = z.object({
+  cities: z.array(cityDetourCandidateSchema),
   tripProfileType: z.enum(['commute', 'urban', 'intercity']).nullable(),
 });
 
@@ -240,6 +252,25 @@ export async function ridesRoutes(fastify: FastifyInstance): Promise<void> {
         request.params.rideId,
         getUserId(request),
       );
+      reply.send(result);
+    },
+  );
+
+  // Real, named cities/towns along the ride's route (city-detour-
+  // candidates.service.ts) — the primary "predefined cities you can stop
+  // in" list the "add stops" step's city picker shows, distinct from
+  // candidate-stops' on-road micro-stops. Cached by route hash inside the
+  // service, so repeat calls for the same route are cheap; still a real
+  // network-bound scan on a cold cache, hence GET (idempotent, safe to
+  // retry) rather than a mutation.
+  app.get(
+    '/rides/:rideId/city-detour-candidates',
+    {
+      onRequest: [fastify.authenticate],
+      schema: { params: rideIdParamSchema, response: { 200: cityDetourCandidatesResponseSchema } },
+    },
+    async (request, reply) => {
+      const result = await listCityDetourCandidates(db, request.params.rideId, getUserId(request));
       reply.send(result);
     },
   );

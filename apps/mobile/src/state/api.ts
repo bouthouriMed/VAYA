@@ -375,6 +375,17 @@ export interface GenerateStopsResult {
   tripProfileType: TripProfileType | null;
 }
 
+export interface CityDetourCandidate {
+  label: string;
+  lat: number;
+  lng: number;
+}
+
+export interface CityDetourCandidatesResult {
+  cities: CityDetourCandidate[];
+  tripProfileType: TripProfileType | null;
+}
+
 export interface DeviceTokenRegistration {
   id: string;
   userId: string;
@@ -935,6 +946,14 @@ export const api = createApi({
     generateCandidateStops: builder.mutation<GenerateStopsResult, string>({
       query: (rideId) => ({ url: `/rides/${rideId}/candidate-stops`, method: 'POST' }),
     }),
+    // Real, named cities/towns along the ride's route (city-detour-
+    // candidates.service.ts) — the primary "pick a city to detour to"
+    // list the "add stops" step shows, distinct from candidate-stops'
+    // on-road micro-stops. A GET, not a mutation: read-only, safe to
+    // retry/refetch.
+    getCityDetourCandidates: builder.query<CityDetourCandidatesResult, string>({
+      query: (rideId) => `/rides/${rideId}/city-detour-candidates`,
+    }),
     updateRideStops: builder.mutation<
       RouteStop[],
       { rideId: string; selections: { stopId: string; isDriverSelected: boolean }[] }
@@ -1202,6 +1221,7 @@ export const {
   useCancelRideMutation,
   usePublishRideMutation,
   useGenerateCandidateStopsMutation,
+  useGetCityDetourCandidatesQuery,
   useUpdateRideStopsMutation,
   useAddCustomStopMutation,
   useGetRideStopsQuery,
