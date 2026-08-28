@@ -63,6 +63,7 @@ import {
   useRegisterPushTokenMutation,
   useLazyGeocodeReverseQuery,
   useLazyGetRideStopsForDriverQuery,
+  api,
   type RouteStop,
   type SuggestedPrice,
   type RouteOption,
@@ -333,6 +334,13 @@ export default function PublishTabScreen(): React.JSX.Element {
   // either endpoint.
   const [selectedViaIds, setSelectedViaIds] = useState<ReadonlySet<string>>(new Set());
   const [triggerRideStopsRefresh] = useLazyGetRideStopsForDriverQuery();
+  // Warms the city-detour-candidates cache the moment a real ride exists
+  // (fired right alongside generateStopsInBackground below), so
+  // driver/stops-selection.tsx's list is already sitting in the RTK Query
+  // cache by the time the driver taps "Add a stop" — per direct feedback,
+  // the driver shouldn't watch a fresh loading spinner on that screen when
+  // the ride's route has been known for a while already.
+  const prefetchCityDetourCandidates = api.usePrefetch('getCityDetourCandidates');
 
   // Route-selection step: a small set of real, distinct route alternatives
   // (fastest/toll-avoiding/highway-avoiding/algorithmic-alternate) fetched
@@ -877,6 +885,13 @@ export default function PublishTabScreen(): React.JSX.Element {
     });
 
     void generateStopsInBackground(ride.id);
+    // force: true — a form edit that recreates the ride (see the
+    // invalidation effect this function's own doc comment references)
+    // produces a genuinely new route, so a stale cached candidate list for
+    // the OLD rideId must not be served for the new one; ride.id is always
+    // a fresh id per creation, so this is a real cache miss/refetch, not
+    // wasted work.
+    void prefetchCityDetourCandidates(ride.id, { force: true });
     setRouteOptions([]);
     setSelectedRouteToken(null);
     setMapMode('pickup');

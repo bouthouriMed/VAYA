@@ -88,7 +88,22 @@ export async function queryNearbyPlaces(
   radiusM: number,
   maxResults = 30,
 ): Promise<OverpassPlace[]> {
-  const query = `[out:json][timeout:${Math.floor(OVERPASS_TIMEOUT_MS / 1000)}];node["place"~"^(city|town|village)$"](around:${radiusM},${point.lat},${point.lng});out body ${maxResults};`;
+  // Two separately-capped statement blocks, not one combined query — a
+  // real bug found live: `out body N` truncates to Overpass's own element
+  // order (roughly OSM node id), which has nothing to do with size or
+  // distance. A radius with dozens of small villages (common in rural
+  // Aragón/Teruel — exactly where this was caught) can fill the whole cap
+  // with villages alone and silently drop a real, meaningfully-sized town
+  // or city in range even though it's genuinely within `radiusM`. City/town
+  // (Spain's OSM convention tags most real mid-size towns — e.g. a ~16k
+  // population municipality — as "town", not "city", so both need to be in
+  // the protected block, not just "city") get a generous 40-cap of their
+  // own that a realistic 25km radius essentially never hits; "village" (the
+  // truly numerous, lowest-priority tier — populationScore already ranks
+  // these last) keeps the original, tighter cap. Both blocks run in the
+  // same request/response — still one HTTP round-trip.
+  const timeoutSec = Math.floor(OVERPASS_TIMEOUT_MS / 1000);
+  const query = `[out:json][timeout:${timeoutSec}];node["place"~"^(city|town)$"](around:${radiusM},${point.lat},${point.lng});out body 40;node["place"="village"](around:${radiusM},${point.lat},${point.lng});out body ${maxResults};`;
 
   let data: { elements?: Array<{ lat?: number; lon?: number; tags?: Record<string, string> }> } | null = null;
   for (let i = 0; i < OVERPASS_MIRRORS.length; i++) {
