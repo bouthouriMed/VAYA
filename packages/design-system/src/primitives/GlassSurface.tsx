@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import { Platform, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { colors, radii } from '../tokens/index';
 import type { AppPalette, ColorScheme } from '../theme/palette';
@@ -28,11 +28,16 @@ interface GlassSurfaceProps {
  * search flow (the collapsed prompt, the composer, a selected-driver panel)
  * — real content sits on the real map, this is what keeps it legible
  * without boxing it into an opaque card. `expo-blur`'s BlurView is
- * iOS-native (CAGaussianBlur); Android has no equivalent compositor effect,
- * so there `experimentalBlurMethod="dimezisBlurView"` gives a real (if
- * costlier) blur on API 31+, and a tinted-translucent `View` is the
- * fallback everywhere else — never a hard-edged opaque card standing in
- * for glass.
+ * iOS-native (CAGaussianBlur), used there via `intensity`/`tint`. Android
+ * has no equivalent compositor effect; `experimentalBlurMethod="dimezisBlurView"`
+ * (a screenshot-based fake blur, the only Android option expo-blur offers)
+ * was tried there but dropped — its native surface can survive a card's
+ * unmount/remount across a screen transition (e.g. publishing a ride, or
+ * navigating back, which is exactly when this wizard's cards unmount) and
+ * paint a stale blurred frame on top of whatever renders next, sometimes
+ * obscuring real content underneath it. Android always falls back to the
+ * tinted-translucent `View` below instead — a flat frosted tint rather than
+ * a true blur, but one that can't get stuck.
  */
 export function GlassSurface({
   children,
@@ -52,12 +57,9 @@ export function GlassSurface({
 
   return (
     <View style={[styles.clip, { borderRadius: radii[radius] }, style]}>
-      <BlurView
-        intensity={intensity}
-        tint={isDark ? 'dark' : 'light'}
-        experimentalBlurMethod="dimezisBlurView"
-        style={StyleSheet.absoluteFillObject}
-      />
+      {Platform.OS === 'ios' ? (
+        <BlurView intensity={intensity} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
+      ) : null}
       <View style={[StyleSheet.absoluteFillObject, { backgroundColor: tintBackground }]} />
       <View style={styles.content}>{children}</View>
     </View>

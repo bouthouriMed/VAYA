@@ -227,15 +227,20 @@ export function BottomSheet({
           <Animated.View style={[styles.backdrop, backdropAnimatedStyle]}>
             {/* A frosted, not just darkened, backdrop — separates the sheet
              *  from whatever's behind it (map, screen content) more clearly.
-             *  Android has no real compositor blur without this flag; the
-             *  tinted `backdrop` background underneath is what carries the
-             *  effect there instead. */}
-            <BlurView
-              intensity={30}
-              tint="dark"
-              experimentalBlurMethod="dimezisBlurView"
-              style={StyleSheet.absoluteFillObject}
-            />
+             *  iOS only: Android has no real compositor blur here, so it
+             *  relies solely on the tinted `backdrop` background underneath.
+             *  `dimezisBlurView` (the only Android blur method expo-blur
+             *  offers) is a screenshot-based fake blur — its native surface
+             *  can get left in a bad state when this Modal unmounts mid
+             *  fade-out (e.g. right after a publish success or a back
+             *  navigation triggers `close()` before the 220ms timing
+             *  animation finishes), leaving a stale blurred frame rendered
+             *  on top of the next screen. iOS's real compositor blur
+             *  (`tint`/`intensity`, no experimental flag) doesn't share this
+             *  failure mode, so it's kept there. */}
+            {Platform.OS === 'ios' ? (
+              <BlurView intensity={30} tint="dark" style={StyleSheet.absoluteFillObject} />
+            ) : null}
           </Animated.View>
         </TouchableWithoutFeedback>
         <KeyboardAvoidingView

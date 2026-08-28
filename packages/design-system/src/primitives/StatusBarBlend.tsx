@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import { Platform, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import type { AppPalette, ColorScheme } from '../theme/palette';
@@ -30,9 +30,14 @@ interface StatusBarBlendProps {
  *     schemes without ever reading as a tinted band (near-white wash +
  *     light frost in light mode; near-black wash + dark frost in dark).
  *
- * Android gets real backdrop blur via `experimentalBlurMethod="dimezisBlurView"`
- * (API 31+, same tradeoff as GlassSurface); older devices degrade to the
- * wash + translucent strips, which still reads as a soft blend.
+ * iOS gets the real progressive backdrop blur described above. Android
+ * used to get it too via `experimentalBlurMethod="dimezisBlurView"` (same
+ * tradeoff as GlassSurface) but that's dropped now — its screenshot-based
+ * native surface can survive this component's unmount/remount across a
+ * screen transition and paint a stale blurred band across the top of
+ * whatever renders next. Android always falls back to the wash-only
+ * treatment (the `LinearGradient` below, with no blur strips) instead,
+ * which still reads as a soft blend, just without the blur itself.
  *
  * Purely decorative — pointer-transparent and hidden from accessibility.
  */
@@ -56,18 +61,19 @@ export function StatusBarBlend({
       importantForAccessibility="no-hide-descendants"
       style={[styles.container, { height }, style]}
     >
-      {BAND_INTENSITIES.map((intensity, i) => (
-        <BlurView
-          key={i}
-          intensity={intensity}
-          tint={tint}
-          experimentalBlurMethod="dimezisBlurView"
-          style={[
-            StyleSheet.absoluteFill,
-            { top: tops[i], bottom: height - (tops[i + 1] ?? height) },
-          ]}
-        />
-      ))}
+      {Platform.OS === 'ios'
+        ? BAND_INTENSITIES.map((intensity, i) => (
+            <BlurView
+              key={i}
+              intensity={intensity}
+              tint={tint}
+              style={[
+                StyleSheet.absoluteFill,
+                { top: tops[i], bottom: height - (tops[i + 1] ?? height) },
+              ]}
+            />
+          ))
+        : null}
       <LinearGradient
         colors={[`${theme.background}D9`, `${theme.background}4D`, `${theme.background}00`]}
         locations={[0, 0.38, 1]}

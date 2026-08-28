@@ -28,14 +28,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
             },
           ]
         }
-      >
-        <BlurView
-          experimentalBlurMethod="dimezisBlurView"
-          intensity={30}
-          style={{}}
-          tint="dark"
-        />
-      </Animated.View>
+      />
     </TouchableWithoutFeedback>
     <KeyboardAvoidingView
       pointerEvents="box-none"
@@ -2014,14 +2007,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
             },
           ]
         }
-      >
-        <BlurView
-          experimentalBlurMethod="dimezisBlurView"
-          intensity={30}
-          style={{}}
-          tint="dark"
-        />
-      </Animated.View>
+      />
     </TouchableWithoutFeedback>
     <KeyboardAvoidingView
       pointerEvents="box-none"

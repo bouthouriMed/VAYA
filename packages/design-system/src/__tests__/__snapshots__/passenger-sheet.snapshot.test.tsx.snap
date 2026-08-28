@@ -28,14 +28,7 @@ exports[`PassengerSheet snapshots > renders the stepper stage with the given val
             },
           ]
         }
-      >
-        <BlurView
-          experimentalBlurMethod="dimezisBlurView"
-          intensity={30}
-          style={{}}
-          tint="dark"
-        />
-      </Animated.View>
+      />
     </TouchableWithoutFeedback>
     <KeyboardAvoidingView
       pointerEvents="box-none"
