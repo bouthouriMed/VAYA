@@ -226,7 +226,15 @@ describe('bookings.service — pickup-stop enforcement', () => {
     ).rejects.toBeInstanceOf(ValidationError);
   });
 
-  it('rejects free-form pickup coordinates for a ride that has stops', async () => {
+  // A free-form pickup on a ride that has stops is no longer rejected
+  // outright — bookings-detour-booking.integration.test.ts covers the new
+  // real, live-validated detour-booking capability (matching.service.ts's
+  // detour_match tier's actual booking completion) against a ride with a
+  // real route. This fixture's `rideWithStopsId` has no routePolyline at
+  // all (see its insert() above), so it's still correctly rejected here —
+  // there's no route to validate a detour against — but that's now a
+  // "can't verify this" rejection, not "this ride requires a stop".
+  it('rejects free-form pickup coordinates for a ride that has stops but no route to validate a detour against', async () => {
     const otherRiderId = await freshRider('Pickup Stop Test Rider 3');
     await expect(
       createBooking(db, rideWithStopsId, otherRiderId, {

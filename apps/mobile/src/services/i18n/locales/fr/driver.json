@@ -332,6 +332,7 @@
       "estimateNote": "Estimation — l'itinéraire de ce trajet ne provient pas d'un service de calcul d'itinéraire réel.",
       "ridesWithYou": "Voyage avec vous",
       "segmentDistance": "{{distance}} · {{duration}}",
+      "newEta": "Nouvelle heure d'arrivée si accepté : {{time}}",
       "viewProfile": "Voir le profil de {{name}}",
       "newOnVaya": "Nouveau sur VAYA",
       "openInMaps": "Ouvrir {{label}} dans Maps"

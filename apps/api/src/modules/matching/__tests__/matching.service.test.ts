@@ -3,15 +3,14 @@ import {
   rankStopsByWalkDistance,
   isPickupViable,
   isDropoffViable,
-  detourAllowanceSec,
-  polylineLengthMeters,
   deriveMatchingThresholds,
   computeMatchBand,
   rankMatchCandidates,
   mergeCandidatesByRide,
   type MatchCandidate,
 } from '../matching.service.js';
-import { getMatchingThresholds } from '@vaya/domain';
+import { polylineLengthMeters } from '../../../lib/polyline.js';
+import { detourAllowanceSec, getMatchingThresholds } from '@vaya/domain';
 
 // Pure functions, no DB/OSRM dependency — exercised the same way
 // stop-candidates.service.test.ts exercises its own pure scoring/

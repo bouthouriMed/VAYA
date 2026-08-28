@@ -53,3 +53,34 @@ const MATCHING_THRESHOLDS_BY_PROFILE: MatchingThresholdsByProfile = {
 export function getMatchingThresholds(type: TripProfileType): MatchingThresholds {
   return MATCHING_THRESHOLDS_BY_PROFILE[type];
 }
+
+// Detour tolerance as a fraction of the ride's own baseline duration — a
+// fixed-minutes bound would be simultaneously too loose on a 10-minute
+// urban hop and too tight on a 3-hour intercity trip. HYPOTHESIS: no usage
+// data exists yet to calibrate this precisely. Exported (not just used
+// internally by detourAllowanceSec below) because matching.service.ts's own
+// score formula also reads it directly.
+export const MAX_DETOUR_RATIO = 0.25;
+
+/**
+ * How much extra driving time a detour candidate is allowed to cost the
+ * driver, given the ride's real baseline duration — the actual bound both
+ * the matching engine's detour-match tier (apps/api's matching.service.ts)
+ * and booking creation (apps/api's bookings.service.ts, validating a
+ * free-form pickup/dropoff on a ride that has stops) enforce, so a match
+ * search ever surfaces is never rejected by booking's own independent
+ * check applying a different number — one real bound, shared, not
+ * duplicated per CLAUDE.md's ride-engine-logic-belongs-in-domain rule.
+ * `floorSec`/`ceilingSec` default to the 'urban' profile's own
+ * detourFloorSec/detourCeilingSec — callers with a real trip profile
+ * should pass that profile's own values instead (see
+ * getMatchingThresholds).
+ */
+export function detourAllowanceSec(
+  baselineDurationSec: number,
+  floorSec: number = MATCHING_THRESHOLDS_BY_PROFILE.urban.detourFloorSec,
+  ceilingSec: number = MATCHING_THRESHOLDS_BY_PROFILE.urban.detourCeilingSec,
+): number {
+  const ratioAllowance = baselineDurationSec * MAX_DETOUR_RATIO;
+  return Math.min(ceilingSec, Math.max(floorSec, ratioAllowance));
+}

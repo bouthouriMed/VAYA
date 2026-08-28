@@ -7,8 +7,11 @@ import {
   canTransitionBookingStatus,
   canTransitionRideStatus,
   canTransitionTripStatus,
+  classifyTripProfile,
   computeCancellationPolicy,
   computeMaxConcurrentSeats,
+  detourAllowanceSec,
+  getMatchingThresholds,
   wouldExceedCapacity,
   NO_SHOW_PENALTY_POINTS,
   type BookingSegment,
@@ -16,6 +19,7 @@ import {
   type RatingRole,
 } from '@vaya/domain';
 import type { CreateBookingInput } from '@vaya/validation';
+import { decodePolyline, polylineLengthMeters, projectPointOntoRoute } from '../../lib/polyline.js';
 // Phase 7 (docs/roadmap/phase-07-notifications.md): notification-row
 // creation hooked in around the existing accept/decline/request flows
 // below — Phase 1's atomic seat-accounting logic in acceptBooking/
@@ -194,6 +198,60 @@ async function getRideOrThrow(db: Database, rideId: string) {
   return ride;
 }
 
+/**
+ * Real, live-validated bound on a free-form pickup or dropoff point on a
+ * ride that has driver-selected route_stops — the server-side completion
+ * of the matching engine's detour_match tier (matching.service.ts's
+ * scoreDetourCandidates), which surfaces exactly this kind of match but
+ * historically had no way to actually book it: createBooking used to
+ * reject any free-form point outright the moment a ride had any stops at
+ * all, regardless of how small a real detour it would cost the driver.
+ *
+ * Deliberately reuses the exact same real bound the search tier already
+ * uses (`detourAllowanceSec`, profile-scaled via `classifyTripProfile`/
+ * `getMatchingThresholds`, from `@vaya/domain`) rather than a second,
+ * differently-tuned number — a match search surfaced can never then be
+ * rejected here by a stricter independent rule, and nothing here ever
+ * trusts the client's own claim that a point is a legitimate detour
+ * (CLAUDE.md: any endpoint accepting a client-adjustable pickup location
+ * must enforce bounds server-side, independent of client-side UI
+ * constraints). Throws ValidationError (400) on any failure — an
+ * unreachable routing engine is an honest "can't validate this right now"
+ * rejection, never a silently-accepted, unverified detour.
+ */
+async function assertRealDetourWithinAllowance(
+  ride: {
+    originLat: number;
+    originLng: number;
+    destinationLat: number;
+    destinationLng: number;
+    routePolyline: string | null;
+  },
+  point: { lat: number; lng: number },
+): Promise<void> {
+  if (!ride.routePolyline) {
+    throw new ValidationError('This ride has no route to validate a detour against');
+  }
+  const rideOrigin = { lat: ride.originLat, lng: ride.originLng };
+  const rideDestination = { lat: ride.destinationLat, lng: ride.destinationLng };
+  const [baseline, withDetour] = await Promise.all([
+    getRoute(rideOrigin, rideDestination),
+    getRoute(rideOrigin, rideDestination, [point]),
+  ]);
+  if (baseline.isEstimate || withDetour.isEstimate) {
+    // No real routing engine reachable — never fabricate a detour number
+    // from a haversine fallback, same discipline as the search tier.
+    throw new ValidationError('Unable to validate this pickup or dropoff point right now — please try again');
+  }
+  const profile = classifyTripProfile(polylineLengthMeters(decodePolyline(ride.routePolyline)));
+  const thresholds = getMatchingThresholds(profile.type);
+  const extraDurationSeconds = Math.max(0, withDetour.durationSec - baseline.durationSec);
+  const allowanceSec = detourAllowanceSec(baseline.durationSec, thresholds.detourFloorSec, thresholds.detourCeilingSec);
+  if (extraDurationSeconds > allowanceSec) {
+    throw new ValidationError("This point is too far from the driver's route for this ride");
+  }
+}
+
 /** Live tracking (docs/domain/live-tracking.md): once the driver has
  *  actually started the trip, cancelling stops being the right action for
  *  either party — the ride is genuinely underway (GPS is live, the driver
@@ -311,13 +369,18 @@ export async function createBooking(
     throw new AppError('You already have a request for this ride', 409, 'DUPLICATE_BOOKING');
   }
 
-  // A ride with at least one driver-selected route_stop must be booked via
-  // pickupStopId — free-form coordinates are rejected outright for these
-  // rides. This is the actual server-side enforcement of "never offer an
-  // arbitrary/impossible pickup point" (CLAUDE.md product principle #1,
-  // docs/domain/ride-engine.md), not just a UI nudge. Rides published
-  // before Phase 4 (zero route_stops) keep the legacy free-form flow
-  // working unchanged.
+  // A ride with at least one driver-selected route_stop prefers booking via
+  // pickupStopId/dropoffStopId — a real, driver-confirmed point (CLAUDE.md
+  // product principle #1). Rides published before Phase 4 (zero
+  // route_stops) keep the legacy free-form flow working unchanged, exactly
+  // as before. A free-form pickup/dropoff on a ride that DOES have stops
+  // is now also accepted (previously rejected outright) — but only after
+  // assertRealDetourWithinAllowance's real, live routing-engine check
+  // confirms it's a genuinely small, bounded detour: this is
+  // matching.service.ts's detour_match tier's actual booking completion,
+  // not a relaxation of the "never offer an unvalidated pickup" rule —
+  // the validation is just a real routing call instead of "is this one of
+  // the driver's pre-picked stops", equally real, never client-trusted.
   const selectedStops = await db.query.routeStops.findMany({
     where: and(eq(routeStops.rideId, rideId), eq(routeStops.isDriverSelected, true)),
   });
@@ -327,10 +390,7 @@ export async function createBooking(
   let pickupLat: number;
   let pickupLng: number;
 
-  if (selectedStops.length > 0) {
-    if (!input.pickupStopId) {
-      throw new ValidationError('This ride requires selecting a pickup stop');
-    }
+  if (input.pickupStopId) {
     // Must belong to this exact ride and still be one of the driver's
     // actually-offered stops — `selectedStops` is already scoped to both,
     // so membership here is the whole check.
@@ -342,25 +402,31 @@ export async function createBooking(
     pickupLabel = stop.label;
     pickupLat = stop.lat;
     pickupLng = stop.lng;
-  } else {
-    if (input.pickupStopId) {
-      throw new ValidationError('This ride has no selectable pickup stops');
-    }
-    if (!input.pickup) {
-      throw new ValidationError('Pickup location is required');
-    }
+  } else if (input.pickup) {
     pickupLabel = input.pickup.label;
     pickupLat = input.pickup.lat;
     pickupLng = input.pickup.lng;
+    // Only the NEW capability (free-form pickup on a stops-having ride)
+    // needs the live detour check — a zero-stop ride's free-form pickup
+    // keeps behaving exactly as it always has (no distance bound), so an
+    // already-shipped booking pattern is never newly rejected by this
+    // change.
+    if (selectedStops.length > 0) {
+      await assertRealDetourWithinAllowance(ride, { lat: pickupLat, lng: pickupLng });
+    }
+  } else {
+    throw new ValidationError('Pickup location is required');
   }
 
-  // Dropoff-stop selection (Phase 13, docs/roadmap/phase-13-search-engine.md):
-  // mirrors pickupStopId's validation, but always optional — a booking with
-  // no dropoffStopId simply drops the rider at the ride's own destination,
-  // exactly as every booking behaved before this field existed. Only
-  // reachable when the ride actually has selected stops (a stop-less ride
-  // has nothing to pick from), and must sit after the chosen pickup stop
-  // on the route — a dropoff "before" your own pickup isn't a real trip.
+  // Dropoff selection (Phase 13, docs/roadmap/phase-13-search-engine.md):
+  // mirrors pickup's validation, but always optional — a booking with no
+  // dropoffStopId/dropoff simply drops the rider at the ride's own
+  // destination, exactly as every booking behaved before either field
+  // existed. `dropoff` (free-form coordinates) is a genuinely new
+  // capability — there was no free-form dropoff shape at all before this
+  // change — so it's always live-validated regardless of stop count,
+  // never grandfathered against an existing unbounded behavior the way
+  // free-form pickup on a zero-stop ride is above.
   let dropoffStopId: string | null = null;
   let dropoffLabel: string | null = null;
   let dropoffLat: number | null = null;
@@ -374,16 +440,24 @@ export async function createBooking(
     if (!dropStop) {
       throw new ValidationError('Selected dropoff stop is not offered on this ride');
     }
-    // selectedStops.length > 0 forces the pickupStopId branch above, so
-    // pickupStopId is always set here — the find below always succeeds.
-    const pickupStop = selectedStops.find((s) => s.id === pickupStopId)!;
-    if (dropStop.sequence <= pickupStop.sequence) {
+    // pickupStopId is only guaranteed set here when the pickup itself was
+    // also stop-based — a free-form detour pickup paired with a real
+    // dropoff stop is a real, valid combination (e.g. picked up off-route,
+    // dropped off at a planned stop), so the sequence-order check only
+    // applies when there's an actual pickup stop to compare against.
+    const pickupStop = pickupStopId ? selectedStops.find((s) => s.id === pickupStopId) : undefined;
+    if (pickupStop && dropStop.sequence <= pickupStop.sequence) {
       throw new ValidationError('Dropoff stop must come after the pickup stop on this route');
     }
     dropoffStopId = dropStop.id;
     dropoffLabel = dropStop.label;
     dropoffLat = dropStop.lat;
     dropoffLng = dropStop.lng;
+  } else if (input.dropoff) {
+    dropoffLabel = input.dropoff.label;
+    dropoffLat = input.dropoff.lat;
+    dropoffLng = input.dropoff.lng;
+    await assertRealDetourWithinAllowance(ride, { lat: dropoffLat, lng: dropoffLng });
   }
 
   // Segment-aware capacity pre-check (matching-engine architecture plan
@@ -680,6 +754,37 @@ export interface DetourPreview {
    *  duration (not the whole ride's, since a route-passthrough booking only
    *  ever rides part of it). */
   segment: { distanceM: number; durationSec: number; isEstimate: boolean };
+  /** Real ISO time the driver would reach this passenger's pickup point —
+   *  ride.departureAt plus a real route-fraction offset (mirrors
+   *  matching.service.ts's pickupEtaSeconds on the passenger/search side —
+   *  same reasoning, same honest approximation where no per-leg routing
+   *  breakdown exists). Direct product feedback: showing only a distance/
+   *  duration deviation, with no actual clock time, left the driver unable
+   *  to tell *when* they'd meet this passenger. */
+  pickupTime: string;
+  /** Dropoff-side mirror of `pickupTime`. */
+  dropoffTime: string;
+  /** Real ISO time the driver's OWN trip would finish if they accept this
+   *  request — distinct from `dropoffTime` (the passenger's own stop):
+   *  ride.departureAt plus the ride's baseline duration, plus this
+   *  specific request's real extra detour cost (0 when both pickup and
+   *  dropoff are planned stops — already priced into the published
+   *  route). Direct product feedback: the driver needs to see how
+   *  accepting shifts their own schedule, not just the passenger's. */
+  newEta: string;
+  /** Real routing-engine polyline for the passenger's own pickup ->
+   *  dropoff leg, populated only when at least one point isn't a planned
+   *  stop — mirrors MatchCandidate.detourRoutePolyline
+   *  (matching.service.ts) on the passenger side, fixing the same class of
+   *  bug on the driver's map: slicing the ride's own `routePolyline`
+   *  between a point that isn't actually on it would show the wrong line.
+   *  Null when both points are planned stops, where the existing
+   *  route-slice approach is already exactly right. */
+  detourRoutePolyline: string | null;
+}
+
+function clamp01(n: number): number {
+  return Math.max(0, Math.min(1, n));
 }
 
 /**
@@ -691,12 +796,21 @@ export interface DetourPreview {
  * must be one of the driver's own route_stops (bookings.service.ts's
  * createBooking enforces this at request time) — and every route_stop's
  * `deviationMeters`/`deviationSeconds` was already computed once, honestly,
- * when the driver published the ride (stop-candidates.service.ts). So for
- * the normal, current, stop-based booking flow this never needs a fresh
- * routing call at all — it just surfaces data that already exists. A live
- * getRoute detour computation only ever runs for the one case where it's
- * actually meaningful: a free-form pickup on a legacy (zero-route_stops)
- * ride, where the passenger's point genuinely could be anywhere.
+ * when the driver published the ride (stop-candidates.service.ts). So the
+ * normal, stop-based booking flow's per-point deviation labels below never
+ * need a fresh routing call — they just surface data that already exists.
+ * A live getRoute detour computation runs for the per-point deviation only
+ * when a point is genuinely free-form (a legacy zero-stop ride's free pin,
+ * or — matching-engine detour_match's booking completion — a real,
+ * live-validated detour pickup/dropoff on a ride that DOES have stops,
+ * createBooking's own assertRealDetourWithinAllowance already having
+ * accepted it once at request time). A SECOND, combined routing call
+ * (origin -> pickup -> dropoff -> destination together, not each point in
+ * isolation) only runs when at least one point isn't a planned stop —
+ * that's what produces `newEta`/`detourRoutePolyline` and both points'
+ * real ETAs from one consistent route, instead of summing two independent
+ * hypothetical single-point insertions that wouldn't necessarily add up
+ * correctly.
  */
 export async function previewBookingDetour(
   db: Database,
@@ -792,9 +906,11 @@ export async function previewBookingDetour(
         totalStops,
       };
     }
-    // A real free-form dropoff shouldn't normally occur under current
-    // validation rules (dropoffStopId is required whenever the ride has
-    // stops), but is handled honestly rather than assumed away.
+    // A real free-form dropoff (matching-engine detour_match's booking
+    // completion, or a legacy zero-stop ride) — createBooking already
+    // real-validated this via assertRealDetourWithinAllowance at request
+    // time; computed live here again for this preview's own honest,
+    // independent numbers.
     const detour = await resolveFreeformPoint(booking.dropoffLat, booking.dropoffLng);
     return {
       label: booking.dropoffLabel!,
@@ -813,10 +929,70 @@ export async function previewBookingDetour(
     { lat: dropoff.lat, lng: dropoff.lng },
   );
 
+  const ride = booking.ride;
+  const departureAtMs = ride.departureAt.getTime();
+  let pickupTimeMs = departureAtMs;
+  let dropoffTimeMs = departureAtMs;
+  let newEtaMs = ride.estimatedDurationSec ? departureAtMs + ride.estimatedDurationSec * 1000 : departureAtMs;
+  let detourRoutePolyline: string | null = null;
+
+  if (ride.routePolyline && ride.estimatedDurationSec) {
+    if (pickup.isPlannedStop && dropoff.isPlannedStop) {
+      // Both points are already on the ride's own published route — the
+      // exact same real-fraction-of-real-duration approximation
+      // matching.service.ts's route_passthrough tier uses, no extra
+      // routing call needed since nothing about the route itself changes.
+      const routePoints = decodePolyline(ride.routePolyline);
+      const pickupFraction = clamp01(projectPointOntoRoute({ lat: pickup.lat, lng: pickup.lng }, routePoints).fraction);
+      const dropoffFraction = clamp01(
+        projectPointOntoRoute({ lat: dropoff.lat, lng: dropoff.lng }, routePoints).fraction,
+      );
+      pickupTimeMs = departureAtMs + ride.estimatedDurationSec * pickupFraction * 1000;
+      dropoffTimeMs = departureAtMs + ride.estimatedDurationSec * dropoffFraction * 1000;
+      // newEtaMs already defaults to the ride's own baseline arrival —
+      // correct here, both points add no real extra time.
+    } else {
+      // At least one point is a real detour — one combined routing call
+      // (both waypoints together, in order) gives a single consistent
+      // route to derive everything from, rather than summing two
+      // independent single-point insertions that wouldn't necessarily add
+      // up to the same real route.
+      const withDetour = await getRoute(
+        { lat: ride.originLat, lng: ride.originLng },
+        { lat: ride.destinationLat, lng: ride.destinationLng },
+        [
+          { lat: pickup.lat, lng: pickup.lng },
+          { lat: dropoff.lat, lng: dropoff.lng },
+        ],
+      );
+      if (!withDetour.isEstimate) {
+        const withDetourPoints = decodePolyline(withDetour.polyline);
+        const pickupFraction = clamp01(
+          projectPointOntoRoute({ lat: pickup.lat, lng: pickup.lng }, withDetourPoints).fraction,
+        );
+        const dropoffFraction = clamp01(
+          projectPointOntoRoute({ lat: dropoff.lat, lng: dropoff.lng }, withDetourPoints).fraction,
+        );
+        pickupTimeMs = departureAtMs + withDetour.durationSec * pickupFraction * 1000;
+        dropoffTimeMs = departureAtMs + withDetour.durationSec * dropoffFraction * 1000;
+        newEtaMs = departureAtMs + withDetour.durationSec * 1000;
+        detourRoutePolyline = withDetour.polyline;
+      }
+      // Routing engine unreachable: pickupTimeMs/dropoffTimeMs/newEtaMs
+      // stay at their honest departureAt/baseline-duration defaults above
+      // rather than a fabricated detour-adjusted number — the per-point
+      // deviation labels already show isEstimate for this same case.
+    }
+  }
+
   return {
     pickup,
     dropoff,
     segment: { distanceM: segment.distanceM, durationSec: segment.durationSec, isEstimate: segment.isEstimate },
+    pickupTime: new Date(pickupTimeMs).toISOString(),
+    dropoffTime: new Date(dropoffTimeMs).toISOString(),
+    newEta: new Date(newEtaMs).toISOString(),
+    detourRoutePolyline,
   };
 }
 

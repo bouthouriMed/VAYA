@@ -179,3 +179,19 @@ export function computeRouteOverlapFraction(
 
   return withinCorridor / samplesA.length;
 }
+
+/** Cheap, local approximation of a decoded route's total length — no
+ *  network call, just sums consecutive-point haversine distances over an
+ *  already-decoded polyline. Shared by matching.service.ts (an
+ *  informational `extraDistanceMeters` figure, never the hard-rejection
+ *  gate) and bookings.service.ts (classifying a ride's trip profile to
+ *  pick the right detour allowance when validating a free-form pickup/
+ *  dropoff) — moved here from matching.service.ts so both can import one
+ *  real implementation instead of duplicating it. */
+export function polylineLengthMeters(points: LatLng[]): number {
+  let total = 0;
+  for (let i = 0; i < points.length - 1; i++) {
+    total += haversineDistanceMeters(points[i]!, points[i + 1]!);
+  }
+  return total;
+}

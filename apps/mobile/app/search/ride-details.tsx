@@ -72,13 +72,14 @@ function bookingErrorKey(error: unknown): string {
       return 'search:details.duplicateBookingError';
     case 'RIDE_NOT_BOOKABLE':
       return 'search:details.rideNotBookableError';
-    // A detour match (matchType 'detour', see requestSeat's free-form
-    // fallback below) whose underlying ride happens to already have
-    // driver-selected route_stops elsewhere is a real, honest rejection —
-    // this ride requires a real pickup stop and this candidate has none
-    // (MatchCandidate.detour's own doc comment: turning a detour match
-    // into a real booking is deliberately out of scope, not built here) —
-    // never mislabel it as "someone just took the seat".
+    // A detour match's free-form pickup/dropoff (requestSeat's free-form
+    // fallback below) is independently re-validated server-side via a
+    // real, live routing-engine detour check (bookings.service.ts's
+    // assertRealDetourWithinAllowance) — the same real bound the search
+    // result was found with. This only fires on a genuine, honest
+    // rejection (the route changed, the point turned out too far, or the
+    // routing engine was briefly unreachable) — never mislabel it as
+    // "someone just took the seat".
     case 'VALIDATION_ERROR':
       return 'search:details.pickupNotAvailableError';
     case 'SEATS_UNAVAILABLE':
@@ -302,11 +303,16 @@ export default function RideDetailsScreen(): React.JSX.Element {
   // stops, and it never has any rankedStops to pick from at all — routing
   // it to the stops-only picker was a real dead end (an EmptyState with no
   // way forward) for a match that should instead go straight to a
-  // free-form request, exactly like a legacy zero-stop ride. If the
-  // underlying ride does happen to have its own (unrelated) stops, the
-  // free-form request still gets an honest server-side rejection —
-  // see bookingErrorKey's VALIDATION_ERROR case — never a fabricated
-  // success.
+  // free-form request, frictionlessly — no manual pickup-point form for a
+  // detour match, ever (direct product feedback). createBooking now
+  // independently re-validates a free-form pickup/dropoff on a stops-
+  // having ride via a real, live routing-engine detour check (bookings.
+  // service.ts's assertRealDetourWithinAllowance) before accepting it —
+  // the same real bound this search result was found with in the first
+  // place, so this only fails when something's genuinely changed (the
+  // route, or the routing engine being briefly unreachable), never as a
+  // routine rejection. See bookingErrorKey's VALIDATION_ERROR case for the
+  // honest message shown on that rare failure.
   const needsPickupSelection = candidate
     ? candidate.matchType !== 'detour' &&
       (!candidate.pickupViable || candidate.rankedStops.length > 0) &&
@@ -336,6 +342,16 @@ export default function RideDetailsScreen(): React.JSX.Element {
     if (!selectedStop && !origin) return;
     setBookingError(undefined);
     try {
+      // A 'detour' match's dropoff is the passenger's own searched
+      // destination (Zaragoza, e.g.) whenever it isn't already the ride's
+      // own destination — omitting it here would silently default the
+      // booking to the ride's own endpoint server-side, the exact "driver
+      // sees the wrong requested route" bug already fixed for the map/
+      // timeline display, but for the actual booking record this time.
+      const freeformDropoff =
+        !selectedDropoffStop && isDetourMatch && destination
+          ? { dropoff: { label: destination.label, lat: destination.lat, lng: destination.lng } }
+          : {};
       const booking = await createBooking({
         rideId,
         input: {
@@ -343,7 +359,7 @@ export default function RideDetailsScreen(): React.JSX.Element {
           ...(selectedStop
             ? { pickupStopId: selectedStop.stopId }
             : { pickup: { label: origin!.label, lat: origin!.lat, lng: origin!.lng } }),
-          ...(selectedDropoffStop ? { dropoffStopId: selectedDropoffStop.stopId } : {}),
+          ...(selectedDropoffStop ? { dropoffStopId: selectedDropoffStop.stopId } : freeformDropoff),
         },
       }).unwrap();
       haptics.success();
