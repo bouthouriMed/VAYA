@@ -30,19 +30,6 @@ export interface LocationProvider {
    *  pin" flows. No session-token concept (Google's Geocoding API isn't
    *  part of the Autocomplete+Details session-billing model at all). */
   reverseGeocode(lat: number, lng: number): Promise<LocationPoint | null>;
-
-  /** Real named cities/towns within `radiusM` of a point — genuinely
-   *  different from reverseGeocode(precision:'locality'), which only
-   *  finds a locality that CONTAINS the exact point (so it returns
-   *  nothing for a point on a highway or in open countryside between
-   *  towns, which is most of a route's actual sampled geometry). This is
-   *  a real nearby-search: "what real settlements are near here," used
-   *  by city-detour-candidates.service.ts to build the driver's "cities
-   *  you can offer as a detour" list along their route. Returns []
-   *  (never throws) on a provider error, same discipline as autocomplete
-   *  — an empty list degrades to "no suggestions for this sample," not a
-   *  crash. */
-  searchNearbyLocalities(point: { lat: number; lng: number }, radiusM: number): Promise<LocationPoint[]>;
 }
 
 /** Shared, provider-agnostic type-classification helpers so both

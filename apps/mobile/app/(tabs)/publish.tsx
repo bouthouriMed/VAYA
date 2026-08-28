@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import {
   View,
   StyleSheet,
@@ -8,8 +9,6 @@ import {
   Animated,
   AccessibilityInfo,
   useWindowDimensions,
-  TextInput,
-  FlatList,
 } from 'react-native';
 import MapView, { Marker, Polyline, PROVIDER_DEFAULT, type Region } from 'react-native-maps';
 import Reanimated, { useSharedValue, useAnimatedStyle, withTiming, runOnJS } from 'react-native-reanimated';
@@ -63,9 +62,7 @@ import {
   usePublishRideMutation,
   useRegisterPushTokenMutation,
   useLazyGeocodeReverseQuery,
-  useLazyGeocodeAutocompleteQuery,
-  useLazyGeocodePlaceDetailsQuery,
-  useGetCityDetourCandidatesQuery,
+  useLazyGetRideStopsForDriverQuery,
   type RouteStop,
   type SuggestedPrice,
   type RouteOption,
@@ -104,20 +101,6 @@ const SELECTION_CARD_HEIGHT = 168;
 // animates the map/card split smoothly rather than snapping.
 const STOPS_CARD_HEIGHT = 220;
 
-const CITY_SEARCH_DEBOUNCE_MS = 400;
-
-/** RFC-4122-shaped v4 UUID for a Places API (New) autocomplete session
- *  token — same generator search/composer.tsx defines locally for the same
- *  purpose (no shared util file exists for this yet), reused here for the
- *  "search a city to detour to" via-stop flow below. */
-function generateSessionToken(): string {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-    const r = (Math.random() * 16) | 0;
-    const v = c === 'x' ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
-  });
-}
-
 // 'route' is the route-selection step (world-class-carpooling-app UX:
 // Google/Waze-style route picker) inserted between the origin/destination
 // form and pickup/dropoff selection — only ever entered when there's a
@@ -151,18 +134,6 @@ interface PublishPoint {
   stopId: string | null;
 }
 
-/** A row in the "search a city to detour to" results list — same shape as
- *  search/composer.tsx's own ResultRow (no shared type exists for this
- *  yet): `lat`/`lng` absent means it's a live prediction still needing a
- *  Place Details resolve, present means it's already a real coordinate. */
-interface CitySearchResultRow {
-  key: string;
-  label: string;
-  subLabel: string;
-  placeId?: string;
-  lat?: number;
-  lng?: number;
-}
 
 function isSameCalendarDay(a: Date, b: Date): boolean {
   return (
@@ -361,54 +332,7 @@ export default function PublishTabScreen(): React.JSX.Element {
   // `dropoff`'s own stopId, since a stop can be offered here without being
   // either endpoint.
   const [selectedViaIds, setSelectedViaIds] = useState<ReadonlySet<string>>(new Set());
-  // "Search a city to detour to" — the "add stops" phase's own path for a
-  // stop the auto-generated on-route candidates don't cover (product
-  // feedback: a driver publishing a real intercity route needs to offer a
-  // genuine off-route city detour, e.g. exiting a highway into a town —
-  // far beyond MAX_DEVIATION_METERS' tight on-route budget). Replaces the
-  // previous manual map-pin-drop mechanism entirely: the driver searches/
-  // picks a real named place (same Places autocomplete search/composer.tsx
-  // uses) and the server validates the detour distance + road-snaps the
-  // exact stop point — never a raw, unvalidated pin.
-  // 'list' (default): browse the real, predefined cities/towns
-  // city-detour-candidates.service.ts found along the route — the primary
-  // mechanism per direct product feedback ("user should be able to see
-  // predefined cities in his route, not manually search... think like
-  // BlaBlaCar"). 'search' is the fallback sub-mode for a real place the
-  // discovery pass didn't surface.
-  const [isSearchingCity, setIsSearchingCity] = useState(false);
-  const [citySheetMode, setCitySheetMode] = useState<'list' | 'search'>('list');
-  const [citySearchQuery, setCitySearchQuery] = useState('');
-  const [citySearchError, setCitySearchError] = useState<string | null>(null);
-  const [isAddingCityStop, setIsAddingCityStop] = useState(false);
-  const citySessionTokenRef = useRef(generateSessionToken());
-  const [triggerCitySearch, { data: cityPredictions, isFetching: isCitySearching }] =
-    useLazyGeocodeAutocompleteQuery();
-  const [triggerCityDetails, { isFetching: isResolvingCityPlace }] = useLazyGeocodePlaceDetailsQuery();
-  const {
-    data: cityDetourCandidates,
-    isFetching: isLoadingCityCandidates,
-    isError: cityCandidatesFailed,
-  } = useGetCityDetourCandidatesQuery(rideId ?? '', { skip: !isSearchingCity || !rideId });
-
-  useEffect(() => {
-    const trimmed = citySearchQuery.trim();
-    if (trimmed.length < 2) return;
-    const timer = setTimeout(() => {
-      void triggerCitySearch({ input: trimmed, sessionToken: citySessionTokenRef.current });
-    }, CITY_SEARCH_DEBOUNCE_MS);
-    return () => clearTimeout(timer);
-  }, [citySearchQuery, triggerCitySearch]);
-
-  const citySearchRows: CitySearchResultRow[] = useMemo(() => {
-    if (citySearchQuery.trim().length < 2 || !cityPredictions) return [];
-    return cityPredictions.map((p) => ({
-      key: p.placeId,
-      label: p.primaryText,
-      subLabel: p.secondaryText ?? '',
-      placeId: p.placeId,
-    }));
-  }, [citySearchQuery, cityPredictions]);
+  const [triggerRideStopsRefresh] = useLazyGetRideStopsForDriverQuery();
 
   // Route-selection step: a small set of real, distinct route alternatives
   // (fastest/toll-avoiding/highway-avoiding/algorithmic-alternate) fetched
@@ -514,7 +438,6 @@ export default function PublishTabScreen(): React.JSX.Element {
     setCandidates([]);
     setTripProfileType(null);
     setSelectedViaIds(new Set());
-    setIsSearchingCity(false);
     setMapMode('none');
     setPickup(null);
     setDropoff(null);
@@ -582,7 +505,6 @@ export default function PublishTabScreen(): React.JSX.Element {
       setSelectedPointId(null);
       setSelectionCenter(null);
       setCustomPointLabel(null);
-      setIsSearchingCity(false);
       const region = journeyMapRegion;
       mapAnim.value = withTiming(1, { duration: 380 }, (finished) => {
         'worklet';
@@ -698,98 +620,53 @@ export default function PublishTabScreen(): React.JSX.Element {
     else if (mapMode === 'dropoff') confirmDropoff(point);
   }
 
-  function openCitySearch(): void {
-    haptics.selection();
-    setCitySheetMode('list');
-    setCitySearchQuery('');
-    setCitySearchError(null);
-    citySessionTokenRef.current = generateSessionToken();
-    setIsSearchingCity(true);
-  }
-
-  function closeCitySearch(): void {
-    setIsSearchingCity(false);
-    setCitySheetMode('list');
-    setCitySearchQuery('');
-    setCitySearchError(null);
-  }
-
-  /** Switches the open city sheet from the predefined-cities list into the
-   *  manual-search fallback sub-mode — a real place the discovery pass
-   *  didn't surface, not the primary path. */
-  function switchToCitySearchMode(): void {
-    haptics.selection();
-    setCitySearchQuery('');
-    setCitySearchError(null);
-    citySessionTokenRef.current = generateSessionToken();
-    setCitySheetMode('search');
-  }
-
-  function switchToCityListMode(): void {
-    haptics.selection();
-    setCitySearchQuery('');
-    setCitySearchError(null);
-    setCitySheetMode('list');
-  }
-
-  /** Persists a driver-searched city as a real via-stop — unlike pickup/
-   *  dropoff (deferred to `saveStopSelections` at the price step), a
-   *  via-stop is written immediately: it isn't the ride's own origin/
-   *  destination fallback, so there's no later point that would otherwise
-   *  persist it. The server independently validates the detour distance
-   *  and road-snaps the exact point (stop-candidates.service.ts's
-   *  addCustomStop) — never trusted from the client. */
-  async function submitCityStop(place: { label: string; lat: number; lng: number }): Promise<void> {
+  /** Opens the dedicated "select stops" page (driver/stops-selection.tsx)
+   *  — replaces the old inline BottomSheet entirely per direct product
+   *  feedback: a real page gives the predefined-cities list (and, per the
+   *  same feedback, real multi-select before confirming) proper room and
+   *  a normal top-of-screen search bar, instead of a fixed-height sheet
+   *  whose search sub-mode had too little headroom once the keyboard
+   *  opened. That page persists selections directly (addCustomStop) —
+   *  refreshStopsFromServer (wired to this screen's focus effect below)
+   *  is what picks the results back up here. */
+  function openStopsSelection(): void {
     if (!rideId) return;
-    setIsAddingCityStop(true);
-    setCitySearchError(null);
-    try {
-      const inserted = await addCustomStop({
-        rideId,
-        label: place.label,
-        lat: place.lat,
-        lng: place.lng,
-        role: 'via',
-      }).unwrap();
-      haptics.success();
-      setCandidates((prev) => [...prev, inserted]);
-      setSelectedViaIds((prev) => new Set(prev).add(inserted.id));
-      trackEvent('ride_via_stop_added', { rideId, isCustom: true, viaSearch: true });
-      closeCitySearch();
-    } catch (err) {
-      haptics.error();
-      const code =
-        typeof err === 'object' && err !== null && 'data' in err
-          ? (err as { data?: { error?: { code?: unknown } } }).data?.error?.code
-          : undefined;
-      setCitySearchError(
-        code === 'STOP_TOO_FAR_FROM_ROUTE'
-          ? t('driver:publish.stopsStep.detourTooFar')
-          : t('driver:publish.errors.stopsFailed'),
-      );
-    } finally {
-      setIsAddingCityStop(false);
-    }
+    haptics.selection();
+    router.push({ pathname: '/driver/stops-selection', params: { rideId } });
   }
 
-  async function chooseCitySearchResult(row: CitySearchResultRow): Promise<void> {
-    if (row.lat !== undefined && row.lng !== undefined) {
-      void submitCityStop({ label: row.label, lat: row.lat, lng: row.lng });
-      return;
-    }
-    if (!row.placeId) return;
-    setCitySearchError(null);
-    const sessionToken = citySessionTokenRef.current;
-    const result = await triggerCityDetails({ placeId: row.placeId, sessionToken })
-      .unwrap()
-      .catch(() => null);
-    if (!result) {
-      setCitySearchError(t('search:composer.resolveError'));
-      return;
-    }
-    citySessionTokenRef.current = generateSessionToken();
-    void submitCityStop({ label: result.label, lat: result.latitude, lng: result.longitude });
+  /** Re-fetches this ride's full stop list (driver editing view — every
+   *  candidate, selected or not) from the server — the source of truth
+   *  for whatever stops-selection.tsx just persisted, rather than trying
+   *  to thread its selections back through route params. Also keeps
+   *  `selectedViaIds` in sync so newly-added via-stops show as selected
+   *  without the driver needing to re-tap them here. */
+  async function refreshStopsFromServer(): Promise<void> {
+    if (!rideId) return;
+    const fresh = await triggerRideStopsRefresh(rideId).unwrap().catch(() => null);
+    if (!fresh) return;
+    setCandidates(fresh);
+    setSelectedViaIds((prev) => {
+      const next = new Set(prev);
+      for (const stop of fresh) {
+        if (stop.isDriverSelected && stop.id !== pickup?.stopId && stop.id !== dropoff?.stopId) {
+          next.add(stop.id);
+        }
+      }
+      return next;
+    });
   }
+
+  // Picks up whatever stops-selection.tsx just persisted the moment this
+  // screen regains focus (returning from it, or from any other sub-route)
+  // — cheap enough to run on every focus rather than threading a "did
+  // stops change" signal through navigation params.
+  useFocusEffect(
+    useCallback(() => {
+      void refreshStopsFromServer();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [rideId]),
+  );
 
   /** Toggles a generated candidate's membership in the driver's "additional
    *  stops" offer — the "add stops" phase's default (non-placing) tap
@@ -1247,7 +1124,6 @@ export default function PublishTabScreen(): React.JSX.Element {
     setOsrmUnavailable(false);
     setTripProfileType(null);
     setSelectedViaIds(new Set());
-    setIsSearchingCity(false);
     setRouteOptions([]);
     setSelectedRouteToken(null);
     vehicleIdRef.current = null;
@@ -1888,10 +1764,10 @@ export default function PublishTabScreen(): React.JSX.Element {
   }
 
   const isMapExpanded = mapMode !== 'none';
-  // The "add stops" phase's default (and only) view — every candidate/route
-  // marker at once, toggle-to-add, plus the "search a city to detour to"
-  // flow (a BottomSheet, not a second map sub-mode — see isSearchingCity
-  // below) for a stop the auto-generated candidates don't cover.
+  // The "add stops" phase's only view — every on-road candidate/route
+  // marker at once, toggle-to-add, plus a button to the dedicated
+  // driver/stops-selection.tsx page (a real route, not a map sub-mode) for
+  // real, named cities the auto-generated on-road candidates don't cover.
   const isStopsListMode = mapMode === 'stops';
 
   return (
@@ -2097,7 +1973,7 @@ export default function PublishTabScreen(): React.JSX.Element {
                 {t('driver:publish.stopsStep.searching')}
               </Text>
             </View>
-          ) : (
+          ) : viaCandidateStops.length > 0 ? (
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
@@ -2145,20 +2021,26 @@ export default function PublishTabScreen(): React.JSX.Element {
                   </TouchableOpacity>
                 );
               })}
-              <TouchableOpacity
-                onPress={openCitySearch}
-                style={[styles.stopChip, styles.addStopChip, { borderColor: theme.outlineVariant }]}
-                activeOpacity={0.8}
-                accessibilityRole="button"
-                accessibilityLabel={t('driver:publish.stopsStep.addStop')}
-              >
-                <Icon name="add" size="sm" color={theme.ink} />
-                <Text variant="bodySmall" color={theme.ink}>
-                  {t('driver:publish.stopsStep.addStop')}
-                </Text>
-              </TouchableOpacity>
             </ScrollView>
-          )}
+          ) : null}
+
+          {/* A plain button to the dedicated multi-select page
+           *  (driver/stops-selection.tsx), not an inline placeholder card —
+           *  per direct product feedback, a big dashed "no suggestions yet"
+           *  box read as unfinished/basic; a normal button that goes
+           *  somewhere real is enough. */}
+          <TouchableOpacity
+            style={[styles.addStopsButton, { borderColor: theme.outlineVariant }]}
+            onPress={openStopsSelection}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={t('driver:publish.stopsStep.addStop')}
+          >
+            <Icon name="add-circle-outline" size="sm" color={theme.ink} />
+            <Text variant="label" color={theme.ink}>
+              {t('driver:publish.stopsStep.addStop')}
+            </Text>
+          </TouchableOpacity>
 
           <PrimaryButton
             theme={theme}
@@ -2404,171 +2286,6 @@ export default function PublishTabScreen(): React.JSX.Element {
         confirmAriaLabel={(countLabel) => `${t('common:actions.confirm')} ${countLabel}`}
       />
 
-      <BottomSheet
-        theme={theme}
-        visible={isSearchingCity}
-        onClose={closeCitySearch}
-        title={
-          citySheetMode === 'list'
-            ? t('driver:publish.stopsStep.chooseCityTitle')
-            : t('driver:publish.stopsStep.searchCityTitle')
-        }
-        heightRatio={0.68}
-      >
-        {citySheetMode === 'list' ? (
-          <View style={styles.citySearchContent}>
-            <Text variant="bodySmall" color={theme.inkMuted} style={styles.citySearchHelper}>
-              {t('driver:publish.stopsStep.chooseCityHelper')}
-            </Text>
-
-            {citySearchError ? (
-              <Text variant="caption" color={theme.error} style={styles.citySearchErrorText}>
-                {citySearchError}
-              </Text>
-            ) : null}
-
-            {isLoadingCityCandidates ? (
-              <View style={styles.cityListLoadingRow}>
-                <ActivityIndicator size="small" color={theme.ink} />
-                <Text variant="bodySmall" color={theme.inkMuted}>
-                  {t('driver:publish.stopsStep.searching')}
-                </Text>
-              </View>
-            ) : (
-              <FlatList
-                data={cityCandidatesFailed ? [] : (cityDetourCandidates?.cities ?? [])}
-                keyExtractor={(c, index) => `${c.lat},${c.lng},${index}`}
-                style={styles.citySearchList}
-                renderItem={({ item }) => (
-                  <TouchableOpacity
-                    style={styles.citySearchRow}
-                    onPress={() => {
-                      haptics.selection();
-                      void submitCityStop({ label: item.label, lat: item.lat, lng: item.lng });
-                    }}
-                    activeOpacity={0.6}
-                    disabled={isAddingCityStop}
-                  >
-                    <View style={[styles.citySearchRowIconWrap, { backgroundColor: theme.accentGlow + '2E' }]}>
-                      <Icon name="business-outline" size="sm" color={theme.accentStrong} />
-                    </View>
-                    <View style={styles.citySearchRowTextCol}>
-                      <Text variant="body" color={theme.ink} numberOfLines={1}>
-                        {item.label}
-                      </Text>
-                    </View>
-                    {isAddingCityStop ? <ActivityIndicator size="small" color={theme.inkFaint} /> : null}
-                  </TouchableOpacity>
-                )}
-                ListEmptyComponent={
-                  <Text variant="body" color={theme.inkFaint} style={styles.citySearchEmpty}>
-                    {cityCandidatesFailed
-                      ? t('driver:publish.stopsStep.cityListError')
-                      : t('driver:publish.stopsStep.cityListEmpty')}
-                  </Text>
-                }
-              />
-            )}
-
-            <TouchableOpacity
-              style={[styles.citySwitchRow, { borderColor: theme.outlineVariant }]}
-              onPress={switchToCitySearchMode}
-              activeOpacity={0.7}
-              accessibilityRole="button"
-            >
-              <Icon name="search" size="sm" color={theme.ink} />
-              <Text variant="label" color={theme.ink}>
-                {t('driver:publish.stopsStep.searchAnotherCity')}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <View style={styles.citySearchContent}>
-            <TouchableOpacity
-              style={styles.cityBackRow}
-              onPress={switchToCityListMode}
-              hitSlop={8}
-              accessibilityRole="button"
-              accessibilityLabel={t('common:actions.back')}
-            >
-              <Icon name="arrow-back" size="sm" color={theme.ink} />
-              <Text variant="label" color={theme.ink}>
-                {t('common:actions.back')}
-              </Text>
-            </TouchableOpacity>
-
-            <View
-              style={[
-                styles.citySearchInputWrap,
-                { backgroundColor: theme.surfaceMuted, borderColor: theme.outlineVariant },
-              ]}
-            >
-              <Icon name="search" size="sm" color={theme.inkMuted} />
-              <TextInput
-                value={citySearchQuery}
-                onChangeText={(text) => {
-                  setCitySearchQuery(text);
-                  setCitySearchError(null);
-                }}
-                placeholder={t('driver:publish.stopsStep.searchCityPlaceholder')}
-                placeholderTextColor={theme.inkFaint}
-                style={[styles.citySearchInput, { color: theme.ink }]}
-                autoFocus
-                returnKeyType="search"
-              />
-              {isCitySearching || isResolvingCityPlace || isAddingCityStop ? (
-                <ActivityIndicator size="small" color={theme.inkFaint} />
-              ) : null}
-            </View>
-
-            {citySearchError ? (
-              <Text variant="caption" color={theme.error} style={styles.citySearchErrorText}>
-                {citySearchError}
-              </Text>
-            ) : null}
-
-            <FlatList
-              data={citySearchRows}
-              keyExtractor={(row) => row.key}
-              keyboardShouldPersistTaps="handled"
-              style={styles.citySearchList}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={styles.citySearchRow}
-                  onPress={() => {
-                    haptics.selection();
-                    void chooseCitySearchResult(item);
-                  }}
-                  activeOpacity={0.6}
-                  disabled={isAddingCityStop}
-                >
-                  <View style={[styles.citySearchRowIconWrap, { backgroundColor: theme.accentGlow + '2E' }]}>
-                    <Icon name="business-outline" size="sm" color={theme.accentStrong} />
-                  </View>
-                  <View style={styles.citySearchRowTextCol}>
-                    <Text variant="body" color={theme.ink} numberOfLines={1}>
-                      {item.label}
-                    </Text>
-                    {item.subLabel ? (
-                      <Text variant="caption" color={theme.inkFaint} numberOfLines={1}>
-                        {item.subLabel}
-                      </Text>
-                    ) : null}
-                  </View>
-                </TouchableOpacity>
-              )}
-              ListEmptyComponent={
-                citySearchQuery.trim().length >= 2 && !isCitySearching ? (
-                  <Text variant="body" color={theme.inkFaint} style={styles.citySearchEmpty}>
-                    {t('search:composer.noResults')}
-                  </Text>
-                ) : null
-              }
-            />
-          </View>
-        )}
-      </BottomSheet>
-
       <ContextualAuthSheet
         visible={isAuthSheetVisible}
         trigger={authTrigger}
@@ -2705,8 +2422,14 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     maxWidth: 180,
   },
-  addStopChip: {
-    borderStyle: 'dashed',
+  addStopsButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.sm,
+    borderRadius: radii.lg,
+    borderWidth: 1,
   },
   stopChipTextCol: {
     flexShrink: 1,
@@ -3110,76 +2833,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
     borderRadius: radii.full,
-  },
-  // "Search a city to detour to" sheet — same structural pattern as
-  // search/composer.tsx's own search bar + result list, condensed to fit
-  // a BottomSheet instead of a full screen.
-  citySearchContent: {
-    flex: 1,
-    gap: spacing.sm,
-  },
-  citySearchHelper: {
-    marginBottom: spacing.xs,
-  },
-  citySearchInputWrap: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    height: 48,
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    paddingHorizontal: spacing.md,
-  },
-  citySearchInput: {
-    flex: 1,
-    fontSize: 16,
-    padding: 0,
-  },
-  citySearchErrorText: {
-    marginTop: -spacing.xs,
-  },
-  citySearchList: {
-    flex: 1,
-  },
-  citySearchRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    paddingVertical: spacing.sm,
-  },
-  citySearchRowIconWrap: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  citySearchRowTextCol: {
-    flex: 1,
-    gap: 1,
-  },
-  citySearchEmpty: {
-    marginTop: spacing.xl,
-    textAlign: 'center',
-  },
-  cityListLoadingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    paddingVertical: spacing.lg,
-  },
-  citySwitchRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.sm,
-    paddingVertical: spacing.md,
-    borderTopWidth: StyleSheet.hairlineWidth,
-  },
-  cityBackRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-    marginBottom: spacing.xs,
   },
 });
