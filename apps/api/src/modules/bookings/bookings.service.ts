@@ -1,4 +1,4 @@
-import { and, eq, gte, inArray, sql } from 'drizzle-orm';
+import { and, eq, inArray } from 'drizzle-orm';
 import type { getDatabase } from '../../lib/database.js';
 import { bookings, rides, routeStops, riderProfiles, trips, users } from '../../db/schema/index.js';
 import { AppError, ConflictError, ForbiddenError, NotFoundError, ValidationError } from '../../lib/errors.js';
@@ -8,7 +8,10 @@ import {
   canTransitionRideStatus,
   canTransitionTripStatus,
   computeCancellationPolicy,
+  computeMaxConcurrentSeats,
+  wouldExceedCapacity,
   NO_SHOW_PENALTY_POINTS,
+  type BookingSegment,
   type CancellationPolicyResult,
   type RatingRole,
 } from '@vaya/domain';
@@ -39,6 +42,148 @@ import {
 import { getRoute } from '../../lib/routing.js';
 
 type Database = ReturnType<typeof getDatabase>;
+/** The transaction-callback handle drizzle's node-postgres driver passes
+ *  in — derived via `Parameters<>` rather than importing `NodePgTransaction`
+ *  directly and re-declaring its generic schema/relations parameters by
+ *  hand, so this stays correct if the schema shape changes. */
+type Tx = Parameters<Parameters<Database['transaction']>[0]>[0];
+
+/**
+ * Segment-aware multi-passenger capacity (matching-engine architecture plan
+ * §K — un-deferred, implemented here rather than left as documented-but-not-
+ * built). `rides.seatsAvailable` used to be a single scalar, decremented on
+ * accept and restored on cancel — correct for "how many total seats are
+ * free right now", wrong for "is this specific segment of the route free":
+ * a driver with 4 seats and an already-accepted Tunis→Hammamet passenger
+ * genuinely has 4 free seats for a later Hammamet→Sousse request, which a
+ * ride-global counter can't express. The pure interval-overlap math lives
+ * in packages/domain's segment-capacity.ts; everything below is the
+ * database-facing half — resolving a booking's pickup/dropoff stop ids to
+ * their real route_stop `sequence`, and running the whole
+ * check-then-persist cycle inside one transaction that locks the ride row
+ * first (`SELECT ... FOR UPDATE`), the generalization of Phase 1/10's
+ * atomic `UPDATE ... WHERE seatsAvailable >= N` guard to a check that can't
+ * be expressed as a single UPDATE's WHERE clause.
+ *
+ * **Scope boundary, stated plainly**: this makes booking *creation* and
+ * *acceptance* genuinely segment-aware — a fitting non-overlapping-segment
+ * request can be created and accepted even when the ride's bottleneck
+ * segment (from other bookings) is saturated. It does NOT make
+ * matching.service.ts's search-time candidate filtering segment-aware —
+ * `scoreCandidates`/`scorePassThroughCandidates`/`scoreDetourCandidates`
+ * still gate on the ride-global `seatsAvailable` (now the *bottleneck*
+ * segment's remaining capacity), so a ride saturated on one segment may not
+ * surface in search for a rider whose specific requested segment is
+ * actually free, until search itself is made segment-aware — a distinct,
+ * larger change to the matching pipeline, not bundled into this pass.
+ */
+function bookingToSegment(
+  booking: { seatsRequested: number; pickupStopId: string | null; dropoffStopId: string | null },
+  sequenceByStopId: Map<string, number>,
+): BookingSegment {
+  return {
+    seatsRequested: booking.seatsRequested,
+    // A stop id that no longer resolves (set null by a stop regeneration,
+    // per bookings.pickupStopId/dropoffStopId's ON DELETE SET NULL — see
+    // bookings.schema.ts) or was never set at all (a free-form/legacy
+    // booking) is treated as spanning the ride's true start/end — the
+    // conservative direction: an unresolved reference can only ever make
+    // capacity accounting stricter, never looser.
+    pickupSequence: booking.pickupStopId
+      ? (sequenceByStopId.get(booking.pickupStopId) ?? -Infinity)
+      : -Infinity,
+    dropoffSequence: booking.dropoffStopId
+      ? (sequenceByStopId.get(booking.dropoffStopId) ?? Infinity)
+      : Infinity,
+  };
+}
+
+/** Every currently-`accepted` booking on a ride, as `BookingSegment`s, plus
+ *  whether the ride has any route_stops at all (needed below to decide
+ *  the `published`/`full` transition). Two call shapes: from inside a
+ *  transaction that already holds a row lock on the ride (`.for('update')`)
+ *  for an atomic accept/cancel/no-show recompute, where the accepted set
+ *  this reads can't change underneath the caller — or with a plain
+ *  `Database` for createBooking's own non-atomic, advisory pre-check (the
+ *  real enforcement point is always acceptBooking, matching this
+ *  codebase's existing stale-read-is-fine convention for that check). */
+async function loadRideSegmentState(
+  tx: Database | Tx,
+  rideId: string,
+): Promise<{ segments: BookingSegment[]; hasStops: boolean }> {
+  const [stops, acceptedBookings] = await Promise.all([
+    tx.query.routeStops.findMany({ where: eq(routeStops.rideId, rideId) }),
+    tx.query.bookings.findMany({
+      where: and(eq(bookings.rideId, rideId), eq(bookings.status, 'accepted')),
+    }),
+  ]);
+  const sequenceByStopId = new Map(stops.map((s) => [s.id, s.sequence]));
+  return {
+    segments: acceptedBookings.map((b) => bookingToSegment(b, sequenceByStopId)),
+    hasStops: stops.length > 0,
+  };
+}
+
+async function loadAcceptedSegments(tx: Database | Tx, rideId: string): Promise<BookingSegment[]> {
+  return (await loadRideSegmentState(tx, rideId)).segments;
+}
+
+/**
+ * Recomputes `rides.seatsAvailable` (now: seatsTotal minus the ride's
+ * current bottleneck-segment occupancy) and, for a legacy/stop-less ride
+ * only, `rides.status`'s `published`/`full` transition — from the ride's
+ * *current* set of accepted bookings, recomputed from scratch every time
+ * rather than incrementally adjusted, the same discipline this codebase's
+ * rating aggregate already established (never increment/decrement a
+ * derived number when the real source rows are cheap to re-read; see
+ * ratings.service.ts). Must be called from inside the same locked
+ * transaction that changed the underlying accepted-booking set, after that
+ * change has already been written (so `loadRideSegmentState` sees it).
+ *
+ * **Why `full` is only ever auto-derived for a stop-less ride**: for a
+ * legacy ride (zero route_stops) every booking spans the whole ride by
+ * construction, so "the bottleneck is saturated" and "no more capacity
+ * anywhere" are the same fact — flipping to `full` here is mathematically
+ * identical to the pre-segment-aware model's behavior (verified by
+ * bookings.service.test.ts's unchanged concurrency suite). For a ride WITH
+ * route_stops there is no single global "full" truth anymore: a ride
+ * bottlenecked on one segment can still have a different segment wide
+ * open. Auto-flipping status the instant any one segment saturates would
+ * hide the whole ride from search and block every other request via
+ * createBooking's `status !== 'published'` gate — exactly the failure mode
+ * this model exists to fix. So a stopped ride's status is left alone here;
+ * its capacity is enforced entirely per-request by the segment check
+ * itself (createBooking/acceptBooking), with no status flag standing in
+ * for it. **Known scope boundary** (stated in this module's top doc
+ * comment too): this means a stopped ride whose bottleneck segment is
+ * saturated stays `published` and keeps showing up in search even for a
+ * request that would fail on that exact segment — matching.service.ts's
+ * own `seatsAvailable < 1` filters are a separate, not-yet-segment-aware
+ * concern this pass doesn't touch.
+ */
+async function recomputeAndPersistRideCapacity(
+  tx: Tx,
+  ride: { id: string; seatsTotal: number; status: (typeof rides.$inferSelect)['status'] },
+): Promise<{ seatsAvailable: number; status: (typeof rides.$inferSelect)['status'] }> {
+  const { segments, hasStops } = await loadRideSegmentState(tx, ride.id);
+  const bottleneckSeatsInUse = computeMaxConcurrentSeats(segments);
+  const seatsAvailable = Math.max(0, ride.seatsTotal - bottleneckSeatsInUse);
+
+  let status = ride.status;
+  if (!hasStops) {
+    const wholeRideCandidate: BookingSegment = { seatsRequested: 1, pickupSequence: -Infinity, dropoffSequence: Infinity };
+    const wholeRideWouldFit = !wouldExceedCapacity(segments, wholeRideCandidate, ride.seatsTotal);
+    if (!wholeRideWouldFit && canTransitionRideStatus(ride.status, 'full')) {
+      status = 'full';
+    } else if (wholeRideWouldFit && canTransitionRideStatus(ride.status, 'published')) {
+      status = 'published';
+    }
+  }
+
+  await tx.update(rides).set({ seatsAvailable, status, updatedAt: new Date() }).where(eq(rides.id, ride.id));
+
+  return { seatsAvailable, status };
+}
 
 async function getRideOrThrow(db: Database, rideId: string) {
   const ride = await db.query.rides.findFirst({
@@ -140,9 +285,12 @@ export async function createBooking(
   if (ride.status !== 'published') {
     throw new AppError('This ride is no longer accepting requests', 409, 'RIDE_NOT_BOOKABLE');
   }
-  if (ride.seatsAvailable < input.seatsRequested) {
-    throw new AppError('Not enough seats available on this ride', 409, 'SEATS_UNAVAILABLE');
-  }
+  // The segment-aware capacity pre-check (matching-engine architecture plan
+  // §K) needs this request's actual resolved pickup/dropoff stop pair, so
+  // it runs further down, once pickupStopId/dropoffStopId are known — see
+  // the comment there for why a plain `ride.seatsAvailable` check here
+  // would be wrong (it's now the ride's *bottleneck* segment, not "this
+  // specific request's segment").
   // A driver can't book a seat on their own listing — this is the real,
   // server-side enforcement of that rule; the mobile client's own CTA
   // guard (ride-details.tsx) is a UI nicety, not what this depends on.
@@ -236,6 +384,30 @@ export async function createBooking(
     dropoffLabel = dropStop.label;
     dropoffLat = dropStop.lat;
     dropoffLng = dropStop.lng;
+  }
+
+  // Segment-aware capacity pre-check (matching-engine architecture plan
+  // §K) — advisory only, same "a stale read here is fine" posture the
+  // scalar check it replaces always had: the real, atomic enforcement
+  // point is always acceptBooking below. Built from this request's actual
+  // resolved pickup/dropoff stop pair (sequenceByStopId is free — reuses
+  // `selectedStops`, already fetched above, no extra query) rather than
+  // the ride-global `seatsAvailable` scalar, so a genuinely free
+  // non-overlapping segment is never rejected here just because a
+  // different segment elsewhere on the ride happens to be saturated.
+  const sequenceByStopId = new Map(selectedStops.map((s) => [s.id, s.sequence]));
+  const candidateSegment: BookingSegment = {
+    seatsRequested: input.seatsRequested,
+    pickupSequence: pickupStopId ? (sequenceByStopId.get(pickupStopId) ?? -Infinity) : -Infinity,
+    dropoffSequence: dropoffStopId ? (sequenceByStopId.get(dropoffStopId) ?? Infinity) : Infinity,
+  };
+  const existingSegments = await loadAcceptedSegments(db, rideId);
+  if (wouldExceedCapacity(existingSegments, candidateSegment, ride.seatsTotal)) {
+    throw new AppError(
+      'Not enough seats available for this segment of the route',
+      409,
+      'SEATS_UNAVAILABLE',
+    );
   }
 
   const [booking] = await db
@@ -356,40 +528,50 @@ export async function acceptBooking(db: Database, bookingId: string, requestingU
     throw new ConflictError(`Cannot accept a booking in status "${booking.status}"`);
   }
 
-  // Atomic, database-level check-and-decrement: the WHERE clause is
-  // evaluated against the row's current value at UPDATE time under
-  // Postgres's row-level locking, not against the stale `booking.ride`
-  // read above. Two concurrent accepts against the same ride can no
-  // longer both pass a check based on the same stale seat count and
-  // silently oversell — the loser here gets zero rows back instead.
-  const [updatedRide] = await db
-    .update(rides)
-    .set({
-      seatsAvailable: sql`${rides.seatsAvailable} - ${booking.seatsRequested}`,
-      updatedAt: new Date(),
-    })
-    .where(and(eq(rides.id, booking.rideId), gte(rides.seatsAvailable, booking.seatsRequested)))
-    .returning();
-  if (!updatedRide) {
-    throw new ConflictError('Not enough seats remaining to accept this request');
-  }
-  if (updatedRide.seatsAvailable === 0 && updatedRide.status === 'published') {
-    await db
-      .update(rides)
-      .set({ status: 'full', updatedAt: new Date() })
-      .where(eq(rides.id, booking.rideId));
-  }
+  // Segment-aware, atomic check-then-accept (matching-engine architecture
+  // plan §K): the whole thing runs inside one transaction that locks the
+  // ride row first (`SELECT ... FOR UPDATE`), the generalization of the
+  // old flat `UPDATE rides SET seatsAvailable = seatsAvailable - N WHERE
+  // seatsAvailable >= N` guard to a capacity check that can't be expressed
+  // as a single UPDATE's WHERE clause (it depends on every other accepted
+  // booking's own span, not just one scalar column). Postgres's row lock
+  // gives the same "only the first writer to commit wins" guarantee that
+  // guard did — a concurrent accept on the same ride blocks here until
+  // this transaction commits or rolls back, then re-reads the
+  // now-committed accepted-booking set, so two concurrent accepts can
+  // never both pass a capacity check computed against the same stale set.
+  const updated = await db.transaction(async (tx) => {
+    const [lockedRide] = await tx.select().from(rides).where(eq(rides.id, booking.rideId)).for('update');
+    if (!lockedRide) throw new NotFoundError('Ride');
 
-  const [updated] = await db
-    .update(bookings)
-    .set({ status: 'accepted', respondedAt: new Date(), updatedAt: new Date() })
-    .where(eq(bookings.id, bookingId))
-    .returning();
-  if (!updated) throw new Error('Failed to accept booking');
+    const existingSegments = await loadAcceptedSegments(tx, booking.rideId);
+    const stops = await tx.query.routeStops.findMany({ where: eq(routeStops.rideId, booking.rideId) });
+    const sequenceByStopId = new Map(stops.map((s) => [s.id, s.sequence]));
+    const candidateSegment = bookingToSegment(booking, sequenceByStopId);
 
-  await db
-    .insert(trips)
-    .values({ bookingId: booking.id, rideId: booking.rideId, status: 'scheduled' });
+    if (wouldExceedCapacity(existingSegments, candidateSegment, lockedRide.seatsTotal)) {
+      throw new ConflictError('Not enough seats remaining for this segment of the route');
+    }
+
+    const [acceptedBooking] = await tx
+      .update(bookings)
+      .set({ status: 'accepted', respondedAt: new Date(), updatedAt: new Date() })
+      .where(and(eq(bookings.id, bookingId), eq(bookings.status, booking.status)))
+      .returning();
+    if (!acceptedBooking) {
+      throw new ConflictError(`Cannot accept a booking in status "${booking.status}"`);
+    }
+
+    // Recomputed AFTER the booking above is persisted, so this read of the
+    // accepted-booking set already includes it.
+    await recomputeAndPersistRideCapacity(tx, lockedRide);
+
+    await tx
+      .insert(trips)
+      .values({ bookingId: acceptedBooking.id, rideId: acceptedBooking.rideId, status: 'scheduled' });
+
+    return acceptedBooking;
+  });
 
   await notifyBestEffort(db, booking.riderId, 'booking_accepted', {
     bookingId: booking.id,
@@ -673,37 +855,44 @@ export async function cancelBooking(db: Database, bookingId: string, requestingU
   // conditional seat decrement does: only the first writer to commit can
   // match; the loser's WHERE matches zero rows and gets a clean
   // ConflictError instead of silently corrupting seat counts.
-  const [updated] = await db
-    .update(bookings)
-    .set({ status: nextStatus, respondedAt: cancelledAt, updatedAt: cancelledAt })
-    .where(and(eq(bookings.id, bookingId), eq(bookings.status, booking.status)))
-    .returning();
-  if (!updated) {
-    throw new ConflictError(`Cannot cancel a booking in status "${booking.status}"`);
-  }
+  //
+  // Segment-aware seat restoration (matching-engine architecture plan §K):
+  // the old flat `LEAST(seatsAvailable + N, seatsTotal)` restore assumed
+  // the cancelled booking was always the ride's bottleneck, which isn't
+  // true anymore — recomputeAndPersistRideCapacity recomputes from the
+  // remaining accepted bookings from scratch instead (same "never
+  // increment/decrement a derived number" discipline as the rating
+  // aggregate). Runs inside one transaction that locks the ride row FIRST,
+  // before the booking status transition — the same lock ordering
+  // acceptBooking uses, so concurrent accept/cancel/no-show calls against
+  // the same ride can never deadlock against each other.
+  const updated = await db.transaction(async (tx) => {
+    const [lockedRide] = await tx.select().from(rides).where(eq(rides.id, booking.rideId)).for('update');
+    if (!lockedRide) throw new NotFoundError('Ride');
+
+    const [updatedBooking] = await tx
+      .update(bookings)
+      .set({ status: nextStatus, respondedAt: cancelledAt, updatedAt: cancelledAt })
+      .where(and(eq(bookings.id, bookingId), eq(bookings.status, booking.status)))
+      .returning();
+    if (!updatedBooking) {
+      throw new ConflictError(`Cannot cancel a booking in status "${booking.status}"`);
+    }
+
+    if (booking.status === 'accepted') {
+      // Recomputed AFTER the status transition above, so this already
+      // excludes the just-cancelled booking from the accepted set.
+      await recomputeAndPersistRideCapacity(tx, lockedRide);
+      await tx
+        .update(trips)
+        .set({ status: 'cancelled', updatedAt: new Date() })
+        .where(eq(trips.bookingId, booking.id));
+    }
+
+    return updatedBooking;
+  });
 
   if (booking.status === 'accepted') {
-    const nextRideStatus = canTransitionRideStatus(booking.ride.status, 'published')
-      ? 'published'
-      : booking.ride.status;
-    // Same atomic-update discipline as acceptBooking: restore against the
-    // row's current value, capped at seatsTotal so a race between this and
-    // another concurrent cancel/accept can't push seatsAvailable past the
-    // vehicle's actual capacity.
-    await db
-      .update(rides)
-      .set({
-        seatsAvailable: sql`LEAST(${rides.seatsAvailable} + ${booking.seatsRequested}, ${rides.seatsTotal})`,
-        status: nextRideStatus,
-        updatedAt: new Date(),
-      })
-      .where(eq(rides.id, booking.rideId));
-
-    await db
-      .update(trips)
-      .set({ status: 'cancelled', updatedAt: new Date() })
-      .where(eq(trips.bookingId, booking.id));
-
     // Phase 8: the trip just became terminal, so its conversation (if any —
     // only accepted bookings ever have one) becomes permanently read-only.
     // Best-effort cache refresh only: sendMessage/getAuthorizedConversation
@@ -776,30 +965,31 @@ export async function reportNoShow(db: Database, bookingId: string, requestingUs
   // win; a concurrent second report (or a race against a concurrent
   // cancelBooking on the same booking) gets a clean ConflictError instead
   // of both proceeding to double-release the seat below.
-  const [updatedBooking] = await db
-    .update(bookings)
-    .set({ status: 'no_show', respondedAt: reportedAt, updatedAt: reportedAt })
-    .where(and(eq(bookings.id, bookingId), eq(bookings.status, booking.status)))
-    .returning();
-  if (!updatedBooking) {
-    throw new ConflictError(`Cannot report a no-show for a booking in status "${booking.status}"`);
-  }
+  //
+  // Segment-aware seat release (matching-engine architecture plan §K) — same
+  // recompute-from-scratch, ride-locked-first transaction shape as
+  // cancelBooking above, replacing the old flat `LEAST(seatsAvailable + N,
+  // seatsTotal)` restore. Only `accepted` bookings can reach `no_show` (the
+  // transition guard above), so the seat was always actually held.
+  const updatedBooking = await db.transaction(async (tx) => {
+    const [lockedRide] = await tx.select().from(rides).where(eq(rides.id, booking.rideId)).for('update');
+    if (!lockedRide) throw new NotFoundError('Ride');
 
-  // Same atomic seat-release discipline as cancelBooking above — a
-  // no-show still frees the seat back to the ride's pool. Only `accepted`
-  // bookings can reach `no_show` (the transition guard above), so the seat
-  // was always actually held.
-  const nextRideStatus = canTransitionRideStatus(booking.ride.status, 'published')
-    ? 'published'
-    : booking.ride.status;
-  await db
-    .update(rides)
-    .set({
-      seatsAvailable: sql`LEAST(${rides.seatsAvailable} + ${booking.seatsRequested}, ${rides.seatsTotal})`,
-      status: nextRideStatus,
-      updatedAt: new Date(),
-    })
-    .where(eq(rides.id, booking.rideId));
+    const [updated] = await tx
+      .update(bookings)
+      .set({ status: 'no_show', respondedAt: reportedAt, updatedAt: reportedAt })
+      .where(and(eq(bookings.id, bookingId), eq(bookings.status, booking.status)))
+      .returning();
+    if (!updated) {
+      throw new ConflictError(`Cannot report a no-show for a booking in status "${booking.status}"`);
+    }
+
+    // Recomputed AFTER the status transition above, so this already
+    // excludes the just-reported booking from the accepted set.
+    await recomputeAndPersistRideCapacity(tx, lockedRide);
+
+    return updated;
+  });
 
   const trip = await db.query.trips.findFirst({ where: eq(trips.bookingId, booking.id) });
   if (!trip) throw new NotFoundError('Trip');
