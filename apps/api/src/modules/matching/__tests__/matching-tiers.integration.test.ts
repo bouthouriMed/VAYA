@@ -44,18 +44,37 @@ describe('matching.service — tier cascade, real Postgres (+ real OSRM for rout
   const areaAOrigin = { lat: 36.75, lng: 10.2 };
   const areaADestination = { lat: 36.78, lng: 10.23 };
 
-  // ~4km/~5km offsets — clearly inside WIDE (8km/10km) and outside TIGHT
-  // (2km/3km), not a borderline value that could flake.
+  // The rider's OWN requested origin/destination must itself be a >15km
+  // ("urban"-profile) trip so this fixture keeps testing the flat
+  // pre-Phase-A wide radii (8km/10km) it was written for — matching-engine
+  // architecture plan §G profile-scales the wide radius down for a short
+  // ("commute"-profile) request, which a ~4km rider trip (the original
+  // fixture's own distance) would now trigger. ~28.6km apart, safely inside
+  // "urban" (≤45km).
   const areaBRiderOrigin = { lat: 36.3, lng: 9.5 };
-  const areaBRiderDestination = { lat: 36.33, lng: 9.53 };
+  const areaBRiderDestination = { lat: 36.5, lng: 9.7 };
+  // ~4km/~5km offsets from the rider's own points — clearly inside the
+  // urban-profile WIDE radii (8km/10km) and outside TIGHT (2km/3km), not a
+  // borderline value that could flake.
   const areaBRideOrigin = { lat: 36.336, lng: 9.5 }; // ~4km north of rider origin.
-  const areaBRideDestination = { lat: 36.375, lng: 9.53 }; // ~5km north of rider destination.
+  const areaBRideDestination = { lat: 36.545, lng: 9.7 }; // ~5km north of rider destination.
 
   const tunis = { lat: 36.8065, lng: 10.1815 };
   const sousse = { lat: 35.8256, lng: 10.6369 };
 
   const desertOrigin = { lat: 24.0, lng: 9.0 };
   const desertDestination = { lat: 24.05, lng: 9.05 };
+
+  // Phase A of the matching-engine architecture plan ("trip-profile-aware
+  // matching thresholds"): a short (~2.9km, "commute"-profile) rider trip,
+  // geographically isolated from every other fixture above, with a ride
+  // placed ~5.6km away — inside the OLD flat wide radius (8km) but outside
+  // the NEW commute-scaled wide radius (4km). Proves the narrowing actually
+  // takes effect end-to-end, not just in the pure-function unit tests.
+  const commuteRiderOrigin = { lat: 33.0, lng: 10.0 };
+  const commuteRiderDestination = { lat: 33.02, lng: 10.02 }; // ~2.9km from origin.
+  const commuteFarRideOrigin = { lat: 33.05, lng: 10.0 }; // ~5.6km north of rider origin.
+  const commuteFarRideDestination = { lat: 33.07, lng: 10.02 }; // ~5.6km north of rider destination.
 
   let passThroughRideId: string | undefined;
   let passThroughPickup: { lat: number; lng: number } | undefined;
@@ -137,7 +156,8 @@ describe('matching.service — tier cascade, real Postgres (+ real OSRM for rout
       departureAt: closestDepartureRideWhen,
     });
 
-    // Ride B — wide-corridor-only: endpoints outside TIGHT, inside WIDE.
+    // Ride B — wide-corridor-only: endpoints outside TIGHT, inside WIDE
+    // (urban-profile radii, since the rider trip searching for it is >15km).
     await insertRide({
       originLabel: 'Area B Ride Origin',
       originLat: areaBRideOrigin.lat,
@@ -145,6 +165,19 @@ describe('matching.service — tier cascade, real Postgres (+ real OSRM for rout
       destinationLabel: 'Area B Ride Destination',
       destinationLat: areaBRideDestination.lat,
       destinationLng: areaBRideDestination.lng,
+      departureAt: areaAWhen,
+    });
+
+    // Ride E — Phase A regression guard: inside the OLD flat wide radius,
+    // outside the NEW commute-scaled wide radius. Must NOT be found by a
+    // short rider trip searched from commuteRiderOrigin/Destination.
+    await insertRide({
+      originLabel: 'Commute Far Ride Origin',
+      originLat: commuteFarRideOrigin.lat,
+      originLng: commuteFarRideOrigin.lng,
+      destinationLabel: 'Commute Far Ride Destination',
+      destinationLat: commuteFarRideDestination.lat,
+      destinationLng: commuteFarRideDestination.lng,
       departureAt: areaAWhen,
     });
 
@@ -243,6 +276,25 @@ describe('matching.service — tier cascade, real Postgres (+ real OSRM for rout
     expect(result.tier).toBe('wide_corridor');
     expect(result.message).toBeTruthy();
     expect(result.candidates.length).toBeGreaterThan(0);
+  });
+
+  // Matching-engine architecture plan §G / §A — "trip-profile-aware
+  // matching thresholds" (Phase A). The ride fixture above sits ~5.6km
+  // from the rider's own short (~2.9km) requested trip: comfortably inside
+  // the OLD flat wide radius (8km) this same rider point would have hit
+  // pre-Phase-A, but outside the NEW commute-scaled wide radius (4km) a
+  // short trip now gets. If this ever regresses back to 'wide_corridor',
+  // the profile-scaling has silently stopped applying.
+  it('does NOT surface a ride inside the old flat wide radius but outside the new commute-scaled wide radius, for a short requested trip', async () => {
+    const result = await searchRides(db, {
+      originLat: commuteRiderOrigin.lat,
+      originLng: commuteRiderOrigin.lng,
+      destinationLat: commuteRiderDestination.lat,
+      destinationLng: commuteRiderDestination.lng,
+      when: areaAWhen,
+    });
+    expect(result.tier).toBe('none');
+    expect(result.candidates).toEqual([]);
   });
 
   it('falls back to tier "route_passthrough" for a rider whose sub-trip lies on a long ride\'s real route', async () => {

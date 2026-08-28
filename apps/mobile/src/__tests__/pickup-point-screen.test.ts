@@ -85,10 +85,23 @@ describe('search/results.tsx routes straight to ride-details.tsx, which triggers
   });
 
   it("ride-details.tsx's own Request-a-seat CTA branches on rankedStops/rankedDropoffStops before booking", () => {
-    expect(rideDetailsSource).toContain('candidate?.rankedStops.length');
+    expect(rideDetailsSource).toContain('candidate.rankedStops.length');
     expect(rideDetailsSource).toContain('candidate?.rankedDropoffStops.length');
     expect(rideDetailsSource).toContain("pathname: '/search/pickup-point'");
     expect(rideDetailsSource).toContain("pathname: '/search/dropoff-point'");
+  });
+
+  // Regression guard (matching-engine architecture plan §C): `rankedStops`
+  // is empty both when a ride has zero stops at all (free-form flow, fine
+  // to skip stop selection) and when a ride HAS stops but none are
+  // walkable for this passenger (pickupViable: false) — those two cases
+  // used to be indistinguishable from `rankedStops.length` alone, so the
+  // second one silently fell through to a free-form createBooking call on
+  // a ride that requires a real pickupStopId, which the backend correctly
+  // rejects with a 400. The fix must check `pickupViable` too, not just
+  // `rankedStops.length`, or this exact bug is back.
+  it('needsPickupSelection also triggers when the ride has stops but none are walkable (pickupViable: false), not only when rankedStops is non-empty', () => {
+    expect(rideDetailsSource).toContain('!candidate.pickupViable');
   });
 
   it('pickup-point.tsx and dropoff-point.tsx hand back off to the same ride-details.tsx instance (dismissTo, not push)', () => {

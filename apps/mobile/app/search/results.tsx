@@ -194,21 +194,25 @@ export default function ResultsScreen(): React.JSX.Element {
   const showToast = useToast();
   const [showMap, setShowMap] = useState(false);
 
-  // Depends on `searchResult` itself (a stable RTK Query reference per
-  // cache entry), not `searchResult?.candidates ?? []` — the latter builds
-  // a fresh array on every render even when nothing changed, which would
-  // otherwise invalidate both memos below on every unrelated re-render.
-  const sorted = useMemo(
-    () =>
-      [...(searchResult?.candidates ?? [])].sort(
-        (a, b) => new Date(a.departureAt).getTime() - new Date(b.departureAt).getTime(),
-      ),
-    [searchResult],
-  );
-  const bestMatchId = useMemo(
-    () => [...(searchResult?.candidates ?? [])].sort((a, b) => b.score - a.score)[0]?.rideId,
-    [searchResult],
-  );
+  // The server now returns `candidates` already ranked (matching-engine
+  // architecture plan §D/§M): banded by quality, departure-time-proximity
+  // as the tie-break within a band — never a manufactured precise total
+  // order. Rendering `searchResult.candidates` directly (instead of
+  // re-sorting by departure time client-side, which used to silently
+  // discard that ranking) is the point, not an oversight; `sorted` is kept
+  // as the variable name below purely to avoid a larger rename across this
+  // file's render code. Memoized (rather than a bare `?? []`) so the
+  // fallback empty array keeps a stable reference across renders when
+  // `searchResult` is undefined — the `points`/other memos further down
+  // depend on `sorted`.
+  const sorted = useMemo(() => searchResult?.candidates ?? [], [searchResult]);
+  // Matching-engine architecture plan §Decisions #3 / §M: never re-derive
+  // "best match" from a local score comparison — the server already
+  // decided whether one candidate is a genuine standout, and deliberately
+  // returns null when two or more are comparably good, so both surface
+  // without a crown. Comparing scores here would silently reintroduce the
+  // "forced perfect ordering" this field exists to avoid.
+  const bestMatchId = searchResult?.standoutRideId ?? null;
 
   useEffect(() => {
     if (!searchResult) return;

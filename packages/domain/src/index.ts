@@ -11,12 +11,16 @@ export * from './route/route.types';
 export * from './route/trip-profile.types';
 export * from './route/classify-trip-profile';
 
+export * from './matching/matching-thresholds.types';
+export * from './matching/matching-thresholds';
+
 export * from './ride/ride.types';
 export * from './ride/ride-status';
 
 export * from './booking/booking.types';
 export * from './booking/booking-status';
 export * from './booking/cancellation-policy';
+export * from './booking/segment-capacity';
 
 export * from './trip/trip.types';
 export * from './trip/trip-status';

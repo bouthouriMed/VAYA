@@ -84,6 +84,16 @@ describe('search screens are fully on useAppTheme(), not the legacy static color
 // single rendering path. These assertions were rewritten for that
 // architecture rather than deleted, so a future regression back toward a
 // second hardcoded fallback list/banner still gets caught here.
+//
+// Matching-engine architecture plan §D/§M (Phase B) moved "best match"
+// off a client-side score comparison entirely: the server now decides
+// (rankMatchCandidates, matching.service.ts) and returns `standoutRideId`,
+// null whenever two or more candidates are comparably good rather than
+// forcing a winner (§Decisions #3 — "don't chase a perfect ordering"). The
+// assertion below was rewritten again for that, not deleted, so a
+// regression back toward a client-side `sort((a,b) => b.score - a.score)`
+// tiebreaker — which would silently reintroduce a manufactured single
+// winner the server deliberately declined to crown — still gets caught.
 describe('search/results.tsx: non-exact tiers render through the same list, server-driven banner', () => {
   const source = readScreen('search/results.tsx');
 
@@ -92,9 +102,10 @@ describe('search/results.tsx: non-exact tiers render through the same list, serv
     expect(source).not.toMatch(/Aucun trajet exactement à l['’]heure demandée[^`]*proches\./);
   });
 
-  it('computes a single best-match id from candidate score, not a hardcoded false', () => {
+  it('reads best-match from the server-provided standoutRideId, never re-derived from a local score comparison', () => {
     expect(source).toContain('bestMatchId');
-    expect(source).toMatch(/sort\(\(a, b\) => b\.score - a\.score\)\[0\]\?\.rideId/);
+    expect(source).toContain('searchResult?.standoutRideId');
+    expect(source).not.toMatch(/sort\(\(a,\s*b\)\s*=>\s*b\.score\s*-\s*a\.score\)/);
     expect(source).toContain('bestMatch={candidate.rideId === bestMatchId}');
     expect(source).not.toContain('bestMatch={false}');
   });
