@@ -111,13 +111,19 @@ function RideResultCard({
   const { t, i18n } = useTranslation(['search', 'common', 'booking']);
   const locale = i18n.language as SupportedLocale;
 
-  const time = formatTime(new Date(candidate.departureAt), locale);
+  // The real time THIS passenger would be picked up, not the ride's own
+  // departure time re-shown as if it were theirs — a real bug found live:
+  // a rider matched mid-route (route_passthrough/detour) saw the driver's
+  // origin departure time labeled as their own pickup time. pickupEtaSeconds
+  // is 0 for an 'endpoint' match (pickup ≈ the ride's own origin), so this
+  // collapses to the exact previous behavior for every match type except
+  // the two where it was actually wrong.
+  const pickupTime = new Date(new Date(candidate.departureAt).getTime() + candidate.pickupEtaSeconds * 1000);
+  const time = formatTime(pickupTime, locale);
   const closestStop = candidate.rankedStops[0];
   let timeOffsetNote: string | undefined;
   if (searchAt) {
-    const offsetMin = Math.round(
-      (new Date(candidate.departureAt).getTime() - new Date(searchAt).getTime()) / 60_000,
-    );
+    const offsetMin = Math.round((pickupTime.getTime() - new Date(searchAt).getTime()) / 60_000);
     if (offsetMin > 2) {
       timeOffsetNote = t('search:results.timeOffsetNote', {
         offsetMin: t('common:terms.minute', { count: offsetMin }),
@@ -146,12 +152,15 @@ function RideResultCard({
     accessibilityLabel: `${candidate.driverFullName ?? t('search:results.driverFallback')}, ${t('common:terms.departure')} ${time}, ${candidate.contributionPerSeat} DT`,
     timeOffsetNote,
     passengers: passengers?.map((p) => ({ userId: p.userId, name: p.firstName, avatarUrl: p.avatarUrl })),
-    routeBadgeLabel:
-      candidate.matchType === 'route_passthrough'
-        ? t('search:results.onYourRoute')
-        : candidate.matchType === 'detour' && candidate.detour
-          ? `${t('common:terms.detour')} +${t('common:terms.minute', { count: Math.round(candidate.detour.extraDurationSeconds / 60) })}`
-          : undefined,
+    // 'detour' deliberately shows no per-card detour badge — the driver
+    // already sees a real, live-computed "this adds X min" indicator when
+    // reviewing the actual request (RequestDetailSheet.tsx's
+    // requestDetail.addsDetour), and per direct product feedback a
+    // passenger shouldn't be shown internal routing-cost jargon before the
+    // driver has even confirmed anything; the screen's own top banner
+    // (TIER_MESSAGES.detour_match) already sets the "needs confirmation"
+    // expectation in plain language.
+    routeBadgeLabel: candidate.matchType === 'route_passthrough' ? t('search:results.onYourRoute') : undefined,
   };
 
   return <DriverListCard theme={theme} bestMatch={bestMatch} data={data} onPress={onPress} />;

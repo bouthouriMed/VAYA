@@ -171,9 +171,23 @@ export interface MatchCandidate {
     extraDurationSeconds: number;
     extraDistanceMeters: number;
     detourRatio: number;
-    pickupEtaSeconds: number;
-    dropoffEtaSeconds: number;
   } | null;
+  /** Seconds after `departureAt` when the driver is realistically expected
+   *  to reach this passenger's actual pickup point — real for every match
+   *  type: 0 for 'endpoint' (pickup ≈ the ride's own origin), a real
+   *  route-fraction share of the ride's total duration for
+   *  'route_passthrough', the routing engine's own real ETA for 'detour'.
+   *  Use this (not `departureAt` directly) wherever a pickup time is
+   *  shown. */
+  pickupEtaSeconds: number;
+  /** Dropoff-side mirror of `pickupEtaSeconds`. */
+  dropoffEtaSeconds: number;
+  /** Real routing-engine polyline for this passenger's own pickup ->
+   *  dropoff leg — populated only for matchType 'detour' (whose pickup/
+   *  dropoff aren't on the ride's own `routePolyline` at all). Use this
+   *  instead of `routePolyline` for a 'detour' match's map/segment — the
+   *  ride's own route is a different, unrelated trip in that case. */
+  detourRoutePolyline: string | null;
 }
 
 /** Phase 13 (docs/roadmap/phase-13-search-engine.md): one search response

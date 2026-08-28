@@ -84,7 +84,8 @@
     "seatTakenError": "قد يكون هذا المقعد قد أُخذ للتو. أعد المحاولة.",
     "selfBookingError": "لا يمكنك طلب مقعد في رحلتك الخاصة.",
     "duplicateBookingError": "لديك بالفعل طلب لهذه الرحلة.",
-    "rideNotBookableError": "لم تعد هذه الرحلة تقبل الطلبات."
+    "rideNotBookableError": "لم تعد هذه الرحلة تقبل الطلبات.",
+    "pickupNotAvailableError": "نقطة الالتقاء هذه لم يوافق عليها السائق بعد لهذه الرحلة."
   },
   "trust": {
     "back": "رجوع",

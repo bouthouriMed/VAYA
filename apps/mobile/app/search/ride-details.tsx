@@ -72,6 +72,15 @@ function bookingErrorKey(error: unknown): string {
       return 'search:details.duplicateBookingError';
     case 'RIDE_NOT_BOOKABLE':
       return 'search:details.rideNotBookableError';
+    // A detour match (matchType 'detour', see requestSeat's free-form
+    // fallback below) whose underlying ride happens to already have
+    // driver-selected route_stops elsewhere is a real, honest rejection —
+    // this ride requires a real pickup stop and this candidate has none
+    // (MatchCandidate.detour's own doc comment: turning a detour match
+    // into a real booking is deliberately out of scope, not built here) —
+    // never mislabel it as "someone just took the seat".
+    case 'VALIDATION_ERROR':
+      return 'search:details.pickupNotAvailableError';
     case 'SEATS_UNAVAILABLE':
     default:
       return 'search:details.seatTakenError';
@@ -139,10 +148,19 @@ export default function RideDetailsScreen(): React.JSX.Element {
     [searchResult, rideId],
   );
 
-  const routeCoordinates = useMemo(
-    () => (ride?.routePolyline ? decodePolyline(ride.routePolyline) : []),
-    [ride],
-  );
+  // A 'detour' match's pickup/dropoff are NOT points on the ride's own
+  // route at all (that's the whole mechanic — the driver would leave their
+  // route to reach them), so showing ride.routePolyline here would be a
+  // real, reported bug: the passenger sees the driver's entire unrelated
+  // trip instead of their own leg. Uses the real routing-engine polyline
+  // computed specifically for THIS passenger's own origin -> pickup ->
+  // dropoff -> destination insertion instead (candidate.detourRoutePolyline
+  // — see matching.service.ts's scoreDetourCandidates).
+  const isDetourMatch = candidate?.matchType === 'detour';
+  const routeCoordinates = useMemo(() => {
+    if (isDetourMatch) return candidate?.detourRoutePolyline ? decodePolyline(candidate.detourRoutePolyline) : [];
+    return ride?.routePolyline ? decodePolyline(ride.routePolyline) : [];
+  }, [isDetourMatch, candidate, ride]);
 
   // Matched by stopId, not label text — a label match is fragile (two real
   // stops can share display text) and silently produced wrong results.
@@ -151,7 +169,15 @@ export default function RideDetailsScreen(): React.JSX.Element {
     () => stops?.find((s) => s.id === pickupStopId),
     [stops, pickupStopId],
   );
-  const pickupLabel = pickupStop?.label ?? selectedStop?.label ?? candidate?.rankedStops[0]?.label ?? ride?.originLabel;
+  // A detour match has no real driver-selected stop at all (pickupViable:
+  // false, by design — see MatchCandidate.detour's doc comment) — the
+  // passenger's own searched origin/destination (search.origin/destination,
+  // exactly what scoreDetourCandidates computed the detour against) IS the
+  // real pickup/dropoff point in that case, never the driver's own
+  // origin/destination label.
+  const pickupLabel = isDetourMatch
+    ? (origin?.label ?? ride?.originLabel)
+    : (pickupStop?.label ?? selectedStop?.label ?? candidate?.rankedStops[0]?.label ?? ride?.originLabel);
   const pickupWalkMinutes = candidate?.pickupWalkMinutes;
   // A route-passthrough match (Phase 13, docs/roadmap/phase-13-search-engine.md)
   // may have a dropoff stop the passenger explicitly chose on
@@ -168,9 +194,15 @@ export default function RideDetailsScreen(): React.JSX.Element {
     return [...stops].sort((a, b) => b.sequence - a.sequence)[0];
   }, [stops]);
   const dropoffStopId = selectedDropoffStop?.stopId ?? rideDropoffStop?.id;
-  const dropoffLabel = selectedDropoffStop?.label ?? rideDropoffStop?.label ?? ride?.destinationLabel;
-  const dropoffLat = selectedDropoffStop?.lat ?? rideDropoffStop?.lat ?? ride?.destinationLat;
-  const dropoffLng = selectedDropoffStop?.lng ?? rideDropoffStop?.lng ?? ride?.destinationLng;
+  const dropoffLabel = isDetourMatch
+    ? (destination?.label ?? ride?.destinationLabel)
+    : (selectedDropoffStop?.label ?? rideDropoffStop?.label ?? ride?.destinationLabel);
+  const dropoffLat = isDetourMatch
+    ? (destination?.lat ?? ride?.destinationLat)
+    : (selectedDropoffStop?.lat ?? rideDropoffStop?.lat ?? ride?.destinationLat);
+  const dropoffLng = isDetourMatch
+    ? (destination?.lng ?? ride?.destinationLng)
+    : (selectedDropoffStop?.lng ?? rideDropoffStop?.lng ?? ride?.destinationLng);
 
   // The passenger's own segment on the map — a route_passthrough booking's
   // real pickup/dropoff can sit well inside a much longer driver route
@@ -178,8 +210,12 @@ export default function RideDetailsScreen(): React.JSX.Element {
   // entire driver route"). Falls back to the ride's own origin/destination
   // when no real stop exists, which for a plain endpoint match IS the whole
   // route — this one formula covers both cases without a separate branch.
-  const segmentOriginLat = pickupStop?.lat ?? ride?.originLat;
-  const segmentOriginLng = pickupStop?.lng ?? ride?.originLng;
+  // A detour match uses the passenger's own searched origin instead — its
+  // "route" (detourRoutePolyline above) already runs origin->pickup, not
+  // the driver's own origin->pickup, so slicing from the driver's origin
+  // would silently include a leg the passenger doesn't actually ride.
+  const segmentOriginLat = isDetourMatch ? origin?.lat : (pickupStop?.lat ?? ride?.originLat);
+  const segmentOriginLng = isDetourMatch ? origin?.lng : (pickupStop?.lng ?? ride?.originLng);
   const segmentOrigin =
     segmentOriginLat != null && segmentOriginLng != null
       ? { lat: segmentOriginLat, lng: segmentOriginLng }
@@ -228,13 +264,18 @@ export default function RideDetailsScreen(): React.JSX.Element {
     [stops, dropoffStopId],
   );
   const dropoffSequence = dropoffStop?.sequence ?? Number.POSITIVE_INFINITY;
-  const intermediateStops = useMemo(
-    () =>
-      (stops ?? []).filter(
-        (s) => s.sequence > pickupSequence && s.sequence < dropoffSequence && s.id !== pickupStopId,
-      ),
-    [stops, pickupSequence, dropoffSequence, pickupStopId],
-  );
+  const intermediateStops = useMemo(() => {
+    // A detour match's stops are NOT on this passenger's leg at all (they
+    // belong to the driver's own, unrelated route) — pickupSequence/
+    // dropoffSequence default to -1/+Infinity when neither a pickup nor
+    // dropoff stop exists, which would otherwise leak every one of the
+    // ride's own stops in here as if they were real waypoints on a trip
+    // this passenger never rides.
+    if (isDetourMatch) return [];
+    return (stops ?? []).filter(
+      (s) => s.sequence > pickupSequence && s.sequence < dropoffSequence && s.id !== pickupStopId,
+    );
+  }, [isDetourMatch, stops, pickupSequence, dropoffSequence, pickupStopId]);
   const bookedSeats = ride ? ride.seatsTotal - ride.seatsAvailable : 0;
 
   // Stop confirmation (docs/domain/ride-engine.md, Phase 13 dropoff stops)
@@ -250,12 +291,26 @@ export default function RideDetailsScreen(): React.JSX.Element {
   // to be indistinguishable from `rankedStops.length` alone, so the second
   // one silently fell through to a free-form createBooking call on a ride
   // that requires a real pickupStopId, which the backend correctly rejects
-  // with a 400. `!candidate.pickupViable` disambiguates them: it's only
-  // ever false when the ride genuinely has zero stops, so routing to
-  // pickup-point.tsx (which renders an honest "no reachable stop"
-  // EmptyState for this exact case) is now correct for both.
+  // with a 400. `!candidate.pickupViable` disambiguates them for an
+  // 'endpoint'/'route_passthrough' match: there, it's only ever false when
+  // the ride genuinely has zero stops, so routing to pickup-point.tsx
+  // (which renders an honest "no reachable stop" EmptyState for this exact
+  // case) is correct for both. A 'detour' match is a real THIRD case that
+  // assumption doesn't cover: pickupViable is unconditionally false there
+  // (matching.service.ts's scoreDetourCandidates — see MatchCandidate.
+  // detour's own doc comment) regardless of whether the ride actually has
+  // stops, and it never has any rankedStops to pick from at all — routing
+  // it to the stops-only picker was a real dead end (an EmptyState with no
+  // way forward) for a match that should instead go straight to a
+  // free-form request, exactly like a legacy zero-stop ride. If the
+  // underlying ride does happen to have its own (unrelated) stops, the
+  // free-form request still gets an honest server-side rejection —
+  // see bookingErrorKey's VALIDATION_ERROR case — never a fabricated
+  // success.
   const needsPickupSelection = candidate
-    ? (!candidate.pickupViable || candidate.rankedStops.length > 0) && !selectedStop
+    ? candidate.matchType !== 'detour' &&
+      (!candidate.pickupViable || candidate.rankedStops.length > 0) &&
+      !selectedStop
     : false;
   const needsDropoffSelection =
     (candidate?.rankedDropoffStops.length ?? 0) > 0 && !selectedDropoffStop;
@@ -345,6 +400,25 @@ export default function RideDetailsScreen(): React.JSX.Element {
   const firstName = profile.fullName.split(' ')[0]!;
   const departureDate = new Date(ride.departureAt);
   const now = new Date();
+  // The real time THIS passenger would be picked up/dropped off, not the
+  // ride's own departure time re-shown as if it were theirs — a real bug
+  // found live: a rider matched mid-route (route_passthrough/detour) saw
+  // the driver's own origin departure time labeled as their pickup time,
+  // with no arrival time shown anywhere on this screen. pickupEtaSeconds is
+  // 0 for an 'endpoint' match (pickup ≈ the ride's own origin), so this
+  // collapses to departureDate for every match type except the two where a
+  // real offset exists. Falls back to the ride's own departure/estimated-
+  // duration only while `candidate` hasn't loaded yet (e.g. this screen
+  // opened from a deep link, without a matching search in flight) — an
+  // honest best-available value, not a fabricated one.
+  const pickupTime = candidate
+    ? new Date(departureDate.getTime() + candidate.pickupEtaSeconds * 1000)
+    : departureDate;
+  const dropoffTime = candidate
+    ? new Date(departureDate.getTime() + candidate.dropoffEtaSeconds * 1000)
+    : ride.estimatedDurationSec
+      ? new Date(departureDate.getTime() + ride.estimatedDurationSec * 1000)
+      : undefined;
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -416,7 +490,13 @@ export default function RideDetailsScreen(): React.JSX.Element {
                 <PickupPin theme={theme} />
               </Marker>
             ) : (
-              <Marker coordinate={{ latitude: ride.originLat, longitude: ride.originLng }} anchor={{ x: 0.5, y: 0.5 }}>
+              <Marker
+                coordinate={{
+                  latitude: segmentOrigin?.lat ?? ride.originLat,
+                  longitude: segmentOrigin?.lng ?? ride.originLng,
+                }}
+                anchor={{ x: 0.5, y: 0.5 }}
+              >
                 <View style={[styles.originDot, { backgroundColor: theme.accent, borderColor: theme.surface }]} />
               </Marker>
             )}
@@ -477,7 +557,7 @@ export default function RideDetailsScreen(): React.JSX.Element {
             <View style={styles.timelineTextCol}>
               <View style={styles.timelineRoleRow}>
                 <Text variant="label" color={theme.ink}>
-                  {formatTime(departureDate, locale)}
+                  {formatTime(pickupTime, locale)}
                 </Text>
                 <Text variant="caption" color={theme.inkFaint}>
                   {t('common:terms.pickup')}
@@ -518,9 +598,16 @@ export default function RideDetailsScreen(): React.JSX.Element {
               <View style={[styles.timelineDot, styles.timelineDotFilled, { backgroundColor: theme.ink }]} />
             </View>
             <View style={styles.timelineTextCol}>
-              <Text variant="caption" color={theme.inkFaint}>
-                {t('common:terms.dropoff')}
-              </Text>
+              <View style={styles.timelineRoleRow}>
+                {dropoffTime ? (
+                  <Text variant="label" color={theme.ink}>
+                    {formatTime(dropoffTime, locale)}
+                  </Text>
+                ) : null}
+                <Text variant="caption" color={theme.inkFaint}>
+                  {t('common:terms.dropoff')}
+                </Text>
+              </View>
               <Text variant="body" color={theme.ink}>
                 {dropoffLabel ?? ride.destinationLabel}
               </Text>

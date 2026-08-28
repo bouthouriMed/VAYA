@@ -76,7 +76,8 @@
     "seatTakenError": "This seat may have just been taken. Try again.",
     "selfBookingError": "You can't request a seat on your own ride.",
     "duplicateBookingError": "You already have a request for this ride.",
-    "rideNotBookableError": "This ride is no longer accepting requests."
+    "rideNotBookableError": "This ride is no longer accepting requests.",
+    "pickupNotAvailableError": "This pickup point isn't validated by the driver for this ride yet."
   },
   "trust": {
     "back": "Back",

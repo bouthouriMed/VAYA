@@ -89,6 +89,9 @@ function candidate(overrides: Partial<MatchCandidate>): MatchCandidate {
     dropoffViable: true,
     matchType: 'endpoint',
     detour: null,
+    pickupEtaSeconds: 0,
+    dropoffEtaSeconds: 0,
+    detourRoutePolyline: null,
     ...overrides,
   };
 }
