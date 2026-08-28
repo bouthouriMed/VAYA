@@ -988,6 +988,15 @@ export const api = createApi({
       query: (rideId) => `/rides/${rideId}/stops`,
       providesTags: (result, error, rideId) => [{ type: 'RideStops', id: rideId }],
     }),
+    // The driver's own editing view (every generated/custom candidate,
+    // selected or not) — used by (tabs)/publish.tsx to refresh its local
+    // stop list after driver/stops-selection.tsx persists new via-stops
+    // on a separate screen. Shares getRideStops' RideStops cache tag, so
+    // either query invalidates both.
+    getRideStopsForDriver: builder.query<RouteStop[], string>({
+      query: (rideId) => `/rides/${rideId}/stops?all=true`,
+      providesTags: (result, error, rideId) => [{ type: 'RideStops', id: rideId }],
+    }),
 
     createBooking: builder.mutation<Booking, { rideId: string; input: CreateBookingInput }>({
       query: ({ rideId, input }) => ({
@@ -1225,6 +1234,7 @@ export const {
   useUpdateRideStopsMutation,
   useAddCustomStopMutation,
   useGetRideStopsQuery,
+  useLazyGetRideStopsForDriverQuery,
   useCreateBookingMutation,
   useListFellowPassengersQuery,
   useListMyBookingsQuery,

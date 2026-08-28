@@ -75,15 +75,6 @@ interface GeocodingApiResponse {
   }>;
 }
 
-interface NearbySearchResponse {
-  places?: Array<{
-    id: string;
-    displayName?: { text: string };
-    formattedAddress?: string;
-    location?: { latitude: number; longitude: number };
-  }>;
-}
-
 /** Maps Google's `types[]` array (documented at
  *  developers.google.com/maps/documentation/places/web-service/place-types)
  *  onto Vaya's own LocationType taxonomy (packages/validation/geocoding.ts,
@@ -287,54 +278,6 @@ export class GooglePlacesProvider implements LocationProvider {
     } catch (err) {
       getLogger().warn({ err, provider: 'google', lat, lng }, 'Reverse geocode request failed');
       return null;
-    }
-  }
-
-  async searchNearbyLocalities(
-    point: { lat: number; lng: number },
-    radiusM: number,
-  ): Promise<LocationPoint[]> {
-    try {
-      const response = await fetchWithTimeout(`${PLACES_BASE_URL}/places:searchNearby`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Goog-Api-Key': this.apiKey,
-          // Minimal field mask — this feature only ever renders a name +
-          // coordinate per candidate (brief §7/§23's field-mask cost
-          // discipline, same as every other Places call in this file).
-          'X-Goog-FieldMask':
-            'places.id,places.displayName,places.formattedAddress,places.location',
-        },
-        body: JSON.stringify({
-          includedTypes: ['locality'],
-          maxResultCount: 10,
-          locationRestriction: {
-            circle: { center: { latitude: point.lat, longitude: point.lng }, radius: radiusM },
-          },
-        }),
-      });
-      if (!response.ok) throw new Error(`Places Nearby Search responded ${response.status}`);
-      const data = (await response.json()) as NearbySearchResponse;
-      return (data.places ?? [])
-        .filter((p) => p.location && p.displayName)
-        .map((p) => ({
-          placeId: p.id,
-          label: p.formattedAddress ?? p.displayName!.text,
-          primaryText: p.displayName!.text,
-          secondaryText: p.formattedAddress ?? null,
-          latitude: p.location!.latitude,
-          longitude: p.location!.longitude,
-          type: 'city' as const,
-          formattedAddress: p.formattedAddress ?? null,
-          city: p.displayName!.text,
-          governorate: null,
-          countryCode: null,
-          source: 'google' as const,
-        }));
-    } catch (err) {
-      getLogger().warn({ err, provider: 'google', point, radiusM }, 'Places Nearby Search request failed');
-      return [];
     }
   }
 }
