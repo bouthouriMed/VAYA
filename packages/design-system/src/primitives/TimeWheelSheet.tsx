@@ -48,11 +48,6 @@ const PADDING = ITEM_HEIGHT * Math.floor(VISIBLE_COUNT / 2);
 const MINUTE_STEP = 5;
 const COLUMN_WIDTH = 80;
 const SEPARATOR_WIDTH = 20;
-// The highlight box hugs the actual hour/separator/minute row width, not a
-// hardcoded guess — it's the real rendered width of the three columns, so
-// it always frames exactly what's on screen rather than floating free of
-// the numbers.
-const HIGHLIGHT_WIDTH = COLUMN_WIDTH * 2 + SEPARATOR_WIDTH;
 // One constant text size for every row, selected or not — emphasis comes
 // entirely from a scale transform + color/opacity interpolation (below),
 // never from swapping fontSize/lineHeight. A size swap changes the text
@@ -62,9 +57,22 @@ const HIGHLIGHT_WIDTH = COLUMN_WIDTH * 2 + SEPARATOR_WIDTH;
 // never touches layout at all, so the centered point never moves.
 const ITEM_FONT_SIZE = 22;
 const ITEM_LINE_HEIGHT = ITEM_HEIGHT;
-const CENTER_SCALE = 1.18;
+const CENTER_SCALE = 1.12;
 const EDGE_SCALE = 0.82;
 const EDGE_OPACITY = 0.35;
+// `transform: scale` grows a row visually around its own center without
+// changing its layout box — at CENTER_SCALE the centered row's rendered
+// height becomes ITEM_HEIGHT * CENTER_SCALE, which is taller than
+// ITEM_HEIGHT itself. The highlight box (a separate, fixed-size sibling
+// View) must be sized to actually contain that, not just the unscaled row
+// — this is what "the numbers sit outside the box" was: the box was sized
+// to ITEM_HEIGHT while the emphasized number rendered taller than it.
+const HIGHLIGHT_HEIGHT = Math.ceil(ITEM_HEIGHT * CENTER_SCALE);
+// Same reasoning horizontally, plus a little extra breathing room — two
+// digits have far more natural slack inside an 80px column than the row
+// has vertically inside 48px, but the box should still never hug the
+// scaled-up state edge-to-edge.
+const HIGHLIGHT_WIDTH = Math.ceil((COLUMN_WIDTH * 2 + SEPARATOR_WIDTH) * CENTER_SCALE) + spacing.md;
 
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 const MINUTES = Array.from({ length: 60 / MINUTE_STEP }, (_, i) => i * MINUTE_STEP);
@@ -375,9 +383,9 @@ const styles = StyleSheet.create({
     left: '50%',
     top: '50%',
     marginLeft: -HIGHLIGHT_WIDTH / 2,
-    marginTop: -ITEM_HEIGHT / 2,
+    marginTop: -HIGHLIGHT_HEIGHT / 2,
     width: HIGHLIGHT_WIDTH,
-    height: ITEM_HEIGHT,
+    height: HIGHLIGHT_HEIGHT,
     borderRadius: radii['2xl'],
     borderWidth: 1,
   },
