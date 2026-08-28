@@ -519,11 +519,22 @@ export async function updateDriverStopSelection(
  * trip profile (@vaya/domain's classifyTripProfile) so a short commute
  * doesn't silently accept an absurd detour a driver never actually
  * intended.
+ *
+ * `intercity` widened (15km/20min -> 30km/40min) after direct product
+ * feedback on a real reported case (Zaragoza on a Tarragona->Bilbao
+ * route) — live-verified the real, Google-Routes-computed polyline for
+ * that exact corridor already passes within ~3.5km of Zaragoza (so the
+ * 15km budget alone wasn't the blocker for a freshly-routed ride), but a
+ * long intercity trip's own real-world detour tolerance is genuinely
+ * larger than 15km/20min — a 500km+, 5+ hour trip reasonably justifies a
+ * 20-30km, ~30min detour to serve a real city, matching how real
+ * long-distance carpooling actually works. `urban`/`commute` widened
+ * proportionally for the same reason at their own scale.
  */
 export const VIA_STOP_DETOUR_BUDGET: Record<TripProfileType, { maxMeters: number; maxSeconds: number }> = {
-  commute: { maxMeters: 2000, maxSeconds: 480 },
-  urban: { maxMeters: 6000, maxSeconds: 720 },
-  intercity: { maxMeters: 15000, maxSeconds: 1200 },
+  commute: { maxMeters: 3000, maxSeconds: 600 },
+  urban: { maxMeters: 10000, maxSeconds: 900 },
+  intercity: { maxMeters: 30000, maxSeconds: 2400 },
 };
 
 export interface CustomStopInput {
