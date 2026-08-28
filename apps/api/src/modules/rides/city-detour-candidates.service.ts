@@ -1,13 +1,17 @@
+import { eq } from 'drizzle-orm';
 import { classifyTripProfile, type TripProfileType } from '@vaya/domain';
 import { decodePolyline, projectPointOntoRoute, type LatLng } from '../../lib/polyline.js';
 import { haversineDistanceMeters } from '../../lib/geo.js';
 import { getRedis } from '../../lib/redis.js';
 import { queryNearbyPlaces, type OverpassPlace } from '../../lib/overpass.js';
+import { queryGoogleNearbyLocalities } from '../../lib/google-nearby-places.js';
+import { routeStops } from '../../db/schema/index.js';
 import {
   sampleRoutePoints,
   polylineDistanceMeters,
   getDriverOwnedRideOrThrow,
   VIA_STOP_DETOUR_BUDGET,
+  type RouteSample,
 } from './stop-candidates.service.js';
 import type { getDatabase } from '../../lib/database.js';
 
@@ -18,23 +22,40 @@ type Database = ReturnType<typeof getDatabase>;
  * a detour stop — the primary, browsable list this feature is actually
  * about (per direct product feedback: "user should be able to see
  * predefined cities in his route, not manually search... think like
- * BlaBlaCar"). Manual search (addCustomStop's existing 'via' role) is the
- * fallback for a real place this discovery pass didn't surface, not the
- * primary mechanism.
+ * BlaBlaCar", and later: "recommend cities, if not cities recommend
+ * small towns... without too long loading"). Manual search
+ * (addCustomStop's existing 'via' role) stays the fallback for a real
+ * place none of the tiers below surfaced.
  *
- * Ranked by real OSM population data (via lib/overpass.ts), not just
- * proximity to a route sample — live-verified while building this that
- * proximity-only ranking picks obscure villages over a genuinely major
- * city sitting a little further from the sampled point: searching near
- * the Tarragona-Barcelona corridor, Google Places' Nearby Search (this
- * feature's first implementation) returned a dozen small Llobregat-area
- * towns and never "Barcelona" itself, even at a 20-40km radius — Google's
- * Nearby Search has no population/significance field to rank by at all.
- * Querying the same area via Overpass (OpenStreetMap's free query API)
- * found Barcelona immediately, tagged with its real population
- * (1,713,247) against a few hundred/thousand for the surrounding towns —
- * exactly the signal this feature needs. See lib/overpass.ts's own doc
- * comment for the full live-verified reasoning.
+ * A real three-tier fallback chain, not a single source of truth:
+ *
+ * 1. Overpass (lib/overpass.ts), ranked by real OSM population — the
+ *    best result when available (verified live: correctly ranks
+ *    Barcelona, population 1,713,247, above the small towns around it —
+ *    something Google's own Nearby Search response has no field to do
+ *    at all). Bounded by a hard wall-clock race (OVERPASS_SCAN_BUDGET_MS)
+ *    so a rate-limited or slow public mirror can't leave the driver
+ *    waiting indefinitely — live-verified this free service genuinely
+ *    can degrade under repeated use, and a fully degraded run must still
+ *    resolve quickly, not eventually.
+ * 2. Google Places Nearby Search (lib/google-nearby-places.ts), only when
+ *    tier 1 comes back empty — fast and reliable, ranked by how many
+ *    distinct route samples each place showed up in (a real, if cruder,
+ *    significance proxy than population: a genuinely central place has
+ *    a wider "pull" across several samples, a tiny village only shows up
+ *    once), run in parallel across samples rather than tier 1's
+ *    considerate sequential pacing (Google's own per-key rate limits are
+ *    far more generous than a shared free Overpass mirror).
+ * 3. This specific ride's own already-generated on-road micro-stops
+ *    (stop-candidates.service.ts, computed at ride-creation time from
+ *    OSRM/Google routing + reverse geocoding — a wholly independent
+ *    pipeline from tiers 1/2, so it can't share their failure mode),
+ *    only when BOTH of the above are empty. Not distinct "cities," but
+ *    real, road-snapped, named points along this exact route — a
+ *    driver willing to detour to *some* real place is better served by
+ *    an honest "these are real points on your route" list than a
+ *    literal empty state. Lives in listCityDetourCandidates below,
+ *    since it needs this specific ride's DB row, not just its polyline.
  *
  * Deliberately much coarser sampling than stop-candidates.service.ts's
  * on-route micro-stop generation (which targets ~1km spacing and a tight
@@ -48,11 +69,10 @@ const CITY_SAMPLE_INTERVAL_M: Record<TripProfileType, number> = {
   intercity: 12000,
 };
 
-/** Hard cap on how many Overpass queries one route scan makes, regardless
- *  of route length — a very long intercity route (e.g. 700km+) would
- *  otherwise generate dozens of samples, each a real network call.
- *  Widens the effective sample interval instead of uncapping the call
- *  count. */
+/** Hard cap on how many samples one route scan makes, regardless of route
+ *  length — a very long intercity route (e.g. 700km+) would otherwise
+ *  generate dozens of samples, each a real network call. Widens the
+ *  effective sample interval instead of uncapping the call count. */
 const MAX_CITY_SAMPLES = 24;
 
 /** How far from each route sample to search for real nearby places —
@@ -60,9 +80,9 @@ const MAX_CITY_SAMPLES = 24;
  *  interval itself): a genuinely major city's real "pull" for a detour is
  *  legitimately wider than a small town's, and live testing showed a
  *  city needs to be well within this radius of at least one sample to be
- *  found at all (Overpass has no ranked "search near, ordered by
- *  significance" mode — a place is either inside the query circle or
- *  it's invisible to that query). */
+ *  found at all (neither Overpass nor Google's Nearby Search has a
+ *  ranked "search near, ordered by significance" mode — a place is
+ *  either inside the query circle or it's invisible to that query). */
 const CITY_SEARCH_RADIUS_M: Record<TripProfileType, number> = {
   commute: 8000,
   urban: 15000,
@@ -124,15 +144,17 @@ export function dedupeCities(cities: CityDetourCandidate[], radiusM: number): Ci
  *  discipline this codebase already applies to Nominatim elsewhere. */
 const OVERPASS_SAMPLE_DELAY_MS = 1100;
 
-/** Hard wall-clock ceiling on the whole scan, regardless of how many
- *  samples that leaves unqueried — a driver opening the "add stops"
- *  sheet needs a bounded wait, not a wait that scales with how badly
- *  Overpass's public mirrors happen to be rate-limiting this exact
- *  moment (live-verified: a fully degraded run can otherwise take over a
- *  minute). Whatever's already in the pool when this is hit is real data
- *  from real successful queries — returning it early is an honest partial
- *  result, not a fabricated one. */
-const OVERPASS_SCAN_BUDGET_MS = 12_000;
+/** Hard wall-clock ceiling on the whole Overpass tier, enforced as a real
+ *  race (not just a "check between samples" loop condition, which live
+ *  testing showed can still let a single fully-failed sample — three
+ *  mirrors each timing out — eat up to ~12s on its own before the check
+ *  even runs again). Whatever's already in the pool when this fires is
+ *  real data from real successful queries; racing it out early is an
+ *  honest partial/empty result, never a fabricated one, and it's what
+ *  lets tier 2 (Google) actually kick in within a UX-reasonable total
+ *  wait instead of only after Overpass has been given every chance to
+ *  eventually succeed. */
+const OVERPASS_SCAN_BUDGET_MS = 5_000;
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -149,26 +171,107 @@ function hashPolyline(polyline: string): string {
   return hash.toString(16);
 }
 
+/** Filters a scored candidate pool to a real, driver-plausible detour
+ *  distance (VIA_STOP_DETOUR_BUDGET — the same budget addCustomStop
+ *  enforces when the driver actually taps to add one, so nothing
+ *  recommended here can ever hit that endpoint's "too far" rejection),
+ *  ranks by score, dedupes/caps, then re-sorts the kept set into real
+ *  route order for display — shared by both the Overpass and Google
+ *  tiers below, which differ only in how they score a candidate. */
+function filterRankAndOrder(
+  scored: Array<{ candidate: CityDetourCandidate; score: number }>,
+  points: LatLng[],
+  detourBudgetM: number,
+): CityDetourCandidate[] {
+  const withinBudget = scored.filter(
+    (s) => projectPointOntoRoute({ lat: s.candidate.lat, lng: s.candidate.lng }, points).distanceM <= detourBudgetM,
+  );
+  const rankedByScore = withinBudget.sort((a, b) => b.score - a.score).map((s) => s.candidate);
+  const kept = dedupeCities(rankedByScore, CITY_MERGE_RADIUS_M).slice(0, MAX_CITY_CANDIDATES);
+  return kept
+    .map((c) => ({ candidate: c, fraction: projectPointOntoRoute({ lat: c.lat, lng: c.lng }, points).fraction }))
+    .sort((a, b) => a.fraction - b.fraction)
+    .map((s) => s.candidate);
+}
+
+/** Tier 1: real, sequential, pace-limited Overpass queries — collects
+ *  EVERY place a sample finds (not just the nearest) into one pool
+ *  spanning the whole route, keeping each distinct place's single best
+ *  (highest-population) occurrence. Races against OVERPASS_SCAN_BUDGET_MS
+ *  so a badly-degraded run still returns (whatever partial pool exists)
+ *  within a bounded time — the background scan isn't cancelled, it's
+ *  just no longer waited on. */
+async function scanOverpassCities(
+  samples: RouteSample[],
+  searchRadiusM: number,
+  points: LatLng[],
+  detourBudgetM: number,
+): Promise<CityDetourCandidate[]> {
+  const pool = new Map<string, OverpassPlace>();
+  const scanPromise = (async () => {
+    for (let i = 0; i < samples.length; i++) {
+      if (i > 0) await sleep(OVERPASS_SAMPLE_DELAY_MS);
+      const nearby = await queryNearbyPlaces(samples[i]!.point, searchRadiusM);
+      for (const place of nearby) {
+        const key = place.name.toLowerCase();
+        const existing = pool.get(key);
+        if (!existing || (place.population ?? 0) > (existing.population ?? 0)) {
+          pool.set(key, place);
+        }
+      }
+    }
+  })();
+  await Promise.race([scanPromise, sleep(OVERPASS_SCAN_BUDGET_MS)]);
+
+  const scored = Array.from(pool.values()).map((place) => ({
+    candidate: { label: place.name, lat: place.lat, lng: place.lng },
+    score: populationScore(place.population),
+  }));
+  return filterRankAndOrder(scored, points, detourBudgetM);
+}
+
+/** Tier 2: Google Places Nearby Search, queried in parallel across every
+ *  sample (unlike tier 1's considerate sequential pacing — a real,
+ *  per-key Google quota tolerates this fine, and this tier's whole job
+ *  is to answer fast when Overpass didn't). Ranked by how many distinct
+ *  samples found each place — no population field exists here, but a
+ *  place with real "pull" across multiple samples is a meaningfully
+ *  better significance proxy than raw proximity alone. */
+async function scanGoogleFallbackCities(
+  samples: RouteSample[],
+  searchRadiusM: number,
+  points: LatLng[],
+  detourBudgetM: number,
+): Promise<CityDetourCandidate[]> {
+  const perSampleResults = await Promise.all(
+    samples.map((sample) => queryGoogleNearbyLocalities(sample.point, searchRadiusM)),
+  );
+
+  const pool = new Map<string, { label: string; lat: number; lng: number; occurrences: number }>();
+  for (const places of perSampleResults) {
+    for (const place of places) {
+      const key = place.name.toLowerCase();
+      const existing = pool.get(key);
+      if (existing) existing.occurrences += 1;
+      else pool.set(key, { label: place.name, lat: place.lat, lng: place.lng, occurrences: 1 });
+    }
+  }
+
+  const scored = Array.from(pool.values()).map((place) => ({
+    candidate: { label: place.label, lat: place.lat, lng: place.lng },
+    score: place.occurrences,
+  }));
+
+  return filterRankAndOrder(scored, points, detourBudgetM);
+}
+
 /**
- * Runs the sample -> nearby-place-search -> population-rank -> dedupe
- * pipeline for a route, independent of any specific ride (cached by a
- * hash of the polyline, same reuse-across-rides-on-the-same-route
- * reasoning as stop-candidates.service.ts's computeCandidatesForRoute).
- *
- * Each sample's search collects EVERY real place Overpass returns (not
- * just the nearest one) into one pool spanning the whole route, keeping
- * each distinct place's single best (highest-population) occurrence.
- * The pool is then filtered to a real, driver-plausible detour distance
- * (VIA_STOP_DETOUR_BUDGET — the same budget addCustomStop enforces when
- * the driver actually taps to add one, so nothing recommended here can
- * ever hit that endpoint's "too far" rejection), ranked by population,
- * capped, and finally re-sorted into real route order for display.
- *
- * Each sample is a real, sequential Overpass call (never parallelized —
- * a shared, free public API deserves the same considerate-load
- * discipline computeCandidatesForRoute's nearestRoad loop already
- * follows); a failed or empty-result sample is simply skipped, never
- * fabricated.
+ * Runs the tier-1/tier-2 discovery pipeline for a route, independent of
+ * any specific ride (cached by a hash of the polyline, same
+ * reuse-across-rides-on-the-same-route reasoning as
+ * stop-candidates.service.ts's computeCandidatesForRoute). Tier 3 (this
+ * ride's own on-road stops) lives in listCityDetourCandidates below,
+ * since it needs a specific ride's DB row.
  */
 export async function computeCityDetourCandidates(
   routePolyline: string,
@@ -182,7 +285,7 @@ export async function computeCityDetourCandidates(
   const searchRadiusM = CITY_SEARCH_RADIUS_M[profile.type];
   const detourBudgetM = VIA_STOP_DETOUR_BUDGET[profile.type].maxMeters;
   const hash = hashPolyline(routePolyline);
-  const cacheKey = `route-stops:city-candidates:v3:${profile.type}:${hash}`;
+  const cacheKey = `route-stops:city-candidates:v4:${profile.type}:${hash}`;
 
   const redis = getRedis();
   if (redis) {
@@ -191,46 +294,11 @@ export async function computeCityDetourCandidates(
   }
 
   const samples = sampleRoutePoints(points, [], intervalM);
-  const scanStartedAt = Date.now();
 
-  // Keyed by lowercased name — keeps only each distinct place's
-  // best (highest-population) sighting across every sample that
-  // found it, rather than one entry per sample.
-  const pool = new Map<string, OverpassPlace>();
-  for (let i = 0; i < samples.length; i++) {
-    if (Date.now() - scanStartedAt > OVERPASS_SCAN_BUDGET_MS) break;
-    if (i > 0) await sleep(OVERPASS_SAMPLE_DELAY_MS);
-    const nearby = await queryNearbyPlaces(samples[i]!.point, searchRadiusM);
-    for (const place of nearby) {
-      const key = place.name.toLowerCase();
-      const existing = pool.get(key);
-      if (!existing || (place.population ?? 0) > (existing.population ?? 0)) {
-        pool.set(key, place);
-      }
-    }
+  let result = await scanOverpassCities(samples, searchRadiusM, points, detourBudgetM);
+  if (result.length === 0) {
+    result = await scanGoogleFallbackCities(samples, searchRadiusM, points, detourBudgetM);
   }
-
-  const withinBudget = Array.from(pool.values()).filter(
-    (place) => projectPointOntoRoute({ lat: place.lat, lng: place.lng }, points).distanceM <= detourBudgetM,
-  );
-
-  const rankedByPopulation = withinBudget
-    .map((place) => ({
-      candidate: { label: place.name, lat: place.lat, lng: place.lng },
-      score: populationScore(place.population),
-    }))
-    .sort((a, b) => b.score - a.score)
-    .map((s) => s.candidate);
-
-  const kept = dedupeCities(rankedByPopulation, CITY_MERGE_RADIUS_M).slice(0, MAX_CITY_CANDIDATES);
-
-  // Population ranking decided WHICH cities make the cut; the final
-  // list reads in real route order, matching how a driver would
-  // actually encounter them along the trip.
-  const result = kept
-    .map((c) => ({ candidate: c, fraction: projectPointOntoRoute({ lat: c.lat, lng: c.lng }, points).fraction }))
-    .sort((a, b) => a.fraction - b.fraction)
-    .map((s) => s.candidate);
 
   // Deliberately NOT using lib/cache.ts's generic `cached()` wrapper,
   // which would cache an empty result unconditionally — live-verified
@@ -268,6 +336,20 @@ export async function listCityDetourCandidates(
   if (!ride.routePolyline) return { cities: [], tripProfileType: null };
 
   const tripProfileType = classifyTripProfile(polylineDistanceMeters(decodePolyline(ride.routePolyline))).type;
-  const cities = await computeCityDetourCandidates(ride.routePolyline);
+  let cities = await computeCityDetourCandidates(ride.routePolyline);
+
+  // Tier 3: this ride's own already-generated on-road micro-stops
+  // (stop-candidates.service.ts) — a wholly independent pipeline from
+  // Overpass/Google above, computed at ride-creation time, so it can't
+  // share either tier's failure mode. Not distinct "cities," but real,
+  // road-snapped, named points along this exact route — shown only when
+  // both tiers above genuinely found nothing, per direct product
+  // feedback: "if not cities, recommend small towns" rather than an
+  // honest-but-unhelpful empty list.
+  if (cities.length === 0) {
+    const onRoadStops = await db.query.routeStops.findMany({ where: eq(routeStops.rideId, rideId) });
+    cities = onRoadStops.map((s) => ({ label: s.label, lat: s.lat, lng: s.lng }));
+  }
+
   return { cities, tripProfileType };
 }
