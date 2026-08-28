@@ -76,7 +76,8 @@
     "seatTakenError": "Cette place vient peut-être d'être prise. Réessayez.",
     "selfBookingError": "Vous ne pouvez pas demander une place sur votre propre trajet.",
     "duplicateBookingError": "Vous avez déjà une demande pour ce trajet.",
-    "rideNotBookableError": "Ce trajet n'accepte plus de demandes."
+    "rideNotBookableError": "Ce trajet n'accepte plus de demandes.",
+    "pickupNotAvailableError": "Ce point de prise en charge n'est pas encore validé par le conducteur pour ce trajet."
   },
   "trust": {
     "back": "Retour",

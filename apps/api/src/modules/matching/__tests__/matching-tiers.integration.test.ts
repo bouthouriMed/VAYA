@@ -352,6 +352,44 @@ describe('matching.service — tier cascade, real Postgres (+ real OSRM for rout
     expect(match!.dropoffViable).toBe(true);
   }, 30_000);
 
+  it('falls back to tier "detour_match" (not "none") for a rider whose points sit ON a real route but no driver-selected stop exists there (regression: a real point on-route was silently unmatched by every tier)', async () => {
+    if (osrmUnavailable || !passThroughPickup || !passThroughDropoff) {
+      // Honest degradation, same discipline as the other OSRM-dependent
+      // fixtures in this file.
+      return;
+    }
+    // Real bug found live: a rider searching Guadalajara -> Madrid, both
+    // genuinely on a driver's real route, got zero results — route_
+    // passthrough correctly excludes it (no real driver-selected stop
+    // exists at that specific spot, per its own "never offer an
+    // unvalidated pickup" design), but scoreDetourCandidates ALSO used to
+    // skip it (a pure "is this geometrically on the corridor" check,
+    // wrongly assuming route_passthrough already covers every on-route
+    // point regardless of stops), so nothing ever surfaced it. Reuses the
+    // route-passthrough fixture's own long real route, but picks two
+    // points well away from BOTH of its real stops (fractions 0.25/0.6) so
+    // neither tier's stop-walkability check can accidentally pass.
+    const route = await getRoute(tunis, sousse);
+    const points = decodePolyline(route.polyline);
+    const onRouteOrigin = points[Math.floor(points.length * 0.05)]!;
+    const onRouteDestination = points[Math.floor(points.length * 0.12)]!;
+
+    const result = await searchRides(db, {
+      originLat: onRouteOrigin.lat,
+      originLng: onRouteOrigin.lng,
+      destinationLat: onRouteDestination.lat,
+      destinationLng: onRouteDestination.lng,
+      when: areaAWhen,
+    });
+
+    expect(result.tier).toBe('detour_match');
+    const match = result.candidates.find((c) => c.rideId === passThroughRideId);
+    expect(match).toBeDefined();
+    expect(match!.matchType).toBe('detour');
+    // A genuinely on-route insertion costs the driver almost nothing extra.
+    expect(match!.detour!.extraDurationSeconds).toBeLessThan(5 * 60);
+  }, 30_000);
+
   it('falls back to tier "closest_departure" when nothing matches at or near the requested time', async () => {
     const result = await searchRides(db, {
       originLat: areaAOrigin.lat,

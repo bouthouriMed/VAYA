@@ -19,8 +19,6 @@ const detourInfoSchema = z.object({
   extraDurationSeconds: z.number(),
   extraDistanceMeters: z.number(),
   detourRatio: z.number(),
-  pickupEtaSeconds: z.number(),
-  dropoffEtaSeconds: z.number(),
 });
 
 const matchCandidateSchema = z.object({
@@ -50,6 +48,9 @@ const matchCandidateSchema = z.object({
   dropoffViable: z.boolean(),
   matchType: z.enum(['endpoint', 'route_passthrough', 'detour']),
   detour: detourInfoSchema.nullable(),
+  pickupEtaSeconds: z.number(),
+  dropoffEtaSeconds: z.number(),
+  detourRoutePolyline: z.string().nullable(),
 });
 
 // Phase 13 (docs/roadmap/phase-13-search-engine.md): one search response now

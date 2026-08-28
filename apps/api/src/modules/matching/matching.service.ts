@@ -256,9 +256,30 @@ export interface MatchCandidate {
      *  (a fixed detour-minutes bound means very different things on a
      *  5-minute hop vs. a 3-hour intercity trip — see MAX_DETOUR_RATIO). */
     detourRatio: number;
-    pickupEtaSeconds: number;
-    dropoffEtaSeconds: number;
   } | null;
+  /** Seconds after `departureAt` when the driver is realistically expected
+   *  to reach THIS passenger's actual pickup point — real in every case,
+   *  never just `departureAt` re-shown as if it were the pickup time (a
+   *  real bug found live: a passenger matched mid-route saw the driver's
+   *  own origin departure time labeled as their own pickup time). 0 for
+   *  'endpoint' (pickup is the ride's own origin, by construction of that
+   *  tier's own radius test); a route-fraction share of the ride's real
+   *  total duration for 'route_passthrough' (the stop sits partway through
+   *  a real, already-computed route); the routing engine's own real
+   *  with-insertion ETA for 'detour'. */
+  pickupEtaSeconds: number;
+  /** Dropoff-side mirror of `pickupEtaSeconds`. */
+  dropoffEtaSeconds: number;
+  /** Real routing-engine-computed polyline for THIS passenger's own pickup
+   *  -> dropoff leg — populated only for matchType 'detour', whose pickup/
+   *  dropoff are NOT points on the ride's own stored route at all (that's
+   *  the whole mechanic: the driver would leave their route to reach them).
+   *  Showing `routePolyline` (the driver's unrelated full trip) for a
+   *  detour match would be a real, reported bug — the passenger's ride-
+   *  details map must show their own leg, not the driver's whole journey.
+   *  Null for every other matchType, which already has a real on-route
+   *  segment to slice out of `routePolyline` instead. */
+  detourRoutePolyline: string | null;
 }
 
 /**
@@ -463,6 +484,13 @@ function buildEndpointCandidate(
     dropoffViable,
     matchType: 'endpoint',
     detour: null,
+    // Pickup ≈ the ride's own origin, by construction of this tier's own
+    // tight radius test — 0 offset is a real statement about that
+    // geometry, not a shortcut. Dropoff ≈ the ride's own full duration
+    // later, for the same reason.
+    pickupEtaSeconds: 0,
+    dropoffEtaSeconds: ride.estimatedDurationSec ?? 0,
+    detourRoutePolyline: null,
     reasons: buildReasons({
       pickupWalkMinutes,
       timeDeltaMin,
@@ -671,6 +699,14 @@ async function scorePassThroughCandidates(
       dropoffViable: true,
       matchType: 'route_passthrough',
       detour: null,
+      // The stop sits partway through a real, already-computed route — a
+      // route-fraction share of the ride's real total duration, the same
+      // honest approximation scoreDetourCandidates already uses for its own
+      // ETA (no per-leg breakdown exists from the routing provider without
+      // doubling the routing cost — see that tier's own doc comment).
+      pickupEtaSeconds: Math.round((ride.estimatedDurationSec ?? 0) * clamp01(originProj.fraction)),
+      dropoffEtaSeconds: Math.round((ride.estimatedDurationSec ?? 0) * clamp01(destProj.fraction)),
+      detourRoutePolyline: null,
       reasons: [
         ...buildReasons({
           pickupWalkMinutes,
@@ -743,27 +779,42 @@ async function scoreDetourCandidates(
     where: and(eq(rides.status, 'published'), inArray(rides.id, candidateIds)),
     with: { driverProfile: { with: { user: true } } },
   });
+  const stopsByRide = await fetchStopsByRide(
+    db,
+    candidateRides.map((r) => r.id),
+  );
 
   const results: MatchCandidate[] = [];
   for (const ride of candidateRides) {
     if (ride.seatsAvailable < 1) continue;
     if (!ride.routePolyline || !ride.estimatedDurationSec) continue; // No real baseline to compare against.
 
-    // The route-passthrough tier already covers "already on the route" —
-    // re-testing the tight corridor here would just duplicate it (and
-    // waste a routing call on a candidate that tier already handles
-    // better, with a real 100% overlap rather than an approximate detour).
     const routePoints = decodePolyline(ride.routePolyline);
     const originProj = projectPointOntoRoute(origin, routePoints);
     const destProj = projectPointOntoRoute(destination, routePoints);
-    // Same profile-scaled corridor route_passthrough itself uses for this
-    // search — a ride that tier would already surface shouldn't also cost a
-    // real routing call here.
-    const alreadyOnRoute =
+    // Real bug found live: a rider's origin/destination genuinely on this
+    // ride's route (Madrid, sitting right on a Tortosa->Plasencia route)
+    // went entirely unmatched — route_passthrough correctly excluded it
+    // (no real driver-selected route_stop exists near Madrid, and that
+    // tier never offers an unvalidated pickup, per CLAUDE.md product
+    // principle #1), but this tier ALSO skipped it on the assumption that
+    // "geometrically on the corridor" means "route_passthrough already
+    // covers it" — false whenever no walkable stop exists there. Only skip
+    // the real routing call when route_passthrough's actual qualification
+    // bar (real walkable stops on BOTH ends, scorePassThroughCandidates'
+    // own doc comment) would genuinely have surfaced this ride — otherwise
+    // let the real routing call run and decide honestly: a point truly on
+    // the route will naturally come back with a near-zero extra duration
+    // and surface here as a low-detour, driver-confirmation-required
+    // match instead of being silently dropped by every tier.
+    const rideStops = stopsByRide.get(ride.id) ?? [];
+    const passThroughWouldQualify =
+      rankStopsByWalkDistance(origin, rideStops).length > 0 &&
+      rankStopsByWalkDistance(destination, rideStops).length > 0 &&
       originProj.distanceM <= thresholds.corridorWidthM &&
       destProj.distanceM <= thresholds.corridorWidthM &&
       destProj.fraction - originProj.fraction >= MIN_ROUTE_FRACTION_GAP;
-    if (alreadyOnRoute) continue;
+    if (passThroughWouldQualify) continue;
 
     // The one real routing-API call this candidate costs: origin -> pickup
     // -> dropoff -> destination, in that order (pickup must precede
@@ -836,7 +887,14 @@ async function scoreDetourCandidates(
       pickupViable: false,
       dropoffViable: false,
       matchType: 'detour',
-      detour: { extraDurationSeconds, extraDistanceMeters, detourRatio, pickupEtaSeconds, dropoffEtaSeconds },
+      detour: { extraDurationSeconds, extraDistanceMeters, detourRatio },
+      pickupEtaSeconds,
+      dropoffEtaSeconds,
+      // Real routing-engine polyline for THIS passenger's own leg (origin
+      // -> pickup -> dropoff -> destination) — lets ride-details.tsx show
+      // the passenger their own route instead of the driver's unrelated
+      // full trip (see MatchCandidate.detourRoutePolyline's doc comment).
+      detourRoutePolyline: withInsertion.polyline,
       reasons: [`+${Math.round(extraDurationSeconds / 60)} min de détour pour le conducteur`],
       clusterLabel: buildClusterLabel(timeDeltaMin),
     });
