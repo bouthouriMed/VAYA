@@ -17,6 +17,7 @@ import {
   GlassSurface,
   StepProgress,
   useAppTheme,
+  haptics,
   spacing,
   radii,
   type AppPalette,
@@ -257,7 +258,10 @@ export default function SelfieCaptureScreen(): React.JSX.Element {
       <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
         <View style={styles.headerRow}>
           <TouchableOpacity
-            onPress={() => setPhase('capture')}
+            onPress={() => {
+              haptics.selection();
+              setPhase('capture');
+            }}
             hitSlop={12}
             accessibilityRole="button"
           accessibilityLabel={t('onboarding.index.back')}
@@ -328,7 +332,10 @@ export default function SelfieCaptureScreen(): React.JSX.Element {
       <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.lg, backgroundColor: theme.background }]}>
         <TouchableOpacity
           style={[styles.cta, { backgroundColor: theme.ink }, isSubmitting && styles.ctaDisabled]}
-          onPress={() => void submit()}
+          onPress={() => {
+            haptics.selection();
+            void submit();
+          }}
           disabled={isSubmitting}
           activeOpacity={0.85}
           accessibilityRole="button"

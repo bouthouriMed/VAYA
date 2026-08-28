@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Svg, { Circle, Path } from 'react-native-svg';
 import { useTranslation } from 'react-i18next';
-import { Text, Icon, StepProgress, useToast, useAppTheme, spacing, radii, type IconName } from '@vaya/design-system';
+import { Text, Icon, StepProgress, useToast, useAppTheme, haptics, spacing, radii, type IconName } from '@vaya/design-system';
 
 export type CaptureGuideShape = 'document' | 'face';
 
@@ -107,18 +107,21 @@ export function CaptureCamera({
       // takePictureAsync resolves to undefined when the native camera view
       // ref isn't attached yet — treat that as a failure, never as success.
       if (photo?.uri) {
+        haptics.selection();
         Animated.sequence([
           Animated.timing(flash, { toValue: 1, duration: 80, useNativeDriver: true }),
           Animated.timing(flash, { toValue: 0, duration: 180, useNativeDriver: true }),
         ]).start();
         setCapturedUri(photo.uri);
       } else {
+        haptics.error();
         showToast({
           message: t('onboarding.capture.cameraNotReady'),
           tone: 'error',
         });
       }
     } catch {
+      haptics.error();
       showToast({ message: t('onboarding.capture.captureFailed'), tone: 'error' });
     } finally {
       setIsCapturing(false);
@@ -197,7 +200,10 @@ export function CaptureCamera({
         <View style={[styles.reviewActions, { paddingBottom: insets.bottom + spacing.lg }]}>
           <TouchableOpacity
             style={[styles.cta, { backgroundColor: theme.ink }]}
-            onPress={() => onCapture(capturedUri)}
+            onPress={() => {
+              haptics.success();
+              onCapture(capturedUri);
+            }}
             activeOpacity={0.85}
             accessibilityRole="button"
             accessibilityLabel={t('onboarding.capture.usePhoto')}
@@ -208,7 +214,10 @@ export function CaptureCamera({
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.retakeBtn}
-            onPress={() => setCapturedUri(null)}
+            onPress={() => {
+              haptics.selection();
+              setCapturedUri(null);
+            }}
             accessibilityRole="button"
             accessibilityLabel={t('onboarding.capture.retake')}
           >

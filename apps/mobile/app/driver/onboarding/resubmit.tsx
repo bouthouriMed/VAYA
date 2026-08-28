@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { View, StyleSheet, ScrollView, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { Text, Icon, GlassSurface, useAppTheme, spacing, radii } from '@vaya/design-system';
+import { Text, Icon, GlassSurface, useAppTheme, haptics, spacing, radii } from '@vaya/design-system';
 import { router } from 'expo-router';
 import {
   useGetMyDriverProfileQuery,
@@ -217,7 +217,10 @@ export default function ResubmitVerificationScreen(): React.JSX.Element {
       <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.lg, backgroundColor: theme.background }]}>
         <TouchableOpacity
           style={[styles.cta, { backgroundColor: theme.ink }, isSubmitting && styles.ctaDisabled]}
-          onPress={() => void submit()}
+          onPress={() => {
+            haptics.selection();
+            void submit();
+          }}
           disabled={isSubmitting}
           activeOpacity={0.85}
           accessibilityRole="button"

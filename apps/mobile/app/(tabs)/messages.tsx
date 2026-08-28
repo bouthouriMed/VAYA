@@ -15,6 +15,7 @@ import {
   EmptyState,
   SkeletonBlock,
   useAppTheme,
+  haptics,
   spacing,
   radii,
   elevation,
@@ -335,7 +336,10 @@ export default function MessagesScreen(): React.JSX.Element {
             <FilterPill
               key={key}
               label={label}
-              onPress={() => setFilter(key)}
+              onPress={() => {
+                haptics.selection();
+                setFilter(key);
+              }}
               selected={filter === key}
               theme={theme}
             />
@@ -377,7 +381,10 @@ export default function MessagesScreen(): React.JSX.Element {
                 { shadowColor: theme.ink },
                 isClosed && styles.cardClosed,
               ]}
-              onPress={() => openConversation(item)}
+              onPress={() => {
+                haptics.selection();
+                openConversation(item);
+              }}
               activeOpacity={0.7}
               accessibilityRole="button"
               accessibilityLabel={`${t('messages:conversationWith')} ${item.otherParty.fullName}, ${item.originLabel} → ${item.destinationLabel}${isActive ? `, ${t('messages:tripInProgress')}` : ''}`}

@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { colors, spacing } from '../tokens/index';
+import { haptics } from '../utils/haptics';
 import type { AppPalette } from '../theme/palette';
 
 interface StarRatingInputProps {
@@ -54,7 +55,10 @@ export function StarRatingInput({
         return (
           <TouchableOpacity
             key={n}
-            onPress={() => onChange(n)}
+            onPress={() => {
+              haptics.selection();
+              onChange(n);
+            }}
             disabled={disabled}
             hitSlop={8}
             accessibilityRole="button"

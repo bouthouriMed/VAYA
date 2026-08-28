@@ -3,6 +3,7 @@ import { TouchableOpacity, View, StyleSheet } from 'react-native';
 import { Text } from './Text';
 import { Icon, type IconName } from './Icon';
 import { spacing, radii } from '../tokens/index';
+import { haptics } from '../utils/haptics';
 import type { AppPalette } from '../theme/palette';
 
 export type RouteOptionKind = 'fastest' | 'no_tolls' | 'no_highways' | 'alternative';
@@ -81,7 +82,10 @@ export function RouteOptionCard({
 
   return (
     <TouchableOpacity
-      onPress={onPress}
+      onPress={() => {
+        haptics.selection();
+        onPress();
+      }}
       activeOpacity={0.85}
       style={[
         styles.card,

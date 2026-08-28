@@ -18,6 +18,7 @@ import {
   GlassSurface,
   StepProgress,
   useAppTheme,
+  haptics,
   spacing,
   radii,
 } from '@vaya/design-system';
@@ -146,7 +147,10 @@ export default function VehicleStepScreen(): React.JSX.Element {
               <View style={styles.stepperRow}>
                 <TouchableOpacity
                   style={[styles.stepperBtn, { backgroundColor: theme.surfaceMuted }]}
-                  onPress={() => setSeatCount((s) => Math.max(1, s - 1))}
+                  onPress={() => {
+                    haptics.selection();
+                    setSeatCount((s) => Math.max(1, s - 1));
+                  }}
                   accessibilityRole="button"
                   accessibilityLabel={t('onboarding.vehicle.removeSeat')}
                 >
@@ -159,7 +163,10 @@ export default function VehicleStepScreen(): React.JSX.Element {
                 </Text>
                 <TouchableOpacity
                   style={[styles.stepperBtn, { backgroundColor: theme.surfaceMuted }]}
-                  onPress={() => setSeatCount((s) => Math.min(8, s + 1))}
+                  onPress={() => {
+                    haptics.selection();
+                    setSeatCount((s) => Math.min(8, s + 1));
+                  }}
                   accessibilityRole="button"
                   accessibilityLabel={t('onboarding.vehicle.addSeat')}
                 >
@@ -180,7 +187,10 @@ export default function VehicleStepScreen(): React.JSX.Element {
             { backgroundColor: theme.ink },
             !canContinue && styles.ctaDisabled,
           ]}
-          onPress={next}
+          onPress={() => {
+            haptics.selection();
+            next();
+          }}
           disabled={!canContinue}
           activeOpacity={0.85}
           accessibilityRole="button"

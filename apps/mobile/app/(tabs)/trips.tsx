@@ -13,6 +13,7 @@ import {
   EmptyState,
   MapPreview,
   useAppTheme,
+  haptics,
   spacing,
   radii,
 } from '@vaya/design-system';
@@ -119,7 +120,10 @@ function TripCard({
         { backgroundColor: theme.surface, borderColor: theme.outlineVariant },
         dimmed && styles.tripCardDimmed,
       ]}
-      onPress={onPress}
+      onPress={() => {
+        haptics.selection();
+        onPress();
+      }}
       activeOpacity={0.7}
       accessibilityRole="button"
       accessibilityLabel={`${originLabel} → ${destinationLabel}, ${dateTimeLabel}, ${badge.label}`}
@@ -320,7 +324,10 @@ export default function TripsScreen(): React.JSX.Element {
             </Text>
           </View>
           <TouchableOpacity
-            onPress={() => router.push('/notifications')}
+            onPress={() => {
+              haptics.selection();
+              router.push('/notifications');
+            }}
             accessibilityRole="button"
             accessibilityLabel={hasUnreadNotifications ? t('trips:notificationsUnreadAria') : t('trips:notificationsAria')}
             style={[styles.notificationButton, { backgroundColor: theme.surface }]}
@@ -529,7 +536,10 @@ export default function TripsScreen(): React.JSX.Element {
                   styles.segmentItem,
                   segment === key ? { backgroundColor: theme.surface } : null,
                 ]}
-                onPress={() => selectSegment(key)}
+                onPress={() => {
+                  haptics.selection();
+                  selectSegment(key);
+                }}
                 accessibilityRole="tab"
                 accessibilityState={{ selected: segment === key }}
                 accessibilityLabel={t(labelKey)}
