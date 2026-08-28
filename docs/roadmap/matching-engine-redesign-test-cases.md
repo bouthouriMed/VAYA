@@ -1,8 +1,7 @@
 # Matching-engine redesign — manual UI test cases
 
-Seeded by `apps/api/src/db/seed-matching-scenarios.ts` against the shared dev
-Postgres instance (docker-compose, port 5433) — **read the "Important caveat"
-section below before testing**, then run the app against that same database.
+Seeded by `apps/api/src/db/seed-matching-scenarios.ts` against the dev
+Postgres instance (docker-compose, port 5433).
 
 Login is OTP-based. To fetch a code for any phone number below:
 
@@ -14,28 +13,26 @@ SELECT code FROM otp_codes WHERE phone = '<phone>' ORDER BY created_at DESC LIMI
 
 ---
 
-## Important caveat — shared database
+## Database state — clean, scenario-only
 
-This dev Postgres instance is shared with your main checkout's own running
-dev servers (`apps/api`'s `tsx watch`, `apps/admin`'s vite dev server) and
-possibly other concurrent sessions — it is **not** an isolated sandbox
-scoped to this worktree. Two things worth knowing before you test:
+The database was fully wiped (`TRUNCATE`) and reseeded with **only** the
+scenario data below — 9 users, 6 rides, 3 bookings, 4 route stops, nothing
+else. No canonical/demo dataset is mixed in, so every result you see in
+the searches below belongs to one of these named scenarios.
 
-1. The database was wiped (`TRUNCATE`) and reseeded during this session.
-   If you had unsaved manual test data in it, it's gone.
-2. At the moment this was written, your main checkout's own `pnpm db:seed`
-   process was independently running against the same database (I didn't
-   start it, and didn't kill it — killing another active process felt like
-   the wrong call to make on my own). The database now contains a mix of
-   the original canonical demo dataset (drivers/rides named things like
-   "El Menzah 5 → Tunis Digital Center", "Ben Arous → Tunis") **and** the
-   scenario data below. This means a search in scenarios 2 and 3 may show
-   *additional* rides beyond the ones described here — that's expected;
-   just confirm the **specific labeled rides/drivers below** behave as
-   described, not that they're the only results.
+Two things worth knowing:
 
-If you'd rather test against a clean, fully isolated database going
-forward, say so and I'll set one up rather than reusing the shared one.
+1. This dev Postgres instance is shared with your main checkout's own
+   dev servers (`apps/api`'s `tsx watch`, `apps/admin`'s vite dev
+   server), not isolated to this worktree — a `pnpm db:seed` process
+   from the main checkout was found hung (stuck on OSRM, which has no
+   prepared Tunisia extract in this environment) and was stopped before
+   this clean reseed, so it wouldn't write over it again.
+2. `docker/osrm`'s Tunisia extract was never prepared here, so every
+   route below is a real, geometrically honest but hand-encoded polyline
+   between real coordinates rather than an OSRM-routed one (same
+   discipline this codebase's own integration tests use). Prices are
+   still the real `computeSuggestedPrice` formula output.
 
 ---
 
@@ -48,18 +45,18 @@ and a request that actually overlaps an already-accepted booking's segment
 is correctly rejected.
 
 **Setup already seeded:** Ride R1, driver **Sami Trabelsi**
-(`+216736866301`), Tunis → Hammamet → Sousse → Monastir, **2 seats**. Three
+(`+216573579801`), Tunis → Hammamet → Sousse → Monastir, **2 seats**. Three
 *pending* requests already exist on it:
 
 | Booking | Rider | Phone | Segment | Seats |
 |---|---|---|---|---|
-| A | Ines Zouari | `+216736866302` | Hammamet → Sousse | 1 |
-| B | Karim Fassi | `+216736866303` | Sousse → Monastir | 1 |
-| C | Nour Khedher | `+216736866304` | Hammamet → Sousse | 2 |
+| A | Ines Zouari | `+216573579802` | Hammamet → Sousse | 1 |
+| B | Karim Fassi | `+216573579803` | Sousse → Monastir | 1 |
+| C | Nour Khedher | `+216573579804` | Hammamet → Sousse | 2 |
 
 **Steps:**
 
-1. Log in as the driver (`+216736866301`).
+1. Log in as the driver (`+216573579801`).
 2. Open **Trips → your published ride (Tunis → Monastir)**. You should see
    3 pending requests: Ines, Karim, Nour.
 3. Tap **Accept** on Ines's request (Hammamet → Sousse, 1 seat).
@@ -95,18 +92,18 @@ mechanism — both surface together, ranked by actual quality, and only a
 genuinely standout candidate gets the "best match" badge.
 
 **Setup already seeded:**
-- Ride **E1** (driver **Youssef Trabelsi**, `+216736866305`) — a real
+- Ride **E1** (driver **Youssef Trabelsi**, `+216573579805`) — a real
   endpoint ("exact"-tier) match for the search below, but a mediocre one:
   its own pickup/dropoff sit ~1.7km/2.5km from your search points and its
   departure is ~45 min off.
-- Ride **P1** (driver **Mehdi Gharbi**, `+216736866306`) — a
+- Ride **P1** (driver **Mehdi Gharbi**, `+216573579806`) — a
   route-passthrough match: its real route runs from Tunis through Hammamet
   and Sousse to Monastir, with real driver-selected stops right at your
   search points, departing close to your search time.
 
 **Steps:**
 
-1. Log in as any rider (e.g. Ines, `+216736866302`, or create a new
+1. Log in as any rider (e.g. Ines, `+216573579802`, or create a new
    account).
 2. Search: origin **"Hammamet Centre"** (or drop a pin at `36.400, 10.610`),
    destination **"Sousse Centre"** (`35.8256, 10.6369`), time: leave as
@@ -131,11 +128,11 @@ just correctly ranked lower, not hidden.
 of using one flat radius for every distance.
 
 **Setup already seeded:**
-- Ride **F1** (driver **Rania Chaabane**, `+216736866307`, "Tunis, Le
+- Ride **F1** (driver **Rania Chaabane**, `+216573579807`, "Tunis, Le
   Bardo" → "El Menzah") — its pickup sits **~5.5km** from the search
   origin below. Under the old flat 8km radius it would have appeared;
   under the new commute-scaled ~4km radius it should not.
-- Ride **F2** (driver **Hedi Sassi**, `+216736866308`, "Ariana, Route de
+- Ride **F2** (driver **Hedi Sassi**, `+216573579808`, "Ariana, Route de
   Raoued" → "El Menzah") — **~2.8km** from the search origin, inside the
   new radius either way — the positive control proving the search itself
   still works.
@@ -159,7 +156,7 @@ the old flat default, so a real driver whose endpoints are meaningfully
 off the direct line still surfaces.
 
 **Setup already seeded:** Ride **I1** (driver **Amine Bel Haj**,
-`+216736866309`, "Grombalia" → "Sfax, Route de Tunis") — its pickup sits
+`+216573579809`, "Grombalia" → "Sfax, Route de Tunis") — its pickup sits
 **~15km** from the search origin and its dropoff **~18km** from the search
 destination. Under the old flat 8km/10km radius it would never have
 appeared; under the new intercity-scaled ~20km/25km radius it should.
@@ -176,15 +173,15 @@ appeared; under the new intercity-scaled ~20km/25km radius it should.
 
 | Role | Name | Phone |
 |---|---|---|
-| Driver, R1 (segment capacity) | Sami Trabelsi | `+216736866301` |
-| Rider A | Ines Zouari | `+216736866302` |
-| Rider B | Karim Fassi | `+216736866303` |
-| Rider C | Nour Khedher | `+216736866304` |
-| Driver, E1 (mediocre exact) | Youssef Trabelsi | `+216736866305` |
-| Driver, P1 (excellent passthrough) | Mehdi Gharbi | `+216736866306` |
-| Driver, F1 (excluded, commute) | Rania Chaabane | `+216736866307` |
-| Driver, F2 (included, commute) | Hedi Sassi | `+216736866308` |
-| Driver, I1 (included, intercity) | Amine Bel Haj | `+216736866309` |
+| Driver, R1 (segment capacity) | Sami Trabelsi | `+216573579801` |
+| Rider A | Ines Zouari | `+216573579802` |
+| Rider B | Karim Fassi | `+216573579803` |
+| Rider C | Nour Khedher | `+216573579804` |
+| Driver, E1 (mediocre exact) | Youssef Trabelsi | `+216573579805` |
+| Driver, P1 (excellent passthrough) | Mehdi Gharbi | `+216573579806` |
+| Driver, F1 (excluded, commute) | Rania Chaabane | `+216573579807` |
+| Driver, F2 (included, commute) | Hedi Sassi | `+216573579808` |
+| Driver, I1 (included, intercity) | Amine Bel Haj | `+216573579809` |
 
 Re-running the seed script produces new, different phone number suffixes
 (they're derived from the run's own timestamp) — re-check console output
