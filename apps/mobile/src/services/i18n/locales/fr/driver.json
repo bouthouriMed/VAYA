@@ -64,8 +64,10 @@
       "viaSubtitleEmpty": "Aucun arrêt suggéré pour l'instant — vous pouvez en ajouter un vous-même.",
       "recommended": "Recommandé",
       "addStop": "Ajouter un arrêt",
-      "confirmCustomStop": "Ajouter cet arrêt",
-      "placingInstruction": "Déplacez la carte pour choisir l'emplacement de cet arrêt.",
+      "searchCityTitle": "Rechercher une ville",
+      "searchCityHelper": "Sélectionnez une ville sur votre trajet où vous acceptez de faire un détour pour récupérer un passager.",
+      "searchCityPlaceholder": "Rechercher une ville…",
+      "detourTooFar": "Ce lieu est trop éloigné de votre itinéraire pour un détour raisonnable.",
       "viaCountBadge_one": "{{count}} arrêt ajouté",
       "viaCountBadge_other": "{{count}} arrêts ajoutés"
     },

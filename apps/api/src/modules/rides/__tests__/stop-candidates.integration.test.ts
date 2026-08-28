@@ -8,9 +8,12 @@ import {
   updateDriverStopSelection,
   listSelectedRideStops,
   listRideStopsForDriver,
+  addCustomStop,
   MAX_DEVIATION_METERS,
   MAX_DEVIATION_SECONDS,
+  VIA_STOP_DETOUR_BUDGET,
 } from '../stop-candidates.service.js';
+import { AppError } from '../../../lib/errors.js';
 
 /**
  * Exercises the real Postgres instance and, deliberately, the real
@@ -182,4 +185,67 @@ describe('stop-candidates.service — real OSRM + real Postgres', () => {
     const afterDeselect = await listSelectedRideStops(db, rideId);
     expect(afterDeselect).toHaveLength(0);
   }, 30_000);
+
+  it(
+    'accepts a real city-level via-stop within the trip-profile detour budget, road-snapped',
+    async () => {
+      const ride = await db.query.rides.findFirst({ where: eq(rides.id, rideId) });
+      if (!ride?.routePolyline) {
+        // Same honest OSRM-unavailable degradation as the suite's other tests.
+        return;
+      }
+      // ~150m east of the origin/destination midpoint — this fixture route
+      // is short enough to classify as 'commute' (the tightest detour
+      // budget: 2000m/480s after doubling for a there-and-back detour), so
+      // a ~150m raw offset stays safely within budget whether OSRM is
+      // reachable (a real curved route) or not (this suite's own honest
+      // straight-line haversine fallback), while still meaningfully
+      // further off than an on-route micro-stop (MAX_DEVIATION_METERS is
+      // only 300m).
+      const nearbyPlace = { lat: 36.8158, lng: 10.2089 };
+      const stop = await addCustomStop(db, rideId, driverUserId, {
+        label: 'Nearby Town',
+        lat: nearbyPlace.lat,
+        lng: nearbyPlace.lng,
+        role: 'via',
+      });
+      expect(stop.isDriverSelected).toBe(true);
+      expect(stop.deviationMeters).toBeGreaterThan(0);
+      // Compared against the tightest ('commute') budget deliberately —
+      // holds true regardless of which real profile this fixture route
+      // actually classifies as, since budgets only grow from
+      // commute -> urban -> intercity.
+      expect(stop.deviationMeters).toBeLessThanOrEqual(VIA_STOP_DETOUR_BUDGET.commute.maxMeters);
+
+      // Cleanup so it doesn't shift sequences for any later assertion.
+      await db.delete(routeStops).where(eq(routeStops.id, stop.id));
+    },
+    30_000,
+  );
+
+  it(
+    'rejects a via-stop far enough off-route that no plausible detour budget covers it',
+    async () => {
+      const ride = await db.query.rides.findFirst({ where: eq(rides.id, rideId) });
+      if (!ride?.routePolyline) {
+        return;
+      }
+      // Sousse — ~140km from this Tunis route, far beyond even the
+      // 'intercity' profile's 15km detour budget.
+      const farPlace = { lat: 35.8256, lng: 10.6369 };
+      try {
+        await addCustomStop(db, rideId, driverUserId, {
+          label: 'Sousse',
+          lat: farPlace.lat,
+          lng: farPlace.lng,
+          role: 'via',
+        });
+        expect.unreachable('addCustomStop should have rejected a far-off-route place');
+      } catch (err) {
+        expect(err).toBeInstanceOf(AppError);
+        expect((err as AppError).code).toBe('STOP_TOO_FAR_FROM_ROUTE');
+      }
+    },
+    30_000,
+  );
 });

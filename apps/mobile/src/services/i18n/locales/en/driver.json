@@ -64,8 +64,10 @@
       "viaSubtitleEmpty": "No suggested stops yet — you can still add one yourself.",
       "recommended": "Recommended",
       "addStop": "Add a stop",
-      "confirmCustomStop": "Add this stop",
-      "placingInstruction": "Move the map to choose where this stop should be.",
+      "searchCityTitle": "Search a city",
+      "searchCityHelper": "Pick a city on your route you're willing to detour to for a pickup.",
+      "searchCityPlaceholder": "Search a city…",
+      "detourTooFar": "This place is too far from your route for a reasonable detour.",
       "viaCountBadge_one": "{{count}} stop added",
       "viaCountBadge_other": "{{count}} stops added"
     },
