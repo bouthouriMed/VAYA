@@ -4,6 +4,7 @@ import { Text } from './Text';
 import { Avatar } from './Avatar';
 import { Icon } from './Icon';
 import { spacing, radii } from '../tokens/index';
+import { haptics } from '../utils/haptics';
 import type { AppPalette } from '../theme/palette';
 
 export interface DriverListCardPassenger {
@@ -133,7 +134,14 @@ export function DriverListCard({ data, bestMatch, onPress, theme }: DriverListCa
 
       <TouchableOpacity
         style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}
-        onPress={onPress}
+        onPress={
+          onPress
+            ? () => {
+                haptics.selection();
+                onPress();
+              }
+            : undefined
+        }
         activeOpacity={0.85}
         accessibilityRole="button"
         accessibilityLabel={data.accessibilityLabel ?? `${data.driverName}, départ ${data.timeLabel}, ${data.priceLabel}`}

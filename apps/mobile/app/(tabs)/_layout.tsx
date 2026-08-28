@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { Tabs, useNavigation } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { useAppTheme } from '@vaya/design-system';
+import { useAppTheme, haptics } from '@vaya/design-system';
 import { useAppSelector } from '../../src/state/store';
 import { useListConversationsQuery } from '../../src/state/api';
 
@@ -50,6 +50,13 @@ export default function TabLayout(): React.JSX.Element {
         tabBarActiveTintColor: theme.accent,
         tabBarInactiveTintColor: theme.inkFaint,
         tabBarStyle: { backgroundColor: theme.surface, borderTopColor: theme.outlineVariant },
+      }}
+      // One light tick per tab switch, for every tab — the native iOS/
+      // Android tab-bar feel. `screenListeners` (unlike a per-Tabs.Screen
+      // `listeners` prop) applies once, to all five tabs, so a sixth tab
+      // added later gets it for free too.
+      screenListeners={{
+        tabPress: () => haptics.selection(),
       }}
     >
       <Tabs.Screen

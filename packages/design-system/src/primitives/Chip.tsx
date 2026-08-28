@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, type ViewStyle } from 'react-native';
 import { colors, spacing, radii, typography } from '../tokens/index';
+import { haptics } from '../utils/haptics';
 import type { AppPalette } from '../theme/palette';
 
 interface ChipProps {
@@ -106,9 +107,14 @@ export function Chip({
   ];
 
   if (onPress) {
+    function handlePress(): void {
+      haptics.selection();
+      onPress?.();
+    }
+
     return (
       <TouchableOpacity
-        onPress={onPress}
+        onPress={handlePress}
         style={chipStyle}
         accessibilityRole="button"
         accessibilityLabel={label}

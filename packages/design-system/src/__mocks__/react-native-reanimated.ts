@@ -29,6 +29,54 @@ export function runOnJS<A extends unknown[], R>(fn: (...args: A) => R): (...args
   return fn;
 }
 
+// Real reanimated returns an opaque native-thread scroll-event handler; a
+// snapshot test never dispatches an actual scroll event, so this just needs
+// to be a value that's valid to pass as an `onScroll` prop and never throws.
+export function useAnimatedScrollHandler<T>(handlers: T): T {
+  return handlers;
+}
+
+export const Extrapolation = {
+  EXTEND: 'extend',
+  CLAMP: 'clamp',
+  IDENTITY: 'identity',
+} as const;
+
+// A real (if simplified) linear interpolation, not a stub — TimeWheelSheet's
+// per-row `useAnimatedStyle` factory runs synchronously under this mock
+// (see `useAnimatedStyle` above) and its output values (scale/opacity) land
+// directly in the snapshot, so this needs to produce real, order-correct
+// numbers, not a placeholder.
+export function interpolate(
+  value: number,
+  inputRange: readonly number[],
+  outputRange: readonly number[],
+  extrapolate?: unknown,
+): number {
+  const [inStart, inEnd] = [inputRange[0]!, inputRange[inputRange.length - 1]!];
+  const [outStart, outEnd] = [outputRange[0]!, outputRange[outputRange.length - 1]!];
+  const t = inEnd === inStart ? 0 : (value - inStart) / (inEnd - inStart);
+  const result = outStart + t * (outEnd - outStart);
+  const shouldClamp =
+    extrapolate === Extrapolation.CLAMP || extrapolate === undefined || (typeof extrapolate === 'object' && extrapolate !== null && 'extrapolateRight' in extrapolate);
+  if (!shouldClamp) return result;
+  const [min, max] = outStart <= outEnd ? [outStart, outEnd] : [outEnd, outStart];
+  return Math.min(Math.max(result, min), max);
+}
+
+// Real color blending isn't meaningful in a static-frame mock — picks
+// whichever endpoint the (already-clamped) progress is closer to, which is
+// enough for a snapshot to be deterministic and non-throwing.
+export function interpolateColor(
+  value: number,
+  inputRange: readonly number[],
+  outputColorRange: readonly string[],
+): string {
+  const t = Math.min(Math.max(value, inputRange[0]!), inputRange[inputRange.length - 1]!);
+  const midpoint = (inputRange[0]! + inputRange[inputRange.length - 1]!) / 2;
+  return t <= midpoint ? outputColorRange[0]! : outputColorRange[outputColorRange.length - 1]!;
+}
+
 export const Easing = {
   linear: (t: number): number => t,
   ease: (t: number): number => t,

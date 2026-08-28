@@ -3,7 +3,7 @@ import { View, StyleSheet, TextInput, FlatList, TouchableOpacity, ActivityIndica
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { Text, Icon, useAppTheme, spacing, radii } from '@vaya/design-system';
+import { Text, Icon, useAppTheme, haptics, spacing, radii } from '@vaya/design-system';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useAppDispatch, useAppSelector } from '../../src/state/store';
 import { setOrigin, setDestination, ensureSearchSession, type SearchLocation } from '../../src/state/searchSlice';
@@ -310,7 +310,10 @@ export default function SearchComposerScreen(): React.JSX.Element {
           <>
             <TouchableOpacity
               style={[styles.currentPositionRow, isLocating && styles.currentPositionDisabled]}
-              onPress={() => void selectCurrentPosition()}
+              onPress={() => {
+                haptics.selection();
+                void selectCurrentPosition();
+              }}
               disabled={isLocating}
               activeOpacity={0.7}
             >
@@ -392,7 +395,10 @@ export default function SearchComposerScreen(): React.JSX.Element {
               return (
                 <TouchableOpacity
                   style={[styles.placeRow, !isLast && { borderBottomColor: theme.outlineVariant, borderBottomWidth: 1 }]}
-                  onPress={() => void chooseRow(item)}
+                  onPress={() => {
+                    haptics.selection();
+                    void chooseRow(item);
+                  }}
                   activeOpacity={0.6}
                 >
                   <View style={[styles.placeIconWrap, { backgroundColor: theme.accentGlow + '2E' }]}>

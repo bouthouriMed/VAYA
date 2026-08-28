@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { colors, spacing, radii, typography } from '../tokens/index';
+import { haptics } from '../utils/haptics';
 
 const DEFAULT_STEP_DT = 0.5;
 
@@ -65,9 +66,11 @@ export function PriceRangeStepper({
   const atMax = clamped >= max;
 
   function decrement(): void {
+    haptics.selection();
     onChange(clampPrice(Math.round((clamped - step) * 100) / 100, min, max));
   }
   function increment(): void {
+    haptics.selection();
     onChange(clampPrice(Math.round((clamped + step) * 100) / 100, min, max));
   }
 

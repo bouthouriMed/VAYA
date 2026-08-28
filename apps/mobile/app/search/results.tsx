@@ -19,6 +19,7 @@ import {
   radii,
   isSameDay,
   regionForPoints,
+  haptics,
   type AppPalette,
   type DriverListCardData,
 } from '@vaya/design-system';
@@ -250,8 +251,10 @@ export default function ResultsScreen(): React.JSX.Element {
         desiredWindowStart: new Date(target.getTime() - 1.5 * 3_600_000),
         desiredWindowEnd: new Date(target.getTime() + 1.5 * 3_600_000),
       }).unwrap();
+      haptics.success();
       showToast({ message: t('search:results.notifyDescription'), tone: 'success' });
     } catch {
+      haptics.error();
       showToast({ message: t('search:results.notifyDescription'), tone: 'error' });
     }
   }
@@ -275,7 +278,10 @@ export default function ResultsScreen(): React.JSX.Element {
         ]}
       >
         <TouchableOpacity
-          onPress={() => router.back()}
+          onPress={() => {
+            haptics.selection();
+            router.back();
+          }}
           hitSlop={12}
           style={styles.headerSide}
           accessibilityRole="button"
@@ -309,7 +315,10 @@ export default function ResultsScreen(): React.JSX.Element {
         </View>
 
         <TouchableOpacity
-          onPress={() => setShowMap((v) => !v)}
+          onPress={() => {
+            haptics.selection();
+            setShowMap((v) => !v);
+          }}
           style={[styles.mapToggle, { backgroundColor: theme.surfaceMuted }]}
           accessibilityRole="button"
           accessibilityLabel={showMap ? t('search:results.listView') : t('search:results.mapView')}

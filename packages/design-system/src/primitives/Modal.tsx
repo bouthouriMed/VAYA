@@ -11,6 +11,7 @@ import { Card } from './Card';
 import { Text } from './Text';
 import { Button } from './Button';
 import { colors, spacing } from '../tokens/index';
+import { haptics } from '../utils/haptics';
 import type { AppPalette } from '../theme/palette';
 
 interface ModalProps {
@@ -82,7 +83,10 @@ export function Modal({
             {confirmLabel && onConfirm ? (
               <View style={styles.actions}>
                 <Pressable
-                  onPress={onClose}
+                  onPress={() => {
+                    haptics.selection();
+                    onClose();
+                  }}
                   accessibilityRole="button"
                   accessibilityLabel={cancelLabel}
                   style={styles.cancelBtn}

@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, type ViewStyle } from 'react-native';
 import { colors, spacing, radii, typography, elevation } from '../tokens/index';
+import { haptics } from '../utils/haptics';
 
 interface FieldRowProps {
   label: string;
@@ -54,7 +55,10 @@ export function FieldRow({
 
   return (
     <TouchableOpacity
-      onPress={onPress}
+      onPress={() => {
+        haptics.selection();
+        onPress();
+      }}
       activeOpacity={0.6}
       accessibilityRole="button"
       accessibilityLabel={`${label}, ${value}`}

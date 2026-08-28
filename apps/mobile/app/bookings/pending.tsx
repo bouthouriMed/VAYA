@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, ScrollView, Share } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Text, Icon, MapPreview, useAppTheme, spacing, radii } from '@vaya/design-system';
+import { Text, Icon, MapPreview, useAppTheme, haptics, spacing, radii } from '@vaya/design-system';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { CancellationSheet } from '../../src/features/bookings/CancellationSheet';
@@ -46,7 +46,10 @@ export default function PendingScreen(): React.JSX.Element {
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.outlineVariant }]}>
         <TouchableOpacity
-          onPress={() => router.back()}
+          onPress={() => {
+            haptics.selection();
+            router.back();
+          }}
           hitSlop={12}
           accessibilityRole="button"
           accessibilityLabel={t('common:actions.back')}
@@ -110,12 +113,13 @@ export default function PendingScreen(): React.JSX.Element {
                 {params.bookingId ? (
                   <TouchableOpacity
                     style={[styles.iconBtn, { backgroundColor: theme.surfaceMuted }]}
-                    onPress={() =>
+                    onPress={() => {
+                      haptics.selection();
                       router.push({
                         pathname: '/conversations/[bookingId]',
                         params: { bookingId: params.bookingId!, role: 'rider', otherPartyName: driverName },
-                      })
-                    }
+                      });
+                    }}
                     accessibilityRole="button"
                     accessibilityLabel={t('common:actions.message', { name: firstName })}
                   >
@@ -214,7 +218,10 @@ export default function PendingScreen(): React.JSX.Element {
          *  orphan working functionality, not just diverge visually. */}
         <TouchableOpacity
           style={[styles.footerBtn, styles.footerBtnPrimary, { backgroundColor: theme.ink }]}
-          onPress={() => router.push({ pathname: '/bookings/pickup', params })}
+          onPress={() => {
+            haptics.selection();
+            router.push({ pathname: '/bookings/pickup', params });
+          }}
           activeOpacity={0.85}
           accessibilityRole="button"
           accessibilityLabel={t('booking:driver_join', { name: firstName })}
@@ -227,7 +234,10 @@ export default function PendingScreen(): React.JSX.Element {
           {params.bookingId ? (
             <TouchableOpacity
               style={[styles.footerBtn, styles.footerBtnOutline, { borderColor: theme.outline }]}
-              onPress={() => setCancelling(true)}
+              onPress={() => {
+                haptics.selection();
+                setCancelling(true);
+              }}
               activeOpacity={0.7}
               accessibilityRole="button"
               accessibilityLabel={t('booking:cancelBooking')}
@@ -239,7 +249,10 @@ export default function PendingScreen(): React.JSX.Element {
           ) : null}
           <TouchableOpacity
             style={[styles.footerBtn, styles.footerBtnOutline, { borderColor: theme.outline }]}
-            onPress={() => void handleShare()}
+            onPress={() => {
+              haptics.selection();
+              void handleShare();
+            }}
             activeOpacity={0.7}
             accessibilityRole="button"
             accessibilityLabel={t('booking:shareDetails', { driver: driverName, pickup: params.pickupLabel ?? '', destination: params.destinationLabel ?? '', price: params.price ?? '' })}

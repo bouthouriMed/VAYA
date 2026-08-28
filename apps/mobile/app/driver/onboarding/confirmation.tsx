@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { Animated, View, StyleSheet, Easing, AccessibilityInfo, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { Text, Icon, useAppTheme, spacing, radii, colors } from '@vaya/design-system';
+import { Text, Icon, useAppTheme, haptics, spacing, radii, colors } from '@vaya/design-system';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useGetMyDriverProfileQuery } from '../../../src/state/api';
 import { verificationDeclineReasonKey } from '../../../src/features/driver-onboarding/verificationDeclineCopy';
@@ -177,7 +177,10 @@ export default function VerificationConfirmationScreen(): React.JSX.Element {
       <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.lg }]}>
         <TouchableOpacity
           style={[styles.cta, { backgroundColor: theme.ink }]}
-          onPress={handleCta}
+          onPress={() => {
+            haptics.selection();
+            handleCta();
+          }}
           activeOpacity={0.85}
           accessibilityRole="button"
           accessibilityLabel={ctaLabel}

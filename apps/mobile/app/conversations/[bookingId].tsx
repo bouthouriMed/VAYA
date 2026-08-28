@@ -20,6 +20,7 @@ import {
   MessageBubble,
   Input,
   useAppTheme,
+  haptics,
   spacing,
   radii,
 } from '@vaya/design-system';
@@ -329,7 +330,10 @@ export default function ConversationScreen(): React.JSX.Element {
           />
         </View>
         <TouchableOpacity
-          onPress={() => void handleSend()}
+          onPress={() => {
+            haptics.selection();
+            void handleSend();
+          }}
           disabled={!sendAllowed || isSending || draft.trim().length === 0}
           style={[
             styles.sendButton,

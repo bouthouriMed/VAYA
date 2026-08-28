@@ -3,6 +3,7 @@ import { View, TouchableOpacity, StyleSheet, type StyleProp, type ViewStyle } fr
 import { Ionicons } from '@expo/vector-icons';
 import { Text } from './Text';
 import { colors, spacing, radii } from '../tokens/index';
+import { haptics } from '../utils/haptics';
 
 type ScreenHeaderTone = 'light' | 'dark';
 
@@ -35,7 +36,10 @@ export function ScreenHeader({
   return (
     <View style={[styles.row, style]}>
       <TouchableOpacity
-        onPress={onBack}
+        onPress={() => {
+          haptics.selection();
+          onBack();
+        }}
         hitSlop={12}
         style={[styles.backBtn, isDark && styles.backBtnDark]}
         accessibilityRole="button"

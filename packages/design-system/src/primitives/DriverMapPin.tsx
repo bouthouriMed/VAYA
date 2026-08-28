@@ -8,6 +8,7 @@ import {
   type ViewStyle,
 } from 'react-native';
 import { colors, spacing, radii, typography } from '../tokens/index';
+import { haptics } from '../utils/haptics';
 import { Avatar } from './Avatar';
 
 export interface DriverMapPinData {
@@ -50,11 +51,18 @@ export function DriverMapPin({
   onPress,
   style,
 }: DriverMapPinProps): React.JSX.Element {
+  const handlePress = onPress
+    ? () => {
+        haptics.selection();
+        onPress();
+      }
+    : undefined;
+
   if (variant === 'compact') {
     const size = Math.round(BASE_COMPACT_PX * scale);
     return (
       <TouchableOpacity
-        onPress={onPress}
+        onPress={handlePress}
         disabled={!onPress}
         activeOpacity={0.8}
         accessibilityRole={onPress ? 'button' : undefined}
@@ -77,7 +85,7 @@ export function DriverMapPin({
 
   return (
     <TouchableOpacity
-      onPress={onPress}
+      onPress={handlePress}
       disabled={!onPress}
       activeOpacity={0.85}
       accessibilityRole={onPress ? 'button' : undefined}

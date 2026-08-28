@@ -9,6 +9,7 @@ import {
   type TextStyle,
 } from 'react-native';
 import { colors, spacing, radii, elevation } from '../tokens/index';
+import { haptics } from '../utils/haptics';
 import type { AppPalette } from '../theme/palette';
 
 type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost';
@@ -135,9 +136,18 @@ export function Button({
   const variantStyle = getVariantStyles(variant, disabled, theme);
   const pressedStyle: ViewStyle = { transform: [{ scale: 0.97 }], opacity: 0.92 };
 
+  // A light tap on every press, by default, for every button in the app —
+  // distinct in timing (and feel) from a screen's own haptics.success()/
+  // .error() on the eventual result of what this press triggered, so the
+  // two never read as a jarring double-buzz for the same moment.
+  function handlePress(): void {
+    haptics.selection();
+    onPress();
+  }
+
   return (
     <Pressable
-      onPress={onPress}
+      onPress={handlePress}
       disabled={disabled || loading}
       style={({ pressed }) => [
         styles.base,
