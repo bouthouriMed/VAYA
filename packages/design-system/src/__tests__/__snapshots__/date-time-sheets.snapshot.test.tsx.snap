@@ -2055,12 +2055,12 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
               "shadowColor": "#14201B",
             },
             {
-              "height": 506.4,
+              "height": 523.28,
             },
             {
               "transform": [
                 {
-                  "translateY": 506.4,
+                  "translateY": 523.28,
                 },
               ],
             },
@@ -2193,6 +2193,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
               À quelle heure souhaitez-vous partir ?
             </Text>
             <Text
+              accessibilityLiveRegion="polite"
               style={
                 [
                   {
@@ -2219,7 +2220,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
               {
                 "alignItems": "center",
                 "flexDirection": "row",
-                "height": 150,
+                "height": 240,
                 "justifyContent": "center",
                 "position": "relative",
               }
@@ -2232,13 +2233,13 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                   {
                     "borderRadius": 24,
                     "borderWidth": 1,
-                    "height": 50,
+                    "height": 48,
                     "left": "50%",
-                    "marginLeft": -150,
-                    "marginTop": -25,
+                    "marginLeft": -90,
+                    "marginTop": -24,
                     "position": "absolute",
                     "top": "50%",
-                    "width": 300,
+                    "width": 180,
                   },
                   {
                     "backgroundColor": "#E4EDFB",
@@ -2250,23 +2251,35 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
             <ScrollView
               contentContainerStyle={
                 {
-                  "paddingVertical": 50,
+                  "paddingVertical": 96,
                 }
               }
               contentOffset={
                 {
                   "x": 0,
-                  "y": 900,
+                  "y": 864,
                 }
               }
               decelerationRate="fast"
               onMomentumScrollEnd={[Function]}
+              onScroll={
+                {
+                  "onScroll": [Function],
+                }
+              }
               onScrollEndDrag={[Function]}
+              ref={
+                {
+                  "current": null,
+                }
+              }
+              scrollEventThrottle={16}
               showsVerticalScrollIndicator={false}
-              snapToInterval={50}
+              snapToAlignment="start"
+              snapToInterval={48}
               style={
                 {
-                  "height": 150,
+                  "height": 240,
                   "width": 80,
                 }
               }
@@ -2275,838 +2288,979 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                 style={
                   {
                     "alignItems": "center",
-                    "height": 50,
+                    "height": 48,
                     "justifyContent": "center",
                   }
                 }
               >
-                <Text
+                <Animated.Text
+                  allowFontScaling={false}
                   style={
                     [
                       {
-                        "fontSize": 16,
-                        "fontWeight": "400",
-                        "lineHeight": 24,
+                        "fontSize": 22,
+                        "fontVariant": [
+                          "tabular-nums",
+                        ],
+                        "fontWeight": "600",
+                        "height": 48,
+                        "lineHeight": 48,
+                        "textAlign": "center",
                       },
                       {
                         "color": "#E4EDFB",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      {
-                        "fontSize": 20,
-                        "lineHeight": 24,
-                        "textAlign": "center",
+                        "opacity": 0.35,
+                        "transform": [
+                          {
+                            "scale": 0.82,
+                          },
+                        ],
                       },
                     ]
                   }
                 >
                   00
-                </Text>
+                </Animated.Text>
               </View>
               <View
                 style={
                   {
                     "alignItems": "center",
-                    "height": 50,
+                    "height": 48,
                     "justifyContent": "center",
                   }
                 }
               >
-                <Text
+                <Animated.Text
+                  allowFontScaling={false}
                   style={
                     [
                       {
-                        "fontSize": 16,
-                        "fontWeight": "400",
-                        "lineHeight": 24,
+                        "fontSize": 22,
+                        "fontVariant": [
+                          "tabular-nums",
+                        ],
+                        "fontWeight": "600",
+                        "height": 48,
+                        "lineHeight": 48,
+                        "textAlign": "center",
                       },
                       {
                         "color": "#E4EDFB",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      {
-                        "fontSize": 20,
-                        "lineHeight": 24,
-                        "textAlign": "center",
+                        "opacity": 0.35,
+                        "transform": [
+                          {
+                            "scale": 0.82,
+                          },
+                        ],
                       },
                     ]
                   }
                 >
                   01
-                </Text>
+                </Animated.Text>
               </View>
               <View
                 style={
                   {
                     "alignItems": "center",
-                    "height": 50,
+                    "height": 48,
                     "justifyContent": "center",
                   }
                 }
               >
-                <Text
+                <Animated.Text
+                  allowFontScaling={false}
                   style={
                     [
                       {
-                        "fontSize": 16,
-                        "fontWeight": "400",
-                        "lineHeight": 24,
+                        "fontSize": 22,
+                        "fontVariant": [
+                          "tabular-nums",
+                        ],
+                        "fontWeight": "600",
+                        "height": 48,
+                        "lineHeight": 48,
+                        "textAlign": "center",
                       },
                       {
                         "color": "#E4EDFB",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      {
-                        "fontSize": 20,
-                        "lineHeight": 24,
-                        "textAlign": "center",
+                        "opacity": 0.35,
+                        "transform": [
+                          {
+                            "scale": 0.82,
+                          },
+                        ],
                       },
                     ]
                   }
                 >
                   02
-                </Text>
+                </Animated.Text>
               </View>
               <View
                 style={
                   {
                     "alignItems": "center",
-                    "height": 50,
+                    "height": 48,
                     "justifyContent": "center",
                   }
                 }
               >
-                <Text
+                <Animated.Text
+                  allowFontScaling={false}
                   style={
                     [
                       {
-                        "fontSize": 16,
-                        "fontWeight": "400",
-                        "lineHeight": 24,
+                        "fontSize": 22,
+                        "fontVariant": [
+                          "tabular-nums",
+                        ],
+                        "fontWeight": "600",
+                        "height": 48,
+                        "lineHeight": 48,
+                        "textAlign": "center",
                       },
                       {
                         "color": "#E4EDFB",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      {
-                        "fontSize": 20,
-                        "lineHeight": 24,
-                        "textAlign": "center",
+                        "opacity": 0.35,
+                        "transform": [
+                          {
+                            "scale": 0.82,
+                          },
+                        ],
                       },
                     ]
                   }
                 >
                   03
-                </Text>
+                </Animated.Text>
               </View>
               <View
                 style={
                   {
                     "alignItems": "center",
-                    "height": 50,
+                    "height": 48,
                     "justifyContent": "center",
                   }
                 }
               >
-                <Text
+                <Animated.Text
+                  allowFontScaling={false}
                   style={
                     [
                       {
-                        "fontSize": 16,
-                        "fontWeight": "400",
-                        "lineHeight": 24,
+                        "fontSize": 22,
+                        "fontVariant": [
+                          "tabular-nums",
+                        ],
+                        "fontWeight": "600",
+                        "height": 48,
+                        "lineHeight": 48,
+                        "textAlign": "center",
                       },
                       {
                         "color": "#E4EDFB",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      {
-                        "fontSize": 20,
-                        "lineHeight": 24,
-                        "textAlign": "center",
+                        "opacity": 0.35,
+                        "transform": [
+                          {
+                            "scale": 0.82,
+                          },
+                        ],
                       },
                     ]
                   }
                 >
                   04
-                </Text>
+                </Animated.Text>
               </View>
               <View
                 style={
                   {
                     "alignItems": "center",
-                    "height": 50,
+                    "height": 48,
                     "justifyContent": "center",
                   }
                 }
               >
-                <Text
+                <Animated.Text
+                  allowFontScaling={false}
                   style={
                     [
                       {
-                        "fontSize": 16,
-                        "fontWeight": "400",
-                        "lineHeight": 24,
+                        "fontSize": 22,
+                        "fontVariant": [
+                          "tabular-nums",
+                        ],
+                        "fontWeight": "600",
+                        "height": 48,
+                        "lineHeight": 48,
+                        "textAlign": "center",
                       },
                       {
                         "color": "#E4EDFB",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      {
-                        "fontSize": 20,
-                        "lineHeight": 24,
-                        "textAlign": "center",
+                        "opacity": 0.35,
+                        "transform": [
+                          {
+                            "scale": 0.82,
+                          },
+                        ],
                       },
                     ]
                   }
                 >
                   05
-                </Text>
+                </Animated.Text>
               </View>
               <View
                 style={
                   {
                     "alignItems": "center",
-                    "height": 50,
+                    "height": 48,
                     "justifyContent": "center",
                   }
                 }
               >
-                <Text
+                <Animated.Text
+                  allowFontScaling={false}
                   style={
                     [
                       {
-                        "fontSize": 16,
-                        "fontWeight": "400",
-                        "lineHeight": 24,
+                        "fontSize": 22,
+                        "fontVariant": [
+                          "tabular-nums",
+                        ],
+                        "fontWeight": "600",
+                        "height": 48,
+                        "lineHeight": 48,
+                        "textAlign": "center",
                       },
                       {
                         "color": "#E4EDFB",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      {
-                        "fontSize": 20,
-                        "lineHeight": 24,
-                        "textAlign": "center",
+                        "opacity": 0.35,
+                        "transform": [
+                          {
+                            "scale": 0.82,
+                          },
+                        ],
                       },
                     ]
                   }
                 >
                   06
-                </Text>
+                </Animated.Text>
               </View>
               <View
                 style={
                   {
                     "alignItems": "center",
-                    "height": 50,
+                    "height": 48,
                     "justifyContent": "center",
                   }
                 }
               >
-                <Text
+                <Animated.Text
+                  allowFontScaling={false}
                   style={
                     [
                       {
-                        "fontSize": 16,
-                        "fontWeight": "400",
-                        "lineHeight": 24,
+                        "fontSize": 22,
+                        "fontVariant": [
+                          "tabular-nums",
+                        ],
+                        "fontWeight": "600",
+                        "height": 48,
+                        "lineHeight": 48,
+                        "textAlign": "center",
                       },
                       {
                         "color": "#E4EDFB",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      {
-                        "fontSize": 20,
-                        "lineHeight": 24,
-                        "textAlign": "center",
+                        "opacity": 0.35,
+                        "transform": [
+                          {
+                            "scale": 0.82,
+                          },
+                        ],
                       },
                     ]
                   }
                 >
                   07
-                </Text>
+                </Animated.Text>
               </View>
               <View
                 style={
                   {
                     "alignItems": "center",
-                    "height": 50,
+                    "height": 48,
                     "justifyContent": "center",
                   }
                 }
               >
-                <Text
+                <Animated.Text
+                  allowFontScaling={false}
                   style={
                     [
                       {
-                        "fontSize": 16,
-                        "fontWeight": "400",
-                        "lineHeight": 24,
+                        "fontSize": 22,
+                        "fontVariant": [
+                          "tabular-nums",
+                        ],
+                        "fontWeight": "600",
+                        "height": 48,
+                        "lineHeight": 48,
+                        "textAlign": "center",
                       },
                       {
                         "color": "#E4EDFB",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      {
-                        "fontSize": 20,
-                        "lineHeight": 24,
-                        "textAlign": "center",
+                        "opacity": 0.35,
+                        "transform": [
+                          {
+                            "scale": 0.82,
+                          },
+                        ],
                       },
                     ]
                   }
                 >
                   08
-                </Text>
+                </Animated.Text>
               </View>
               <View
                 style={
                   {
                     "alignItems": "center",
-                    "height": 50,
+                    "height": 48,
                     "justifyContent": "center",
                   }
                 }
               >
-                <Text
+                <Animated.Text
+                  allowFontScaling={false}
                   style={
                     [
                       {
-                        "fontSize": 16,
-                        "fontWeight": "400",
-                        "lineHeight": 24,
+                        "fontSize": 22,
+                        "fontVariant": [
+                          "tabular-nums",
+                        ],
+                        "fontWeight": "600",
+                        "height": 48,
+                        "lineHeight": 48,
+                        "textAlign": "center",
                       },
                       {
                         "color": "#E4EDFB",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      {
-                        "fontSize": 20,
-                        "lineHeight": 24,
-                        "textAlign": "center",
+                        "opacity": 0.35,
+                        "transform": [
+                          {
+                            "scale": 0.82,
+                          },
+                        ],
                       },
                     ]
                   }
                 >
                   09
-                </Text>
+                </Animated.Text>
               </View>
               <View
                 style={
                   {
                     "alignItems": "center",
-                    "height": 50,
+                    "height": 48,
                     "justifyContent": "center",
                   }
                 }
               >
-                <Text
+                <Animated.Text
+                  allowFontScaling={false}
                   style={
                     [
                       {
-                        "fontSize": 16,
-                        "fontWeight": "400",
-                        "lineHeight": 24,
+                        "fontSize": 22,
+                        "fontVariant": [
+                          "tabular-nums",
+                        ],
+                        "fontWeight": "600",
+                        "height": 48,
+                        "lineHeight": 48,
+                        "textAlign": "center",
                       },
                       {
                         "color": "#E4EDFB",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      {
-                        "fontSize": 20,
-                        "lineHeight": 24,
-                        "textAlign": "center",
+                        "opacity": 0.35,
+                        "transform": [
+                          {
+                            "scale": 0.82,
+                          },
+                        ],
                       },
                     ]
                   }
                 >
                   10
-                </Text>
+                </Animated.Text>
               </View>
               <View
                 style={
                   {
                     "alignItems": "center",
-                    "height": 50,
+                    "height": 48,
                     "justifyContent": "center",
                   }
                 }
               >
-                <Text
+                <Animated.Text
+                  allowFontScaling={false}
                   style={
                     [
                       {
-                        "fontSize": 16,
-                        "fontWeight": "400",
-                        "lineHeight": 24,
+                        "fontSize": 22,
+                        "fontVariant": [
+                          "tabular-nums",
+                        ],
+                        "fontWeight": "600",
+                        "height": 48,
+                        "lineHeight": 48,
+                        "textAlign": "center",
                       },
                       {
                         "color": "#E4EDFB",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      {
-                        "fontSize": 20,
-                        "lineHeight": 24,
-                        "textAlign": "center",
+                        "opacity": 0.35,
+                        "transform": [
+                          {
+                            "scale": 0.82,
+                          },
+                        ],
                       },
                     ]
                   }
                 >
                   11
-                </Text>
+                </Animated.Text>
               </View>
               <View
                 style={
                   {
                     "alignItems": "center",
-                    "height": 50,
+                    "height": 48,
                     "justifyContent": "center",
                   }
                 }
               >
-                <Text
+                <Animated.Text
+                  allowFontScaling={false}
                   style={
                     [
                       {
-                        "fontSize": 16,
-                        "fontWeight": "400",
-                        "lineHeight": 24,
+                        "fontSize": 22,
+                        "fontVariant": [
+                          "tabular-nums",
+                        ],
+                        "fontWeight": "600",
+                        "height": 48,
+                        "lineHeight": 48,
+                        "textAlign": "center",
                       },
                       {
                         "color": "#E4EDFB",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      {
-                        "fontSize": 20,
-                        "lineHeight": 24,
-                        "textAlign": "center",
+                        "opacity": 0.35,
+                        "transform": [
+                          {
+                            "scale": 0.82,
+                          },
+                        ],
                       },
                     ]
                   }
                 >
                   12
-                </Text>
+                </Animated.Text>
               </View>
               <View
                 style={
                   {
                     "alignItems": "center",
-                    "height": 50,
+                    "height": 48,
                     "justifyContent": "center",
                   }
                 }
               >
-                <Text
+                <Animated.Text
+                  allowFontScaling={false}
                   style={
                     [
                       {
-                        "fontSize": 16,
-                        "fontWeight": "400",
-                        "lineHeight": 24,
+                        "fontSize": 22,
+                        "fontVariant": [
+                          "tabular-nums",
+                        ],
+                        "fontWeight": "600",
+                        "height": 48,
+                        "lineHeight": 48,
+                        "textAlign": "center",
                       },
                       {
                         "color": "#E4EDFB",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      {
-                        "fontSize": 20,
-                        "lineHeight": 24,
-                        "textAlign": "center",
+                        "opacity": 0.35,
+                        "transform": [
+                          {
+                            "scale": 0.82,
+                          },
+                        ],
                       },
                     ]
                   }
                 >
                   13
-                </Text>
+                </Animated.Text>
               </View>
               <View
                 style={
                   {
                     "alignItems": "center",
-                    "height": 50,
+                    "height": 48,
                     "justifyContent": "center",
                   }
                 }
               >
-                <Text
+                <Animated.Text
+                  allowFontScaling={false}
                   style={
                     [
                       {
-                        "fontSize": 16,
-                        "fontWeight": "400",
-                        "lineHeight": 24,
+                        "fontSize": 22,
+                        "fontVariant": [
+                          "tabular-nums",
+                        ],
+                        "fontWeight": "600",
+                        "height": 48,
+                        "lineHeight": 48,
+                        "textAlign": "center",
                       },
                       {
                         "color": "#E4EDFB",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      {
-                        "fontSize": 20,
-                        "lineHeight": 24,
-                        "textAlign": "center",
+                        "opacity": 0.35,
+                        "transform": [
+                          {
+                            "scale": 0.82,
+                          },
+                        ],
                       },
                     ]
                   }
                 >
                   14
-                </Text>
+                </Animated.Text>
               </View>
               <View
                 style={
                   {
                     "alignItems": "center",
-                    "height": 50,
+                    "height": 48,
                     "justifyContent": "center",
                   }
                 }
               >
-                <Text
+                <Animated.Text
+                  allowFontScaling={false}
                   style={
                     [
                       {
-                        "fontSize": 16,
-                        "fontWeight": "400",
-                        "lineHeight": 24,
+                        "fontSize": 22,
+                        "fontVariant": [
+                          "tabular-nums",
+                        ],
+                        "fontWeight": "600",
+                        "height": 48,
+                        "lineHeight": 48,
+                        "textAlign": "center",
                       },
                       {
                         "color": "#E4EDFB",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      {
-                        "fontSize": 20,
-                        "lineHeight": 24,
-                        "textAlign": "center",
+                        "opacity": 0.35,
+                        "transform": [
+                          {
+                            "scale": 0.82,
+                          },
+                        ],
                       },
                     ]
                   }
                 >
                   15
-                </Text>
+                </Animated.Text>
               </View>
               <View
                 style={
                   {
                     "alignItems": "center",
-                    "height": 50,
+                    "height": 48,
                     "justifyContent": "center",
                   }
                 }
               >
-                <Text
+                <Animated.Text
+                  allowFontScaling={false}
                   style={
                     [
                       {
-                        "fontSize": 16,
-                        "fontWeight": "400",
-                        "lineHeight": 24,
+                        "fontSize": 22,
+                        "fontVariant": [
+                          "tabular-nums",
+                        ],
+                        "fontWeight": "600",
+                        "height": 48,
+                        "lineHeight": 48,
+                        "textAlign": "center",
                       },
                       {
                         "color": "#E4EDFB",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      {
-                        "fontSize": 20,
-                        "lineHeight": 24,
-                        "textAlign": "center",
+                        "opacity": 0.35,
+                        "transform": [
+                          {
+                            "scale": 0.82,
+                          },
+                        ],
                       },
                     ]
                   }
                 >
                   16
-                </Text>
+                </Animated.Text>
               </View>
               <View
                 style={
                   {
                     "alignItems": "center",
-                    "height": 50,
+                    "height": 48,
                     "justifyContent": "center",
                   }
                 }
               >
-                <Text
+                <Animated.Text
+                  allowFontScaling={false}
                   style={
                     [
                       {
-                        "fontSize": 16,
-                        "fontWeight": "400",
-                        "lineHeight": 24,
+                        "fontSize": 22,
+                        "fontVariant": [
+                          "tabular-nums",
+                        ],
+                        "fontWeight": "600",
+                        "height": 48,
+                        "lineHeight": 48,
+                        "textAlign": "center",
                       },
                       {
                         "color": "#E4EDFB",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      {
-                        "fontSize": 20,
-                        "lineHeight": 24,
-                        "textAlign": "center",
+                        "opacity": 0.35,
+                        "transform": [
+                          {
+                            "scale": 0.82,
+                          },
+                        ],
                       },
                     ]
                   }
                 >
                   17
-                </Text>
+                </Animated.Text>
               </View>
               <View
                 style={
                   {
                     "alignItems": "center",
-                    "height": 50,
+                    "height": 48,
                     "justifyContent": "center",
                   }
                 }
               >
-                <Text
+                <Animated.Text
+                  allowFontScaling={false}
                   style={
                     [
                       {
-                        "fontSize": 16,
-                        "fontWeight": "400",
-                        "lineHeight": 24,
+                        "fontSize": 22,
+                        "fontVariant": [
+                          "tabular-nums",
+                        ],
+                        "fontWeight": "600",
+                        "height": 48,
+                        "lineHeight": 48,
+                        "textAlign": "center",
                       },
                       {
                         "color": "#14201B",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      {
-                        "fontSize": 24,
-                        "fontWeight": "700",
-                        "lineHeight": 29,
-                        "textAlign": "center",
+                        "opacity": 1,
+                        "transform": [
+                          {
+                            "scale": 1.18,
+                          },
+                        ],
                       },
                     ]
                   }
                 >
                   18
-                </Text>
+                </Animated.Text>
               </View>
               <View
                 style={
                   {
                     "alignItems": "center",
-                    "height": 50,
+                    "height": 48,
                     "justifyContent": "center",
                   }
                 }
               >
-                <Text
+                <Animated.Text
+                  allowFontScaling={false}
                   style={
                     [
                       {
-                        "fontSize": 16,
-                        "fontWeight": "400",
-                        "lineHeight": 24,
+                        "fontSize": 22,
+                        "fontVariant": [
+                          "tabular-nums",
+                        ],
+                        "fontWeight": "600",
+                        "height": 48,
+                        "lineHeight": 48,
+                        "textAlign": "center",
                       },
                       {
                         "color": "#E4EDFB",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      {
-                        "fontSize": 20,
-                        "lineHeight": 24,
-                        "textAlign": "center",
+                        "opacity": 0.35,
+                        "transform": [
+                          {
+                            "scale": 0.82,
+                          },
+                        ],
                       },
                     ]
                   }
                 >
                   19
-                </Text>
+                </Animated.Text>
               </View>
               <View
                 style={
                   {
                     "alignItems": "center",
-                    "height": 50,
+                    "height": 48,
                     "justifyContent": "center",
                   }
                 }
               >
-                <Text
+                <Animated.Text
+                  allowFontScaling={false}
                   style={
                     [
                       {
-                        "fontSize": 16,
-                        "fontWeight": "400",
-                        "lineHeight": 24,
+                        "fontSize": 22,
+                        "fontVariant": [
+                          "tabular-nums",
+                        ],
+                        "fontWeight": "600",
+                        "height": 48,
+                        "lineHeight": 48,
+                        "textAlign": "center",
                       },
                       {
                         "color": "#E4EDFB",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      {
-                        "fontSize": 20,
-                        "lineHeight": 24,
-                        "textAlign": "center",
+                        "opacity": 0.35,
+                        "transform": [
+                          {
+                            "scale": 0.82,
+                          },
+                        ],
                       },
                     ]
                   }
                 >
                   20
-                </Text>
+                </Animated.Text>
               </View>
               <View
                 style={
                   {
                     "alignItems": "center",
-                    "height": 50,
+                    "height": 48,
                     "justifyContent": "center",
                   }
                 }
               >
-                <Text
+                <Animated.Text
+                  allowFontScaling={false}
                   style={
                     [
                       {
-                        "fontSize": 16,
-                        "fontWeight": "400",
-                        "lineHeight": 24,
+                        "fontSize": 22,
+                        "fontVariant": [
+                          "tabular-nums",
+                        ],
+                        "fontWeight": "600",
+                        "height": 48,
+                        "lineHeight": 48,
+                        "textAlign": "center",
                       },
                       {
                         "color": "#E4EDFB",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      {
-                        "fontSize": 20,
-                        "lineHeight": 24,
-                        "textAlign": "center",
+                        "opacity": 0.35,
+                        "transform": [
+                          {
+                            "scale": 0.82,
+                          },
+                        ],
                       },
                     ]
                   }
                 >
                   21
-                </Text>
+                </Animated.Text>
               </View>
               <View
                 style={
                   {
                     "alignItems": "center",
-                    "height": 50,
+                    "height": 48,
                     "justifyContent": "center",
                   }
                 }
               >
-                <Text
+                <Animated.Text
+                  allowFontScaling={false}
                   style={
                     [
                       {
-                        "fontSize": 16,
-                        "fontWeight": "400",
-                        "lineHeight": 24,
+                        "fontSize": 22,
+                        "fontVariant": [
+                          "tabular-nums",
+                        ],
+                        "fontWeight": "600",
+                        "height": 48,
+                        "lineHeight": 48,
+                        "textAlign": "center",
                       },
                       {
                         "color": "#E4EDFB",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      {
-                        "fontSize": 20,
-                        "lineHeight": 24,
-                        "textAlign": "center",
+                        "opacity": 0.35,
+                        "transform": [
+                          {
+                            "scale": 0.82,
+                          },
+                        ],
                       },
                     ]
                   }
                 >
                   22
-                </Text>
+                </Animated.Text>
               </View>
               <View
                 style={
                   {
                     "alignItems": "center",
-                    "height": 50,
+                    "height": 48,
                     "justifyContent": "center",
                   }
                 }
               >
-                <Text
+                <Animated.Text
+                  allowFontScaling={false}
                   style={
                     [
                       {
-                        "fontSize": 16,
-                        "fontWeight": "400",
-                        "lineHeight": 24,
+                        "fontSize": 22,
+                        "fontVariant": [
+                          "tabular-nums",
+                        ],
+                        "fontWeight": "600",
+                        "height": 48,
+                        "lineHeight": 48,
+                        "textAlign": "center",
                       },
                       {
                         "color": "#E4EDFB",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      {
-                        "fontSize": 20,
-                        "lineHeight": 24,
-                        "textAlign": "center",
+                        "opacity": 0.35,
+                        "transform": [
+                          {
+                            "scale": 0.82,
+                          },
+                        ],
                       },
                     ]
                   }
                 >
                   23
-                </Text>
+                </Animated.Text>
               </View>
             </ScrollView>
-            <Text
+            <View
               style={
-                [
-                  {
-                    "fontSize": 30,
-                    "fontWeight": "700",
-                    "lineHeight": 36,
-                  },
-                  {
-                    "color": "#14201B",
-                    "textAlign": undefined,
-                    "writingDirection": "ltr",
-                  },
-                  {
-                    "textAlign": "center",
-                    "width": 20,
-                  },
-                ]
+                {
+                  "alignItems": "center",
+                  "height": 48,
+                  "justifyContent": "center",
+                  "width": 20,
+                }
               }
             >
-              :
-            </Text>
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 30,
+                      "fontWeight": "700",
+                      "lineHeight": 36,
+                    },
+                    {
+                      "color": "#14201B",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    {
+                      "textAlign": "center",
+                    },
+                  ]
+                }
+              >
+                :
+              </Text>
+            </View>
             <ScrollView
               contentContainerStyle={
                 {
-                  "paddingVertical": 50,
+                  "paddingVertical": 96,
                 }
               }
               contentOffset={
                 {
                   "x": 0,
-                  "y": 300,
+                  "y": 288,
                 }
               }
               decelerationRate="fast"
               onMomentumScrollEnd={[Function]}
+              onScroll={
+                {
+                  "onScroll": [Function],
+                }
+              }
               onScrollEndDrag={[Function]}
+              ref={
+                {
+                  "current": null,
+                }
+              }
+              scrollEventThrottle={16}
               showsVerticalScrollIndicator={false}
-              snapToInterval={50}
+              snapToAlignment="start"
+              snapToInterval={48}
               style={
                 {
-                  "height": 150,
+                  "height": 240,
                   "width": 80,
                 }
               }
@@ -3115,400 +3269,503 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                 style={
                   {
                     "alignItems": "center",
-                    "height": 50,
+                    "height": 48,
                     "justifyContent": "center",
                   }
                 }
               >
-                <Text
+                <Animated.Text
+                  allowFontScaling={false}
                   style={
                     [
                       {
-                        "fontSize": 16,
-                        "fontWeight": "400",
-                        "lineHeight": 24,
+                        "fontSize": 22,
+                        "fontVariant": [
+                          "tabular-nums",
+                        ],
+                        "fontWeight": "600",
+                        "height": 48,
+                        "lineHeight": 48,
+                        "textAlign": "center",
                       },
                       {
                         "color": "#E4EDFB",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      {
-                        "fontSize": 20,
-                        "lineHeight": 24,
-                        "textAlign": "center",
+                        "opacity": 0.35,
+                        "transform": [
+                          {
+                            "scale": 0.82,
+                          },
+                        ],
                       },
                     ]
                   }
                 >
                   00
-                </Text>
+                </Animated.Text>
               </View>
               <View
                 style={
                   {
                     "alignItems": "center",
-                    "height": 50,
+                    "height": 48,
                     "justifyContent": "center",
                   }
                 }
               >
-                <Text
+                <Animated.Text
+                  allowFontScaling={false}
                   style={
                     [
                       {
-                        "fontSize": 16,
-                        "fontWeight": "400",
-                        "lineHeight": 24,
+                        "fontSize": 22,
+                        "fontVariant": [
+                          "tabular-nums",
+                        ],
+                        "fontWeight": "600",
+                        "height": 48,
+                        "lineHeight": 48,
+                        "textAlign": "center",
                       },
                       {
                         "color": "#E4EDFB",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      {
-                        "fontSize": 20,
-                        "lineHeight": 24,
-                        "textAlign": "center",
+                        "opacity": 0.35,
+                        "transform": [
+                          {
+                            "scale": 0.82,
+                          },
+                        ],
                       },
                     ]
                   }
                 >
                   05
-                </Text>
+                </Animated.Text>
               </View>
               <View
                 style={
                   {
                     "alignItems": "center",
-                    "height": 50,
+                    "height": 48,
                     "justifyContent": "center",
                   }
                 }
               >
-                <Text
+                <Animated.Text
+                  allowFontScaling={false}
                   style={
                     [
                       {
-                        "fontSize": 16,
-                        "fontWeight": "400",
-                        "lineHeight": 24,
+                        "fontSize": 22,
+                        "fontVariant": [
+                          "tabular-nums",
+                        ],
+                        "fontWeight": "600",
+                        "height": 48,
+                        "lineHeight": 48,
+                        "textAlign": "center",
                       },
                       {
                         "color": "#E4EDFB",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      {
-                        "fontSize": 20,
-                        "lineHeight": 24,
-                        "textAlign": "center",
+                        "opacity": 0.35,
+                        "transform": [
+                          {
+                            "scale": 0.82,
+                          },
+                        ],
                       },
                     ]
                   }
                 >
                   10
-                </Text>
+                </Animated.Text>
               </View>
               <View
                 style={
                   {
                     "alignItems": "center",
-                    "height": 50,
+                    "height": 48,
                     "justifyContent": "center",
                   }
                 }
               >
-                <Text
+                <Animated.Text
+                  allowFontScaling={false}
                   style={
                     [
                       {
-                        "fontSize": 16,
-                        "fontWeight": "400",
-                        "lineHeight": 24,
+                        "fontSize": 22,
+                        "fontVariant": [
+                          "tabular-nums",
+                        ],
+                        "fontWeight": "600",
+                        "height": 48,
+                        "lineHeight": 48,
+                        "textAlign": "center",
                       },
                       {
                         "color": "#E4EDFB",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      {
-                        "fontSize": 20,
-                        "lineHeight": 24,
-                        "textAlign": "center",
+                        "opacity": 0.35,
+                        "transform": [
+                          {
+                            "scale": 0.82,
+                          },
+                        ],
                       },
                     ]
                   }
                 >
                   15
-                </Text>
+                </Animated.Text>
               </View>
               <View
                 style={
                   {
                     "alignItems": "center",
-                    "height": 50,
+                    "height": 48,
                     "justifyContent": "center",
                   }
                 }
               >
-                <Text
+                <Animated.Text
+                  allowFontScaling={false}
                   style={
                     [
                       {
-                        "fontSize": 16,
-                        "fontWeight": "400",
-                        "lineHeight": 24,
+                        "fontSize": 22,
+                        "fontVariant": [
+                          "tabular-nums",
+                        ],
+                        "fontWeight": "600",
+                        "height": 48,
+                        "lineHeight": 48,
+                        "textAlign": "center",
                       },
                       {
                         "color": "#E4EDFB",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      {
-                        "fontSize": 20,
-                        "lineHeight": 24,
-                        "textAlign": "center",
+                        "opacity": 0.35,
+                        "transform": [
+                          {
+                            "scale": 0.82,
+                          },
+                        ],
                       },
                     ]
                   }
                 >
                   20
-                </Text>
+                </Animated.Text>
               </View>
               <View
                 style={
                   {
                     "alignItems": "center",
-                    "height": 50,
+                    "height": 48,
                     "justifyContent": "center",
                   }
                 }
               >
-                <Text
+                <Animated.Text
+                  allowFontScaling={false}
                   style={
                     [
                       {
-                        "fontSize": 16,
-                        "fontWeight": "400",
-                        "lineHeight": 24,
+                        "fontSize": 22,
+                        "fontVariant": [
+                          "tabular-nums",
+                        ],
+                        "fontWeight": "600",
+                        "height": 48,
+                        "lineHeight": 48,
+                        "textAlign": "center",
                       },
                       {
                         "color": "#E4EDFB",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      {
-                        "fontSize": 20,
-                        "lineHeight": 24,
-                        "textAlign": "center",
+                        "opacity": 0.35,
+                        "transform": [
+                          {
+                            "scale": 0.82,
+                          },
+                        ],
                       },
                     ]
                   }
                 >
                   25
-                </Text>
+                </Animated.Text>
               </View>
               <View
                 style={
                   {
                     "alignItems": "center",
-                    "height": 50,
+                    "height": 48,
                     "justifyContent": "center",
                   }
                 }
               >
-                <Text
+                <Animated.Text
+                  allowFontScaling={false}
                   style={
                     [
                       {
-                        "fontSize": 16,
-                        "fontWeight": "400",
-                        "lineHeight": 24,
+                        "fontSize": 22,
+                        "fontVariant": [
+                          "tabular-nums",
+                        ],
+                        "fontWeight": "600",
+                        "height": 48,
+                        "lineHeight": 48,
+                        "textAlign": "center",
                       },
                       {
                         "color": "#14201B",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      {
-                        "fontSize": 24,
-                        "fontWeight": "700",
-                        "lineHeight": 29,
-                        "textAlign": "center",
+                        "opacity": 1,
+                        "transform": [
+                          {
+                            "scale": 1.18,
+                          },
+                        ],
                       },
                     ]
                   }
                 >
                   30
-                </Text>
+                </Animated.Text>
               </View>
               <View
                 style={
                   {
                     "alignItems": "center",
-                    "height": 50,
+                    "height": 48,
                     "justifyContent": "center",
                   }
                 }
               >
-                <Text
+                <Animated.Text
+                  allowFontScaling={false}
                   style={
                     [
                       {
-                        "fontSize": 16,
-                        "fontWeight": "400",
-                        "lineHeight": 24,
+                        "fontSize": 22,
+                        "fontVariant": [
+                          "tabular-nums",
+                        ],
+                        "fontWeight": "600",
+                        "height": 48,
+                        "lineHeight": 48,
+                        "textAlign": "center",
                       },
                       {
                         "color": "#E4EDFB",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      {
-                        "fontSize": 20,
-                        "lineHeight": 24,
-                        "textAlign": "center",
+                        "opacity": 0.35,
+                        "transform": [
+                          {
+                            "scale": 0.82,
+                          },
+                        ],
                       },
                     ]
                   }
                 >
                   35
-                </Text>
+                </Animated.Text>
               </View>
               <View
                 style={
                   {
                     "alignItems": "center",
-                    "height": 50,
+                    "height": 48,
                     "justifyContent": "center",
                   }
                 }
               >
-                <Text
+                <Animated.Text
+                  allowFontScaling={false}
                   style={
                     [
                       {
-                        "fontSize": 16,
-                        "fontWeight": "400",
-                        "lineHeight": 24,
+                        "fontSize": 22,
+                        "fontVariant": [
+                          "tabular-nums",
+                        ],
+                        "fontWeight": "600",
+                        "height": 48,
+                        "lineHeight": 48,
+                        "textAlign": "center",
                       },
                       {
                         "color": "#E4EDFB",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      {
-                        "fontSize": 20,
-                        "lineHeight": 24,
-                        "textAlign": "center",
+                        "opacity": 0.35,
+                        "transform": [
+                          {
+                            "scale": 0.82,
+                          },
+                        ],
                       },
                     ]
                   }
                 >
                   40
-                </Text>
+                </Animated.Text>
               </View>
               <View
                 style={
                   {
                     "alignItems": "center",
-                    "height": 50,
+                    "height": 48,
                     "justifyContent": "center",
                   }
                 }
               >
-                <Text
+                <Animated.Text
+                  allowFontScaling={false}
                   style={
                     [
                       {
-                        "fontSize": 16,
-                        "fontWeight": "400",
-                        "lineHeight": 24,
+                        "fontSize": 22,
+                        "fontVariant": [
+                          "tabular-nums",
+                        ],
+                        "fontWeight": "600",
+                        "height": 48,
+                        "lineHeight": 48,
+                        "textAlign": "center",
                       },
                       {
                         "color": "#E4EDFB",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      {
-                        "fontSize": 20,
-                        "lineHeight": 24,
-                        "textAlign": "center",
+                        "opacity": 0.35,
+                        "transform": [
+                          {
+                            "scale": 0.82,
+                          },
+                        ],
                       },
                     ]
                   }
                 >
                   45
-                </Text>
+                </Animated.Text>
               </View>
               <View
                 style={
                   {
                     "alignItems": "center",
-                    "height": 50,
+                    "height": 48,
                     "justifyContent": "center",
                   }
                 }
               >
-                <Text
+                <Animated.Text
+                  allowFontScaling={false}
                   style={
                     [
                       {
-                        "fontSize": 16,
-                        "fontWeight": "400",
-                        "lineHeight": 24,
+                        "fontSize": 22,
+                        "fontVariant": [
+                          "tabular-nums",
+                        ],
+                        "fontWeight": "600",
+                        "height": 48,
+                        "lineHeight": 48,
+                        "textAlign": "center",
                       },
                       {
                         "color": "#E4EDFB",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      {
-                        "fontSize": 20,
-                        "lineHeight": 24,
-                        "textAlign": "center",
+                        "opacity": 0.35,
+                        "transform": [
+                          {
+                            "scale": 0.82,
+                          },
+                        ],
                       },
                     ]
                   }
                 >
                   50
-                </Text>
+                </Animated.Text>
               </View>
               <View
                 style={
                   {
                     "alignItems": "center",
-                    "height": 50,
+                    "height": 48,
                     "justifyContent": "center",
                   }
                 }
               >
-                <Text
+                <Animated.Text
+                  allowFontScaling={false}
                   style={
                     [
                       {
-                        "fontSize": 16,
-                        "fontWeight": "400",
-                        "lineHeight": 24,
+                        "fontSize": 22,
+                        "fontVariant": [
+                          "tabular-nums",
+                        ],
+                        "fontWeight": "600",
+                        "height": 48,
+                        "lineHeight": 48,
+                        "textAlign": "center",
                       },
                       {
                         "color": "#E4EDFB",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      {
-                        "fontSize": 20,
-                        "lineHeight": 24,
-                        "textAlign": "center",
+                        "opacity": 0.35,
+                        "transform": [
+                          {
+                            "scale": 0.82,
+                          },
+                        ],
                       },
                     ]
                   }
                 >
                   55
-                </Text>
+                </Animated.Text>
               </View>
             </ScrollView>
+            <LinearGradient
+              colors={
+                [
+                  "#FFFFFFFF",
+                  "#FFFFFF00",
+                ]
+              }
+              pointerEvents="none"
+              style={
+                [
+                  {
+                    "height": 72,
+                    "left": 0,
+                    "position": "absolute",
+                    "right": 0,
+                  },
+                  {
+                    "top": 0,
+                  },
+                ]
+              }
+            />
+            <LinearGradient
+              colors={
+                [
+                  "#FFFFFF00",
+                  "#FFFFFFFF",
+                ]
+              }
+              pointerEvents="none"
+              style={
+                [
+                  {
+                    "height": 72,
+                    "left": 0,
+                    "position": "absolute",
+                    "right": 0,
+                  },
+                  {
+                    "bottom": 0,
+                  },
+                ]
+              }
+            />
           </View>
           <View
             style={
