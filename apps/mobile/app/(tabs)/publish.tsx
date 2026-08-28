@@ -65,6 +65,7 @@ import {
   useLazyGeocodeReverseQuery,
   useLazyGeocodeAutocompleteQuery,
   useLazyGeocodePlaceDetailsQuery,
+  useGetCityDetourCandidatesQuery,
   type RouteStop,
   type SuggestedPrice,
   type RouteOption,
@@ -369,7 +370,14 @@ export default function PublishTabScreen(): React.JSX.Element {
   // picks a real named place (same Places autocomplete search/composer.tsx
   // uses) and the server validates the detour distance + road-snaps the
   // exact stop point — never a raw, unvalidated pin.
+  // 'list' (default): browse the real, predefined cities/towns
+  // city-detour-candidates.service.ts found along the route — the primary
+  // mechanism per direct product feedback ("user should be able to see
+  // predefined cities in his route, not manually search... think like
+  // BlaBlaCar"). 'search' is the fallback sub-mode for a real place the
+  // discovery pass didn't surface.
   const [isSearchingCity, setIsSearchingCity] = useState(false);
+  const [citySheetMode, setCitySheetMode] = useState<'list' | 'search'>('list');
   const [citySearchQuery, setCitySearchQuery] = useState('');
   const [citySearchError, setCitySearchError] = useState<string | null>(null);
   const [isAddingCityStop, setIsAddingCityStop] = useState(false);
@@ -377,6 +385,11 @@ export default function PublishTabScreen(): React.JSX.Element {
   const [triggerCitySearch, { data: cityPredictions, isFetching: isCitySearching }] =
     useLazyGeocodeAutocompleteQuery();
   const [triggerCityDetails, { isFetching: isResolvingCityPlace }] = useLazyGeocodePlaceDetailsQuery();
+  const {
+    data: cityDetourCandidates,
+    isFetching: isLoadingCityCandidates,
+    isError: cityCandidatesFailed,
+  } = useGetCityDetourCandidatesQuery(rideId ?? '', { skip: !isSearchingCity || !rideId });
 
   useEffect(() => {
     const trimmed = citySearchQuery.trim();
@@ -687,6 +700,7 @@ export default function PublishTabScreen(): React.JSX.Element {
 
   function openCitySearch(): void {
     haptics.selection();
+    setCitySheetMode('list');
     setCitySearchQuery('');
     setCitySearchError(null);
     citySessionTokenRef.current = generateSessionToken();
@@ -695,8 +709,27 @@ export default function PublishTabScreen(): React.JSX.Element {
 
   function closeCitySearch(): void {
     setIsSearchingCity(false);
+    setCitySheetMode('list');
     setCitySearchQuery('');
     setCitySearchError(null);
+  }
+
+  /** Switches the open city sheet from the predefined-cities list into the
+   *  manual-search fallback sub-mode — a real place the discovery pass
+   *  didn't surface, not the primary path. */
+  function switchToCitySearchMode(): void {
+    haptics.selection();
+    setCitySearchQuery('');
+    setCitySearchError(null);
+    citySessionTokenRef.current = generateSessionToken();
+    setCitySheetMode('search');
+  }
+
+  function switchToCityListMode(): void {
+    haptics.selection();
+    setCitySearchQuery('');
+    setCitySearchError(null);
+    setCitySheetMode('list');
   }
 
   /** Persists a driver-searched city as a real via-stop — unlike pickup/
@@ -2375,82 +2408,165 @@ export default function PublishTabScreen(): React.JSX.Element {
         theme={theme}
         visible={isSearchingCity}
         onClose={closeCitySearch}
-        title={t('driver:publish.stopsStep.searchCityTitle')}
-        heightRatio={0.75}
+        title={
+          citySheetMode === 'list'
+            ? t('driver:publish.stopsStep.chooseCityTitle')
+            : t('driver:publish.stopsStep.searchCityTitle')
+        }
+        heightRatio={0.68}
       >
-        <View style={styles.citySearchContent}>
-          <Text variant="bodySmall" color={theme.inkMuted} style={styles.citySearchHelper}>
-            {t('driver:publish.stopsStep.searchCityHelper')}
-          </Text>
-          <View
-            style={[
-              styles.citySearchInputWrap,
-              { backgroundColor: theme.surfaceMuted, borderColor: theme.outlineVariant },
-            ]}
-          >
-            <Icon name="search" size="sm" color={theme.inkMuted} />
-            <TextInput
-              value={citySearchQuery}
-              onChangeText={(text) => {
-                setCitySearchQuery(text);
-                setCitySearchError(null);
-              }}
-              placeholder={t('driver:publish.stopsStep.searchCityPlaceholder')}
-              placeholderTextColor={theme.inkFaint}
-              style={[styles.citySearchInput, { color: theme.ink }]}
-              autoFocus
-              returnKeyType="search"
-            />
-            {isCitySearching || isResolvingCityPlace || isAddingCityStop ? (
-              <ActivityIndicator size="small" color={theme.inkFaint} />
-            ) : null}
-          </View>
-
-          {citySearchError ? (
-            <Text variant="caption" color={theme.error} style={styles.citySearchErrorText}>
-              {citySearchError}
+        {citySheetMode === 'list' ? (
+          <View style={styles.citySearchContent}>
+            <Text variant="bodySmall" color={theme.inkMuted} style={styles.citySearchHelper}>
+              {t('driver:publish.stopsStep.chooseCityHelper')}
             </Text>
-          ) : null}
 
-          <FlatList
-            data={citySearchRows}
-            keyExtractor={(row) => row.key}
-            keyboardShouldPersistTaps="handled"
-            style={styles.citySearchList}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                style={styles.citySearchRow}
-                onPress={() => {
-                  haptics.selection();
-                  void chooseCitySearchResult(item);
-                }}
-                activeOpacity={0.6}
-                disabled={isAddingCityStop}
-              >
-                <View style={[styles.citySearchRowIconWrap, { backgroundColor: theme.accentGlow + '2E' }]}>
-                  <Icon name="business-outline" size="sm" color={theme.accentStrong} />
-                </View>
-                <View style={styles.citySearchRowTextCol}>
-                  <Text variant="body" color={theme.ink} numberOfLines={1}>
-                    {item.label}
-                  </Text>
-                  {item.subLabel ? (
-                    <Text variant="caption" color={theme.inkFaint} numberOfLines={1}>
-                      {item.subLabel}
-                    </Text>
-                  ) : null}
-                </View>
-              </TouchableOpacity>
-            )}
-            ListEmptyComponent={
-              citySearchQuery.trim().length >= 2 && !isCitySearching ? (
-                <Text variant="body" color={theme.inkFaint} style={styles.citySearchEmpty}>
-                  {t('search:composer.noResults')}
+            {citySearchError ? (
+              <Text variant="caption" color={theme.error} style={styles.citySearchErrorText}>
+                {citySearchError}
+              </Text>
+            ) : null}
+
+            {isLoadingCityCandidates ? (
+              <View style={styles.cityListLoadingRow}>
+                <ActivityIndicator size="small" color={theme.ink} />
+                <Text variant="bodySmall" color={theme.inkMuted}>
+                  {t('driver:publish.stopsStep.searching')}
                 </Text>
-              ) : null
-            }
-          />
-        </View>
+              </View>
+            ) : (
+              <FlatList
+                data={cityCandidatesFailed ? [] : (cityDetourCandidates?.cities ?? [])}
+                keyExtractor={(c, index) => `${c.lat},${c.lng},${index}`}
+                style={styles.citySearchList}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={styles.citySearchRow}
+                    onPress={() => {
+                      haptics.selection();
+                      void submitCityStop({ label: item.label, lat: item.lat, lng: item.lng });
+                    }}
+                    activeOpacity={0.6}
+                    disabled={isAddingCityStop}
+                  >
+                    <View style={[styles.citySearchRowIconWrap, { backgroundColor: theme.accentGlow + '2E' }]}>
+                      <Icon name="business-outline" size="sm" color={theme.accentStrong} />
+                    </View>
+                    <View style={styles.citySearchRowTextCol}>
+                      <Text variant="body" color={theme.ink} numberOfLines={1}>
+                        {item.label}
+                      </Text>
+                    </View>
+                    {isAddingCityStop ? <ActivityIndicator size="small" color={theme.inkFaint} /> : null}
+                  </TouchableOpacity>
+                )}
+                ListEmptyComponent={
+                  <Text variant="body" color={theme.inkFaint} style={styles.citySearchEmpty}>
+                    {cityCandidatesFailed
+                      ? t('driver:publish.stopsStep.cityListError')
+                      : t('driver:publish.stopsStep.cityListEmpty')}
+                  </Text>
+                }
+              />
+            )}
+
+            <TouchableOpacity
+              style={[styles.citySwitchRow, { borderColor: theme.outlineVariant }]}
+              onPress={switchToCitySearchMode}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+            >
+              <Icon name="search" size="sm" color={theme.ink} />
+              <Text variant="label" color={theme.ink}>
+                {t('driver:publish.stopsStep.searchAnotherCity')}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <View style={styles.citySearchContent}>
+            <TouchableOpacity
+              style={styles.cityBackRow}
+              onPress={switchToCityListMode}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel={t('common:actions.back')}
+            >
+              <Icon name="arrow-back" size="sm" color={theme.ink} />
+              <Text variant="label" color={theme.ink}>
+                {t('common:actions.back')}
+              </Text>
+            </TouchableOpacity>
+
+            <View
+              style={[
+                styles.citySearchInputWrap,
+                { backgroundColor: theme.surfaceMuted, borderColor: theme.outlineVariant },
+              ]}
+            >
+              <Icon name="search" size="sm" color={theme.inkMuted} />
+              <TextInput
+                value={citySearchQuery}
+                onChangeText={(text) => {
+                  setCitySearchQuery(text);
+                  setCitySearchError(null);
+                }}
+                placeholder={t('driver:publish.stopsStep.searchCityPlaceholder')}
+                placeholderTextColor={theme.inkFaint}
+                style={[styles.citySearchInput, { color: theme.ink }]}
+                autoFocus
+                returnKeyType="search"
+              />
+              {isCitySearching || isResolvingCityPlace || isAddingCityStop ? (
+                <ActivityIndicator size="small" color={theme.inkFaint} />
+              ) : null}
+            </View>
+
+            {citySearchError ? (
+              <Text variant="caption" color={theme.error} style={styles.citySearchErrorText}>
+                {citySearchError}
+              </Text>
+            ) : null}
+
+            <FlatList
+              data={citySearchRows}
+              keyExtractor={(row) => row.key}
+              keyboardShouldPersistTaps="handled"
+              style={styles.citySearchList}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.citySearchRow}
+                  onPress={() => {
+                    haptics.selection();
+                    void chooseCitySearchResult(item);
+                  }}
+                  activeOpacity={0.6}
+                  disabled={isAddingCityStop}
+                >
+                  <View style={[styles.citySearchRowIconWrap, { backgroundColor: theme.accentGlow + '2E' }]}>
+                    <Icon name="business-outline" size="sm" color={theme.accentStrong} />
+                  </View>
+                  <View style={styles.citySearchRowTextCol}>
+                    <Text variant="body" color={theme.ink} numberOfLines={1}>
+                      {item.label}
+                    </Text>
+                    {item.subLabel ? (
+                      <Text variant="caption" color={theme.inkFaint} numberOfLines={1}>
+                        {item.subLabel}
+                      </Text>
+                    ) : null}
+                  </View>
+                </TouchableOpacity>
+              )}
+              ListEmptyComponent={
+                citySearchQuery.trim().length >= 2 && !isCitySearching ? (
+                  <Text variant="body" color={theme.inkFaint} style={styles.citySearchEmpty}>
+                    {t('search:composer.noResults')}
+                  </Text>
+                ) : null
+              }
+            />
+          </View>
+        )}
       </BottomSheet>
 
       <ContextualAuthSheet
@@ -3045,5 +3161,25 @@ const styles = StyleSheet.create({
   citySearchEmpty: {
     marginTop: spacing.xl,
     textAlign: 'center',
+  },
+  cityListLoadingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.lg,
+  },
+  citySwitchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.md,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  cityBackRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    marginBottom: spacing.xs,
   },
 });

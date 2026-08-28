@@ -39,3 +39,16 @@ export async function reverseGeocode(lat: number, lng: number): Promise<GeocodeR
   if (!result) throw new Error(`Reverse geocode failed for ${lat},${lng}`);
   return { label: result.label, lat: result.latitude, lng: result.longitude };
 }
+
+/** Real named cities/towns within `radiusM` of a point — used by
+ *  city-detour-candidates.service.ts to build a driver's "cities you can
+ *  offer as a detour" list along their route. Genuinely different from
+ *  reverseGeocode (which only resolves what CONTAINS the exact point, so
+ *  it finds nothing for a point on a highway or in open countryside
+ *  between towns — most of a route's actual sampled geometry). */
+export async function searchNearbyLocalities(
+  point: { lat: number; lng: number },
+  radiusM: number,
+): Promise<LocationPoint[]> {
+  return getLocationProvider().searchNearbyLocalities(point, radiusM);
+}
