@@ -320,6 +320,38 @@ describe('matching.service — tier cascade, real Postgres (+ real OSRM for rout
     expect(match!.rankedDropoffStops.length).toBeGreaterThan(0);
   }, 30_000);
 
+  it('still finds a route_passthrough ride when the search points sit near a real stop but far from the route line itself (regression: city-center geocode offset)', async () => {
+    if (osrmUnavailable || !passThroughPickup || !passThroughDropoff) {
+      // Honest degradation, same discipline as stop-candidates.integration.test.ts —
+      // this environment's OSRM wasn't reachable, nothing further to assert.
+      return;
+    }
+    // Reproduces the real reported bug: a rider searches from a city-center
+    // geocode (e.g. "Zaragoza") that can sit hundreds of meters to a few km
+    // from the route's actual road line, even though a real driver-placed
+    // stop nearby is genuinely walkable. The old code gated candidates on
+    // distance from the search point to the route LINE itself
+    // (corridorWidthM, ~150-250m) — far stricter than, and independent of,
+    // the separate stop-walkability check that runs afterward. Offsetting
+    // by ~450m (well outside the old line-distance gate, well inside the
+    // wide/stop-walkability radius) must still surface the ride.
+    const offsetDeg = 0.004; // ~350-450m at these latitudes.
+    const offsetOrigin = { lat: passThroughPickup.lat + offsetDeg, lng: passThroughPickup.lng };
+    const offsetDestination = { lat: passThroughDropoff.lat + offsetDeg, lng: passThroughDropoff.lng };
+    const result = await searchRides(db, {
+      originLat: offsetOrigin.lat,
+      originLng: offsetOrigin.lng,
+      destinationLat: offsetDestination.lat,
+      destinationLng: offsetDestination.lng,
+      when: areaAWhen,
+    });
+    const match = result.candidates.find((c) => c.rideId === passThroughRideId);
+    expect(match).toBeDefined();
+    expect(match!.matchType).toBe('route_passthrough');
+    expect(match!.pickupViable).toBe(true);
+    expect(match!.dropoffViable).toBe(true);
+  }, 30_000);
+
   it('falls back to tier "closest_departure" when nothing matches at or near the requested time', async () => {
     const result = await searchRides(db, {
       originLat: areaAOrigin.lat,

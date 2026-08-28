@@ -556,11 +556,25 @@ async function scoreCandidates(
 async function scorePassThroughCandidates(
   db: Database,
   input: MatchingSearchInput,
-  corridorWidthM: number,
+  thresholds: MatchingThresholds,
   timeWindowMin: number,
 ): Promise<MatchCandidate[]> {
   const windowStart = new Date(input.when.getTime() - timeWindowMin * 60_000);
   const windowEnd = new Date(input.when.getTime() + timeWindowMin * 60_000);
+  // The PostGIS pre-filter and the qualification test below both use the
+  // WIDE walkability radius, not the tighter corridorWidthM — see the real
+  // bug this fixed: a passenger searching "Zaragoza" gets a city-center
+  // geocode that can genuinely sit several km from the highway a driver's
+  // route actually follows, even though a real, driver-placed stop near
+  // that highway exit is a perfectly walkable/reasonable distance from
+  // them. Gating on distance-to-the-raw-route-LINE conflated "near the
+  // road" with "near a usable stop" — exactly the assumption route_stops
+  // exists to NOT make (a stop can legitimately sit up to 300m off-route
+  // by design, or further for a driver's manually-placed pin). The
+  // stop-walkability check further down is the real, correct
+  // qualification bar; this radius only needs to be wide enough not to
+  // exclude a candidate before that check even runs.
+  const candidateSearchRadiusM = Math.max(thresholds.widePickupRadiusM, thresholds.wideDropoffRadiusM);
 
   const origin = { lat: input.originLat, lng: input.originLng };
   const destination = { lat: input.destinationLat, lng: input.destinationLng };
@@ -577,7 +591,7 @@ async function scorePassThroughCandidates(
     db,
     origin,
     destination,
-    corridorWidthM,
+    candidateSearchRadiusM,
     windowStart,
     windowEnd,
     POSTGIS_CANDIDATE_CAP,
@@ -602,9 +616,11 @@ async function scorePassThroughCandidates(
     const routePoints = decodePolyline(ride.routePolyline);
     if (routePoints.length < 2) continue;
 
+    // Fraction-only: used for direction-order (below) and the segment-
+    // fraction scoring bonus — NOT as a distance-based rejection gate
+    // anymore (see candidateSearchRadiusM's comment above for why).
     const originProj = projectPointOntoRoute(origin, routePoints);
     const destProj = projectPointOntoRoute(destination, routePoints);
-    if (originProj.distanceM > corridorWidthM || destProj.distanceM > corridorWidthM) continue;
     if (destProj.fraction - originProj.fraction < MIN_ROUTE_FRACTION_GAP) continue;
 
     const rideStops = stopsByRide.get(ride.id) ?? [];
@@ -1081,7 +1097,7 @@ export async function searchRides(db: Database, input: MatchingSearchInput): Pro
       thresholds.wideDropoffRadiusM,
       WIDE_TIME_WINDOW_MIN,
     ),
-    scorePassThroughCandidates(db, input, thresholds.corridorWidthM, WIDE_TIME_WINDOW_MIN),
+    scorePassThroughCandidates(db, input, thresholds, WIDE_TIME_WINDOW_MIN),
   ]);
   const merged = mergeCandidatesByRide(endpointCandidates, passThroughCandidates);
 
