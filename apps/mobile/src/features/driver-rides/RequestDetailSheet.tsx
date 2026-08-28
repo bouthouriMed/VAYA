@@ -22,7 +22,7 @@ import {
   useAcceptBookingMutation,
   useDeclineBookingMutation,
 } from '../../state/api';
-import { formatDistance } from '../../utils/localeFormat';
+import { formatDistance, formatTime } from '../../utils/localeFormat';
 import { openInMaps } from '../../utils/openInMaps';
 import { trackEvent } from '../../services/analytics/analytics';
 import { decodePolyline, sliceRouteBetween } from '../../utils/polyline';
@@ -59,6 +59,7 @@ function durationLabel(
 function RouteFitRow({
   icon,
   roleLabel,
+  timeLabel,
   point,
   locale,
   t,
@@ -66,6 +67,10 @@ function RouteFitRow({
 }: {
   icon: 'navigate-outline' | 'flag-outline';
   roleLabel: string;
+  /** Real time the driver would reach this point — direct product
+   *  feedback: a distance/duration deviation alone doesn't tell the
+   *  driver WHEN they'd meet this passenger. */
+  timeLabel: string;
   point: DetourPreviewPoint;
   locale: SupportedLocale;
   t: (key: string, params?: Record<string, unknown>) => string;
@@ -75,9 +80,14 @@ function RouteFitRow({
     <View style={[styles.fitRow, { backgroundColor: theme.surfaceMuted }]}>
       <Icon name={icon} size="sm" color={theme.inkMuted} />
       <View style={styles.fitTextCol}>
-        <Text variant="caption" color={theme.inkFaint}>
-          {roleLabel}
-        </Text>
+        <View style={styles.fitRoleRow}>
+          <Text variant="label" color={theme.ink}>
+            {timeLabel}
+          </Text>
+          <Text variant="caption" color={theme.inkFaint}>
+            {roleLabel}
+          </Text>
+        </View>
         <Text variant="bodySmall" color={theme.ink} numberOfLines={2}>
           {point.label}
         </Text>
@@ -143,12 +153,19 @@ export function RequestDetailSheet({
     isError,
   } = useGetBookingDetourPreviewQuery(booking?.id ?? '', { skip: !visible || !booking?.id });
 
-  // This specific request's segment, not the driver's whole route — sliced
-  // from the ride's real geometry once the preview resolves real pickup/
-  // dropoff coordinates.
+  // This specific request's segment, not the driver's whole route. When
+  // either point is a real detour (not on the ride's own routePolyline at
+  // all — preview.detourRoutePolyline is only ever populated in that
+  // case), slicing the RIDE's route between two points that aren't
+  // actually on it would show the wrong line entirely; use the real
+  // routing-engine polyline computed for this exact pickup -> dropoff leg
+  // instead. Otherwise (both points are planned stops), slicing the ride's
+  // own real geometry is already exactly right.
   const segmentCoordinates = useMemo(() => {
-    if (!routePolyline || !preview) return [];
-    const full = decodePolyline(routePolyline);
+    if (!preview) return [];
+    const source = preview.detourRoutePolyline ?? routePolyline;
+    if (!source) return [];
+    const full = decodePolyline(source);
     if (full.length < 2) return full;
     return sliceRouteBetween(
       full,
@@ -264,6 +281,7 @@ export function RequestDetailSheet({
             <RouteFitRow
               icon="navigate-outline"
               roleLabel={t('common:terms.pickup')}
+              timeLabel={formatTime(new Date(preview.pickupTime), locale)}
               point={preview.pickup}
               locale={locale}
               t={t}
@@ -272,6 +290,7 @@ export function RequestDetailSheet({
             <RouteFitRow
               icon="flag-outline"
               roleLabel={t('common:terms.dropoff')}
+              timeLabel={formatTime(new Date(preview.dropoffTime), locale)}
               point={preview.dropoff}
               locale={locale}
               t={t}
@@ -294,6 +313,18 @@ export function RequestDetailSheet({
                   distance: formatDistance(preview.segment.distanceM, locale),
                   duration: durationLabel(preview.segment.durationSec, t),
                 })}
+              </Text>
+            </View>
+
+            {/* The driver's OWN updated trip-completion time if they accept
+             *  this request — distinct from the passenger's own dropoff row
+             *  above. Direct product feedback: the driver needs to see how
+             *  accepting shifts their own schedule, not just the
+             *  passenger's. */}
+            <View style={[styles.segmentRow, { borderColor: theme.outlineVariant }]}>
+              <Icon name="time-outline" size="sm" color={theme.inkMuted} />
+              <Text variant="bodySmall" color={theme.ink}>
+                {t('driver:rides.requestDetail.newEta', { time: formatTime(new Date(preview.newEta), locale) })}
               </Text>
             </View>
           </>
@@ -368,6 +399,11 @@ const styles = StyleSheet.create({
   fitTextCol: {
     flex: 1,
     gap: 2,
+  },
+  fitRoleRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    justifyContent: 'space-between',
   },
   fitBadgeRow: {
     flexDirection: 'row',

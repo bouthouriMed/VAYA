@@ -77,7 +77,7 @@
     "selfBookingError": "Vous ne pouvez pas demander une place sur votre propre trajet.",
     "duplicateBookingError": "Vous avez déjà une demande pour ce trajet.",
     "rideNotBookableError": "Ce trajet n'accepte plus de demandes.",
-    "pickupNotAvailableError": "Ce point de prise en charge n'est pas encore validé par le conducteur pour ce trajet."
+    "pickupNotAvailableError": "Ce point est trop éloigné du trajet du conducteur, ou n'a pas pu être vérifié pour le moment. Réessayez ou choisissez un autre trajet."
   },
   "trust": {
     "back": "Retour",

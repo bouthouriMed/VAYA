@@ -10,12 +10,15 @@ import {
 import {
   computeRouteOverlapFraction,
   decodePolyline,
+  polylineLengthMeters,
   projectPointOntoRoute,
   type LatLng,
 } from '../../lib/polyline.js';
 import {
   classifyTripProfile,
+  detourAllowanceSec,
   getMatchingThresholds,
+  MAX_DETOUR_RATIO,
   type MatchingThresholds,
 } from '@vaya/domain';
 import type { MatchingSearchInput, NotifyMeInput } from '@vaya/validation';
@@ -114,25 +117,12 @@ const DETOUR_SEARCH_RADIUS_M = 2500;
 // audit's 1,000-user-scale candidate-set modeling, not measured.
 const DETOUR_CANDIDATE_CAP = 15;
 
-// Detour tolerance as a fraction of the ride's own baseline duration — a
-// fixed-minutes bound would be simultaneously too loose on a 10-minute
-// urban hop and too tight on a 3-hour intercity trip. HYPOTHESIS: no usage
-// data exists yet to calibrate this precisely.
-const MAX_DETOUR_RATIO = 0.25;
-// Absolute floor/ceiling so the ratio math can't produce a nonsensically
-// tiny allowance on a very short trip or an unreasonably large one on a
-// very long trip. ASSUMPTION.
-const MIN_DETOUR_ALLOWANCE_SEC = 3 * 60;
-const MAX_DETOUR_ALLOWANCE_SEC = 12 * 60;
-
-export function detourAllowanceSec(
-  baselineDurationSec: number,
-  floorSec: number = MIN_DETOUR_ALLOWANCE_SEC,
-  ceilingSec: number = MAX_DETOUR_ALLOWANCE_SEC,
-): number {
-  const ratioAllowance = baselineDurationSec * MAX_DETOUR_RATIO;
-  return Math.min(ceilingSec, Math.max(floorSec, ratioAllowance));
-}
+// detourAllowanceSec/MAX_DETOUR_RATIO now live in @vaya/domain
+// (packages/domain/src/matching/matching-thresholds.ts) — moved there so
+// bookings.service.ts can share the exact same real detour bound when
+// validating a free-form pickup/dropoff on a ride with stops, instead of
+// duplicating this math in a second module (CLAUDE.md: ride-engine
+// business logic belongs in packages/domain, never duplicated).
 
 /**
  * Derives this search's profile-scaled matching thresholds (matching-engine
@@ -154,19 +144,6 @@ export function deriveMatchingThresholds(input: MatchingSearchInput): MatchingTh
   );
   const profile = classifyTripProfile(straightLineDistanceM);
   return getMatchingThresholds(profile.type);
-}
-
-/** Cheap, local approximation of a decoded route's total length — used only
- *  for the informational `extraDistanceMeters` figure (never for the actual
- *  hard-rejection gate, which runs entirely on real routing-engine duration
- *  numbers). No network call: this just sums consecutive-point haversine
- *  distances over the ride's already-stored, already-decoded polyline. */
-export function polylineLengthMeters(points: LatLng[]): number {
-  let total = 0;
-  for (let i = 0; i < points.length - 1; i++) {
-    total += haversineDistanceMeters(points[i]!, points[i + 1]!);
-  }
-  return total;
 }
 
 function clamp01(n: number): number {

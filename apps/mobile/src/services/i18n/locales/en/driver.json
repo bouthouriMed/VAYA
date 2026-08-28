@@ -332,6 +332,7 @@
       "estimateNote": "Estimated — this ride's route isn't from a real routing provider.",
       "ridesWithYou": "Rides with you",
       "segmentDistance": "{{distance}} · {{duration}}",
+      "newEta": "New arrival time if accepted: {{time}}",
       "viewProfile": "View {{name}}'s profile",
       "newOnVaya": "New on VAYA",
       "openInMaps": "Open {{label}} in Maps"

@@ -104,6 +104,10 @@ const detourPreviewResponseSchema = z.object({
     durationSec: z.number(),
     isEstimate: z.boolean(),
   }),
+  pickupTime: z.string(),
+  dropoffTime: z.string(),
+  newEta: z.string(),
+  detourRoutePolyline: z.string().nullable(),
 });
 
 export async function bookingsRoutes(fastify: FastifyInstance): Promise<void> {

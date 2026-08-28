@@ -680,6 +680,20 @@ export interface DetourPreview {
   pickup: DetourPreviewPoint;
   dropoff: DetourPreviewPoint;
   segment: { distanceM: number; durationSec: number; isEstimate: boolean };
+  /** Real time the driver would reach this passenger's pickup point —
+   *  never re-show the ride's own departureAt as if it were this. */
+  pickupTime: string;
+  /** Dropoff-side mirror of `pickupTime`. */
+  dropoffTime: string;
+  /** Real time the driver's OWN trip would finish if they accept this
+   *  request — distinct from `dropoffTime` (the passenger's own stop). */
+  newEta: string;
+  /** Real routing-engine polyline for the passenger's own pickup ->
+   *  dropoff leg, populated only when at least one point isn't a planned
+   *  stop — use this instead of slicing the ride's own routePolyline for
+   *  the map in that case (mirrors search/ride-details.tsx's
+   *  MatchCandidate.detourRoutePolyline handling for the same reason). */
+  detourRoutePolyline: string | null;
 }
 
 export interface Booking {
