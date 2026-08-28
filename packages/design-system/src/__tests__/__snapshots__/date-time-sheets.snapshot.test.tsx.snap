@@ -2219,13 +2219,13 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                   {
                     "borderRadius": 24,
                     "borderWidth": 1,
-                    "height": 48,
+                    "height": 54,
                     "left": "50%",
-                    "marginLeft": -90,
-                    "marginTop": -24,
+                    "marginLeft": -107,
+                    "marginTop": -27,
                     "position": "absolute",
                     "top": "50%",
-                    "width": 180,
+                    "width": 214,
                   },
                   {
                     "backgroundColor": "#E4EDFB",
@@ -2982,7 +2982,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "opacity": 1,
                         "transform": [
                           {
-                            "scale": 1.18,
+                            "scale": 1.12,
                           },
                         ],
                       },
@@ -3507,7 +3507,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "opacity": 1,
                         "transform": [
                           {
-                            "scale": 1.18,
+                            "scale": 1.12,
                           },
                         ],
                       },
