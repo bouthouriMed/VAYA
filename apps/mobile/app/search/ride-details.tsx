@@ -208,7 +208,21 @@ export default function RideDetailsScreen(): React.JSX.Element {
   // directly so a rider can browse several candidates freely. It's the
   // "Request a seat" CTA below that triggers it, only when the ride
   // actually has ranked stops to choose from and none is picked yet.
-  const needsPickupSelection = (candidate?.rankedStops.length ?? 0) > 0 && !selectedStop;
+  //
+  // Bug fixed here (matching-engine architecture plan §C): `rankedStops`
+  // is empty both when the ride has no stops at all (free-form flow, fine
+  // to fall through) AND when the ride HAS stops but none are walkable for
+  // this passenger (candidate.pickupViable: false) — those two cases used
+  // to be indistinguishable from `rankedStops.length` alone, so the second
+  // one silently fell through to a free-form createBooking call on a ride
+  // that requires a real pickupStopId, which the backend correctly rejects
+  // with a 400. `!candidate.pickupViable` disambiguates them: it's only
+  // ever false when the ride genuinely has zero stops, so routing to
+  // pickup-point.tsx (which renders an honest "no reachable stop"
+  // EmptyState for this exact case) is now correct for both.
+  const needsPickupSelection = candidate
+    ? (!candidate.pickupViable || candidate.rankedStops.length > 0) && !selectedStop
+    : false;
   const needsDropoffSelection =
     (candidate?.rankedDropoffStops.length ?? 0) > 0 && !selectedDropoffStop;
 
