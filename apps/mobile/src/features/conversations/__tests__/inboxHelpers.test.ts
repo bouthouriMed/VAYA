@@ -38,6 +38,8 @@ function makeConversation(overrides: Partial<InboxConversation> = {}): InboxConv
     isOtherPartyVerified: true,
     originLabel: 'Tunis',
     destinationLabel: 'Sousse',
+    pickupLabel: 'Tunis',
+    dropoffLabel: 'Sousse',
     departureAt: new Date(2026, 0, 15, 8, 0).toISOString(),
     tripStatus: null,
     lastMessage: {
@@ -194,12 +196,16 @@ describe('searchConversations', () => {
     otherParty: { id: 'u-a', fullName: 'Alice Ben Salah', avatarUrl: null },
     originLabel: 'Tunis',
     destinationLabel: 'Sousse',
+    pickupLabel: 'Tunis',
+    dropoffLabel: 'Sousse',
   });
   const bilel = makeConversation({
     id: 'c-bilel',
     otherParty: { id: 'u-b', fullName: 'Bilel Trabelsi', avatarUrl: null },
     originLabel: 'Sfax',
     destinationLabel: 'Gabès',
+    pickupLabel: 'Sfax',
+    dropoffLabel: 'Gabès',
   });
   const list = [alice, bilel];
 

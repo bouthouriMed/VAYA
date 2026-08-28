@@ -38,6 +38,8 @@ const conversationSummarySchema = z.object({
   rideId: z.string().uuid(),
   originLabel: z.string(),
   destinationLabel: z.string(),
+  pickupLabel: z.string(),
+  dropoffLabel: z.string(),
   departureAt: z.date(),
   rideStatus: z.enum(RIDE_STATUSES),
   tripStatus: z.enum(TRIP_STATUSES).nullable(),

@@ -387,7 +387,7 @@ export default function MessagesScreen(): React.JSX.Element {
               }}
               activeOpacity={0.7}
               accessibilityRole="button"
-              accessibilityLabel={`${t('messages:conversationWith')} ${item.otherParty.fullName}, ${item.originLabel} → ${item.destinationLabel}${isActive ? `, ${t('messages:tripInProgress')}` : ''}`}
+              accessibilityLabel={`${t('messages:conversationWith')} ${item.otherParty.fullName}, ${item.pickupLabel} → ${item.dropoffLabel}${isActive ? `, ${t('messages:tripInProgress')}` : ''}`}
             >
               <View style={styles.unreadDotSlot}>
                 {item.hasUnread ? (
@@ -445,8 +445,8 @@ export default function MessagesScreen(): React.JSX.Element {
                     style={styles.routeText}
                   >
                     {departureLabel
-                      ? `${item.originLabel} → ${item.destinationLabel} (${departureLabel})`
-                      : `${item.originLabel} → ${item.destinationLabel}`}
+                      ? `${item.pickupLabel} → ${item.dropoffLabel} (${departureLabel})`
+                      : `${item.pickupLabel} → ${item.dropoffLabel}`}
                   </Text>
                   {isClosed ? (
                     <Icon name="checkmark-circle" size="xs" color={theme.accent} />

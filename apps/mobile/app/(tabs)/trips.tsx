@@ -34,7 +34,7 @@ import {
   estimateArrivalLabel,
   computeTripPhase,
 } from '../../src/features/driver-rides/myRidesHelpers';
-import { decodePolyline } from '../../src/utils/polyline';
+import { decodePolyline, sliceRouteBetween } from '../../src/utils/polyline';
 
 type ThemeColors = ReturnType<typeof useAppTheme>['colors'];
 type BadgeVariant = 'default' | 'success' | 'warning' | 'error' | 'info';
@@ -263,10 +263,34 @@ export default function TripsScreen(): React.JSX.Element {
   const { data: riderHeroRide } = useGetRideQuery(riderHeroBooking?.rideId ?? '', {
     skip: !riderHeroBooking,
   });
-  const riderHeroPolyline = useMemo(
-    () => (riderHeroRide?.routePolyline ? decodePolyline(riderHeroRide.routePolyline) : []),
-    [riderHeroRide],
-  );
+  // This passenger's own segment, not the driver's full route — a route_
+  // passthrough booking's real pickup/dropoff can sit well inside a much
+  // longer route (matching-engine-redesign: "passenger sees his requested
+  // route... in my trip"). Collapses to the whole route for a plain
+  // endpoint-match booking.
+  const riderHeroPickupPoint = riderHeroBooking
+    ? { latitude: riderHeroBooking.pickupLat, longitude: riderHeroBooking.pickupLng }
+    : undefined;
+  const riderHeroDropoffPoint =
+    riderHeroBooking?.dropoffLat != null && riderHeroBooking?.dropoffLng != null
+      ? { latitude: riderHeroBooking.dropoffLat, longitude: riderHeroBooking.dropoffLng }
+      : riderHeroRide
+        ? { latitude: riderHeroRide.destinationLat, longitude: riderHeroRide.destinationLng }
+        : undefined;
+  const riderHeroPolyline = useMemo(() => {
+    const fullCoordinates = riderHeroRide?.routePolyline ? decodePolyline(riderHeroRide.routePolyline) : [];
+    if (fullCoordinates.length < 2 || !riderHeroPickupPoint || !riderHeroDropoffPoint) return fullCoordinates;
+    return sliceRouteBetween(fullCoordinates, riderHeroPickupPoint, riderHeroDropoffPoint);
+    // Deps are the primitive lat/lng values, not riderHeroPickupPoint/
+    // riderHeroDropoffPoint's object identity (which changes every render).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    riderHeroRide,
+    riderHeroBooking?.pickupLat,
+    riderHeroBooking?.pickupLng,
+    riderHeroBooking?.dropoffLat,
+    riderHeroBooking?.dropoffLng,
+  ]);
   const riderHeroArrivalLabel =
     riderHeroBooking?.ride && riderHeroRide
       ? estimateArrivalLabel(riderHeroBooking.ride.departureAt, riderHeroRide.estimatedDurationSec)
@@ -445,12 +469,9 @@ export default function TripsScreen(): React.JSX.Element {
               <MapPreview
                 height={128}
                 badge={getBookingStatus(t, riderHeroBooking.status).label}
-                origin={riderHeroRide ? { latitude: riderHeroRide.originLat, longitude: riderHeroRide.originLng } : undefined}
-                destination={
-                  riderHeroRide
-                    ? { latitude: riderHeroRide.destinationLat, longitude: riderHeroRide.destinationLng }
-                    : undefined
-                }
+                pickup={riderHeroPickupPoint}
+                dropoff={riderHeroDropoffPoint}
+                theme={theme}
                 routeCoordinates={riderHeroPolyline}
                 isDark={scheme === 'dark'}
                 style={styles.heroMap}
@@ -625,8 +646,10 @@ export default function TripsScreen(): React.JSX.Element {
                     theme={theme}
                     dateTimeLabel={booking.ride ? formatWhen(booking.ride.departureAt, t, locale) : ''}
                     badge={getBookingStatus(t, booking.status)}
-                    originLabel={booking.ride?.originLabel ?? t('booking:departure')}
-                    destinationLabel={booking.ride?.destinationLabel ?? t('booking:arrival')}
+                    originLabel={booking.pickupLabel ?? booking.ride?.originLabel ?? t('booking:departure')}
+                    destinationLabel={
+                      booking.dropoffLabel ?? booking.ride?.destinationLabel ?? t('booking:arrival')
+                    }
                     counterpart={{ kind: 'person', name: booking.ride?.driverFullName ?? t('booking:driver') }}
                     priceLabel={formatCurrency(booking.contributionTotal, locale as SupportedLocale)}
                     onPress={() =>
@@ -645,8 +668,10 @@ export default function TripsScreen(): React.JSX.Element {
                         theme={theme}
                         dateTimeLabel={booking.ride ? formatWhen(booking.ride.departureAt, t, locale) : ''}
                         badge={getBookingStatus(t, booking.status)}
-                        originLabel={booking.ride?.originLabel ?? t('booking:departure')}
-                        destinationLabel={booking.ride?.destinationLabel ?? t('booking:arrival')}
+                        originLabel={booking.pickupLabel ?? booking.ride?.originLabel ?? t('booking:departure')}
+                        destinationLabel={
+                          booking.dropoffLabel ?? booking.ride?.destinationLabel ?? t('booking:arrival')
+                        }
                         counterpart={{ kind: 'person', name: booking.ride?.driverFullName ?? t('booking:driver') }}
                         priceLabel={formatCurrency(booking.contributionTotal, locale as SupportedLocale)}
                         onPress={() =>

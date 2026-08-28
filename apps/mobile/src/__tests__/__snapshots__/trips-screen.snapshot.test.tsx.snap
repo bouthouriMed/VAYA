@@ -696,10 +696,10 @@ exports[`trips.tsx snapshots > driver dashboard — hero ride card over segmente
             customMapStyle={[]}
             initialRegion={
               {
-                "latitude": 36.60325,
-                "latitudeDelta": 0.650400000000002,
-                "longitude": 10.39075,
-                "longitudeDelta": 0.6695999999999999,
+                "latitude": 36.620999999999995,
+                "latitudeDelta": 0.7072000000000003,
+                "longitude": 10.39,
+                "longitudeDelta": 0.6719999999999999,
               }
             }
             onMapReady={[Function]}
@@ -721,8 +721,8 @@ exports[`trips.tsx snapshots > driver dashboard — hero ride card over segmente
               }
               coordinate={
                 {
-                  "latitude": 36.8065,
-                  "longitude": 10.1815,
+                  "latitude": 36.842,
+                  "longitude": 10.18,
                 }
               }
             >
@@ -730,18 +730,54 @@ exports[`trips.tsx snapshots > driver dashboard — hero ride card over segmente
                 style={
                   [
                     {
-                      "borderColor": "#FFFFFF",
-                      "borderRadius": 6,
-                      "borderWidth": 2,
-                      "height": 12,
-                      "width": 12,
+                      "alignItems": "center",
+                      "borderBottomLeftRadius": 2,
+                      "borderRadius": 13,
+                      "borderWidth": 2.5,
+                      "elevation": 3,
+                      "height": 26,
+                      "justifyContent": "center",
+                      "shadowColor": "#000",
+                      "shadowOffset": {
+                        "height": 2,
+                        "width": 0,
+                      },
+                      "shadowOpacity": 0.2,
+                      "shadowRadius": 4,
+                      "transform": [
+                        {
+                          "rotate": "-45deg",
+                        },
+                      ],
+                      "width": 26,
                     },
                     {
-                      "backgroundColor": "#7FA491",
+                      "backgroundColor": "#2E9E6C",
+                      "borderColor": "#FFFFFF",
                     },
                   ]
                 }
-              />
+              >
+                <View
+                  style={
+                    [
+                      {
+                        "borderRadius": 3.5,
+                        "height": 7,
+                        "transform": [
+                          {
+                            "rotate": "45deg",
+                          },
+                        ],
+                        "width": 7,
+                      },
+                      {
+                        "backgroundColor": "#0D1512",
+                      },
+                    ]
+                  }
+                />
+              </View>
             </Marker>
             <Marker
               anchor={
@@ -761,18 +797,54 @@ exports[`trips.tsx snapshots > driver dashboard — hero ride card over segmente
                 style={
                   [
                     {
-                      "borderColor": "#FFFFFF",
-                      "borderRadius": 6,
-                      "borderWidth": 2,
-                      "height": 12,
-                      "width": 12,
+                      "alignItems": "center",
+                      "borderBottomLeftRadius": 2,
+                      "borderRadius": 13,
+                      "borderWidth": 2.5,
+                      "elevation": 3,
+                      "height": 26,
+                      "justifyContent": "center",
+                      "shadowColor": "#000",
+                      "shadowOffset": {
+                        "height": 2,
+                        "width": 0,
+                      },
+                      "shadowOpacity": 0.2,
+                      "shadowRadius": 4,
+                      "transform": [
+                        {
+                          "rotate": "-45deg",
+                        },
+                      ],
+                      "width": 26,
                     },
                     {
-                      "backgroundColor": "#2E3B42",
+                      "backgroundColor": "#14201B",
+                      "borderColor": "#FFFFFF",
                     },
                   ]
                 }
-              />
+              >
+                <View
+                  style={
+                    [
+                      {
+                        "borderRadius": 3.5,
+                        "height": 7,
+                        "transform": [
+                          {
+                            "rotate": "45deg",
+                          },
+                        ],
+                        "width": 7,
+                      },
+                      {
+                        "backgroundColor": "#FFFFFF",
+                      },
+                    ]
+                  }
+                />
+              </View>
             </Marker>
           </MapView>
           <View
@@ -2111,10 +2183,10 @@ exports[`trips.tsx snapshots > rider view — booking card shows the real driver
             customMapStyle={[]}
             initialRegion={
               {
-                "latitude": 36.60325,
-                "latitudeDelta": 0.650400000000002,
-                "longitude": 10.39075,
-                "longitudeDelta": 0.6695999999999999,
+                "latitude": 36.620999999999995,
+                "latitudeDelta": 0.7072000000000003,
+                "longitude": 10.39,
+                "longitudeDelta": 0.6719999999999999,
               }
             }
             onMapReady={[Function]}
@@ -2136,8 +2208,8 @@ exports[`trips.tsx snapshots > rider view — booking card shows the real driver
               }
               coordinate={
                 {
-                  "latitude": 36.8065,
-                  "longitude": 10.1815,
+                  "latitude": 36.842,
+                  "longitude": 10.18,
                 }
               }
             >
@@ -2145,18 +2217,54 @@ exports[`trips.tsx snapshots > rider view — booking card shows the real driver
                 style={
                   [
                     {
-                      "borderColor": "#FFFFFF",
-                      "borderRadius": 6,
-                      "borderWidth": 2,
-                      "height": 12,
-                      "width": 12,
+                      "alignItems": "center",
+                      "borderBottomLeftRadius": 2,
+                      "borderRadius": 13,
+                      "borderWidth": 2.5,
+                      "elevation": 3,
+                      "height": 26,
+                      "justifyContent": "center",
+                      "shadowColor": "#000",
+                      "shadowOffset": {
+                        "height": 2,
+                        "width": 0,
+                      },
+                      "shadowOpacity": 0.2,
+                      "shadowRadius": 4,
+                      "transform": [
+                        {
+                          "rotate": "-45deg",
+                        },
+                      ],
+                      "width": 26,
                     },
                     {
-                      "backgroundColor": "#7FA491",
+                      "backgroundColor": "#2E9E6C",
+                      "borderColor": "#FFFFFF",
                     },
                   ]
                 }
-              />
+              >
+                <View
+                  style={
+                    [
+                      {
+                        "borderRadius": 3.5,
+                        "height": 7,
+                        "transform": [
+                          {
+                            "rotate": "45deg",
+                          },
+                        ],
+                        "width": 7,
+                      },
+                      {
+                        "backgroundColor": "#0D1512",
+                      },
+                    ]
+                  }
+                />
+              </View>
             </Marker>
             <Marker
               anchor={
@@ -2176,18 +2284,54 @@ exports[`trips.tsx snapshots > rider view — booking card shows the real driver
                 style={
                   [
                     {
-                      "borderColor": "#FFFFFF",
-                      "borderRadius": 6,
-                      "borderWidth": 2,
-                      "height": 12,
-                      "width": 12,
+                      "alignItems": "center",
+                      "borderBottomLeftRadius": 2,
+                      "borderRadius": 13,
+                      "borderWidth": 2.5,
+                      "elevation": 3,
+                      "height": 26,
+                      "justifyContent": "center",
+                      "shadowColor": "#000",
+                      "shadowOffset": {
+                        "height": 2,
+                        "width": 0,
+                      },
+                      "shadowOpacity": 0.2,
+                      "shadowRadius": 4,
+                      "transform": [
+                        {
+                          "rotate": "-45deg",
+                        },
+                      ],
+                      "width": 26,
                     },
                     {
-                      "backgroundColor": "#2E3B42",
+                      "backgroundColor": "#14201B",
+                      "borderColor": "#FFFFFF",
                     },
                   ]
                 }
-              />
+              >
+                <View
+                  style={
+                    [
+                      {
+                        "borderRadius": 3.5,
+                        "height": 7,
+                        "transform": [
+                          {
+                            "rotate": "45deg",
+                          },
+                        ],
+                        "width": 7,
+                      },
+                      {
+                        "backgroundColor": "#FFFFFF",
+                      },
+                    ]
+                  }
+                />
+              </View>
             </Marker>
           </MapView>
           <View

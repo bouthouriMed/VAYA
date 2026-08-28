@@ -444,6 +444,14 @@ export interface Conversation {
   rideId: string;
   originLabel: string;
   destinationLabel: string;
+  /** This booking's OWN pickup/dropoff, not the ride's endpoints — a
+   *  conversation is scoped to one booking, so its subject is that
+   *  booking's own requested segment for both parties (a route_passthrough
+   *  booking's segment can be a small piece of a much longer driver route).
+   *  Prefer these over originLabel/destinationLabel wherever this screen
+   *  shows "what trip is this conversation about." */
+  pickupLabel: string;
+  dropoffLabel: string;
   departureAt: string;
   rideStatus: string;
   tripStatus: string | null;
