@@ -47,6 +47,8 @@ function makeConversation(overrides: Partial<Conversation> = {}): Conversation {
     rideId: 'ride-1',
     originLabel: 'Tunis',
     destinationLabel: 'Sousse',
+    pickupLabel: 'Tunis',
+    dropoffLabel: 'Sousse',
     departureAt: '2026-08-20T08:00:00.000Z',
     rideStatus: 'published',
     tripStatus: null,

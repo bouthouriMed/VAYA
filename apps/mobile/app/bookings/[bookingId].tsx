@@ -30,7 +30,13 @@ import {
   type Booking,
   type TrustTier,
 } from '../../src/state/api';
-import { decodePolyline, estimateWalkMinutes, haversineKm } from '../../src/utils/polyline';
+import {
+  decodePolyline,
+  estimateWalkMinutes,
+  haversineKm,
+  polylineDistanceKm,
+  sliceRouteBetween,
+} from '../../src/utils/polyline';
 import { formatDate, formatTime, formatDistance, formatCurrency } from '../../src/utils/localeFormat';
 import { CancellationSheet } from '../../src/features/bookings/CancellationSheet';
 import { trackEvent } from '../../src/services/analytics/analytics';
@@ -241,7 +247,7 @@ export default function BookingDetailScreen(): React.JSX.Element {
     skip: !booking || booking.status !== 'accepted',
   });
 
-  const routeCoordinates = ride?.routePolyline ? decodePolyline(ride.routePolyline) : [];
+  const fullRouteCoordinates = ride?.routePolyline ? decodePolyline(ride.routePolyline) : [];
 
   function openConversation(): void {
     if (!booking) return;
@@ -282,6 +288,28 @@ export default function BookingDetailScreen(): React.JSX.Element {
       ? { latitude: booking.dropoffLat, longitude: booking.dropoffLng }
       : { latitude: ride.destinationLat, longitude: ride.destinationLng };
   const hasDropoffStop = booking.dropoffLat != null && booking.dropoffLng != null;
+  const pickupPoint = { latitude: booking.pickupLat, longitude: booking.pickupLng };
+
+  // This passenger's own segment of the driver's route — a route_
+  // passthrough booking's real pickup/dropoff can sit well inside a much
+  // longer route (matching-engine-redesign: "user should see only his
+  // route not the entire driver route"). Naturally collapses to the whole
+  // route for a plain endpoint-match booking (pickup/dropoff ARE the
+  // ride's own origin/destination in that case).
+  const routeCoordinates =
+    fullRouteCoordinates.length > 1
+      ? sliceRouteBetween(fullRouteCoordinates, pickupPoint, dropoffPoint)
+      : fullRouteCoordinates;
+  const segmentDistanceKm = polylineDistanceKm(routeCoordinates);
+  const fullDistanceKm = polylineDistanceKm(fullRouteCoordinates);
+  // A real per-segment drive duration doesn't exist in the data model
+  // (only the whole ride's estimatedDurationSec does) — derived
+  // proportionally from real distances, an honest estimate rather than a
+  // fabricated number (the same technique search/ride-details.tsx uses).
+  const segmentDurationSec =
+    ride.estimatedDurationSec && fullDistanceKm > 0
+      ? Math.round(ride.estimatedDurationSec * (segmentDistanceKm / fullDistanceKm))
+      : ride.estimatedDurationSec;
 
   // Compact itinerary (2 rows, not 4): the passenger's own pickup/dropoff
   // *is* their departure/arrival — showing the ride's general origin/
@@ -290,8 +318,8 @@ export default function BookingDetailScreen(): React.JSX.Element {
   // route-passthrough booking's real boarding/alighting points look like an
   // afterthought instead of the two things that actually matter here.
   const pickupTimeLabel = formatTime(new Date(booking.ride.departureAt), locale);
-  const dropoffTimeLabel = ride.estimatedDurationSec
-    ? estimateArrivalLabel(booking.ride.departureAt, ride.estimatedDurationSec, locale)
+  const dropoffTimeLabel = segmentDurationSec
+    ? estimateArrivalLabel(booking.ride.departureAt, segmentDurationSec, locale)
     : null;
   const dropoffPlaceLabel = booking.dropoffLabel ?? booking.ride.destinationLabel;
 
@@ -329,10 +357,8 @@ export default function BookingDetailScreen(): React.JSX.Element {
 
   const fullRouteRegion =
     regionForPoints([
-      { lat: ride.originLat, lng: ride.originLng },
       { lat: booking.pickupLat, lng: booking.pickupLng },
       { lat: dropoffPoint.latitude, lng: dropoffPoint.longitude },
-      { lat: ride.destinationLat, lng: ride.destinationLng },
     ]) ?? undefined;
 
   return (
@@ -357,9 +383,7 @@ export default function BookingDetailScreen(): React.JSX.Element {
           <MapPreview
             height={160}
             badge={mapBadgeLabel}
-            origin={{ latitude: ride.originLat, longitude: ride.originLng }}
-            destination={{ latitude: ride.destinationLat, longitude: ride.destinationLng }}
-            pickup={{ latitude: booking.pickupLat, longitude: booking.pickupLng }}
+            pickup={pickupPoint}
             dropoff={dropoffPoint}
             theme={theme}
             isDark={scheme === 'dark'}

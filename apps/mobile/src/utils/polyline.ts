@@ -72,3 +72,45 @@ const WALK_SPEED_M_PER_MIN = 80;
 export function estimateWalkMinutes(a: LatLng, b: LatLng): number {
   return (haversineKm(a, b) * 1000) / WALK_SPEED_M_PER_MIN;
 }
+
+function nearestPointIndex(points: LatLng[], target: LatLng): number {
+  let bestIndex = 0;
+  let bestDist = Infinity;
+  for (let i = 0; i < points.length; i++) {
+    const d = haversineKm(points[i]!, target);
+    if (d < bestDist) {
+      bestDist = d;
+      bestIndex = i;
+    }
+  }
+  return bestIndex;
+}
+
+/**
+ * Slices a route's full decoded polyline down to just the sub-segment
+ * between two points on it — a passenger booking a sub-trip of a longer
+ * route_passthrough ride (docs/roadmap/phase-13-search-engine.md) should
+ * see their OWN pickup-to-dropoff segment on the map, not the driver's
+ * full route end-to-end, which can run well beyond it. Used everywhere a
+ * booking's or candidate ride's map is shown to a passenger (or a specific
+ * requested segment is shown to a driver) — search/ride-details.tsx,
+ * bookings/[bookingId].tsx, (tabs)/trips.tsx's rider hero card,
+ * RequestDetailSheet.
+ *
+ * Pure/approximate: picks the nearest sampled point to each end rather
+ * than a true fractional projection (the server's `projectPointOntoRoute`
+ * does that for matching decisions; this is display-only), and snaps the
+ * slice's own endpoints to the exact requested coordinates so the drawn
+ * line starts/ends precisely at the pickup/dropoff pins, not the nearest
+ * sample. Falls back to the full `points` array when there's nothing
+ * meaningful to slice (fewer than 2 points).
+ */
+export function sliceRouteBetween(points: LatLng[], start: LatLng, end: LatLng): LatLng[] {
+  if (points.length < 2) return points;
+  const startIdx = nearestPointIndex(points, start);
+  const endIdx = nearestPointIndex(points, end);
+  const [loIdx, hiIdx] = startIdx <= endIdx ? [startIdx, endIdx] : [endIdx, startIdx];
+  const middle = points.slice(loIdx, hiIdx + 1);
+  const ordered = startIdx <= endIdx ? middle : [...middle].reverse();
+  return [start, ...ordered, end];
+}

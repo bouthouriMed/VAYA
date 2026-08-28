@@ -10,7 +10,7 @@ import { nearestRoad, getRouteWithSpeedProfile, type RoutePoint } from '../../li
 import { decodePolyline, projectPointOntoRoute, type LatLng } from '../../lib/polyline.js';
 import { reverseGeocode } from '../geocoding/geocoding.service.js';
 import { OVERLAP_CORRIDOR_WIDTH_M } from '../matching/matching.service.js';
-import { ForbiddenError, NotFoundError, ValidationError } from '../../lib/errors.js';
+import { AppError, ForbiddenError, NotFoundError, ValidationError } from '../../lib/errors.js';
 import { classifyTripProfile, type TripProfile, type TripProfileType } from '@vaya/domain';
 
 type Database = ReturnType<typeof getDatabase>;
@@ -507,6 +507,25 @@ export async function updateDriverStopSelection(
   });
 }
 
+/**
+ * Real detour budget for a freehand 'via' stop the driver picks by
+ * searching a named place (city/town) rather than dropping a pin —
+ * deliberately much larger than MAX_DEVIATION_METERS/MAX_DEVIATION_SECONDS
+ * above, which bound only the auto-generated ON-ROUTE micro-stops sampled
+ * every ~1km. A driver publishing a real intercity route (e.g. a highway
+ * corridor between two cities) can genuinely be willing to exit and detour
+ * into a city several km/minutes off the direct line — a real product
+ * gap the tight micro-stop budget was never meant to cover. Scaled by
+ * trip profile (@vaya/domain's classifyTripProfile) so a short commute
+ * doesn't silently accept an absurd detour a driver never actually
+ * intended.
+ */
+export const VIA_STOP_DETOUR_BUDGET: Record<TripProfileType, { maxMeters: number; maxSeconds: number }> = {
+  commute: { maxMeters: 2000, maxSeconds: 480 },
+  urban: { maxMeters: 6000, maxSeconds: 720 },
+  intercity: { maxMeters: 15000, maxSeconds: 1200 },
+};
+
 export interface CustomStopInput {
   label: string;
   lat: number;
@@ -615,12 +634,51 @@ export async function addCustomStop(
   });
 
   let sequence: number;
+  let stopLat = input.lat;
+  let stopLng = input.lng;
+  let roadSnapped = false;
+  let deviationMeters = 0;
+  let deviationSeconds = 0;
+
   if (input.role === 'via') {
     if (!ride.routePolyline) {
       throw new ValidationError('A route is required to add a stop along the route');
     }
     const route: LatLng[] = decodePolyline(ride.routePolyline);
-    const pointFraction = projectPointOntoRoute({ lat: input.lat, lng: input.lng }, route).fraction;
+    const projection = projectPointOntoRoute({ lat: input.lat, lng: input.lng }, route);
+    const pointFraction = projection.fraction;
+
+    // Real detour validation against the picked place's actual distance
+    // from the route — the driver's real commitment ("I'll detour this
+    // far"), never trusted from the client. Scaled by trip profile so a
+    // genuine city-level detour (a highway exit into a town) is accepted
+    // while a wildly off-route point is rejected outright, same "never
+    // just downranked" discipline as MAX_DEVIATION_METERS/SECONDS above.
+    const tripProfileType = classifyTripProfile(polylineDistanceMeters(route)).type;
+    const budget = VIA_STOP_DETOUR_BUDGET[tripProfileType];
+    const cost = computeDeviationCost(projection.distanceM);
+    if (cost.deviationMeters > budget.maxMeters || cost.deviationSeconds > budget.maxSeconds) {
+      throw new AppError(
+        'This place is too far from your route for a reasonable detour',
+        400,
+        'STOP_TOO_FAR_FROM_ROUTE',
+      );
+    }
+    deviationMeters = cost.deviationMeters;
+    deviationSeconds = cost.deviationSeconds;
+
+    // Snap to the nearest real road so the stored "exact stop point" is
+    // somewhere a car can actually pull over, not a raw geocoded centroid
+    // (which can land inside a building or a pedestrian square) — honest
+    // degradation to the unsnapped point when OSRM has no coverage there
+    // or is unreachable, same as computeCandidatesForRoute's own fallback.
+    const nearest = await nearestRoad({ lat: input.lat, lng: input.lng });
+    if (nearest && nearest.snapDistanceM <= 2000) {
+      stopLat = nearest.lat;
+      stopLng = nearest.lng;
+      roadSnapped = true;
+    }
+
     const existingWithFraction: ViaInsertionCandidate[] = existing.map((s) => ({
       id: s.id,
       sequence: s.sequence,
@@ -651,11 +709,11 @@ export async function addCustomStop(
       rideId,
       sequence,
       label: input.label,
-      lat: input.lat,
-      lng: input.lng,
-      roadSnapped: false,
-      deviationMeters: 0,
-      deviationSeconds: 0,
+      lat: stopLat,
+      lng: stopLng,
+      roadSnapped,
+      deviationMeters,
+      deviationSeconds,
       suitabilityScore: 1,
       roadClass: null,
       isDriverSelected: true,

@@ -35,7 +35,7 @@ import {
 import { useAppDispatch, useAppSelector } from '../../src/state/store';
 import { clearSelectedStops } from '../../src/state/searchSlice';
 import { requestPushPermissionAndRegister } from '../../src/services/notifications/registerForPushNotifications';
-import { decodePolyline, polylineDistanceKm } from '../../src/utils/polyline';
+import { decodePolyline, polylineDistanceKm, sliceRouteBetween } from '../../src/utils/polyline';
 import { useContextualAuth } from '../../src/features/auth/useContextualAuth';
 import { ContextualAuthSheet } from '../../src/features/auth/ContextualAuthSheet';
 import { formatDate, formatTime, splitDurationMinutes } from '../../src/utils/localeFormat';
@@ -143,16 +143,6 @@ export default function RideDetailsScreen(): React.JSX.Element {
     () => (ride?.routePolyline ? decodePolyline(ride.routePolyline) : []),
     [ride],
   );
-  const distanceKm = useMemo(() => polylineDistanceKm(routeCoordinates), [routeCoordinates]);
-  const routeRegion = useMemo(() => {
-    if (!ride) return undefined;
-    return (
-      regionForPoints([
-        { lat: ride.originLat, lng: ride.originLng },
-        { lat: ride.destinationLat, lng: ride.destinationLng },
-      ]) ?? undefined
-    );
-  }, [ride]);
 
   // Matched by stopId, not label text — a label match is fragile (two real
   // stops can share display text) and silently produced wrong results.
@@ -181,6 +171,50 @@ export default function RideDetailsScreen(): React.JSX.Element {
   const dropoffLabel = selectedDropoffStop?.label ?? rideDropoffStop?.label ?? ride?.destinationLabel;
   const dropoffLat = selectedDropoffStop?.lat ?? rideDropoffStop?.lat ?? ride?.destinationLat;
   const dropoffLng = selectedDropoffStop?.lng ?? rideDropoffStop?.lng ?? ride?.destinationLng;
+
+  // The passenger's own segment on the map — a route_passthrough booking's
+  // real pickup/dropoff can sit well inside a much longer driver route
+  // (matching-engine-redesign: "user should see only his route not the
+  // entire driver route"). Falls back to the ride's own origin/destination
+  // when no real stop exists, which for a plain endpoint match IS the whole
+  // route — this one formula covers both cases without a separate branch.
+  const segmentOriginLat = pickupStop?.lat ?? ride?.originLat;
+  const segmentOriginLng = pickupStop?.lng ?? ride?.originLng;
+  const segmentOrigin =
+    segmentOriginLat != null && segmentOriginLng != null
+      ? { lat: segmentOriginLat, lng: segmentOriginLng }
+      : undefined;
+  const segmentDestination =
+    dropoffLat != null && dropoffLng != null ? { lat: dropoffLat, lng: dropoffLng } : undefined;
+  const segmentCoordinates = useMemo(() => {
+    if (routeCoordinates.length < 2 || !segmentOrigin || !segmentDestination) return routeCoordinates;
+    return sliceRouteBetween(
+      routeCoordinates,
+      { latitude: segmentOrigin.lat, longitude: segmentOrigin.lng },
+      { latitude: segmentDestination.lat, longitude: segmentDestination.lng },
+    );
+    // Deps are the primitive lat/lng values, not segmentOrigin/
+    // segmentDestination's object identity (which changes every render).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [routeCoordinates, segmentOriginLat, segmentOriginLng, dropoffLat, dropoffLng]);
+  const segmentDistanceKm = useMemo(() => polylineDistanceKm(segmentCoordinates), [segmentCoordinates]);
+  const fullDistanceKm = useMemo(() => polylineDistanceKm(routeCoordinates), [routeCoordinates]);
+  // A real per-segment drive duration doesn't exist anywhere in the data
+  // model (only the whole ride's estimatedDurationSec does) — deriving one
+  // proportionally from real distances is an honest estimate, not a
+  // fabricated number (the "~" prefix already shown next to it signals an
+  // estimate). Naturally collapses to the ride's own real duration when the
+  // segment IS the whole route (fullDistanceKm === segmentDistanceKm).
+  const segmentDurationSec =
+    ride?.estimatedDurationSec && fullDistanceKm > 0
+      ? Math.round(ride.estimatedDurationSec * (segmentDistanceKm / fullDistanceKm))
+      : ride?.estimatedDurationSec;
+  const routeRegion = useMemo(() => {
+    if (!segmentOrigin || !segmentDestination) return undefined;
+    return regionForPoints([segmentOrigin, segmentDestination]) ?? undefined;
+    // Same reasoning as segmentCoordinates above — primitive deps.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [segmentOriginLat, segmentOriginLng, dropoffLat, dropoffLng]);
 
   // Driver-selected stops that come after the passenger's pickup point (and
   // before their dropoff point, when one is chosen) on the route and aren't
@@ -367,8 +401,8 @@ export default function RideDetailsScreen(): React.JSX.Element {
 
         <View style={styles.mapCard}>
           <MapCanvas region={routeRegion} height={160} style={styles.mapCanvas}>
-            {routeCoordinates.length > 1 ? (
-              <Polyline coordinates={routeCoordinates} strokeColor={theme.ink} strokeWidth={4} />
+            {segmentCoordinates.length > 1 ? (
+              <Polyline coordinates={segmentCoordinates} strokeColor={theme.ink} strokeWidth={4} />
             ) : null}
             {/* The real pickup point when one is resolved (a driver-
              *  confirmed route_stop) — the premium PickupPin, same as
@@ -409,11 +443,13 @@ export default function RideDetailsScreen(): React.JSX.Element {
             </Marker>
           </MapCanvas>
 
-          {ride.estimatedDurationSec ? (
+          {segmentDurationSec ? (
             <View style={[styles.mapValuesBadge, { backgroundColor: theme.surface }]}>
               <Text variant="caption" color={theme.ink} style={styles.mapValuesText}>
-                ~{durationLabel(ride.estimatedDurationSec, t)}
-                {distanceKm > 0 ? ` · ${t('common:terms.km', { count: Math.round(distanceKm) })}` : ''}
+                ~{durationLabel(segmentDurationSec, t)}
+                {segmentDistanceKm > 0
+                  ? ` · ${t('common:terms.km', { count: Math.round(segmentDistanceKm) })}`
+                  : ''}
               </Text>
             </View>
           ) : null}
@@ -661,8 +697,8 @@ export default function RideDetailsScreen(): React.JSX.Element {
                 <View style={[styles.destDot, { backgroundColor: theme.ink, borderColor: theme.surface }]} />
               )}
             </Marker>
-            {routeCoordinates.length > 1 ? (
-              <Polyline coordinates={routeCoordinates} strokeColor={theme.ink} strokeWidth={4} />
+            {segmentCoordinates.length > 1 ? (
+              <Polyline coordinates={segmentCoordinates} strokeColor={theme.ink} strokeWidth={4} />
             ) : null}
           </MapCanvas>
           <TouchableOpacity

@@ -214,7 +214,7 @@ export default function ConversationScreen(): React.JSX.Element {
               {tripContext.label.toUpperCase()}
             </Text>
             <Text variant="bodySmall" color={theme.ink} numberOfLines={1}>
-              {`${conversation.originLabel} → ${conversation.destinationLabel} · ${formatDeparture(conversation.departureAt, locale)}`}
+              {`${conversation.pickupLabel} → ${conversation.dropoffLabel} · ${formatDeparture(conversation.departureAt, locale)}`}
             </Text>
           </View>
           <TouchableOpacity

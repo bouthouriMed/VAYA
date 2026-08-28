@@ -151,6 +151,18 @@ export interface ConversationSummary {
   rideId: string;
   originLabel: string;
   destinationLabel: string;
+  /** This booking's OWN pickup/dropoff — on a route_passthrough booking
+   *  these differ from the ride's origin/destination above (the driver's
+   *  full route can run well beyond this one passenger's segment). The
+   *  inbox list and the conversation header both show these, not the
+   *  ride's endpoints — a conversation belongs to exactly one booking, so
+   *  its subject is that booking's own requested segment, for both the
+   *  rider and the driver side of it. dropoffLabel falls back to the
+   *  ride's destination for a booking with no explicit dropoff stop
+   *  (the pre-route-passthrough free-form flow), same convention every
+   *  other passenger-facing screen already uses. */
+  pickupLabel: string;
+  dropoffLabel: string;
   departureAt: Date;
   rideStatus: RideStatus;
   tripStatus: TripStatus | null;
@@ -216,6 +228,8 @@ function toSummary(
     rideId: booking.ride.id,
     originLabel: booking.ride.originLabel,
     destinationLabel: booking.ride.destinationLabel,
+    pickupLabel: booking.pickupLabel,
+    dropoffLabel: booking.dropoffLabel ?? booking.ride.destinationLabel,
     departureAt: booking.ride.departureAt,
     rideStatus: booking.ride.status,
     tripStatus: booking.trip?.status ?? null,

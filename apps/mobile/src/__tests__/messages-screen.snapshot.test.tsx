@@ -66,6 +66,8 @@ const OPEN_TODAY: InboxConversation = {
   isOtherPartyVerified: true,
   originLabel: 'Tunis',
   destinationLabel: 'Sousse',
+  pickupLabel: 'Tunis',
+  dropoffLabel: 'Sousse',
   departureAt: '2026-08-23T08:30:00',
   tripStatus: null,
   lastMessage: {
@@ -87,6 +89,8 @@ const CLOSED_YESTERDAY: InboxConversation = {
   isOtherPartyVerified: false,
   originLabel: 'Tunis',
   destinationLabel: 'Hammamet',
+  pickupLabel: 'Tunis',
+  dropoffLabel: 'Hammamet',
   departureAt: '2026-08-20T14:00:00',
   tripStatus: 'completed',
   lastMessage: null,

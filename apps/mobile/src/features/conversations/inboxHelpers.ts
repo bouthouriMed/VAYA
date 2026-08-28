@@ -18,6 +18,8 @@ export interface InboxConversation {
   isOtherPartyVerified: boolean;
   originLabel: string;
   destinationLabel: string;
+  pickupLabel: string;
+  dropoffLabel: string;
   departureAt: string;
   tripStatus: string | null;
   lastMessage: { body: string; createdAt: string; senderUserId: string } | null;
@@ -189,8 +191,8 @@ export function searchConversations(
   const q = query.trim().toLowerCase();
   if (!q) return conversations;
   return conversations.filter((c) =>
-    [c.otherParty.fullName, c.originLabel, c.destinationLabel].some((field) =>
-      field.toLowerCase().includes(q),
+    [c.otherParty.fullName, c.pickupLabel, c.dropoffLabel, c.originLabel, c.destinationLabel].some(
+      (field) => field.toLowerCase().includes(q),
     ),
   );
 }

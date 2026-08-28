@@ -722,6 +722,7 @@ export default function DriverRideHubScreen(): React.JSX.Element {
       <RequestDetailSheet
         visible={detailBooking !== null}
         booking={detailBooking}
+        routePolyline={ride.routePolyline}
         onClose={() => setDetailBooking(null)}
       />
       <ManageRideSheet

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import {
   BottomSheet,
@@ -7,6 +7,7 @@ import {
   Avatar,
   Icon,
   Text,
+  MapPreview,
   useAppTheme,
   spacing,
   radii,
@@ -24,11 +25,18 @@ import {
 import { formatDistance } from '../../utils/localeFormat';
 import { openInMaps } from '../../utils/openInMaps';
 import { trackEvent } from '../../services/analytics/analytics';
+import { decodePolyline, sliceRouteBetween } from '../../utils/polyline';
 
 interface RequestDetailSheetProps {
   visible: boolean;
   booking: Booking | null;
   onClose: () => void;
+  /** The ride's own real route geometry — this sheet slices it down to
+   *  just the requested segment (preview.pickup -> preview.dropoff) for
+   *  the map, so the driver sees the specific request's route, not the
+   *  ride's full end-to-end line. Absent (e.g. a legacy pre-routing ride)
+   *  just skips the map, never a fabricated line. */
+  routePolyline?: string | null;
   /** Fired after a real accept/decline succeeds — RideRequestsSheet's list
    *  refetches itself via RTK Query's own tag invalidation, this is purely
    *  so the caller can close the sheet / show its own feedback. */
@@ -122,6 +130,7 @@ function RouteFitRow({
 export function RequestDetailSheet({
   visible,
   booking,
+  routePolyline,
   onClose,
   onResolved,
 }: RequestDetailSheetProps): React.JSX.Element {
@@ -133,6 +142,20 @@ export function RequestDetailSheet({
     isFetching,
     isError,
   } = useGetBookingDetourPreviewQuery(booking?.id ?? '', { skip: !visible || !booking?.id });
+
+  // This specific request's segment, not the driver's whole route — sliced
+  // from the ride's real geometry once the preview resolves real pickup/
+  // dropoff coordinates.
+  const segmentCoordinates = useMemo(() => {
+    if (!routePolyline || !preview) return [];
+    const full = decodePolyline(routePolyline);
+    if (full.length < 2) return full;
+    return sliceRouteBetween(
+      full,
+      { latitude: preview.pickup.lat, longitude: preview.pickup.lng },
+      { latitude: preview.dropoff.lat, longitude: preview.dropoff.lng },
+    );
+  }, [routePolyline, preview]);
   const [acceptBooking, acceptState] = useAcceptBookingMutation();
   const [declineBooking, declineState] = useDeclineBookingMutation();
   const [actionError, setActionError] = useState<string | null>(null);
@@ -227,6 +250,14 @@ export function RequestDetailSheet({
           </Text>
         ) : (
           <>
+            <MapPreview
+              height={120}
+              pickup={{ latitude: preview.pickup.lat, longitude: preview.pickup.lng }}
+              dropoff={{ latitude: preview.dropoff.lat, longitude: preview.dropoff.lng }}
+              theme={theme}
+              routeCoordinates={segmentCoordinates}
+              style={styles.map}
+            />
             <Text variant="label" color={theme.inkMuted} style={styles.sectionLabel}>
               {t('driver:rides.requestDetail.routeFit')}
             </Text>
@@ -301,6 +332,10 @@ const styles = StyleSheet.create({
   content: {
     gap: spacing.sm,
     paddingBottom: spacing.xl,
+  },
+  map: {
+    borderRadius: radii.xl,
+    overflow: 'hidden',
   },
   identityRow: {
     flexDirection: 'row',
