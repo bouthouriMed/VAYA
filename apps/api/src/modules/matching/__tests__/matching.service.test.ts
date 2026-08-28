@@ -5,7 +5,13 @@ import {
   isDropoffViable,
   detourAllowanceSec,
   polylineLengthMeters,
+  deriveMatchingThresholds,
+  computeMatchBand,
+  rankMatchCandidates,
+  mergeCandidatesByRide,
+  type MatchCandidate,
 } from '../matching.service.js';
+import { getMatchingThresholds } from '@vaya/domain';
 
 // Pure functions, no DB/OSRM dependency — exercised the same way
 // stop-candidates.service.test.ts exercises its own pure scoring/
@@ -142,5 +148,175 @@ describe('polylineLengthMeters', () => {
   it('returns 0 for a degenerate single-point or empty route', () => {
     expect(polylineLengthMeters([{ lat: 36.8, lng: 10.18 }])).toBe(0);
     expect(polylineLengthMeters([])).toBe(0);
+  });
+});
+
+// Matching-engine architecture plan §G / §A ("trip-profile-aware matching
+// thresholds", the first phase of that plan) — deriveMatchingThresholds is
+// searchRides's only entry point into packages/domain's profile-scaled
+// thresholds table, so this locks in exactly which real-world trip lengths
+// land in which bucket, from the caller's actual input shape (lat/lng/when),
+// not just classifyTripProfile's own already-tested distance-only contract.
+describe('deriveMatchingThresholds', () => {
+  const when = new Date('2026-09-01T08:00:00Z');
+
+  // 0.01 degrees latitude ~= 1113m regardless of longitude — same
+  // easy-to-reason-about spacing this file's other tests already use.
+  function inputAtLatOffset(deg: number) {
+    return { originLat: origin.lat, originLng: origin.lng, destinationLat: origin.lat + deg, destinationLng: origin.lng, when };
+  }
+
+  it('derives commute-profile thresholds for a short (~3km) requested trip', () => {
+    const thresholds = deriveMatchingThresholds(inputAtLatOffset(0.027));
+    expect(thresholds).toEqual(getMatchingThresholds('commute'));
+  });
+
+  it('derives urban-profile thresholds for a mid-length (~30km) requested trip', () => {
+    const thresholds = deriveMatchingThresholds(inputAtLatOffset(0.27));
+    expect(thresholds).toEqual(getMatchingThresholds('urban'));
+  });
+
+  it('derives intercity-profile thresholds for a long (~120km) requested trip', () => {
+    const thresholds = deriveMatchingThresholds(inputAtLatOffset(1.08));
+    expect(thresholds).toEqual(getMatchingThresholds('intercity'));
+  });
+
+  it('is symmetric — swapping origin and destination derives the same thresholds', () => {
+    const forward = inputAtLatOffset(0.27);
+    const reversed = {
+      originLat: forward.destinationLat,
+      originLng: forward.destinationLng,
+      destinationLat: forward.originLat,
+      destinationLng: forward.originLng,
+      when,
+    };
+    expect(deriveMatchingThresholds(reversed)).toEqual(deriveMatchingThresholds(forward));
+  });
+
+  it('never throws for an identical origin/destination (a degenerate zero-distance request)', () => {
+    const thresholds = deriveMatchingThresholds(inputAtLatOffset(0));
+    expect(thresholds).toEqual(getMatchingThresholds('commute'));
+  });
+});
+
+// Matching-engine architecture plan §D / §Decisions #3 (Phase B) — the
+// unified, banded, tie-tolerant passenger-oriented ranking that replaces
+// "whichever tier finds a candidate first wins", built directly on top of
+// each product decision: bands over precise scores, ties surfaced together
+// rather than forced apart, and a "standout" flag that only ever fires when
+// genuinely warranted.
+function makeCandidate(overrides: Partial<MatchCandidate> & { rideId: string; score: number }): MatchCandidate {
+  return {
+    driverUserId: `driver-${overrides.rideId}`,
+    driverFullName: 'Test Driver',
+    driverAvatarUrl: null,
+    ratingAvg: 4.5,
+    tripCount: 10,
+    departureAt: new Date('2026-09-01T08:00:00Z'),
+    seatsAvailable: 3,
+    contributionPerSeat: 10,
+    pickupWalkMinutes: 2,
+    dropoffWalkMinutes: 2,
+    routeOverlapPercent: 50,
+    reasons: [],
+    clusterLabel: 'Maintenant',
+    originLat: 36.8,
+    originLng: 10.18,
+    destinationLat: 36.85,
+    destinationLng: 10.2,
+    routePolyline: null,
+    rankedStops: [],
+    rankedDropoffStops: [],
+    pickupViable: true,
+    dropoffViable: true,
+    matchType: 'endpoint',
+    detour: null,
+    ...overrides,
+  };
+}
+
+describe('computeMatchBand', () => {
+  it('classifies into excellent/good/usable at the documented thresholds', () => {
+    expect(computeMatchBand(0.9)).toBe('excellent');
+    expect(computeMatchBand(0.72)).toBe('excellent');
+    expect(computeMatchBand(0.71)).toBe('good');
+    expect(computeMatchBand(0.45)).toBe('good');
+    expect(computeMatchBand(0.44)).toBe('usable');
+    expect(computeMatchBand(0)).toBe('usable');
+  });
+});
+
+describe('rankMatchCandidates', () => {
+  const when = new Date('2026-09-01T08:00:00Z');
+  const input = { originLat: 36.8, originLng: 10.18, destinationLat: 36.85, destinationLng: 10.2, when };
+
+  it('sorts a clearly-better candidate first, and flags it as the standout', () => {
+    const mediocre = makeCandidate({ rideId: 'mediocre', score: 0.5 });
+    const excellent = makeCandidate({ rideId: 'excellent', score: 0.9, departureAt: when });
+    const { ranked, standoutRideId } = rankMatchCandidates([mediocre, excellent], input);
+    expect(ranked.map((c) => c.rideId)).toEqual(['excellent', 'mediocre']);
+    expect(standoutRideId).toBe('excellent');
+  });
+
+  it('does NOT crown a standout when two candidates share the top band — both surface, order broken only by departure-time proximity (§Decisions #3: no forced perfect ordering)', () => {
+    const closer = makeCandidate({
+      rideId: 'closer',
+      score: 0.8,
+      departureAt: new Date(when.getTime() + 5 * 60_000),
+    });
+    const farther = makeCandidate({
+      rideId: 'farther',
+      score: 0.82, // Higher raw score, but same band as `closer` — must NOT win on that alone.
+      departureAt: new Date(when.getTime() + 60 * 60_000),
+    });
+    const { ranked, standoutRideId } = rankMatchCandidates([farther, closer], input);
+    expect(standoutRideId).toBeNull();
+    expect(ranked.map((c) => c.rideId)).toEqual(['closer', 'farther']);
+  });
+
+  it('the flagship case: a mediocre "exact" endpoint match never buries an excellent route_passthrough match', () => {
+    const mediocreExact = makeCandidate({
+      rideId: 'mediocre-exact',
+      score: 0.4,
+      matchType: 'endpoint',
+    });
+    const excellentPassthrough = makeCandidate({
+      rideId: 'excellent-passthrough',
+      score: 0.85,
+      matchType: 'route_passthrough',
+    });
+    const { ranked, standoutRideId } = rankMatchCandidates([mediocreExact, excellentPassthrough], input);
+    expect(ranked[0]!.rideId).toBe('excellent-passthrough');
+    expect(standoutRideId).toBe('excellent-passthrough');
+  });
+
+  it('returns an empty ranking and no standout for an empty input', () => {
+    const { ranked, standoutRideId } = rankMatchCandidates([], input);
+    expect(ranked).toEqual([]);
+    expect(standoutRideId).toBeNull();
+  });
+});
+
+describe('mergeCandidatesByRide', () => {
+  it('deduplicates by rideId, keeping the higher-scored representation', () => {
+    const asEndpoint = makeCandidate({ rideId: 'ride-1', score: 0.4, matchType: 'endpoint' });
+    const asPassthrough = makeCandidate({ rideId: 'ride-1', score: 0.7, matchType: 'route_passthrough' });
+    const merged = mergeCandidatesByRide([asEndpoint], [asPassthrough]);
+    expect(merged).toHaveLength(1);
+    expect(merged[0]!.matchType).toBe('route_passthrough');
+    expect(merged[0]!.score).toBe(0.7);
+  });
+
+  it('keeps every candidate from every list when rideIds are distinct', () => {
+    const a = makeCandidate({ rideId: 'ride-a', score: 0.5 });
+    const b = makeCandidate({ rideId: 'ride-b', score: 0.6 });
+    const merged = mergeCandidatesByRide([a], [b]);
+    expect(merged.map((c) => c.rideId).sort()).toEqual(['ride-a', 'ride-b']);
+  });
+
+  it('handles any number of lists, including empty ones', () => {
+    const a = makeCandidate({ rideId: 'ride-a', score: 0.5 });
+    expect(mergeCandidatesByRide([], [a], [])).toEqual([a]);
+    expect(mergeCandidatesByRide()).toEqual([]);
   });
 });

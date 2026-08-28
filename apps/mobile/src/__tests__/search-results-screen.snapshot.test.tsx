@@ -126,7 +126,9 @@ describe('search/results.tsx snapshots', () => {
   it('renders exact matches with the top card flagged best-match', async () => {
     vi.resetModules();
     mockStore();
-    mockApi({ matching: { data: { tier: 'exact', candidates, message: null } } });
+    mockApi({
+      matching: { data: { tier: 'exact', candidates, standoutRideId: 'ride-1', message: null } },
+    });
     const { ResultsScreen, ToastProvider } = await loadScreen();
     const tree = renderJSON(
       <ToastProvider>
@@ -144,6 +146,7 @@ describe('search/results.tsx snapshots', () => {
         data: {
           tier: 'wide_corridor',
           candidates,
+          standoutRideId: 'ride-1',
           message:
             "Aucun trajet exactement à l'heure demandée près de vous. Voici les correspondances les plus proches.",
         },
@@ -161,7 +164,9 @@ describe('search/results.tsx snapshots', () => {
   it('renders the genuine empty state with a notify-me action', async () => {
     vi.resetModules();
     mockStore();
-    mockApi({ matching: { data: { tier: 'none', candidates: [], message: null } } });
+    mockApi({
+      matching: { data: { tier: 'none', candidates: [], standoutRideId: null, message: null } },
+    });
     const { ResultsScreen, ToastProvider } = await loadScreen();
     const tree = renderJSON(
       <ToastProvider>

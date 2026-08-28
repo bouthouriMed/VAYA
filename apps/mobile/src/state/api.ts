@@ -185,6 +185,14 @@ export interface MatchCandidate {
 export interface SearchResult {
   tier: 'exact' | 'wide_corridor' | 'route_passthrough' | 'detour_match' | 'closest_departure' | 'none';
   candidates: MatchCandidate[];
+  /** Matching-engine architecture plan §D/§M — the one candidate genuinely,
+   *  clearly ahead of every other, or null whenever two or more candidates
+   *  are comparably good (share the top quality band server-side). Drives
+   *  results.tsx's "best match" badge — render it ONLY when a candidate's
+   *  rideId equals this, never by locally comparing scores: two good
+   *  options tying is a legitimate outcome, not something to break with a
+   *  client-side tiebreaker. */
+  standoutRideId: string | null;
   message: string | null;
 }
 
