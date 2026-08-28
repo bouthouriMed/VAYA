@@ -914,8 +914,25 @@ export type SearchTier =
   | 'none';
 
 export interface SearchResult {
+  /** Describes which discovery mechanism(s) actually populated `candidates`
+   *  — kept for the top banner message and for analytics, but (matching-
+   *  engine architecture plan §D/§Decisions) no longer decides *which*
+   *  candidates are shown or in what order: `candidates` can genuinely mix
+   *  `matchType: 'endpoint'` and `'route_passthrough'` results in one
+   *  ranked list. `'exact'` means at least one candidate is within the
+   *  tight radius/time window; `'wide_corridor'`/`'route_passthrough'`
+   *  mean the pool is non-empty but nothing qualified as tight. */
   tier: SearchTier;
+  /** Ranked per `rankMatchCandidates` — coarse quality bands, comparably-
+   *  good candidates ordered by departure-time proximity within a band,
+   *  never a manufactured fine-grained total order (§Decisions #3). */
   candidates: MatchCandidate[];
+  /** The one candidate genuinely, clearly ahead of every other — never
+   *  merely the highest raw score. `null` whenever two or more candidates
+   *  share the top quality band: the passenger sees them together and
+   *  chooses, rather than the server crowning an arbitrary "winner" among
+   *  options that are, in practice, comparably good (§Decisions #3, §M). */
+  standoutRideId: string | null;
   /** Server-built, French, honest explanation of why these results aren't
    *  an exact match — null for `tier: 'exact'` (nothing to explain) and for
    *  `tier: 'none'` (mobile's existing notify-me empty state owns that
@@ -924,6 +941,101 @@ export interface SearchResult {
    *  "why these results" heuristic (the problem the pre-Phase-13
    *  results.tsx had with its local time-diff banner logic). */
   message: string | null;
+}
+
+/** Coarse passenger-facing match quality (matching-engine architecture
+ *  plan §Decisions #3): "don't chase a perfect ordering" — two candidates
+ *  in the same band are comparably good and should both be shown, not
+ *  forced into a manufactured sub-point ranking. Thresholds are a reasoned
+ *  HYPOTHESIS against the existing score formulas' own 0..1 range, not yet
+ *  calibrated against real outcome data. */
+export type MatchBand = 'excellent' | 'good' | 'usable';
+const EXCELLENT_BAND_MIN_SCORE = 0.72;
+const GOOD_BAND_MIN_SCORE = 0.45;
+const BAND_ORDER: Record<MatchBand, number> = { excellent: 0, good: 1, usable: 2 };
+
+export function computeMatchBand(score: number): MatchBand {
+  if (score >= EXCELLENT_BAND_MIN_SCORE) return 'excellent';
+  if (score >= GOOD_BAND_MIN_SCORE) return 'good';
+  return 'usable';
+}
+
+/**
+ * Passenger-oriented ranking (matching-engine architecture plan §D,
+ * §Decisions #3): sorts by quality band first, then by departure-time
+ * proximity to the request within a band — a simple, stable, honest
+ * tie-break, not a precision contest between two candidates that are, in
+ * practice, both good options. Also decides the single genuine "standout"
+ * match, if any: only when it's the sole occupant of the top band actually
+ * present in this result set, never merely the top scorer within a tie.
+ */
+export function rankMatchCandidates(
+  candidates: MatchCandidate[],
+  input: MatchingSearchInput,
+): { ranked: MatchCandidate[]; standoutRideId: string | null } {
+  const ranked = [...candidates].sort((a, b) => {
+    const bandDiff = BAND_ORDER[computeMatchBand(a.score)] - BAND_ORDER[computeMatchBand(b.score)];
+    if (bandDiff !== 0) return bandDiff;
+    return (
+      Math.abs(a.departureAt.getTime() - input.when.getTime()) -
+      Math.abs(b.departureAt.getTime() - input.when.getTime())
+    );
+  });
+  if (ranked.length === 0) return { ranked, standoutRideId: null };
+
+  const topBand = computeMatchBand(ranked[0]!.score);
+  const topBandCount = ranked.filter((c) => computeMatchBand(c.score) === topBand).length;
+  return { ranked, standoutRideId: topBandCount === 1 ? ranked[0]!.rideId : null };
+}
+
+/** Merges two candidate lists for the same search into one, deduplicated by
+ *  `rideId` — a ride can in principle qualify for both the endpoint and
+ *  route-passthrough retrieval mechanisms at once (e.g. its own endpoints
+ *  roughly match *and* its route also passes through the corridor); when
+ *  that happens, the higher-scored representation wins, since both
+ *  describe the same real candidate ride. */
+export function mergeCandidatesByRide(...lists: MatchCandidate[][]): MatchCandidate[] {
+  const byRideId = new Map<string, MatchCandidate>();
+  for (const list of lists) {
+    for (const candidate of list) {
+      const existing = byRideId.get(candidate.rideId);
+      if (!existing || candidate.score > existing.score) byRideId.set(candidate.rideId, candidate);
+    }
+  }
+  return [...byRideId.values()];
+}
+
+/** Whether a candidate would have qualified under the old, pre-merge
+ *  "exact" tier's tight radius/time window — used only to decide the
+ *  top-level `tier`/`message` a passenger sees, never to gate which
+ *  candidates are returned (that gating is exactly what this phase
+ *  retires). Recomputes distance from the already-stored walk-minutes
+ *  fields (`distanceM = walkMinutes * WALK_SPEED_M_PER_MIN`) rather than
+ *  adding a redundant raw-distance field to `MatchCandidate`. */
+function isWithinTightBounds(
+  candidate: MatchCandidate,
+  input: MatchingSearchInput,
+  thresholds: MatchingThresholds,
+): boolean {
+  if (candidate.matchType !== 'endpoint') return false;
+  const pickupDistanceM = candidate.pickupWalkMinutes * WALK_SPEED_M_PER_MIN;
+  const dropoffDistanceM = candidate.dropoffWalkMinutes * WALK_SPEED_M_PER_MIN;
+  const timeDeltaMin = Math.abs(candidate.departureAt.getTime() - input.when.getTime()) / 60_000;
+  return (
+    pickupDistanceM <= thresholds.tightPickupRadiusM &&
+    dropoffDistanceM <= thresholds.tightDropoffRadiusM &&
+    timeDeltaMin <= TIGHT_TIME_WINDOW_MIN
+  );
+}
+
+function classifyOverallTier(
+  candidates: MatchCandidate[],
+  input: MatchingSearchInput,
+  thresholds: MatchingThresholds,
+): 'exact' | 'wide_corridor' | 'route_passthrough' {
+  if (candidates.some((c) => isWithinTightBounds(c, input, thresholds))) return 'exact';
+  if (candidates.some((c) => c.matchType === 'endpoint')) return 'wide_corridor';
+  return 'route_passthrough';
 }
 
 const TIER_MESSAGES: Record<
@@ -940,12 +1052,19 @@ const TIER_MESSAGES: Record<
 };
 
 /**
- * The full search-tier cascade (docs/roadmap/phase-13-search-engine.md):
- * tries progressively looser tiers, in order, returning the first with at
- * least one result. Never returns an empty `tier: 'none'` result while any
- * tier still has something to offer — "show some rides, better than
- * nothing" made a real, server-side guarantee rather than a UI-level
- * illusion built by widening one radius twice.
+ * The unified search pipeline (matching-engine architecture plan §D,
+ * revising docs/roadmap/phase-13-search-engine.md's original cascade):
+ * discovery mechanisms no longer gate what a passenger sees. Stage A —
+ * endpoint-radius and route-passthrough retrieval — always runs, in
+ * parallel (both are cheap: passthrough reuses each candidate ride's
+ * already-stored polyline, no extra routing call), merged into one
+ * quality-banded ranked list, exactly the fix for "a mediocre exact match
+ * always beat an excellent pass-through match" this phase exists for.
+ * `detour_match`/`closest_departure` stay cost-gated *expansions* —
+ * detour's real per-candidate routing calls and closest-departure's
+ * 14-day lookahead only ever run when Stage A is genuinely empty, the same
+ * "show some rides, better than nothing" guarantee the old cascade made,
+ * just no longer split into a separate exact/wide pass first.
  */
 export async function searchRides(db: Database, input: MatchingSearchInput): Promise<SearchResult> {
   // Profile-scaled once per search (matching-engine architecture plan §G) —
@@ -954,55 +1073,49 @@ export async function searchRides(db: Database, input: MatchingSearchInput): Pro
   // see deriveMatchingThresholds's own doc comment.
   const thresholds = deriveMatchingThresholds(input);
 
-  const exact = await scoreCandidates(
-    db,
-    input,
-    thresholds.tightPickupRadiusM,
-    thresholds.tightDropoffRadiusM,
-    TIGHT_TIME_WINDOW_MIN,
-  );
-  if (exact.length > 0) return { tier: 'exact', candidates: exact, message: null };
+  const [endpointCandidates, passThroughCandidates] = await Promise.all([
+    scoreCandidates(
+      db,
+      input,
+      thresholds.widePickupRadiusM,
+      thresholds.wideDropoffRadiusM,
+      WIDE_TIME_WINDOW_MIN,
+    ),
+    scorePassThroughCandidates(db, input, thresholds.corridorWidthM, WIDE_TIME_WINDOW_MIN),
+  ]);
+  const merged = mergeCandidatesByRide(endpointCandidates, passThroughCandidates);
 
-  const wide = await scoreCandidates(
-    db,
-    input,
-    thresholds.widePickupRadiusM,
-    thresholds.wideDropoffRadiusM,
-    WIDE_TIME_WINDOW_MIN,
-  );
-  if (wide.length > 0) {
-    return { tier: 'wide_corridor', candidates: wide, message: TIER_MESSAGES.wide_corridor };
-  }
-
-  const passThrough = await scorePassThroughCandidates(
-    db,
-    input,
-    thresholds.corridorWidthM,
-    WIDE_TIME_WINDOW_MIN,
-  );
-  if (passThrough.length > 0) {
+  if (merged.length > 0) {
+    const { ranked, standoutRideId } = rankMatchCandidates(merged, input);
+    const tier = classifyOverallTier(ranked, input, thresholds);
     return {
-      tier: 'route_passthrough',
-      candidates: passThrough,
-      message: TIER_MESSAGES.route_passthrough,
+      tier,
+      candidates: ranked,
+      standoutRideId,
+      message: tier === 'exact' ? null : TIER_MESSAGES[tier],
     };
   }
 
   const detour = await scoreDetourCandidates(db, input, WIDE_TIME_WINDOW_MIN, thresholds);
   if (detour.length > 0) {
-    return { tier: 'detour_match', candidates: detour, message: TIER_MESSAGES.detour_match };
+    const { ranked, standoutRideId } = rankMatchCandidates(detour, input);
+    return { tier: 'detour_match', candidates: ranked, standoutRideId, message: TIER_MESSAGES.detour_match };
   }
 
+  // closest_departure stays sorted strictly by time-proximity to the
+  // request, not band-ranked — that ordering IS its entire point,
+  // unchanged from the original cascade.
   const closest = await findClosestDepartures(db, input, thresholds);
   if (closest.length > 0) {
     return {
       tier: 'closest_departure',
       candidates: closest,
+      standoutRideId: null,
       message: TIER_MESSAGES.closest_departure,
     };
   }
 
-  return { tier: 'none', candidates: [], message: null };
+  return { tier: 'none', candidates: [], standoutRideId: null, message: null };
 }
 
 /**
