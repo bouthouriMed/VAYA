@@ -72,11 +72,13 @@ function PendingRequestRow({
   booking,
   rideDestinationLabel,
   theme,
+  locale,
   onOpenDetails,
 }: {
   booking: Booking;
   rideDestinationLabel: string;
   theme: ThemeColors;
+  locale: SupportedLocale;
   onOpenDetails: () => void;
 }): React.JSX.Element {
   const { t } = useTranslation('driver');
@@ -122,6 +124,15 @@ function PendingRequestRow({
           <Text variant="caption" color={theme.inkFaint} numberOfLines={1}>
             {`→ ${booking.dropoffLabel ?? rideDestinationLabel}`}
           </Text>
+          {/* M-054/M-059 (docs/unified_driver_and_passenger_journey.md
+           *  §20/§21): the real, server-authoritative response deadline —
+           *  was entirely absent from this list row before this pass, even
+           *  though `booking.expiresAt` already existed. */}
+          {booking.expiresAt ? (
+            <Text variant="caption" color={theme.warning} numberOfLines={1}>
+              {t('rides.requestDetail.respondBy', { time: formatTime(new Date(booking.expiresAt), locale) })}
+            </Text>
+          ) : null}
         </View>
         <TouchableOpacity
           onPress={onOpenDetails}
@@ -554,6 +565,7 @@ export default function DriverRideHubScreen(): React.JSX.Element {
                 booking={booking}
                 rideDestinationLabel={ride.destinationLabel}
                 theme={theme}
+                locale={locale}
                 onOpenDetails={() => setDetailBooking(booking)}
               />
             ))
