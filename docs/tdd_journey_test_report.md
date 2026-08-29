@@ -263,3 +263,39 @@ Both are flagged here explicitly rather than silently dropped, per `.claude/cont
 4. Only once the gate above is genuinely satisfied: begin production implementation, in the order `.claude/continue-tdd.md` §6 specifies (data integrity → matching → segment capacity → pricing → booking/grouping/concurrency → deadlines → cancellation/no-show → lifecycle → active-trip matching → tracking/GPS → boarding → route deviation → notifications → journey APIs → mobile UX → polish). **When that work starts, the 7 failing journeys in §3b are the executable acceptance criteria for the corresponding fixes** — a fix is done when its journey turns green, not when the code merely "looks right."
 
 This session's main deliverable (all 10 vertical journeys, real and executed) directly answers the mission's own stated goal: a reliable E2E suite that verifies the spec is actually achieved. It is not yet a COMPLETE such suite (step 2 above lists the real remaining gaps), but it is the first point in this mission where that claim is backed by actual runs rather than a plan to eventually run something.
+
+---
+
+## 10. Further Layer-B extension (separate increment — resumed session, worktree re-entered mid-flight)
+
+**Context**: this increment resumed work in the same worktree after finding it already at the state described in §1-9 above (commit `f2147a9`, clean working tree, nothing lost). Per this whole mission's own "verify the repository, don't trust prior claims" discipline, every claim below was executed and observed in this increment, not carried over. A concurrent peer session (`review/tdd-journey-contract-pass2`, based on the same `f2147a9`) worked in parallel in a *separate* worktree on a distinct second-pass audit (spec §28 rewrite, matrix hygiene) — coordinated via cross-session messages, no file collisions; that branch is not merged into this one and its own findings are its own report section, not duplicated here.
+
+### 10.1 New tests added, all real and executed against real Postgres
+
+| File | Result | Classification | What it proves |
+|---|---|---|---|
+| `packages/domain/src/matching/__tests__/matching-thresholds.admin-config-contract.test.ts` | ✅ 4/4 pass | **B** (documents a real gap via a passing structural test) | `getMatchingThresholds`/`detourAllowanceSec` take no config/override parameter at all; `MAX_DETOUR_RATIO` is a hardcoded module constant — M-085 (admin-configurable matching thresholds) is genuinely MISSING, confirmed by direct inspection of the real exported functions, not inference. |
+| `apps/api/src/modules/notifications/__tests__/notification-event-coverage.contract.test.ts` | ✅ 14/14 pass | **B** | Reads the real `notificationEventTypeEnum` (no DB connection needed — a schema-level structural check). Confirms exactly 4 of spec §39's 12 named events have **no event type in the schema at all** (deadline-approaching, siblings-cancelled, passenger-onboard, route/ETA-changed) — not merely undispatched, structurally absent. 2 more are deliberate, documented reuse (trip-started→`trip_driver_approaching`, review-requested→`trip_completed`). |
+| `apps/api/src/modules/bookings/__tests__/bookings-deadline-visibility.contract.integration.test.ts` | ✅ 2/2 pass | **B** | Real Postgres row + real `createBooking` return value: confirmed no `expiresAt`/`deadline`/`responseDeadline` field exists anywhere in the response shape or the persisted row. M-054 confirmed MISSING live, not by reading the schema file alone. |
+| `apps/api/src/modules/bookings/__tests__/bookings-inv07-stop-not-required.integration.test.ts` | ✅ 2/2 pass | **A/B mixed — see 10.2** | See below — this is the most consequential finding of this increment. |
+
+Command: `npx vitest run <file>` per file (apps/api), plus one full `packages/domain` re-run (`npx vitest run`): **140 passed / 5 failed, 23/30 files** — the 5 failures are the same pre-existing RED specs from §3a (auto-start, boarding, ETA-confidence, live-corridor, no-show-corroboration), unchanged; no regressions from this increment's 2 new domain files.
+
+### 10.2 M-021 / EDGE-054 / INV-07 reclassified: PARTIAL, not blanket FAIL
+
+The original matrix (and the audit it was built from) classified "a driver-selected stop is not required for a feasible match" as a clean **FAIL (incorrect)**, citing `matching.service.ts`'s `route_passthrough` tier hard-requiring stops on both ends (`scorePassThroughCandidates`'s `continue` when `rankedStops.length === 0`, confirmed still true at ~L634).
+
+That citation is accurate but incomplete — it answers "can *search's primary tier* find this ride," not "can the invariant ever actually be satisfied end-to-end." Two further, real code paths change the answer:
+
+1. **`bookings.service.ts`'s `createBooking`** has a free-form-pickup branch (~L405-419) that places **zero** stop requirement on a ride with no `route_stops` rows at all — confirmed live by `bookings-inv07-stop-not-required.integration.test.ts`: a booking with an arbitrary mid-route pickup point, on a ride with zero stops, succeeds unconditionally, no distance/detour bound applied.
+2. **`matching.service.ts`'s `scoreDetourCandidates`** (the `detour_match` tier) explicitly does *not* require stops — it runs a real routing-engine waypoint-insertion call instead. It is gated two ways, though: it only runs when the merged exact/wide/passthrough stage is *completely* empty (an existing, separately-flagged architecture concern — §5 of the original audit, "worth a cheap global-best refactor"), and it discards any candidate whose routing call comes back `isEstimate: true` (i.e. no real OSRM/Google reachable) — confirmed by reading the code (`if (withInsertion.isEstimate) continue;`).
+
+**Net finding**: INV-07 genuinely **PASSES** at the booking layer (unconditionally, for a zero-stop ride) and is **PARTIALLY** satisfied at the search layer (only via the last-resort `detour_match` fallback, itself dependent on a real reachable routing engine). This environment's OSRM container has never had a prepared graph (`docker/osrm/prepare.sh` never run — the same pre-existing limitation §3b/§9a already documented for other tests), so the search-layer half could not be exercised live here — that specific half is a **Category E (test-infrastructure gap)**, not assumed to still be a defect and not assumed to be fixed. The matrix (M-021, EDGE-054, INV-07 rows) has been updated to PARTIAL with this precise reasoning, replacing the prior blanket FAIL.
+
+**A genuine, separate asymmetry found along the way** (documented in the test file, not asserted as either correct or incorrect): a free-form **dropoff** (unlike pickup) is *always* live-detour-validated via `assertRealDetourWithinAllowance`, regardless of stop count — so a zero-stop, zero-route-polyline ride can accept a free-form pickup but rejects a free-form dropoff outright ("This ride has no route to validate a detour against"). Confirmed live, not inferred. Worth a product/engineering decision on whether that asymmetry is intentional.
+
+### 10.3 Updated gate-status delta
+
+Relative to §1's table: Layer B coverage is no longer "PARTIAL — reframed" with zero direct `apps/api/**/__tests__` additions — 4 new real, executed integration/contract files now exist there, closing 4 of the ~20 previously-open Layer-B matrix rows (M-054, M-085, M-086, M-113) plus refining 3 more (M-021, EDGE-054, INV-07). Remaining open Layer-B rows (route alternatives/selection shape, messaging, remaining driver-inbox/request-detail field-completeness checks) are unchanged from §5's list and not claimed as done here.
+
+No production code was modified in this increment either — same discipline as every prior increment.

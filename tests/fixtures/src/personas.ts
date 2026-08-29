@@ -33,7 +33,7 @@ export const CANONICAL_VEHICLE = {
  * Spanish — the API does not validate phone country, only shape.
  */
 let phoneCounter = 0;
-export function personaPhone(persona: PersonaSeed): string {
+export function personaPhone(_persona: PersonaSeed): string {
   phoneCounter += 1;
   const base = Date.now() % 100_000_000;
   return `+34${String(base).padStart(8, '0')}${phoneCounter}`.slice(0, 15);

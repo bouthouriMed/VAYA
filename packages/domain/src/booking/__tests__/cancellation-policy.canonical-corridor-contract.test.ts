@@ -47,7 +47,6 @@ describe('cancellation-policy — deterministic-clock boundary contract', () => 
     // (that's M-083/M-084, a separate MISSING capability tested at the API
     // layer). This test exists only to anchor the spec's own numeric
     // example against the clock fixture for when that capability is built.
-    const clock = newCanonicalClock();
     const tripDurationMinutes = 180;
     const acceptableDelayMinutes = 15;
     expect(acceptableDelayMinutes / tripDurationMinutes).toBeLessThan(0.1); // ~8.3%, the spec's own "acceptable" anchor point.
