@@ -127,16 +127,27 @@ export interface CancellationPolicyResult {
  * final cancel endpoint can call this with the same guarantee of agreeing
  * (the only difference between them is *when* `cancelledAt` is captured).
  */
+/**
+ * M-085a (docs/unified_driver_and_passenger_journey.md §28, journey-contract
+ * second pass): tier boundaries are injectable, not just exported named
+ * constants — an admin-configured override (apps/api's
+ * operational-config.service.ts) can change them without rewriting this
+ * function, mirroring `detourAllowanceSec`'s established floor/ceiling
+ * override pattern (matching-thresholds.ts). Omitting the overrides keeps
+ * today's default behavior exactly as it was.
+ */
 export function computeCancellationPolicy(
   departureAt: Date,
   cancelledAt: Date,
+  freeWindowHours: number = CANCELLATION_FREE_WINDOW_HOURS,
+  moderateWindowMinutes: number = CANCELLATION_MODERATE_WINDOW_MINUTES,
 ): CancellationPolicyResult {
   const minutesBeforeDeparture = (departureAt.getTime() - cancelledAt.getTime()) / 60_000;
 
   let tier: CancellationTier;
-  if (minutesBeforeDeparture >= CANCELLATION_FREE_WINDOW_HOURS * 60) {
+  if (minutesBeforeDeparture >= freeWindowHours * 60) {
     tier = 'free';
-  } else if (minutesBeforeDeparture >= CANCELLATION_MODERATE_WINDOW_MINUTES) {
+  } else if (minutesBeforeDeparture >= moderateWindowMinutes) {
     tier = 'moderate';
   } else {
     tier = 'severe';
@@ -155,11 +166,16 @@ export function computeCancellationPolicy(
  * `NO_SHOW_MIN_MINUTES_AFTER_DEPARTURE` minutes have passed since
  * `departureAt`. Server-side enforcement point (bookings.service.ts's
  * reportNoShow) — the mobile UI's guidance text about attempting contact
- * first is a nicety on top of this, not a substitute for it.
+ * first is a nicety on top of this, not a substitute for it. Injectable
+ * override, same M-085a pattern as computeCancellationPolicy above.
  */
-export function canReportNoShow(departureAt: Date, reportedAt: Date): boolean {
+export function canReportNoShow(
+  departureAt: Date,
+  reportedAt: Date,
+  minMinutesAfterDeparture: number = NO_SHOW_MIN_MINUTES_AFTER_DEPARTURE,
+): boolean {
   const minutesPastDeparture = (reportedAt.getTime() - departureAt.getTime()) / 60_000;
-  return minutesPastDeparture >= NO_SHOW_MIN_MINUTES_AFTER_DEPARTURE;
+  return minutesPastDeparture >= minMinutesAfterDeparture;
 }
 
 /**
@@ -199,15 +215,17 @@ export function evaluateNoShowReport(
   departureAt: Date,
   reportedAt: Date,
   evidence: NoShowReportEvidence,
+  minMinutesAfterDeparture: number = NO_SHOW_MIN_MINUTES_AFTER_DEPARTURE,
+  maxReporterDistanceMeters: number = NO_SHOW_MAX_REPORTER_DISTANCE_METERS,
 ): NoShowReportResult {
-  if (!canReportNoShow(departureAt, reportedAt)) {
+  if (!canReportNoShow(departureAt, reportedAt, minMinutesAfterDeparture)) {
     return { allowed: false, reason: 'time_not_elapsed' };
   }
 
   const { reporterDistanceMetersFromMeetingPoint } = evidence;
   if (
     reporterDistanceMetersFromMeetingPoint !== null &&
-    reporterDistanceMetersFromMeetingPoint > NO_SHOW_MAX_REPORTER_DISTANCE_METERS
+    reporterDistanceMetersFromMeetingPoint > maxReporterDistanceMeters
   ) {
     return { allowed: false, reason: 'reporter_too_far' };
   }

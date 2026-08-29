@@ -24,6 +24,8 @@ export * from './booking/booking.types';
 export * from './booking/booking-status';
 export * from './booking/cancellation-policy';
 export * from './booking/segment-capacity';
+export * from './booking/request-deadline';
+export * from './booking/journey-grouping';
 
 export * from './trip/trip.types';
 export * from './trip/trip-status';

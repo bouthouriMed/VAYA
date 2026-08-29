@@ -1,0 +1,21 @@
+CREATE TABLE IF NOT EXISTS "operational_configs" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"scope" varchar(30) DEFAULT 'national' NOT NULL,
+	"max_detour_ratio" double precision,
+	"existing_passenger_max_delay_ratio" double precision,
+	"existing_passenger_max_absolute_delay_minutes" double precision,
+	"cancellation_free_window_hours" double precision,
+	"cancellation_moderate_window_minutes" double precision,
+	"no_show_min_minutes_after_departure" double precision,
+	"no_show_max_reporter_distance_meters" double precision,
+	"route_deviation_noise_threshold_meters" double precision,
+	"route_deviation_real_threshold_meters" double precision,
+	"booking_response_window_minutes" double precision,
+	"same_journey_pickup_radius_meters" double precision,
+	"same_journey_dropoff_radius_meters" double precision,
+	"same_journey_time_window_minutes" double precision,
+	"max_active_requests_per_journey" integer,
+	"active" boolean DEFAULT true NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+);

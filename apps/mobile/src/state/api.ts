@@ -1092,8 +1092,15 @@ export const api = createApi({
       }),
       invalidatesTags: ['MyBookings', 'RideRequests', 'MyRides'],
     }),
-    reportNoShow: builder.mutation<Booking, string>({
-      query: (bookingId) => ({ url: `/bookings/${bookingId}/report-no-show`, method: 'POST' }),
+    reportNoShow: builder.mutation<
+      Booking,
+      { bookingId: string; reporterLat?: number; reporterLng?: number }
+    >({
+      query: ({ bookingId, reporterLat, reporterLng }) => ({
+        url: `/bookings/${bookingId}/report-no-show`,
+        method: 'POST',
+        body: { reporterLat, reporterLng },
+      }),
       invalidatesTags: ['MyBookings', 'RideRequests', 'MyRides', 'Trip'],
     }),
 

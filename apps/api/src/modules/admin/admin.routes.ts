@@ -11,6 +11,7 @@ import {
   declineVerificationSchema,
   idParamSchema,
   suspendUserSchema,
+  updateOperationalConfigSchema,
   updateReportSchema,
   verificationQueueQuerySchema,
 } from '@vaya/validation';
@@ -33,6 +34,10 @@ import {
 import { listReportsForAdmin, updateReportForAdmin } from './admin-reports.service.js';
 import { getCorridorDemand, getOverviewMetrics, getSearchFunnel } from './admin-analytics.service.js';
 import { listAuditLogs } from './audit-log.service.js';
+import {
+  getActiveOperationalConfig,
+  updateOperationalConfig,
+} from '../operational-config/operational-config.service.js';
 
 // Admin-facing responses are intentionally permissive (z.any()/passthrough
 // shapes) rather than the fully-enumerated schemas the consumer-facing API
@@ -138,4 +143,21 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
   app.get('/audit-logs', { ...adminAuth, schema: { response: { 200: anyResponse } } }, async (_request, reply) => {
     reply.send(await listAuditLogs(db));
   });
+
+  // --- Operational policy configuration ---
+  // (docs/unified_driver_and_passenger_journey.md §28, M-085/M-086): "The
+  // Admin Panel is the authoritative interface for setting and changing
+  // these values." Every field always resolved (admin override or
+  // packages/domain's own pure default) — never a bare null the admin UI
+  // would have to guess a fallback for.
+  app.get('/operational-config', { ...adminAuth, schema: { response: { 200: anyResponse } } }, async (_request, reply) => {
+    reply.send(await getActiveOperationalConfig(db));
+  });
+  app.patch(
+    '/operational-config',
+    { ...adminAuth, schema: { body: updateOperationalConfigSchema, response: { 200: anyResponse } } },
+    async (request, reply) => {
+      reply.send(await updateOperationalConfig(db, request.body, getAdminId(request)));
+    },
+  );
 }

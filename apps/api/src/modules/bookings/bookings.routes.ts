@@ -32,6 +32,10 @@ const bookingResponseSchema = z.object({
   pickupLng: z.number(),
   requestedAt: z.date(),
   respondedAt: z.date().nullable(),
+  // M-050/M-054 (docs/unified_driver_and_passenger_journey.md §20): visible
+  // to the passenger on their own request and to the driver inside the
+  // incoming request — same shape, no role-specific hiding needed.
+  expiresAt: z.date().nullable(),
   // Only populated by GET /rides/:rideId/requests (driver view) — who is
   // asking, so the driver's request sheet isn't a list of opaque UUIDs.
   rider: z
@@ -90,6 +94,17 @@ const cancelBookingResponseSchema = bookingResponseSchema.extend({
 // route previously had no body schema at all, so a reason-less cancel
 // succeeded unconditionally.
 const cancelBookingBodySchema = z.object({ reason: z.enum(CANCELLATION_REASONS) });
+
+// M-102 (docs/unified_driver_and_passenger_journey.md §37): both fields
+// optional — a reporter with no GPS fix at report time still gets the
+// pure time-only rule (evaluateNoShowReport's documented graceful
+// degradation), never a hard requirement to supply location.
+const reportNoShowBodySchema = z
+  .object({
+    reporterLat: z.number().min(-90).max(90).optional(),
+    reporterLng: z.number().min(-180).max(180).optional(),
+  })
+  .default({});
 
 const detourPreviewPointSchema = z.object({
   label: z.string(),
@@ -280,10 +295,20 @@ export async function bookingsRoutes(fastify: FastifyInstance): Promise<void> {
     '/bookings/:bookingId/report-no-show',
     {
       onRequest: [fastify.authenticate],
-      schema: { params: bookingIdParamSchema, response: { 200: bookingResponseSchema } },
+      schema: {
+        params: bookingIdParamSchema,
+        body: reportNoShowBodySchema,
+        response: { 200: bookingResponseSchema },
+      },
     },
     async (request, reply) => {
-      const booking = await reportNoShow(db, request.params.bookingId, getUserId(request));
+      // M-102 (spec §37): optional — a real GPS fix at report time, or
+      // null when the phone has none. `reportNoShow` degrades gracefully
+      // either way (see its own doc comment for the full contract).
+      const reporterLocation = request.body.reporterLat != null && request.body.reporterLng != null
+        ? { lat: request.body.reporterLat, lng: request.body.reporterLng }
+        : null;
+      const booking = await reportNoShow(db, request.params.bookingId, getUserId(request), reporterLocation);
       reply.send(booking);
     },
   );

@@ -1,18 +1,20 @@
-import { and, eq, inArray } from 'drizzle-orm';
+import { and, eq, inArray, isNotNull, lte, ne } from 'drizzle-orm';
 import type { getDatabase } from '../../lib/database.js';
 import { bookings, rides, routeStops, riderProfiles, trips, users } from '../../db/schema/index.js';
 import { AppError, ConflictError, ForbiddenError, NotFoundError, ValidationError } from '../../lib/errors.js';
 import {
   canCancelTrip,
-  canReportNoShow,
   canTransitionBookingStatus,
   canTransitionRideStatus,
   canTransitionTripStatus,
   classifyTripProfile,
+  computeBookingExpiresAt,
   computeCancellationPolicy,
   computeMaxConcurrentSeats,
   computeSuggestedPrice,
   detourAllowanceSec,
+  evaluateNoShowReport,
+  findSameJourneySiblings,
   getMatchingThresholds,
   wouldExceedCapacity,
   CANCELLATION_REASONS,
@@ -48,7 +50,9 @@ import {
   recordAutomaticNoShowRating,
 } from '../ratings/ratings.service.js';
 import { getRoute } from '../../lib/routing.js';
+import { haversineDistanceMeters } from '../../lib/geo.js';
 import { getActivePricingConfig } from '../pricing/pricing.service.js';
+import { getActiveOperationalConfig } from '../operational-config/operational-config.service.js';
 
 type Database = ReturnType<typeof getDatabase>;
 /** The transaction-callback handle drizzle's node-postgres driver passes
@@ -538,6 +542,60 @@ export async function createBooking(
     await assertRealDetourWithinAllowance(ride, { lat: dropoffLat, lng: dropoffLng });
   }
 
+  // M-051/052 (docs/unified_driver_and_passenger_journey.md §20): "A
+  // passenger may hold up to 3 active requests for the SAME journey... A
+  // 4th request attempt for the same journey is rejected while 3 are
+  // active." Checked against every OTHER ride's active (pending/accepted)
+  // requests by this rider — same-ride duplicates are already rejected
+  // above (DUPLICATE_BOOKING), this is specifically the cross-ride case.
+  const requestedAt = new Date();
+  const resolvedDropoffLatForGrouping = dropoffLat ?? ride.destinationLat;
+  const resolvedDropoffLngForGrouping = dropoffLng ?? ride.destinationLng;
+  // M-085/M-085a (spec §28): every threshold below is read from the
+  // active admin config (falling back to @vaya/domain's own pure default
+  // when nothing is configured yet) — never the bare imported constant
+  // directly, so an admin change takes effect without a redeploy.
+  const opConfig = await getActiveOperationalConfig(db);
+  const riderOtherActiveBookings = await db.query.bookings.findMany({
+    where: and(eq(bookings.riderId, riderId), inArray(bookings.status, ['pending', 'accepted'])),
+    with: { ride: true },
+  });
+  const sameJourneySiblings = findSameJourneySiblings(
+    {
+      riderId,
+      pickupLat,
+      pickupLng,
+      dropoffLat: resolvedDropoffLatForGrouping,
+      dropoffLng: resolvedDropoffLngForGrouping,
+      requestedAt,
+    },
+    riderOtherActiveBookings.map((b) => ({
+      riderId: b.riderId,
+      pickupLat: b.pickupLat,
+      pickupLng: b.pickupLng,
+      // A sibling booking with no free-form/stop dropoff defaults to ITS
+      // OWN ride's destination — mirrors exactly how this same request's
+      // resolvedDropoffLatForGrouping falls back above; never approximated
+      // by the pickup point (that would conflate "no explicit dropoff" with
+      // "an extremely short trip").
+      dropoffLat: b.dropoffLat ?? b.ride.destinationLat,
+      dropoffLng: b.dropoffLng ?? b.ride.destinationLng,
+      requestedAt: b.requestedAt,
+    })),
+    {
+      pickupRadiusMeters: opConfig.sameJourneyPickupRadiusMeters,
+      dropoffRadiusMeters: opConfig.sameJourneyDropoffRadiusMeters,
+      timeWindowMinutes: opConfig.sameJourneyTimeWindowMinutes,
+    },
+  );
+  if (sameJourneySiblings.length >= opConfig.maxActiveRequestsPerJourney) {
+    throw new AppError(
+      `You already have ${opConfig.maxActiveRequestsPerJourney} active requests for this journey`,
+      409,
+      'TOO_MANY_ACTIVE_REQUESTS_FOR_JOURNEY',
+    );
+  }
+
   // Segment-aware capacity pre-check (matching-engine architecture plan
   // §K) — advisory only, same "a stale read here is fine" posture the
   // scalar check it replaces always had: the real, atomic enforcement
@@ -588,6 +646,13 @@ export async function createBooking(
       dropoffLabel,
       dropoffLat,
       dropoffLng,
+      // M-054 (spec §20): "Every request has a server-authoritative
+      // response deadline, visible to passenger immediately post-request
+      // and to driver inside the incoming request." Confirmed live (this
+      // pass) that no such field previously existed anywhere in this
+      // codebase — not persisted, not returned, not enforced.
+      requestedAt,
+      expiresAt: computeBookingExpiresAt(requestedAt, opConfig.bookingResponseWindowMinutes),
     })
     .returning();
   if (!booking) throw new Error('Failed to create booking');
@@ -689,6 +754,7 @@ export async function acceptBooking(db: Database, bookingId: string, requestingU
   if (!canTransitionBookingStatus(booking.status, 'accepted')) {
     throw new ConflictError(`Cannot accept a booking in status "${booking.status}"`);
   }
+  const opConfig = await getActiveOperationalConfig(db);
 
   // Segment-aware, atomic check-then-accept (matching-engine architecture
   // plan §K): the whole thing runs inside one transaction that locks the
@@ -702,7 +768,7 @@ export async function acceptBooking(db: Database, bookingId: string, requestingU
   // this transaction commits or rolls back, then re-reads the
   // now-committed accepted-booking set, so two concurrent accepts can
   // never both pass a capacity check computed against the same stale set.
-  const updated = await db.transaction(async (tx) => {
+  const updated_ = await db.transaction(async (tx) => {
     const [lockedRide] = await tx.select().from(rides).where(eq(rides.id, booking.rideId)).for('update');
     if (!lockedRide) throw new NotFoundError('Ride');
 
@@ -732,8 +798,61 @@ export async function acceptBooking(db: Database, bookingId: string, requestingU
       .insert(trips)
       .values({ bookingId: acceptedBooking.id, rideId: acceptedBooking.rideId, status: 'scheduled' });
 
-    return acceptedBooking;
+    // M-055/056/INV-03 (docs/unified_driver_and_passenger_journey.md §20,
+    // §62 hard invariant): "First acceptance wins: accepting Driver A
+    // confirms it and auto-cancels/closes all other pending requests for
+    // the same journey." Runs inside this same transaction — the accept
+    // and the sibling-closure are one atomic unit, so a passenger can never
+    // observe (or a concurrent accept on a sibling ride ever act on) a
+    // state where this booking is accepted but a same-journey sibling is
+    // still openly pending.
+    const otherActiveBookings = await tx.query.bookings.findMany({
+      where: and(
+        eq(bookings.riderId, acceptedBooking.riderId),
+        eq(bookings.status, 'pending'),
+        ne(bookings.id, acceptedBooking.id),
+      ),
+      with: { ride: true },
+    });
+    const supersededSiblings = findSameJourneySiblings(
+      {
+        riderId: acceptedBooking.riderId,
+        pickupLat: acceptedBooking.pickupLat,
+        pickupLng: acceptedBooking.pickupLng,
+        dropoffLat: acceptedBooking.dropoffLat ?? lockedRide.destinationLat,
+        dropoffLng: acceptedBooking.dropoffLng ?? lockedRide.destinationLng,
+        requestedAt: acceptedBooking.requestedAt,
+      },
+      otherActiveBookings.map((b) => ({
+        id: b.id,
+        riderId: b.riderId,
+        pickupLat: b.pickupLat,
+        pickupLng: b.pickupLng,
+        dropoffLat: b.dropoffLat ?? b.ride.destinationLat,
+        dropoffLng: b.dropoffLng ?? b.ride.destinationLng,
+        requestedAt: b.requestedAt,
+      })),
+      {
+        pickupRadiusMeters: opConfig.sameJourneyPickupRadiusMeters,
+        dropoffRadiusMeters: opConfig.sameJourneyDropoffRadiusMeters,
+        timeWindowMinutes: opConfig.sameJourneyTimeWindowMinutes,
+      },
+    );
+    if (supersededSiblings.length > 0) {
+      await tx
+        .update(bookings)
+        .set({ status: 'superseded', respondedAt: new Date(), updatedAt: new Date() })
+        .where(
+          inArray(
+            bookings.id,
+            supersededSiblings.map((s) => s.id),
+          ),
+        );
+    }
+
+    return { acceptedBooking, supersededSiblings };
   });
+  const { acceptedBooking: updated, supersededSiblings } = updated_;
 
   await notifyBestEffort(db, booking.riderId, 'booking_accepted', {
     bookingId: booking.id,
@@ -746,6 +865,19 @@ export async function acceptBooking(db: Database, bookingId: string, requestingU
     destinationLabel: booking.ride.destinationLabel,
     departureAt: booking.ride.departureAt.toISOString(),
   });
+
+  // M-055 (spec §20): the rider whose other requests were just closed by
+  // this acceptance is told why — never a silent status flip they'd only
+  // discover by happening to reopen the app.
+  for (const sibling of supersededSiblings) {
+    await notifyBestEffort(db, booking.riderId, 'booking_declined', {
+      bookingId: sibling.id,
+      rideId: booking.rideId,
+      reason: 'superseded_by_accepted_sibling',
+      originLabel: booking.ride.originLabel,
+      destinationLabel: booking.ride.destinationLabel,
+    });
+  }
 
   // Phase 8: one conversation per booking, opened the moment it's
   // accepted — see conversations.service.ts's doc comment for why this is
@@ -813,7 +945,13 @@ export async function previewBookingCancellation(
   }
   await assertTripNotStarted(db, booking.id);
 
-  return computeCancellationPolicy(booking.ride.departureAt, new Date());
+  const opConfig = await getActiveOperationalConfig(db);
+  return computeCancellationPolicy(
+    booking.ride.departureAt,
+    new Date(),
+    opConfig.cancellationFreeWindowHours,
+    opConfig.cancellationModerateWindowMinutes,
+  );
 }
 
 export interface DetourPreviewPoint {
@@ -1116,7 +1254,13 @@ export async function cancelBooking(
   // consequence applied below and the response the client renders — never
   // recomputed a second time against a possibly-later clock read.
   const cancelledAt = new Date();
-  const cancellationPolicy = computeCancellationPolicy(booking.ride.departureAt, cancelledAt);
+  const opConfig = await getActiveOperationalConfig(db);
+  const cancellationPolicy = computeCancellationPolicy(
+    booking.ride.departureAt,
+    cancelledAt,
+    opConfig.cancellationFreeWindowHours,
+    opConfig.cancellationModerateWindowMinutes,
+  );
 
   // Phase 10: atomic, database-level check-and-transition — mirrors
   // acceptBooking's discipline above. The original cancelBooking (Phase 1
@@ -1213,19 +1357,76 @@ export async function cancelBooking(
   return { booking: updated, cancellationPolicy };
 }
 
+export interface BookingExpirySweepResult {
+  scanned: number;
+  expired: number;
+}
+
+/**
+ * M-058 (docs/unified_driver_and_passenger_journey.md §20): "Request
+ * expiry closes only that request automatically; siblings continue."
+ * Periodic sweep (BOOKING_EXPIRY_SWEEP_JOB_NAME, lib/queue.ts — a fourth
+ * job type on the same one BullMQ queue every other periodic sweep in this
+ * codebase already reuses) — transitions any `pending` booking whose
+ * `expiresAt` has passed to `expired`. Deliberately only ever touches the
+ * ONE expiring booking's own row: no cascade, no capacity release (a
+ * `pending` booking never held a seat — Phase 1's atomic accounting only
+ * decrements on `accepted` — so there is nothing to release), no effect on
+ * any other request for the same journey.
+ */
+export async function runBookingExpirySweep(db: Database): Promise<BookingExpirySweepResult> {
+  const now = new Date();
+  const candidates = await db.query.bookings.findMany({
+    where: and(eq(bookings.status, 'pending'), isNotNull(bookings.expiresAt), lte(bookings.expiresAt, now)),
+  });
+
+  const result: BookingExpirySweepResult = { scanned: candidates.length, expired: 0 };
+
+  for (const candidate of candidates) {
+    const [updated] = await db
+      .update(bookings)
+      .set({ status: 'expired', respondedAt: now, updatedAt: now })
+      .where(and(eq(bookings.id, candidate.id), eq(bookings.status, 'pending')))
+      .returning();
+    if (!updated) continue; // lost a race (e.g. accepted/declined/cancelled moments ago) — not an error.
+    result.expired += 1;
+
+    await notifyBestEffort(db, candidate.riderId, 'booking_declined', {
+      bookingId: candidate.id,
+      rideId: candidate.rideId,
+      reason: 'request_expired',
+    });
+  }
+
+  return result;
+}
+
 /**
  * `POST /bookings/:bookingId/report-no-show` (Phase 10 —
- * docs/roadmap/phase-10-cancellation-no-show.md). Distinct from
- * `cancelBooking`: either party declares the *other* never showed up, not
- * that they themselves are withdrawing. Only ever valid from `accepted`
- * (mirrors the booking-status state machine's existing `no_show` edge,
- * packages/domain/src/booking/booking-status.ts — unchanged by this
- * phase), and only once `canReportNoShow` (packages/domain's business
- * rule) confirms enough real time has passed since `departureAt` —
- * enforced here, server-side, independent of the mobile UI's own guidance
- * text nudging a contact attempt first.
+ * docs/roadmap/phase-10-cancellation-no-show.md; location corroboration
+ * added in the journey-contract second pass — M-102, spec §37). Distinct
+ * from `cancelBooking`: either party declares the *other* never showed up,
+ * not that they themselves are withdrawing. Only ever valid from
+ * `accepted` (mirrors the booking-status state machine's existing
+ * `no_show` edge, packages/domain/src/booking/booking-status.ts —
+ * unchanged by this phase).
+ *
+ * M-102: "No-show should be contextual... relevant around scheduled pickup
+ * time, pickup location, driver/passenger physical proximity." Confirmed
+ * live (this pass, before the fix) that `evaluateNoShowReport`
+ * (packages/domain) existed but had no real caller anywhere — this
+ * endpoint enforced only the time gate. `reporterLocation` is optional
+ * (a passenger/driver's phone may have no fix at report time) — omitting
+ * it degrades gracefully to the exact same time-only behavior this
+ * endpoint already had, per `evaluateNoShowReport`'s own contract; it
+ * never becomes a new way to fail a report that used to succeed.
  */
-export async function reportNoShow(db: Database, bookingId: string, requestingUserId: string) {
+export async function reportNoShow(
+  db: Database,
+  bookingId: string,
+  requestingUserId: string,
+  reporterLocation: { lat: number; lng: number } | null = null,
+) {
   const booking = await getBookingOrThrow(db, bookingId);
   const isRider = booking.riderId === requestingUserId;
   const isDriver = booking.ride.driverProfile.userId === requestingUserId;
@@ -1238,8 +1439,23 @@ export async function reportNoShow(db: Database, bookingId: string, requestingUs
   }
 
   const reportedAt = new Date();
-  if (!canReportNoShow(booking.ride.departureAt, reportedAt)) {
-    throw new ConflictError('No-show can only be reported after the scheduled departure time');
+  const opConfig = await getActiveOperationalConfig(db);
+  const reporterDistanceMetersFromMeetingPoint = reporterLocation
+    ? haversineDistanceMeters(reporterLocation, { lat: booking.pickupLat, lng: booking.pickupLng })
+    : null;
+  const noShowEvaluation = evaluateNoShowReport(
+    booking.ride.departureAt,
+    reportedAt,
+    { reporterDistanceMetersFromMeetingPoint },
+    opConfig.noShowMinMinutesAfterDeparture,
+    opConfig.noShowMaxReporterDistanceMeters,
+  );
+  if (!noShowEvaluation.allowed) {
+    const message =
+      noShowEvaluation.reason === 'reporter_too_far'
+        ? 'No-show cannot be reported from far away — you must be near the meeting point'
+        : 'No-show can only be reported after the scheduled departure time';
+    throw new ConflictError(message);
   }
 
   // Same atomic status-guard discipline as cancelBooking's fix above — only

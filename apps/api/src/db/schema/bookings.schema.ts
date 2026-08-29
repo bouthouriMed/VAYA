@@ -21,6 +21,11 @@ export const bookingStatusEnum = pgEnum('booking_status', [
   'expired',
   'completed',
   'no_show',
+  // M-055/M-056 (docs/unified_driver_and_passenger_journey.md §20): a
+  // still-pending request auto-closed because another request for the
+  // same journey was accepted first — see @vaya/domain's
+  // BOOKING_STATUSES doc comment.
+  'superseded',
 ]);
 
 export const bookings = pgTable(
@@ -63,6 +68,14 @@ export const bookings = pgTable(
     dropoffLng: doublePrecision('dropoff_lng'),
     requestedAt: timestamp('requested_at', { withTimezone: true }).notNull().defaultNow(),
     respondedAt: timestamp('responded_at', { withTimezone: true }),
+    // Journey-contract second pass (docs/unified_driver_and_passenger_journey.md
+    // §20, M-050/M-054): "Every request has a server-authoritative response
+    // deadline, visible to passenger immediately post-request and to
+    // driver inside the incoming request." Nullable/additive — every
+    // booking created before this column existed has none; set by
+    // `createBooking` at request time (requestedAt + the configured
+    // response window, @vaya/domain's computeBookingExpiresAt).
+    expiresAt: timestamp('expires_at', { withTimezone: true }),
     // Journey-contract second pass (docs/unified_driver_and_passenger_journey.md
     // §38, M-110): "a lightweight required reason from a fixed set"
     // (@vaya/domain's CANCELLATION_REASONS). Nullable/additive — every
