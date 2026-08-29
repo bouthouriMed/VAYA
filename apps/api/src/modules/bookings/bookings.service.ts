@@ -261,6 +261,45 @@ async function assertRealDetourWithinAllowance(
   }
 }
 
+/**
+ * M-004/M-020 (docs/unified_driver_and_passenger_journey.md §5/§13): "A
+ * selected stop is not a fixed pickup coordinate... VAYA later determines
+ * the actual passenger pickup/drop-off location." Before this function,
+ * `createBooking` treated a client-supplied `pickupStopId`/`dropoffStopId`
+ * as an opaque, fully-trusted id — it only checked ride membership, never
+ * whether the stop actually made sense for THIS passenger's real point.
+ * When the client also supplies its own `requestedPickup`/`requestedDropoff`
+ * (the same point the search that surfaced this stop was run against),
+ * this independently re-derives the real walk distance and rejects a
+ * selection so far from that point it couldn't be a genuine resolution —
+ * "never blindly trust the client's claim", the same discipline
+ * `assertRealDetourWithinAllowance` already applies to a free-form point.
+ * Returns the real walk distance in meters, to be persisted on the booking
+ * (bookings.pickupWalkMeters/dropoffWalkMeters) rather than left as an
+ * ephemeral search-time-only value.
+ */
+function resolveStopWalkMeters(
+  ride: { routePolyline: string | null },
+  requestedPoint: { lat: number; lng: number },
+  stop: { lat: number; lng: number },
+  radiusKind: 'pickup' | 'dropoff',
+): number {
+  const profile = ride.routePolyline
+    ? classifyTripProfile(polylineLengthMeters(decodePolyline(ride.routePolyline)))
+    : classifyTripProfile(0); // No real route length known — 'commute' is classifyTripProfile's own floor, the most conservative (tightest) radius rather than assuming a generous one.
+  const thresholds = getMatchingThresholds(profile.type);
+  const radiusM = radiusKind === 'pickup' ? thresholds.widePickupRadiusM : thresholds.wideDropoffRadiusM;
+  const walkMeters = haversineDistanceMeters(requestedPoint, stop);
+  if (walkMeters > radiusM) {
+    throw new ValidationError(
+      radiusKind === 'pickup'
+        ? 'Selected pickup stop is too far from your requested location'
+        : 'Selected dropoff stop is too far from your requested location',
+    );
+  }
+  return walkMeters;
+}
+
 /** Live tracking (docs/domain/live-tracking.md): once the driver has
  *  actually started the trip, cancelling stops being the right action for
  *  either party — the ride is genuinely underway (GPS is live, the driver
@@ -471,6 +510,7 @@ export async function createBooking(
   let pickupLabel: string;
   let pickupLat: number;
   let pickupLng: number;
+  let pickupWalkMeters: number | null = null;
 
   if (input.pickupStopId) {
     // Must belong to this exact ride and still be one of the driver's
@@ -484,6 +524,14 @@ export async function createBooking(
     pickupLabel = stop.label;
     pickupLat = stop.lat;
     pickupLng = stop.lng;
+    // M-004/M-020: a real resolution step, not a blind pass-through of the
+    // stop's own coordinate — see resolveStopWalkMeters's doc comment.
+    // Skipped when the client didn't send its own requested point at all
+    // (legacy client) — never a new rejection of an already-shipped
+    // booking pattern.
+    if (input.requestedPickup) {
+      pickupWalkMeters = resolveStopWalkMeters(ride, input.requestedPickup, stop, 'pickup');
+    }
   } else if (input.pickup) {
     pickupLabel = input.pickup.label;
     pickupLat = input.pickup.lat;
@@ -513,6 +561,7 @@ export async function createBooking(
   let dropoffLabel: string | null = null;
   let dropoffLat: number | null = null;
   let dropoffLng: number | null = null;
+  let dropoffWalkMeters: number | null = null;
 
   if (input.dropoffStopId) {
     if (selectedStops.length === 0) {
@@ -535,6 +584,9 @@ export async function createBooking(
     dropoffLabel = dropStop.label;
     dropoffLat = dropStop.lat;
     dropoffLng = dropStop.lng;
+    if (input.requestedDropoff) {
+      dropoffWalkMeters = resolveStopWalkMeters(ride, input.requestedDropoff, dropStop, 'dropoff');
+    }
   } else if (input.dropoff) {
     dropoffLabel = input.dropoff.label;
     dropoffLat = input.dropoff.lat;
@@ -642,10 +694,12 @@ export async function createBooking(
       pickupLabel,
       pickupLat,
       pickupLng,
+      pickupWalkMeters,
       dropoffStopId,
       dropoffLabel,
       dropoffLat,
       dropoffLng,
+      dropoffWalkMeters,
       // M-054 (spec §20): "Every request has a server-authoritative
       // response deadline, visible to passenger immediately post-request
       // and to driver inside the incoming request." Confirmed live (this

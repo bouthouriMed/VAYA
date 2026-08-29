@@ -18,7 +18,10 @@ import {
   classifyTripProfile,
   detourAllowanceSec,
   getMatchingThresholds,
+  rankStopsByJointOptimum,
   MAX_DETOUR_RATIO,
+  VIA_STOP_DETOUR_BUDGET,
+  type JointStopCandidate,
   type MatchingThresholds,
 } from '@vaya/domain';
 import type { MatchingSearchInput, NotifyMeInput } from '@vaya/validation';
@@ -154,6 +157,20 @@ export function deriveMatchingThresholds(input: MatchingSearchInput): MatchingTh
   return getMatchingThresholds(profile.type);
 }
 
+/**
+ * M-039: the normalization ceiling `pickRecommendedStopId` uses for a
+ * candidate stop's driver-side deviation component — the largest real
+ * detour ANY stop on a ride of this trip length could have survived
+ * generation with (a freehand 'via' city stop's own profile-scaled budget,
+ * always ≥ an auto-generated micro-stop's much tighter MAX_DEVIATION_METERS
+ * cap), so both stop kinds land on one coherent 0..1 scale.
+ */
+function deriveMaxDeviationM(origin: LatLng, destination: LatLng): number {
+  const straightLineDistanceM = haversineDistanceMeters(origin, destination);
+  const profile = classifyTripProfile(straightLineDistanceM);
+  return VIA_STOP_DETOUR_BUDGET[profile.type].maxMeters;
+}
+
 function clamp01(n: number): number {
   return Math.max(0, Math.min(1, n));
 }
@@ -206,6 +223,14 @@ export interface MatchCandidate {
    *  "use the ride's own destination as the dropoff" — the pre-Phase-13
    *  behavior, unchanged for any ride with zero route_stops. */
   rankedDropoffStops: RankedStop[];
+  /** M-039 (spec §13): VAYA's own genuine joint-optimum recommendation —
+   *  the stop id (from `rankedStops`) that best balances the passenger's
+   *  walk distance AND the driver's real detour cost/road suitability, not
+   *  merely the closest one by foot (`rankedStops[0]`, which those two can
+   *  genuinely disagree on). Null whenever `rankedStops` is empty. */
+  recommendedStopId: string | null;
+  /** Dropoff-side mirror of `recommendedStopId`, over `rankedDropoffStops`. */
+  recommendedDropoffStopId: string | null;
   /** False only when this ride has driver-selected route_stops but none of
    *  them fall within a walkable radius of the passenger's requested
    *  origin — a real, legitimate "this ride doesn't reach you
@@ -368,7 +393,52 @@ async function fetchPublishedRidesInWindow(
 }
 
 type CandidateRide = Awaited<ReturnType<typeof fetchPublishedRidesInWindow>>[number];
-type StopRow = { id: string; label: string; lat: number; lng: number };
+type StopRow = {
+  id: string;
+  label: string;
+  lat: number;
+  lng: number;
+  // M-039: the driver-side signal computed once at stop-candidates.service.ts's
+  // generation time — carried through here so this module's ranking can
+  // actually use it instead of discarding it.
+  suitabilityScore: number;
+  deviationMeters: number;
+};
+
+/**
+ * M-039 (spec §13): VAYA's own genuine joint-optimum recommendation among a
+ * ride's already-walkable stops — considers both the passenger's real walk
+ * distance AND the driver-side cost/suitability `stop-candidates.service.ts`
+ * already computed at generation time, via `@vaya/domain`'s
+ * rankStopsByJointOptimum (see that module's doc comment for the full
+ * "two disconnected single-objective passes" gap this closes). Purely
+ * additive: `rankedStops`' own walk-distance ordering is unchanged — this
+ * only decides which single stop, among those already offered, is VAYA's
+ * actual recommendation, distinct from "closest by foot".
+ */
+function pickRecommendedStopId(
+  rankedStops: RankedStop[],
+  rideStops: StopRow[],
+  maxWalkDistanceM: number,
+  maxDeviationM: number,
+): string | null {
+  if (rankedStops.length === 0) return null;
+  const stopsById = new Map(rideStops.map((s) => [s.id, s]));
+  const candidates: JointStopCandidate[] = [];
+  for (const r of rankedStops) {
+    const stop = stopsById.get(r.stopId);
+    if (!stop) continue;
+    candidates.push({
+      stopId: r.stopId,
+      walkDistanceMeters: r.walkMinutes * WALK_SPEED_M_PER_MIN,
+      suitabilityScore: stop.suitabilityScore,
+      deviationMeters: stop.deviationMeters,
+    });
+  }
+  if (candidates.length === 0) return null;
+  const ranked = rankStopsByJointOptimum(candidates, maxWalkDistanceM, maxDeviationM);
+  return ranked[0]?.stopId ?? null;
+}
 
 /**
  * M-091 (spec §30): each in-progress ride's real, already-reported live GPS
@@ -426,6 +496,7 @@ function buildEndpointCandidate(
     stopsByRide: Map<string, StopRow[]>;
     pickupRadiusM: number;
     dropoffRadiusM: number;
+    maxDeviationM: number;
   },
 ): MatchCandidate | null {
   if (ride.seatsAvailable < 1) return null;
@@ -467,6 +538,13 @@ function buildEndpointCandidate(
   const rankedDropoffStops = rankStopsByWalkDistance(ctx.destination, rideStops);
   const pickupViable = isPickupViable(rideStops.length, rankedStops.length);
   const dropoffViable = isDropoffViable(rideStops.length, rankedDropoffStops.length);
+  const recommendedStopId = pickRecommendedStopId(rankedStops, rideStops, ctx.pickupRadiusM, ctx.maxDeviationM);
+  const recommendedDropoffStopId = pickRecommendedStopId(
+    rankedDropoffStops,
+    rideStops,
+    ctx.dropoffRadiusM,
+    ctx.maxDeviationM,
+  );
 
   return {
     rideId: ride.id,
@@ -489,6 +567,8 @@ function buildEndpointCandidate(
     routePolyline: ride.routePolyline,
     rankedStops,
     rankedDropoffStops,
+    recommendedStopId,
+    recommendedDropoffStopId,
     pickupViable,
     dropoffViable,
     matchType: 'endpoint',
@@ -555,6 +635,7 @@ async function scoreCandidates(
     db,
     candidateRides.map((r) => r.id),
   );
+  const maxDeviationM = deriveMaxDeviationM(origin, destination);
 
   const scored: MatchCandidate[] = [];
   for (const ride of candidateRides) {
@@ -565,6 +646,7 @@ async function scoreCandidates(
       stopsByRide,
       pickupRadiusM,
       dropoffRadiusM,
+      maxDeviationM,
     });
     if (candidate) scored.push(candidate);
   }
@@ -644,6 +726,7 @@ async function scorePassThroughCandidates(
     db,
     candidateRides.map((r) => r.id),
   );
+  const maxDeviationM = deriveMaxDeviationM(origin, destination);
 
   const results: MatchCandidate[] = [];
   for (const ride of candidateRides) {
@@ -664,6 +747,17 @@ async function scorePassThroughCandidates(
     const rankedStops = rankStopsByWalkDistance(origin, rideStops);
     const rankedDropoffStops = rankStopsByWalkDistance(destination, rideStops);
     if (rankedStops.length === 0 || rankedDropoffStops.length === 0) continue;
+    // rankStopsByWalkDistance was called with no explicit radius above, so
+    // it used its own default cutoff (WIDE_PICKUP_RADIUS_M) for both
+    // pickup and dropoff — the normalization ceiling here must match that,
+    // not candidateSearchRadiusM (a different, PostGIS-pre-filter radius).
+    const recommendedStopId = pickRecommendedStopId(rankedStops, rideStops, WIDE_PICKUP_RADIUS_M, maxDeviationM);
+    const recommendedDropoffStopId = pickRecommendedStopId(
+      rankedDropoffStops,
+      rideStops,
+      WIDE_PICKUP_RADIUS_M,
+      maxDeviationM,
+    );
 
     const pickupWalkMinutes = rankedStops[0]!.walkMinutes;
     const dropoffWalkMinutes = rankedDropoffStops[0]!.walkMinutes;
@@ -704,6 +798,8 @@ async function scorePassThroughCandidates(
       routePolyline: ride.routePolyline,
       rankedStops,
       rankedDropoffStops,
+      recommendedStopId,
+      recommendedDropoffStopId,
       pickupViable: true,
       dropoffViable: true,
       matchType: 'route_passthrough',
@@ -791,6 +887,7 @@ async function scoreInProgressCandidates(
     db,
     candidateRides.map((r) => r.id),
   );
+  const maxDeviationM = deriveMaxDeviationM(origin, destination);
 
   const results: MatchCandidate[] = [];
   for (const ride of candidateRides) {
@@ -825,6 +922,18 @@ async function scoreInProgressCandidates(
     const rankedStops = rankStopsByWalkDistance(origin, stopsAheadOfDriver);
     const rankedDropoffStops = rankStopsByWalkDistance(destination, stopsAheadOfDriver);
     if (rankedStops.length === 0 || rankedDropoffStops.length === 0) continue;
+    const recommendedStopId = pickRecommendedStopId(
+      rankedStops,
+      stopsAheadOfDriver,
+      WIDE_PICKUP_RADIUS_M,
+      maxDeviationM,
+    );
+    const recommendedDropoffStopId = pickRecommendedStopId(
+      rankedDropoffStops,
+      stopsAheadOfDriver,
+      WIDE_PICKUP_RADIUS_M,
+      maxDeviationM,
+    );
 
     const pickupWalkMinutes = rankedStops[0]!.walkMinutes;
     const dropoffWalkMinutes = rankedDropoffStops[0]!.walkMinutes;
@@ -858,6 +967,8 @@ async function scoreInProgressCandidates(
       routePolyline: ride.routePolyline,
       rankedStops,
       rankedDropoffStops,
+      recommendedStopId,
+      recommendedDropoffStopId,
       pickupViable: true,
       dropoffViable: true,
       matchType: 'route_passthrough',
@@ -1040,6 +1151,10 @@ async function scoreDetourCandidates(
       routePolyline: ride.routePolyline,
       rankedStops: [],
       rankedDropoffStops: [],
+      // No real driver-selected stop is involved at all in a detour match
+      // (see the pickupViable/dropoffViable comment right below).
+      recommendedStopId: null,
+      recommendedDropoffStopId: null,
       // Deliberately false — see MatchCandidate.detour's doc comment. This
       // tier surfaces a real, calculated possibility, not a bookable stop.
       pickupViable: false,
@@ -1114,6 +1229,7 @@ async function findClosestDepartures(
     db,
     candidateRides.map((r) => r.id),
   );
+  const maxDeviationM = deriveMaxDeviationM(origin, destination);
 
   const built: MatchCandidate[] = [];
   for (const ride of candidateRides) {
@@ -1124,6 +1240,7 @@ async function findClosestDepartures(
       stopsByRide,
       pickupRadiusM: thresholds.widePickupRadiusM,
       dropoffRadiusM: thresholds.wideDropoffRadiusM,
+      maxDeviationM,
     });
     if (candidate) built.push(candidate);
   }

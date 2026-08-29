@@ -44,6 +44,11 @@ const matchCandidateSchema = z.object({
   routePolyline: z.string().nullable(),
   rankedStops: z.array(rankedStopSchema),
   rankedDropoffStops: z.array(rankedStopSchema),
+  // M-039 (docs/unified_driver_and_passenger_journey.md §13): VAYA's own
+  // genuine joint-optimum recommendation among rankedStops/rankedDropoffStops
+  // — see MatchCandidate.recommendedStopId's own doc comment.
+  recommendedStopId: z.string().uuid().nullable(),
+  recommendedDropoffStopId: z.string().uuid().nullable(),
   pickupViable: z.boolean(),
   dropoffViable: z.boolean(),
   matchType: z.enum(['endpoint', 'route_passthrough', 'detour']),

@@ -16,6 +16,7 @@ export * from './matching/matching-thresholds.types';
 export * from './matching/matching-thresholds';
 export * from './matching/existing-passenger-impact-thresholds';
 export * from './matching/existing-passenger-impact';
+export * from './matching/joint-stop-score';
 
 export * from './ride/ride.types';
 export * from './ride/ride-status';

@@ -3,6 +3,7 @@ import { eq } from 'drizzle-orm';
 import { getDatabase, closeDatabase } from '../../../lib/database.js';
 import { users, driverProfiles, vehicles, rides, routeStops } from '../../../db/schema/index.js';
 import { getRoute } from '../../../lib/routing.js';
+import { VIA_STOP_DETOUR_BUDGET } from '@vaya/domain';
 import {
   generateCandidateStopsForRide,
   updateDriverStopSelection,
@@ -11,7 +12,6 @@ import {
   addCustomStop,
   MAX_DEVIATION_METERS,
   MAX_DEVIATION_SECONDS,
-  VIA_STOP_DETOUR_BUDGET,
 } from '../stop-candidates.service.js';
 import { AppError } from '../../../lib/errors.js';
 

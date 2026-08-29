@@ -54,6 +54,16 @@ export const bookings = pgTable(
     pickupLabel: varchar('pickup_label', { length: 140 }).notNull(),
     pickupLat: doublePrecision('pickup_lat').notNull(),
     pickupLng: doublePrecision('pickup_lng').notNull(),
+    // M-004/M-020 (docs/unified_driver_and_passenger_journey.md §5/§13,
+    // §16's "6 min walk"): a real, computed distance from the passenger's
+    // own requested point to the resolved pickup — persisted so this fact
+    // survives past search (where it already existed as
+    // MatchCandidate.pickupWalkMinutes) instead of being an ephemeral,
+    // re-derived-every-time display value with no record on the booking
+    // itself. Null whenever the client didn't supply `requestedPickup`
+    // (legacy client, or a free-form pickup with no distinct "requested"
+    // point to measure from) — never fabricated.
+    pickupWalkMeters: doublePrecision('pickup_walk_meters'),
     // Phase 13 (docs/roadmap/phase-13-search-engine.md): dropoff-side mirror
     // of pickupStopId above, needed once matching can find a ride whose own
     // destination isn't the rider's actual destination (route-passthrough
@@ -66,6 +76,8 @@ export const bookings = pgTable(
     dropoffLabel: varchar('dropoff_label', { length: 140 }),
     dropoffLat: doublePrecision('dropoff_lat'),
     dropoffLng: doublePrecision('dropoff_lng'),
+    // Dropoff-side mirror of pickupWalkMeters above, same reasoning.
+    dropoffWalkMeters: doublePrecision('dropoff_walk_meters'),
     requestedAt: timestamp('requested_at', { withTimezone: true }).notNull().defaultNow(),
     respondedAt: timestamp('responded_at', { withTimezone: true }),
     // Journey-contract second pass (docs/unified_driver_and_passenger_journey.md

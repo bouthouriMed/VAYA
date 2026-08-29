@@ -30,6 +30,25 @@ const bookingResponseSchema = z.object({
   pickupLabel: z.string(),
   pickupLat: z.number(),
   pickupLng: z.number(),
+  // M-004/M-020 (docs/unified_driver_and_passenger_journey.md §5/§13/§16):
+  // the real, computed distance from the passenger's own requested point
+  // to the resolved pickup — null whenever it wasn't resolved against one
+  // (legacy client, or a free-form pickup with no distinct requested point).
+  pickupWalkMeters: z.number().nullable(),
+  // Phase 13 (docs/roadmap/phase-13-search-engine.md): a real, pre-existing
+  // gap fixed in the same pass as the two fields above — these columns
+  // have existed on `bookings` since Phase 13 and are populated by
+  // createBooking, but were never actually listed in this response schema,
+  // so Fastify's response serializer silently stripped them from every
+  // booking payload a client ever received (confirmed live: ride-details.tsx
+  // already reads `booking.dropoffLabel`/`dropoffLat`/`dropoffLng` from this
+  // exact response and had been getting `undefined` for every route-
+  // passthrough/detour booking with a real dropoff stop).
+  dropoffStopId: z.string().uuid().nullable(),
+  dropoffLabel: z.string().nullable(),
+  dropoffLat: z.number().nullable(),
+  dropoffLng: z.number().nullable(),
+  dropoffWalkMeters: z.number().nullable(),
   requestedAt: z.date(),
   respondedAt: z.date().nullable(),
   // M-050/M-054 (docs/unified_driver_and_passenger_journey.md §20): visible
