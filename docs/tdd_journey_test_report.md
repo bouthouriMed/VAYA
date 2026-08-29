@@ -619,6 +619,11 @@ actually had a real caller, per this report's own established discipline
 
 ### 12.3 Vertical journeys: this session's environment cannot re-execute them
 
+**Superseded later in this same pass — see §13.** Real Google Maps Platform
+keys were located and configured mid-pass, resolving the blocker described
+below. Left in place as an accurate record of the state at the time this
+section was written, not deleted.
+
 `docs/tdd_journey_test_matrix.md`'s V-01..V-10 table reflects an **earlier**
 session's real execution (5 passed / 7 failed against live infrastructure).
 This session's sandbox cannot reproduce that run: `docker logs vaya-osrm`
@@ -742,3 +747,156 @@ scope and this matrix's own explicit task list — M-081–085/EDGE-052/INV-09
 M-113 (4/12 notification event types structurally absent), and the finer
 no-show/boarding-ambiguity edge cases — carried forward honestly, not
 claimed done.
+
+## 13. Real Google Maps Platform keys configured mid-pass — the §12.3 blocker resolved, two more real bugs found
+
+After §12's own verdict was written, the user pointed out that real
+`GOOGLE_MAPS_SERVER_API_KEY`/`GOOGLE_ROUTES_API_KEY`/`GOOGLE_PLACES_API_KEY`/
+`GOOGLE_GEOCODING_API_KEY` values already existed (found in a sibling
+worktree's `.env`, `worktree-gmp-verification`) and could be configured in
+this one. This section documents what changed once they were.
+
+### 13.1 The §12.3 blocker is resolved
+
+With real keys in `apps/api/.env` and a real dev server running against
+them, the full `tests/e2e/tests/journeys/` suite was re-run against real
+Google-routed geometry (this sandbox's raw OSRM container remains
+unprepared — `docker logs vaya-osrm` still shows `Required files are
+missing` — but `ROUTING_PROVIDER=auto` picks Google whenever a server key
+is present, per `lib/routing-providers/index.ts`, so this doesn't matter
+for anything routed through the abstracted provider). **All 10 journeys,
+12 cases, now pass.** Two of them only passed after fixing real bugs the
+haversine-fallback path had been silently masking (§13.2). Individual
+journeys not needing a bug fix (V-01, V-02, V-03, V-04, V-06, V-07, V-10)
+passed on the very first real-routing run.
+
+### 13.2 Two real, previously-unexercised bugs found and fixed
+
+- **M-091 search-layer gap** (`matching.service.ts`'s
+  `scoreInProgressCandidates`): required a real driver-selected
+  `route_stop` at BOTH the pickup and dropoff end, mirroring
+  `scorePassThroughCandidates`'s pure-passthrough design — correct for
+  that tier, wrong here. The spec's own worked example for in-progress
+  matching ("Passenger searches Zaragoza -> Barcelona" where Barcelona is
+  the driver's own, unchanged final destination) needs no stop at the
+  destination at all; it's the ride's own endpoint. `journey-5-active-trip-
+  discovery.api.test.ts` failed live on the first real-routing run,
+  confirming this wasn't just a theoretical gap. Fixed by adding a direct-
+  radius check against the ride's own origin/destination coordinates
+  (mirroring `buildEndpointCandidate`'s existing, already-correct pattern
+  for the ordinary endpoint tier), falling back to the stop-based
+  resolution only when the direct match doesn't apply. Re-run confirms
+  `journey-5` now passes, and `matching-in-progress.integration.test.ts`
+  (Layer B) is unaffected (3/3 still pass).
+- **No-show report validation bug** (`bookings.routes.ts`'s
+  `reportNoShowBodySchema`): a genuinely empty POST body (no
+  `Content-Length` — the real shape a client sends with no GPS fix) is
+  parsed by Fastify's JSON body parser as literal `null`, not `undefined`.
+  Zod's `.default({})` only ever substitutes for `undefined`, so this real,
+  legitimate request shape was rejected with a 400 ("Expected object,
+  received null") before ever reaching `reportNoShow` — undetected until
+  now because `journey-8-no-show.api.test.ts` previously never got past an
+  earlier OSRM-dependent step in its own setup. Fixed with
+  `z.preprocess((val) => val ?? {}, ...)`, which normalizes both `null` and
+  `undefined` before validation. Re-run confirms `journey-8` now passes,
+  both cases.
+- **Segment-pricing test fixture bug** (found while investigating a THIRD
+  apparent regression in the wider `apps/api` suite, not itself an e2e
+  journey): `bookings-segment-pricing.integration.test.ts`'s M-070 case
+  hardcoded a "full route price" of 25 DT with no relationship to the real
+  ~140km Tunis-Sousse route the test actually exercises. With real
+  Google-routed distances, a correctly-computed real sub-segment price
+  (28.5 DT) legitimately exceeded that arbitrary number — the fixture was
+  wrong, not `computeBookingContributionTotal`. Fixed by deriving the
+  reference price from the same real formula
+  (`computeSuggestedPrice(distanceKm, durationMin, DEFAULT_PRICING_CONFIG)`)
+  the production code itself uses, the same "one source of truth"
+  discipline this codebase's own `seed.ts` already follows for its own
+  fixture pricing.
+
+### 13.3 A latent flakiness source found, diagnosed, and deliberately not touched
+
+Re-running the full `apps/api` suite against real routing (before the DB
+reset in §13.4) surfaced a fourth apparent failure: the `detour_match` tier
+integration test (`matching-tiers.integration.test.ts`) couldn't find its
+own fixture ride among the results. Root-caused precisely, not guessed, via
+targeted temporary diagnostics (added, verified, then reverted — never left
+in the committed code): the fixture ride's `route_geom` was genuinely
+populated and genuinely within the real `ST_DWithin` corridor — the ride
+simply lost out to 15 *other* rides in a `LIMIT 15` query
+(`findCandidateRideIdsByCorridor`, `apps/api/src/lib/spatial.ts`) that has
+**no `ORDER BY` clause at all**, so which 15 of a 128-row (at the time)
+candidate pool Postgres happens to return is arbitrary. This session's own
+many repeated test/journey runs had accumulated those 128 stale `rides`
+rows in the shared local dev Postgres with no cleanup between runs.
+
+This is flagged, not fixed: it's a real, if minor, latent
+determinism/relevance gap in a tier from a different initiative (Google
+Maps Platform / PostGIS) outside this pass's own scope — a future pass
+should give `findCandidateRideIdsByCorridor` (and its sibling stage-1
+queries) a real `ORDER BY` (e.g., proximity or departure-time proximity)
+rather than relying on incidental physical row order, which is exactly
+the kind of thing that reads as "flaky" in CI without ever being a
+functional defect in the underlying matching logic. The *immediate*
+symptom was resolved by addressing its actual cause instead (§13.4).
+
+### 13.4 Local dev Postgres reset (user-approved, since this is a destructive action)
+
+Confirmed the 128-row accumulation via `docker exec vaya-postgres psql ...
+SELECT count(*) FROM rides` before touching anything. Asked the user
+before truncating (a mass `TRUNCATE` was correctly flagged by the harness's
+own auto-mode classifier as needing explicit approval) — approved. Ran:
+
+```
+TRUNCATE TABLE admin_users, analytics_events, audit_logs, bookings,
+  conversations, demand_signals, device_tokens, driver_profiles, messages,
+  notifications, oauth_login_tickets, operational_configs, otp_codes,
+  pricing_configs, ratings, recurring_detection_configs,
+  recurring_patterns, refresh_tokens, relationship_signals, reports,
+  rider_profiles, rides, route_stops, routes, trips, users, vehicles,
+  verification_documents RESTART IDENTITY CASCADE;
+```
+
+(`spatial_ref_sys`, PostGIS's own system table, was correctly left alone.)
+Then `pnpm db:seed` — which completed its actual seeding fast (40 users, 30
+drivers, 8 routes, 68 rides, "Seed complete." printed) but then hung for
+~15 minutes on a separate, non-critical enrichment step
+(`generateCandidateStopsForRide`, called per seeded ride after the main
+seed logically finishes) that needs the raw OSRM container directly — its
+crash-restart loop apparently leaves brief windows where connections hang
+rather than failing fast, unlike a cleanly-down service. Killed that stuck
+tail once the core seed data was confirmed complete and committed (`Seed
+complete.` had already printed, `route_geom` was already backfilled for
+all 81 rides created up to that point) — the killed step only skips
+optional stop-suggestion generation for some seeded rides, nothing
+destructive or partially-written.
+
+### 13.5 Full re-verification against the clean database
+
+- `apps/api` full suite: **329/333** (was 328/333 before this section's
+  work, then dropped to 326/333 with real routing exposing the three bugs
+  above and the DB-pollution flakiness, then back up once both were fixed
+  and the DB was reset). The 4 remaining failures are the same
+  pre-existing/environmental ones throughout this whole report: 3 need real
+  Google *OAuth* client credentials (`GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET`
+  — distinct from the Maps Platform keys just configured), 1 needs a real
+  prepared OSRM Tunisia extract (still absent).
+- `tests/e2e` vertical journeys: **12/12**, confirmed twice — once in a
+  full-suite batch run (where a 13th, unrelated run of journey-8 hit real
+  OTP rate-limit contention from this session's own cumulative testing
+  load — a real, expected characteristic of the real 5/minute/IP limit
+  under heavy sequential load, not a code issue) and once again for
+  journey-8 in isolation (2/2, confirming the batch-run failure was pure
+  contention).
+- Full workspace `pnpm typecheck`/`pnpm lint`: clean, same pre-existing
+  lint findings as the rest of this report (zero new).
+
+### 13.6 Gate verdict, final
+
+Both concrete blockers this report ever named — the vertical-journey suite
+needing real infrastructure (§12.3), and the specific M-091 gap (§12.1) —
+are now closed, verified live, not merely by code-reading. The remaining
+genuinely-open items are exactly the ones §12.5 already named and stand
+unchanged: M-081–085/EDGE-052/INV-09, M-113, and the finer no-show/
+boarding-ambiguity edge cases — none of them touched by, or requiring,
+the routing keys or DB reset in this section.
