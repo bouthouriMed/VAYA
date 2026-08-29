@@ -1,0 +1,15 @@
+{
+  "name": "@vaya/test-fixtures",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "description": "Deterministic canonical-world fixtures (route geometry, personas, fake clock/routing) shared by the journey-contract test suite across packages/domain, apps/api integration tests, and tests/e2e.",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.4"
+  }
+}
