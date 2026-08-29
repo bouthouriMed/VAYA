@@ -921,7 +921,32 @@ async function scoreInProgressCandidates(
     );
     const rankedStops = rankStopsByWalkDistance(origin, stopsAheadOfDriver);
     const rankedDropoffStops = rankStopsByWalkDistance(destination, stopsAheadOfDriver);
-    if (rankedStops.length === 0 || rankedDropoffStops.length === 0) continue;
+
+    // M-091 real gap, found and fixed while verifying this tier end-to-end
+    // (a real HTTP journey, not just the direct-service-call integration
+    // test): the spec's own worked example — "Passenger searches Zaragoza
+    // -> Barcelona" where Barcelona is the driver's own, unchanged final
+    // destination — was unmatchable, because this tier unconditionally
+    // required BOTH ends to resolve via a real route_stop (mirroring
+    // scorePassThroughCandidates, whose pure-passthrough case genuinely
+    // needs that). A search endpoint that's simply the ride's own
+    // origin/destination doesn't need a stop at all — mirrors
+    // buildEndpointCandidate's own direct-radius check, the same real
+    // property that already lets an ordinary published-ride search work
+    // this way.
+    const originMatchesRideOriginM = haversineDistanceMeters(origin, {
+      lat: ride.originLat,
+      lng: ride.originLng,
+    });
+    const destMatchesRideDestinationM = haversineDistanceMeters(destination, {
+      lat: ride.destinationLat,
+      lng: ride.destinationLng,
+    });
+    const pickupViaRideOrigin = originMatchesRideOriginM <= WIDE_PICKUP_RADIUS_M;
+    const dropoffViaRideDestination = destMatchesRideDestinationM <= WIDE_PICKUP_RADIUS_M;
+    if (rankedStops.length === 0 && !pickupViaRideOrigin) continue;
+    if (rankedDropoffStops.length === 0 && !dropoffViaRideDestination) continue;
+
     const recommendedStopId = pickRecommendedStopId(
       rankedStops,
       stopsAheadOfDriver,
@@ -935,8 +960,9 @@ async function scoreInProgressCandidates(
       maxDeviationM,
     );
 
-    const pickupWalkMinutes = rankedStops[0]!.walkMinutes;
-    const dropoffWalkMinutes = rankedDropoffStops[0]!.walkMinutes;
+    const pickupWalkMinutes = rankedStops[0]?.walkMinutes ?? originMatchesRideOriginM / WALK_SPEED_M_PER_MIN;
+    const dropoffWalkMinutes =
+      rankedDropoffStops[0]?.walkMinutes ?? destMatchesRideDestinationM / WALK_SPEED_M_PER_MIN;
     const timeDeltaMin = Math.abs(ride.departureAt.getTime() - input.when.getTime()) / 60_000;
     const segmentFraction = clamp01(destProj.fraction - originProj.fraction);
 

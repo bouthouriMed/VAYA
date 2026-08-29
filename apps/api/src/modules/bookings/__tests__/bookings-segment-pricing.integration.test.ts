@@ -4,6 +4,7 @@ import { getDatabase, closeDatabase } from '../../../lib/database.js';
 import { users, driverProfiles, vehicles, rides, routeStops } from '../../../db/schema/index.js';
 import { createBooking } from '../bookings.service.js';
 import { getRoute } from '../../../lib/routing.js';
+import { computeSuggestedPrice, DEFAULT_PRICING_CONFIG } from '@vaya/domain';
 
 /**
  * Journey-contract second pass (docs/unified_driver_and_passenger_journey.md
@@ -76,7 +77,26 @@ describe('bookings.service — segment-aware pricing (M-070..075)', () => {
     const sousse = { lat: 35.8256, lng: 10.6369 };
     const route = await getRoute(tunis, sousse);
 
-    rideContributionPerSeat = 25;
+    // Real bug found and fixed while re-verifying this suite against real
+    // Google-routed distances (this fixture previously hardcoded 25, a
+    // value with no relationship to the route's actual ~140km length): a
+    // driver's advertised full-route price only stays a meaningful upper
+    // bound for M-070's "segment < full route" assertion if it's derived
+    // from the SAME real formula computeBookingContributionTotal itself
+    // uses for a segment — createBooking's full-route branch returns
+    // `ride.contributionPerSeat` verbatim (bookings.service.ts's own
+    // documented shortcut), so an unrealistically low, hand-picked fixture
+    // price made a real, correctly-computed sub-segment price look "too
+    // expensive" by comparison, when the actual bug would have been the
+    // reverse. Mirrors this codebase's own established seed.ts principle
+    // ("pricing is entirely formula-derived from real OSRM geometry, not
+    // hand-typed — one source of truth").
+    rideContributionPerSeat = computeSuggestedPrice(
+      route.distanceM / 1000,
+      route.durationSec / 60,
+      DEFAULT_PRICING_CONFIG,
+      { isEstimate: route.isEstimate },
+    ).recommended;
     const [ride] = await db
       .insert(rides)
       .values({

@@ -139,12 +139,22 @@ const cancelBookingBodySchema = z.object({ reason: z.enum(CANCELLATION_REASONS) 
 // optional — a reporter with no GPS fix at report time still gets the
 // pure time-only rule (evaluateNoShowReport's documented graceful
 // degradation), never a hard requirement to supply location.
-const reportNoShowBodySchema = z
-  .object({
+// M-102 real bug, found while re-verifying V-08 end-to-end against a real
+// server: a genuinely empty POST body (no Content-Length at all — the real
+// shape a client sends when it has no GPS fix, e.g. this route's own e2e
+// journey-8 test) is parsed by Fastify's JSON body parser as literal
+// `null`, not `undefined` — `.default({})` only ever substitutes for
+// `undefined`, so a real no-body request was rejected outright with a 400
+// ("Expected object, received null") before ever reaching reportNoShow.
+// `z.preprocess` runs before validation and normalizes both `null` and
+// `undefined` to `{}`, closing this for real rather than masking it.
+const reportNoShowBodySchema = z.preprocess(
+  (val) => val ?? {},
+  z.object({
     reporterLat: z.number().min(-90).max(90).optional(),
     reporterLng: z.number().min(-180).max(180).optional(),
-  })
-  .default({});
+  }),
+);
 
 const detourPreviewPointSchema = z.object({
   label: z.string(),
