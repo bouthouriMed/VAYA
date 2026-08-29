@@ -59,6 +59,73 @@ export type RoadClass = 'motorway' | 'primary' | 'secondary' | 'residential' | '
  *  guaranteed shoulder, high-speed traffic). */
 const REJECTED_ROAD_CLASSES: ReadonlySet<RoadClass> = new Set(['motorway']);
 
+// --- Pedestrian-zone / no-stopping-feasibility (M-014/M-015) ---------------
+// docs/unified_driver_and_passenger_journey.md §4.1: "Recommended pickup
+// points must not be in pedestrian-only areas" (M-014) / "must not be
+// operationally unsuitable / vehicle cannot stop" (M-015). Two distinct,
+// independently real signals — deliberately not conflated into one check:
+
+/** M-014: a conservative allowlist of OSM `class`/`type` tag combinations
+ *  that mean "no vehicle is ever allowed here", per real OpenStreetMap
+ *  tagging conventions (https://wiki.openstreetmap.org/wiki/Key:highway,
+ *  Key:leisure, Key:place, Key:natural). Deliberately an allowlist, not a
+ *  denylist — an unrecognized or missing tag combination is never treated
+ *  as pedestrian-only ("classify, don't guess", the same discipline
+ *  nominatim.provider.ts's mapNominatimTypeToLocationType already applies).
+ *  `living_street` is intentionally excluded — it still permits vehicles,
+ *  just with pedestrian priority. Only real for the Nominatim provider
+ *  (Google carries no equivalent tag — see LocationPoint.osmClass's doc
+ *  comment); a null/undefined class or type never rejects.
+ */
+export function isPedestrianOnlyLocation(
+  osmClass: string | null | undefined,
+  osmType: string | null | undefined,
+): boolean {
+  if (!osmClass) return false;
+  if (osmClass === 'highway') {
+    return ['pedestrian', 'footway', 'path', 'steps', 'cycleway', 'bridleway', 'elevator'].includes(
+      osmType ?? '',
+    );
+  }
+  if (osmClass === 'leisure') {
+    return ['park', 'garden', 'pitch', 'playground', 'nature_reserve'].includes(osmType ?? '');
+  }
+  if (osmClass === 'place') return osmType === 'square';
+  if (osmClass === 'natural') return true; // beach, water, wood, ... — never vehicle-accessible.
+  if (osmClass === 'landuse') {
+    return ['forest', 'meadow', 'grass', 'recreation_ground', 'cemetery'].includes(osmType ?? '');
+  }
+  return false;
+}
+
+/** M-015: "operationally unsuitable / vehicle cannot stop" — distinct from
+ *  M-014's tag-based check and from MAX_DEVIATION_METERS's *economic*
+ *  "is this detour worth it" threshold. This is the *physical* question:
+ *  can a vehicle plausibly reach and stop anywhere near this point at all?
+ *  OSRM's `/nearest/v1/driving/...` (lib/routing.ts's nearestRoad) only
+ *  ever snaps to a road actually in the driving graph — a large one-way
+ *  snap distance is real, live evidence the queried point itself has no
+ *  nearby vehicle access (open countryside, a large park interior, water),
+ *  independent of whether any OSM tag confirms why.
+ *
+ *  Set to the same 2000m boundary addCustomStop's 'via' branch already used
+ *  to decide whether to bother snapping the display coordinate at all
+ *  (previously: silently kept the unsnapped point beyond it, with no
+ *  rejection at all) — formalized here as an actual hard rejection instead,
+ *  the real M-015 gap this pass closes. A point genuinely ~2km from any
+ *  drivable road is exactly "vehicle cannot stop here"; a few hundred
+ *  meters is not — common and fine for a geocoded town-square centroid
+ *  whose real OSM point can legitimately sit that far from the nearest
+ *  road segment in this routing graph without anything being wrong. */
+export const MAX_STOP_ACCESS_METERS = 2000;
+
+export function exceedsStopAccessDistance(
+  snapDistanceM: number,
+  maxM: number = MAX_STOP_ACCESS_METERS,
+): boolean {
+  return snapDistanceM > maxM;
+}
+
 const ROAD_CLASS_SUITABILITY: Record<RoadClass, number> = {
   motorway: 0, // rejected outright before this is consulted
   primary: 0.7,
@@ -186,11 +253,21 @@ export interface CandidateScoringInput {
   deviationSeconds: number;
   roadClass: RoadClass;
   hasLabel: boolean;
+  /** One-way distance from the raw candidate point to the nearest real
+   *  drivable road (lib/routing.ts's nearestRoad snapDistanceM, pre-
+   *  doubling) — M-015's physical access check. Optional/undefined only
+   *  for pre-existing call sites that predate this field; treated as "no
+   *  signal, don't reject" the same as a null osmClass/osmType below. */
+  snapDistanceM?: number;
+  /** M-014's real, currently-Nominatim-only tag signal — see
+   *  isPedestrianOnlyLocation's doc comment. */
+  osmClass?: string | null;
+  osmType?: string | null;
 }
 
 export interface CandidateScoringResult {
   accepted: boolean;
-  rejectReason?: 'road_class' | 'max_deviation';
+  rejectReason?: 'road_class' | 'max_deviation' | 'pedestrian_zone' | 'no_stopping_feasibility';
   suitabilityScore: number;
 }
 
@@ -206,8 +283,21 @@ function clamp01(n: number): number {
  * inputs, and so its weights can be revisited later from real driver
  * usage (the analytics events this phase adds exist specifically to make
  * that revision possible) without touching the I/O plumbing around it.
+ *
+ * Rejection order (M-014/M-015 added this pass, checked before the
+ * pre-existing road_class/max_deviation rules): a tag-confirmed pedestrian
+ * zone is the strongest, most specific signal available, so it's checked
+ * first; then physical stop-access distance (a much tighter radius than
+ * the economic max-deviation threshold further down); then the pre-
+ * existing road-class/deviation rules, unchanged.
  */
 export function scoreStopCandidate(input: CandidateScoringInput): CandidateScoringResult {
+  if (isPedestrianOnlyLocation(input.osmClass, input.osmType)) {
+    return { accepted: false, rejectReason: 'pedestrian_zone', suitabilityScore: 0 };
+  }
+  if (input.snapDistanceM !== undefined && exceedsStopAccessDistance(input.snapDistanceM)) {
+    return { accepted: false, rejectReason: 'no_stopping_feasibility', suitabilityScore: 0 };
+  }
   if (REJECTED_ROAD_CLASSES.has(input.roadClass)) {
     return { accepted: false, rejectReason: 'road_class', suitabilityScore: 0 };
   }
@@ -340,7 +430,23 @@ export async function computeCandidatesForRoute(
         const { deviationMeters, deviationSeconds } = computeDeviationCost(nearest.snapDistanceM);
         const hasLabel = nearest.name.trim().length > 0;
 
-        const scored = scoreStopCandidate({ deviationMeters, deviationSeconds, roadClass, hasLabel });
+        // No per-sample reverse-geocode here (osmClass/osmType omitted,
+        // i.e. no pedestrian-zone signal available) — a route-sampled point
+        // is by construction already a point ON the OSRM-computed driving
+        // route, so it's virtually never genuinely pedestrian-only; adding
+        // a Nominatim call per sample (potentially dozens per route) would
+        // be a real, unjustified rate-limit/latency cost for a case that
+        // essentially never fires here. M-014's real check applies to
+        // addCustomStop below, where a driver freely places an arbitrary
+        // point. M-015's snapDistanceM check still applies uniformly (free
+        // — nearest is already fetched for deviation cost).
+        const scored = scoreStopCandidate({
+          deviationMeters,
+          deviationSeconds,
+          roadClass,
+          hasLabel,
+          snapDistanceM: nearest.snapDistanceM,
+        });
         if (!scored.accepted) continue;
 
         raw.push({
@@ -625,6 +731,37 @@ export async function addCustomStop(
     where: eq(routeStops.rideId, rideId),
   });
 
+  // M-014/M-017 (docs/unified_driver_and_passenger_journey.md §4.1,
+  // matrix test id A.stop-candidates.reject-pedestrian-zone): a manually-
+  // placed point is subject to the exact same feasibility validation as a
+  // route-sampled candidate — no bypass, closing the real gap the matrix
+  // flagged ("addCustomStop's pickup/dropoff branch skips nearestRoad/
+  // feasibility entirely"). Applies to every role (pickup/dropoff/via)
+  // uniformly, unlike the pre-existing detour-budget check further below
+  // which is 'via'-only by nature (pickup/dropoff aren't scored against
+  // route-detour distance, only against real vehicle accessibility).
+  // Best-effort: a reverse-geocode failure means "no signal", never a hard
+  // rejection — mirrors buildLabel's existing degrade-gracefully pattern.
+  let osmClass: string | null = null;
+  let osmType: string | null = null;
+  try {
+    const geocoded = await reverseGeocode(input.lat, input.lng);
+    osmClass = geocoded.osmClass;
+    osmType = geocoded.osmType;
+  } catch (err) {
+    getLogger().warn(
+      { err, lat: input.lat, lng: input.lng },
+      'Reverse geocode failed while validating a custom stop location — proceeding with no pedestrian-zone signal',
+    );
+  }
+  if (isPedestrianOnlyLocation(osmClass, osmType)) {
+    throw new AppError(
+      'This location is a pedestrian-only area — no vehicle can stop here',
+      400,
+      'STOP_PEDESTRIAN_ZONE',
+    );
+  }
+
   let sequence: number;
   let stopLat = input.lat;
   let stopLng = input.lng;
@@ -659,18 +796,6 @@ export async function addCustomStop(
     deviationMeters = cost.deviationMeters;
     deviationSeconds = cost.deviationSeconds;
 
-    // Snap to the nearest real road so the stored "exact stop point" is
-    // somewhere a car can actually pull over, not a raw geocoded centroid
-    // (which can land inside a building or a pedestrian square) — honest
-    // degradation to the unsnapped point when OSRM has no coverage there
-    // or is unreachable, same as computeCandidatesForRoute's own fallback.
-    const nearest = await nearestRoad({ lat: input.lat, lng: input.lng });
-    if (nearest && nearest.snapDistanceM <= 2000) {
-      stopLat = nearest.lat;
-      stopLng = nearest.lng;
-      roadSnapped = true;
-    }
-
     const existingWithFraction: ViaInsertionCandidate[] = existing.map((s) => ({
       id: s.id,
       sequence: s.sequence,
@@ -693,6 +818,31 @@ export async function addCustomStop(
       existing.map((s) => s.sequence),
       input.role,
     );
+  }
+
+  // M-015/M-017: snap to the nearest real drivable road so the stored
+  // "exact stop point" is somewhere a car can actually pull over, not a raw
+  // geocoded centroid (which can land inside a building or a pedestrian
+  // square) — applied uniformly across all three roles now (previously
+  // 'via'-only; pickup/dropoff had zero snapping/validation at all, the
+  // exact M-017 finding). A point genuinely too far from any drivable road
+  // (MAX_STOP_ACCESS_METERS) is rejected outright — real, live evidence no
+  // vehicle can reach/stop there — rather than silently accepted unsnapped
+  // as before. OSRM unreachable (nearest === null) degrades honestly to
+  // the unsnapped input point with no rejection — a transient
+  // infrastructure gap is not evidence the location itself is bad.
+  const nearest = await nearestRoad({ lat: input.lat, lng: input.lng });
+  if (nearest) {
+    if (exceedsStopAccessDistance(nearest.snapDistanceM)) {
+      throw new AppError(
+        'No vehicle can reach or stop near this exact location',
+        400,
+        'STOP_NOT_VEHICLE_ACCESSIBLE',
+      );
+    }
+    stopLat = nearest.lat;
+    stopLng = nearest.lng;
+    roadSnapped = true;
   }
 
   const [inserted] = await db
