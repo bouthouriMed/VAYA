@@ -3,6 +3,7 @@ import type { getDatabase } from '../../lib/database.js';
 import { demandSignals, rides, routeStops, trips } from '../../db/schema/index.js';
 import { haversineDistanceMeters } from '../../lib/geo.js';
 import { getRoute } from '../../lib/routing.js';
+import { getActiveOperationalConfig } from '../operational-config/operational-config.service.js';
 import {
   findCandidateRideIdsByCorridor,
   findCandidateRideIdsByEndpoints,
@@ -19,7 +20,6 @@ import {
   detourAllowanceSec,
   getMatchingThresholds,
   rankStopsByJointOptimum,
-  MAX_DETOUR_RATIO,
   VIA_STOP_DETOUR_BUDGET,
   type JointStopCandidate,
   type MatchingThresholds,
@@ -1045,6 +1045,7 @@ async function scoreDetourCandidates(
   input: MatchingSearchInput,
   timeWindowMin: number,
   thresholds: MatchingThresholds,
+  maxDetourRatio: number,
 ): Promise<MatchCandidate[]> {
   const windowStart = new Date(input.when.getTime() - timeWindowMin * 60_000);
   const windowEnd = new Date(input.when.getTime() + timeWindowMin * 60_000);
@@ -1126,6 +1127,7 @@ async function scoreDetourCandidates(
       ride.estimatedDurationSec,
       thresholds.detourFloorSec,
       thresholds.detourCeilingSec,
+      maxDetourRatio,
     );
     if (extraDurationSeconds > allowanceSec) continue;
 
@@ -1152,7 +1154,7 @@ async function scoreDetourCandidates(
     const dropoffWalkMinutes = 0; // Same reasoning — the driver detours to the rider's actual dropoff too.
 
     const score =
-      clamp01(1 - detourRatio / (MAX_DETOUR_RATIO * 1.2)) * 0.5 +
+      clamp01(1 - detourRatio / (maxDetourRatio * 1.2)) * 0.5 +
       clamp01(1 - timeDeltaMin / TIGHT_TIME_WINDOW_MIN) * 0.3 +
       clamp01(1 - extraDurationSeconds / thresholds.detourCeilingSec) * 0.2;
 
@@ -1477,7 +1479,19 @@ export async function searchRides(db: Database, input: MatchingSearchInput): Pro
     };
   }
 
-  const detour = await scoreDetourCandidates(db, input, WIDE_TIME_WINDOW_MIN, thresholds);
+  // M-085/M-085a (spec §28): the admin-configurable override, resolved only
+  // here (Stage A already returned nothing, the one real consumer of this
+  // value) rather than unconditionally on every search — same "don't pay
+  // for a config read the common case never needs" discipline the rest of
+  // this cascade already follows for detour's own routing calls.
+  const operationalConfig = await getActiveOperationalConfig(db);
+  const detour = await scoreDetourCandidates(
+    db,
+    input,
+    WIDE_TIME_WINDOW_MIN,
+    thresholds,
+    operationalConfig.maxDetourRatio,
+  );
   if (detour.length > 0) {
     const { ranked, standoutRideId } = rankMatchCandidates(detour, input);
     return { tier: 'detour_match', candidates: ranked, standoutRideId, message: TIER_MESSAGES.detour_match };

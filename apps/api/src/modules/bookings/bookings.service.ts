@@ -249,6 +249,7 @@ export interface DetourImpact {
 }
 
 async function computeDetourImpact(
+  db: Database,
   ride: {
     originLat: number;
     originLng: number;
@@ -261,9 +262,13 @@ async function computeDetourImpact(
   if (!ride.routePolyline) return null;
   const rideOrigin = { lat: ride.originLat, lng: ride.originLng };
   const rideDestination = { lat: ride.destinationLat, lng: ride.destinationLng };
-  const [baseline, withDetour] = await Promise.all([
+  const [baseline, withDetour, operationalConfig] = await Promise.all([
     getRoute(rideOrigin, rideDestination),
     getRoute(rideOrigin, rideDestination, [point]),
+    // M-085/M-085a (spec §28): the same admin-configurable value
+    // matching.service.ts's detour_match tier resolves — one real bound,
+    // shared, never a second hardcoded number for the same policy.
+    getActiveOperationalConfig(db),
   ]);
   if (baseline.isEstimate || withDetour.isEstimate) {
     // No real routing engine reachable — never fabricate a detour number
@@ -277,6 +282,7 @@ async function computeDetourImpact(
     baseline.durationSec,
     thresholds.detourFloorSec,
     thresholds.detourCeilingSec,
+    operationalConfig.maxDetourRatio,
   );
   return {
     extraDurationSeconds,
@@ -314,6 +320,7 @@ async function computeDetourImpact(
  * never silently penalized beyond that one real, disclosed bound.
  */
 async function assertRealDetourWithinAllowance(
+  db: Database,
   ride: {
     originLat: number;
     originLng: number;
@@ -326,7 +333,7 @@ async function assertRealDetourWithinAllowance(
   if (!ride.routePolyline) {
     throw new ValidationError('This ride has no route to validate a detour against');
   }
-  const impact = await computeDetourImpact(ride, point);
+  const impact = await computeDetourImpact(db, ride, point);
   if (!impact) {
     throw new ValidationError('Unable to validate this pickup or dropoff point right now — please try again');
   }
@@ -616,7 +623,7 @@ export async function createBooking(
     // already-shipped booking pattern is never newly rejected by this
     // change.
     if (selectedStops.length > 0) {
-      await assertRealDetourWithinAllowance(ride, { lat: pickupLat, lng: pickupLng });
+      await assertRealDetourWithinAllowance(db, ride, { lat: pickupLat, lng: pickupLng });
     }
   } else {
     throw new ValidationError('Pickup location is required');
@@ -665,7 +672,7 @@ export async function createBooking(
     dropoffLabel = input.dropoff.label;
     dropoffLat = input.dropoff.lat;
     dropoffLng = input.dropoff.lng;
-    await assertRealDetourWithinAllowance(ride, { lat: dropoffLat, lng: dropoffLng });
+    await assertRealDetourWithinAllowance(db, ride, { lat: dropoffLat, lng: dropoffLng });
   }
 
   // M-051/052 (docs/unified_driver_and_passenger_journey.md §20): "A
@@ -1187,7 +1194,7 @@ export async function previewPickupOverride(
   requestedPoint?: { lat: number; lng: number },
 ): Promise<PickupOverridePreview> {
   const ride = await getRideOrThrow(db, rideId);
-  const impact = await computeDetourImpact(ride, point);
+  const impact = await computeDetourImpact(db, ride, point);
   return {
     walkMeters: requestedPoint ? haversineDistanceMeters(requestedPoint, point) : null,
     driverDetourExtraSeconds: impact ? Math.round(impact.extraDurationSeconds) : null,

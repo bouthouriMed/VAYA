@@ -108,12 +108,21 @@ export const MAX_DETOUR_RATIO = 0.25;
  * detourFloorSec/detourCeilingSec — callers with a real trip profile
  * should pass that profile's own values instead (see
  * getMatchingThresholds).
+ *
+ * M-085/M-085a (docs/unified_driver_and_passenger_journey.md §28): `maxRatio`
+ * is an explicit, injected parameter (never a bare reference to the
+ * `MAX_DETOUR_RATIO` module constant internally) — defaults to it only when
+ * the caller has no admin-configured override to pass, so this function
+ * itself never hardcodes the policy value it applies. Real callers
+ * (apps/api's matching.service.ts / bookings.service.ts) resolve the actual
+ * value from `getActiveOperationalConfig` first and pass it through here.
  */
 export function detourAllowanceSec(
   baselineDurationSec: number,
   floorSec: number = MATCHING_THRESHOLDS_BY_PROFILE.urban.detourFloorSec,
   ceilingSec: number = MATCHING_THRESHOLDS_BY_PROFILE.urban.detourCeilingSec,
+  maxRatio: number = MAX_DETOUR_RATIO,
 ): number {
-  const ratioAllowance = baselineDurationSec * MAX_DETOUR_RATIO;
+  const ratioAllowance = baselineDurationSec * maxRatio;
   return Math.min(ceilingSec, Math.max(floorSec, ratioAllowance));
 }
