@@ -38,6 +38,22 @@ export interface SelectedDropoffStop {
   lng: number;
 }
 
+/** M-040/EDGE-053 (docs/unified_driver_and_passenger_journey.md §14, edge
+ *  53): a passenger-chosen point OVERRIDING away from the driver's
+ *  recommended stops — set by search/pickup-point.tsx's "choose another
+ *  point" long-press affordance, after a real
+ *  GET /rides/:rideId/pickup-override-preview recalculation has been shown
+ *  and the passenger confirms anyway. Distinct from `SelectedPickupStop`:
+ *  no `stopId` traces back to a real `route_stops` row — this is the
+ *  free-form `pickup` booking path, carrying its own real coordinates.
+ *  Mutually exclusive with `selectedStop` (selecting one clears the
+ *  other). */
+export interface OverriddenPickupPoint {
+  label: string;
+  lat: number;
+  lng: number;
+}
+
 interface SearchState {
   origin: SearchLocation | null;
   destination: SearchLocation | null;
@@ -62,6 +78,10 @@ interface SearchState {
   /** Dropoff-side mirror of `selectedStop`. Cleared alongside it whenever a
    *  new ride is selected. */
   selectedDropoffStop: SelectedDropoffStop | null;
+  /** M-040/EDGE-053: a real override point, set instead of `selectedStop`
+   *  (never alongside it). Cleared whenever a new ride is selected, same as
+   *  `selectedStop`/`selectedDropoffStop`. */
+  overriddenPickup: OverriddenPickupPoint | null;
   /** UI-only passenger count shown on the search composer — `matching.search`
    *  doesn't filter by seat count today, so this is never sent to the API.
    *  Kept here (rather than local component state) only so it survives
@@ -89,6 +109,7 @@ const initialState: SearchState = {
   desiredDepartureAt: null,
   selectedStop: null,
   selectedDropoffStop: null,
+  overriddenPickup: null,
   passengers: 1,
   searchId: null,
 };
@@ -116,6 +137,7 @@ const searchSlice = createSlice({
     },
     selectPickupStop(state, action: PayloadAction<SelectedPickupStop>) {
       state.selectedStop = action.payload;
+      state.overriddenPickup = null;
     },
     clearPickupStop(state) {
       state.selectedStop = null;
@@ -126,12 +148,22 @@ const searchSlice = createSlice({
     clearDropoffStop(state) {
       state.selectedDropoffStop = null;
     },
+    /** M-040/EDGE-053: sets a real override point, mutually exclusive with
+     *  `selectedStop` (a real, driver-recommended stop). */
+    selectOverriddenPickup(state, action: PayloadAction<OverriddenPickupPoint>) {
+      state.overriddenPickup = action.payload;
+      state.selectedStop = null;
+    },
+    clearOverriddenPickup(state) {
+      state.overriddenPickup = null;
+    },
     /** Clears both pickup and dropoff selection — used whenever a fresh
      *  ride is selected (useOpenDriver) so neither can leak from a
      *  previously-viewed ride into a different one's booking. */
     clearSelectedStops(state) {
       state.selectedStop = null;
       state.selectedDropoffStop = null;
+      state.overriddenPickup = null;
     },
     setPassengers(state, action: PayloadAction<number>) {
       state.passengers = Math.min(8, Math.max(1, action.payload));
@@ -158,6 +190,8 @@ export const {
   clearPickupStop,
   selectDropoffStop,
   clearDropoffStop,
+  selectOverriddenPickup,
+  clearOverriddenPickup,
   clearSelectedStops,
   setPassengers,
   ensureSearchSession,

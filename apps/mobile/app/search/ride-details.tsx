@@ -108,6 +108,7 @@ export default function RideDetailsScreen(): React.JSX.Element {
   const searchAt = useAppSelector((s) => s.search.searchAt);
   const selectedStop = useAppSelector((s) => s.search.selectedStop);
   const selectedDropoffStop = useAppSelector((s) => s.search.selectedDropoffStop);
+  const overriddenPickup = useAppSelector((s) => s.search.overriddenPickup);
   const accessToken = useAppSelector((s) => s.auth.accessToken);
   const [bookingError, setBookingError] = useState<string | undefined>();
   const [routeModalOpen, setRouteModalOpen] = useState(false);
@@ -316,7 +317,8 @@ export default function RideDetailsScreen(): React.JSX.Element {
   const needsPickupSelection = candidate
     ? candidate.matchType !== 'detour' &&
       (!candidate.pickupViable || candidate.rankedStops.length > 0) &&
-      !selectedStop
+      !selectedStop &&
+      !overriddenPickup
     : false;
   const needsDropoffSelection =
     (candidate?.rankedDropoffStops.length ?? 0) > 0 && !selectedDropoffStop;
@@ -339,7 +341,7 @@ export default function RideDetailsScreen(): React.JSX.Element {
   }
 
   async function requestSeat(): Promise<void> {
-    if (!selectedStop && !origin) return;
+    if (!selectedStop && !overriddenPickup && !origin) return;
     setBookingError(undefined);
     try {
       // A 'detour' match's dropoff is the passenger's own searched
@@ -356,10 +358,40 @@ export default function RideDetailsScreen(): React.JSX.Element {
         rideId,
         input: {
           seatsRequested: 1,
-          ...(selectedStop
-            ? { pickupStopId: selectedStop.stopId }
-            : { pickup: { label: origin!.label, lat: origin!.lat, lng: origin!.lng } }),
-          ...(selectedDropoffStop ? { dropoffStopId: selectedDropoffStop.stopId } : freeformDropoff),
+          ...(overriddenPickup
+            ? {
+                // M-040/EDGE-053: a real override away from the driver's
+                // recommended stops (search/pickup-point.tsx's "choose
+                // another point" affordance) — createBooking's own
+                // assertRealDetourWithinAllowance independently re-
+                // validates this against the ride's real route; the
+                // previewPickupOverride recalculation already shown the
+                // passenger the consequence before they got here.
+                pickup: { label: overriddenPickup.label, lat: overriddenPickup.lat, lng: overriddenPickup.lng },
+                ...(origin ? { requestedPickup: { label: origin.label, lat: origin.lat, lng: origin.lng } } : {}),
+              }
+            : selectedStop
+              ? {
+                  pickupStopId: selectedStop.stopId,
+                  // M-004/M-020 (docs/unified_driver_and_passenger_journey.md
+                  // §5/§13): the rider's own real searched point, alongside
+                  // the chosen stop — lets createBooking independently
+                  // re-derive and persist the real walk distance instead of
+                  // trusting the stop id alone (bookings.service.ts's
+                  // resolveStopWalkMeters). Previously never sent from any
+                  // mobile call site, so this real backend capability had no
+                  // real caller at all.
+                  ...(origin ? { requestedPickup: { label: origin.label, lat: origin.lat, lng: origin.lng } } : {}),
+                }
+              : { pickup: { label: origin!.label, lat: origin!.lat, lng: origin!.lng } }),
+          ...(selectedDropoffStop
+            ? {
+                dropoffStopId: selectedDropoffStop.stopId,
+                ...(destination
+                  ? { requestedDropoff: { label: destination.label, lat: destination.lat, lng: destination.lng } }
+                  : {}),
+              }
+            : freeformDropoff),
         },
       }).unwrap();
       haptics.success();

@@ -24,6 +24,12 @@ interface MapCanvasProps {
    *  render inside the real MapView, not as arbitrarily-positioned overlay
    *  Views the way the old placeholder canvas allowed. */
   children?: React.ReactNode;
+  /** M-040/EDGE-053 (docs/unified_driver_and_passenger_journey.md §14, edge
+   *  53): fired with the real tapped coordinate on a sustained press — the
+   *  primitive a "place a custom point" affordance builds on (e.g.
+   *  search/pickup-point.tsx's override flow). Omit for a map with no such
+   *  affordance (the default everywhere else). */
+  onLongPress?: (coordinate: { latitude: number; longitude: number }) => void;
 }
 
 /**
@@ -32,7 +38,7 @@ interface MapCanvasProps {
  * (onMapReady), instead of a blank frame. Phase 3 replaced the previous
  * CSS-art street-grid placeholder — see docs/design-system/README.md.
  */
-export function MapCanvas({ height, region, style, children }: MapCanvasProps): React.JSX.Element {
+export function MapCanvas({ height, region, style, children, onLongPress }: MapCanvasProps): React.JSX.Element {
   const [isReady, setIsReady] = useState(false);
 
   return (
@@ -48,6 +54,7 @@ export function MapCanvas({ height, region, style, children }: MapCanvasProps): 
         style={StyleSheet.absoluteFillObject}
         initialRegion={region ?? DEFAULT_REGION}
         onMapReady={() => setIsReady(true)}
+        onLongPress={onLongPress ? (e) => onLongPress(e.nativeEvent.coordinate) : undefined}
         // Forces the default light Google Maps style regardless of the
         // device's system dark-mode setting (Android can otherwise render
         // tiles dark even in a forced-light app).

@@ -85,12 +85,15 @@ const PENDING_REQUEST: Booking = {
   pickupLabel: 'Angle Rue de Kairouan',
   pickupLat: 36.81,
   pickupLng: 10.19,
+  pickupWalkMeters: null,
   dropoffStopId: null,
   dropoffLabel: null,
   dropoffLat: null,
   dropoffLng: null,
+  dropoffWalkMeters: null,
   requestedAt: '2026-08-24T09:00:00',
   respondedAt: null,
+  expiresAt: null,
   rider: { id: 'u-rider-1', fullName: 'Dinara Kochakajeva', avatarUrl: null },
 };
 

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Animated, View, StyleSheet, TouchableOpacity, Easing } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -8,7 +8,6 @@ import { useTranslation } from 'react-i18next';
 import { useListMyBookingsQuery } from '../../src/state/api';
 import { CancellationSheet } from '../../src/features/bookings/CancellationSheet';
 
-const REQUEST_WINDOW_MS = 7 * 60_000;
 // How often to re-poll bookings while waiting for a driver response. There
 // is no push/websocket channel into this specific screen — Phase 7's push
 // notifications tell the *device*, but this screen needs its own state to
@@ -18,9 +17,16 @@ const POLL_MS = 5000;
 /** Stitch's "Request Sent" — this used to be a 1.6s auto-advancing
  *  animation that assumed acceptance; it's now a real held screen that
  *  polls the booking's actual status and only advances once a driver has
- *  really accepted. The on-screen countdown is visual only — no backend
- *  expiry policy exists yet for a booking request, so nothing enforces it
- *  server-side; it's a UI cue, not a real deadline. */
+ *  really accepted. M-054 (docs/unified_driver_and_passenger_journey.md
+ *  §20): the countdown shown here is now the real, server-authoritative
+ *  `booking.expiresAt` (bookings.service.ts's createBooking, enforced by
+ *  the booking-expiry-sweep worker) — this screen used to run its own
+ *  fixed 7-minute client-only timer with an explicit "no backend expiry
+ *  policy exists yet, this is a UI cue not a real deadline" comment; that
+ *  backend policy now exists, so showing anything but the real value would
+ *  be exactly the fabricated-data pattern CLAUDE.md forbids. No countdown
+ *  is shown at all until the real booking (and its real `expiresAt`) has
+ *  actually loaded from the poll below — never a placeholder number. */
 export default function ConfirmedScreen(): React.JSX.Element {
   const { t } = useTranslation(['booking', 'activeTrip', 'common']);
   const params = useLocalSearchParams<{
@@ -34,8 +40,7 @@ export default function ConfirmedScreen(): React.JSX.Element {
   const { colors: theme } = useAppTheme();
   const insets = useSafeAreaInsets();
   const driverFirstName = (params.driverName ?? t('common:terms.driver')).split(' ')[0]!;
-  const deadline = useMemo(() => Date.now() + REQUEST_WINDOW_MS, []);
-  const [remainingMs, setRemainingMs] = useState(REQUEST_WINDOW_MS);
+  const [nowMs, setNowMs] = useState(() => Date.now());
   const [cancelSheetVisible, setCancelSheetVisible] = useState(false);
 
   const { data: bookings } = useListMyBookingsQuery(undefined, {
@@ -43,6 +48,10 @@ export default function ConfirmedScreen(): React.JSX.Element {
     pollingInterval: POLL_MS,
   });
   const booking = bookings?.find((b) => b.id === params.bookingId);
+  const expiresAtMs = booking?.expiresAt ? new Date(booking.expiresAt).getTime() : null;
+  // Null (not a number) whenever the real deadline isn't known yet — the
+  // render below only ever shows a countdown once this is a real number.
+  const remainingMs = expiresAtMs !== null ? Math.max(0, expiresAtMs - nowMs) : null;
 
   const badgeScale = useRef(new Animated.Value(0)).current;
   const ringScale = useRef(new Animated.Value(0.6)).current;
@@ -60,9 +69,9 @@ export default function ConfirmedScreen(): React.JSX.Element {
   }, []);
 
   useEffect(() => {
-    const timer = setInterval(() => setRemainingMs(Math.max(0, deadline - Date.now())), 1000);
+    const timer = setInterval(() => setNowMs(Date.now()), 1000);
     return () => clearInterval(timer);
-  }, [deadline]);
+  }, []);
 
   useEffect(() => {
     if (booking?.status === 'accepted') {
@@ -72,10 +81,13 @@ export default function ConfirmedScreen(): React.JSX.Element {
   }, [booking?.status, params]);
 
   const declined = booking?.status === 'declined' || booking?.status === 'expired';
-  const minutes = Math.floor(remainingMs / 60_000);
-  const seconds = Math.floor((remainingMs % 60_000) / 1000)
-    .toString()
-    .padStart(2, '0');
+  const minutes = remainingMs !== null ? Math.floor(remainingMs / 60_000) : null;
+  const seconds =
+    remainingMs !== null
+      ? Math.floor((remainingMs % 60_000) / 1000)
+          .toString()
+          .padStart(2, '0')
+      : null;
 
 
   return (
@@ -124,10 +136,15 @@ export default function ConfirmedScreen(): React.JSX.Element {
         ) : (
           <>
             <Text variant="body" color={theme.inkMuted} align="center" style={styles.subtitle}>
-              {t('booking:status_pending_hint', { name: driverFirstName })}{' '}
-              <Text variant="body" color={theme.ink} style={styles.bold}>
-                {minutes}:{seconds}
-              </Text>
+              {t('booking:status_pending_hint', { name: driverFirstName })}
+              {minutes !== null && seconds !== null ? (
+                <>
+                  {' '}
+                  <Text variant="body" color={theme.ink} style={styles.bold}>
+                    {minutes}:{seconds}
+                  </Text>
+                </>
+              ) : null}
             </Text>
             <Text variant="bodySmall" color={theme.inkFaint} align="center">
               {t('booking:status_pending_notification')}

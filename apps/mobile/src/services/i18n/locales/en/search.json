@@ -43,7 +43,15 @@
     "pointDetails": "Details for {{label}}",
     "walkFromOrigin": "{{minutes}} from your starting position.",
     "driverValidatedStop": "This point was confirmed by the driver as a stop on their route.",
-    "confirmPickup": "Confirm this pickup point"
+    "confirmPickup": "Confirm this pickup point",
+    "overrideHint": "Press and hold the map to choose another point",
+    "overrideSheetTitle": "Custom point",
+    "overrideWalk": "{{minutes}} from your position",
+    "overrideDetourImpact": "Adds about {{duration}} to the driver's trip",
+    "overrideDetourUnknown": "Impact on the driver's trip not yet computable — checked again when you confirm.",
+    "overrideNotFeasible": "This point is a significant detour from the driver's planned route. You can still send your request.",
+    "overrideConfirm": "Use this point",
+    "overrideLoading": "Computing the real impact…"
   },
   "dropoffPoint": {
     "noDropoff": "No accessible drop-off point found.",

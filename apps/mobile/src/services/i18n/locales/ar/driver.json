@@ -361,6 +361,7 @@
       "ridesWithYou": "يرافقك",
       "segmentDistance": "{{distance}} · {{duration}}",
       "newEta": "وقت الوصول الجديد في حال القبول: {{time}}",
+      "respondBy": "الرد قبل {{time}}",
       "viewProfile": "عرض الملف الشخصي لـ{{name}}",
       "newOnVaya": "جديد على VAYA",
       "openInMaps": "فتح {{label}} في الخرائط"

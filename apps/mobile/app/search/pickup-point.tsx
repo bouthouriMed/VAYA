@@ -22,11 +22,18 @@ import {
 } from '@vaya/design-system';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useAppDispatch, useAppSelector } from '../../src/state/store';
-import { selectPickupStop } from '../../src/state/searchSlice';
-import { useMatchingSearchQuery, type MatchCandidate, type RankedStop } from '../../src/state/api';
+import { selectPickupStop, selectOverriddenPickup } from '../../src/state/searchSlice';
+import {
+  useMatchingSearchQuery,
+  useLazyGetPickupOverridePreviewQuery,
+  type MatchCandidate,
+  type RankedStop,
+} from '../../src/state/api';
 import { decodePolyline } from '../../src/utils/polyline';
 import { trackEvent } from '../../src/services/analytics/analytics';
 import { defaultStopId, rankedPosition } from '../../src/features/pickup-selection/pickupSelection';
+import { formatDistance } from '../../src/utils/localeFormat';
+import type { SupportedLocale } from '@vaya/config';
 
 /**
  * Real ride-engine stop selection (docs/domain/ride-engine.md), replacing
@@ -39,7 +46,8 @@ import { defaultStopId, rankedPosition } from '../../src/features/pickup-selecti
 export default function PickupPointScreen(): React.JSX.Element {
   const { rideId, driverUserId } = useLocalSearchParams<{ rideId: string; driverUserId: string }>();
   const insets = useSafeAreaInsets();
-  const { t } = useTranslation(['search', 'common', 'booking']);
+  const { t, i18n } = useTranslation(['search', 'common', 'booking']);
+  const locale = i18n.language as SupportedLocale;
   const dispatch = useAppDispatch();
 
   const origin = useAppSelector((s) => s.search.origin);
@@ -68,6 +76,12 @@ export default function PickupPointScreen(): React.JSX.Element {
 
   const [selectedStopId, setSelectedStopId] = useState<string | null>(null);
   const [detailStop, setDetailStop] = useState<RankedStop | null>(null);
+  // M-040/EDGE-053 (docs/unified_driver_and_passenger_journey.md §14, edge
+  // 53): "Passenger can override to another VAYA-feasible point." A real
+  // coordinate the passenger long-pressed on the map — distinct from
+  // `detailStop` (a driver-recommended stop's own detail sheet).
+  const [overrideCandidate, setOverrideCandidate] = useState<{ lat: number; lng: number } | null>(null);
+  const [fetchOverridePreview, overridePreviewState] = useLazyGetPickupOverridePreviewQuery();
 
   // Closest/best stop pre-selected by default — map-first hybrid per
   // docs/ux/principles.md #1, so the passenger doesn't have to scan a list
@@ -105,6 +119,24 @@ export default function PickupPointScreen(): React.JSX.Element {
     setSelectedStopId(stop.stopId);
   }
 
+  // Shared by both the driver-recommended-stop path and the M-040 override
+  // path below — the "what screen comes next" decision doesn't depend on
+  // which of the two the passenger actually picked.
+  function advanceAfterPickupChosen(): void {
+    // A route-passthrough match (Phase 13) also has ranked dropoff stops —
+    // an endpoint match's dropoff is just the ride's own destination, so
+    // this only ever routes onward for the former.
+    if (candidate && candidate.rankedDropoffStops.length > 0) {
+      router.push({ pathname: '/search/dropoff-point', params: { rideId, driverUserId } });
+    } else {
+      // This screen is only ever entered by pushing from ride-details.tsx's
+      // "Request a seat" CTA now — dismissTo returns to that same instance
+      // (the ride the rider was already looking at) instead of pushing a
+      // fresh one on top, which would leave a stale duplicate underneath.
+      router.dismissTo({ pathname: '/search/ride-details', params: { rideId, driverUserId } });
+    }
+  }
+
   function confirm(): void {
     if (!selectedStop) return;
     trackEvent('pickup_stop_selected', {
@@ -121,18 +153,42 @@ export default function PickupPointScreen(): React.JSX.Element {
         lng: selectedStop.lng,
       }),
     );
-    // A route-passthrough match (Phase 13) also has ranked dropoff stops —
-    // an endpoint match's dropoff is just the ride's own destination, so
-    // this only ever routes onward for the former.
-    if (candidate && candidate.rankedDropoffStops.length > 0) {
-      router.push({ pathname: '/search/dropoff-point', params: { rideId, driverUserId } });
-    } else {
-      // This screen is only ever entered by pushing from ride-details.tsx's
-      // "Request a seat" CTA now — dismissTo returns to that same instance
-      // (the ride the rider was already looking at) instead of pushing a
-      // fresh one on top, which would leave a stale duplicate underneath.
-      router.dismissTo({ pathname: '/search/ride-details', params: { rideId, driverUserId } });
-    }
+    advanceAfterPickupChosen();
+  }
+
+  // M-040/EDGE-053: a real long-press anywhere on the map — VAYA
+  // immediately recalculates the real walk/driver-detour impact
+  // (previewPickupOverride) and shows it before the passenger can confirm,
+  // never blocking on the result (a large detour is shown, not hidden or
+  // rejected here — createBooking's own real bound is the actual gate).
+  function handleMapLongPress(coordinate: { latitude: number; longitude: number }): void {
+    haptics.selection();
+    const point = { lat: coordinate.latitude, lng: coordinate.longitude };
+    setOverrideCandidate(point);
+    void fetchOverridePreview({
+      rideId,
+      lat: point.lat,
+      lng: point.lng,
+      requestedLat: origin?.lat,
+      requestedLng: origin?.lng,
+    });
+  }
+
+  function confirmOverride(): void {
+    if (!overrideCandidate) return;
+    trackEvent('pickup_override_selected', {
+      rideId,
+      withinAllowance: overridePreviewState.data?.withinAllowance ?? null,
+    });
+    dispatch(
+      selectOverriddenPickup({
+        label: t('search:pickupPoint.overrideSheetTitle'),
+        lat: overrideCandidate.lat,
+        lng: overrideCandidate.lng,
+      }),
+    );
+    setOverrideCandidate(null);
+    advanceAfterPickupChosen();
   }
 
   if (isLoading) {
@@ -170,7 +226,7 @@ export default function PickupPointScreen(): React.JSX.Element {
 
   return (
     <View style={styles.container}>
-      <MapCanvas region={region} style={styles.map}>
+      <MapCanvas region={region} style={styles.map} onLongPress={handleMapLongPress}>
         {origin ? (
           <Marker
             coordinate={{ latitude: origin.lat, longitude: origin.lng }}
@@ -198,6 +254,14 @@ export default function PickupPointScreen(): React.JSX.Element {
             </Marker>
           );
         })}
+        {overrideCandidate ? (
+          <Marker
+            coordinate={{ latitude: overrideCandidate.lat, longitude: overrideCandidate.lng }}
+            anchor={{ x: 0.5, y: 0.5 }}
+          >
+            <View style={styles.overrideDot} />
+          </Marker>
+        ) : null}
       </MapCanvas>
 
       <View style={[styles.topBar, { paddingTop: insets.top + spacing.sm }]} pointerEvents="box-none">
@@ -213,6 +277,18 @@ export default function PickupPointScreen(): React.JSX.Element {
         <View style={styles.hint}>
           <Text variant="bodySmall" color={colors.gray700}>
             {t('search:pickupPoint.stopsOnRoute', { count: rankedStops.length })}
+          </Text>
+        </View>
+      </View>
+
+      {/* M-040/EDGE-053: a small, always-visible hint that the map itself
+       *  is interactive beyond tapping a recommended stop — never the only
+       *  way to discover the affordance, but never hidden either. */}
+      <View style={[styles.overrideHintWrap, { top: insets.top + spacing.sm + 48 }]} pointerEvents="none">
+        <View style={styles.overrideHintPill}>
+          <Ionicons name="hand-left-outline" size={14} color={colors.gray500} />
+          <Text variant="caption" color={colors.gray600}>
+            {t('search:pickupPoint.overrideHint')}
           </Text>
         </View>
       </View>
@@ -280,6 +356,64 @@ export default function PickupPointScreen(): React.JSX.Element {
           </View>
         ) : null}
       </BottomSheet>
+
+      <BottomSheet
+        visible={overrideCandidate !== null}
+        onClose={() => setOverrideCandidate(null)}
+        title={t('search:pickupPoint.overrideSheetTitle')}
+      >
+        {overrideCandidate ? (
+          <View style={styles.sheetContent}>
+            {overridePreviewState.isFetching ? (
+              <View style={styles.overrideLoadingRow}>
+                <ActivityIndicator size="small" color={colors.secondary} />
+                <Text variant="bodySmall" color={colors.gray500}>
+                  {t('search:pickupPoint.overrideLoading')}
+                </Text>
+              </View>
+            ) : (
+              <>
+                {overridePreviewState.data?.walkMeters != null ? (
+                  <Text variant="body" color={colors.gray700}>
+                    {t('search:pickupPoint.overrideWalk', {
+                      minutes: t('common:terms.minute', {
+                        count: Math.max(1, Math.round(overridePreviewState.data.walkMeters / 80)),
+                      }),
+                    })}
+                    {' · '}
+                    {formatDistance(overridePreviewState.data.walkMeters, locale)}
+                  </Text>
+                ) : null}
+                {overridePreviewState.data?.withinAllowance === true &&
+                overridePreviewState.data.driverDetourExtraSeconds != null ? (
+                  <Text variant="bodySmall" color={colors.gray500}>
+                    {t('search:pickupPoint.overrideDetourImpact', {
+                      duration: t('common:terms.minute', {
+                        count: Math.max(1, Math.round(overridePreviewState.data.driverDetourExtraSeconds / 60)),
+                      }),
+                    })}
+                  </Text>
+                ) : overridePreviewState.data?.withinAllowance === false ? (
+                  <Text variant="bodySmall" color={colors.warning}>
+                    {t('search:pickupPoint.overrideNotFeasible')}
+                  </Text>
+                ) : (
+                  <Text variant="bodySmall" color={colors.gray500}>
+                    {t('search:pickupPoint.overrideDetourUnknown')}
+                  </Text>
+                )}
+              </>
+            )}
+            <Button
+              label={t('search:pickupPoint.overrideConfirm')}
+              size="lg"
+              onPress={confirmOverride}
+              disabled={overridePreviewState.isFetching}
+              style={styles.cta}
+            />
+          </View>
+        ) : null}
+      </BottomSheet>
     </View>
   );
 }
@@ -309,6 +443,39 @@ const styles = StyleSheet.create({
     backgroundColor: colors.secondary,
     borderWidth: 2,
     borderColor: colors.white,
+  },
+  overrideDot: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: colors.warning,
+    borderWidth: 2,
+    borderColor: colors.white,
+  },
+  overrideHintWrap: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+  },
+  overrideHintPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: colors.white,
+    borderRadius: radii.full,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+    shadowColor: colors.gray900,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  overrideLoadingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
   },
   topBar: {
     position: 'absolute',

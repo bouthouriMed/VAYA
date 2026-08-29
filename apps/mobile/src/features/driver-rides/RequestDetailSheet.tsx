@@ -259,6 +259,23 @@ export function RequestDetailSheet({
           {booking.rider ? <Icon name="chevron-forward" size="sm" color={theme.inkFaint} /> : null}
         </TouchableOpacity>
 
+        {/* M-054/M-061 (docs/unified_driver_and_passenger_journey.md §20/§22):
+         *  the real, server-authoritative response deadline
+         *  (bookings.service.ts's createBooking) — was entirely absent from
+         *  this sheet before, even though the field already existed on
+         *  `booking`. Shown only for a still-pending request; an
+         *  accepted/declined booking has already been responded to. */}
+        {booking.status === 'pending' && booking.expiresAt ? (
+          <View style={[styles.segmentRow, { borderColor: theme.outlineVariant }]}>
+            <Icon name="hourglass-outline" size="sm" color={theme.inkMuted} />
+            <Text variant="bodySmall" color={theme.ink}>
+              {t('driver:rides.requestDetail.respondBy', {
+                time: formatTime(new Date(booking.expiresAt), locale),
+              })}
+            </Text>
+          </View>
+        ) : null}
+
         {isFetching ? (
           <ActivityIndicator size="small" color={theme.accent} style={styles.loading} />
         ) : isError || !preview ? (
