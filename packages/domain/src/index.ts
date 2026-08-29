@@ -37,6 +37,7 @@ export * from './trip/auto-start-inference';
 export * from './trip/boarding-inference';
 export * from './trip/eta-confidence';
 export * from './trip/cancellation-guard';
+export * from './trip/no-show-inference';
 
 export * from './rating/rating.types';
 export * from './rating/trust-tier';

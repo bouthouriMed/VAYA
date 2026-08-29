@@ -1803,11 +1803,40 @@ export async function reportNoShow(
     throw new ConflictError(message);
   }
 
+  // the rider is reporting -> the driver is the no-show party
+  return finalizeNoShowOutcome(db, booking, bookingId, reportedAt, isRider, requestingUserId, false);
+}
+
+/**
+ * The shared, post-decision core of a no-show outcome — status transitions,
+ * segment-aware seat release, conversation closure, the automatic penalty
+ * rating, and notification — factored out of `reportNoShow` so M-104's
+ * automatic classification path (trip-staleness sweep) reuses the exact same
+ * real mechanism a human report goes through, rather than a second, parallel
+ * implementation of "what happens when a no-show is recorded."
+ *
+ * `raterUserId` is the party the automatic rating/notification is attributed
+ * to. For a human report that's the real reporter; for an automatic
+ * classification (no human involved) it's the *other*, non-faulting party —
+ * the genuinely aggrieved side of the encounter, exactly who would have filed
+ * the report themselves had they gotten to it first. This needs no schema
+ * change (`ratings.raterUserId` already only ever means "on whose account
+ * this rating was recorded," not "who tapped the button").
+ */
+async function finalizeNoShowOutcome(
+  db: Database,
+  booking: Awaited<ReturnType<typeof getBookingOrThrow>>,
+  bookingId: string,
+  reportedAt: Date,
+  reportedIsDriver: boolean,
+  raterUserId: string,
+  isAutomatic: boolean,
+): Promise<typeof bookings.$inferSelect> {
   // Same atomic status-guard discipline as cancelBooking's fix above — only
   // the first writer to commit against this booking's current status can
-  // win; a concurrent second report (or a race against a concurrent
-  // cancelBooking on the same booking) gets a clean ConflictError instead
-  // of both proceeding to double-release the seat below.
+  // win; a concurrent second report (human or automatic, or a race against a
+  // concurrent cancelBooking on the same booking) gets a clean ConflictError
+  // instead of both proceeding to double-release the seat below.
   //
   // Segment-aware seat release (matching-engine architecture plan §K) — same
   // recompute-from-scratch, ride-locked-first transaction shape as
@@ -1837,31 +1866,58 @@ export async function reportNoShow(
   const trip = await db.query.trips.findFirst({ where: eq(trips.bookingId, booking.id) });
   if (!trip) throw new NotFoundError('Trip');
   if (canTransitionTripStatus(trip.status, 'no_show')) {
-    await db.update(trips).set({ status: 'no_show', updatedAt: new Date() }).where(eq(trips.id, trip.id));
+    await db
+      .update(trips)
+      .set({
+        status: 'no_show',
+        updatedAt: new Date(),
+        ...(isAutomatic ? { autoNoShowClassifiedAt: new Date() } : {}),
+      })
+      .where(eq(trips.id, trip.id));
   }
 
   await closeConversationBestEffort(db, booking.id);
 
-  // The party being *reported* — never the reporter — takes the automatic
-  // low rating (packages/domain's NO_SHOW_AUTOMATIC_RATING_STARS) and the
-  // heavier no-show penalty (NO_SHOW_PENALTY_POINTS), applied via Phase 9's
-  // rating/reliability mechanism (ratings.service.ts), not a second,
-  // parallel one.
+  // The party being *reported* — never the reporter/rater — takes the
+  // automatic low rating (packages/domain's NO_SHOW_AUTOMATIC_RATING_STARS)
+  // and the heavier no-show penalty (NO_SHOW_PENALTY_POINTS), applied via
+  // Phase 9's rating/reliability mechanism (ratings.service.ts), not a
+  // second, parallel one.
   const driverUserId = booking.ride.driverProfile.userId;
-  const reportedIsDriver = isRider; // the rider is reporting -> the driver is the no-show party
   const reportedUserId = reportedIsDriver ? driverUserId : booking.riderId;
   const role: RatingRole = reportedIsDriver ? 'rider_rates_driver' : 'driver_rates_rider';
 
-  await recordAutomaticNoShowRating(db, trip.id, requestingUserId, reportedUserId, role);
+  await recordAutomaticNoShowRating(db, trip.id, raterUserId, reportedUserId, role);
   await applyCancellationPenalty(db, reportedUserId, reportedIsDriver, NO_SHOW_PENALTY_POINTS);
 
   await notifyBestEffort(db, reportedUserId, 'booking_no_show_reported', {
     bookingId: booking.id,
     rideId: booking.rideId,
-    reportedBy: isRider ? 'rider' : 'driver',
+    reportedBy: reportedIsDriver ? 'rider' : 'driver',
   });
 
   return updatedBooking;
+}
+
+/**
+ * M-104 (spec §37): "VAYA may also automatically classify [a no-show] when
+ * evidence is sufficiently strong." Called only from the trip-staleness
+ * sweep, only once `evaluateAutoNoShowClassification` (packages/domain) has
+ * already decided evidence is strong enough — this function's own job is
+ * purely mechanical: resolve which real party is on which side of that
+ * decision, then run the exact same outcome a human report would.
+ */
+export async function applyAutoNoShowClassification(
+  db: Database,
+  bookingId: string,
+  reportedParty: 'driver' | 'rider',
+): Promise<void> {
+  const booking = await getBookingOrThrow(db, bookingId);
+  if (!canTransitionBookingStatus(booking.status, 'no_show')) return;
+
+  const reportedIsDriver = reportedParty === 'driver';
+  const raterUserId = reportedIsDriver ? booking.riderId : booking.ride.driverProfile.userId;
+  await finalizeNoShowOutcome(db, booking, bookingId, new Date(), reportedIsDriver, raterUserId, true);
 }
 
 /** Reveals the *other* party's phone number for an in-progress ride —

@@ -73,6 +73,23 @@ export const trips = pgTable(
     // null until the first location update on a trip with real route data.
     routeDeviationStatus: varchar('route_deviation_status', { length: 20 }),
     liveCorridorWaypoints: jsonb('live_corridor_waypoints'),
+    // M-104 (spec §37, "VAYA may also automatically classify a no-show when
+    // evidence is sufficiently strong"): the ONE bit of pre-start location
+    // history this table keeps, deliberately — not a location-history table
+    // (this trips schema's own stated brief above stays true), just a single
+    // "was the driver ever genuinely near the ride's origin" flag, set once
+    // and never cleared, by trips.service.ts's updateTripLocation. Without
+    // it, a 'scheduled' trip whose only stored location is its latest fix
+    // can never distinguish "driver never came near" from "driver was here
+    // earlier and has since moved on toward the destination" — exactly the
+    // asymmetry evaluateAutoNoShowClassification's driver-no-show branch
+    // needs to stay conservative instead of guessing.
+    driverEverNearOriginAt: timestamp('driver_ever_near_origin_at', { withTimezone: true }),
+    // Set the moment an automatic (no human report) no-show classification
+    // fires — distinguishes an auto-classified no_show from a human-reported
+    // one on the same terminal booking/trip status, for observability/
+    // support tooling. Never set by the manual reportNoShow path.
+    autoNoShowClassifiedAt: timestamp('auto_no_show_classified_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },

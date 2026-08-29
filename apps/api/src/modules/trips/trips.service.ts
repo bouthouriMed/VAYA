@@ -17,6 +17,7 @@ import {
   computeAutoTripStatusTransition,
   computeStaleTripAction,
   deriveTrackingStatus,
+  evaluateAutoNoShowClassification,
   evaluateAutoStart,
   evaluateBoarding,
   isWithinRatingWindow,
@@ -25,6 +26,7 @@ import {
   type TripStatus,
 } from '@vaya/domain';
 import { notifyBestEffort } from '../notifications/notifications.service.js';
+import { applyAutoNoShowClassification } from '../bookings/bookings.service.js';
 import { publishTripUpdate } from '../../lib/realtime.js';
 import { getRoute } from '../../lib/routing.js';
 import { decodePolyline, projectPointOntoRoute } from '../../lib/polyline.js';
@@ -405,6 +407,13 @@ export async function updateTripLocation(
 
   let autoNextStatus = computeAutoTripStatusTransition(trip.status, currentPos, pickup, destination);
   let autoStartedAt: Date | null = null;
+  // M-104 (spec §37): the one bit of pre-start location "history" this
+  // schema keeps (trips.driverEverNearOriginAt's own doc comment) — set the
+  // first time the driver's real, live-broadcast position genuinely comes
+  // within pickup-arrival radius of the ride's origin while still
+  // `scheduled`, independent of whether that alone was enough to also
+  // auto-start the trip below. Never cleared once true.
+  let driverNearOriginThisPing = false;
 
   // M-099/M-100 (spec §35): "scheduled -> started" without a button tap.
   // `computeAutoTripStatusTransition` (packages/domain) has no case for
@@ -414,6 +423,7 @@ export async function updateTripLocation(
     const origin = { lat: trip.booking.ride.originLat, lng: trip.booking.ride.originLng };
     const timeReached = now.getTime() >= trip.booking.ride.departureAt.getTime();
     const originProximity = haversineDistanceMeters(currentPos, origin) <= PICKUP_ARRIVAL_RADIUS_M;
+    driverNearOriginThisPing = originProximity;
     const sustainedMovement = previousPos
       ? haversineDistanceMeters(previousPos, currentPos) >= BOARDING_MOVEMENT_MIN_METERS
       : false;
@@ -506,6 +516,7 @@ export async function updateTripLocation(
       // window (packages/domain's isWithinRatingWindow) anchors on it, so a
       // GPS-auto-completed trip needs the same real timestamp, not null.
       ...(autoNextStatus === 'completed' ? { completedAt: now } : {}),
+      ...(driverNearOriginThisPing && !trip.driverEverNearOriginAt ? { driverEverNearOriginAt: now } : {}),
     })
     .where(eq(trips.id, tripId))
     .returning();
@@ -784,6 +795,7 @@ export interface TripStalenessSweepResult {
   scanned: number;
   reminded: number;
   autoCompleted: number;
+  autoNoShowClassified: number;
 }
 
 /**
@@ -793,6 +805,11 @@ export interface TripStalenessSweepResult {
  * it says. Never throws on a single trip's failure — one bad row must not
  * abort the sweep for every other trip in the batch (mirrors
  * notification-dispatch.worker.ts's per-job isolation).
+ *
+ * M-104 (spec §37) is evaluated first, per trip, ahead of the `!startedAt`
+ * skip below — a `scheduled` trip (the driver-no-show candidate) never has
+ * `startedAt` set at all, so it would otherwise never reach this sweep's
+ * logic a single time.
  */
 export async function runTripStalenessSweep(db: Database): Promise<TripStalenessSweepResult> {
   const staleCandidates = await db.query.trips.findMany({
@@ -801,9 +818,35 @@ export async function runTripStalenessSweep(db: Database): Promise<TripStaleness
   });
 
   const now = new Date();
-  const result: TripStalenessSweepResult = { scanned: staleCandidates.length, reminded: 0, autoCompleted: 0 };
+  const result: TripStalenessSweepResult = {
+    scanned: staleCandidates.length,
+    reminded: 0,
+    autoCompleted: 0,
+    autoNoShowClassified: 0,
+  };
 
   for (const trip of staleCandidates) {
+    if (trip.status === 'scheduled' || trip.status === 'pickup') {
+      try {
+        const departureAt = trip.booking.ride.departureAt;
+        const classification = evaluateAutoNoShowClassification({
+          tripStatus: trip.status,
+          msSincePickupConfirmed: trip.pickupConfirmedAt ? now.getTime() - trip.pickupConfirmedAt.getTime() : null,
+          msSinceDeparture: now.getTime() - departureAt.getTime(),
+          driverLocationActiveSinceDeparture:
+            trip.locationUpdatedAt != null && trip.locationUpdatedAt.getTime() >= departureAt.getTime(),
+          driverEverNearOrigin: trip.driverEverNearOriginAt != null,
+        });
+        if (classification.shouldClassify && classification.reportedParty) {
+          await applyAutoNoShowClassification(db, trip.bookingId, classification.reportedParty);
+          result.autoNoShowClassified += 1;
+          continue; // Now terminal (no_show) — nothing else in this loop applies to it.
+        }
+      } catch (err) {
+        getLogger().error({ err, tripId: trip.id }, 'Auto no-show classification failed for one trip — continuing with the rest');
+      }
+    }
+
     // Always set once startTrip runs (the only way a trip reaches a
     // TRACKABLE_STATUSES status) — defensive null-check only, not an
     // expected real case.
