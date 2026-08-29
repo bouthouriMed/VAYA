@@ -1,6 +1,6 @@
 import { and, eq, gte, inArray, isNotNull, lte } from 'drizzle-orm';
 import type { getDatabase } from '../../lib/database.js';
-import { demandSignals, rides, routeStops, trips } from '../../db/schema/index.js';
+import { bookings, demandSignals, rides, routeStops, trips } from '../../db/schema/index.js';
 import { haversineDistanceMeters } from '../../lib/geo.js';
 import { getRoute } from '../../lib/routing.js';
 import { getActiveOperationalConfig } from '../operational-config/operational-config.service.js';
@@ -20,7 +20,9 @@ import {
   detourAllowanceSec,
   getMatchingThresholds,
   rankStopsByJointOptimum,
+  wouldExceedCapacity,
   VIA_STOP_DETOUR_BUDGET,
+  type BookingSegment,
   type JointStopCandidate,
   type MatchingThresholds,
 } from '@vaya/domain';
@@ -403,6 +405,10 @@ type StopRow = {
   // actually use it instead of discarding it.
   suitabilityScore: number;
   deviationMeters: number;
+  // M-081: a real route_stop's ordering position, needed to map a
+  // resolved stop id onto a BookingSegment's pickupSequence/dropoffSequence
+  // for segment-aware capacity checks.
+  sequence: number;
 };
 
 /**
@@ -479,6 +485,76 @@ async function fetchStopsByRide(db: Database, rideIds: string[]): Promise<Map<st
 }
 
 /**
+ * M-081 (docs/unified_driver_and_passenger_journey.md §25): "Segment
+ * capacity constraint applies to: search, candidate pooling, request
+ * validation, acceptance, pricing, driver itinerary, live matching (ALL of
+ * these, not just acceptance)." Before this, every candidate-building
+ * function here gated on the ride-global `rides.seatsAvailable` scalar —
+ * confirmed live to be the ride's *bottleneck*-segment occupancy
+ * (bookings.service.ts's `loadRideSegmentState`'s own doc comment: "seatsTotal
+ * minus the ride's current bottleneck-segment occupancy"), a real,
+ * conservative-in-the-wrong-direction proxy: a ride saturated on ONE
+ * segment reads `seatsAvailable: 0` and vanishes from search entirely, even
+ * when the rider's own requested segment has full capacity — exactly the
+ * "Madrid→Zaragoza full, Zaragoza→Barcelona wide open" example spec §25
+ * names. Batched across every candidate ride in one query (mirrors
+ * `fetchStopsByRide`'s own pattern) — search evaluates many rides at once,
+ * never N+1 queries per candidate.
+ */
+async function fetchAcceptedSegmentsByRide(
+  db: Database,
+  rideIds: string[],
+  stopsByRide: Map<string, StopRow[]>,
+): Promise<Map<string, BookingSegment[]>> {
+  const segmentsByRide = new Map<string, BookingSegment[]>();
+  if (rideIds.length === 0) return segmentsByRide;
+  const accepted = await db.query.bookings.findMany({
+    where: and(inArray(bookings.rideId, rideIds), eq(bookings.status, 'accepted')),
+  });
+  for (const booking of accepted) {
+    const sequenceByStopId = new Map((stopsByRide.get(booking.rideId) ?? []).map((s) => [s.id, s.sequence]));
+    const segment: BookingSegment = {
+      seatsRequested: booking.seatsRequested,
+      // Same conservative direction as bookings.service.ts's own
+      // bookingToSegment: an unresolved/free-form reference spans the
+      // ride's true start/end, never narrower than reality.
+      pickupSequence: booking.pickupStopId ? (sequenceByStopId.get(booking.pickupStopId) ?? -Infinity) : -Infinity,
+      dropoffSequence: booking.dropoffStopId ? (sequenceByStopId.get(booking.dropoffStopId) ?? Infinity) : Infinity,
+    };
+    const list = segmentsByRide.get(booking.rideId) ?? [];
+    list.push(segment);
+    segmentsByRide.set(booking.rideId, list);
+  }
+  return segmentsByRide;
+}
+
+/**
+ * Whether at least one seat is genuinely free for THIS rider's own implied
+ * segment (their resolved pickup/dropoff stop, or the ride's true start/end
+ * for a stop-less endpoint match) — the real, segment-aware replacement for
+ * a flat `ride.seatsAvailable < 1` check. `stopId` is `undefined` for a
+ * point not resolved to any real route_stop (an endpoint match with no
+ * stops, or a not-yet-viable side of a partially-viable one) — never
+ * narrower than reality, same "-Infinity/+Infinity spans the true edge"
+ * convention `BookingSegment` already establishes.
+ */
+function hasSegmentCapacity(
+  existingSegments: BookingSegment[],
+  seatsTotal: number,
+  pickupStopId: string | undefined,
+  dropoffStopId: string | undefined,
+  stops: StopRow[],
+): boolean {
+  const sequenceByStopId = new Map(stops.map((s) => [s.id, s.sequence]));
+  const candidate: BookingSegment = {
+    seatsRequested: 1,
+    pickupSequence: pickupStopId ? (sequenceByStopId.get(pickupStopId) ?? -Infinity) : -Infinity,
+    dropoffSequence: dropoffStopId ? (sequenceByStopId.get(dropoffStopId) ?? Infinity) : Infinity,
+  };
+  return !wouldExceedCapacity(existingSegments, candidate, seatsTotal);
+}
+
+/**
  * Builds a `MatchCandidate` from a ride whose own origin/destination are
  * being compared directly against the rider's requested points (the
  * pre-Phase-13 matching shape) — extracted from `scoreCandidates`'s former
@@ -494,12 +570,19 @@ function buildEndpointCandidate(
     destination: LatLng;
     riderRoutePoints: LatLng[];
     stopsByRide: Map<string, StopRow[]>;
+    segmentsByRide: Map<string, BookingSegment[]>;
     pickupRadiusM: number;
     dropoffRadiusM: number;
     maxDeviationM: number;
   },
 ): MatchCandidate | null {
-  if (ride.seatsAvailable < 1) return null;
+  // M-081 (spec §25): ride.seatsAvailable is the ride's *bottleneck*-segment
+  // occupancy (bookings.service.ts's loadRideSegmentState — "seatsTotal
+  // minus the ride's current bottleneck-segment occupancy"), not this
+  // rider's own segment — deliberately NOT gated on here (a ride saturated
+  // on one segment but wide open on the rider's own requested segment must
+  // still surface). The real, segment-precise gate runs further down, once
+  // this rider's own implied stop pair is known.
 
   const pickupDistanceM = haversineDistanceMeters(ctx.origin, {
     lat: ride.originLat,
@@ -545,6 +628,24 @@ function buildEndpointCandidate(
     ctx.dropoffRadiusM,
     ctx.maxDeviationM,
   );
+
+  // M-081 (spec §25): the actual segment-precise capacity gate — this
+  // rider's own implied pickup/dropoff stop pair (their real offered
+  // resolution, not the ride-global bottleneck) checked against every
+  // already-accepted booking's own segment.
+  const impliedPickupStopId = recommendedStopId ?? rankedStops[0]?.stopId;
+  const impliedDropoffStopId = recommendedDropoffStopId ?? rankedDropoffStops[0]?.stopId;
+  if (
+    !hasSegmentCapacity(
+      ctx.segmentsByRide.get(ride.id) ?? [],
+      ride.seatsTotal,
+      impliedPickupStopId,
+      impliedDropoffStopId,
+      rideStops,
+    )
+  ) {
+    return null;
+  }
 
   return {
     rideId: ride.id,
@@ -631,10 +732,9 @@ async function scoreCandidates(
   const riderRoute = await getRoute(origin, destination);
   const riderRoutePoints = riderRoute.polyline ? decodePolyline(riderRoute.polyline) : [];
 
-  const stopsByRide = await fetchStopsByRide(
-    db,
-    candidateRides.map((r) => r.id),
-  );
+  const rideIds = candidateRides.map((r) => r.id);
+  const stopsByRide = await fetchStopsByRide(db, rideIds);
+  const segmentsByRide = await fetchAcceptedSegmentsByRide(db, rideIds, stopsByRide);
   const maxDeviationM = deriveMaxDeviationM(origin, destination);
 
   const scored: MatchCandidate[] = [];
@@ -644,6 +744,7 @@ async function scoreCandidates(
       destination,
       riderRoutePoints,
       stopsByRide,
+      segmentsByRide,
       pickupRadiusM,
       dropoffRadiusM,
       maxDeviationM,
@@ -722,15 +823,17 @@ async function scorePassThroughCandidates(
     candidateIds ?? undefined,
   );
 
-  const stopsByRide = await fetchStopsByRide(
-    db,
-    candidateRides.map((r) => r.id),
-  );
+  const passThroughRideIds = candidateRides.map((r) => r.id);
+  const stopsByRide = await fetchStopsByRide(db, passThroughRideIds);
+  const segmentsByRide = await fetchAcceptedSegmentsByRide(db, passThroughRideIds, stopsByRide);
   const maxDeviationM = deriveMaxDeviationM(origin, destination);
 
   const results: MatchCandidate[] = [];
   for (const ride of candidateRides) {
-    if (ride.seatsAvailable < 1) continue;
+    // M-081 (spec §25): NOT gated on ride.seatsAvailable (the ride's
+    // bottleneck-segment occupancy, not this specific pickup->dropoff
+    // segment) — the real, segment-precise gate runs further down, once
+    // this rider's own resolved stop pair is known.
     if (!ride.routePolyline) continue; // No real route geometry to project onto — skip, don't fabricate.
 
     const routePoints = decodePolyline(ride.routePolyline);
@@ -758,6 +861,20 @@ async function scorePassThroughCandidates(
       WIDE_PICKUP_RADIUS_M,
       maxDeviationM,
     );
+
+    // M-081: the segment-precise capacity gate, both ends always real
+    // stops in this tier.
+    if (
+      !hasSegmentCapacity(
+        segmentsByRide.get(ride.id) ?? [],
+        ride.seatsTotal,
+        recommendedStopId ?? rankedStops[0]!.stopId,
+        recommendedDropoffStopId ?? rankedDropoffStops[0]!.stopId,
+        rideStops,
+      )
+    ) {
+      continue;
+    }
 
     const pickupWalkMinutes = rankedStops[0]!.walkMinutes;
     const dropoffWalkMinutes = rankedDropoffStops[0]!.walkMinutes;
@@ -879,19 +996,17 @@ async function scoreInProgressCandidates(
   });
   if (candidateRides.length === 0) return [];
 
-  const livePositionByRide = await fetchLiveTripPositionsByRide(
-    db,
-    candidateRides.map((r) => r.id),
-  );
-  const stopsByRide = await fetchStopsByRide(
-    db,
-    candidateRides.map((r) => r.id),
-  );
+  const inProgressRideIds = candidateRides.map((r) => r.id);
+  const livePositionByRide = await fetchLiveTripPositionsByRide(db, inProgressRideIds);
+  const stopsByRide = await fetchStopsByRide(db, inProgressRideIds);
+  const segmentsByRide = await fetchAcceptedSegmentsByRide(db, inProgressRideIds, stopsByRide);
   const maxDeviationM = deriveMaxDeviationM(origin, destination);
 
   const results: MatchCandidate[] = [];
   for (const ride of candidateRides) {
-    if (ride.seatsAvailable < 1) continue;
+    // M-081 (spec §25): NOT gated on ride.seatsAvailable here either — see
+    // buildEndpointCandidate's own comment for why; the segment-precise
+    // gate runs further down.
     if (!ride.routePolyline) continue; // No real route geometry to project onto — skip, don't fabricate.
 
     const livePos = livePositionByRide.get(ride.id);
@@ -959,6 +1074,22 @@ async function scoreInProgressCandidates(
       WIDE_PICKUP_RADIUS_M,
       maxDeviationM,
     );
+
+    // M-081: the segment-precise capacity gate — undefined stop ids
+    // (a direct ride-endpoint match, M-091's own fix) correctly span the
+    // ride's true start/end via hasSegmentCapacity's own -Infinity/
+    // +Infinity convention.
+    if (
+      !hasSegmentCapacity(
+        segmentsByRide.get(ride.id) ?? [],
+        ride.seatsTotal,
+        recommendedStopId ?? rankedStops[0]?.stopId,
+        recommendedDropoffStopId ?? rankedDropoffStops[0]?.stopId,
+        stopsAheadOfDriver,
+      )
+    ) {
+      continue;
+    }
 
     const pickupWalkMinutes = rankedStops[0]?.walkMinutes ?? originMatchesRideOriginM / WALK_SPEED_M_PER_MIN;
     const dropoffWalkMinutes =
@@ -1253,10 +1384,9 @@ async function findClosestDepartures(
   );
   const riderRoute = await getRoute(origin, destination);
   const riderRoutePoints = riderRoute.polyline ? decodePolyline(riderRoute.polyline) : [];
-  const stopsByRide = await fetchStopsByRide(
-    db,
-    candidateRides.map((r) => r.id),
-  );
+  const closestDepartureRideIds = candidateRides.map((r) => r.id);
+  const stopsByRide = await fetchStopsByRide(db, closestDepartureRideIds);
+  const segmentsByRide = await fetchAcceptedSegmentsByRide(db, closestDepartureRideIds, stopsByRide);
   const maxDeviationM = deriveMaxDeviationM(origin, destination);
 
   const built: MatchCandidate[] = [];
@@ -1266,6 +1396,7 @@ async function findClosestDepartures(
       destination,
       riderRoutePoints,
       stopsByRide,
+      segmentsByRide,
       pickupRadiusM: thresholds.widePickupRadiusM,
       dropoffRadiusM: thresholds.wideDropoffRadiusM,
       maxDeviationM,
