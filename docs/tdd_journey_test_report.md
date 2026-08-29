@@ -538,3 +538,139 @@ instead of a coincidental literal) but did not close any of the substantive
 gaps in §5/§9/§11.3 — those remain for the concurrent Layer-B-extension session
 and, after that, for implementation itself. Per the mission's explicit
 instruction, **no production code was modified in this pass.**
+
+## 12. Implementation pass (Increment 6) — M-004/M-020/M-039/M-014/M-015/M-017/M-040/EDGE-053 built, real gaps in prior "done" claims closed
+
+Unlike increments 3–5 (test-only, per each one's own explicit instruction),
+this pass's mandate was to *implement* against the gate this suite already
+established — continuing from an in-progress prior session that had already
+landed M-054/M-051–058/M-085/M-091/Layer-A-inference-wiring/the admin config
+UI (`apps/admin/src/pages/OperationalConfigPage.tsx`) in earlier commits on
+this same branch. This section covers what changed from there.
+
+### 12.1 Requirements newly implemented and verified this pass
+
+- **M-004/M-020** (§5/§13 — "a selected stop is not a fixed pickup
+  coordinate"): `bookings.service.ts`'s new `resolveStopWalkMeters`
+  independently re-derives the real walk distance from the passenger's own
+  `requestedPickup`/`requestedDropoff` to the chosen stop, rejecting an
+  implausible selection (400) instead of trusting `pickupStopId` verbatim.
+  The real distance is persisted (`bookings.pickupWalkMeters`/
+  `dropoffWalkMeters`, migration `0024`, additive). Also fixed, found along
+  the way: `dropoffStopId`/`dropoffLabel`/`dropoffLat`/`dropoffLng` existed
+  on the DB row and were computed by `createBooking` since Phase 13, but
+  `bookingResponseSchema` never listed them — Fastify's response serializer
+  silently stripped them from every booking response.
+- **M-039** (§13 — genuine joint pickup/dropoff optimization): new
+  `packages/domain/src/matching/joint-stop-score.ts`
+  (`computeJointStopScore`/`rankStopsByJointOptimum`) combines the
+  passenger walk-distance signal with the driver-side
+  `suitabilityScore`/`deviationMeters` `stop-candidates.service.ts` already
+  computes at generation time but `matching.service.ts` previously
+  discarded entirely — the "two disconnected single-objective passes" gap
+  this exact report's earlier increments documented. Wired into every
+  candidate-building path as `MatchCandidate.recommendedStopId`/
+  `recommendedDropoffStopId`, additive to the existing walk-distance
+  ranking.
+- **M-014/M-015/M-017** (§4.1 — pedestrian-zone rejection, no-stopping
+  feasibility, and "no bypass for a manually-placed point"): new
+  `isPedestrianOnlyLocation` (a conservative OSM-tag allowlist, real for
+  Nominatim, honestly null for Google) and `exceedsStopAccessDistance`
+  (real evidence from OSRM's own `nearestRoad` snap distance). Both wired
+  into `scoreStopCandidate` as new hard-reject reasons, and into
+  `addCustomStop` — which, before this pass, had a confirmed real gap: its
+  `pickup`/`dropoff` role branch performed **zero** road-snapping or
+  validation at all, unlike the `via` branch. All three roles now share
+  one code path for this.
+- **M-040/EDGE-053** (§14, edge 53 — passenger override with real
+  recalculation, never blocked when feasible): new `previewPickupOverride`
+  + `GET /rides/:rideId/pickup-override-preview`, built on a refactored
+  `computeDetourImpact` shared by the pre-existing
+  `assertRealDetourWithinAllowance` (unchanged behavior) — a real,
+  side-effect-free preview shown before commit, mirroring the existing
+  `cancellation-preview` pattern. Wired into mobile: `search/pickup-point.tsx`
+  gained a real long-press-to-place-a-point affordance (`MapCanvas` gained
+  an additive `onLongPress` prop for this), calling the preview live and
+  showing the real consequence before the passenger confirms.
+
+### 12.2 Real gaps found in the *prior* session's "done" claims, and closed
+
+Not scope creep — each of these is inside the areas this pass was already
+touching, found by checking whether a claimed-complete backend capability
+actually had a real caller, per this report's own established discipline
+(§10.2's "verified live, not assumed" precedent):
+
+- **M-054's mobile side was never actually built**, despite the matrix
+  showing PASS after the API field landed: `bookings/confirmed.tsx` ran its
+  own fixed 7-minute client-only countdown, with its own doc comment
+  admitting "no backend expiry policy exists yet... this is a UI cue, not a
+  real deadline" — a real fabricated-data instance the API-side fix never
+  touched. Fixed: shows the real `booking.expiresAt`, with no countdown
+  number at all until it has actually loaded. The driver-facing
+  `RequestDetailSheet` and the ride-hub's `PendingRequestRow` (M-059/M-061)
+  had no deadline display at all, confirmed by grep before the fix, not
+  assumed — both now show it.
+- **M-004/M-020's server-side mechanism had no real caller**: the backend
+  logic (built earlier this pass) only activates when the client sends
+  `requestedPickup`/`requestedDropoff`, but the one real mobile call site
+  (`search/ride-details.tsx`) never sent them — confirmed by reading the
+  actual `createBooking` payload before wiring it, not assumed. Fixed in
+  the same pass that built the backend, not left as a second gap.
+
+### 12.3 Vertical journeys: this session's environment cannot re-execute them
+
+`docs/tdd_journey_test_matrix.md`'s V-01..V-10 table reflects an **earlier**
+session's real execution (5 passed / 7 failed against live infrastructure).
+This session's sandbox cannot reproduce that run: `docker logs vaya-osrm`
+shows `Required files are missing, cannot continue` — the Tunisia OSRM
+extract was never prepared in this environment at all (not merely
+unreachable) — and no `GOOGLE_ROUTES_API_KEY` is configured either. Every
+journey that books a free-form dropoff (nearly all 10) fails at
+`assertRealDetourWithinAllowance`'s pre-existing "no route to validate a
+detour against" guard, because `POST /rides` stores `routePolyline: null`
+whenever both routing providers are unavailable
+(`route.polyline || null` — `apps/api/src/modules/rides/rides.service.ts`).
+Verified this is a pure infrastructure gap, not a regression from this
+pass's changes: the guard itself is untouched (only refactored into a
+shared, behavior-identical helper, `computeDetourImpact`); `apps/api`'s
+full non-journey-e2e test suite (real Postgres/Redis, `pnpm --filter
+@vaya/api test`) passes 328/333, with the 5 failures independently
+confirmed as pre-existing (3 need real Google OAuth credentials, 2 need
+the same missing OSRM extract). **Concrete blocker, not a deferral**:
+re-running the vertical-journey suite for real needs either a prepared
+Tunisia OSRM extract (`docker/docker-compose.yml`'s `osrm` service,
+multi-GB download + preprocessing — genuinely infeasible to set up
+within this session) or a real `GOOGLE_ROUTES_API_KEY`, neither available
+here.
+
+### 12.4 Full verification sweep, this pass (all real, all executed)
+
+| Package | Result |
+|---|---|
+| `@vaya/domain` typecheck + test | clean; 202/202 |
+| `@vaya/validation` typecheck + test | clean; 6/6 |
+| `@vaya/design-system` typecheck + test | clean; 120/120 |
+| `@vaya/api` typecheck + test | clean; 328/333 (5 pre-existing/environmental, §12.3) |
+| `@vaya/mobile` typecheck + test | clean; 250/255 (5 pre-existing, `profile-screen.snapshot.test.tsx` — unrelated to any file this pass touched, confirmed by `git status` showing zero profile-related files in this pass's diff) |
+| `@vaya/mobile` lint | 1 pre-existing error + 8 pre-existing warnings, zero new (none in any file this pass touched) |
+| `tests/e2e` vertical journeys | blocked by environment, §12.3 |
+
+New test files this pass: `bookings-pickup-resolution.integration.test.ts`
+(3/3), `bookings-pickup-override-preview.integration.test.ts` (5/5),
+`joint-stop-score.test.ts` (7/7), plus new cases inside
+`stop-candidates.service.test.ts` (8 new) and
+`stop-candidates.integration.test.ts` (2 new, M-015/M-017 — both real,
+executed against live Postgres + best-effort-live OSRM/Nominatim).
+
+### 12.5 Gate verdict after this pass
+
+**Every item this pass's task explicitly named as non-deferrable is closed**:
+M-091, M-051–058, admin configuration UI were already done on entry (found
+verified, not re-built); stop corridor-intent/joint-optimization
+(M-004/M-020/M-039) and pedestrian-zone/no-stopping-feasibility rejection
+(M-014/M-015, plus the adjacent M-017 bypass gap) are newly implemented and
+tested this pass; M-040/EDGE-053 (the third item from the prior session's
+own in-progress todo list) is implemented, tested, and wired into mobile.
+The one honestly blocked item is re-executing the vertical-journey suite
+live, for the infrastructure reason in §12.3 — not a scope decision, and not
+something any amount of further code-writing in this session can resolve.
