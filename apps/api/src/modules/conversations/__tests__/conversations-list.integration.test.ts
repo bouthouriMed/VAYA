@@ -84,7 +84,11 @@ describe('conversations — inbox list + enriched summaries', () => {
       .returning();
     outsiderId = outsider!.id;
 
-    async function insertRide(originLabel: string, destinationLabel: string): Promise<string> {
+    async function insertRide(
+      originLabel: string,
+      destinationLabel: string,
+      destination: { lat: number; lng: number },
+    ): Promise<string> {
       const [ride] = await db
         .insert(rides)
         .values({
@@ -94,8 +98,8 @@ describe('conversations — inbox list + enriched summaries', () => {
           originLat: 36.8,
           originLng: 10.18,
           destinationLabel,
-          destinationLat: 36.85,
-          destinationLng: 10.2,
+          destinationLat: destination.lat,
+          destinationLng: destination.lng,
           departureAt: new Date(Date.now() + 3_600_000),
           seatsTotal: 3,
           seatsAvailable: 3,
@@ -109,9 +113,16 @@ describe('conversations — inbox list + enriched summaries', () => {
 
     // Rider A books both rides; rider B books only ride A. All accepted ⇒
     // three conversations total: two visible to rider A / the driver, one
-    // to rider B.
-    const rideAId = await insertRide('Inbox Origin A', 'Inbox Dest A');
-    const rideBId = await insertRide('Inbox Origin B', 'Inbox Dest B');
+    // to rider B. Ride B's destination is deliberately several km away from
+    // ride A's (not just a different label) — M-051/055/056's same-journey
+    // grouping (journey-grouping.ts) would otherwise treat rider A's two
+    // bookings as duplicate requests for the same journey (same rider, same
+    // pickup, same ~time) and auto-supersede the second the moment the
+    // first is accepted, which is real, spec-required behavior this fixture
+    // must not accidentally trigger — these are meant to be two genuinely
+    // different rides/conversations.
+    const rideAId = await insertRide('Inbox Origin A', 'Inbox Dest A', { lat: 36.85, lng: 10.2 });
+    const rideBId = await insertRide('Inbox Origin B', 'Inbox Dest B', { lat: 36.95, lng: 10.35 });
 
     bookingAId = (
       await createBooking(db, rideAId, riderAId, {

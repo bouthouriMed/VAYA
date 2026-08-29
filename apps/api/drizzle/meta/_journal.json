@@ -162,6 +162,13 @@
       "when": 1788013566311,
       "tag": "0022_black_hedge_knight",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1788015082461,
+      "tag": "0023_thankful_chameleon",
+      "breakpoints": true
     }
   ]
 }

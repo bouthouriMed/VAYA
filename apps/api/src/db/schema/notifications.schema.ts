@@ -23,6 +23,11 @@ export const notificationEventTypeEnum = pgEnum('notification_event_type', [
   'trip_arriving',
   'trip_tracking_unavailable',
   'trip_pickup_arrived',
+  // Journey-contract second pass (docs/unified_driver_and_passenger_journey.md
+  // §33, §51, M-096/097, EDGE-051) — see @vaya/domain's
+  // notification-event.types.ts doc comment for the full reasoning.
+  'trip_passenger_onboard',
+  'trip_route_deviation',
   // Trip-staleness sweep (packages/domain/src/trip/trip-staleness.ts) — a
   // trip still non-terminal well past its expected arrival gets one
   // reminder nudge before the sweep eventually closes it on its own.

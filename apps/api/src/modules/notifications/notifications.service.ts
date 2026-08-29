@@ -140,6 +140,8 @@ const TITLES: Partial<Record<NotificationEventType, string>> = {
   trip_pickup_arrived: 'Votre conducteur est arrivé',
   trip_arriving: 'Votre conducteur arrive',
   trip_tracking_unavailable: 'Suivi temporairement indisponible',
+  trip_passenger_onboard: 'Trajet en cours',
+  trip_route_deviation: 'Changement d’itinéraire',
   trip_completion_reminder: 'Votre trajet est-il terminé ?',
   verification_submitted: 'Vérification soumise',
   verification_approved: 'Vous êtes vérifié',
@@ -216,6 +218,12 @@ function bodyFor(type: NotificationEventType, payload: Record<string, unknown>):
       return 'Votre conducteur arrive à destination dans quelques instants.';
     case 'trip_tracking_unavailable':
       return 'Le suivi en direct est temporairement indisponible — le trajet continue normalement.';
+    // Journey-contract second pass (docs/unified_driver_and_passenger_journey.md
+    // §33, §51, M-096/097, EDGE-051).
+    case 'trip_passenger_onboard':
+      return 'Vous êtes à bord — suivez votre trajet en direct.';
+    case 'trip_route_deviation':
+      return 'Votre conducteur a pris un itinéraire différent — votre heure d’arrivée est recalculée.';
     // Trip-staleness sweep (packages/domain/src/trip/trip-staleness.ts).
     case 'trip_completion_reminder':
       return 'Ce trajet semble terminé depuis un moment. Confirmez pour clore le trajet et permettre l’évaluation.';

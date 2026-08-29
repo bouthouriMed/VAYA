@@ -19,6 +19,14 @@ export const NOTIFICATION_EVENT_TYPES = [
   'trip_pickup_arrived',
   'trip_arriving',
   'trip_tracking_unavailable',
+  // Journey-contract second pass (docs/unified_driver_and_passenger_journey.md
+  // §33, §51, M-096/097, EDGE-051): the passenger's own boarding-confirmed
+  // moment (auto-detected or manually confirmed) — the exact moment
+  // passenger-facing live tracking becomes available (M-094/INV-06) — and
+  // a real, meaningfully-detected route deviation ("inform affected users
+  // when their journey meaningfully changes").
+  'trip_passenger_onboard',
+  'trip_route_deviation',
   // Trip-staleness sweep (packages/domain/src/trip/trip-staleness.ts) — a
   // trip that's still non-terminal well past its expected arrival gets one
   // reminder nudge before the sweep eventually closes it on its own.

@@ -66,19 +66,18 @@ describe('notification event coverage — spec §39\'s 12-item list vs. the real
     expect(EXISTING_EVENTS.has('request_group_closed')).toBe(false);
   });
 
-  it('FAIL (missing, M-113): "passenger onboard" has no distinct event type — confirmPassengerAboard only broadcasts over WebSocket, per the audit', () => {
-    expect(EXISTING_EVENTS.has('passenger_onboard')).toBe(false);
-    expect(EXISTING_EVENTS.has('trip_passenger_onboard')).toBe(false);
+  it('RESOLVED (M-113, journey-contract second pass): "passenger onboard" -> trip_passenger_onboard now exists, dispatched from both the auto-boarding-inference path and the manual confirmPassengerAboard tap (trips.service.ts)', () => {
+    expect(EXISTING_EVENTS.has('trip_passenger_onboard')).toBe(true);
   });
 
-  it('FAIL (missing, M-113): "live journey started" has no distinct event type', () => {
+  it('FAIL (missing, M-113): "live journey started" has no distinct event type — trip_passenger_onboard (boarding) is the closest existing signal, but a driver-side "you are now live/en route" moment remains conflated with pickup rather than dispatched separately', () => {
     expect(EXISTING_EVENTS.has('trip_active')).toBe(false);
     expect(EXISTING_EVENTS.has('live_journey_started')).toBe(false);
   });
 
-  it('FAIL (missing, M-113): "route/ETA changed" has no event type — ETA recompute is WebSocket-only, never persisted/pushed as a notification', () => {
+  it('PARTIALLY RESOLVED (M-113/M-090, journey-contract second pass): "route ... changed" -> trip_route_deviation now exists (dispatched once per genuine, non-noise deviation — classifyRouteDeviation/updateLiveCorridor). "... ETA changed" in isolation (no route deviation, just a recompute) is still WebSocket-only, never persisted/pushed as its own notification.', () => {
+    expect(EXISTING_EVENTS.has('trip_route_deviation')).toBe(true);
     expect(EXISTING_EVENTS.has('trip_eta_changed')).toBe(false);
-    expect(EXISTING_EVENTS.has('route_changed')).toBe(false);
   });
 
   it('documents the exact current event surface, so a future addition updates this test deliberately rather than silently', () => {
@@ -98,6 +97,8 @@ describe('notification event coverage — spec §39\'s 12-item list vs. the real
         'trip_arriving',
         'trip_tracking_unavailable',
         'trip_pickup_arrived',
+        'trip_passenger_onboard',
+        'trip_route_deviation',
         'trip_completion_reminder',
         'verification_submitted',
         'verification_approved',
