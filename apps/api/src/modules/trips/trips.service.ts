@@ -487,6 +487,33 @@ export interface TrackingState {
  *  polling fallback (the same shape the WebSocket pushes incrementally) —
  *  RTK Query can poll this exactly like every other list in this app when a
  *  socket connection isn't available. */
+// M-094/INV-06 (docs/unified_driver_and_passenger_journey.md §32, §62,
+// hard invariant): "Pre-boarding: passenger sees ETA/pickup/route info,
+// NEVER raw driver GPS." Confirmed live (this pass) that `getTrackingState`
+// previously returned raw `currentLat`/`currentLng`/heading/speed to a
+// passenger regardless of trip status — a passenger polling this endpoint
+// the moment a request was accepted could see the driver's exact live
+// position hours before pickup. Boarding is `pickup -> active` (matches
+// `evaluateBoarding`'s own transition, trip/boarding-inference.ts) — every
+// status before that is pre-boarding for privacy purposes. The driver
+// always sees their own raw position (no privacy concern viewing your own
+// GPS); operational tracking itself (M-093, `updateTripLocation`) is
+// unaffected — only this passenger-facing READ is scoped.
+const PRE_BOARDING_TRIP_STATUSES: readonly TripStatus[] = ['scheduled', 'driver_approaching', 'pickup'];
+
+/** Whether `userId` is this trip's driver (vs. its rider) — used by the WS
+ *  tracking route (trips.routes.ts) to tag a connecting socket with its
+ *  role, so lib/realtime.ts's broadcast fan-out can apply the same
+ *  pre-boarding GPS redaction `getTrackingState` applies below. Callers
+ *  that already resolved a `getTrackingState` result don't need this; it's
+ *  for connection setup, where only the role (not the full state) is
+ *  needed yet. */
+export async function isTripDriver(db: Database, tripId: string, userId: string): Promise<boolean> {
+  const trip = await getTripWithPartiesOrThrow(db, tripId);
+  assertIsParty(trip, userId);
+  return trip.booking.ride.driverProfile.userId === userId;
+}
+
 export async function getTrackingState(
   db: Database,
   tripId: string,
@@ -494,6 +521,10 @@ export async function getTrackingState(
 ): Promise<TrackingState> {
   const trip = await getTripWithPartiesOrThrow(db, tripId);
   assertIsParty(trip, requestingUserId);
+
+  const isDriver = trip.booking.ride.driverProfile.userId === requestingUserId;
+  const isPreBoarding = PRE_BOARDING_TRIP_STATUSES.includes(trip.status);
+  const withholdRawGps = !isDriver && isPreBoarding;
 
   const destination = destinationPoint(trip);
   return {
@@ -503,11 +534,11 @@ export async function getTrackingState(
       locationUpdatedAt: trip.locationUpdatedAt,
       now: new Date(),
     }),
-    currentLat: trip.currentLat,
-    currentLng: trip.currentLng,
-    currentHeadingDeg: trip.currentHeadingDeg,
-    currentSpeedMps: trip.currentSpeedMps,
-    locationUpdatedAt: trip.locationUpdatedAt,
+    currentLat: withholdRawGps ? null : trip.currentLat,
+    currentLng: withholdRawGps ? null : trip.currentLng,
+    currentHeadingDeg: withholdRawGps ? null : trip.currentHeadingDeg,
+    currentSpeedMps: withholdRawGps ? null : trip.currentSpeedMps,
+    locationUpdatedAt: withholdRawGps ? null : trip.locationUpdatedAt,
     routePolyline: trip.booking.ride.routePolyline,
     pickup: {
       lat: trip.booking.pickupLat,

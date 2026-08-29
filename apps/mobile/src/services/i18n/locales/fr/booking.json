@@ -45,6 +45,7 @@
     "confirmCta": "Confirmer l'annulation",
     "cancelCta": "Garder la réservation",
     "error": "Impossible d'annuler. Réessayez.",
+    "reasonPrompt": "Pourquoi annulez-vous ?",
     "reasons": {
       "change_of_plans": "Changement de plans",
       "found_alternative": "J'ai trouvé un autre trajet",

@@ -656,6 +656,15 @@ export interface PendingRating {
 // packages/domain's CancellationTier/CancellationPolicyResult.
 export type CancellationTier = 'free' | 'moderate' | 'severe';
 
+// Journey-contract second pass (docs/unified_driver_and_passenger_journey.md
+// §38, M-110). Mirrors @vaya/domain's CANCELLATION_REASONS exactly — a
+// lightweight, required, fixed-set reason, shared by both roles. Also
+// exactly matches the pre-existing `booking:cancellation.reasons.*` i18n
+// keys (fr/en/ar), which were already translated but orphaned before this
+// pass — no UI component rendered them.
+export const CANCELLATION_REASONS = ['change_of_plans', 'found_alternative', 'emergency', 'other'] as const;
+export type CancellationReason = (typeof CANCELLATION_REASONS)[number];
+
 export interface CancellationPolicy {
   tier: CancellationTier;
   /** Negative once departure has already passed. */
@@ -1072,8 +1081,15 @@ export const api = createApi({
     getBookingContactPhone: builder.query<{ phone: string | null }, string>({
       query: (bookingId) => `/bookings/${bookingId}/contact-phone`,
     }),
-    cancelBooking: builder.mutation<Booking & { cancellationPolicy: CancellationPolicy }, string>({
-      query: (bookingId) => ({ url: `/bookings/${bookingId}/cancel`, method: 'POST' }),
+    cancelBooking: builder.mutation<
+      Booking & { cancellationPolicy: CancellationPolicy },
+      { bookingId: string; reason: CancellationReason }
+    >({
+      query: ({ bookingId, reason }) => ({
+        url: `/bookings/${bookingId}/cancel`,
+        method: 'POST',
+        body: { reason },
+      }),
       invalidatesTags: ['MyBookings', 'RideRequests', 'MyRides'],
     }),
     reportNoShow: builder.mutation<Booking, string>({

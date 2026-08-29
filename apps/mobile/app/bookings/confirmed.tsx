@@ -5,7 +5,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { Text, Icon, useAppTheme, spacing, radii, haptics } from '@vaya/design-system';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { useListMyBookingsQuery, useCancelBookingMutation } from '../../src/state/api';
+import { useListMyBookingsQuery } from '../../src/state/api';
+import { CancellationSheet } from '../../src/features/bookings/CancellationSheet';
 
 const REQUEST_WINDOW_MS = 7 * 60_000;
 // How often to re-poll bookings while waiting for a driver response. There
@@ -35,8 +36,7 @@ export default function ConfirmedScreen(): React.JSX.Element {
   const driverFirstName = (params.driverName ?? t('common:terms.driver')).split(' ')[0]!;
   const deadline = useMemo(() => Date.now() + REQUEST_WINDOW_MS, []);
   const [remainingMs, setRemainingMs] = useState(REQUEST_WINDOW_MS);
-  const [cancelling, setCancelling] = useState(false);
-  const [cancelBooking, { isLoading: isCancelling }] = useCancelBookingMutation();
+  const [cancelSheetVisible, setCancelSheetVisible] = useState(false);
 
   const { data: bookings } = useListMyBookingsQuery(undefined, {
     skip: !params.bookingId,
@@ -77,16 +77,6 @@ export default function ConfirmedScreen(): React.JSX.Element {
     .toString()
     .padStart(2, '0');
 
-  async function handleCancel(): Promise<void> {
-    if (!params.bookingId || isCancelling) return;
-    setCancelling(true);
-    try {
-      await cancelBooking(params.bookingId).unwrap();
-      router.replace('/(tabs)/explore');
-    } catch {
-      setCancelling(false);
-    }
-  }
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -194,18 +184,27 @@ export default function ConfirmedScreen(): React.JSX.Element {
         {!declined ? (
           <TouchableOpacity
             style={styles.ghostBtn}
-            onPress={() => void handleCancel()}
-            disabled={cancelling}
+            onPress={() => setCancelSheetVisible(true)}
             activeOpacity={0.7}
             accessibilityRole="button"
             accessibilityLabel={t('booking:cancel_request')}
           >
             <Text variant="label" color={theme.inkFaint}>
-              {cancelling ? t('booking:status_cancelling') : t('booking:cancel_request')}
+              {t('booking:cancel_request')}
             </Text>
           </TouchableOpacity>
         ) : null}
       </View>
+
+      {params.bookingId ? (
+        <CancellationSheet
+          visible={cancelSheetVisible}
+          onClose={() => setCancelSheetVisible(false)}
+          bookingId={params.bookingId}
+          role="rider"
+          onCancelled={() => router.replace('/(tabs)/explore')}
+        />
+      ) : null}
     </View>
   );
 }

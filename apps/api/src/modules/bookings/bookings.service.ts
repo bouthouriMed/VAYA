@@ -3,6 +3,7 @@ import type { getDatabase } from '../../lib/database.js';
 import { bookings, rides, routeStops, riderProfiles, trips, users } from '../../db/schema/index.js';
 import { AppError, ConflictError, ForbiddenError, NotFoundError, ValidationError } from '../../lib/errors.js';
 import {
+  canCancelTrip,
   canReportNoShow,
   canTransitionBookingStatus,
   canTransitionRideStatus,
@@ -10,12 +11,15 @@ import {
   classifyTripProfile,
   computeCancellationPolicy,
   computeMaxConcurrentSeats,
+  computeSuggestedPrice,
   detourAllowanceSec,
   getMatchingThresholds,
   wouldExceedCapacity,
+  CANCELLATION_REASONS,
   NO_SHOW_PENALTY_POINTS,
   type BookingSegment,
   type CancellationPolicyResult,
+  type CancellationReason,
   type RatingRole,
 } from '@vaya/domain';
 import type { CreateBookingInput } from '@vaya/validation';
@@ -44,6 +48,7 @@ import {
   recordAutomaticNoShowRating,
 } from '../ratings/ratings.service.js';
 import { getRoute } from '../../lib/routing.js';
+import { getActivePricingConfig } from '../pricing/pricing.service.js';
 
 type Database = ReturnType<typeof getDatabase>;
 /** The transaction-callback handle drizzle's node-postgres driver passes
@@ -262,7 +267,7 @@ async function assertRealDetourWithinAllowance(
  *  check here — trips are only created at acceptance. */
 async function assertTripNotStarted(db: Database, bookingId: string): Promise<void> {
   const trip = await db.query.trips.findFirst({ where: eq(trips.bookingId, bookingId) });
-  if (trip && trip.status !== 'scheduled') {
+  if (!canCancelTrip(trip?.status ?? null)) {
     throw new ForbiddenError('Cannot cancel a booking once the trip has started');
   }
 }
@@ -324,6 +329,79 @@ async function getDriverAvatarSafe(db: Database, driverUserId: string): Promise<
   } catch {
     return undefined;
   }
+}
+
+// M-070..075 (docs/unified_driver_and_passenger_journey.md §24, EDGE-055) —
+// spec's own worked example: "Driver publishes Madrid -> Barcelona = EUR20.
+// Passenger requests Zaragoza -> Barcelona. VAYA calculates a segment price,
+// e.g. EUR10." Confirmed live (this pass) that this genuinely never
+// happened — every booking, regardless of requested segment, paid
+// `ride.contributionPerSeat * seatsRequested` unconditionally (the driver's
+// full-route price), which is exactly what V-02/V-03's real HTTP journeys
+// caught (`contributionTotal` equals the full-route price, not less).
+//
+// A tiny coordinate epsilon (~11m) treats "the ride's own origin/destination,
+// resubmitted verbatim" as the full route — the common, already-correct
+// case (V-01) — rather than recomputing a fresh price for it that could
+// drift from the number the ride listing actually advertised (a driver may
+// have adjusted `contributionPerSeat` away from the formula's own
+// `recommended` value within its [min,max] bound, per Phase 6). A genuine
+// sub-segment (a stop-based or free-form pickup/dropoff that differs from
+// the ride's own endpoints) gets a fresh price computed directly from ITS
+// OWN real segment distance/duration via the same `computeSuggestedPrice`
+// formula and the ride's active pricing config — never scaled off the
+// ride's own (possibly-adjusted) full-route price, matching the domain
+// contract this pass already verified
+// (compute-suggested-price.segment-pricing-contract.test.ts).
+const FULL_ROUTE_ENDPOINT_EPSILON_DEG = 0.0001; // ~11m
+
+function isSameCoordinate(aLat: number, aLng: number, bLat: number, bLng: number): boolean {
+  return (
+    Math.abs(aLat - bLat) < FULL_ROUTE_ENDPOINT_EPSILON_DEG &&
+    Math.abs(aLng - bLng) < FULL_ROUTE_ENDPOINT_EPSILON_DEG
+  );
+}
+
+async function computeBookingContributionTotal(
+  db: Database,
+  ride: Awaited<ReturnType<typeof getRideOrThrow>>,
+  segment: {
+    pickupStopId: string | null;
+    pickupLat: number;
+    pickupLng: number;
+    dropoffStopId: string | null;
+    dropoffLat: number | null;
+    dropoffLng: number | null;
+    seatsRequested: number;
+  },
+): Promise<number> {
+  const resolvedDropoffLat = segment.dropoffLat ?? ride.destinationLat;
+  const resolvedDropoffLng = segment.dropoffLng ?? ride.destinationLng;
+
+  const isFullRouteBooking =
+    !segment.pickupStopId &&
+    !segment.dropoffStopId &&
+    isSameCoordinate(segment.pickupLat, segment.pickupLng, ride.originLat, ride.originLng) &&
+    isSameCoordinate(resolvedDropoffLat, resolvedDropoffLng, ride.destinationLat, ride.destinationLng);
+
+  if (isFullRouteBooking) {
+    return ride.contributionPerSeat * segment.seatsRequested;
+  }
+
+  const [pricingConfig, segmentRoute] = await Promise.all([
+    getActivePricingConfig(db),
+    getRoute(
+      { lat: segment.pickupLat, lng: segment.pickupLng },
+      { lat: resolvedDropoffLat, lng: resolvedDropoffLng },
+    ),
+  ]);
+  const segmentPrice = computeSuggestedPrice(
+    segmentRoute.distanceM / 1000,
+    segmentRoute.durationSec / 60,
+    pricingConfig,
+    { isEstimate: segmentRoute.isEstimate },
+  );
+  return segmentPrice.recommended * segment.seatsRequested;
 }
 
 export async function createBooking(
@@ -484,13 +562,23 @@ export async function createBooking(
     );
   }
 
+  const contributionTotal = await computeBookingContributionTotal(db, ride, {
+    pickupStopId,
+    pickupLat,
+    pickupLng,
+    dropoffStopId,
+    dropoffLat,
+    dropoffLng,
+    seatsRequested: input.seatsRequested,
+  });
+
   const [booking] = await db
     .insert(bookings)
     .values({
       rideId,
       riderId,
       seatsRequested: input.seatsRequested,
-      contributionTotal: ride.contributionPerSeat * input.seatsRequested,
+      contributionTotal,
       status: 'pending',
       pickupStopId,
       pickupLabel,
@@ -996,7 +1084,20 @@ export async function previewBookingDetour(
   };
 }
 
-export async function cancelBooking(db: Database, bookingId: string, requestingUserId: string) {
+export async function cancelBooking(
+  db: Database,
+  bookingId: string,
+  requestingUserId: string,
+  reason: CancellationReason,
+) {
+  // M-110 (docs/unified_driver_and_passenger_journey.md §38): enforced here
+  // too, not just by the route's Zod schema — a direct service-level caller
+  // (another module, a future admin action) must not be able to bypass the
+  // "required reason from a fixed set" rule the HTTP boundary enforces.
+  if (!CANCELLATION_REASONS.includes(reason)) {
+    throw new ValidationError('A valid cancellation reason is required');
+  }
+
   const booking = await getBookingOrThrow(db, bookingId);
   const isRider = booking.riderId === requestingUserId;
   const isDriver = booking.ride.driverProfile.userId === requestingUserId;
@@ -1048,7 +1149,12 @@ export async function cancelBooking(db: Database, bookingId: string, requestingU
 
     const [updatedBooking] = await tx
       .update(bookings)
-      .set({ status: nextStatus, respondedAt: cancelledAt, updatedAt: cancelledAt })
+      .set({
+        status: nextStatus,
+        cancellationReason: reason,
+        respondedAt: cancelledAt,
+        updatedAt: cancelledAt,
+      })
       .where(and(eq(bookings.id, bookingId), eq(bookings.status, booking.status)))
       .returning();
     if (!updatedBooking) {

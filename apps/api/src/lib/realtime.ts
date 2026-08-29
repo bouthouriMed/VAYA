@@ -1,12 +1,13 @@
 import IORedis from 'ioredis';
 import type { WebSocket } from 'ws';
+import type { TripStatus } from '@vaya/domain';
 import { getEnv } from '../config/env.js';
 import { getLogger } from '../config/logger.js';
 
 /**
  * Live-tracking realtime fan-out (docs/domain/live-tracking.md). One room
- * (a Set of open WebSocket connections) per trip, kept in this process's
- * memory. When REDIS_URL is configured, every publish also goes through a
+ * (open WebSocket connections, keyed by socket, each tagged with its role)
+ * per trip, kept in this process's memory. When REDIS_URL is configured, every publish also goes through a
  * Redis pub/sub channel — the *only* path any instance uses to deliver to
  * its own local sockets too (a single instance is simply subscribed to its
  * own channel), so this is correct unmodified whether the API runs as one
@@ -25,7 +26,47 @@ interface TripUpdateMessage {
   payload: unknown;
 }
 
-const rooms = new Map<string, Set<WebSocket>>();
+// M-094/INV-06 (docs/unified_driver_and_passenger_journey.md §32, §62):
+// each socket's role is tracked alongside it (not just a bare Set) so a
+// `location` payload can be redacted per-recipient at delivery time —
+// mirrors `getTrackingState`'s (apps/api/src/modules/trips/trips.service.ts)
+// same pre-boarding-rider-never-sees-raw-GPS rule, applied to the
+// real-time push path too. Confirmed live (this pass) that this room
+// previously broadcast the exact same raw-GPS payload to every connected
+// socket regardless of role or trip status — the poll-based
+// `getTrackingState` fix alone left this push path wide open.
+const rooms = new Map<string, Map<WebSocket, { isDriver: boolean }>>();
+
+// Mirrors trips.service.ts's own PRE_BOARDING_TRIP_STATUSES exactly —
+// duplicated (not imported) to avoid a circular import (trips.service.ts
+// already imports `publishTripUpdate` from this module). Boarding is
+// `pickup -> active` (see trip/boarding-inference.ts).
+const PRE_BOARDING_TRIP_STATUSES: readonly TripStatus[] = ['scheduled', 'driver_approaching', 'pickup'];
+
+/** A `location`-type payload's raw GPS fields, redacted the same way
+ *  `getTrackingState` redacts them for a pre-boarding rider. Any other
+ *  payload type (`status`/`tracking_issue`) is returned unchanged — it
+ *  never carries raw position data. */
+function redactForRider(payload: unknown): unknown {
+  if (
+    typeof payload !== 'object' ||
+    payload === null ||
+    (payload as { type?: unknown }).type !== 'location'
+  ) {
+    return payload;
+  }
+  const p = payload as Record<string, unknown> & { tripStatus?: TripStatus };
+  if (!p.tripStatus || !PRE_BOARDING_TRIP_STATUSES.includes(p.tripStatus)) return payload;
+
+  return {
+    ...p,
+    currentLat: null,
+    currentLng: null,
+    currentHeadingDeg: null,
+    currentSpeedMps: null,
+    locationUpdatedAt: null,
+  };
+}
 
 let publisher: IORedis | null = null;
 let subscriber: IORedis | null = null;
@@ -44,10 +85,15 @@ function getPublisher(): IORedis | null {
 function deliverLocally(tripId: string, payload: unknown): void {
   const sockets = rooms.get(tripId);
   if (!sockets || sockets.size === 0) return;
-  const message = JSON.stringify(payload);
-  for (const socket of sockets) {
+  // Two candidate messages, computed once per broadcast (not per socket) —
+  // the driver's own view is always the full payload; a rider's view is
+  // redacted only while genuinely pre-boarding (redactForRider is a no-op
+  // otherwise, or for non-`location` payload types).
+  const fullMessage = JSON.stringify(payload);
+  const riderMessage = JSON.stringify(redactForRider(payload));
+  for (const [socket, { isDriver }] of sockets) {
     if (socket.readyState === socket.OPEN) {
-      socket.send(message);
+      socket.send(isDriver ? fullMessage : riderMessage);
     }
   }
 }
@@ -73,16 +119,20 @@ function ensureSubscriber(): void {
   });
 }
 
-/** Registers a passenger/driver's open WebSocket into a trip's room. Caller
- *  is responsible for removing it (see `unregisterTripSocket`) on close. */
-export function registerTripSocket(tripId: string, socket: WebSocket): void {
+/** Registers a passenger/driver's open WebSocket into a trip's room. `isDriver`
+ *  is captured once at connection time (the caller already resolved it via
+ *  `getTrackingState`'s own party check) so every subsequent broadcast to
+ *  this socket can be redacted correctly without re-deriving role per
+ *  message. Caller is responsible for removing it (see
+ *  `unregisterTripSocket`) on close. */
+export function registerTripSocket(tripId: string, socket: WebSocket, isDriver: boolean): void {
   ensureSubscriber();
   let room = rooms.get(tripId);
   if (!room) {
-    room = new Set();
+    room = new Map();
     rooms.set(tripId, room);
   }
-  room.add(socket);
+  room.set(socket, { isDriver });
 }
 
 export function unregisterTripSocket(tripId: string, socket: WebSocket): void {

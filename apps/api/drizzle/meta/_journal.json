@@ -141,6 +141,13 @@
       "when": 1787850742919,
       "tag": "0019_good_purifiers",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1788009283855,
+      "tag": "0020_round_kingpin",
+      "breakpoints": true
     }
   ]
 }

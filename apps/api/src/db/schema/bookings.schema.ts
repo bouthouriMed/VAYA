@@ -63,6 +63,12 @@ export const bookings = pgTable(
     dropoffLng: doublePrecision('dropoff_lng'),
     requestedAt: timestamp('requested_at', { withTimezone: true }).notNull().defaultNow(),
     respondedAt: timestamp('responded_at', { withTimezone: true }),
+    // Journey-contract second pass (docs/unified_driver_and_passenger_journey.md
+    // §38, M-110): "a lightweight required reason from a fixed set"
+    // (@vaya/domain's CANCELLATION_REASONS). Nullable/additive — every
+    // booking that isn't cancelled, and every cancellation that predates
+    // this column, has none; set only by `cancelBooking`.
+    cancellationReason: varchar('cancellation_reason', { length: 40 }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },

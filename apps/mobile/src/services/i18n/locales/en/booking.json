@@ -45,6 +45,7 @@
     "confirmCta": "Confirm cancellation",
     "cancelCta": "Keep booking",
     "error": "Unable to cancel. Try again.",
+    "reasonPrompt": "Why are you cancelling?",
     "reasons": {
       "change_of_plans": "Change of plans",
       "found_alternative": "Found another ride",

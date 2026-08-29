@@ -10,9 +10,12 @@ export * from './driver/verification-transitions';
 export * from './route/route.types';
 export * from './route/trip-profile.types';
 export * from './route/classify-trip-profile';
+export * from './route/live-corridor';
 
 export * from './matching/matching-thresholds.types';
 export * from './matching/matching-thresholds';
+export * from './matching/existing-passenger-impact-thresholds';
+export * from './matching/existing-passenger-impact';
 
 export * from './ride/ride.types';
 export * from './ride/ride-status';
@@ -27,6 +30,10 @@ export * from './trip/trip-status';
 export * from './trip/tracking-status';
 export * from './trip/tracking-transitions';
 export * from './trip/trip-staleness';
+export * from './trip/auto-start-inference';
+export * from './trip/boarding-inference';
+export * from './trip/eta-confidence';
+export * from './trip/cancellation-guard';
 
 export * from './rating/rating.types';
 export * from './rating/trust-tier';

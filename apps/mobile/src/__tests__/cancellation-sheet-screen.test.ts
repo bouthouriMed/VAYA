@@ -27,6 +27,11 @@ function readSource(dir: string, relativePath: string): string {
  * confirm action on that preview having loaded, so the consequence is
  * genuinely shown *before* the user can commit (the phase doc's explicit
  * "no surprise outcomes" requirement).
+ *
+ * Journey-contract second pass (docs/unified_driver_and_passenger_journey.md
+ * §38, M-110): "a lightweight required reason from a fixed set" — the
+ * confirm action's disabled condition was extended (not replaced) to also
+ * require a reason, and the mutation call now sends one.
  */
 describe('CancellationSheet shows the server-computed policy consequence before confirming', () => {
   const source = readSource(featuresDir, 'CancellationSheet.tsx');
@@ -40,7 +45,16 @@ describe('CancellationSheet shows the server-computed policy consequence before 
   });
 
   it('disables the confirm action until the preview has actually loaded', () => {
-    expect(source).toMatch(/disabled=\{isFetching \|\| !preview\}/);
+    expect(source).toMatch(/disabled=\{isFetching \|\| !preview \|\| !reason\}/);
+  });
+
+  it('M-110: requires a reason from the fixed set before the confirm action is enabled', () => {
+    expect(source).toContain('CANCELLATION_REASONS');
+    expect(source).toMatch(/!reason/);
+  });
+
+  it('M-110: the cancel mutation call includes the selected reason, not just the bookingId', () => {
+    expect(source).toMatch(/cancelBooking\(\{\s*bookingId,\s*reason\s*\}\)/);
   });
 
   it('only fires the destructive cancel mutation from the confirm handler, never on open', () => {

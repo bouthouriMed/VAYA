@@ -142,7 +142,7 @@ describe('bookings.service — seat-accounting concurrency', () => {
     if (!acceptedBooking)
       throw new Error('Expected an accepted booking fixture from the prior test');
 
-    await cancelBooking(db, acceptedBooking.id, driverUserId);
+    await cancelBooking(db, acceptedBooking.id, driverUserId, 'change_of_plans');
 
     const [finalRide] = await db.select().from(rides).where(eq(rides.id, rideId));
     expect(finalRide!.seatsAvailable).toBe(1);

@@ -37,6 +37,23 @@
 export const CANCELLATION_TIERS = ['free', 'moderate', 'severe'] as const;
 export type CancellationTier = (typeof CANCELLATION_TIERS)[number];
 
+/**
+ * A lightweight, required, fixed-set reason (spec §38 — matrix M-110):
+ * "Pre-trip-start: both driver and passenger can cancel with a lightweight
+ * required reason from a fixed set." Confirmed live (this pass) that no
+ * *mechanism* previously existed anywhere in the codebase — not a mobile UI
+ * picker component, not a persisted column, not a request-body field —
+ * `POST /bookings/:bookingId/cancel` accepted an empty body and
+ * `cancelBooking` took no reason parameter at all. The four values here
+ * exactly match `apps/mobile`'s pre-existing (already French/English/Arabic
+ * translated) `booking:cancellation.reasons.*` i18n keys, which were already
+ * present but orphaned — no UI component ever rendered them before this
+ * pass. Shared by both roles (driver/rider) since the persisted column and
+ * the spec's own wording are role-agnostic.
+ */
+export const CANCELLATION_REASONS = ['change_of_plans', 'found_alternative', 'emergency', 'other'] as const;
+export type CancellationReason = (typeof CANCELLATION_REASONS)[number];
+
 /** ≥24h before departure is the free-cancellation window. */
 export const CANCELLATION_FREE_WINDOW_HOURS = 24;
 /** ≥30min (but <24h) before departure is the moderate window; below this is severe. */
@@ -143,4 +160,57 @@ export function computeCancellationPolicy(
 export function canReportNoShow(departureAt: Date, reportedAt: Date): boolean {
   const minutesPastDeparture = (reportedAt.getTime() - departureAt.getTime()) / 60_000;
   return minutesPastDeparture >= NO_SHOW_MIN_MINUTES_AFTER_DEPARTURE;
+}
+
+/**
+ * No-show should be contextual (spec §37 — matrix M-102): "A passenger
+ * sitting at home should not simply be able to report: Driver is a no-show.
+ * The action becomes relevant around: scheduled pickup time, pickup
+ * location, driver/passenger physical proximity, expected arrival window."
+ *
+ * Extends `canReportNoShow`'s already-shipped, already-correct time gate
+ * (left completely unmodified, still the sole rule when no location fix is
+ * available) with a location-proximity check: reporting requires the
+ * reporter to genuinely be near the meeting point, not merely that the
+ * clock has ticked past the grace period. Missing location data degrades
+ * gracefully to the existing time-only behavior — a report from a passenger
+ * whose phone has no GPS fix must not become permanently unreportable, since
+ * `canReportNoShow`'s current time-only path is itself a real, valid path
+ * today and must keep working unchanged.
+ *
+ * Pure function: no I/O.
+ */
+export const NO_SHOW_MAX_REPORTER_DISTANCE_METERS = 200;
+
+export interface NoShowReportEvidence {
+  /** The reporter's distance from the scheduled meeting point, in meters —
+   *  `null` when no location fix is available. */
+  reporterDistanceMetersFromMeetingPoint: number | null;
+}
+
+export type NoShowReportReason = 'time_not_elapsed' | 'reporter_too_far' | 'ok';
+
+export interface NoShowReportResult {
+  allowed: boolean;
+  reason: NoShowReportReason;
+}
+
+export function evaluateNoShowReport(
+  departureAt: Date,
+  reportedAt: Date,
+  evidence: NoShowReportEvidence,
+): NoShowReportResult {
+  if (!canReportNoShow(departureAt, reportedAt)) {
+    return { allowed: false, reason: 'time_not_elapsed' };
+  }
+
+  const { reporterDistanceMetersFromMeetingPoint } = evidence;
+  if (
+    reporterDistanceMetersFromMeetingPoint !== null &&
+    reporterDistanceMetersFromMeetingPoint > NO_SHOW_MAX_REPORTER_DISTANCE_METERS
+  ) {
+    return { allowed: false, reason: 'reporter_too_far' };
+  }
+
+  return { allowed: true, reason: 'ok' };
 }

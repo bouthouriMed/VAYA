@@ -2,7 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { createBookingSchema } from '@vaya/validation';
-import { BOOKING_STATUSES, CANCELLATION_TIERS, RIDE_STATUSES } from '@vaya/domain';
+import { BOOKING_STATUSES, CANCELLATION_REASONS, CANCELLATION_TIERS, RIDE_STATUSES } from '@vaya/domain';
 import { getDatabase } from '../../lib/database.js';
 import { getUserId } from '../../lib/auth-context.js';
 import {
@@ -84,6 +84,12 @@ const cancellationPolicySchema = z.object({
 const cancelBookingResponseSchema = bookingResponseSchema.extend({
   cancellationPolicy: cancellationPolicySchema,
 });
+
+// M-110 (docs/unified_driver_and_passenger_journey.md §38): "a lightweight
+// required reason from a fixed set" — confirmed live this pass that the
+// route previously had no body schema at all, so a reason-less cancel
+// succeeded unconditionally.
+const cancelBookingBodySchema = z.object({ reason: z.enum(CANCELLATION_REASONS) });
 
 const detourPreviewPointSchema = z.object({
   label: z.string(),
@@ -219,13 +225,18 @@ export async function bookingsRoutes(fastify: FastifyInstance): Promise<void> {
     '/bookings/:bookingId/cancel',
     {
       onRequest: [fastify.authenticate],
-      schema: { params: bookingIdParamSchema, response: { 200: cancelBookingResponseSchema } },
+      schema: {
+        params: bookingIdParamSchema,
+        body: cancelBookingBodySchema,
+        response: { 200: cancelBookingResponseSchema },
+      },
     },
     async (request, reply) => {
       const { booking, cancellationPolicy } = await cancelBooking(
         db,
         request.params.bookingId,
         getUserId(request),
+        request.body.reason,
       );
       reply.send({ ...booking, cancellationPolicy });
     },
