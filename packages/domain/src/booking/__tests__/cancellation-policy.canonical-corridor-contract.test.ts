@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { computeCancellationPolicy, canReportNoShow } from '../cancellation-policy';
+import {
+  computeCancellationPolicy,
+  canReportNoShow,
+  CANCELLATION_FREE_WINDOW_HOURS,
+  CANCELLATION_MODERATE_WINDOW_MINUTES,
+  NO_SHOW_MIN_MINUTES_AFTER_DEPARTURE,
+} from '../cancellation-policy';
 import { newCanonicalClock } from '@vaya/test-fixtures';
 
 /**
@@ -10,27 +16,42 @@ import { newCanonicalClock } from '@vaya/test-fixtures';
  * Uses a real controllable clock (never real wall-clock time) with exact
  * boundary instants — one second before/at/after each threshold — per
  * spec §39's explicit edge-case list.
+ *
+ * **Second-pass note (this review):** the tier windows and the no-show
+ * grace period are VAYA operational policy (spec's own "Operational Policy
+ * Configuration" section — see docs/unified_driver_and_passenger_journey.md)
+ * — not a permanent product constant. This file locks in *today's current
+ * default* (`CANCELLATION_FREE_WINDOW_HOURS`/`CANCELLATION_MODERATE_WINDOW_MINUTES`/
+ * `NO_SHOW_MIN_MINUTES_AFTER_DEPARTURE`, exported from `../cancellation-policy`)
+ * by referencing those constants rather than restating their values as bare
+ * literals, so this test tracks the configured default wherever it moves
+ * instead of silently re-freezing "24" and "30" as an unrelated hardcoded
+ * expectation. `computeCancellationPolicy`/`canReportNoShow` do not yet
+ * accept an injected threshold override (unlike `evaluateExistingPassengerImpact`
+ * or `detourAllowanceSec`'s floor/ceiling params) — flagged in
+ * docs/tdd_journey_test_report.md as a policy value that should move behind
+ * admin configuration, not something this review changes.
  */
 describe('cancellation-policy — deterministic-clock boundary contract', () => {
-  it('tier is exactly "free" at 24h and 1 second before departure, "moderate" at exactly 24h before minus 1 second', () => {
+  it('tier is exactly "free" at the free-window boundary and 1 second before departure, "moderate" one minute inside that boundary', () => {
     const clock = newCanonicalClock();
-    const departureAt = clock.plusMinutes(24 * 60 + 1);
-    const oneSecondInsideFree = clock.plusSeconds(0); // 24h+1min out — free.
+    const departureAt = clock.plusMinutes(CANCELLATION_FREE_WINDOW_HOURS * 60 + 1);
+    const oneSecondInsideFree = clock.plusSeconds(0); // free-window + 1min out — free.
     expect(computeCancellationPolicy(departureAt, oneSecondInsideFree).tier).toBe('free');
 
-    const departureAt2 = clock.plusMinutes(24 * 60);
-    const atExactly24hBoundary = clock.plusSeconds(0); // exactly 24h before — free (>= boundary).
-    expect(computeCancellationPolicy(departureAt2, atExactly24hBoundary).tier).toBe('free');
+    const departureAt2 = clock.plusMinutes(CANCELLATION_FREE_WINDOW_HOURS * 60);
+    const atExactlyFreeBoundary = clock.plusSeconds(0); // exactly at the free-window boundary — free (>= boundary).
+    expect(computeCancellationPolicy(departureAt2, atExactlyFreeBoundary).tier).toBe('free');
 
-    const justInsideModerate = clock.plusSeconds(1); // 1 second after "now", i.e. 24h - 1s before departure.
+    const justInsideModerate = clock.plusSeconds(1); // 1 second after "now", i.e. free-window boundary - 1s before departure.
     expect(computeCancellationPolicy(departureAt2, justInsideModerate).tier).toBe('moderate');
   });
 
-  it('tier is exactly "moderate" at 30 minutes before departure, "severe" one second later', () => {
+  it('tier is exactly "moderate" at the moderate-window boundary before departure, "severe" one second later', () => {
     const clock = newCanonicalClock();
-    const departureAt = clock.plusMinutes(30);
-    expect(computeCancellationPolicy(departureAt, clock.now()).tier).toBe('moderate'); // exactly 30min out.
-    expect(computeCancellationPolicy(departureAt, clock.plusSeconds(1)).tier).toBe('severe'); // 29min59s out.
+    const departureAt = clock.plusMinutes(CANCELLATION_MODERATE_WINDOW_MINUTES);
+    expect(computeCancellationPolicy(departureAt, clock.now()).tier).toBe('moderate'); // exactly at the moderate-window boundary.
+    expect(computeCancellationPolicy(departureAt, clock.plusSeconds(1)).tier).toBe('severe'); // 1s inside the boundary.
   });
 
   it('tier is "severe" for a cancellation attempted after departure has already passed', () => {
@@ -60,11 +81,11 @@ describe('canReportNoShow — deterministic-clock boundary contract (M-102)', ()
     expect(canReportNoShow(departureAt, clock.now())).toBe(false);
   });
 
-  it('cannot be reported in the grace window immediately after departure (< 15 minutes)', () => {
+  it('cannot be reported inside the no-show grace window immediately after departure', () => {
     const clock = newCanonicalClock();
     const departureAt = clock.now();
-    expect(canReportNoShow(departureAt, clock.plusMinutes(14))).toBe(false);
-    expect(canReportNoShow(departureAt, clock.plusMinutes(15))).toBe(true); // exact boundary.
+    expect(canReportNoShow(departureAt, clock.plusMinutes(NO_SHOW_MIN_MINUTES_AFTER_DEPARTURE - 1))).toBe(false);
+    expect(canReportNoShow(departureAt, clock.plusMinutes(NO_SHOW_MIN_MINUTES_AFTER_DEPARTURE))).toBe(true); // exact boundary.
   });
 
   it('M-102 (documented gap, not asserted as a defect in THIS pure function): canReportNoShow is a pure time gate with no location/proximity parameter at all', () => {

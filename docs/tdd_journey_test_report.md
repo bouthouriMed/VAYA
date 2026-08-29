@@ -32,6 +32,23 @@ the first time this mission's "verification suite" claim is backed by
 actual passing/failing runs against the real stack end-to-end, not by
 matrix rows inferred from reading source code.
 
+**Increment 4 (§10, concurrent session):** while this pass was underway, the
+`worktree-tdd-journey-contract` session itself kept going and extended Layer-B
+coverage directly on this branch (4 new real, executed tests: admin-config gap,
+deadline-field absence, notification-event coverage, and an M-021/EDGE-054/INV-07
+reclassification from blanket FAIL to PARTIAL). See §10 below.
+
+**Increment 5 (§11, this pass — second-pass audit, explicit "do not implement yet"
+mandate):** a separate session's mandate, run in a fresh worktree
+(`review/tdd-journey-contract-pass2`, based on this branch's pushed `f2147a9`,
+later rebased onto §10's commit `b26c268`) rather than more coverage: audit the
+prior increments' new tests for values that accidentally became permanent
+product rules instead of testing configured behavior; make VAYA's
+operational-policy-configuration model explicit in the spec itself;
+strengthen the matrix's test-layer taxonomy; tighten one under-specified
+assertion; and classify every current failure. No production code touched.
+Full detail in §11 below.
+
 ---
 
 ## 1. TDD gate status (`.claude/continue-tdd.md` §2)
@@ -299,3 +316,225 @@ That citation is accurate but incomplete — it answers "can *search's primary t
 Relative to §1's table: Layer B coverage is no longer "PARTIAL — reframed" with zero direct `apps/api/**/__tests__` additions — 4 new real, executed integration/contract files now exist there, closing 4 of the ~20 previously-open Layer-B matrix rows (M-054, M-085, M-086, M-113) plus refining 3 more (M-021, EDGE-054, INV-07). Remaining open Layer-B rows (route alternatives/selection shape, messaging, remaining driver-inbox/request-detail field-completeness checks) are unchanged from §5's list and not claimed as done here.
 
 No production code was modified in this increment either — same discipline as every prior increment.
+
+---
+
+## 11. Second-pass audit (Increment 5) — findings, spec update, and gate re-classification
+
+Explicit mandate for this pass: **do not begin production implementation.**
+Re-audit increments 2-3's test contract against the spec for accidentally-hardcoded
+business rules, make the spec's operational-policy-configuration model explicit,
+strengthen the matrix, close the clearest remaining gaps with a small number of
+targeted tests, and classify every current failure. Everything below was verified
+live in this pass (re-read files, re-ran the suite), not carried over from a claim.
+
+### 11.1 Files created or modified this pass
+
+- `docs/unified_driver_and_passenger_journey.md` — §28 rewritten as "Admin
+  Configuration — VAYA Operational Policy Configuration": explicit statement that
+  VAYA (not passengers, not ordinary drivers) owns every matching/lifecycle/timing
+  threshold; the Admin Panel is the authoritative configuration interface; every
+  domain function reading a threshold must accept it as an injected parameter, not
+  a bare literal or un-parameterized constant; any specific number elsewhere in the
+  spec (including the +15min/3h worked example and the current 24h/30min/15min
+  cancellation/no-show defaults) is a current default, not a fixed requirement;
+  tests must validate against the named default/injected value, never a
+  re-frozen literal; and a documented placeholder for future driver-level premium
+  overrides.
+- `docs/tdd_journey_test_matrix.md` — added a "Test layer taxonomy" paragraph
+  making the domain/unit-vs-vertical-integration distinction explicit (mission
+  Step 3); broadened M-085's scope to name cancellation/no-show timing and
+  request-expiry explicitly; added new row **M-085a** (architecture requirement:
+  thresholds must be injectable) with a live verification of which existing
+  functions already comply (`evaluateExistingPassengerImpact`,
+  `detourAllowanceSec`) and which do not (`computeCancellationPolicy`,
+  `canReportNoShow` — exported constants, but no override parameter at all).
+- `packages/domain/src/booking/__tests__/cancellation-policy.canonical-corridor-contract.test.ts`
+  — fixed: replaced bare literals (`24 * 60`, `30`, `14`, `15`) with the module's
+  own exported `CANCELLATION_FREE_WINDOW_HOURS`/`CANCELLATION_MODERATE_WINDOW_MINUTES`/
+  `NO_SHOW_MIN_MINUTES_AFTER_DEPARTURE` constants — this is exactly the mission's
+  "Do NOT do this" example (24h/30min/15min as bare literals), found in a
+  pre-existing regression-lock test, not newly introduced. Behavior asserted is
+  unchanged; the test now tracks the configured default instead of re-freezing it.
+- `packages/domain/src/booking/__tests__/segment-capacity.canonical-corridor-contract.test.ts`
+  — the 4-passenger-mix test asserted only `<= seatsTotal` where the exact peak
+  occupancy was fully known and computable (mission Step 11's explicit instruction).
+  Replaced with an exact `toBe(2)` assertion (worked out by hand from the real
+  segment overlaps, documented in the test) plus a new second test proving a
+  5th, genuinely-overlapping request is rejected only once it truly exceeds
+  capacity (exact peak `4` when it does exceed; exact peak `3`, accepted, at the
+  boundary) — closes the "assert exact expected occupancy, not merely <=
+  capacity" gap for the one place it existed.
+
+### 11.2 Requirements covered by this pass
+
+- Step 1 (audit for accidentally-hardcoded values): all 7 new Layer-A contract
+  files + all 10 vertical journeys reviewed line-by-line. One real violation found
+  and fixed (§11.1, cancellation-policy test). One representation flagged and
+  cleared as *not* a violation (see §11.4). No hardcoded-threshold issues found in
+  any vertical journey (they assert HTTP status codes and structural shape, not
+  magic distance/time literals).
+- Step 2 (spec configuration section): done, §28 of the spec (§11.1).
+- Step 3 (matrix completeness/taxonomy): done — taxonomy paragraph + M-085/M-085a
+  (§11.1). The rest of the matrix was independently re-read against the spec's
+  63 sections and found already complete (~100 IDs, all sections/edge-cases/
+  invariants mapped) — no missing spec requirement was found lacking a matrix row.
+- Step 11 (exact segment occupancy): the one under-specified assertion found
+  and fixed (§11.1).
+- Steps 4/5/9/10/13/14 (driver publishing, partial-route discovery, active-driver
+  P10, dynamic pricing, trip state machine, no-show): verified already
+  substantively covered by increments 2-3's work (M-010..M-022, V-02/V-03,
+  boarding-inference/auto-start-inference contract tests, V-05/V-09,
+  no-show-corroboration contract test) — re-derived independently in this pass
+  rather than assumed from the prior report, no gaps found beyond what §5/§9a
+  already document as open.
+
+### 11.3 Requirements still missing from the test contract (genuine gaps, not invented)
+
+- **Step 6 (ranking order as a single invariant):** M-038's four
+  `best-fit-changes-with-X` tests validate sensitivity per dimension but no test
+  asserts the combined ordering guarantee (exact match ranked at least as well as
+  a strong partial match, ranked above an acceptable alternative; an unacceptable
+  alternative is never silently promoted; a feasible alternative is never dropped
+  to an empty result). **Deliberately not invented this pass**: no pure ranking
+  function exists in `packages/domain` to test against (confirmed by search) —
+  "Best Fit" scoring lives entirely inside `apps/api/src/modules/matching`, a
+  service, not a domain module. Writing a Layer-A test would mean guessing at a
+  function signature that doesn't exist yet, which the mission's own "do not
+  invent product rules" instruction rules out. This needs either (a) a real
+  Layer-B/vertical journey against the live search endpoint asserting ordering
+  over a multi-driver fixture (closest in shape to V-06's multi-driver setup), or
+  (b) extracting a pure ranking function into `packages/domain` first — a design
+  decision, not something this pass should decide unilaterally.
+- **Step 16 (cross-screen information consistency):** genuinely zero coverage.
+  The matrix has many *shape* checks per surface (e.g.
+  `B.search-result.itinerary-shape-ordered`, `B.request-detail.driver-detail-shape-complete`)
+  but no test that takes one real booking and asserts the *same* segment price /
+  passenger route / ETA is identical across search result, passenger booking
+  confirmation, driver request detail, and driver itinerary responses. This is a
+  real, distinct requirement (the spec's own "a passenger-specific route must
+  never silently become the driver's full route in a downstream screen" language)
+  that no existing V- journey happens to exercise as a cross-surface assertion.
+  Not invented here — would need a new vertical journey, `V-11` or folded into an
+  existing one, fetching the same booking through 3-4 different endpoints and
+  diffing the shared fields.
+- **Step 7 (passenger pickup/dropoff override recalculation):** confirmed
+  still `FAIL (missing)` at M-040 — no override mechanism exists at all today
+  (a passenger can only choose among a driver's pre-set stops), so there is
+  nothing yet to write a meaningful contract test against beyond restating the
+  absence. Left as a matrix-tracked gap, not stubbed with a speculative test.
+
+### 11.4 Current test results (this pass, `pnpm --filter @vaya/domain exec vitest run`)
+
+29 test files, 142 test cases (was 141 before this pass's new segment-capacity
+case): **22 files / 137 cases passed, 7 files failed to fully resolve (6 RED
+"module does not exist yet" + 1 RED "resolves but export is undefined") / 5
+cases failed within the 1 partially-resolving file.** Exactly the expected,
+unchanged shape from increments 2-3 (confirmed: my edits to the 2 pre-existing
+passing files did not regress them — both still pass, one with an added case).
+Vertical journeys (`V-01..V-10`, `tests/e2e/tests/journeys/`) were **not
+re-executed this pass** — no file under `tests/e2e` was touched, and re-running
+the full live-server/Postgres/Redis suite would reproduce, at real infrastructure
+cost, results already captured live in §3b/§4b of this report by the session that
+wrote them. Their **5 passed / 7 failed** result is carried forward by reference,
+not re-verified redundantly.
+
+### 11.5 Every failure classified A/B/C/D
+
+Per this pass's own classification scheme (A = existing correct behavior,
+B = genuine missing implementation, C = test/spec mismatch, D = configurable
+behavior the test wrongly assumed a fixed value):
+
+| Test | Result | Class | Why |
+|---|---|---|---|
+| `existing-passenger-impact.contract.test.ts` | fails to resolve | **B** | `evaluateExistingPassengerImpact`/thresholds module genuinely don't exist (M-083/084) |
+| `live-corridor.contract.test.ts` | fails to resolve | **B** | `classifyRouteDeviation`/`updateLiveCorridor` genuinely don't exist (M-090) |
+| `auto-start-inference.contract.test.ts` | fails to resolve | **B** | `evaluateAutoStart` genuinely doesn't exist (M-099/100) |
+| `boarding-inference.contract.test.ts` | fails to resolve | **B** | `evaluateBoarding` genuinely doesn't exist (M-096/097) |
+| `eta-confidence.contract.test.ts` | fails to resolve | **B** | `classifyEtaConfidence` genuinely doesn't exist (M-007) |
+| `cancellation-guard.contract.test.ts` | fails to resolve | **B** | `canCancelTrip` genuinely doesn't exist; real live bug confirmed in `cancelRide` (M-101/INV-04) |
+| `no-show-corroboration.contract.test.ts` (5 cases) | resolves, fails at runtime | **B** | `evaluateNoShowReport` genuinely doesn't exist yet (M-102) — distinct RED signature (module found, export undefined) from the other 6, both correctly Category B |
+| `segment-capacity.*` (both files, incl. this pass's 2 new cases) | pass | **A** | already-correct, now more precisely proven (exact occupancy, not just `<=`) |
+| `cancellation-policy.*` (both files, incl. this pass's hygiene fix) | pass | **A** | already-correct; this pass only made the test track the named constant instead of a re-frozen literal — no behavior change |
+| `compute-suggested-price.*` (both files) | pass | **A** | formula already segment-correct; the real M-070 gap is the *wiring* in `bookings.service.ts`, a **B** at the Layer-B/V-02/V-03 level, not here |
+| V-01 full-route, V-04 sequential-turnover, V-08 no-show (×2), V-10 capacity-race | pass (carried forward, §11.4) | **A** | already-correct at the full HTTP-stack level |
+| V-02/V-03 segment pricing | fail (carried forward) | **B** | confirmed live: `contributionTotal` equals the full-route price unconditionally |
+| V-05 active-trip discovery | fail (carried forward) | **B** | confirmed live: `searchRides` excludes `in_progress` unconditionally |
+| V-06 three alternatives | fail (carried forward) | **B** | confirmed live: no cross-ride "same journey" grouping/cap/sibling-cancel exists |
+| V-07 cancellation (×2) | fail (carried forward) | **B** (both) | confirmed live: no reason required server-side; ride-cancel doesn't cascade to bookings |
+| V-09 pre-boarding privacy | fail (carried forward) | **B** | confirmed live: raw GPS returned pre-boarding |
+| — | — | **C** | none found this pass — no test was determined to contradict the spec itself |
+| — | — | **D** | none found as a still-standing failure this pass — the one D-shaped issue found (cancellation-policy's magic literals) was a passing regression-lock test with a hygiene defect, not a failing test; fixed directly rather than left to classify as a failure |
+
+No test in the current suite is classified **C**: every RED test's expected
+behavior was independently checked against the cited spec section in this pass
+and found to be a faithful, minimal-interpretation encoding of it (not a
+liberty taken with the spec). No currently-*failing* test is classified **D**
+either — the only D-shaped problem this pass located (bare 24h/30min/15min
+literals) was in an already-*passing* test, and is fixed rather than reported
+as an open failure.
+
+### 11.6 Genuine ambiguity that cannot be resolved from the spec
+
+None new beyond the existing ambiguity log (A-1..A-6, `docs/tdd_journey_test_matrix.md`).
+One question considered and resolved (not left ambiguous): whether vertical
+journeys should use the mission brief's literal "Madrid → Zaragoza → Lleida →
+Barcelona" corridor or VAYA's real Tunisia market geography. Resolution: both
+already coexist deliberately and correctly — `tests/fixtures`'s canonical
+corridor (Layer A, pure math, matches the brief's example exactly) and the real
+Tunis/Hammamet/Sousse/Monastir corridor (Layer B/V-, matching this codebase's
+own pre-existing integration-test convention and VAYA's actual market) — this
+was a considered architectural decision by the increment-3 session (§7 above),
+not an oversight, and this pass concurs it should stay that way rather than
+forcing one geography everywhere.
+
+### 11.7 Configurable policy values currently hardcoded in implementation
+
+Per M-085a (§11.1) — code-verified this pass, not inferred:
+
+- **Not yet injectable at all**: `CANCELLATION_FREE_WINDOW_HOURS`,
+  `CANCELLATION_MODERATE_WINDOW_MINUTES`, `NO_SHOW_MIN_MINUTES_AFTER_DEPARTURE`
+  (`packages/domain/src/booking/cancellation-policy.ts`) — exported and named
+  (not silently buried), but `computeCancellationPolicy`/`canReportNoShow` accept
+  no override parameter, unlike the pattern established elsewhere.
+- **Already injectable, the pattern to follow**: `evaluateExistingPassengerImpact(passengers, thresholds)`
+  (thresholds always an explicit argument) and `detourAllowanceSec(duration, floorSec?, ceilingSec?)`
+  (optional override params, profile-aware defaults) — both in
+  `packages/domain/src/matching/`.
+- **Not yet built, so not yet assessable**: the live-corridor deviation
+  thresholds (`ROUTE_DEVIATION_NOISE_THRESHOLD_METERS`/`..._REAL_THRESHOLD_METERS`)
+  and the boarding/auto-start evidence-sufficiency rules are still RED — worth
+  designing with the injectable-parameter pattern from the start rather than
+  retrofitting it later, per the newly-strengthened spec §28.
+
+### 11.8 Existing architecture/components confirmed correct and to be preserved
+
+- `computeMaxConcurrentSeats`/`wouldExceedCapacity` (`packages/domain/src/booking/segment-capacity.ts`)
+  — re-verified exactly correct this pass (§11.1's new exact-occupancy tests),
+  including the deliberate end-before-start tie-break at a shared stop.
+  `BookingSegment.pickupSequence`/`dropoffSequence`'s use of `-Infinity`/`+Infinity`
+  as the free-form/no-stop sentinel is a real, already-shipped, intentional part
+  of this module's public type (documented in its own source comment: "so every
+  comparison site stays a plain numeric comparison with no special-casing") —
+  checked against the mission's "don't make -Infinity/Infinity part of the
+  product contract unless architecturally required" warning and found to
+  genuinely qualify as required here, not a test artifact to remove.
+- `computeCancellationPolicy`/`canReportNoShow` tier logic — behavior confirmed
+  still correct; only the regression test's literal-vs-constant hygiene changed.
+- `computeSuggestedPrice`'s segment-pricing formula — confirmed still correct
+  and already general enough for arbitrary sub-segments; the real gap is
+  exclusively the booking-service wiring layer, not this function.
+- The matching-thresholds injectable-config pattern (`matching-thresholds.ts`)
+  is the right template for every future configurable-threshold module
+  (existing-passenger-impact, live-corridor, cancellation-policy) to follow —
+  confirmed by direct comparison, not assumed.
+
+### 11.9 Gate verdict after this pass
+
+**Still not fully satisfied — unchanged from increment 3's verdict, and correctly
+so.** This pass strengthened the contract's honesty (spec now explicit about
+policy ownership/configurability; two tests now assert what they actually mean
+instead of a coincidental literal) but did not close any of the substantive
+gaps in §5/§9/§11.3 — those remain for the concurrent Layer-B-extension session
+and, after that, for implementation itself. Per the mission's explicit
+instruction, **no production code was modified in this pass.**

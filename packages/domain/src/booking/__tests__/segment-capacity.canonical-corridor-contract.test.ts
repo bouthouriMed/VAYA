@@ -43,7 +43,18 @@ describe('segment-capacity — canonical corridor (spec §25/§26 literal exampl
     expect(wouldExceedCapacity([a, b], d, seatsTotal)).toBe(true);
   });
 
-  it('never allows any segment to exceed physical seat capacity, across a realistic 4-passenger mix on the full corridor (INV-02)', () => {
+  it('computes the EXACT peak concurrent occupancy for a realistic 4-passenger mix on the full corridor, not merely a value that happens to fit capacity (INV-02)', () => {
+    // A naive/regressed implementation could return an inflated-but-still-
+    // <=capacity number (e.g. 3 instead of the real 2) and a bare `<=`
+    // assertion would never catch it. Worked out by hand from the real
+    // segment overlaps: A(Madrid->Zaragoza) never overlaps anyone; B
+    // (Zaragoza->Barcelona) and C (Zaragoza->Lleida) both start at Zaragoza
+    // right as A ends there (tie-break: A's end is processed before B/C's
+    // starts, so A never counts against them) — B+C overlap for one seat
+    // each = 2 concurrent. C ends at Lleida exactly as D (Lleida->Barcelona)
+    // starts there (same end-before-start tie-break) — so C and D never
+    // overlap either. The true peak, at every point along the corridor, is
+    // exactly 2 — never 3, even though 3 seats are nominally available.
     const seatsTotal = 3;
     const segments: BookingSegment[] = [
       { seatsRequested: 1, pickupSequence: SEQ.madrid, dropoffSequence: SEQ.zaragoza }, // Passenger A
@@ -51,7 +62,30 @@ describe('segment-capacity — canonical corridor (spec §25/§26 literal exampl
       { seatsRequested: 1, pickupSequence: SEQ.zaragoza, dropoffSequence: SEQ.lleida }, // Passenger C
       { seatsRequested: 1, pickupSequence: SEQ.lleida, dropoffSequence: SEQ.barcelona }, // Passenger D
     ];
+    expect(computeMaxConcurrentSeats(segments)).toBe(2);
     expect(computeMaxConcurrentSeats(segments)).toBeLessThanOrEqual(seatsTotal);
+  });
+
+  it('a 5th passenger genuinely overlapping both B and C (Zaragoza->Lleida again, a 2-seat request) pushes peak occupancy to exactly the true new value, and is rejected only once it truly exceeds capacity', () => {
+    // Same base mix as above (true peak 2), but now a 2-seat request
+    // over Zaragoza->Lleida — genuinely stacking on top of both B and C's
+    // existing 1-seat occupation of that span. True new peak at Zaragoza is
+    // exactly 1(B) + 1(C) + 2(E) = 4.
+    const seatsTotal = 3;
+    const existing: BookingSegment[] = [
+      { seatsRequested: 1, pickupSequence: SEQ.madrid, dropoffSequence: SEQ.zaragoza },
+      { seatsRequested: 1, pickupSequence: SEQ.zaragoza, dropoffSequence: SEQ.barcelona },
+      { seatsRequested: 1, pickupSequence: SEQ.zaragoza, dropoffSequence: SEQ.lleida },
+    ];
+    const twoSeatOverlap: BookingSegment = { seatsRequested: 2, pickupSequence: SEQ.zaragoza, dropoffSequence: SEQ.lleida };
+    expect(computeMaxConcurrentSeats([...existing, twoSeatOverlap])).toBe(4);
+    expect(wouldExceedCapacity(existing, twoSeatOverlap, seatsTotal)).toBe(true); // 4 > 3, correctly rejected.
+
+    // A single-seat version of the same overlap only reaches exactly 3 —
+    // exactly at capacity, not over it, so it must be accepted, not rejected.
+    const oneSeatOverlap: BookingSegment = { seatsRequested: 1, pickupSequence: SEQ.zaragoza, dropoffSequence: SEQ.lleida };
+    expect(computeMaxConcurrentSeats([...existing, oneSeatOverlap])).toBe(3);
+    expect(wouldExceedCapacity(existing, oneSeatOverlap, seatsTotal)).toBe(false); // exactly at capacity, not exceeding it.
   });
 
   it('dropoff-before-pickup tie-break: a booking ending exactly at Zaragoza and another starting exactly at Zaragoza never count as momentarily overlapping (§44 regression)', () => {
