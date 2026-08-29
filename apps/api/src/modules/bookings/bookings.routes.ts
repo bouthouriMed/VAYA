@@ -16,6 +16,7 @@ import {
   listRequestsForRide,
   previewBookingCancellation,
   previewBookingDetour,
+  previewPickupOverride,
   reportNoShow,
 } from './bookings.service.js';
 
@@ -88,6 +89,26 @@ const bookingResponseSchema = z.object({
 
 const rideIdParamSchema = z.object({ rideId: z.string().uuid() });
 const bookingIdParamSchema = z.object({ bookingId: z.string().uuid() });
+
+// M-040/EDGE-053 (docs/unified_driver_and_passenger_journey.md §14, edge
+// 53): a real point the passenger is considering as an override away from
+// one of the driver's recommended stops. `requestedLat`/`requestedLng` are
+// optional — the passenger's own actual point, when known, so the preview
+// can also show real walk distance (mirrors createBooking's
+// requestedPickup/requestedDropoff pair, same reasoning).
+const pickupOverridePreviewQuerySchema = z.object({
+  lat: z.coerce.number().min(-90).max(90),
+  lng: z.coerce.number().min(-180).max(180),
+  requestedLat: z.coerce.number().min(-90).max(90).optional(),
+  requestedLng: z.coerce.number().min(-180).max(180).optional(),
+});
+
+const pickupOverridePreviewResponseSchema = z.object({
+  walkMeters: z.number().nullable(),
+  driverDetourExtraSeconds: z.number().nullable(),
+  driverDetourAllowanceSeconds: z.number().nullable(),
+  withinAllowance: z.boolean().nullable(),
+});
 
 const fellowPassengerResponseSchema = z.object({
   userId: z.string().uuid(),
@@ -172,6 +193,33 @@ export async function bookingsRoutes(fastify: FastifyInstance): Promise<void> {
         request.body,
       );
       reply.send(booking);
+    },
+  );
+
+  // M-040/EDGE-053: a real, side-effect-free preview of overriding away
+  // from a driver-recommended stop, called before the actual POST
+  // /rides/:rideId/requests — "consequence shown... request still allowed"
+  // (never a second, differently-behaved gate; createBooking's own
+  // assertRealDetourWithinAllowance remains the sole enforcement point).
+  app.get(
+    '/rides/:rideId/pickup-override-preview',
+    {
+      onRequest: [fastify.authenticate],
+      schema: {
+        params: rideIdParamSchema,
+        querystring: pickupOverridePreviewQuerySchema,
+        response: { 200: pickupOverridePreviewResponseSchema },
+      },
+    },
+    async (request, reply) => {
+      const { lat, lng, requestedLat, requestedLng } = request.query;
+      const preview = await previewPickupOverride(
+        db,
+        request.params.rideId,
+        { lat, lng },
+        requestedLat != null && requestedLng != null ? { lat: requestedLat, lng: requestedLng } : undefined,
+      );
+      reply.send(preview);
     },
   );
 

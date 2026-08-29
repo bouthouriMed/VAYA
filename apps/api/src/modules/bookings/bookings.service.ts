@@ -228,6 +228,91 @@ async function getRideOrThrow(db: Database, rideId: string) {
  * unreachable routing engine is an honest "can't validate this right now"
  * rejection, never a silently-accepted, unverified detour.
  */
+/**
+ * M-040/EDGE-053 (docs/unified_driver_and_passenger_journey.md §14, edge
+ * 53): the one real routing computation both the hard-enforcing
+ * `assertRealDetourWithinAllowance` below AND the new, non-throwing
+ * `previewPickupOverride` (bookings.routes.ts's pickup-override-preview
+ * endpoint) need — extracted so there is exactly one place this detour
+ * math lives, never a second parallel implementation for "preview" vs
+ * "enforce". `null` return (not a thrown error) is the honest "couldn't
+ * compute this" case (no route on the ride, or the routing engine
+ * unreachable/estimate-only) — callers decide separately whether that's a
+ * hard failure (assertRealDetourWithinAllowance: yes) or a soft "no
+ * signal yet" UI state (previewPickupOverride: yes, shown honestly rather
+ * than blocking the preview).
+ */
+export interface DetourImpact {
+  extraDurationSeconds: number;
+  allowanceSeconds: number;
+  withinAllowance: boolean;
+}
+
+async function computeDetourImpact(
+  ride: {
+    originLat: number;
+    originLng: number;
+    destinationLat: number;
+    destinationLng: number;
+    routePolyline: string | null;
+  },
+  point: { lat: number; lng: number },
+): Promise<DetourImpact | null> {
+  if (!ride.routePolyline) return null;
+  const rideOrigin = { lat: ride.originLat, lng: ride.originLng };
+  const rideDestination = { lat: ride.destinationLat, lng: ride.destinationLng };
+  const [baseline, withDetour] = await Promise.all([
+    getRoute(rideOrigin, rideDestination),
+    getRoute(rideOrigin, rideDestination, [point]),
+  ]);
+  if (baseline.isEstimate || withDetour.isEstimate) {
+    // No real routing engine reachable — never fabricate a detour number
+    // from a haversine fallback, same discipline as the search tier.
+    return null;
+  }
+  const profile = classifyTripProfile(polylineLengthMeters(decodePolyline(ride.routePolyline)));
+  const thresholds = getMatchingThresholds(profile.type);
+  const extraDurationSeconds = Math.max(0, withDetour.durationSec - baseline.durationSec);
+  const allowanceSeconds = detourAllowanceSec(
+    baseline.durationSec,
+    thresholds.detourFloorSec,
+    thresholds.detourCeilingSec,
+  );
+  return {
+    extraDurationSeconds,
+    allowanceSeconds,
+    withinAllowance: extraDurationSeconds <= allowanceSeconds,
+  };
+}
+
+/**
+ * Real, live-validated bound on a free-form pickup or dropoff point on a
+ * ride that has driver-selected route_stops — the server-side completion
+ * of the matching engine's detour_match tier (matching.service.ts's
+ * scoreDetourCandidates), which surfaces exactly this kind of match but
+ * historically had no way to actually book it: createBooking used to
+ * reject any free-form point outright the moment a ride had any stops at
+ * all, regardless of how small a real detour it would cost the driver.
+ *
+ * Deliberately reuses the exact same real bound the search tier already
+ * uses (`detourAllowanceSec`, profile-scaled via `classifyTripProfile`/
+ * `getMatchingThresholds`, from `@vaya/domain`) rather than a second,
+ * differently-tuned number — a match search surfaced can never then be
+ * rejected here by a stricter independent rule, and nothing here ever
+ * trusts the client's own claim that a point is a legitimate detour
+ * (CLAUDE.md: any endpoint accepting a client-adjustable pickup location
+ * must enforce bounds server-side, independent of client-side UI
+ * constraints). Throws ValidationError (400) on any failure — an
+ * unreachable routing engine is an honest "can't validate this right now"
+ * rejection, never a silently-accepted, unverified detour.
+ *
+ * M-040/EDGE-053: this is also, unchanged, the mechanism that already
+ * makes "request still allowed... no hidden penalty" true for an override
+ * point — it compares only against the ride's own real detour ceiling
+ * (never against how much better the driver's own recommended stop would
+ * have been), so a technically-feasible-but-driver-unfriendly point was
+ * never silently penalized beyond that one real, disclosed bound.
+ */
 async function assertRealDetourWithinAllowance(
   ride: {
     originLat: number;
@@ -241,22 +326,11 @@ async function assertRealDetourWithinAllowance(
   if (!ride.routePolyline) {
     throw new ValidationError('This ride has no route to validate a detour against');
   }
-  const rideOrigin = { lat: ride.originLat, lng: ride.originLng };
-  const rideDestination = { lat: ride.destinationLat, lng: ride.destinationLng };
-  const [baseline, withDetour] = await Promise.all([
-    getRoute(rideOrigin, rideDestination),
-    getRoute(rideOrigin, rideDestination, [point]),
-  ]);
-  if (baseline.isEstimate || withDetour.isEstimate) {
-    // No real routing engine reachable — never fabricate a detour number
-    // from a haversine fallback, same discipline as the search tier.
+  const impact = await computeDetourImpact(ride, point);
+  if (!impact) {
     throw new ValidationError('Unable to validate this pickup or dropoff point right now — please try again');
   }
-  const profile = classifyTripProfile(polylineLengthMeters(decodePolyline(ride.routePolyline)));
-  const thresholds = getMatchingThresholds(profile.type);
-  const extraDurationSeconds = Math.max(0, withDetour.durationSec - baseline.durationSec);
-  const allowanceSec = detourAllowanceSec(baseline.durationSec, thresholds.detourFloorSec, thresholds.detourCeilingSec);
-  if (extraDurationSeconds > allowanceSec) {
+  if (!impact.withinAllowance) {
     throw new ValidationError("This point is too far from the driver's route for this ride");
   }
 }
@@ -1065,6 +1139,61 @@ export interface DetourPreview {
 
 function clamp01(n: number): number {
   return Math.max(0, Math.min(1, n));
+}
+
+export interface PickupOverridePreview {
+  /** Real distance from the passenger's own actual point (when supplied)
+   *  to the override point being previewed — the same walk-distance
+   *  concept M-004/M-020's resolveStopWalkMeters already persists for a
+   *  stop-based pickup, computed here before commit instead of after.
+   *  Null when no requestedPoint was supplied (nothing to measure walk
+   *  distance from). */
+  walkMeters: number | null;
+  driverDetourExtraSeconds: number | null;
+  driverDetourAllowanceSeconds: number | null;
+  /** Null when feasibility genuinely couldn't be computed right now (this
+   *  ride has no route yet, or the routing engine is unreachable/
+   *  estimate-only) — never fabricated as true or false in that case. */
+  withinAllowance: boolean | null;
+}
+
+/**
+ * M-040/EDGE-053 (docs/unified_driver_and_passenger_journey.md §14, edge
+ * 53): "Passenger can override to another VAYA-feasible point; VAYA
+ * recalculates walk/PT/detour/ETA/feasibility and informs (not blocks)
+ * when worse for driver." Before this function, a passenger choosing to
+ * override away from one of the driver's recommended `route_stops` (the
+ * free-form `pickup`/`dropoff` path createBooking already accepts once a
+ * ride has stops — see assertRealDetourWithinAllowance) had no way to see
+ * the real consequence of that choice before actually submitting the
+ * request; the recalculation only ever happened inside createBooking
+ * itself, either silently succeeding or throwing a 400 with no prior
+ * warning. This is the read-only preview step EDGE-053 names ("consequence
+ * shown... before the destructive action"), mirroring
+ * previewBookingCancellation's existing GET-before-POST pattern.
+ *
+ * Deliberately never throws for an out-of-bounds point — `withinAllowance:
+ * false` is a real, honest answer the passenger can still act on (submit
+ * anyway if genuinely willing, or pick a different point); createBooking's
+ * own assertRealDetourWithinAllowance remains the one place that actually
+ * enforces the hard bound at commit time, so this preview can never itself
+ * become a second, differently-behaved gate — "request still allowed" per
+ * EDGE-053 stays true regardless of what this preview shows.
+ */
+export async function previewPickupOverride(
+  db: Database,
+  rideId: string,
+  point: { lat: number; lng: number },
+  requestedPoint?: { lat: number; lng: number },
+): Promise<PickupOverridePreview> {
+  const ride = await getRideOrThrow(db, rideId);
+  const impact = await computeDetourImpact(ride, point);
+  return {
+    walkMeters: requestedPoint ? haversineDistanceMeters(requestedPoint, point) : null,
+    driverDetourExtraSeconds: impact ? Math.round(impact.extraDurationSeconds) : null,
+    driverDetourAllowanceSeconds: impact ? Math.round(impact.allowanceSeconds) : null,
+    withinAllowance: impact ? impact.withinAllowance : null,
+  };
 }
 
 /**
