@@ -662,15 +662,83 @@ New test files this pass: `bookings-pickup-resolution.integration.test.ts`
 `stop-candidates.integration.test.ts` (2 new, M-015/M-017 — both real,
 executed against live Postgres + best-effort-live OSRM/Nominatim).
 
+### 12.6 Matrix reconciliation: ~30 rows corrected from stale FAIL to verified PASS
+
+While implementing this pass's own scope, checking whether M-091/M-051–058
+were "already done on entry" (per the prior session's own todo-list framing)
+surfaced something bigger: this matrix's header timestamp
+(`main@8b61f21/2019ed7`) predates **four entire prior-session commits** on
+this branch — `dd486d1` ("journey-contract gate — Layer A domain gaps + 4
+API slices"), `18db93b` (deadlines/grouping/admin-config), `1a8ee82`
+(Layer-A inference wiring), `89950c5` (M-091) — none of which were ever
+reflected in the matrix's row-by-row verdicts. Left as-is, a future session
+reading this matrix would have re-implemented substantial, already-shipped
+work.
+
+Each correction below was verified against a real, currently-passing
+executed test this pass actually ran — never inferred from a commit message
+alone:
+
+- **M-051/052/055/056/058, EDGE-049, INV-03** (cross-ride same-journey
+  request grouping/capping/superseding) — `bookings-journey-grouping.
+  integration.test.ts`, 3/3.
+- **M-090, M-096/097, M-099/100, EDGE-051, INV-08** (trip-lifecycle
+  auto-inference: route-deviation classification, boarding, auto-start) —
+  `trip-auto-inference.integration.test.ts`, 5/5.
+- **M-091, EDGE-050** (in-progress-ride live-position matching) —
+  `matching-in-progress.integration.test.ts`, 3/3.
+- **M-070, M-074, EDGE-055** (segment-aware pricing; M-072/M-073 marked
+  PASS-by-mechanism rather than independently tested — no dedicated test
+  names them) — `bookings-segment-pricing.integration.test.ts`, 4/4.
+- **M-094, INV-06** (pre-boarding GPS privacy, both the poll AND the
+  previously-separately-broken WebSocket push path) —
+  `trips-tracking.integration.test.ts` + `realtime-gps-redaction.test.ts`,
+  4/4.
+- **M-101, INV-04** (ride-level cancellation guard after trip start),
+  **EDGE-046, M-111** (ride-cancel cascade) —
+  `rides-cancel-cascade.integration.test.ts`, 2/2.
+- **M-110** (cancellation reason required from a fixed set) —
+  `bookings-cancellation.integration.test.ts`'s dedicated case.
+- **M-007** (ETA confidence classification) — `classifyEtaConfidence` now
+  surfaced on `getTrackingState`, confirmed present in code.
+- **M-102** — confirmed a real location-corroboration path with a real
+  mobile caller (`NoShowReportSheet`'s `useCurrentPosition`), not merely a
+  domain function.
+- **V-02, V-03** — the prior implementing session (`dd486d1`) independently
+  re-confirmed these live against a real server; **V-05, V-06, V-07, V-09**
+  had their underlying gaps closed by the fixes above but could not be
+  re-run as live HTTP journeys in any session since (this session included)
+  due to the OSRM/Google-key gap in §12.3 — marked as such, not silently
+  claimed PASS.
+
+**Checked and deliberately left unchanged**, confirmed still genuinely open
+rather than assumed stale: **M-081–084, M-085, EDGE-052, INV-09** —
+`evaluateExistingPassengerImpact` (a real, tested pure function since
+`dd486d1`) has zero real callers anywhere in `apps/api` (confirmed by grep
+this pass), and `getMatchingThresholds`/`MAX_DETOUR_RATIO` remain
+hardcoded, unlike the cancellation/no-show/deadline/grouping thresholds
+`18db93b` did make admin-injectable. **M-092** downgraded from blanket FAIL
+to PARTIAL — the position/detour/ETA fields are real, but no dedicated
+shape-completeness test exists and the existing-passenger-impact field
+specifically is not wired in.
+
 ### 12.5 Gate verdict after this pass
 
 **Every item this pass's task explicitly named as non-deferrable is closed**:
 M-091, M-051–058, admin configuration UI were already done on entry (found
-verified, not re-built); stop corridor-intent/joint-optimization
-(M-004/M-020/M-039) and pedestrian-zone/no-stopping-feasibility rejection
-(M-014/M-015, plus the adjacent M-017 bypass gap) are newly implemented and
-tested this pass; M-040/EDGE-053 (the third item from the prior session's
-own in-progress todo list) is implemented, tested, and wired into mobile.
-The one honestly blocked item is re-executing the vertical-journey suite
-live, for the infrastructure reason in §12.3 — not a scope decision, and not
-something any amount of further code-writing in this session can resolve.
+verified, not re-built — see §12.6 for how large that "already done" set
+actually turned out to be, and how out of date this matrix was about it);
+stop corridor-intent/joint-optimization (M-004/M-020/M-039) and
+pedestrian-zone/no-stopping-feasibility rejection (M-014/M-015, plus the
+adjacent M-017 bypass gap) are newly implemented and tested this pass;
+M-040/EDGE-053 (the third item from the prior session's own in-progress
+todo list) is implemented, tested, and wired into mobile. The one honestly
+blocked item is re-executing the vertical-journey suite live, for the
+infrastructure reason in §12.3 — not a scope decision, and not something
+any amount of further code-writing in this session can resolve. A real,
+substantial body of work (§12.1) genuinely remains outside this pass's
+scope and this matrix's own explicit task list — M-081–085/EDGE-052/INV-09
+(existing-passenger impact, matching-threshold admin-injectability),
+M-113 (4/12 notification event types structurally absent), and the finer
+no-show/boarding-ambiguity edge cases — carried forward honestly, not
+claimed done.
