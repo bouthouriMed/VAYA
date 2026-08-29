@@ -13,6 +13,7 @@ import {
   computeMaxConcurrentSeats,
   computeSuggestedPrice,
   detourAllowanceSec,
+  evaluateExistingPassengerImpact,
   evaluateNoShowReport,
   findSameJourneySiblings,
   getMatchingThresholds,
@@ -22,6 +23,7 @@ import {
   type BookingSegment,
   type CancellationPolicyResult,
   type CancellationReason,
+  type ExistingPassengerImpactInput,
   type RatingRole,
 } from '@vaya/domain';
 import type { CreateBookingInput } from '@vaya/validation';
@@ -329,7 +331,7 @@ async function assertRealDetourWithinAllowance(
     routePolyline: string | null;
   },
   point: { lat: number; lng: number },
-): Promise<void> {
+): Promise<DetourImpact> {
   if (!ride.routePolyline) {
     throw new ValidationError('This ride has no route to validate a detour against');
   }
@@ -339,6 +341,116 @@ async function assertRealDetourWithinAllowance(
   }
   if (!impact.withinAllowance) {
     throw new ValidationError("This point is too far from the driver's route for this ride");
+  }
+  // M-083/084/EDGE-052/INV-09: the real extraDurationSeconds this call
+  // already computed — returned so createBooking can feed it into
+  // assertExistingPassengerImpactAcceptable without a second routing call.
+  return impact;
+}
+
+/**
+ * M-083/M-084/EDGE-052/INV-09 (docs/unified_driver_and_passenger_journey.md
+ * §27, §62 "Existing Passengers Have Soft Protection"): "A new request must
+ * be evaluated against all existing confirmed/onboard passengers... their
+ * ETA is an estimate, not an immutable contractual timestamp... a small
+ * delay is acceptable, a substantial delay is not." Before this function,
+ * `evaluateExistingPassengerImpact` (a real, pure, already-tested domain
+ * function) had zero real callers anywhere in `apps/api` — confirmed live
+ * by grep — so this protection genuinely didn't exist at the booking layer
+ * at all, only as an unwired pure function.
+ *
+ * Only relevant for a genuine free-form detour (`detourExtraDurationSeconds
+ * > 0`) — a booking resolved entirely via the driver's own planned
+ * route_stops changes nothing about the schedule (the same reasoning
+ * `previewBookingDetour`'s own `newEta` doc comment already establishes:
+ * "0 when both pickup and dropoff are planned stops — already priced into
+ * the published route"), so existing passengers are trivially unaffected
+ * and this is skipped entirely for the overwhelming majority of bookings —
+ * no wasted computation for the common case.
+ *
+ * Deliberately reuses only the ride's own ORIGINAL (undetoured) route
+ * geometry for every fraction computed here — never a second live routing
+ * call per existing passenger, which would turn one new request into N
+ * routing-API calls. `detourExtraDurationSeconds` (the one real routing
+ * call this booking already made, in `computeDetourImpact`) is applied as
+ * the full added delay to every existing passenger whose own dropoff sits
+ * at or after the new pickup's insertion point on that route — a
+ * documented approximation (no per-leg routing breakdown exists, same
+ * category as `previewBookingDetour`'s own stated limitation), not a
+ * fabricated number: it's the real total detour cost, conservatively
+ * attributed to every passenger who could plausibly experience some share
+ * of it, erring toward passenger protection per the spec's own "existing
+ * passenger journeys have priority" framing.
+ */
+async function assertExistingPassengerImpactAcceptable(
+  db: Database,
+  ride: {
+    id: string;
+    originLat: number;
+    originLng: number;
+    destinationLat: number;
+    destinationLng: number;
+    routePolyline: string | null;
+    estimatedDurationSec: number | null;
+  },
+  /** Whichever of this booking's own points is the FIRST real deviation
+   *  from the ride's base route (the earlier of pickup/dropoff, when both
+   *  are free-form) — existing passengers alighting before this point are
+   *  genuinely unaffected by either deviation. */
+  firstDeviationPoint: { lat: number; lng: number },
+  /** The combined real extra duration both of this booking's own
+   *  deviations cost the driver (pickup's + dropoff's, each already
+   *  computed once by assertRealDetourWithinAllowance — never a second
+   *  routing call here). */
+  totalDetourExtraDurationSeconds: number,
+): Promise<void> {
+  if (totalDetourExtraDurationSeconds <= 0) return; // Planned-stop booking — no schedule change, nothing to protect against.
+  if (!ride.routePolyline || !ride.estimatedDurationSec) return; // No real route/duration to project onto — never fabricate an impact number.
+
+  const existingBookings = await db.query.bookings.findMany({
+    where: and(eq(bookings.rideId, ride.id), eq(bookings.status, 'accepted')),
+  });
+  if (existingBookings.length === 0) return;
+
+  const routePoints = decodePolyline(ride.routePolyline);
+  const insertionFraction = clamp01(projectPointOntoRoute(firstDeviationPoint, routePoints).fraction);
+  const addedDelayMinutes = totalDetourExtraDurationSeconds / 60;
+
+  const impactInputs: ExistingPassengerImpactInput[] = [];
+  for (const existing of existingBookings) {
+    const existingDropoffLat = existing.dropoffLat ?? ride.destinationLat;
+    const existingDropoffLng = existing.dropoffLng ?? ride.destinationLng;
+    const pickupFraction = clamp01(
+      projectPointOntoRoute({ lat: existing.pickupLat, lng: existing.pickupLng }, routePoints).fraction,
+    );
+    const dropoffFraction = clamp01(
+      projectPointOntoRoute({ lat: existingDropoffLat, lng: existingDropoffLng }, routePoints).fraction,
+    );
+    if (dropoffFraction < insertionFraction) continue; // Already alighted before the new detour happens — genuinely unaffected.
+
+    const tripDurationMinutes = Math.max(
+      0,
+      ((dropoffFraction - pickupFraction) * ride.estimatedDurationSec) / 60,
+    );
+    impactInputs.push({
+      passengerId: existing.riderId,
+      tripDurationMinutes,
+      addedDelayMinutes,
+    });
+  }
+  if (impactInputs.length === 0) return;
+
+  const opConfig = await getActiveOperationalConfig(db);
+  const result = evaluateExistingPassengerImpact(impactInputs, {
+    maxDelayRatio: opConfig.existingPassengerMaxDelayRatio,
+    maxAbsoluteDelayMinutes: opConfig.existingPassengerMaxAbsoluteDelayMinutes,
+  });
+  if (!result.acceptable) {
+    throw new AppError(
+      "This request would delay an already-confirmed passenger's trip by more than acceptable",
+      409,
+      'EXISTING_PASSENGER_IMPACT_TOO_HIGH',
+    );
   }
 }
 
@@ -592,6 +704,13 @@ export async function createBooking(
   let pickupLat: number;
   let pickupLng: number;
   let pickupWalkMeters: number | null = null;
+  // M-083/084/EDGE-052/INV-09: the real extra-duration cost of THIS
+  // booking's own free-form pickup and/or dropoff, if any — 0 for a
+  // planned-stop resolution (no schedule change). Fed into
+  // assertExistingPassengerImpactAcceptable below once both ends are
+  // resolved, whichever leg (or both) actually detoured.
+  let pickupDetourExtraDurationSeconds = 0;
+  let dropoffDetourExtraDurationSeconds = 0;
 
   if (input.pickupStopId) {
     // Must belong to this exact ride and still be one of the driver's
@@ -623,7 +742,8 @@ export async function createBooking(
     // already-shipped booking pattern is never newly rejected by this
     // change.
     if (selectedStops.length > 0) {
-      await assertRealDetourWithinAllowance(db, ride, { lat: pickupLat, lng: pickupLng });
+      const pickupImpact = await assertRealDetourWithinAllowance(db, ride, { lat: pickupLat, lng: pickupLng });
+      pickupDetourExtraDurationSeconds = pickupImpact.extraDurationSeconds;
     }
   } else {
     throw new ValidationError('Pickup location is required');
@@ -672,7 +792,42 @@ export async function createBooking(
     dropoffLabel = input.dropoff.label;
     dropoffLat = input.dropoff.lat;
     dropoffLng = input.dropoff.lng;
-    await assertRealDetourWithinAllowance(db, ride, { lat: dropoffLat, lng: dropoffLng });
+    const dropoffImpact = await assertRealDetourWithinAllowance(db, ride, { lat: dropoffLat, lng: dropoffLng });
+    dropoffDetourExtraDurationSeconds = dropoffImpact.extraDurationSeconds;
+  }
+
+  // M-083/084/EDGE-052/INV-09 (spec §27, §62): only meaningful when this
+  // booking itself introduced a genuine deviation — the helper's own
+  // `totalDetourExtraDurationSeconds <= 0` guard makes the planned-stop
+  // (majority) case a no-op read of two already-zero locals, not a real
+  // extra query.
+  if (pickupDetourExtraDurationSeconds > 0 || dropoffDetourExtraDurationSeconds > 0) {
+    // Whichever end actually deviates first along the route — if only one
+    // end is free-form, that's the sole deviation point; if both are, the
+    // earlier of the two is where the driver first leaves the base route.
+    const firstDeviationPoint =
+      pickupDetourExtraDurationSeconds > 0 && dropoffDetourExtraDurationSeconds > 0 && ride.routePolyline
+        ? (() => {
+            const routePoints = decodePolyline(ride.routePolyline!);
+            const pickupFraction = projectPointOntoRoute({ lat: pickupLat, lng: pickupLng }, routePoints).fraction;
+            const dropoffFraction = projectPointOntoRoute(
+              { lat: dropoffLat!, lng: dropoffLng! },
+              routePoints,
+            ).fraction;
+            return pickupFraction <= dropoffFraction
+              ? { lat: pickupLat, lng: pickupLng }
+              : { lat: dropoffLat!, lng: dropoffLng! };
+          })()
+        : pickupDetourExtraDurationSeconds > 0
+          ? { lat: pickupLat, lng: pickupLng }
+          : { lat: dropoffLat!, lng: dropoffLng! };
+
+    await assertExistingPassengerImpactAcceptable(
+      db,
+      ride,
+      firstDeviationPoint,
+      pickupDetourExtraDurationSeconds + dropoffDetourExtraDurationSeconds,
+    );
   }
 
   // M-051/052 (docs/unified_driver_and_passenger_journey.md §20): "A
