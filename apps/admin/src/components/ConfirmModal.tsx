@@ -49,9 +49,21 @@ export function ConfirmModal({
             />
           </div>
         ) : null}
-        {errorMessage ? <p className="field__error">{errorMessage}</p> : null}
+        {errorMessage ? (
+          <div
+            className="state-block__hint"
+            style={{ color: 'var(--color-error)', marginBottom: 8 }}
+          >
+            {errorMessage}
+          </div>
+        ) : null}
         <div className="modal__actions">
-          <button type="button" className="btn btn--ghost" onClick={onCancel} disabled={isSubmitting}>
+          <button
+            type="button"
+            className="btn btn--ghost"
+            onClick={onCancel}
+            disabled={isSubmitting}
+          >
             Cancel
           </button>
           <button

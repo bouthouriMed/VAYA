@@ -1,7 +1,20 @@
 export type BadgeTone = 'neutral' | 'success' | 'warning' | 'error' | 'info';
 
-export function Badge({ label, tone = 'neutral' }: { label: string; tone?: BadgeTone }): React.JSX.Element {
-  return <span className={`badge badge--${tone}`}>{label}</span>;
+export function Badge({
+  label,
+  tone = 'neutral',
+  dot = true,
+}: {
+  label: string;
+  tone?: BadgeTone;
+  dot?: boolean;
+}): React.JSX.Element {
+  return (
+    <span className={`badge badge--${tone}`}>
+      {dot ? <span className="badge__dot" aria-hidden="true" /> : null}
+      {label}
+    </span>
+  );
 }
 
 const RIDE_STATUS_TONE: Record<string, BadgeTone> = {
