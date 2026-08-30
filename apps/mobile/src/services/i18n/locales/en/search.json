@@ -88,6 +88,7 @@
     "pickupNotAvailableError": "This point is too far from the driver's route, or couldn't be verified right now. Try again or pick another ride."
   },
   "trust": {
+    "title": "Profile",
     "back": "Back",
     "profileNotFound": "Profile not found.",
     "verified": "Verified",
@@ -96,7 +97,9 @@
     "tripsLabel": "Trips",
     "welcomeTitle": "{{name}} is just getting started on VAYA",
     "welcomeDescription": "A fully verified profile, not yet with trips or reviews — everyone starts somewhere. What VAYA already guarantees is listed below.",
+    "welcomeDescriptionRider": "No trips or reviews yet — everyone starts somewhere.",
     "welcomeEncourage": "Be one of {{name}}'s first passengers — your review after the ride will help them build trust from the start.",
+    "welcomeEncourageRider": "Be one of the first to give {{name}} a ride — your rating afterwards will help them build trust from the start.",
     "pillNew": "New",
     "pillReliable": "Reliable",
     "pillTopRated": "Top VAYA",
@@ -110,7 +113,8 @@
     "reviewsEmpty": "{{name}} hasn't received any reviews yet.",
     "reviewsFirstLine": "Share yours after your ride — the first review counts the most.",
     "messageDriver": "Message driver",
-    "messageAvailability": "Available once your seat request is accepted."
+    "messageAvailability": "Available once your seat request is accepted.",
+    "messageAvailabilityDriver": "Available once you accept this request."
   },
   "reviews": {
     "fallbackDriverName": "this driver",

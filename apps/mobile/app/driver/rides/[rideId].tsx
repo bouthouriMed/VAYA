@@ -102,7 +102,19 @@ function PendingRequestRow({
   }
 
   return (
-    <View style={[styles.glassRow, { backgroundColor: theme.surfaceMuted, borderColor: theme.outlineVariant }]}>
+    // The whole card opens the request-detail sheet now, not just the small
+    // info icon that used to be the only tappable spot in the identity row
+    // — Accept/Decline stay their own nested TouchableOpacitys below, and a
+    // touch starting on either of them is claimed by that inner responder
+    // first (RN's standard nested-Touchable behavior), so they keep working
+    // independently of this outer tap target.
+    <TouchableOpacity
+      style={[styles.glassRow, { backgroundColor: theme.surfaceMuted, borderColor: theme.outlineVariant }]}
+      onPress={onOpenDetails}
+      activeOpacity={0.8}
+      accessibilityRole="button"
+      accessibilityLabel={`${t('rides.requestsSheet.viewDetails')} — ${booking.rider?.fullName ?? ''}`}
+    >
       <View style={styles.requestIdentityRow}>
         <Avatar
           uri={booking.rider?.avatarUrl}
@@ -135,14 +147,7 @@ function PendingRequestRow({
             </Text>
           ) : null}
         </View>
-        <TouchableOpacity
-          onPress={onOpenDetails}
-          hitSlop={10}
-          accessibilityRole="button"
-          accessibilityLabel={t('rides.requestsSheet.viewDetails')}
-        >
-          <Icon name="information-circle-outline" size="sm" color={theme.inkMuted} />
-        </TouchableOpacity>
+        <Icon name="chevron-forward" size="sm" color={theme.inkFaint} />
       </View>
       <View style={styles.requestActions}>
         <TouchableOpacity
@@ -175,7 +180,7 @@ function PendingRequestRow({
           {error}
         </Text>
       ) : null}
-    </View>
+    </TouchableOpacity>
   );
 }
 

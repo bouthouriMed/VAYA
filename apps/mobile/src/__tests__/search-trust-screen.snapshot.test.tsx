@@ -1,7 +1,7 @@
 import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
 import { renderJSON } from './test-utils/renderJSON';
-import type { PublicProfile, TrustSummary } from '../state/api';
+import type { PublicProfile, TrustSummary, Conversation } from '../state/api';
 
 /**
  * Real react-test-renderer snapshots of search/trust.tsx (Stitch reference:
@@ -10,9 +10,14 @@ import type { PublicProfile, TrustSummary } from '../state/api';
  * not source-string assertions.
  */
 
+let searchParams: { rideId: string; driverUserId: string; bookingId?: string } = {
+  rideId: 'ride-1',
+  driverUserId: 'user-1',
+};
+
 vi.mock('expo-router', () => ({
   router: { back: vi.fn(), push: vi.fn() },
-  useLocalSearchParams: () => ({ rideId: 'ride-1', driverUserId: 'user-1' }),
+  useLocalSearchParams: () => searchParams,
 }));
 
 vi.mock('../services/analytics/analytics', () => ({
@@ -46,16 +51,45 @@ const trustSummaryTopRated: TrustSummary = {
   rider: null,
 };
 
-function mockApi(profile: PublicProfile | undefined, isProfileLoading: boolean, trustSummary?: TrustSummary): void {
+const acceptedConversation: Conversation = {
+  id: 'conv-1',
+  bookingId: 'booking-1',
+  status: 'open',
+  createdAt: '2026-08-24T09:05:00Z',
+  updatedAt: '2026-08-24T09:05:00Z',
+  viewerRole: 'driver',
+  otherParty: { id: 'user-1', fullName: 'Mehdi Gharbi', avatarUrl: null },
+  otherPartyRole: 'rider',
+  isOtherPartyVerified: false,
+  rideId: 'ride-1',
+  originLabel: 'Tunis',
+  destinationLabel: 'Nabeul',
+  pickupLabel: 'Tunis',
+  dropoffLabel: 'Nabeul',
+  departureAt: '2026-08-25T08:00:00Z',
+  rideStatus: 'published',
+  tripStatus: null,
+  lastMessage: null,
+  hasUnread: false,
+};
+
+function mockApi(
+  profile: PublicProfile | undefined,
+  isProfileLoading: boolean,
+  trustSummary?: TrustSummary,
+  conversation?: Conversation,
+): void {
   vi.doMock('../state/api', () => ({
     useGetUserPublicProfileQuery: () => ({ data: profile, isLoading: isProfileLoading }),
     useGetUserTrustSummaryQuery: () => ({ data: trustSummary }),
+    useGetConversationByBookingQuery: () => ({ data: conversation }),
   }));
 }
 
 describe('search/trust.tsx snapshots', () => {
   it('renders a verified driver profile with real stats, pills and vehicle', async () => {
     vi.resetModules();
+    searchParams = { rideId: 'ride-1', driverUserId: 'user-1' };
     mockApi(fullProfile, false, trustSummaryTopRated);
     const { default: TrustScreen } = await import('../../app/search/trust');
     const tree = renderJSON(<TrustScreen />);
@@ -64,6 +98,7 @@ describe('search/trust.tsx snapshots', () => {
 
   it('renders the loading state', async () => {
     vi.resetModules();
+    searchParams = { rideId: 'ride-1', driverUserId: 'user-1' };
     mockApi(undefined, true, undefined);
     const { default: TrustScreen } = await import('../../app/search/trust');
     const tree = renderJSON(<TrustScreen />);
@@ -72,15 +107,44 @@ describe('search/trust.tsx snapshots', () => {
 
   it('renders the "profile not found" state', async () => {
     vi.resetModules();
+    searchParams = { rideId: 'ride-1', driverUserId: 'user-1' };
     mockApi(undefined, false, undefined);
     const { default: TrustScreen } = await import('../../app/search/trust');
     const tree = renderJSON(<TrustScreen />);
     expect(tree).toMatchSnapshot();
   });
 
-  it('renders a passenger-only profile (no driver stats/vehicle/pills)', async () => {
+  it('renders a brand-new passenger profile (no rider trust data yet)', async () => {
     vi.resetModules();
+    searchParams = { rideId: 'ride-1', driverUserId: 'user-1' };
     mockApi({ ...fullProfile, driver: null }, false, { userId: 'user-1', driver: null, rider: null });
+    const { default: TrustScreen } = await import('../../app/search/trust');
+    const tree = renderJSON(<TrustScreen />);
+    expect(tree).toMatchSnapshot();
+  });
+
+  it('renders a passenger profile with real rider trust stats', async () => {
+    vi.resetModules();
+    searchParams = { rideId: 'ride-1', driverUserId: 'user-1', bookingId: 'booking-1' };
+    mockApi({ ...fullProfile, driver: null }, false, {
+      userId: 'user-1',
+      driver: null,
+      rider: { tier: 'trusted', ratingAvg: 4.3, tripCount: 9, punctualityScore: 0.9 },
+    });
+    const { default: TrustScreen } = await import('../../app/search/trust');
+    const tree = renderJSON(<TrustScreen />);
+    expect(tree).toMatchSnapshot();
+  });
+
+  it('enables a real Message button once a conversation exists for the booking', async () => {
+    vi.resetModules();
+    searchParams = { rideId: 'ride-1', driverUserId: 'user-1', bookingId: 'booking-1' };
+    mockApi(
+      { ...fullProfile, driver: null },
+      false,
+      { userId: 'user-1', driver: null, rider: null },
+      acceptedConversation,
+    );
     const { default: TrustScreen } = await import('../../app/search/trust');
     const tree = renderJSON(<TrustScreen />);
     expect(tree).toMatchSnapshot();

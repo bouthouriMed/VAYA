@@ -88,6 +88,7 @@
     "pickupNotAvailableError": "Ce point est trop éloigné du trajet du conducteur, ou n'a pas pu être vérifié pour le moment. Réessayez ou choisissez un autre trajet."
   },
   "trust": {
+    "title": "Profil",
     "back": "Retour",
     "profileNotFound": "Profil introuvable.",
     "verified": "Vérifié",
@@ -96,7 +97,9 @@
     "tripsLabel": "Trajets",
     "welcomeTitle": "{{name}} débute sur VAYA",
     "welcomeDescription": "Profil entièrement vérifié, encore sans trajets ni avis — tout le monde débute un jour. Ce que VAYA garantit déjà se trouve ci-dessous.",
+    "welcomeDescriptionRider": "Pas encore de trajets ni d'avis — tout le monde débute un jour.",
     "welcomeEncourage": "Soyez parmi les premiers passagers de {{name}} : votre avis après le trajet l'aidera à démarrer en confiance.",
+    "welcomeEncourageRider": "Soyez parmi les premiers à emmener {{name}} : votre évaluation après le trajet l'aidera à démarrer en confiance.",
     "pillNew": "Nouveau",
     "pillReliable": "Fiable",
     "pillTopRated": "Top VAYA",
@@ -110,7 +113,8 @@
     "reviewsEmpty": "{{name}} n'a pas encore reçu d'avis.",
     "reviewsFirstLine": "Après votre trajet, partagez le vôtre — le premier avis est celui qui compte le plus.",
     "messageDriver": "Message conducteur",
-    "messageAvailability": "Disponible une fois votre demande de place acceptée."
+    "messageAvailability": "Disponible une fois votre demande de place acceptée.",
+    "messageAvailabilityDriver": "Disponible une fois cette demande acceptée."
   },
   "reviews": {
     "fallbackDriverName": "ce conducteur",

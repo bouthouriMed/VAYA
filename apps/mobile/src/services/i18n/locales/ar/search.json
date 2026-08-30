@@ -96,6 +96,7 @@
     "pickupNotAvailableError": "هذه النقطة بعيدة جدًا عن مسار السائق، أو تعذر التحقق منها الآن. أعد المحاولة أو اختر رحلة أخرى."
   },
   "trust": {
+    "title": "الملف الشخصي",
     "back": "رجوع",
     "profileNotFound": "الملف الشخصي غير موجود.",
     "verified": "موثّق",
@@ -104,7 +105,9 @@
     "tripsLabel": "الرحلات",
     "welcomeTitle": "{{name}} بدأ للتو على VAYA",
     "welcomeDescription": "ملف موثّق بالكامل، لكن بدون رحلات أو تقييمات بعد — الجميع يبدأ في مرحلة ما. ما تضمنه VAYA بالفعل موضّح أدناه.",
+    "welcomeDescriptionRider": "لا رحلات ولا تقييمات بعد — الجميع يبدأ في مرحلة ما.",
     "welcomeEncourage": "كن من أوائل ركاب {{name}} — تقييمك بعد الرحلة سيساعده على بناء الثقة منذ البداية.",
+    "welcomeEncourageRider": "كن من أوائل من يوصّل {{name}} — تقييمك بعد الرحلة سيساعده على بناء الثقة منذ البداية.",
     "pillNew": "جديد",
     "pillReliable": "موثوق",
     "pillTopRated": "الأفضل في VAYA",
@@ -118,7 +121,8 @@
     "reviewsEmpty": "لم يتلقَّ {{name}} أي تقييمات بعد.",
     "reviewsFirstLine": "شارك تقييمك بعد رحلتك — التقييم الأول هو الأهم.",
     "messageDriver": "مراسلة السائق",
-    "messageAvailability": "متاح بمجرد قبول طلب مقعدك."
+    "messageAvailability": "متاح بمجرد قبول طلب مقعدك.",
+    "messageAvailabilityDriver": "متاح بمجرد قبولك لهذا الطلب."
   },
   "reviews": {
     "fallbackDriverName": "هذا السائق",

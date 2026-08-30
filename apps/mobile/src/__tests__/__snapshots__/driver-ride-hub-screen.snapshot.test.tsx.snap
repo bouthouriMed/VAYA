@@ -512,7 +512,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                   ]
                 }
               >
-                8:30
+                8:30 AM
               </Text>
             </View>
             <Text
@@ -1703,7 +1703,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                   ]
                 }
               >
-                8:30
+                8:30 AM
               </Text>
             </View>
             <Text
@@ -2144,7 +2144,11 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
         >
           rides.rideDetail.pendingSection
         </Text>
-        <View
+        <TouchableOpacity
+          accessibilityLabel="rides.requestsSheet.viewDetails — Dinara Kochakajeva"
+          accessibilityRole="button"
+          activeOpacity={0.8}
+          onPress={[Function]}
           style={
             [
               {
@@ -2274,20 +2278,13 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                 → Sousse
               </Text>
             </View>
-            <TouchableOpacity
-              accessibilityLabel="rides.requestsSheet.viewDetails"
-              accessibilityRole="button"
-              hitSlop={10}
-              onPress={[Function]}
-            >
-              <Ionicons
-                accessibilityElementsHidden={true}
-                color="#5B6572"
-                importantForAccessibility="no-hide-descendants"
-                name="information-circle-outline"
-                size={20}
-              />
-            </TouchableOpacity>
+            <Ionicons
+              accessibilityElementsHidden={true}
+              color="#8B93A3"
+              importantForAccessibility="no-hide-descendants"
+              name="chevron-forward"
+              size={20}
+            />
           </View>
           <View
             style={
@@ -2383,7 +2380,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
               </Text>
             </TouchableOpacity>
           </View>
-        </View>
+        </TouchableOpacity>
       </View>
       <View
         style={
