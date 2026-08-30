@@ -1,6 +1,6 @@
 import React from 'react';
 import { describe, expect, it } from 'vitest';
-import { PickupPin, DropoffPin, StopPin } from '../primitives/RideStopMarkers';
+import { PickupPin, DropoffPin, StopPin, PassengerStopPin } from '../primitives/RideStopMarkers';
 import { lightPalette } from '../theme/palette';
 import { renderJSON } from './test-utils/renderJSON';
 
@@ -73,5 +73,27 @@ describe('StopPin', () => {
   it('renders a flag glyph instead of a number for anchor stops', () => {
     const tree = asNode(renderJSON(<StopPin theme={lightPalette} index={1} flag />));
     expect(childrenOf(tree)[0]!.type).toBe('Ionicons');
+  });
+});
+
+describe('PassengerStopPin', () => {
+  it('renders a small accentStrong-filled circle with a person glyph for pickup', () => {
+    const tree = asNode(renderJSON(<PassengerStopPin theme={lightPalette} kind="pickup" />));
+
+    expect(tree.type).toBe('View');
+    expect(mergedStyle(tree).backgroundColor).toBe(lightPalette.accentStrong);
+    expect(mergedStyle(tree).borderColor).toBe(lightPalette.surface);
+
+    const glyph = childrenOf(tree)[0]!;
+    expect(glyph.type).toBe('Ionicons');
+    expect(glyph.props.name).toBe('person');
+  });
+
+  it('renders a checkmark glyph for dropoff, same accentStrong fill', () => {
+    const tree = asNode(renderJSON(<PassengerStopPin theme={lightPalette} kind="dropoff" />));
+
+    expect(mergedStyle(tree).backgroundColor).toBe(lightPalette.accentStrong);
+    const glyph = childrenOf(tree)[0]!;
+    expect(glyph.props.name).toBe('checkmark');
   });
 });

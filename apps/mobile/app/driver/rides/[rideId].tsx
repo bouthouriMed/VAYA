@@ -16,6 +16,7 @@ import {
   MapCanvas,
   PickupPin,
   DropoffPin,
+  PassengerStopPin,
   useAppTheme,
   useToast,
   spacing,
@@ -37,7 +38,7 @@ import {
   type Trip,
   type TripStatus,
 } from '../../../src/state/api';
-import { decodePolyline } from '../../../src/utils/polyline';
+import { decodePolyline, routeOrderFraction, haversineKm } from '../../../src/utils/polyline';
 import { DriverBookingDetailSheet } from '../../../src/features/driver-rides/DriverBookingDetailSheet';
 import { RequestDetailSheet } from '../../../src/features/driver-rides/RequestDetailSheet';
 import { ManageRideSheet } from '../../../src/features/driver-rides/ManageRideSheet';
@@ -221,7 +222,7 @@ export default function DriverRideHubScreen(): React.JSX.Element {
 
   const ANSWERED_BADGE: Record<Booking['status'], { label: string; variant: 'default' | 'success' | 'warning' | 'error' }> = {
     pending: { label: t('rides.requestsSheet.sectionPending'), variant: 'warning' },
-    accepted: { label: t('rides.requestsSheet.sectionAccepted'), variant: 'success' },
+    accepted: { label: t('rides.rideDetail.confirmedBadge'), variant: 'success' },
     declined: { label: t('rides.requestsSheet.decline'), variant: 'error' },
     cancelled_by_rider: { label: t('rides.rideDetail.cancelRide'), variant: 'default' },
     cancelled_by_driver: { label: t('rides.rideDetail.cancelRide'), variant: 'error' },
@@ -345,6 +346,83 @@ export default function DriverRideHubScreen(): React.JSX.Element {
   // map, same convention as the passenger's ride-details.tsx.
   const intermediateStops = selectedStops.slice(1, -1);
 
+  // Real UX gap found live: an accepted passenger whose own pickup/dropoff
+  // isn't the ride's own origin/destination (a route-passthrough or
+  // detour-match booking — e.g. a Zaragoza -> Lleida request on a Madrid ->
+  // Barcelona ride) was invisible on this screen entirely, both in the
+  // itinerary text and on the map — a driver had no way to tell a specific
+  // passenger's own stop apart from their own route at all. Built from
+  // real accepted-booking data (pickupLat/Lng/Label, dropoffLat/Lng/Label),
+  // never fabricated: a point within 300m of the ride's own origin/
+  // destination is treated as "the same point" and skipped (already shown
+  // by the Departure/Arrival rows below), not duplicated. `fraction` (this
+  // file's own utils/polyline.ts routeOrderFraction, display-only — not the
+  // server's precise matching-decision projection) both orders multiple
+  // passengers' points correctly along the route and derives an honest,
+  // real-route-geometry-based ETA for each, the same "duration * fraction"
+  // approximation matching.service.ts's own route_passthrough tier already
+  // uses server-side.
+  const DISTINCT_FROM_ENDPOINT_KM = 0.3;
+  const passengerItineraryPoints = ride
+    ? acceptedBookings
+        .flatMap((booking) => {
+          const passengerName = booking.rider?.fullName ?? t('rides.bookingDetail.passenger');
+          const points: {
+            kind: 'pickup' | 'dropoff';
+            lat: number;
+            lng: number;
+            label: string;
+            passengerName: string;
+            fraction: number;
+            etaLabel: string | null;
+          }[] = [];
+
+          function etaAt(fraction: number): string | null {
+            if (ride!.estimatedDurationSec == null) return null;
+            return estimateArrivalLabel(
+              ride!.departureAt,
+              Math.round(ride!.estimatedDurationSec * fraction),
+              intlTag,
+            );
+          }
+
+          const originLatLng = { latitude: ride!.originLat, longitude: ride!.originLng };
+          const pickupLatLng = { latitude: booking.pickupLat, longitude: booking.pickupLng };
+          if (haversineKm(pickupLatLng, originLatLng) * 1000 > DISTINCT_FROM_ENDPOINT_KM * 1000) {
+            const fraction = routeCoordinates.length > 1 ? routeOrderFraction(routeCoordinates, pickupLatLng) : 0;
+            points.push({
+              kind: 'pickup',
+              lat: booking.pickupLat,
+              lng: booking.pickupLng,
+              label: booking.pickupLabel,
+              passengerName,
+              fraction,
+              etaLabel: etaAt(fraction),
+            });
+          }
+
+          const dropoffLat = booking.dropoffLat ?? ride!.destinationLat;
+          const dropoffLng = booking.dropoffLng ?? ride!.destinationLng;
+          const destinationLatLng = { latitude: ride!.destinationLat, longitude: ride!.destinationLng };
+          const dropoffLatLng = { latitude: dropoffLat, longitude: dropoffLng };
+          if (haversineKm(dropoffLatLng, destinationLatLng) * 1000 > DISTINCT_FROM_ENDPOINT_KM * 1000) {
+            const fraction = routeCoordinates.length > 1 ? routeOrderFraction(routeCoordinates, dropoffLatLng) : 1;
+            points.push({
+              kind: 'dropoff',
+              lat: dropoffLat,
+              lng: dropoffLng,
+              label: booking.dropoffLabel ?? ride!.destinationLabel,
+              passengerName,
+              fraction,
+              etaLabel: etaAt(fraction),
+            });
+          }
+
+          return points;
+        })
+        .sort((a, b) => a.fraction - b.fraction)
+    : [];
+
   if (isRideLoading) {
     return (
       <View style={[styles.loadingWrap, { backgroundColor: theme.background }]}>
@@ -401,6 +479,7 @@ export default function DriverRideHubScreen(): React.JSX.Element {
     regionForPoints([
       pickupStop ?? { lat: ride.originLat, lng: ride.originLng },
       ...intermediateStops,
+      ...passengerItineraryPoints.map((p) => ({ lat: p.lat, lng: p.lng })),
       dropoffStop ?? { lat: ride.destinationLat, lng: ride.destinationLng },
     ]) ?? undefined;
 
@@ -428,11 +507,11 @@ export default function DriverRideHubScreen(): React.JSX.Element {
         <View style={styles.mapCard}>
           <MapPreview
             height={160}
-            badge={statusBadge.label}
             origin={{ latitude: ride.originLat, longitude: ride.originLng }}
             destination={{ latitude: ride.destinationLat, longitude: ride.destinationLng }}
             pickup={pickupStop ? { latitude: pickupStop.lat, longitude: pickupStop.lng } : undefined}
             dropoff={dropoffStop ? { latitude: dropoffStop.lat, longitude: dropoffStop.lng } : undefined}
+            passengerStops={passengerItineraryPoints.map((p) => ({ lat: p.lat, lng: p.lng, kind: p.kind }))}
             theme={theme}
             isDark={scheme === 'dark'}
             routeCoordinates={routeCoordinates}
@@ -498,6 +577,41 @@ export default function DriverRideHubScreen(): React.JSX.Element {
               {t('rides.rideDetail.intermediateStopsNote', { count: intermediateStops.length })}
             </Text>
           ) : null}
+
+          {/* Real accepted passengers' own pickup/dropoff, interleaved in
+              real route order between Departure and Arrival — see this
+              file's own passengerItineraryPoints comment above for the full
+              "why" (a route-passthrough/detour-match booking's own stop was
+              previously invisible here entirely). Same accent-strong dot
+              PassengerStopPin uses on the map above, so the two views read
+              as the same real point. */}
+          {passengerItineraryPoints.map((point) => (
+            <View key={`${point.kind}-${point.passengerName}-${point.lat}-${point.lng}`} style={styles.compactStop}>
+              <View
+                style={[styles.compactStopDot, { backgroundColor: theme.accentStrong, borderColor: theme.surface }]}
+              />
+              <View style={styles.compactStopTextCol}>
+                <View style={styles.compactStopHeaderRow}>
+                  <Text variant="bodySmall" color={theme.inkMuted} numberOfLines={1}>
+                    {point.passengerName}
+                  </Text>
+                  {point.etaLabel ? (
+                    <Text variant="bodySmall" color={theme.inkMuted}>
+                      {point.etaLabel}
+                    </Text>
+                  ) : null}
+                </View>
+                <Text variant="body" color={theme.ink} numberOfLines={1}>
+                  {point.label}
+                </Text>
+                <Text variant="caption" color={theme.inkFaint} numberOfLines={1}>
+                  {point.kind === 'pickup'
+                    ? t('rides.rideDetail.pickupPrefix')
+                    : t('rides.rideDetail.dropoffPrefix')}
+                </Text>
+              </View>
+            </View>
+          ))}
 
           <View style={[styles.compactStop, styles.compactStopLast]}>
             <View style={[styles.compactStopDot, { backgroundColor: theme.ink, borderColor: theme.surface }]} />
@@ -718,6 +832,16 @@ export default function DriverRideHubScreen(): React.JSX.Element {
                 anchor={{ x: 0.5, y: 0.5 }}
               >
                 <View style={[styles.waypointDot, { backgroundColor: theme.surface, borderColor: theme.ink }]} />
+              </Marker>
+            ))}
+            {passengerItineraryPoints.map((point) => (
+              <Marker
+                key={`${point.kind}-${point.passengerName}-${point.lat}-${point.lng}`}
+                coordinate={{ latitude: point.lat, longitude: point.lng }}
+                anchor={{ x: 0.5, y: 0.5 }}
+                zIndex={10}
+              >
+                <PassengerStopPin theme={theme} kind={point.kind} />
               </Marker>
             ))}
             <Marker

@@ -4,7 +4,7 @@ import MapView, { Marker, Polyline, PROVIDER_DEFAULT, type LatLng } from 'react-
 import { colors, radii, spacing, typography } from '../tokens/index';
 import { regionForPoints, type LatLngPoint, type MapRegion } from '../utils/mapGeometry';
 import { SkeletonBlock } from './Skeleton';
-import { PickupPin, DropoffPin } from './RideStopMarkers';
+import { PickupPin, DropoffPin, PassengerStopPin } from './RideStopMarkers';
 import type { AppPalette } from '../theme/palette';
 
 const DEFAULT_REGION: MapRegion = {
@@ -57,6 +57,13 @@ interface MapPreviewProps {
   isDark?: boolean;
   /** Decoded route geometry (see MapRoute's coordinates prop). */
   routeCoordinates?: LatLng[];
+  /** Real accepted passengers' own boarding/alighting points — distinct
+   *  from `pickup`/`dropoff` (the driver's own primary meeting points) so a
+   *  driver can actually tell a specific passenger's stop apart from their
+   *  own route on the map, not just in a separate text list. Only rendered
+   *  when `theme` is also given (PassengerStopPin needs it, same
+   *  requirement `showPremiumPins` already has). */
+  passengerStops?: { lat: number; lng: number; kind: 'pickup' | 'dropoff' }[];
   style?: StyleProp<ViewStyle>;
   children?: React.ReactNode;
 }
@@ -76,6 +83,7 @@ export function MapPreview({
   theme,
   isDark = false,
   routeCoordinates,
+  passengerStops,
   style,
   children,
 }: MapPreviewProps): React.JSX.Element {
@@ -132,6 +140,18 @@ export function MapPreview({
             ) : null}
           </>
         )}
+        {theme
+          ? passengerStops?.map((stop, i) => (
+              <Marker
+                key={`${stop.kind}-${i}-${stop.lat}-${stop.lng}`}
+                coordinate={{ latitude: stop.lat, longitude: stop.lng }}
+                anchor={{ x: 0.5, y: 0.5 }}
+                zIndex={10}
+              >
+                <PassengerStopPin theme={theme} kind={stop.kind} />
+              </Marker>
+            ))
+          : null}
       </MapView>
       <View style={styles.tint} pointerEvents="none" />
       {!isReady ? <SkeletonBlock radius="none" style={StyleSheet.absoluteFillObject} /> : null}

@@ -287,31 +287,6 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
               ]
             }
           />
-          <View
-            style={
-              {
-                "backgroundColor": "#2E3B42",
-                "borderRadius": 9999,
-                "left": 8,
-                "paddingHorizontal": 8,
-                "paddingVertical": 4,
-                "position": "absolute",
-                "top": 8,
-              }
-            }
-          >
-            <Text
-              style={
-                {
-                  "color": "#F3F1E9",
-                  "fontSize": 12,
-                  "fontWeight": "600",
-                }
-              }
-            >
-              rides.rideDetail.startedWithEta
-            </Text>
-          </View>
         </View>
         <TouchableOpacity
           accessibilityLabel="rides.rideDetail.viewRouteFullscreen"
@@ -1423,6 +1398,56 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                 />
               </View>
             </Marker>
+            <Marker
+              anchor={
+                {
+                  "x": 0.5,
+                  "y": 0.5,
+                }
+              }
+              coordinate={
+                {
+                  "latitude": 36.81,
+                  "longitude": 10.19,
+                }
+              }
+              zIndex={10}
+            >
+              <View
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 9,
+                      "borderWidth": 2,
+                      "elevation": 2,
+                      "height": 18,
+                      "justifyContent": "center",
+                      "shadowColor": "#000",
+                      "shadowOffset": {
+                        "height": 1,
+                        "width": 0,
+                      },
+                      "shadowOpacity": 0.15,
+                      "shadowRadius": 2,
+                      "width": 18,
+                    },
+                    {
+                      "backgroundColor": "#22794F",
+                      "borderColor": "#FFFFFF",
+                    },
+                  ]
+                }
+              >
+                <Ionicons
+                  accessibilityElementsHidden={true}
+                  color="#0D1512"
+                  importantForAccessibility="no-hide-descendants"
+                  name="person"
+                  size={16}
+                />
+              </View>
+            </Marker>
           </MapView>
           <View
             pointerEvents="none"
@@ -1453,31 +1478,6 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
               ]
             }
           />
-          <View
-            style={
-              {
-                "backgroundColor": "#2E3B42",
-                "borderRadius": 9999,
-                "left": 8,
-                "paddingHorizontal": 8,
-                "paddingVertical": 4,
-                "position": "absolute",
-                "top": 8,
-              }
-            }
-          >
-            <Text
-              style={
-                {
-                  "color": "#F3F1E9",
-                  "fontSize": 12,
-                  "fontWeight": "600",
-                }
-              }
-            >
-              rides.rideDetail.startedWithEta
-            </Text>
-          </View>
         </View>
         <TouchableOpacity
           accessibilityLabel="rides.rideDetail.viewRouteFullscreen"
@@ -1747,6 +1747,130 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
               common:terms.pickup
                · 
               Avenue Habib Bourguiba, Tunis
+            </Text>
+          </View>
+        </View>
+        <View
+          style={
+            {
+              "flexDirection": "row",
+              "gap": 8,
+            }
+          }
+        >
+          <View
+            style={
+              [
+                {
+                  "borderRadius": 5,
+                  "borderWidth": 2,
+                  "height": 10,
+                  "marginTop": 4,
+                  "width": 10,
+                },
+                {
+                  "backgroundColor": "#22794F",
+                  "borderColor": "#FFFFFF",
+                },
+              ]
+            }
+          />
+          <View
+            style={
+              {
+                "flex": 1,
+                "gap": 1,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "justifyContent": "space-between",
+                }
+              }
+            >
+              <Text
+                numberOfLines={1}
+                style={
+                  [
+                    {
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "lineHeight": 21,
+                    },
+                    {
+                      "color": "#5B6572",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                Karim Fassi
+              </Text>
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "lineHeight": 21,
+                    },
+                    {
+                      "color": "#5B6572",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                08:30
+              </Text>
+            </View>
+            <Text
+              numberOfLines={1}
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  {
+                    "color": "#14201B",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              Angle Rue de Kairouan
+            </Text>
+            <Text
+              numberOfLines={1}
+              style={
+                [
+                  {
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "lineHeight": 18,
+                  },
+                  {
+                    "color": "#8B93A3",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              rides.rideDetail.pickupPrefix
             </Text>
           </View>
         </View>
@@ -2410,7 +2534,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
               </Text>
             </View>
             <View
-              accessibilityLabel="rides.requestsSheet.sectionAccepted"
+              accessibilityLabel="rides.rideDetail.confirmedBadge"
               accessibilityRole="text"
               accessible={true}
               style={
@@ -2441,7 +2565,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                   ]
                 }
               >
-                rides.requestsSheet.sectionAccepted
+                rides.rideDetail.confirmedBadge
               </Text>
             </View>
             <Ionicons
@@ -2581,8 +2705,8 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
             customMapStyle={[]}
             initialRegion={
               {
-                "latitude": 36.31,
-                "latitudeDelta": 1.5679999999999952,
+                "latitude": 36.315,
+                "latitudeDelta": 1.5840000000000032,
                 "longitude": 10.405000000000001,
                 "longitudeDelta": 0.7200000000000017,
               }
@@ -2655,6 +2779,56 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                       },
                     ]
                   }
+                />
+              </View>
+            </Marker>
+            <Marker
+              anchor={
+                {
+                  "x": 0.5,
+                  "y": 0.5,
+                }
+              }
+              coordinate={
+                {
+                  "latitude": 36.81,
+                  "longitude": 10.19,
+                }
+              }
+              zIndex={10}
+            >
+              <View
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 9,
+                      "borderWidth": 2,
+                      "elevation": 2,
+                      "height": 18,
+                      "justifyContent": "center",
+                      "shadowColor": "#000",
+                      "shadowOffset": {
+                        "height": 1,
+                        "width": 0,
+                      },
+                      "shadowOpacity": 0.15,
+                      "shadowRadius": 2,
+                      "width": 18,
+                    },
+                    {
+                      "backgroundColor": "#22794F",
+                      "borderColor": "#FFFFFF",
+                    },
+                  ]
+                }
+              >
+                <Ionicons
+                  accessibilityElementsHidden={true}
+                  color="#0D1512"
+                  importantForAccessibility="no-hide-descendants"
+                  name="person"
+                  size={16}
                 />
               </View>
             </Marker>

@@ -73,6 +73,39 @@ export function StopPin({
   );
 }
 
+const PASSENGER_STOP_SIZE = 18;
+
+/**
+ * A specific accepted passenger's own boarding/alighting point — distinct
+ * from PickupPin/DropoffPin (the driver's own primary meeting points) and
+ * StopPin (a candidate stop the driver hasn't committed to yet). Smaller,
+ * a plain filled circle rather than a teardrop, and a person glyph rather
+ * than a dot/number — real UX feedback, driven live: a driver couldn't tell
+ * a specific passenger's own pickup/dropoff apart from the ride's own
+ * endpoints on either the map or the itinerary text. `kind` only changes
+ * the icon (a walking figure for pickup, a flag-less stop mark for
+ * dropoff) — color stays theme.accentStrong regardless, since both are the
+ * same "a passenger's own point" category, not two different route roles.
+ */
+export function PassengerStopPin({
+  theme,
+  kind,
+}: {
+  theme: AppPalette;
+  kind: 'pickup' | 'dropoff';
+}): React.JSX.Element {
+  return (
+    <View
+      style={[
+        styles.passengerStopBody,
+        { backgroundColor: theme.accentStrong, borderColor: theme.surface },
+      ]}
+    >
+      <Icon name={kind === 'pickup' ? 'person' : 'checkmark'} size="xs" color={theme.onAccent} />
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   body: {
     width: SIZE,
@@ -110,5 +143,18 @@ const styles = StyleSheet.create({
   },
   stopLabel: {
     fontWeight: '700',
+  },
+  passengerStopBody: {
+    width: PASSENGER_STOP_SIZE,
+    height: PASSENGER_STOP_SIZE,
+    borderRadius: PASSENGER_STOP_SIZE / 2,
+    borderWidth: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.15,
+    shadowRadius: 2,
+    elevation: 2,
   },
 });
