@@ -146,7 +146,11 @@ exports[`trips.tsx snapshots > driver dashboard — hero ride card over segmente
       >
         trips:nextRide
       </Text>
-      <View
+      <TouchableOpacity
+        accessibilityLabel="trips:manageRide — Tunis → Sousse"
+        accessibilityRole="button"
+        activeOpacity={0.85}
+        onPress={[Function]}
         style={
           [
             {
@@ -627,7 +631,7 @@ exports[`trips.tsx snapshots > driver dashboard — hero ride card over segmente
             </Text>
           </Pressable>
         </View>
-      </View>
+      </TouchableOpacity>
     </View>
     <View
       style={

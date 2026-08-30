@@ -35,6 +35,7 @@ import {
   computeTripPhase,
 } from '../../src/features/driver-rides/myRidesHelpers';
 import { decodePolyline, sliceRouteBetween } from '../../src/utils/polyline';
+import { shortenPlaceLabel } from '../../src/utils/placeLabel';
 
 type ThemeColors = ReturnType<typeof useAppTheme>['colors'];
 type BadgeVariant = 'default' | 'success' | 'warning' | 'error' | 'info';
@@ -384,7 +385,13 @@ export default function TripsScreen(): React.JSX.Element {
             <Text variant="label" color={theme.inkMuted} style={styles.sectionHeading}>
               {t('trips:nextRide')}
             </Text>
-            <View style={[styles.heroCard, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
+            <TouchableOpacity
+              style={[styles.heroCard, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}
+              onPress={() => router.push({ pathname: '/driver/rides/[rideId]', params: { rideId: heroRide.id } })}
+              activeOpacity={0.85}
+              accessibilityRole="button"
+              accessibilityLabel={`${t('trips:manageRide')} — ${heroRide.originLabel} → ${heroRide.destinationLabel}`}
+            >
               <MapPreview
                 height={128}
                 badge={getRideStatus(t, heroRide.status).label}
@@ -397,8 +404,14 @@ export default function TripsScreen(): React.JSX.Element {
               <View style={styles.heroBody}>
                 <View style={styles.heroHeaderRow}>
                   <View style={styles.heroTitleCol}>
+                    {/* Real place labels, shortened to "locality, admin area"
+                        (utils/placeLabel.ts) — the full Google-formatted
+                        address (street, postal code, full locality, country)
+                        made a rural address wrap 4 lines here; the full
+                        version is still shown, unabbreviated, in the
+                        timeline rows below and on the ride-detail screen. */}
                     <Text variant="h3" color={theme.ink}>
-                      {`${heroRide.originLabel} → ${heroRide.destinationLabel}`}
+                      {`${shortenPlaceLabel(heroRide.originLabel)} → ${shortenPlaceLabel(heroRide.destinationLabel)}`}
                     </Text>
                     <Text variant="bodySmall" color={theme.inkMuted}>
                       {`${formatWhen(heroRide.departureAt, t, locale)} • ${t('trips:seatsAvailable', { count: heroRide.seatsAvailable })}`}
@@ -451,7 +464,7 @@ export default function TripsScreen(): React.JSX.Element {
                   style={styles.heroButton}
                 />
               </View>
-            </View>
+            </TouchableOpacity>
           </View>
         ) : null}
 
