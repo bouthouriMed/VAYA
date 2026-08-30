@@ -944,7 +944,7 @@ exports[`trips.tsx snapshots > driver dashboard — hero ride card over segmente
                   ]
                 }
               >
-                Tunis → Hammamet
+                Arrêt Menzah 6 → Hammamet
               </Text>
               <Text
                 style={
@@ -2431,7 +2431,7 @@ exports[`trips.tsx snapshots > rider view — booking card shows the real driver
                   ]
                 }
               >
-                Tunis → Hammamet
+                Arrêt Menzah 6 → Hammamet
               </Text>
               <Text
                 style={

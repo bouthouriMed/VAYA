@@ -189,7 +189,12 @@ describe('bookings.service — cancellation & no-show (Phase 10)', () => {
     // cancelled by the rider, so the driver is the emailable recipient.
     expect(payload.recipientRole).toBe('driver');
     expect(payload.wasConfirmed).toBe(true);
-    expect(payload.originLabel).toBe(ride.originLabel);
+    // Real bug found live (reported by a user testing a real mid-route
+    // booking): this must be the booking's OWN resolved pickup/dropoff, not
+    // the ride's raw endpoints — a passenger boarding mid-route must not be
+    // shown to the other party as if their journey were the driver's full
+    // route.
+    expect(payload.originLabel).toBe(booking.pickupLabel);
     expect(payload.destinationLabel).toBe(ride.destinationLabel);
 
     // Reputation penalty landed on the *cancelling* party (the rider), not the driver.

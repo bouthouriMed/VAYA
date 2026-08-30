@@ -421,7 +421,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
               ]
             }
           >
-            Tunis → Hammamet
+            Arrêt Menzah 6 → Hammamet
           </Text>
         </View>
         <Text
@@ -504,7 +504,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
                   ]
                 }
               >
-                Tunis
+                Arrêt Menzah 6
               </Text>
               <Text
                 numberOfLines={1}
@@ -524,7 +524,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
                   ]
                 }
               >
-                8:30 · Arrêt Menzah 6
+                8:30
               </Text>
             </View>
             <TouchableOpacity
