@@ -16,11 +16,21 @@ import { notifyBestEffort } from '../notifications/notifications.service.js';
 type Database = ReturnType<typeof getDatabase>;
 
 // The trip statuses (packages/domain/src/trip/trip-status.ts) that make a
-// conversation permanently read-only. A trip is created only once its
-// booking is accepted (bookings.service.ts's acceptBooking), which is also
-// the moment a conversation is auto-created — so every conversation always
-// has an associated trip by the time this module ever loads one.
+// conversation permanently read-only once its booking has actually been
+// accepted and a real trip exists.
 const TERMINAL_TRIP_STATUSES = new Set(['completed', 'no_show', 'cancelled']);
+
+// M-113-adjacent product feedback (real, live): a conversation now exists
+// from the moment a request is SENT (createBooking), not just once it's
+// accepted — a passenger should be able to message the driver about a
+// still-pending request. `pending`/`accepted` are the only booking statuses
+// a conversation is meaningfully "live" for; every other outcome
+// (declined/expired/cancelled-by-either-party/no_show/superseded) means no
+// trip is ever coming, so the conversation is permanently closed regardless
+// of trip status — a still-pending booking never has a trip row at all
+// (trips.service.ts only creates one in acceptBooking), so trip status
+// alone can no longer be the sole closed/open source of truth.
+const LIVE_BOOKING_STATUSES = new Set(['pending', 'accepted']);
 
 type BookingWithParties = Awaited<ReturnType<typeof getBookingWithPartiesOrThrow>>;
 
@@ -45,17 +55,30 @@ function isTripTerminal(tripStatus: string | undefined): boolean {
   return Boolean(tripStatus && TERMINAL_TRIP_STATUSES.has(tripStatus));
 }
 
+/** The real, single source of truth for whether a conversation can still
+ *  send/receive — composes both real signals instead of trusting either
+ *  alone: a booking that's resolved to anything other than pending/accepted
+ *  is closed outright (no trip will ever exist for it), and an accepted
+ *  booking defers to its trip's own live status exactly as before. */
+function isConversationClosed(bookingStatus: string, tripStatus: string | undefined): boolean {
+  if (!LIVE_BOOKING_STATUSES.has(bookingStatus)) return true;
+  return isTripTerminal(tripStatus);
+}
+
 /**
- * Auto-creates the one conversation for a booking once it reaches
- * `accepted` — hooked into bookings.service.ts's acceptBooking, right
- * after the existing trip-row insert. One conversation per booking, never
- * per ride (docs/roadmap/phase-08-messaging.md's explicit "avoid an
- * accidental group-chat model" rationale) — `conversations.bookingId` is a
- * unique DB constraint, not just an application-level rule, so this is
- * additionally idempotent against a duplicate call.
+ * Auto-creates the one conversation for a booking — hooked into
+ * bookings.service.ts's createBooking (the moment a request is sent, so a
+ * passenger can message the driver about it before it's even answered) and,
+ * as a safety net for any booking that somehow reached `accepted` without
+ * one (a legacy booking created before this changed), acceptBooking too.
+ * One conversation per booking, never per ride (docs/roadmap/
+ * phase-08-messaging.md's explicit "avoid an accidental group-chat model"
+ * rationale) — `conversations.bookingId` is a unique DB constraint, not just
+ * an application-level rule, so this is additionally idempotent against a
+ * duplicate call.
  *
  * Best-effort like Phase 7's notifyBestEffort: a failure here must never
- * fail the accept flow that triggered it.
+ * fail the request/accept flow that triggered it.
  */
 export async function createConversationBestEffort(db: Database, bookingId: string): Promise<void> {
   try {
@@ -106,7 +129,7 @@ async function getAuthorizedConversation(db: Database, conversationId: string, r
   const booking = await getBookingWithPartiesOrThrow(db, conversation.bookingId);
   assertIsParty(booking, requestingUserId);
 
-  const closed = isTripTerminal(booking.trip?.status);
+  const closed = isConversationClosed(booking.status, booking.trip?.status);
   if (closed && conversation.status !== 'closed') {
     await db
       .update(conversations)
@@ -207,7 +230,7 @@ function toSummary(
     bookingId: conversation.bookingId,
     // Derived live from the trip, like every other read path in this
     // module — the cached column is never authoritative on its own.
-    status: isTripTerminal(booking.trip?.status) ? 'closed' : 'open',
+    status: isConversationClosed(booking.status, booking.trip?.status) ? 'closed' : 'open',
     createdAt: conversation.createdAt,
     updatedAt: conversation.updatedAt,
     viewerRole: viewerIsDriver ? 'driver' : 'rider',
@@ -260,7 +283,7 @@ export async function getConversationByBookingId(
   assertIsParty(booking, requestingUserId);
   if (!conversation) throw new NotFoundError('Conversation');
 
-  if (isTripTerminal(booking.trip?.status) && conversation.status !== 'closed') {
+  if (isConversationClosed(booking.status, booking.trip?.status) && conversation.status !== 'closed') {
     await db
       .update(conversations)
       .set({ status: 'closed', updatedAt: new Date() })

@@ -711,7 +711,11 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
           ]
         }
       >
-        <View
+        <TouchableOpacity
+          accessibilityLabel="booking:detail.viewProfile — Amine Ben Salah"
+          accessibilityRole="button"
+          activeOpacity={0.7}
+          onPress={[Function]}
           style={
             {
               "alignItems": "center",
@@ -875,7 +879,14 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
               Confiance
             </Text>
           </View>
-        </View>
+          <Ionicons
+            accessibilityElementsHidden={true}
+            color="#D3E1F5"
+            importantForAccessibility="no-hide-descendants"
+            name="chevron-forward"
+            size={16}
+          />
+        </TouchableOpacity>
         <View
           style={
             {

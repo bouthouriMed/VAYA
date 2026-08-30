@@ -9,7 +9,7 @@ import {
   conversations,
   trips,
 } from '../../../db/schema/index.js';
-import { createBooking, acceptBooking, cancelBooking } from '../../bookings/bookings.service.js';
+import { createBooking, acceptBooking, cancelBooking, declineBooking } from '../../bookings/bookings.service.js';
 import { getConversationByBookingId, listMessages, sendMessage } from '../conversations.service.js';
 import { ConflictError, ForbiddenError } from '../../../lib/errors.js';
 import { closeQueue } from '../../../lib/queue.js';
@@ -33,6 +33,7 @@ describe('conversations — full lifecycle (Phase 8)', () => {
   let outsiderId: string;
   let rideId: string;
   let cancelledRideId: string;
+  let declineRiderId: string | undefined;
 
   beforeAll(async () => {
     const base = Date.now() % 10_000_000;
@@ -122,6 +123,7 @@ describe('conversations — full lifecycle (Phase 8)', () => {
     await db.delete(users).where(eq(users.id, driverUserId));
     await db.delete(users).where(eq(users.id, riderId));
     await db.delete(users).where(eq(users.id, outsiderId));
+    if (declineRiderId) await db.delete(users).where(eq(users.id, declineRiderId));
     await closeQueue();
     await closeDatabase();
   });
@@ -132,13 +134,20 @@ describe('conversations — full lifecycle (Phase 8)', () => {
       pickup: { label: 'Conv pickup', lat: 36.8, lng: 10.18 },
     });
 
-    // No conversation exists before acceptance.
-    await expect(getConversationByBookingId(db, booking.id, riderId)).rejects.toThrow();
+    // Real product feedback: a conversation exists, and is genuinely
+    // messageable, the moment the request is sent — not only once accepted.
+    const pendingConversation = await getConversationByBookingId(db, booking.id, riderId);
+    expect(pendingConversation.status).toBe('open');
+    const preAcceptMessage = await sendMessage(db, pendingConversation.id, riderId, {
+      body: "Bonjour, à quelle heure exactement demain matin ?",
+    });
+    expect(preAcceptMessage.senderUserId).toBe(riderId);
 
     await acceptBooking(db, booking.id, driverUserId);
 
     const conversation = await getConversationByBookingId(db, booking.id, riderId);
     expect(conversation.status).toBe('open');
+    expect(conversation.id).toBe(pendingConversation.id); // still the same one row, not re-created.
 
     // One conversation per booking — the unique constraint on
     // conversations.bookingId, verified directly against Postgres.
@@ -168,6 +177,7 @@ describe('conversations — full lifecycle (Phase 8)', () => {
 
     const messages = await listMessages(db, conversation.id, riderId);
     expect(messages.map((m) => m.body)).toEqual([
+      'Bonjour, à quelle heure exactement demain matin ?',
       'Bonjour, je serai là à 8h.',
       "D'accord, à tout à l'heure.",
     ]);
@@ -187,7 +197,7 @@ describe('conversations — full lifecycle (Phase 8)', () => {
 
     // History remains readable even though writes are now rejected.
     const messagesAfterCompletion = await listMessages(db, conversation.id, riderId);
-    expect(messagesAfterCompletion).toHaveLength(2);
+    expect(messagesAfterCompletion).toHaveLength(3);
 
     const closedConversation = await getConversationByBookingId(db, booking.id, riderId);
     expect(closedConversation.status).toBe('closed');
@@ -214,5 +224,43 @@ describe('conversations — full lifecycle (Phase 8)', () => {
     await expect(
       sendMessage(db, conversation.id, riderId, { body: 'still there?' }),
     ).rejects.toBeInstanceOf(ConflictError);
+  });
+
+  it('closes a still-pending conversation the moment the driver declines the request — no trip was ever coming', async () => {
+    // A fresh rider — reusing riderId here would collide with its own
+    // already-accepted booking on this same ride from the earlier test
+    // ("You already have a request for this ride").
+    const base = Date.now() % 10_000_000;
+    const [declineRider] = await db
+      .insert(users)
+      .values({ phone: `+216${base}d`, fullName: 'Conv Decline Rider' })
+      .returning();
+    declineRiderId = declineRider!.id;
+
+    const booking = await createBooking(db, rideId, declineRiderId, {
+      seatsRequested: 1,
+      pickup: { label: 'Conv pickup 3', lat: 36.82, lng: 10.19 },
+    });
+
+    const conversation = await getConversationByBookingId(db, booking.id, declineRiderId);
+    expect(conversation.status).toBe('open');
+    await sendMessage(db, conversation.id, declineRiderId, { body: 'Bonjour, une place est-elle libre ?' });
+
+    await declineBooking(db, booking.id, driverUserId);
+
+    // isConversationClosed derives this live from booking.status (never
+    // reached `accepted`, so no trip row ever existed to check either) —
+    // not just from the best-effort cache column declineBooking also sets.
+    const closedConversation = await getConversationByBookingId(db, booking.id, declineRiderId);
+    expect(closedConversation.status).toBe('closed');
+
+    await expect(
+      sendMessage(db, conversation.id, declineRiderId, { body: 'encore là ?' }),
+    ).rejects.toBeInstanceOf(ConflictError);
+
+    // History remains readable even though writes are now rejected — same
+    // guarantee the accepted->cancelled path already has.
+    const history = await listMessages(db, conversation.id, declineRiderId);
+    expect(history).toHaveLength(1);
   });
 });

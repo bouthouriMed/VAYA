@@ -23,6 +23,7 @@ const CONVERSATION_ID = 'conversation-1';
 interface FakeBooking {
   id: string;
   riderId: string;
+  status: string;
   ride: {
     originLabel: string;
     destinationLabel: string;
@@ -42,6 +43,12 @@ function makeBooking(overrides: Partial<FakeBooking> = {}): FakeBooking {
   return {
     id: BOOKING_ID,
     riderId: RIDER_ID,
+    // These existing fakes all simulate an already-accepted booking's
+    // conversation lifecycle (this file's own doc comment) —
+    // isConversationClosed (conversations.service.ts) needs a real booking
+    // status now, not just trip.status, since a still-pending booking has
+    // no trip row to check at all.
+    status: 'accepted',
     ride: {
       originLabel: 'Fake Origin',
       destinationLabel: 'Fake Dest',

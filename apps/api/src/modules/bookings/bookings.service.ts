@@ -969,6 +969,15 @@ export async function createBooking(
     departureAt: ride.departureAt.toISOString(),
   });
 
+  // Real product feedback: a passenger should be able to message the driver
+  // about a request the moment it's sent, not only once it's accepted — the
+  // conversation now exists from here, not from acceptBooking. Real
+  // enforcement of what a still-pending conversation can/can't do
+  // (isConversationClosed, conversations.service.ts) is booking-status-
+  // aware, not just trip-status-aware, so this is safe the instant it's
+  // created.
+  await createConversationBestEffort(db, booking.id);
+
   return booking;
 }
 
@@ -1187,6 +1196,9 @@ export async function acceptBooking(db: Database, bookingId: string, requestingU
       originLabel: sibling.pickupLabel,
       destinationLabel: sibling.dropoffLabel,
     });
+    // Same reasoning as declineBooking's own close call — a superseded
+    // sibling request's conversation is permanently closed.
+    await closeConversationBestEffort(db, sibling.id);
   }
 
   // Phase 8: one conversation per booking, opened the moment it's
@@ -1221,6 +1233,13 @@ export async function declineBooking(db: Database, bookingId: string, requesting
     originLabel: booking.pickupLabel,
     destinationLabel: booking.dropoffLabel ?? booking.ride.destinationLabel,
   });
+
+  // A declined request's conversation (real from the moment it was
+  // requested, createBooking above) is permanently closed — no trip is
+  // ever coming. isConversationClosed already derives this live from
+  // booking.status regardless; this is just the cache-refresh best-effort
+  // every other terminal transition in this file already does.
+  await closeConversationBestEffort(db, booking.id);
 
   return updated;
 }
@@ -1773,6 +1792,9 @@ export async function runBookingExpirySweep(db: Database): Promise<BookingExpiry
         rideId: candidate.rideId,
         reason: 'request_expired',
       });
+      // Same reasoning as declineBooking's own close call — an expired
+      // request's conversation is permanently closed, no trip is coming.
+      await closeConversationBestEffort(db, candidate.id);
       continue;
     }
 
