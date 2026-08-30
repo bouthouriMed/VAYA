@@ -101,6 +101,10 @@ function toLocationPoint(result: NominatimResult): LocationPoint {
     governorate: result.address?.state ?? null,
     countryCode: result.address?.country_code?.toUpperCase() ?? null,
     source: 'nominatim',
+    // M-014: the raw OSM tag, real (not derived/guessed) — see
+    // location-provider.types.ts's doc comment on LocationPoint.osmClass.
+    osmClass: result.class ?? null,
+    osmType: result.type ?? null,
   };
 }
 

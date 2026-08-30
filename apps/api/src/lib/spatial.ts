@@ -59,11 +59,22 @@ export async function upsertRouteGeometry(
 /**
  * Stage-1 cheap candidate filter for the endpoint-based tiers (exact/wide/
  * closest_departure): rides whose origin AND destination both fall within
- * the given radii of the search points, already filtered by status/seats/
- * time window entirely in SQL, ordered by proximity, capped to `limit`.
+ * the given radii of the search points, already filtered by status/time
+ * window entirely in SQL, ordered by proximity, capped to `limit`.
  * Returns ride ids only — matching.service.ts's existing scoring/ranking
  * code fetches full rows (with driverProfile/user relations) for just this
  * narrowed set via the existing Drizzle relational query, unchanged.
+ *
+ * M-081 (spec §25): deliberately NOT filtered on `seats_available` here —
+ * that column is the ride's *bottleneck*-segment occupancy, not this
+ * specific rider's own segment (matching.service.ts's own
+ * `hasSegmentCapacity` gate, run once the rider's real implied stop pair is
+ * known, is the correct place for a real capacity decision). This SQL
+ * pre-filter used to also gate on `seats_available > 0`, silently
+ * reintroducing the exact flat-capacity bug M-081 fixes one layer
+ * earlier — a ride bottlenecked on one segment never even reached the
+ * segment-aware application check. Removed; only a cheap geographic/time
+ * narrowing happens here now.
  *
  * Returns null (not an empty array) on any PostGIS failure — callers must
  * treat null as "fall back to the pre-existing time-windowed full scan",
@@ -84,7 +95,6 @@ export async function findCandidateRideIdsByEndpoints(
     const result = await db.execute<IdRow>(sql`
       SELECT id FROM rides
       WHERE status = 'published'
-        AND seats_available > 0
         AND departure_at BETWEEN ${windowStart} AND ${windowEnd}
         AND ST_DWithin(
           origin_point,
@@ -117,6 +127,20 @@ export async function findCandidateRideIdsByEndpoints(
  * route) is deliberately NOT decided here — ST_DWithin only tests proximity,
  * not order; matching.service.ts's existing projectPointOntoRoute fraction
  * check still runs on the narrowed set afterward, unchanged, to decide that.
+ *
+ * M-081 (spec §25): also deliberately NOT filtered on `seats_available`,
+ * same reasoning as `findCandidateRideIdsByEndpoints` above — a ride
+ * bottlenecked on one segment must still reach `scorePassThroughCandidates`'s
+ * own segment-precise `hasSegmentCapacity` gate for a genuinely free later
+ * segment.
+ *
+ * Also newly ordered by combined proximity to both search points (was
+ * `LIMIT` with no `ORDER BY` at all) — a real bug surfaced while building
+ * the M-081 test above: with more corridor-qualifying rides in the table
+ * than `limit`, an unordered `LIMIT` returns Postgres's arbitrary physical
+ * row order, which can silently drop the rider's own best (even
+ * exact-on-route) match. Same fix `findCandidateRideIdsByEndpoints` already
+ * had; this query just hadn't gotten it yet.
  */
 export async function findCandidateRideIdsByCorridor(
   db: Database,
@@ -132,7 +156,6 @@ export async function findCandidateRideIdsByCorridor(
     const result = await db.execute<IdRow>(sql`
       SELECT id FROM rides
       WHERE status = 'published'
-        AND seats_available > 0
         AND departure_at BETWEEN ${windowStart} AND ${windowEnd}
         AND route_geom IS NOT NULL
         AND ST_DWithin(
@@ -145,6 +168,9 @@ export async function findCandidateRideIdsByCorridor(
           ST_SetSRID(ST_MakePoint(${destination.lng}, ${destination.lat}), 4326)::geography,
           ${corridorWidthM}
         )
+      ORDER BY
+        ST_Distance(route_geom, ST_SetSRID(ST_MakePoint(${origin.lng}, ${origin.lat}), 4326)::geography)
+        + ST_Distance(route_geom, ST_SetSRID(ST_MakePoint(${destination.lng}, ${destination.lat}), 4326)::geography)
       LIMIT ${limit}
     `);
     return result.rows.map((r) => r.id);
@@ -176,7 +202,6 @@ export async function findCandidateRideIdsByBoundingBox(
     const result = await db.execute<IdRow>(sql`
       SELECT id FROM rides
       WHERE status = 'published'
-        AND seats_available > 0
         AND departure_at BETWEEN ${windowStart} AND ${windowEnd}
         AND ST_Within(
           ${column}::geometry,

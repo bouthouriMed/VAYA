@@ -54,6 +54,39 @@ export function getMatchingThresholds(type: TripProfileType): MatchingThresholds
   return MATCHING_THRESHOLDS_BY_PROFILE[type];
 }
 
+/**
+ * Real detour budget for a freehand 'via' stop a driver picks by searching
+ * a named place (city/town) rather than dropping a pin
+ * (apps/api's stop-candidates.service.ts — moved here, out of the API
+ * layer, so matching.service.ts's joint-stop-score resolution can share
+ * the exact same number without an apps/api-internal circular import
+ * between the rides and matching modules) — deliberately much larger than
+ * that module's own MAX_DEVIATION_METERS/MAX_DEVIATION_SECONDS, which
+ * bound only the auto-generated ON-ROUTE micro-stops sampled every ~1km. A
+ * driver publishing a real intercity route (e.g. a highway corridor
+ * between two cities) can genuinely be willing to exit and detour into a
+ * city several km/minutes off the direct line — a real product gap the
+ * tight micro-stop budget was never meant to cover. Scaled by trip profile
+ * so a short commute doesn't silently accept an absurd detour a driver
+ * never actually intended.
+ *
+ * `intercity` widened (15km/20min -> 30km/40min) after direct product
+ * feedback on a real reported case (Zaragoza on a Tarragona->Bilbao
+ * route) — live-verified the real, Google-Routes-computed polyline for
+ * that exact corridor already passes within ~3.5km of Zaragoza (so the
+ * 15km budget alone wasn't the blocker for a freshly-routed ride), but a
+ * long intercity trip's own real-world detour tolerance is genuinely
+ * larger than 15km/20min — a 500km+, 5+ hour trip reasonably justifies a
+ * 20-30km, ~30min detour to serve a real city, matching how real
+ * long-distance carpooling actually works. `urban`/`commute` widened
+ * proportionally for the same reason at their own scale.
+ */
+export const VIA_STOP_DETOUR_BUDGET: Record<TripProfileType, { maxMeters: number; maxSeconds: number }> = {
+  commute: { maxMeters: 3000, maxSeconds: 600 },
+  urban: { maxMeters: 10000, maxSeconds: 900 },
+  intercity: { maxMeters: 30000, maxSeconds: 2400 },
+};
+
 // Detour tolerance as a fraction of the ride's own baseline duration — a
 // fixed-minutes bound would be simultaneously too loose on a 10-minute
 // urban hop and too tight on a 3-hour intercity trip. HYPOTHESIS: no usage
@@ -75,12 +108,21 @@ export const MAX_DETOUR_RATIO = 0.25;
  * detourFloorSec/detourCeilingSec — callers with a real trip profile
  * should pass that profile's own values instead (see
  * getMatchingThresholds).
+ *
+ * M-085/M-085a (docs/unified_driver_and_passenger_journey.md §28): `maxRatio`
+ * is an explicit, injected parameter (never a bare reference to the
+ * `MAX_DETOUR_RATIO` module constant internally) — defaults to it only when
+ * the caller has no admin-configured override to pass, so this function
+ * itself never hardcodes the policy value it applies. Real callers
+ * (apps/api's matching.service.ts / bookings.service.ts) resolve the actual
+ * value from `getActiveOperationalConfig` first and pass it through here.
  */
 export function detourAllowanceSec(
   baselineDurationSec: number,
   floorSec: number = MATCHING_THRESHOLDS_BY_PROFILE.urban.detourFloorSec,
   ceilingSec: number = MATCHING_THRESHOLDS_BY_PROFILE.urban.detourCeilingSec,
+  maxRatio: number = MAX_DETOUR_RATIO,
 ): number {
-  const ratioAllowance = baselineDurationSec * MAX_DETOUR_RATIO;
+  const ratioAllowance = baselineDurationSec * maxRatio;
   return Math.min(ceilingSec, Math.max(floorSec, ratioAllowance));
 }

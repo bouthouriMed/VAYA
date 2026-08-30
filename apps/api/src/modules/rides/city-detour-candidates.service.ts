@@ -1,5 +1,5 @@
 import { eq } from 'drizzle-orm';
-import { classifyTripProfile, type TripProfileType } from '@vaya/domain';
+import { classifyTripProfile, VIA_STOP_DETOUR_BUDGET, type TripProfileType } from '@vaya/domain';
 import { decodePolyline, projectPointOntoRoute, type LatLng } from '../../lib/polyline.js';
 import { haversineDistanceMeters } from '../../lib/geo.js';
 import { getRedis } from '../../lib/redis.js';
@@ -10,7 +10,6 @@ import {
   sampleRoutePoints,
   polylineDistanceMeters,
   getDriverOwnedRideOrThrow,
-  VIA_STOP_DETOUR_BUDGET,
   type RouteSample,
 } from './stop-candidates.service.js';
 import type { getDatabase } from '../../lib/database.js';

@@ -656,6 +656,15 @@ export interface PendingRating {
 // packages/domain's CancellationTier/CancellationPolicyResult.
 export type CancellationTier = 'free' | 'moderate' | 'severe';
 
+// Journey-contract second pass (docs/unified_driver_and_passenger_journey.md
+// §38, M-110). Mirrors @vaya/domain's CANCELLATION_REASONS exactly — a
+// lightweight, required, fixed-set reason, shared by both roles. Also
+// exactly matches the pre-existing `booking:cancellation.reasons.*` i18n
+// keys (fr/en/ar), which were already translated but orphaned before this
+// pass — no UI component rendered them.
+export const CANCELLATION_REASONS = ['change_of_plans', 'found_alternative', 'emergency', 'other'] as const;
+export type CancellationReason = (typeof CANCELLATION_REASONS)[number];
+
 export interface CancellationPolicy {
   tier: CancellationTier;
   /** Negative once departure has already passed. */
@@ -696,6 +705,19 @@ export interface DetourPreview {
   detourRoutePolyline: string | null;
 }
 
+/** M-040/EDGE-053 (docs/unified_driver_and_passenger_journey.md §14, edge
+ *  53): a real, side-effect-free recalculation for a pickup/dropoff point
+ *  the passenger is considering as an override away from one of the
+ *  driver's recommended stops. `withinAllowance: null` means feasibility
+ *  genuinely couldn't be computed yet (no route on this ride, or the
+ *  routing engine unreachable) — never fabricated as true/false. */
+export interface PickupOverridePreview {
+  walkMeters: number | null;
+  driverDetourExtraSeconds: number | null;
+  driverDetourAllowanceSeconds: number | null;
+  withinAllowance: boolean | null;
+}
+
 export interface Booking {
   id: string;
   rideId: string;
@@ -715,6 +737,10 @@ export interface Booking {
   pickupLabel: string;
   pickupLat: number;
   pickupLng: number;
+  /** M-004/M-020 (docs/unified_driver_and_passenger_journey.md §5/§13/§16):
+   *  the real, computed distance from the passenger's own requested point
+   *  to the resolved pickup — null when it wasn't resolved against one. */
+  pickupWalkMeters: number | null;
   /** Phase 13 (docs/roadmap/phase-13-search-engine.md): null on almost every
    *  booking — the rider rides to the ride's own destination unchanged. Set
    *  only when the rider chose a mid-route dropoff stop on a
@@ -723,8 +749,14 @@ export interface Booking {
   dropoffLabel: string | null;
   dropoffLat: number | null;
   dropoffLng: number | null;
+  dropoffWalkMeters: number | null;
   requestedAt: string;
   respondedAt: string | null;
+  /** M-050/M-054 (docs/unified_driver_and_passenger_journey.md §20): a real,
+   *  server-authoritative response deadline — visible to the passenger on
+   *  their own request and to the driver inside the incoming request, same
+   *  shape. Null only for a booking created before this field existed. */
+  expiresAt: string | null;
   /** Only present on results from listMyBookings. */
   ride?: {
     originLabel: string;
@@ -1065,6 +1097,19 @@ export const api = createApi({
     getBookingDetourPreview: builder.query<DetourPreview, string>({
       query: (bookingId) => `/bookings/${bookingId}/detour-preview`,
     }),
+    // M-040/EDGE-053: called from search/pickup-point.tsx's "choose another
+    // point" override affordance, before the passenger actually commits to
+    // a free-form pickup/dropoff away from the driver's recommended stops.
+    // Pure, side-effect-free — never invalidated by anything.
+    getPickupOverridePreview: builder.query<
+      PickupOverridePreview,
+      { rideId: string; lat: number; lng: number; requestedLat?: number; requestedLng?: number }
+    >({
+      query: ({ rideId, ...params }) => ({
+        url: `/rides/${rideId}/pickup-override-preview`,
+        params,
+      }),
+    }),
     // The counterpart's phone number for an accepted booking, fetched
     // on-demand (not stored/cached alongside the booking itself) right
     // before placing a call — never a public lookup
@@ -1072,12 +1117,26 @@ export const api = createApi({
     getBookingContactPhone: builder.query<{ phone: string | null }, string>({
       query: (bookingId) => `/bookings/${bookingId}/contact-phone`,
     }),
-    cancelBooking: builder.mutation<Booking & { cancellationPolicy: CancellationPolicy }, string>({
-      query: (bookingId) => ({ url: `/bookings/${bookingId}/cancel`, method: 'POST' }),
+    cancelBooking: builder.mutation<
+      Booking & { cancellationPolicy: CancellationPolicy },
+      { bookingId: string; reason: CancellationReason }
+    >({
+      query: ({ bookingId, reason }) => ({
+        url: `/bookings/${bookingId}/cancel`,
+        method: 'POST',
+        body: { reason },
+      }),
       invalidatesTags: ['MyBookings', 'RideRequests', 'MyRides'],
     }),
-    reportNoShow: builder.mutation<Booking, string>({
-      query: (bookingId) => ({ url: `/bookings/${bookingId}/report-no-show`, method: 'POST' }),
+    reportNoShow: builder.mutation<
+      Booking,
+      { bookingId: string; reporterLat?: number; reporterLng?: number }
+    >({
+      query: ({ bookingId, reporterLat, reporterLng }) => ({
+        url: `/bookings/${bookingId}/report-no-show`,
+        method: 'POST',
+        body: { reporterLat, reporterLng },
+      }),
       invalidatesTags: ['MyBookings', 'RideRequests', 'MyRides', 'Trip'],
     }),
 
@@ -1271,6 +1330,7 @@ export const {
   useDeclineBookingMutation,
   useGetCancellationPreviewQuery,
   useGetBookingDetourPreviewQuery,
+  useLazyGetPickupOverridePreviewQuery,
   useLazyGetBookingContactPhoneQuery,
   useCancelBookingMutation,
   useReportNoShowMutation,

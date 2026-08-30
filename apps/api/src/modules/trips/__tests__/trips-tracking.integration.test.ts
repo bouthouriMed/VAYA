@@ -141,6 +141,27 @@ describe('trips.service — live tracking', () => {
     expect(result.distanceRemainingM).toBeGreaterThan(0);
   }, 15_000);
 
+  it('M-094/INV-06: pre-boarding, the rider never receives raw driver GPS — even though a real position was just reported', async () => {
+    const asDriver = await getTrackingState(db, tripId, driverUserId);
+    expect(asDriver.tripStatus).toBe('driver_approaching'); // genuinely pre-boarding
+    // The driver sees their own real, just-reported position.
+    expect(asDriver.currentLat).not.toBeNull();
+    expect(asDriver.currentLng).not.toBeNull();
+
+    const asRider = await getTrackingState(db, tripId, riderId);
+    expect(asRider.tripStatus).toBe('driver_approaching');
+    // The rider — the same trip, the same instant — gets none of it.
+    expect(asRider.currentLat).toBeNull();
+    expect(asRider.currentLng).toBeNull();
+    expect(asRider.currentHeadingDeg).toBeNull();
+    expect(asRider.currentSpeedMps).toBeNull();
+    expect(asRider.locationUpdatedAt).toBeNull();
+    // Non-GPS trip info (ETA-relevant route/pickup/destination context) is
+    // still there — this withholds raw position, not the whole read model.
+    expect(asRider.pickup).toBeDefined();
+    expect(asRider.destination).toBeDefined();
+  });
+
   it('auto-advances driver_approaching -> pickup once the driver is within the arrival radius', async () => {
     const result = await updateTripLocation(db, tripId, driverUserId, {
       lat: PICKUP.lat + 0.0005,

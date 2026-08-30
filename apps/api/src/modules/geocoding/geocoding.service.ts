@@ -37,5 +37,13 @@ export async function resolveLocation(
 export async function reverseGeocode(lat: number, lng: number): Promise<GeocodeResult> {
   const result = await getLocationProvider().reverseGeocode(lat, lng);
   if (!result) throw new Error(`Reverse geocode failed for ${lat},${lng}`);
-  return { label: result.label, lat: result.latitude, lng: result.longitude };
+  return {
+    label: result.label,
+    lat: result.latitude,
+    lng: result.longitude,
+    // M-014: forwarded for stop-candidates.service.ts's ground-accessibility
+    // classification — see GeocodeResult.osmClass's doc comment.
+    osmClass: result.osmClass,
+    osmType: result.osmType,
+  };
 }

@@ -1,21 +1,30 @@
-import { and, eq, inArray } from 'drizzle-orm';
+import { and, eq, inArray, isNotNull, ne } from 'drizzle-orm';
 import type { getDatabase } from '../../lib/database.js';
 import { bookings, rides, routeStops, riderProfiles, trips, users } from '../../db/schema/index.js';
 import { AppError, ConflictError, ForbiddenError, NotFoundError, ValidationError } from '../../lib/errors.js';
 import {
-  canReportNoShow,
+  canCancelTrip,
   canTransitionBookingStatus,
   canTransitionRideStatus,
   canTransitionTripStatus,
   classifyTripProfile,
+  computeBookingExpiresAt,
   computeCancellationPolicy,
   computeMaxConcurrentSeats,
+  computeSuggestedPrice,
   detourAllowanceSec,
+  evaluateExistingPassengerImpact,
+  evaluateNoShowReport,
+  findSameJourneySiblings,
   getMatchingThresholds,
+  isDeadlineApproaching,
   wouldExceedCapacity,
+  CANCELLATION_REASONS,
   NO_SHOW_PENALTY_POINTS,
   type BookingSegment,
   type CancellationPolicyResult,
+  type CancellationReason,
+  type ExistingPassengerImpactInput,
   type RatingRole,
 } from '@vaya/domain';
 import type { CreateBookingInput } from '@vaya/validation';
@@ -44,6 +53,9 @@ import {
   recordAutomaticNoShowRating,
 } from '../ratings/ratings.service.js';
 import { getRoute } from '../../lib/routing.js';
+import { haversineDistanceMeters } from '../../lib/geo.js';
+import { getActivePricingConfig } from '../pricing/pricing.service.js';
+import { getActiveOperationalConfig } from '../operational-config/operational-config.service.js';
 
 type Database = ReturnType<typeof getDatabase>;
 /** The transaction-callback handle drizzle's node-postgres driver passes
@@ -219,7 +231,28 @@ async function getRideOrThrow(db: Database, rideId: string) {
  * unreachable routing engine is an honest "can't validate this right now"
  * rejection, never a silently-accepted, unverified detour.
  */
-async function assertRealDetourWithinAllowance(
+/**
+ * M-040/EDGE-053 (docs/unified_driver_and_passenger_journey.md §14, edge
+ * 53): the one real routing computation both the hard-enforcing
+ * `assertRealDetourWithinAllowance` below AND the new, non-throwing
+ * `previewPickupOverride` (bookings.routes.ts's pickup-override-preview
+ * endpoint) need — extracted so there is exactly one place this detour
+ * math lives, never a second parallel implementation for "preview" vs
+ * "enforce". `null` return (not a thrown error) is the honest "couldn't
+ * compute this" case (no route on the ride, or the routing engine
+ * unreachable/estimate-only) — callers decide separately whether that's a
+ * hard failure (assertRealDetourWithinAllowance: yes) or a soft "no
+ * signal yet" UI state (previewPickupOverride: yes, shown honestly rather
+ * than blocking the preview).
+ */
+export interface DetourImpact {
+  extraDurationSeconds: number;
+  allowanceSeconds: number;
+  withinAllowance: boolean;
+}
+
+async function computeDetourImpact(
+  db: Database,
   ride: {
     originLat: number;
     originLng: number;
@@ -228,28 +261,237 @@ async function assertRealDetourWithinAllowance(
     routePolyline: string | null;
   },
   point: { lat: number; lng: number },
-): Promise<void> {
-  if (!ride.routePolyline) {
-    throw new ValidationError('This ride has no route to validate a detour against');
-  }
+): Promise<DetourImpact | null> {
+  if (!ride.routePolyline) return null;
   const rideOrigin = { lat: ride.originLat, lng: ride.originLng };
   const rideDestination = { lat: ride.destinationLat, lng: ride.destinationLng };
-  const [baseline, withDetour] = await Promise.all([
+  const [baseline, withDetour, operationalConfig] = await Promise.all([
     getRoute(rideOrigin, rideDestination),
     getRoute(rideOrigin, rideDestination, [point]),
+    // M-085/M-085a (spec §28): the same admin-configurable value
+    // matching.service.ts's detour_match tier resolves — one real bound,
+    // shared, never a second hardcoded number for the same policy.
+    getActiveOperationalConfig(db),
   ]);
   if (baseline.isEstimate || withDetour.isEstimate) {
     // No real routing engine reachable — never fabricate a detour number
     // from a haversine fallback, same discipline as the search tier.
-    throw new ValidationError('Unable to validate this pickup or dropoff point right now — please try again');
+    return null;
   }
   const profile = classifyTripProfile(polylineLengthMeters(decodePolyline(ride.routePolyline)));
   const thresholds = getMatchingThresholds(profile.type);
   const extraDurationSeconds = Math.max(0, withDetour.durationSec - baseline.durationSec);
-  const allowanceSec = detourAllowanceSec(baseline.durationSec, thresholds.detourFloorSec, thresholds.detourCeilingSec);
-  if (extraDurationSeconds > allowanceSec) {
+  const allowanceSeconds = detourAllowanceSec(
+    baseline.durationSec,
+    thresholds.detourFloorSec,
+    thresholds.detourCeilingSec,
+    operationalConfig.maxDetourRatio,
+  );
+  return {
+    extraDurationSeconds,
+    allowanceSeconds,
+    withinAllowance: extraDurationSeconds <= allowanceSeconds,
+  };
+}
+
+/**
+ * Real, live-validated bound on a free-form pickup or dropoff point on a
+ * ride that has driver-selected route_stops — the server-side completion
+ * of the matching engine's detour_match tier (matching.service.ts's
+ * scoreDetourCandidates), which surfaces exactly this kind of match but
+ * historically had no way to actually book it: createBooking used to
+ * reject any free-form point outright the moment a ride had any stops at
+ * all, regardless of how small a real detour it would cost the driver.
+ *
+ * Deliberately reuses the exact same real bound the search tier already
+ * uses (`detourAllowanceSec`, profile-scaled via `classifyTripProfile`/
+ * `getMatchingThresholds`, from `@vaya/domain`) rather than a second,
+ * differently-tuned number — a match search surfaced can never then be
+ * rejected here by a stricter independent rule, and nothing here ever
+ * trusts the client's own claim that a point is a legitimate detour
+ * (CLAUDE.md: any endpoint accepting a client-adjustable pickup location
+ * must enforce bounds server-side, independent of client-side UI
+ * constraints). Throws ValidationError (400) on any failure — an
+ * unreachable routing engine is an honest "can't validate this right now"
+ * rejection, never a silently-accepted, unverified detour.
+ *
+ * M-040/EDGE-053: this is also, unchanged, the mechanism that already
+ * makes "request still allowed... no hidden penalty" true for an override
+ * point — it compares only against the ride's own real detour ceiling
+ * (never against how much better the driver's own recommended stop would
+ * have been), so a technically-feasible-but-driver-unfriendly point was
+ * never silently penalized beyond that one real, disclosed bound.
+ */
+async function assertRealDetourWithinAllowance(
+  db: Database,
+  ride: {
+    originLat: number;
+    originLng: number;
+    destinationLat: number;
+    destinationLng: number;
+    routePolyline: string | null;
+  },
+  point: { lat: number; lng: number },
+): Promise<DetourImpact> {
+  if (!ride.routePolyline) {
+    throw new ValidationError('This ride has no route to validate a detour against');
+  }
+  const impact = await computeDetourImpact(db, ride, point);
+  if (!impact) {
+    throw new ValidationError('Unable to validate this pickup or dropoff point right now — please try again');
+  }
+  if (!impact.withinAllowance) {
     throw new ValidationError("This point is too far from the driver's route for this ride");
   }
+  // M-083/084/EDGE-052/INV-09: the real extraDurationSeconds this call
+  // already computed — returned so createBooking can feed it into
+  // assertExistingPassengerImpactAcceptable without a second routing call.
+  return impact;
+}
+
+/**
+ * M-083/M-084/EDGE-052/INV-09 (docs/unified_driver_and_passenger_journey.md
+ * §27, §62 "Existing Passengers Have Soft Protection"): "A new request must
+ * be evaluated against all existing confirmed/onboard passengers... their
+ * ETA is an estimate, not an immutable contractual timestamp... a small
+ * delay is acceptable, a substantial delay is not." Before this function,
+ * `evaluateExistingPassengerImpact` (a real, pure, already-tested domain
+ * function) had zero real callers anywhere in `apps/api` — confirmed live
+ * by grep — so this protection genuinely didn't exist at the booking layer
+ * at all, only as an unwired pure function.
+ *
+ * Only relevant for a genuine free-form detour (`detourExtraDurationSeconds
+ * > 0`) — a booking resolved entirely via the driver's own planned
+ * route_stops changes nothing about the schedule (the same reasoning
+ * `previewBookingDetour`'s own `newEta` doc comment already establishes:
+ * "0 when both pickup and dropoff are planned stops — already priced into
+ * the published route"), so existing passengers are trivially unaffected
+ * and this is skipped entirely for the overwhelming majority of bookings —
+ * no wasted computation for the common case.
+ *
+ * Deliberately reuses only the ride's own ORIGINAL (undetoured) route
+ * geometry for every fraction computed here — never a second live routing
+ * call per existing passenger, which would turn one new request into N
+ * routing-API calls. `detourExtraDurationSeconds` (the one real routing
+ * call this booking already made, in `computeDetourImpact`) is applied as
+ * the full added delay to every existing passenger whose own dropoff sits
+ * at or after the new pickup's insertion point on that route — a
+ * documented approximation (no per-leg routing breakdown exists, same
+ * category as `previewBookingDetour`'s own stated limitation), not a
+ * fabricated number: it's the real total detour cost, conservatively
+ * attributed to every passenger who could plausibly experience some share
+ * of it, erring toward passenger protection per the spec's own "existing
+ * passenger journeys have priority" framing.
+ */
+async function assertExistingPassengerImpactAcceptable(
+  db: Database,
+  ride: {
+    id: string;
+    originLat: number;
+    originLng: number;
+    destinationLat: number;
+    destinationLng: number;
+    routePolyline: string | null;
+    estimatedDurationSec: number | null;
+  },
+  /** Whichever of this booking's own points is the FIRST real deviation
+   *  from the ride's base route (the earlier of pickup/dropoff, when both
+   *  are free-form) — existing passengers alighting before this point are
+   *  genuinely unaffected by either deviation. */
+  firstDeviationPoint: { lat: number; lng: number },
+  /** The combined real extra duration both of this booking's own
+   *  deviations cost the driver (pickup's + dropoff's, each already
+   *  computed once by assertRealDetourWithinAllowance — never a second
+   *  routing call here). */
+  totalDetourExtraDurationSeconds: number,
+): Promise<void> {
+  if (totalDetourExtraDurationSeconds <= 0) return; // Planned-stop booking — no schedule change, nothing to protect against.
+  if (!ride.routePolyline || !ride.estimatedDurationSec) return; // No real route/duration to project onto — never fabricate an impact number.
+
+  const existingBookings = await db.query.bookings.findMany({
+    where: and(eq(bookings.rideId, ride.id), eq(bookings.status, 'accepted')),
+  });
+  if (existingBookings.length === 0) return;
+
+  const routePoints = decodePolyline(ride.routePolyline);
+  const insertionFraction = clamp01(projectPointOntoRoute(firstDeviationPoint, routePoints).fraction);
+  const addedDelayMinutes = totalDetourExtraDurationSeconds / 60;
+
+  const impactInputs: ExistingPassengerImpactInput[] = [];
+  for (const existing of existingBookings) {
+    const existingDropoffLat = existing.dropoffLat ?? ride.destinationLat;
+    const existingDropoffLng = existing.dropoffLng ?? ride.destinationLng;
+    const pickupFraction = clamp01(
+      projectPointOntoRoute({ lat: existing.pickupLat, lng: existing.pickupLng }, routePoints).fraction,
+    );
+    const dropoffFraction = clamp01(
+      projectPointOntoRoute({ lat: existingDropoffLat, lng: existingDropoffLng }, routePoints).fraction,
+    );
+    if (dropoffFraction < insertionFraction) continue; // Already alighted before the new detour happens — genuinely unaffected.
+
+    const tripDurationMinutes = Math.max(
+      0,
+      ((dropoffFraction - pickupFraction) * ride.estimatedDurationSec) / 60,
+    );
+    impactInputs.push({
+      passengerId: existing.riderId,
+      tripDurationMinutes,
+      addedDelayMinutes,
+    });
+  }
+  if (impactInputs.length === 0) return;
+
+  const opConfig = await getActiveOperationalConfig(db);
+  const result = evaluateExistingPassengerImpact(impactInputs, {
+    maxDelayRatio: opConfig.existingPassengerMaxDelayRatio,
+    maxAbsoluteDelayMinutes: opConfig.existingPassengerMaxAbsoluteDelayMinutes,
+  });
+  if (!result.acceptable) {
+    throw new AppError(
+      "This request would delay an already-confirmed passenger's trip by more than acceptable",
+      409,
+      'EXISTING_PASSENGER_IMPACT_TOO_HIGH',
+    );
+  }
+}
+
+/**
+ * M-004/M-020 (docs/unified_driver_and_passenger_journey.md §5/§13): "A
+ * selected stop is not a fixed pickup coordinate... VAYA later determines
+ * the actual passenger pickup/drop-off location." Before this function,
+ * `createBooking` treated a client-supplied `pickupStopId`/`dropoffStopId`
+ * as an opaque, fully-trusted id — it only checked ride membership, never
+ * whether the stop actually made sense for THIS passenger's real point.
+ * When the client also supplies its own `requestedPickup`/`requestedDropoff`
+ * (the same point the search that surfaced this stop was run against),
+ * this independently re-derives the real walk distance and rejects a
+ * selection so far from that point it couldn't be a genuine resolution —
+ * "never blindly trust the client's claim", the same discipline
+ * `assertRealDetourWithinAllowance` already applies to a free-form point.
+ * Returns the real walk distance in meters, to be persisted on the booking
+ * (bookings.pickupWalkMeters/dropoffWalkMeters) rather than left as an
+ * ephemeral search-time-only value.
+ */
+function resolveStopWalkMeters(
+  ride: { routePolyline: string | null },
+  requestedPoint: { lat: number; lng: number },
+  stop: { lat: number; lng: number },
+  radiusKind: 'pickup' | 'dropoff',
+): number {
+  const profile = ride.routePolyline
+    ? classifyTripProfile(polylineLengthMeters(decodePolyline(ride.routePolyline)))
+    : classifyTripProfile(0); // No real route length known — 'commute' is classifyTripProfile's own floor, the most conservative (tightest) radius rather than assuming a generous one.
+  const thresholds = getMatchingThresholds(profile.type);
+  const radiusM = radiusKind === 'pickup' ? thresholds.widePickupRadiusM : thresholds.wideDropoffRadiusM;
+  const walkMeters = haversineDistanceMeters(requestedPoint, stop);
+  if (walkMeters > radiusM) {
+    throw new ValidationError(
+      radiusKind === 'pickup'
+        ? 'Selected pickup stop is too far from your requested location'
+        : 'Selected dropoff stop is too far from your requested location',
+    );
+  }
+  return walkMeters;
 }
 
 /** Live tracking (docs/domain/live-tracking.md): once the driver has
@@ -262,7 +504,7 @@ async function assertRealDetourWithinAllowance(
  *  check here — trips are only created at acceptance. */
 async function assertTripNotStarted(db: Database, bookingId: string): Promise<void> {
   const trip = await db.query.trips.findFirst({ where: eq(trips.bookingId, bookingId) });
-  if (trip && trip.status !== 'scheduled') {
+  if (!canCancelTrip(trip?.status ?? null)) {
     throw new ForbiddenError('Cannot cancel a booking once the trip has started');
   }
 }
@@ -324,6 +566,79 @@ async function getDriverAvatarSafe(db: Database, driverUserId: string): Promise<
   } catch {
     return undefined;
   }
+}
+
+// M-070..075 (docs/unified_driver_and_passenger_journey.md §24, EDGE-055) —
+// spec's own worked example: "Driver publishes Madrid -> Barcelona = EUR20.
+// Passenger requests Zaragoza -> Barcelona. VAYA calculates a segment price,
+// e.g. EUR10." Confirmed live (this pass) that this genuinely never
+// happened — every booking, regardless of requested segment, paid
+// `ride.contributionPerSeat * seatsRequested` unconditionally (the driver's
+// full-route price), which is exactly what V-02/V-03's real HTTP journeys
+// caught (`contributionTotal` equals the full-route price, not less).
+//
+// A tiny coordinate epsilon (~11m) treats "the ride's own origin/destination,
+// resubmitted verbatim" as the full route — the common, already-correct
+// case (V-01) — rather than recomputing a fresh price for it that could
+// drift from the number the ride listing actually advertised (a driver may
+// have adjusted `contributionPerSeat` away from the formula's own
+// `recommended` value within its [min,max] bound, per Phase 6). A genuine
+// sub-segment (a stop-based or free-form pickup/dropoff that differs from
+// the ride's own endpoints) gets a fresh price computed directly from ITS
+// OWN real segment distance/duration via the same `computeSuggestedPrice`
+// formula and the ride's active pricing config — never scaled off the
+// ride's own (possibly-adjusted) full-route price, matching the domain
+// contract this pass already verified
+// (compute-suggested-price.segment-pricing-contract.test.ts).
+const FULL_ROUTE_ENDPOINT_EPSILON_DEG = 0.0001; // ~11m
+
+function isSameCoordinate(aLat: number, aLng: number, bLat: number, bLng: number): boolean {
+  return (
+    Math.abs(aLat - bLat) < FULL_ROUTE_ENDPOINT_EPSILON_DEG &&
+    Math.abs(aLng - bLng) < FULL_ROUTE_ENDPOINT_EPSILON_DEG
+  );
+}
+
+async function computeBookingContributionTotal(
+  db: Database,
+  ride: Awaited<ReturnType<typeof getRideOrThrow>>,
+  segment: {
+    pickupStopId: string | null;
+    pickupLat: number;
+    pickupLng: number;
+    dropoffStopId: string | null;
+    dropoffLat: number | null;
+    dropoffLng: number | null;
+    seatsRequested: number;
+  },
+): Promise<number> {
+  const resolvedDropoffLat = segment.dropoffLat ?? ride.destinationLat;
+  const resolvedDropoffLng = segment.dropoffLng ?? ride.destinationLng;
+
+  const isFullRouteBooking =
+    !segment.pickupStopId &&
+    !segment.dropoffStopId &&
+    isSameCoordinate(segment.pickupLat, segment.pickupLng, ride.originLat, ride.originLng) &&
+    isSameCoordinate(resolvedDropoffLat, resolvedDropoffLng, ride.destinationLat, ride.destinationLng);
+
+  if (isFullRouteBooking) {
+    return ride.contributionPerSeat * segment.seatsRequested;
+  }
+
+  const [pricingConfig, segmentRoute] = await Promise.all([
+    getActivePricingConfig(db),
+    getRoute(
+      { lat: segment.pickupLat, lng: segment.pickupLng },
+      { lat: resolvedDropoffLat, lng: resolvedDropoffLng },
+    ),
+  ]);
+  const segmentPrice = computeSuggestedPrice(
+    segmentRoute.distanceM / 1000,
+    segmentRoute.durationSec / 60,
+    pricingConfig,
+    { isEstimate: segmentRoute.isEstimate },
+  );
+  return segmentPrice.recommended * segment.seatsRequested;
 }
 
 export async function createBooking(
@@ -389,6 +704,14 @@ export async function createBooking(
   let pickupLabel: string;
   let pickupLat: number;
   let pickupLng: number;
+  let pickupWalkMeters: number | null = null;
+  // M-083/084/EDGE-052/INV-09: the real extra-duration cost of THIS
+  // booking's own free-form pickup and/or dropoff, if any — 0 for a
+  // planned-stop resolution (no schedule change). Fed into
+  // assertExistingPassengerImpactAcceptable below once both ends are
+  // resolved, whichever leg (or both) actually detoured.
+  let pickupDetourExtraDurationSeconds = 0;
+  let dropoffDetourExtraDurationSeconds = 0;
 
   if (input.pickupStopId) {
     // Must belong to this exact ride and still be one of the driver's
@@ -402,6 +725,14 @@ export async function createBooking(
     pickupLabel = stop.label;
     pickupLat = stop.lat;
     pickupLng = stop.lng;
+    // M-004/M-020: a real resolution step, not a blind pass-through of the
+    // stop's own coordinate — see resolveStopWalkMeters's doc comment.
+    // Skipped when the client didn't send its own requested point at all
+    // (legacy client) — never a new rejection of an already-shipped
+    // booking pattern.
+    if (input.requestedPickup) {
+      pickupWalkMeters = resolveStopWalkMeters(ride, input.requestedPickup, stop, 'pickup');
+    }
   } else if (input.pickup) {
     pickupLabel = input.pickup.label;
     pickupLat = input.pickup.lat;
@@ -412,7 +743,8 @@ export async function createBooking(
     // already-shipped booking pattern is never newly rejected by this
     // change.
     if (selectedStops.length > 0) {
-      await assertRealDetourWithinAllowance(ride, { lat: pickupLat, lng: pickupLng });
+      const pickupImpact = await assertRealDetourWithinAllowance(db, ride, { lat: pickupLat, lng: pickupLng });
+      pickupDetourExtraDurationSeconds = pickupImpact.extraDurationSeconds;
     }
   } else {
     throw new ValidationError('Pickup location is required');
@@ -431,6 +763,7 @@ export async function createBooking(
   let dropoffLabel: string | null = null;
   let dropoffLat: number | null = null;
   let dropoffLng: number | null = null;
+  let dropoffWalkMeters: number | null = null;
 
   if (input.dropoffStopId) {
     if (selectedStops.length === 0) {
@@ -453,11 +786,103 @@ export async function createBooking(
     dropoffLabel = dropStop.label;
     dropoffLat = dropStop.lat;
     dropoffLng = dropStop.lng;
+    if (input.requestedDropoff) {
+      dropoffWalkMeters = resolveStopWalkMeters(ride, input.requestedDropoff, dropStop, 'dropoff');
+    }
   } else if (input.dropoff) {
     dropoffLabel = input.dropoff.label;
     dropoffLat = input.dropoff.lat;
     dropoffLng = input.dropoff.lng;
-    await assertRealDetourWithinAllowance(ride, { lat: dropoffLat, lng: dropoffLng });
+    const dropoffImpact = await assertRealDetourWithinAllowance(db, ride, { lat: dropoffLat, lng: dropoffLng });
+    dropoffDetourExtraDurationSeconds = dropoffImpact.extraDurationSeconds;
+  }
+
+  // M-083/084/EDGE-052/INV-09 (spec §27, §62): only meaningful when this
+  // booking itself introduced a genuine deviation — the helper's own
+  // `totalDetourExtraDurationSeconds <= 0` guard makes the planned-stop
+  // (majority) case a no-op read of two already-zero locals, not a real
+  // extra query.
+  if (pickupDetourExtraDurationSeconds > 0 || dropoffDetourExtraDurationSeconds > 0) {
+    // Whichever end actually deviates first along the route — if only one
+    // end is free-form, that's the sole deviation point; if both are, the
+    // earlier of the two is where the driver first leaves the base route.
+    const firstDeviationPoint =
+      pickupDetourExtraDurationSeconds > 0 && dropoffDetourExtraDurationSeconds > 0 && ride.routePolyline
+        ? (() => {
+            const routePoints = decodePolyline(ride.routePolyline!);
+            const pickupFraction = projectPointOntoRoute({ lat: pickupLat, lng: pickupLng }, routePoints).fraction;
+            const dropoffFraction = projectPointOntoRoute(
+              { lat: dropoffLat!, lng: dropoffLng! },
+              routePoints,
+            ).fraction;
+            return pickupFraction <= dropoffFraction
+              ? { lat: pickupLat, lng: pickupLng }
+              : { lat: dropoffLat!, lng: dropoffLng! };
+          })()
+        : pickupDetourExtraDurationSeconds > 0
+          ? { lat: pickupLat, lng: pickupLng }
+          : { lat: dropoffLat!, lng: dropoffLng! };
+
+    await assertExistingPassengerImpactAcceptable(
+      db,
+      ride,
+      firstDeviationPoint,
+      pickupDetourExtraDurationSeconds + dropoffDetourExtraDurationSeconds,
+    );
+  }
+
+  // M-051/052 (docs/unified_driver_and_passenger_journey.md §20): "A
+  // passenger may hold up to 3 active requests for the SAME journey... A
+  // 4th request attempt for the same journey is rejected while 3 are
+  // active." Checked against every OTHER ride's active (pending/accepted)
+  // requests by this rider — same-ride duplicates are already rejected
+  // above (DUPLICATE_BOOKING), this is specifically the cross-ride case.
+  const requestedAt = new Date();
+  const resolvedDropoffLatForGrouping = dropoffLat ?? ride.destinationLat;
+  const resolvedDropoffLngForGrouping = dropoffLng ?? ride.destinationLng;
+  // M-085/M-085a (spec §28): every threshold below is read from the
+  // active admin config (falling back to @vaya/domain's own pure default
+  // when nothing is configured yet) — never the bare imported constant
+  // directly, so an admin change takes effect without a redeploy.
+  const opConfig = await getActiveOperationalConfig(db);
+  const riderOtherActiveBookings = await db.query.bookings.findMany({
+    where: and(eq(bookings.riderId, riderId), inArray(bookings.status, ['pending', 'accepted'])),
+    with: { ride: true },
+  });
+  const sameJourneySiblings = findSameJourneySiblings(
+    {
+      riderId,
+      pickupLat,
+      pickupLng,
+      dropoffLat: resolvedDropoffLatForGrouping,
+      dropoffLng: resolvedDropoffLngForGrouping,
+      requestedAt,
+    },
+    riderOtherActiveBookings.map((b) => ({
+      riderId: b.riderId,
+      pickupLat: b.pickupLat,
+      pickupLng: b.pickupLng,
+      // A sibling booking with no free-form/stop dropoff defaults to ITS
+      // OWN ride's destination — mirrors exactly how this same request's
+      // resolvedDropoffLatForGrouping falls back above; never approximated
+      // by the pickup point (that would conflate "no explicit dropoff" with
+      // "an extremely short trip").
+      dropoffLat: b.dropoffLat ?? b.ride.destinationLat,
+      dropoffLng: b.dropoffLng ?? b.ride.destinationLng,
+      requestedAt: b.requestedAt,
+    })),
+    {
+      pickupRadiusMeters: opConfig.sameJourneyPickupRadiusMeters,
+      dropoffRadiusMeters: opConfig.sameJourneyDropoffRadiusMeters,
+      timeWindowMinutes: opConfig.sameJourneyTimeWindowMinutes,
+    },
+  );
+  if (sameJourneySiblings.length >= opConfig.maxActiveRequestsPerJourney) {
+    throw new AppError(
+      `You already have ${opConfig.maxActiveRequestsPerJourney} active requests for this journey`,
+      409,
+      'TOO_MANY_ACTIVE_REQUESTS_FOR_JOURNEY',
+    );
   }
 
   // Segment-aware capacity pre-check (matching-engine architecture plan
@@ -484,22 +909,41 @@ export async function createBooking(
     );
   }
 
+  const contributionTotal = await computeBookingContributionTotal(db, ride, {
+    pickupStopId,
+    pickupLat,
+    pickupLng,
+    dropoffStopId,
+    dropoffLat,
+    dropoffLng,
+    seatsRequested: input.seatsRequested,
+  });
+
   const [booking] = await db
     .insert(bookings)
     .values({
       rideId,
       riderId,
       seatsRequested: input.seatsRequested,
-      contributionTotal: ride.contributionPerSeat * input.seatsRequested,
+      contributionTotal,
       status: 'pending',
       pickupStopId,
       pickupLabel,
       pickupLat,
       pickupLng,
+      pickupWalkMeters,
       dropoffStopId,
       dropoffLabel,
       dropoffLat,
       dropoffLng,
+      dropoffWalkMeters,
+      // M-054 (spec §20): "Every request has a server-authoritative
+      // response deadline, visible to passenger immediately post-request
+      // and to driver inside the incoming request." Confirmed live (this
+      // pass) that no such field previously existed anywhere in this
+      // codebase — not persisted, not returned, not enforced.
+      requestedAt,
+      expiresAt: computeBookingExpiresAt(requestedAt, opConfig.bookingResponseWindowMinutes),
     })
     .returning();
   if (!booking) throw new Error('Failed to create booking');
@@ -601,6 +1045,7 @@ export async function acceptBooking(db: Database, bookingId: string, requestingU
   if (!canTransitionBookingStatus(booking.status, 'accepted')) {
     throw new ConflictError(`Cannot accept a booking in status "${booking.status}"`);
   }
+  const opConfig = await getActiveOperationalConfig(db);
 
   // Segment-aware, atomic check-then-accept (matching-engine architecture
   // plan §K): the whole thing runs inside one transaction that locks the
@@ -614,7 +1059,7 @@ export async function acceptBooking(db: Database, bookingId: string, requestingU
   // this transaction commits or rolls back, then re-reads the
   // now-committed accepted-booking set, so two concurrent accepts can
   // never both pass a capacity check computed against the same stale set.
-  const updated = await db.transaction(async (tx) => {
+  const updated_ = await db.transaction(async (tx) => {
     const [lockedRide] = await tx.select().from(rides).where(eq(rides.id, booking.rideId)).for('update');
     if (!lockedRide) throw new NotFoundError('Ride');
 
@@ -644,8 +1089,61 @@ export async function acceptBooking(db: Database, bookingId: string, requestingU
       .insert(trips)
       .values({ bookingId: acceptedBooking.id, rideId: acceptedBooking.rideId, status: 'scheduled' });
 
-    return acceptedBooking;
+    // M-055/056/INV-03 (docs/unified_driver_and_passenger_journey.md §20,
+    // §62 hard invariant): "First acceptance wins: accepting Driver A
+    // confirms it and auto-cancels/closes all other pending requests for
+    // the same journey." Runs inside this same transaction — the accept
+    // and the sibling-closure are one atomic unit, so a passenger can never
+    // observe (or a concurrent accept on a sibling ride ever act on) a
+    // state where this booking is accepted but a same-journey sibling is
+    // still openly pending.
+    const otherActiveBookings = await tx.query.bookings.findMany({
+      where: and(
+        eq(bookings.riderId, acceptedBooking.riderId),
+        eq(bookings.status, 'pending'),
+        ne(bookings.id, acceptedBooking.id),
+      ),
+      with: { ride: true },
+    });
+    const supersededSiblings = findSameJourneySiblings(
+      {
+        riderId: acceptedBooking.riderId,
+        pickupLat: acceptedBooking.pickupLat,
+        pickupLng: acceptedBooking.pickupLng,
+        dropoffLat: acceptedBooking.dropoffLat ?? lockedRide.destinationLat,
+        dropoffLng: acceptedBooking.dropoffLng ?? lockedRide.destinationLng,
+        requestedAt: acceptedBooking.requestedAt,
+      },
+      otherActiveBookings.map((b) => ({
+        id: b.id,
+        riderId: b.riderId,
+        pickupLat: b.pickupLat,
+        pickupLng: b.pickupLng,
+        dropoffLat: b.dropoffLat ?? b.ride.destinationLat,
+        dropoffLng: b.dropoffLng ?? b.ride.destinationLng,
+        requestedAt: b.requestedAt,
+      })),
+      {
+        pickupRadiusMeters: opConfig.sameJourneyPickupRadiusMeters,
+        dropoffRadiusMeters: opConfig.sameJourneyDropoffRadiusMeters,
+        timeWindowMinutes: opConfig.sameJourneyTimeWindowMinutes,
+      },
+    );
+    if (supersededSiblings.length > 0) {
+      await tx
+        .update(bookings)
+        .set({ status: 'superseded', respondedAt: new Date(), updatedAt: new Date() })
+        .where(
+          inArray(
+            bookings.id,
+            supersededSiblings.map((s) => s.id),
+          ),
+        );
+    }
+
+    return { acceptedBooking, supersededSiblings };
   });
+  const { acceptedBooking: updated, supersededSiblings } = updated_;
 
   await notifyBestEffort(db, booking.riderId, 'booking_accepted', {
     bookingId: booking.id,
@@ -658,6 +1156,23 @@ export async function acceptBooking(db: Database, bookingId: string, requestingU
     destinationLabel: booking.ride.destinationLabel,
     departureAt: booking.ride.departureAt.toISOString(),
   });
+
+  // M-055/M-113 (spec §20/§39): the rider whose other requests were just
+  // closed by this acceptance is told why — never a silent status flip
+  // they'd only discover by happening to reopen the app. A real, distinct
+  // event type (was silently conflated with an ordinary 'booking_declined'
+  // before M-113 — notification-event-coverage.contract.test.ts's own
+  // "documents the exact current event surface" test confirmed the type
+  // didn't exist at all).
+  for (const sibling of supersededSiblings) {
+    await notifyBestEffort(db, booking.riderId, 'booking_sibling_cancelled', {
+      bookingId: sibling.id,
+      rideId: booking.rideId,
+      reason: 'superseded_by_accepted_sibling',
+      originLabel: booking.ride.originLabel,
+      destinationLabel: booking.ride.destinationLabel,
+    });
+  }
 
   // Phase 8: one conversation per booking, opened the moment it's
   // accepted — see conversations.service.ts's doc comment for why this is
@@ -725,7 +1240,13 @@ export async function previewBookingCancellation(
   }
   await assertTripNotStarted(db, booking.id);
 
-  return computeCancellationPolicy(booking.ride.departureAt, new Date());
+  const opConfig = await getActiveOperationalConfig(db);
+  return computeCancellationPolicy(
+    booking.ride.departureAt,
+    new Date(),
+    opConfig.cancellationFreeWindowHours,
+    opConfig.cancellationModerateWindowMinutes,
+  );
 }
 
 export interface DetourPreviewPoint {
@@ -785,6 +1306,61 @@ export interface DetourPreview {
 
 function clamp01(n: number): number {
   return Math.max(0, Math.min(1, n));
+}
+
+export interface PickupOverridePreview {
+  /** Real distance from the passenger's own actual point (when supplied)
+   *  to the override point being previewed — the same walk-distance
+   *  concept M-004/M-020's resolveStopWalkMeters already persists for a
+   *  stop-based pickup, computed here before commit instead of after.
+   *  Null when no requestedPoint was supplied (nothing to measure walk
+   *  distance from). */
+  walkMeters: number | null;
+  driverDetourExtraSeconds: number | null;
+  driverDetourAllowanceSeconds: number | null;
+  /** Null when feasibility genuinely couldn't be computed right now (this
+   *  ride has no route yet, or the routing engine is unreachable/
+   *  estimate-only) — never fabricated as true or false in that case. */
+  withinAllowance: boolean | null;
+}
+
+/**
+ * M-040/EDGE-053 (docs/unified_driver_and_passenger_journey.md §14, edge
+ * 53): "Passenger can override to another VAYA-feasible point; VAYA
+ * recalculates walk/PT/detour/ETA/feasibility and informs (not blocks)
+ * when worse for driver." Before this function, a passenger choosing to
+ * override away from one of the driver's recommended `route_stops` (the
+ * free-form `pickup`/`dropoff` path createBooking already accepts once a
+ * ride has stops — see assertRealDetourWithinAllowance) had no way to see
+ * the real consequence of that choice before actually submitting the
+ * request; the recalculation only ever happened inside createBooking
+ * itself, either silently succeeding or throwing a 400 with no prior
+ * warning. This is the read-only preview step EDGE-053 names ("consequence
+ * shown... before the destructive action"), mirroring
+ * previewBookingCancellation's existing GET-before-POST pattern.
+ *
+ * Deliberately never throws for an out-of-bounds point — `withinAllowance:
+ * false` is a real, honest answer the passenger can still act on (submit
+ * anyway if genuinely willing, or pick a different point); createBooking's
+ * own assertRealDetourWithinAllowance remains the one place that actually
+ * enforces the hard bound at commit time, so this preview can never itself
+ * become a second, differently-behaved gate — "request still allowed" per
+ * EDGE-053 stays true regardless of what this preview shows.
+ */
+export async function previewPickupOverride(
+  db: Database,
+  rideId: string,
+  point: { lat: number; lng: number },
+  requestedPoint?: { lat: number; lng: number },
+): Promise<PickupOverridePreview> {
+  const ride = await getRideOrThrow(db, rideId);
+  const impact = await computeDetourImpact(db, ride, point);
+  return {
+    walkMeters: requestedPoint ? haversineDistanceMeters(requestedPoint, point) : null,
+    driverDetourExtraSeconds: impact ? Math.round(impact.extraDurationSeconds) : null,
+    driverDetourAllowanceSeconds: impact ? Math.round(impact.allowanceSeconds) : null,
+    withinAllowance: impact ? impact.withinAllowance : null,
+  };
 }
 
 /**
@@ -996,7 +1572,20 @@ export async function previewBookingDetour(
   };
 }
 
-export async function cancelBooking(db: Database, bookingId: string, requestingUserId: string) {
+export async function cancelBooking(
+  db: Database,
+  bookingId: string,
+  requestingUserId: string,
+  reason: CancellationReason,
+) {
+  // M-110 (docs/unified_driver_and_passenger_journey.md §38): enforced here
+  // too, not just by the route's Zod schema — a direct service-level caller
+  // (another module, a future admin action) must not be able to bypass the
+  // "required reason from a fixed set" rule the HTTP boundary enforces.
+  if (!CANCELLATION_REASONS.includes(reason)) {
+    throw new ValidationError('A valid cancellation reason is required');
+  }
+
   const booking = await getBookingOrThrow(db, bookingId);
   const isRider = booking.riderId === requestingUserId;
   const isDriver = booking.ride.driverProfile.userId === requestingUserId;
@@ -1015,7 +1604,13 @@ export async function cancelBooking(db: Database, bookingId: string, requestingU
   // consequence applied below and the response the client renders — never
   // recomputed a second time against a possibly-later clock read.
   const cancelledAt = new Date();
-  const cancellationPolicy = computeCancellationPolicy(booking.ride.departureAt, cancelledAt);
+  const opConfig = await getActiveOperationalConfig(db);
+  const cancellationPolicy = computeCancellationPolicy(
+    booking.ride.departureAt,
+    cancelledAt,
+    opConfig.cancellationFreeWindowHours,
+    opConfig.cancellationModerateWindowMinutes,
+  );
 
   // Phase 10: atomic, database-level check-and-transition — mirrors
   // acceptBooking's discipline above. The original cancelBooking (Phase 1
@@ -1048,7 +1643,12 @@ export async function cancelBooking(db: Database, bookingId: string, requestingU
 
     const [updatedBooking] = await tx
       .update(bookings)
-      .set({ status: nextStatus, respondedAt: cancelledAt, updatedAt: cancelledAt })
+      .set({
+        status: nextStatus,
+        cancellationReason: reason,
+        respondedAt: cancelledAt,
+        updatedAt: cancelledAt,
+      })
       .where(and(eq(bookings.id, bookingId), eq(bookings.status, booking.status)))
       .returning();
     if (!updatedBooking) {
@@ -1107,19 +1707,106 @@ export async function cancelBooking(db: Database, bookingId: string, requestingU
   return { booking: updated, cancellationPolicy };
 }
 
+export interface BookingExpirySweepResult {
+  scanned: number;
+  expired: number;
+  deadlineReminded: number;
+}
+
+/**
+ * M-058 (docs/unified_driver_and_passenger_journey.md §20): "Request
+ * expiry closes only that request automatically; siblings continue."
+ * Periodic sweep (BOOKING_EXPIRY_SWEEP_JOB_NAME, lib/queue.ts — a fourth
+ * job type on the same one BullMQ queue every other periodic sweep in this
+ * codebase already reuses) — transitions any `pending` booking whose
+ * `expiresAt` has passed to `expired`. Deliberately only ever touches the
+ * ONE expiring booking's own row: no cascade, no capacity release (a
+ * `pending` booking never held a seat — Phase 1's atomic accounting only
+ * decrements on `accepted` — so there is nothing to release), no effect on
+ * any other request for the same journey.
+ *
+ * M-113 (spec §39, "request deadline approaching") shares this same sweep
+ * rather than a second periodic job: a still-`pending` booking whose
+ * `expiresAt` is inside `isDeadlineApproaching`'s lead window gets exactly
+ * one reminder — to the DRIVER, the party who actually needs to act before
+ * it lapses — never re-sent on a later pass (`deadlineReminderSentAt`,
+ * mirrors `trips.completionReminderSentAt`'s own once-only pattern).
+ */
+export async function runBookingExpirySweep(db: Database): Promise<BookingExpirySweepResult> {
+  const now = new Date();
+  const candidates = await db.query.bookings.findMany({
+    where: and(eq(bookings.status, 'pending'), isNotNull(bookings.expiresAt)),
+    with: { ride: { with: { driverProfile: true } } },
+  });
+
+  const result: BookingExpirySweepResult = { scanned: candidates.length, expired: 0, deadlineReminded: 0 };
+
+  for (const candidate of candidates) {
+    const expiresAt = candidate.expiresAt!; // isNotNull filtered above
+
+    if (expiresAt.getTime() <= now.getTime()) {
+      const [updated] = await db
+        .update(bookings)
+        .set({ status: 'expired', respondedAt: now, updatedAt: now })
+        .where(and(eq(bookings.id, candidate.id), eq(bookings.status, 'pending')))
+        .returning();
+      if (!updated) continue; // lost a race (e.g. accepted/declined/cancelled moments ago) — not an error.
+      result.expired += 1;
+
+      await notifyBestEffort(db, candidate.riderId, 'booking_declined', {
+        bookingId: candidate.id,
+        rideId: candidate.rideId,
+        reason: 'request_expired',
+      });
+      continue;
+    }
+
+    if (!candidate.deadlineReminderSentAt && isDeadlineApproaching(expiresAt, now)) {
+      const [updated] = await db
+        .update(bookings)
+        .set({ deadlineReminderSentAt: now, updatedAt: now })
+        .where(and(eq(bookings.id, candidate.id), eq(bookings.status, 'pending')))
+        .returning();
+      if (!updated) continue; // lost a race — not an error.
+      result.deadlineReminded += 1;
+
+      await notifyBestEffort(db, candidate.ride.driverProfile.userId, 'booking_deadline_approaching', {
+        bookingId: candidate.id,
+        rideId: candidate.rideId,
+        expiresAt: expiresAt.toISOString(),
+      });
+    }
+  }
+
+  return result;
+}
+
 /**
  * `POST /bookings/:bookingId/report-no-show` (Phase 10 —
- * docs/roadmap/phase-10-cancellation-no-show.md). Distinct from
- * `cancelBooking`: either party declares the *other* never showed up, not
- * that they themselves are withdrawing. Only ever valid from `accepted`
- * (mirrors the booking-status state machine's existing `no_show` edge,
- * packages/domain/src/booking/booking-status.ts — unchanged by this
- * phase), and only once `canReportNoShow` (packages/domain's business
- * rule) confirms enough real time has passed since `departureAt` —
- * enforced here, server-side, independent of the mobile UI's own guidance
- * text nudging a contact attempt first.
+ * docs/roadmap/phase-10-cancellation-no-show.md; location corroboration
+ * added in the journey-contract second pass — M-102, spec §37). Distinct
+ * from `cancelBooking`: either party declares the *other* never showed up,
+ * not that they themselves are withdrawing. Only ever valid from
+ * `accepted` (mirrors the booking-status state machine's existing
+ * `no_show` edge, packages/domain/src/booking/booking-status.ts —
+ * unchanged by this phase).
+ *
+ * M-102: "No-show should be contextual... relevant around scheduled pickup
+ * time, pickup location, driver/passenger physical proximity." Confirmed
+ * live (this pass, before the fix) that `evaluateNoShowReport`
+ * (packages/domain) existed but had no real caller anywhere — this
+ * endpoint enforced only the time gate. `reporterLocation` is optional
+ * (a passenger/driver's phone may have no fix at report time) — omitting
+ * it degrades gracefully to the exact same time-only behavior this
+ * endpoint already had, per `evaluateNoShowReport`'s own contract; it
+ * never becomes a new way to fail a report that used to succeed.
  */
-export async function reportNoShow(db: Database, bookingId: string, requestingUserId: string) {
+export async function reportNoShow(
+  db: Database,
+  bookingId: string,
+  requestingUserId: string,
+  reporterLocation: { lat: number; lng: number } | null = null,
+) {
   const booking = await getBookingOrThrow(db, bookingId);
   const isRider = booking.riderId === requestingUserId;
   const isDriver = booking.ride.driverProfile.userId === requestingUserId;
@@ -1132,15 +1819,59 @@ export async function reportNoShow(db: Database, bookingId: string, requestingUs
   }
 
   const reportedAt = new Date();
-  if (!canReportNoShow(booking.ride.departureAt, reportedAt)) {
-    throw new ConflictError('No-show can only be reported after the scheduled departure time');
+  const opConfig = await getActiveOperationalConfig(db);
+  const reporterDistanceMetersFromMeetingPoint = reporterLocation
+    ? haversineDistanceMeters(reporterLocation, { lat: booking.pickupLat, lng: booking.pickupLng })
+    : null;
+  const noShowEvaluation = evaluateNoShowReport(
+    booking.ride.departureAt,
+    reportedAt,
+    { reporterDistanceMetersFromMeetingPoint },
+    opConfig.noShowMinMinutesAfterDeparture,
+    opConfig.noShowMaxReporterDistanceMeters,
+  );
+  if (!noShowEvaluation.allowed) {
+    const message =
+      noShowEvaluation.reason === 'reporter_too_far'
+        ? 'No-show cannot be reported from far away — you must be near the meeting point'
+        : 'No-show can only be reported after the scheduled departure time';
+    throw new ConflictError(message);
   }
 
+  // the rider is reporting -> the driver is the no-show party
+  return finalizeNoShowOutcome(db, booking, bookingId, reportedAt, isRider, requestingUserId, false);
+}
+
+/**
+ * The shared, post-decision core of a no-show outcome — status transitions,
+ * segment-aware seat release, conversation closure, the automatic penalty
+ * rating, and notification — factored out of `reportNoShow` so M-104's
+ * automatic classification path (trip-staleness sweep) reuses the exact same
+ * real mechanism a human report goes through, rather than a second, parallel
+ * implementation of "what happens when a no-show is recorded."
+ *
+ * `raterUserId` is the party the automatic rating/notification is attributed
+ * to. For a human report that's the real reporter; for an automatic
+ * classification (no human involved) it's the *other*, non-faulting party —
+ * the genuinely aggrieved side of the encounter, exactly who would have filed
+ * the report themselves had they gotten to it first. This needs no schema
+ * change (`ratings.raterUserId` already only ever means "on whose account
+ * this rating was recorded," not "who tapped the button").
+ */
+async function finalizeNoShowOutcome(
+  db: Database,
+  booking: Awaited<ReturnType<typeof getBookingOrThrow>>,
+  bookingId: string,
+  reportedAt: Date,
+  reportedIsDriver: boolean,
+  raterUserId: string,
+  isAutomatic: boolean,
+): Promise<typeof bookings.$inferSelect> {
   // Same atomic status-guard discipline as cancelBooking's fix above — only
   // the first writer to commit against this booking's current status can
-  // win; a concurrent second report (or a race against a concurrent
-  // cancelBooking on the same booking) gets a clean ConflictError instead
-  // of both proceeding to double-release the seat below.
+  // win; a concurrent second report (human or automatic, or a race against a
+  // concurrent cancelBooking on the same booking) gets a clean ConflictError
+  // instead of both proceeding to double-release the seat below.
   //
   // Segment-aware seat release (matching-engine architecture plan §K) — same
   // recompute-from-scratch, ride-locked-first transaction shape as
@@ -1170,31 +1901,58 @@ export async function reportNoShow(db: Database, bookingId: string, requestingUs
   const trip = await db.query.trips.findFirst({ where: eq(trips.bookingId, booking.id) });
   if (!trip) throw new NotFoundError('Trip');
   if (canTransitionTripStatus(trip.status, 'no_show')) {
-    await db.update(trips).set({ status: 'no_show', updatedAt: new Date() }).where(eq(trips.id, trip.id));
+    await db
+      .update(trips)
+      .set({
+        status: 'no_show',
+        updatedAt: new Date(),
+        ...(isAutomatic ? { autoNoShowClassifiedAt: new Date() } : {}),
+      })
+      .where(eq(trips.id, trip.id));
   }
 
   await closeConversationBestEffort(db, booking.id);
 
-  // The party being *reported* — never the reporter — takes the automatic
-  // low rating (packages/domain's NO_SHOW_AUTOMATIC_RATING_STARS) and the
-  // heavier no-show penalty (NO_SHOW_PENALTY_POINTS), applied via Phase 9's
-  // rating/reliability mechanism (ratings.service.ts), not a second,
-  // parallel one.
+  // The party being *reported* — never the reporter/rater — takes the
+  // automatic low rating (packages/domain's NO_SHOW_AUTOMATIC_RATING_STARS)
+  // and the heavier no-show penalty (NO_SHOW_PENALTY_POINTS), applied via
+  // Phase 9's rating/reliability mechanism (ratings.service.ts), not a
+  // second, parallel one.
   const driverUserId = booking.ride.driverProfile.userId;
-  const reportedIsDriver = isRider; // the rider is reporting -> the driver is the no-show party
   const reportedUserId = reportedIsDriver ? driverUserId : booking.riderId;
   const role: RatingRole = reportedIsDriver ? 'rider_rates_driver' : 'driver_rates_rider';
 
-  await recordAutomaticNoShowRating(db, trip.id, requestingUserId, reportedUserId, role);
+  await recordAutomaticNoShowRating(db, trip.id, raterUserId, reportedUserId, role);
   await applyCancellationPenalty(db, reportedUserId, reportedIsDriver, NO_SHOW_PENALTY_POINTS);
 
   await notifyBestEffort(db, reportedUserId, 'booking_no_show_reported', {
     bookingId: booking.id,
     rideId: booking.rideId,
-    reportedBy: isRider ? 'rider' : 'driver',
+    reportedBy: reportedIsDriver ? 'rider' : 'driver',
   });
 
   return updatedBooking;
+}
+
+/**
+ * M-104 (spec §37): "VAYA may also automatically classify [a no-show] when
+ * evidence is sufficiently strong." Called only from the trip-staleness
+ * sweep, only once `evaluateAutoNoShowClassification` (packages/domain) has
+ * already decided evidence is strong enough — this function's own job is
+ * purely mechanical: resolve which real party is on which side of that
+ * decision, then run the exact same outcome a human report would.
+ */
+export async function applyAutoNoShowClassification(
+  db: Database,
+  bookingId: string,
+  reportedParty: 'driver' | 'rider',
+): Promise<void> {
+  const booking = await getBookingOrThrow(db, bookingId);
+  if (!canTransitionBookingStatus(booking.status, 'no_show')) return;
+
+  const reportedIsDriver = reportedParty === 'driver';
+  const raterUserId = reportedIsDriver ? booking.riderId : booking.ride.driverProfile.userId;
+  await finalizeNoShowOutcome(db, booking, bookingId, new Date(), reportedIsDriver, raterUserId, true);
 }
 
 /** Reveals the *other* party's phone number for an in-progress ride —

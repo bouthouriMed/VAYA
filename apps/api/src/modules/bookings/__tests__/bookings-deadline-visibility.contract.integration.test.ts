@@ -5,19 +5,20 @@ import { users, driverProfiles, vehicles, rides, bookings } from '../../../db/sc
 import { createBooking } from '../bookings.service.js';
 
 /**
- * Journey-contract suite (docs/tdd_journey_test_matrix.md M-050, M-054,
- * EDGE-deadline-1/2) — spec §19/§20: every request has a server-
- * authoritative response deadline, visible to the passenger immediately
- * after requesting and to the driver inside the incoming request.
+ * Journey-contract second pass (docs/unified_driver_and_passenger_journey.md
+ * §20, M-050, M-054, EDGE-deadline-1/2) — spec §19/§20: "Every request has
+ * a server-authoritative response deadline, visible to the passenger
+ * immediately after requesting and to the driver inside the incoming
+ * request."
  *
- * Confirms, via a real Postgres row and the real `createBooking` return
- * value (exactly what the API response serializes), that no such field
- * exists anywhere: not on the returned object, not on the persisted row.
- * `bookingStatusEnum` includes 'expired' as a valid status (confirmed by
- * schema inspection), but nothing computes or stores a deadline that would
- * ever justify transitioning into it.
+ * Confirmed live this pass: `createBooking` now sets and persists a real
+ * `expiresAt`. This file previously asserted the GAP (the field's total
+ * absence, both on the return value and the persisted row) — that
+ * assertion is now the wrong contract to protect (fixing an incorrect
+ * test to match the spec, not weakening it): the field must exist and be
+ * correct, not be absent.
  */
-describe('booking deadline visibility — server-authoritative expiresAt does not exist (M-054)', () => {
+describe('booking deadline visibility — server-authoritative expiresAt (M-054)', () => {
   const db = getDatabase();
   let driverUserId: string;
   let driverProfileId: string;
@@ -77,17 +78,16 @@ describe('booking deadline visibility — server-authoritative expiresAt does no
     await closeDatabase();
   });
 
-  it('FAIL (missing, M-054): createBooking\'s return value carries no expiresAt/deadline field the passenger could be shown', async () => {
+  it('createBooking\'s return value carries a real expiresAt, computed from the real requestedAt', async () => {
     const booking = await createBooking(db, rideId, riderId, {
       seatsRequested: 1,
       pickup: { label: 'Free-form pickup', lat: 36.8, lng: 10.2 },
     });
-    expect((booking as Record<string, unknown>).expiresAt).toBeUndefined();
-    expect((booking as Record<string, unknown>).deadline).toBeUndefined();
-    expect((booking as Record<string, unknown>).responseDeadline).toBeUndefined();
+    expect(booking.expiresAt).toBeInstanceOf(Date);
+    expect(booking.expiresAt!.getTime()).toBeGreaterThan(booking.requestedAt.getTime());
   });
 
-  it('FAIL (missing, M-054): the persisted row itself has no deadline column — confirmed against the real schema, not just the returned object', async () => {
+  it('the persisted row itself carries the same expiresAt — not just the returned object', async () => {
     const [rideForRow] = await db
       .insert(rides)
       .values({
@@ -113,8 +113,8 @@ describe('booking deadline visibility — server-authoritative expiresAt does no
       });
       const [row] = await db.select().from(bookings).where(eq(bookings.id, booking.id));
       expect(row).toBeDefined();
-      expect(Object.keys(row!)).not.toContain('expiresAt');
-      expect(Object.keys(row!)).not.toContain('deadline');
+      expect(row!.expiresAt).toBeInstanceOf(Date);
+      expect(row!.expiresAt!.getTime()).toBe(booking.expiresAt!.getTime());
     } finally {
       await db.delete(rides).where(eq(rides.id, rideForRow!.id));
     }

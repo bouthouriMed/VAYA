@@ -84,4 +84,10 @@ describe('canReportNoShow', () => {
     const wellPast = new Date(DEPARTURE.getTime() + 60 * 60_000);
     expect(canReportNoShow(DEPARTURE, wellPast)).toBe(true);
   });
+
+  it('M-085a: an injected override changes the outcome, proving the threshold is not hardcoded', () => {
+    const justPast = new Date(DEPARTURE.getTime() + (NO_SHOW_MIN_MINUTES_AFTER_DEPARTURE - 1) * 60_000);
+    expect(canReportNoShow(DEPARTURE, justPast)).toBe(false); // default: not yet allowed
+    expect(canReportNoShow(DEPARTURE, justPast, 1)).toBe(true); // a looser admin-configured grace period allows it
+  });
 });

@@ -10,40 +10,52 @@ import { getMatchingThresholds, detourAllowanceSec, MAX_DETOUR_RATIO } from '../
  * duplicated" (the existing `pricing_configs`/`recurring_detection_configs`
  * DB-row-plus-pure-default-fallback pattern).
  *
- * `getMatchingThresholds`/`detourAllowanceSec` are real, already-shipped,
- * and already profile-aware (commute/urban/intercity) — genuine engineering
- * quality — but structurally admit no override source at all: no config
- * parameter, no DB read, nothing an admin panel could ever influence. This
- * test documents that gap precisely (arity/purity), it does not fabricate
- * a config mechanism to test against.
+ * M-085/M-085a fix (this pass): `detourAllowanceSec` now takes `maxRatio` as
+ * its 4th, explicit, injected parameter — `MAX_DETOUR_RATIO` remains the
+ * pure default used only when a caller has no admin override to pass (the
+ * exact pattern this spec section requires, matching
+ * `evaluateExistingPassengerImpact`'s already-compliant shape). The real
+ * callers (`apps/api`'s `matching.service.ts`'s detour_match tier and
+ * `bookings.service.ts`'s `computeDetourImpact`) resolve the actual value
+ * from `getActiveOperationalConfig` first — proven end-to-end, not just at
+ * this pure-function level, by
+ * `apps/api/src/modules/operational-config/__tests__/operational-config.integration.test.ts`'s
+ * own detour-ratio case (real Postgres, an admin override genuinely
+ * changing accepted/rejected detour behavior).
  */
-describe('matching-thresholds — admin-configurability gap (M-085/M-086)', () => {
-  it('FAIL (missing, M-085): getMatchingThresholds takes only a trip-profile type, no config/override input of any kind', () => {
-    expect(getMatchingThresholds.length).toBe(1);
+describe('matching-thresholds — admin-configurability, M-085/M-086', () => {
+  it('PASS (M-085): detourAllowanceSec accepts an explicit maxRatio override, and it genuinely changes the computed allowance', () => {
+    // Floor/ceiling pushed wide open (0 / MAX_SAFE_INTEGER) so this isolates
+    // the ratio's own effect — the floor/ceiling clamp itself is a separate,
+    // already-covered concern (matching-thresholds.test.ts).
+    const baselineDurationSec = 3600; // 1h baseline.
+    const withDefaultRatio = detourAllowanceSec(baselineDurationSec, 0, Number.MAX_SAFE_INTEGER);
+    const withHalvedRatio = detourAllowanceSec(
+      baselineDurationSec,
+      0,
+      Number.MAX_SAFE_INTEGER,
+      MAX_DETOUR_RATIO / 2,
+    );
+    const withDoubledRatio = detourAllowanceSec(
+      baselineDurationSec,
+      0,
+      Number.MAX_SAFE_INTEGER,
+      MAX_DETOUR_RATIO * 2,
+    );
+    expect(withHalvedRatio).toBeLessThan(withDefaultRatio);
+    expect(withDoubledRatio).toBeGreaterThan(withDefaultRatio);
   });
 
-  it('FAIL (missing, M-085): detourAllowanceSec has no way to receive an admin-configured MAX_DETOUR_RATIO — it is a hardcoded module-level constant', () => {
-    // If this were admin-configurable, MAX_DETOUR_RATIO would be an input
-    // parameter (or read from a config object), not an exported constant a
-    // caller can only read, never override per-deployment/per-driver-tier.
-    expect(MAX_DETOUR_RATIO).toBe(0.25);
-    // .length only counts parameters before the first default value — both
-    // floorSec/ceilingSec are optional with hardcoded 'urban' defaults, so
-    // this reports 1, not 3. The real point stands either way: none of the
-    // 3 parameters is "a config object/override source", only bare numbers
-    // a caller must already know to compute themselves.
-    expect(detourAllowanceSec.length).toBe(1);
+  it('PASS (M-085): MAX_DETOUR_RATIO is still the pure default when no override is supplied — never a behavior change for an existing caller that omits it', () => {
+    expect(detourAllowanceSec(3600)).toBe(detourAllowanceSec(3600, undefined, undefined, MAX_DETOUR_RATIO));
   });
 
-  it('PASS (M-086): thresholds are not exposed as ordinary end-user configuration either — there is no public mutator at all, admin or otherwise', () => {
-    // Trivially true today (nothing is exposed to anyone) — recorded so a
-    // future admin-only mutator addition doesn't accidentally also expose
-    // a rider/driver-facing one without this test being revisited.
+  it('PASS (M-086): thresholds are still not exposed as ordinary end-user configuration — there is no public mutator at all, admin or otherwise, on getMatchingThresholds itself', () => {
     expect(typeof getMatchingThresholds).toBe('function');
     expect(Object.keys(getMatchingThresholds)).toHaveLength(0); // no attached setter/config surface.
   });
 
-  it('same values every call, for the same profile, regardless of any external state — confirms the "hardcoded, not DB-backed" classification is not a testing artifact', () => {
+  it('getMatchingThresholds itself stays pure — same values every call for the same profile, independent of any external state (the injectable value lives in detourAllowanceSec\'s own parameter, not here)', () => {
     const first = getMatchingThresholds('urban');
     const second = getMatchingThresholds('urban');
     expect(first).toEqual(second);

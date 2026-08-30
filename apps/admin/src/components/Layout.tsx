@@ -9,6 +9,7 @@ const NAV_ITEMS = [
   { to: '/analytics', label: 'Analytics' },
   { to: '/reports', label: 'Reports' },
   { to: '/audit-log', label: 'Audit Log' },
+  { to: '/operational-config', label: 'Operational Policy' },
 ];
 
 const PAGE_TITLES: Record<string, string> = {
@@ -19,6 +20,7 @@ const PAGE_TITLES: Record<string, string> = {
   '/analytics': 'Search & Marketplace Analytics',
   '/reports': 'Reports',
   '/audit-log': 'Audit Log',
+  '/operational-config': 'Operational Policy Configuration',
 };
 
 export function AppLayout(): React.JSX.Element {

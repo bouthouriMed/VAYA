@@ -203,7 +203,7 @@ describe('conversations — full lifecycle (Phase 8)', () => {
     const conversation = await getConversationByBookingId(db, booking.id, riderId);
     expect(conversation.status).toBe('open');
 
-    await cancelBooking(db, booking.id, driverUserId);
+    await cancelBooking(db, booking.id, driverUserId, 'change_of_plans');
 
     const [row] = await db
       .select()

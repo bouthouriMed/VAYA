@@ -21,6 +21,11 @@ export const bookingStatusEnum = pgEnum('booking_status', [
   'expired',
   'completed',
   'no_show',
+  // M-055/M-056 (docs/unified_driver_and_passenger_journey.md §20): a
+  // still-pending request auto-closed because another request for the
+  // same journey was accepted first — see @vaya/domain's
+  // BOOKING_STATUSES doc comment.
+  'superseded',
 ]);
 
 export const bookings = pgTable(
@@ -49,6 +54,16 @@ export const bookings = pgTable(
     pickupLabel: varchar('pickup_label', { length: 140 }).notNull(),
     pickupLat: doublePrecision('pickup_lat').notNull(),
     pickupLng: doublePrecision('pickup_lng').notNull(),
+    // M-004/M-020 (docs/unified_driver_and_passenger_journey.md §5/§13,
+    // §16's "6 min walk"): a real, computed distance from the passenger's
+    // own requested point to the resolved pickup — persisted so this fact
+    // survives past search (where it already existed as
+    // MatchCandidate.pickupWalkMinutes) instead of being an ephemeral,
+    // re-derived-every-time display value with no record on the booking
+    // itself. Null whenever the client didn't supply `requestedPickup`
+    // (legacy client, or a free-form pickup with no distinct "requested"
+    // point to measure from) — never fabricated.
+    pickupWalkMeters: doublePrecision('pickup_walk_meters'),
     // Phase 13 (docs/roadmap/phase-13-search-engine.md): dropoff-side mirror
     // of pickupStopId above, needed once matching can find a ride whose own
     // destination isn't the rider's actual destination (route-passthrough
@@ -61,8 +76,30 @@ export const bookings = pgTable(
     dropoffLabel: varchar('dropoff_label', { length: 140 }),
     dropoffLat: doublePrecision('dropoff_lat'),
     dropoffLng: doublePrecision('dropoff_lng'),
+    // Dropoff-side mirror of pickupWalkMeters above, same reasoning.
+    dropoffWalkMeters: doublePrecision('dropoff_walk_meters'),
     requestedAt: timestamp('requested_at', { withTimezone: true }).notNull().defaultNow(),
     respondedAt: timestamp('responded_at', { withTimezone: true }),
+    // Journey-contract second pass (docs/unified_driver_and_passenger_journey.md
+    // §20, M-050/M-054): "Every request has a server-authoritative response
+    // deadline, visible to passenger immediately post-request and to
+    // driver inside the incoming request." Nullable/additive — every
+    // booking created before this column existed has none; set by
+    // `createBooking` at request time (requestedAt + the configured
+    // response window, @vaya/domain's computeBookingExpiresAt).
+    expiresAt: timestamp('expires_at', { withTimezone: true }),
+    // M-113 (spec §39, "request deadline approaching"): set the first (and
+    // only) time runBookingExpirySweep sends the driver a reminder that this
+    // pending request's expiresAt is close — mirrors trips.
+    // completionReminderSentAt's exact "never re-notify on a later sweep
+    // pass" pattern. Never set for a booking with no expiresAt at all.
+    deadlineReminderSentAt: timestamp('deadline_reminder_sent_at', { withTimezone: true }),
+    // Journey-contract second pass (docs/unified_driver_and_passenger_journey.md
+    // §38, M-110): "a lightweight required reason from a fixed set"
+    // (@vaya/domain's CANCELLATION_REASONS). Nullable/additive — every
+    // booking that isn't cancelled, and every cancellation that predates
+    // this column, has none; set only by `cancelBooking`.
+    cancellationReason: varchar('cancellation_reason', { length: 40 }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },

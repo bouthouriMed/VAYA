@@ -47,6 +47,14 @@ import { estimateArrivalLabel, computeTripPhase } from '../../../src/features/dr
 import { formatTime, formatRelativeTime, toIntlTag } from '../../../src/utils/localeFormat';
 
 const TRACKABLE_TRIP_STATUSES: readonly TripStatus[] = ['driver_approaching', 'pickup', 'active', 'arriving'];
+// M-099/M-100 (docs/unified_driver_and_passenger_journey.md §35): the API
+// now also accepts location updates for a `scheduled` trip (see
+// trips.service.ts's TRACKABLE_STATUSES) so evaluateAutoStart's real
+// origin-proximity/movement signals have GPS to act on — but broadcasting
+// days before departure would track a driver going about unrelated errands.
+// Gated to a lead window before the ride's own departureAt: real evidence
+// can only start accumulating once the trip is actually imminent.
+const AUTO_START_BROADCAST_LEAD_MINUTES = 30;
 const TRIP_STATUS_LABEL_KEY: Partial<Record<TripStatus, string>> = {
   driver_approaching: 'rides.rideDetail.tripStatus.driverApproaching',
   pickup: 'rides.rideDetail.tripStatus.pickup',
@@ -64,11 +72,13 @@ function PendingRequestRow({
   booking,
   rideDestinationLabel,
   theme,
+  locale,
   onOpenDetails,
 }: {
   booking: Booking;
   rideDestinationLabel: string;
   theme: ThemeColors;
+  locale: SupportedLocale;
   onOpenDetails: () => void;
 }): React.JSX.Element {
   const { t } = useTranslation('driver');
@@ -114,6 +124,15 @@ function PendingRequestRow({
           <Text variant="caption" color={theme.inkFaint} numberOfLines={1}>
             {`→ ${booking.dropoffLabel ?? rideDestinationLabel}`}
           </Text>
+          {/* M-054/M-059 (docs/unified_driver_and_passenger_journey.md
+           *  §20/§21): the real, server-authoritative response deadline —
+           *  was entirely absent from this list row before this pass, even
+           *  though `booking.expiresAt` already existed. */}
+          {booking.expiresAt ? (
+            <Text variant="caption" color={theme.warning} numberOfLines={1}>
+              {t('rides.requestDetail.respondBy', { time: formatTime(new Date(booking.expiresAt), locale) })}
+            </Text>
+          ) : null}
         </View>
         <TouchableOpacity
           onPress={onOpenDetails}
@@ -233,8 +252,22 @@ export default function DriverRideHubScreen(): React.JSX.Element {
     .map((b) => tripsByBooking[b.id])
     .filter((trip): trip is Trip => Boolean(trip));
   const scheduledTripIds = acceptedTrips.filter((trip) => trip.status === 'scheduled').map((trip) => trip.id);
+  // Re-ticks every 30s purely so `trackableTripIds` (and therefore the GPS
+  // broadcast hook below) re-evaluates as departure becomes imminent, even
+  // if nothing else on this screen would otherwise trigger a re-render.
+  const [nowTick, setNowTick] = useState(() => Date.now());
+  useEffect(() => {
+    const interval = setInterval(() => setNowTick(Date.now()), 30_000);
+    return () => clearInterval(interval);
+  }, []);
+  const departureImminent =
+    Boolean(ride) &&
+    nowTick >= new Date(ride!.departureAt).getTime() - AUTO_START_BROADCAST_LEAD_MINUTES * 60_000;
   const trackableTripIds = acceptedTrips
-    .filter((trip) => TRACKABLE_TRIP_STATUSES.includes(trip.status))
+    .filter(
+      (trip) =>
+        TRACKABLE_TRIP_STATUSES.includes(trip.status) || (trip.status === 'scheduled' && departureImminent),
+    )
     .map((trip) => trip.id);
   const completableTripIds = acceptedTrips
     .filter((trip) => trip.status === 'active' || trip.status === 'arriving')
@@ -532,6 +565,7 @@ export default function DriverRideHubScreen(): React.JSX.Element {
                 booking={booking}
                 rideDestinationLabel={ride.destinationLabel}
                 theme={theme}
+                locale={locale}
                 onOpenDetails={() => setDetailBooking(booking)}
               />
             ))

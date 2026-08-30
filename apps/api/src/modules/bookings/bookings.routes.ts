@@ -2,7 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { createBookingSchema } from '@vaya/validation';
-import { BOOKING_STATUSES, CANCELLATION_TIERS, RIDE_STATUSES } from '@vaya/domain';
+import { BOOKING_STATUSES, CANCELLATION_REASONS, CANCELLATION_TIERS, RIDE_STATUSES } from '@vaya/domain';
 import { getDatabase } from '../../lib/database.js';
 import { getUserId } from '../../lib/auth-context.js';
 import {
@@ -16,6 +16,7 @@ import {
   listRequestsForRide,
   previewBookingCancellation,
   previewBookingDetour,
+  previewPickupOverride,
   reportNoShow,
 } from './bookings.service.js';
 
@@ -30,8 +31,31 @@ const bookingResponseSchema = z.object({
   pickupLabel: z.string(),
   pickupLat: z.number(),
   pickupLng: z.number(),
+  // M-004/M-020 (docs/unified_driver_and_passenger_journey.md §5/§13/§16):
+  // the real, computed distance from the passenger's own requested point
+  // to the resolved pickup — null whenever it wasn't resolved against one
+  // (legacy client, or a free-form pickup with no distinct requested point).
+  pickupWalkMeters: z.number().nullable(),
+  // Phase 13 (docs/roadmap/phase-13-search-engine.md): a real, pre-existing
+  // gap fixed in the same pass as the two fields above — these columns
+  // have existed on `bookings` since Phase 13 and are populated by
+  // createBooking, but were never actually listed in this response schema,
+  // so Fastify's response serializer silently stripped them from every
+  // booking payload a client ever received (confirmed live: ride-details.tsx
+  // already reads `booking.dropoffLabel`/`dropoffLat`/`dropoffLng` from this
+  // exact response and had been getting `undefined` for every route-
+  // passthrough/detour booking with a real dropoff stop).
+  dropoffStopId: z.string().uuid().nullable(),
+  dropoffLabel: z.string().nullable(),
+  dropoffLat: z.number().nullable(),
+  dropoffLng: z.number().nullable(),
+  dropoffWalkMeters: z.number().nullable(),
   requestedAt: z.date(),
   respondedAt: z.date().nullable(),
+  // M-050/M-054 (docs/unified_driver_and_passenger_journey.md §20): visible
+  // to the passenger on their own request and to the driver inside the
+  // incoming request — same shape, no role-specific hiding needed.
+  expiresAt: z.date().nullable(),
   // Only populated by GET /rides/:rideId/requests (driver view) — who is
   // asking, so the driver's request sheet isn't a list of opaque UUIDs.
   rider: z
@@ -66,6 +90,26 @@ const bookingResponseSchema = z.object({
 const rideIdParamSchema = z.object({ rideId: z.string().uuid() });
 const bookingIdParamSchema = z.object({ bookingId: z.string().uuid() });
 
+// M-040/EDGE-053 (docs/unified_driver_and_passenger_journey.md §14, edge
+// 53): a real point the passenger is considering as an override away from
+// one of the driver's recommended stops. `requestedLat`/`requestedLng` are
+// optional — the passenger's own actual point, when known, so the preview
+// can also show real walk distance (mirrors createBooking's
+// requestedPickup/requestedDropoff pair, same reasoning).
+const pickupOverridePreviewQuerySchema = z.object({
+  lat: z.coerce.number().min(-90).max(90),
+  lng: z.coerce.number().min(-180).max(180),
+  requestedLat: z.coerce.number().min(-90).max(90).optional(),
+  requestedLng: z.coerce.number().min(-180).max(180).optional(),
+});
+
+const pickupOverridePreviewResponseSchema = z.object({
+  walkMeters: z.number().nullable(),
+  driverDetourExtraSeconds: z.number().nullable(),
+  driverDetourAllowanceSeconds: z.number().nullable(),
+  withinAllowance: z.boolean().nullable(),
+});
+
 const fellowPassengerResponseSchema = z.object({
   userId: z.string().uuid(),
   firstName: z.string(),
@@ -84,6 +128,33 @@ const cancellationPolicySchema = z.object({
 const cancelBookingResponseSchema = bookingResponseSchema.extend({
   cancellationPolicy: cancellationPolicySchema,
 });
+
+// M-110 (docs/unified_driver_and_passenger_journey.md §38): "a lightweight
+// required reason from a fixed set" — confirmed live this pass that the
+// route previously had no body schema at all, so a reason-less cancel
+// succeeded unconditionally.
+const cancelBookingBodySchema = z.object({ reason: z.enum(CANCELLATION_REASONS) });
+
+// M-102 (docs/unified_driver_and_passenger_journey.md §37): both fields
+// optional — a reporter with no GPS fix at report time still gets the
+// pure time-only rule (evaluateNoShowReport's documented graceful
+// degradation), never a hard requirement to supply location.
+// M-102 real bug, found while re-verifying V-08 end-to-end against a real
+// server: a genuinely empty POST body (no Content-Length at all — the real
+// shape a client sends when it has no GPS fix, e.g. this route's own e2e
+// journey-8 test) is parsed by Fastify's JSON body parser as literal
+// `null`, not `undefined` — `.default({})` only ever substitutes for
+// `undefined`, so a real no-body request was rejected outright with a 400
+// ("Expected object, received null") before ever reaching reportNoShow.
+// `z.preprocess` runs before validation and normalizes both `null` and
+// `undefined` to `{}`, closing this for real rather than masking it.
+const reportNoShowBodySchema = z.preprocess(
+  (val) => val ?? {},
+  z.object({
+    reporterLat: z.number().min(-90).max(90).optional(),
+    reporterLng: z.number().min(-180).max(180).optional(),
+  }),
+);
 
 const detourPreviewPointSchema = z.object({
   label: z.string(),
@@ -132,6 +203,33 @@ export async function bookingsRoutes(fastify: FastifyInstance): Promise<void> {
         request.body,
       );
       reply.send(booking);
+    },
+  );
+
+  // M-040/EDGE-053: a real, side-effect-free preview of overriding away
+  // from a driver-recommended stop, called before the actual POST
+  // /rides/:rideId/requests — "consequence shown... request still allowed"
+  // (never a second, differently-behaved gate; createBooking's own
+  // assertRealDetourWithinAllowance remains the sole enforcement point).
+  app.get(
+    '/rides/:rideId/pickup-override-preview',
+    {
+      onRequest: [fastify.authenticate],
+      schema: {
+        params: rideIdParamSchema,
+        querystring: pickupOverridePreviewQuerySchema,
+        response: { 200: pickupOverridePreviewResponseSchema },
+      },
+    },
+    async (request, reply) => {
+      const { lat, lng, requestedLat, requestedLng } = request.query;
+      const preview = await previewPickupOverride(
+        db,
+        request.params.rideId,
+        { lat, lng },
+        requestedLat != null && requestedLng != null ? { lat: requestedLat, lng: requestedLng } : undefined,
+      );
+      reply.send(preview);
     },
   );
 
@@ -219,13 +317,18 @@ export async function bookingsRoutes(fastify: FastifyInstance): Promise<void> {
     '/bookings/:bookingId/cancel',
     {
       onRequest: [fastify.authenticate],
-      schema: { params: bookingIdParamSchema, response: { 200: cancelBookingResponseSchema } },
+      schema: {
+        params: bookingIdParamSchema,
+        body: cancelBookingBodySchema,
+        response: { 200: cancelBookingResponseSchema },
+      },
     },
     async (request, reply) => {
       const { booking, cancellationPolicy } = await cancelBooking(
         db,
         request.params.bookingId,
         getUserId(request),
+        request.body.reason,
       );
       reply.send({ ...booking, cancellationPolicy });
     },
@@ -269,10 +372,20 @@ export async function bookingsRoutes(fastify: FastifyInstance): Promise<void> {
     '/bookings/:bookingId/report-no-show',
     {
       onRequest: [fastify.authenticate],
-      schema: { params: bookingIdParamSchema, response: { 200: bookingResponseSchema } },
+      schema: {
+        params: bookingIdParamSchema,
+        body: reportNoShowBodySchema,
+        response: { 200: bookingResponseSchema },
+      },
     },
     async (request, reply) => {
-      const booking = await reportNoShow(db, request.params.bookingId, getUserId(request));
+      // M-102 (spec §37): optional — a real GPS fix at report time, or
+      // null when the phone has none. `reportNoShow` degrades gracefully
+      // either way (see its own doc comment for the full contract).
+      const reporterLocation = request.body.reporterLat != null && request.body.reporterLng != null
+        ? { lat: request.body.reporterLat, lng: request.body.reporterLng }
+        : null;
+      const booking = await reportNoShow(db, request.params.bookingId, getUserId(request), reporterLocation);
       reply.send(booking);
     },
   );

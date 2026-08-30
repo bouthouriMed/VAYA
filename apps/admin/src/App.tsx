@@ -13,6 +13,7 @@ import { VerificationDetailPage } from './pages/VerificationDetailPage';
 import { AnalyticsPage } from './pages/AnalyticsPage';
 import { ReportsPage } from './pages/ReportsPage';
 import { AuditLogPage } from './pages/AuditLogPage';
+import { OperationalConfigPage } from './pages/OperationalConfigPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -50,6 +51,7 @@ function AppRoutes(): React.JSX.Element {
         <Route path="/analytics" element={<AnalyticsPage />} />
         <Route path="/reports" element={<ReportsPage />} />
         <Route path="/audit-log" element={<AuditLogPage />} />
+        <Route path="/operational-config" element={<OperationalConfigPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
