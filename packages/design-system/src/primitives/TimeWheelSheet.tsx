@@ -72,7 +72,7 @@ const HIGHLIGHT_HEIGHT = Math.ceil(ITEM_HEIGHT * CENTER_SCALE);
 // digits have far more natural slack inside an 80px column than the row
 // has vertically inside 48px, but the box should still never hug the
 // scaled-up state edge-to-edge.
-const HIGHLIGHT_WIDTH = Math.ceil((COLUMN_WIDTH * 2 + SEPARATOR_WIDTH) * CENTER_SCALE) + spacing.md;
+const HIGHLIGHT_WIDTH = Math.ceil((COLUMN_WIDTH * 2 + SEPARATOR_WIDTH) * CENTER_SCALE) + spacing['6xl'];
 
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 const MINUTES = Array.from({ length: 60 / MINUTE_STEP }, (_, i) => i * MINUTE_STEP);
@@ -417,6 +417,7 @@ const styles = StyleSheet.create({
     height: ITEM_HEIGHT,
     alignItems: 'center',
     justifyContent: 'center',
+    marginHorizontal: - spacing['6xl']
   },
   separator: {
     textAlign: 'center',
