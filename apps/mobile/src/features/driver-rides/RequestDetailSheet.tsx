@@ -61,7 +61,6 @@ function RouteFitRow({
   roleLabel,
   timeLabel,
   point,
-  locale,
   t,
   theme,
 }: {
@@ -72,7 +71,6 @@ function RouteFitRow({
    *  driver WHEN they'd meet this passenger. */
   timeLabel: string;
   point: DetourPreviewPoint;
-  locale: SupportedLocale;
   t: (key: string, params?: Record<string, unknown>) => string;
   theme: ReturnType<typeof useAppTheme>['colors'];
 }): React.JSX.Element {
@@ -104,9 +102,16 @@ function RouteFitRow({
             ) : null}
           </View>
         ) : (
+          // Real bug found live: a genuine routing detour (forced through a
+          // real waypoint) can legitimately return a real, honest distance
+          // delta near/below zero — the alternate path Google finds can be
+          // marginally SHORTER while genuinely slower (different road type/
+          // speed limits/traffic), never a fabricated number, but "Adds
+          // about 0 m · 17 min" reads as self-contradictory. The real
+          // accept/reject decision (detourAllowanceSec) is duration-only
+          // anyway — distance was never load-bearing here, just confusing.
           <Text variant="caption" color={theme.warning}>
             {t('driver:rides.requestDetail.addsDetour', {
-              distance: formatDistance(point.deviationMeters ?? 0, locale),
               duration: durationLabel(point.deviationSeconds ?? 0, t),
             })}
           </Text>
@@ -300,7 +305,6 @@ export function RequestDetailSheet({
               roleLabel={t('common:terms.pickup')}
               timeLabel={formatTime(new Date(preview.pickupTime), locale)}
               point={preview.pickup}
-              locale={locale}
               t={t}
               theme={theme}
             />
@@ -309,7 +313,6 @@ export function RequestDetailSheet({
               roleLabel={t('common:terms.dropoff')}
               timeLabel={formatTime(new Date(preview.dropoffTime), locale)}
               point={preview.dropoff}
-              locale={locale}
               t={t}
               theme={theme}
             />

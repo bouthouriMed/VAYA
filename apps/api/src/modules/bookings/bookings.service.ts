@@ -958,8 +958,14 @@ export async function createBooking(
     riderRatingAvg: riderProfileForNotif.ratingAvg,
     seatsRequested: booking.seatsRequested,
     pickupLabel: booking.pickupLabel,
-    originLabel: ride.originLabel,
-    destinationLabel: ride.destinationLabel,
+    // This passenger's own resolved journey, not the ride's raw endpoints —
+    // a real bug reported live: a mid-route request (e.g. Zaragoza -> Lleida
+    // on a Madrid -> Barcelona ride) showed the driver "Madrid, Spain" as
+    // the request's origin, which is the ride's own city, not where this
+    // passenger actually boards. `dropoffLabel` falls back to the ride's
+    // own destination for the common case (no distinct mid-route dropoff).
+    originLabel: booking.pickupLabel,
+    destinationLabel: booking.dropoffLabel ?? ride.destinationLabel,
     departureAt: ride.departureAt.toISOString(),
   });
 
@@ -1119,6 +1125,12 @@ export async function acceptBooking(db: Database, bookingId: string, requestingU
         riderId: b.riderId,
         pickupLat: b.pickupLat,
         pickupLng: b.pickupLng,
+        // Carried through only for the sibling-supersede notification below
+        // (booking_sibling_cancelled) — this sibling's own resolved
+        // journey, not the ride's raw endpoints; irrelevant to the
+        // same-journey matching math itself.
+        pickupLabel: b.pickupLabel,
+        dropoffLabel: b.dropoffLabel ?? b.ride.destinationLabel,
         dropoffLat: b.dropoffLat ?? b.ride.destinationLat,
         dropoffLng: b.dropoffLng ?? b.ride.destinationLng,
         requestedAt: b.requestedAt,
@@ -1152,8 +1164,11 @@ export async function acceptBooking(db: Database, bookingId: string, requestingU
     driverName: await getUserFullNameSafe(db, booking.ride.driverProfile.userId),
     driverAvatarUrl: await getDriverAvatarSafe(db, booking.ride.driverProfile.userId),
     driverRatingAvg: booking.ride.driverProfile.ratingAvg,
-    originLabel: booking.ride.originLabel,
-    destinationLabel: booking.ride.destinationLabel,
+    // This passenger's own resolved journey, not the ride's raw endpoints —
+    // see createBooking's own booking_requested dispatch for the full
+    // reasoning.
+    originLabel: booking.pickupLabel,
+    destinationLabel: booking.dropoffLabel ?? booking.ride.destinationLabel,
     departureAt: booking.ride.departureAt.toISOString(),
   });
 
@@ -1169,8 +1184,8 @@ export async function acceptBooking(db: Database, bookingId: string, requestingU
       bookingId: sibling.id,
       rideId: booking.rideId,
       reason: 'superseded_by_accepted_sibling',
-      originLabel: booking.ride.originLabel,
-      destinationLabel: booking.ride.destinationLabel,
+      originLabel: sibling.pickupLabel,
+      destinationLabel: sibling.dropoffLabel,
     });
   }
 
@@ -1203,8 +1218,8 @@ export async function declineBooking(db: Database, bookingId: string, requesting
     rideId: booking.rideId,
     driverUserId: booking.ride.driverProfile.userId,
     driverName: await getUserFullNameSafe(db, booking.ride.driverProfile.userId),
-    originLabel: booking.ride.originLabel,
-    destinationLabel: booking.ride.destinationLabel,
+    originLabel: booking.pickupLabel,
+    destinationLabel: booking.dropoffLabel ?? booking.ride.destinationLabel,
   });
 
   return updated;
@@ -1698,8 +1713,8 @@ export async function cancelBooking(
       db,
       isRider ? booking.riderId : booking.ride.driverProfile.userId,
     ),
-    originLabel: booking.ride.originLabel,
-    destinationLabel: booking.ride.destinationLabel,
+    originLabel: booking.pickupLabel,
+    destinationLabel: booking.dropoffLabel ?? booking.ride.destinationLabel,
     departureAt: booking.ride.departureAt.toISOString(),
     tier: cancellationPolicy.tier,
   });

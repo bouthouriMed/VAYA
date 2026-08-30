@@ -87,6 +87,19 @@ function nearestPointIndex(points: LatLng[], target: LatLng): number {
 }
 
 /**
+ * A point's rough position along a decoded route, as a 0..1 fraction of the
+ * route's own sample count — display-only ordering (driver/rides/[rideId].tsx's
+ * itinerary needs to interleave several passengers' own pickup/dropoff
+ * points into the right sequence between the ride's origin and destination),
+ * not a matching decision (the server's own `projectPointOntoRoute`,
+ * lib/polyline.ts, is the real, precise version that decision uses).
+ */
+export function routeOrderFraction(points: LatLng[], target: LatLng): number {
+  if (points.length < 2) return 0;
+  return nearestPointIndex(points, target) / (points.length - 1);
+}
+
+/**
  * Slices a route's full decoded polyline down to just the sub-segment
  * between two points on it — a passenger booking a sub-trip of a longer
  * route_passthrough ride (docs/roadmap/phase-13-search-engine.md) should

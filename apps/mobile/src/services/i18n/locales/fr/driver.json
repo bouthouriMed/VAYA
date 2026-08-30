@@ -281,6 +281,9 @@
       "journeyCompletePartialError": "Certains trajets n'ont pas pu être terminés. Réessayez.",
       "passengerAboard": "Passager à bord",
       "passengerAboardError": "Impossible de confirmer l'embarquement. Réessayez.",
+      "confirmedBadge": "Confirmé",
+      "pickupPrefix": "Prise en charge",
+      "dropoffPrefix": "Dépose",
       "locationPermissionBanner": "Activez la localisation pour partager votre position avec vos passagers.",
       "locationPermissionRetry": "Réessayer",
       "tripStatus": {
@@ -328,7 +331,7 @@
       "onRoute": "Déjà sur votre itinéraire",
       "notOnRoute": "Pas sur votre itinéraire prévu",
       "stopPosition": "Arrêt {{index}} sur {{total}}",
-      "addsDetour": "Ajoute environ {{distance}} · {{duration}} à votre itinéraire",
+      "addsDetour": "Ajoute environ {{duration}} à votre itinéraire",
       "estimateNote": "Estimation — l'itinéraire de ce trajet ne provient pas d'un service de calcul d'itinéraire réel.",
       "ridesWithYou": "Voyage avec vous",
       "segmentDistance": "{{distance}} · {{duration}}",

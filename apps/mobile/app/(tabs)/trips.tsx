@@ -480,7 +480,12 @@ export default function TripsScreen(): React.JSX.Element {
                 <View style={styles.heroHeaderRow}>
                   <View style={styles.heroTitleCol}>
                     <Text variant="h3" color={theme.ink}>
-                      {`${riderHeroBooking.ride.originLabel} → ${riderHeroBooking.ride.destinationLabel}`}
+                      {/* This rider's own resolved journey, not the ride's
+                          raw endpoints — a mid-route booking (e.g. Zaragoza
+                          -> Lleida on a Madrid -> Barcelona ride) must show
+                          where THIS passenger actually boards/alights, not
+                          the driver's full route. */}
+                      {`${riderHeroBooking.pickupLabel} → ${riderHeroBooking.dropoffLabel ?? riderHeroBooking.ride.destinationLabel}`}
                     </Text>
                     <Text variant="bodySmall" color={theme.inkMuted}>
                       {`${formatWhen(riderHeroBooking.ride.departureAt, t, locale)} • ${riderHeroBooking.ride.driverFullName ?? t('booking:driver')}`}

@@ -412,27 +412,31 @@ export default function BookingDetailScreen(): React.JSX.Element {
         <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
           <View style={styles.infoTitleRow}>
             <Text variant="h3" color={theme.ink} style={styles.infoTitle} numberOfLines={2}>
-              {`${booking.ride.originLabel} → ${booking.ride.destinationLabel}`}
+              {/* This passenger's own resolved journey, not the ride's raw
+                  endpoints — a mid-route booking (e.g. Zaragoza -> Lleida on
+                  a Madrid -> Barcelona ride) must show where THIS passenger
+                  actually boards/alights, matching this file's own doc
+                  comment above. */}
+              {`${booking.pickupLabel} → ${booking.dropoffLabel ?? booking.ride.destinationLabel}`}
             </Text>
           </View>
           <Text variant="caption" color={theme.inkFaint}>
             {formatWhen(booking.ride.departureAt, t, locale)}
           </Text>
 
-          {/* Compact 2-row itinerary — the FULL origin/destination location
-              is the prominent line in each row (the h3 title above stays
-              the short primaryText name), with this passenger's actual
-              pickup/dropoff point, its time, and a one-tap directions icon
+          {/* Compact 2-row itinerary — this passenger's actual pickup/
+              dropoff point is the prominent line in each row (matching the
+              h3 title above), with its time and a one-tap directions icon
               underneath — not 4 separate rows all fighting for attention. */}
           <View style={styles.itinerary}>
             <View style={styles.itineraryRow}>
               <View style={[styles.itineraryDot, { backgroundColor: theme.accent, borderColor: theme.surface }]} />
               <View style={styles.itineraryText}>
                 <Text variant="bodySmall" color={theme.ink} numberOfLines={1} style={styles.itineraryPrimary}>
-                  {booking.ride.originLabel}
+                  {booking.pickupLabel}
                 </Text>
                 <Text variant="caption" color={theme.inkMuted} numberOfLines={1}>
-                  {`${pickupTimeLabel} · ${booking.pickupLabel}`}
+                  {pickupTimeLabel}
                 </Text>
               </View>
               <TouchableOpacity
@@ -460,19 +464,11 @@ export default function BookingDetailScreen(): React.JSX.Element {
               <View style={[styles.itineraryDot, { backgroundColor: theme.ink, borderColor: theme.surface }]} />
               <View style={styles.itineraryText}>
                 <Text variant="bodySmall" color={theme.ink} numberOfLines={1} style={styles.itineraryPrimary}>
-                  {booking.ride.destinationLabel}
+                  {booking.dropoffLabel ?? booking.ride.destinationLabel}
                 </Text>
-                {/* Only a genuinely distinct mid-route dropoff (or an
-                    estimated arrival time) adds real information here — the
-                    destination name is already the line above; repeating it
-                    verbatim as a fallback caption would just be noise. */}
-                {booking.dropoffLabel ? (
+                {dropoffTimeLabel ? (
                   <Text variant="caption" color={theme.inkMuted} numberOfLines={1}>
-                    {dropoffTimeLabel ? `≈ ${dropoffTimeLabel} · ${booking.dropoffLabel}` : booking.dropoffLabel}
-                  </Text>
-                ) : dropoffTimeLabel ? (
-                  <Text variant="caption" color={theme.inkMuted} numberOfLines={1}>
-                    {`${t('trips:estimated')} ${dropoffTimeLabel}`}
+                    {`≈ ${dropoffTimeLabel} ${t('trips:estimated')}`}
                   </Text>
                 ) : null}
               </View>

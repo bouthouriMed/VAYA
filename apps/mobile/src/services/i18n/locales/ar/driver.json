@@ -309,6 +309,9 @@
       "journeyCompletePartialError": "تعذّر إنهاء بعض الرحلات. حاول مرة أخرى.",
       "passengerAboard": "الراكب في السيارة",
       "passengerAboardError": "تعذّر تأكيد صعود الراكب. حاول مرة أخرى.",
+      "confirmedBadge": "مؤكد",
+      "pickupPrefix": "الالتقاط",
+      "dropoffPrefix": "النزول",
       "locationPermissionBanner": "فعّل خدمة الموقع ليتمكن ركابك من رؤية موقعك.",
       "locationPermissionRetry": "إعادة المحاولة",
       "tripStatus": {
@@ -356,7 +359,7 @@
       "onRoute": "موجودة بالفعل على مسارك",
       "notOnRoute": "ليست على مسارك المخطط",
       "stopPosition": "المحطة {{index}} من {{total}}",
-      "addsDetour": "يضيف حوالي {{distance}} · {{duration}} إلى مسارك",
+      "addsDetour": "يضيف حوالي {{duration}} إلى مسارك",
       "estimateNote": "تقديري — مسار هذه الرحلة لا يعتمد على خدمة توجيه حقيقية.",
       "ridesWithYou": "يرافقك",
       "segmentDistance": "{{distance}} · {{duration}}",
