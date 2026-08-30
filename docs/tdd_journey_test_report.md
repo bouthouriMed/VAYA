@@ -900,3 +900,129 @@ genuinely-open items are exactly the ones §12.5 already named and stand
 unchanged: M-081–085/EDGE-052/INV-09, M-113, and the finer no-show/
 boarding-ambiguity edge cases — none of them touched by, or requiring,
 the routing keys or DB reset in this section.
+
+## 14. Full spec closure pass — every remaining named gap closed (M-081/082, M-083/084/085/M-085a, M-092, M-104, M-113)
+
+On explicit direction ("the ultimate definition of done is everything in
+the specifications in unified_driver_and_passenger_journey"), this pass
+worked through every item §13 above still listed open, one at a time:
+implement → typecheck → real test → full regression → commit.
+
+**M-085/M-085a (spec §28, admin-config injectability)** — `detourAllowanceSec`
+gained an explicit `maxRatio` parameter (was a bare `MAX_DETOUR_RATIO`
+module reference); `assertRealDetourWithinAllowance`/`computeDetourImpact`
+and `scoreDetourCandidates` now resolve it from `getActiveOperationalConfig`.
+`matching-thresholds.admin-config-contract.test.ts` was rewritten to prove
+real behavioral injectability (two different ratios genuinely producing two
+different allowances) rather than an arity check — this caught its own bug
+along the way (a too-short baseline duration clamped both the default and
+doubled ratio to the same ceiling, masking the very thing the test meant to
+prove).
+
+**M-083/M-084/EDGE-052/INV-09 (spec §27/§62, existing-passenger soft
+protection)** — `evaluateExistingPassengerImpact` (a real, already-tested
+pure domain function) had zero real callers anywhere in `apps/api`, confirmed
+by grep before starting. New `assertExistingPassengerImpactAcceptable`
+(`bookings.service.ts`), called from `createBooking` only when the request
+itself introduces a genuine free-form detour, projects every already-accepted
+booking's own pickup/dropoff onto the ride's real route geometry to compute
+their remaining trip duration and whether they'd experience any of the new
+detour's real extra duration. `assertRealDetourWithinAllowance` was changed
+to return the computed `DetourImpact` (was `void`) so this could reuse the
+already-decoded route rather than a second routing call. Verified: new
+`bookings-existing-passenger-impact.integration.test.ts`, 2/2, real Postgres
++ real routing — one small real detour accepted with a long-remaining-trip
+passenger onboard, the *same* detour rejected once an admin tightens the
+threshold.
+
+**M-081/M-082 (spec §25/§26, segment-aware search capacity)** — the most
+invasive of the remaining items, and the one that surfaced the most real bugs
+beyond its own headline fix. Every search tier
+(`buildEndpointCandidate`/`scoreCandidates`, `scorePassThroughCandidates`,
+`scoreInProgressCandidates`) dropped its flat `ride.seatsAvailable < 1` gate
+for a real per-segment `hasSegmentCapacity` check (new
+`fetchAcceptedSegmentsByRide`, reusing `packages/domain`'s already-tested
+`wouldExceedCapacity`) against the rider's own resolved pickup/dropoff stop
+pair — closing the exact "Madrid→Zaragoza full, Zaragoza→Barcelona wide open"
+example spec §25 names by name. Writing a real, positive integration test for
+this (not just a regression check) surfaced two further real bugs, both
+silently reintroducing the identical flat-capacity bug one layer earlier than
+the application code: all three PostGIS stage-1 pre-filters in `lib/spatial.ts`
+(`findCandidateRideIdsByEndpoints`/`ByCorridor`/`ByBoundingBox`) still had
+their own hardcoded `AND seats_available > 0`, and `findCandidateRideIdsByCorridor`
+had a `LIMIT` with no `ORDER BY` at all — with more corridor-qualifying rides
+in the shared local dev Postgres than the cap, an unordered `LIMIT` silently
+drops the rider's own best match, which is exactly what happened on the first
+run of the new test (the fixture ride simply never appeared in the candidate
+list). Both fixed. A third, unrelated setup bug in the test itself
+(forgetting `upsertRouteGeometry` on a directly-inserted ride fixture, so
+`route_geom` stayed `NULL`) was also found and fixed before the test could
+pass for the right reason. M-082 (turnover) closes as a natural, already-true
+consequence of M-081: `searchRides` is pull-based and stateless, re-deriving
+segment occupancy fresh from `bookings` on every call — there is no
+eligibility cache to invalidate when a segment frees up. Verified: new
+`matching-segment-capacity.integration.test.ts`, 2/2, real Postgres + real
+routing; full matching+bookings regression, 18 files/98/98, no regressions.
+
+**M-092 (spec §30, in-progress match shape completeness)** — re-examined
+rather than left open. `scoreInProgressCandidates`'s own two pickup/dropoff
+resolution branches (a real driver-selected `route_stops` entry ahead of the
+driver, or the ride's own unchanged origin/destination) mean every candidate
+this tier returns is bookable through `createBooking`'s stop-resolved path,
+never a genuine free-form insertion — the exact precondition M-083/084's
+existing-passenger check gates on is structurally false for this tier by
+construction. A preview field here would be tautologically "no impact" for
+every result; concluded this was never a real gap for this specific tier, not
+silently closed.
+
+**M-104 (spec §37, automatic no-show classification)** — "VAYA may also
+automatically classify one when evidence is sufficiently strong" had no
+implementation at all. New pure `evaluateAutoNoShowClassification`
+(`packages/domain/src/trip/no-show-inference.ts`), mirroring
+`evaluateBoarding`/`evaluateAutoStart`'s signals-in/decision-out contract.
+Since only the driver ever broadcasts live location in this codebase, both
+branches are built from the driver's side only: a passenger no-show from the
+driver having genuinely waited, confirmed-arrived, at pickup past a threshold
+with no boarding; a driver no-show from departure passing a grace period
+while the driver's phone was demonstrably still broadcasting (ruling out
+"phone off") yet never once came near the ride's origin (new nullable
+`trips.driverEverNearOriginAt`, migration `0025`). Wired into the existing
+trip-staleness-sweep BullMQ job, reused rather than a new mechanism.
+`bookings.service.ts`'s `reportNoShow` had its post-decision core extracted
+into `finalizeNoShowOutcome`, now shared by both the human-report path and
+the new `applyAutoNoShowClassification` — the automatic path reuses the exact
+real status-transition/seat-release/rating/notification mechanism a human
+report goes through. Verified: 7/7 `no-show-inference.contract.test.ts`
+(domain); 3/3 new `trip-auto-no-show.integration.test.ts` (real Postgres)
+covering both no-show directions plus the conservative "silence is not
+evidence" case.
+
+**M-113 (spec §39, notification event coverage)** — 4 of the spec's 12 named
+lifecycle events had no event TYPE at all in `notificationEventTypeEnum`,
+confirmed structurally absent (not just undispatched) by the existing
+`notification-event-coverage.contract.test.ts`. Added
+`booking_deadline_approaching`, `booking_sibling_cancelled`, `trip_active`,
+`trip_eta_changed` (migration `0026`), each with real title/body copy and a
+real dispatch site: `runBookingExpirySweep` extended with a driver reminder
+inside a new pure `isDeadlineApproaching`'s lead window; `acceptBooking`'s
+sibling-supersede notification switched from a conflated `booking_declined`
+to the real distinct type; `confirmPassengerAboard` and its GPS-inferred
+counterpart both dispatch `trip_active` to the driver; `updateTripLocation`'s
+throttled ETA recompute dispatches `trip_eta_changed` only when a fresh ETA
+drifts past a real threshold from the last one the rider was actually told
+about (never on every routine ~20s recompute, preserving M-114's no-spam
+invariant). Verified: `notification-event-coverage.contract.test.ts` updated,
+14/14; new `notification-m113-new-events.integration.test.ts`, 4/4, real
+Postgres + real routing, including a genuine ETA computation for the
+ETA-change case.
+
+**Net result**: every item this report, the matrix, and CLAUDE.md's own
+tracking ever named as a remaining gap in the journey-contract initiative is
+now closed and verified with a real, executed test — not a documentation-only
+correction, except M-092 (a documentation correction after genuinely
+re-examining whether a gap existed at all). Full regression after all of the
+above: domain 213/213, api 341/345 (the 4 failures are the same
+pre-existing, unrelated ones §13 already documented — 3 need real Google
+OAuth credentials this sandbox doesn't have, 1 needs a prepared Tunisia OSRM
+graph this sandbox doesn't have; neither touched by this pass). typecheck/
+lint clean across both packages.
