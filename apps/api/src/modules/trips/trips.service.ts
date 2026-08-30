@@ -12,15 +12,25 @@ import { ConflictError, ForbiddenError, NotFoundError } from '../../lib/errors.j
 import {
   canTransitionRideStatus,
   canTransitionTripStatus,
+  classifyEtaConfidence,
+  classifyRouteDeviation,
   computeAutoTripStatusTransition,
   computeStaleTripAction,
   deriveTrackingStatus,
+  evaluateAutoNoShowClassification,
+  evaluateAutoStart,
+  evaluateBoarding,
   isWithinRatingWindow,
+  updateLiveCorridor,
+  PICKUP_ARRIVAL_RADIUS_M,
   type TripStatus,
 } from '@vaya/domain';
 import { notifyBestEffort } from '../notifications/notifications.service.js';
+import { applyAutoNoShowClassification } from '../bookings/bookings.service.js';
 import { publishTripUpdate } from '../../lib/realtime.js';
 import { getRoute } from '../../lib/routing.js';
+import { decodePolyline, projectPointOntoRoute } from '../../lib/polyline.js';
+import { haversineDistanceMeters } from '../../lib/geo.js';
 import { getLogger } from '../../config/logger.js';
 
 type Database = ReturnType<typeof getDatabase>;
@@ -317,6 +327,19 @@ export async function confirmPassengerAboard(db: Database, tripId: string, reque
     .returning();
   if (!updated) throw new Error('Failed to confirm boarding');
 
+  // M-094/INV-06: same notification the auto-detected boarding path below
+  // (updateTripLocation) sends — the moment passenger-facing live tracking
+  // becomes available is worth a real notification regardless of which
+  // path (manual tap or GPS-inferred) reached it.
+  await notifyBestEffort(db, trip.booking.riderId, 'trip_passenger_onboard', { tripId, bookingId: trip.bookingId });
+  // M-113 (spec §39, "live journey started") — the driver-facing
+  // counterpart of the same pickup -> active transition: distinct from
+  // trip_passenger_onboard (rider-facing, "you can now track this trip")
+  // rather than reusing it for both parties.
+  await notifyBestEffort(db, trip.booking.ride.driverProfile.userId, 'trip_active', {
+    tripId,
+    bookingId: trip.bookingId,
+  });
   await publishTripUpdate(tripId, { type: 'status', tripStatus: updated.status });
   return updated;
 }
@@ -329,12 +352,32 @@ export interface LocationUpdateInput {
   accuracyM?: number | null;
 }
 
+// M-099/M-100 (docs/unified_driver_and_passenger_journey.md §35, journey-
+// contract second pass): a `scheduled` trip is now also trackable — GPS
+// pings before the driver taps "Start trip" are exactly the evidence
+// `evaluateAutoStart` needs (origin proximity, movement) to auto-advance
+// without one. apps/mobile's driver location broadcast (see
+// useDriverLocationBroadcast.ts) opts a scheduled trip in only once its
+// ride's departure is imminent — this server-side allowance doesn't by
+// itself change when GPS pings actually start arriving.
 const TRACKABLE_STATUSES: readonly TripStatus[] = [
+  'scheduled',
   'driver_approaching',
   'pickup',
   'active',
   'arriving',
 ];
+
+// M-096/M-097 (spec §33): sustained, not momentary — a driver must have
+// been genuinely near the pickup point for at least this long (not just
+// one lucky-timed ping) before proximity counts as "sustained" evidence
+// toward auto-boarding. Two-ish real GPS pings at the ~6-10s mobile
+// broadcast cadence (docs/domain/live-tracking.md).
+const BOARDING_SUSTAINED_PROXIMITY_MIN_MS = 15_000;
+// A real position shift between two consecutive real pings, beyond
+// ordinary GPS jitter, treated as "the vehicle moved" for boarding's
+// `movement` signal.
+const BOARDING_MOVEMENT_MIN_METERS = 15;
 
 // Throttles the (paid, external) ETA recompute — a driver location ping
 // arrives every ~6-10s (mobile throttling policy, docs/domain/
@@ -344,6 +387,16 @@ const TRACKABLE_STATUSES: readonly TripStatus[] = [
 // trade for not adding a shared-state dependency to this hot path.
 const ETA_RECOMPUTE_INTERVAL_MS = 20_000;
 const lastEtaComputedAt = new Map<string, number>();
+
+// M-113 (spec §39, "route/ETA changed" — the ETA-only half): how much a
+// fresh live ETA recompute must drift from the last one a rider was
+// actually notified about before it's worth a real notification, not just
+// the WebSocket-only update every recompute already gets. Deliberately
+// much coarser than the 20s recompute interval above — this is the
+// difference between "the number on screen ticked down normally" and "your
+// arrival time genuinely moved," per M-114's "no notification spam from
+// routine pings" invariant.
+const ETA_CHANGE_NOTIFY_THRESHOLD_SEC = 5 * 60;
 
 /** Driver's location ping. Persists only the latest fix (no history table —
  *  CLAUDE.md's live-tracking brief: minimize retention), evaluates the
@@ -367,13 +420,101 @@ export async function updateTripLocation(
   const currentPos = { lat: input.lat, lng: input.lng };
   const pickup = pickupPoint(trip);
   const destination = destinationPoint(trip);
+  const previousPos =
+    trip.currentLat != null && trip.currentLng != null ? { lat: trip.currentLat, lng: trip.currentLng } : null;
 
-  const autoNextStatus = computeAutoTripStatusTransition(
-    trip.status,
-    currentPos,
-    pickup,
-    destination,
-  );
+  let autoNextStatus = computeAutoTripStatusTransition(trip.status, currentPos, pickup, destination);
+  let autoStartedAt: Date | null = null;
+  // M-104 (spec §37): the one bit of pre-start location "history" this
+  // schema keeps (trips.driverEverNearOriginAt's own doc comment) — set the
+  // first time the driver's real, live-broadcast position genuinely comes
+  // within pickup-arrival radius of the ride's origin while still
+  // `scheduled`, independent of whether that alone was enough to also
+  // auto-start the trip below. Never cleared once true.
+  let driverNearOriginThisPing = false;
+
+  // M-099/M-100 (spec §35): "scheduled -> started" without a button tap.
+  // `computeAutoTripStatusTransition` (packages/domain) has no case for
+  // `scheduled` at all — this is the real caller `evaluateAutoStart` never
+  // had before this pass.
+  if (!autoNextStatus && trip.status === 'scheduled') {
+    const origin = { lat: trip.booking.ride.originLat, lng: trip.booking.ride.originLng };
+    const timeReached = now.getTime() >= trip.booking.ride.departureAt.getTime();
+    const originProximity = haversineDistanceMeters(currentPos, origin) <= PICKUP_ARRIVAL_RADIUS_M;
+    driverNearOriginThisPing = originProximity;
+    const sustainedMovement = previousPos
+      ? haversineDistanceMeters(previousPos, currentPos) >= BOARDING_MOVEMENT_MIN_METERS
+      : false;
+    const routeProgress = previousPos
+      ? haversineDistanceMeters(currentPos, pickup) < haversineDistanceMeters(previousPos, pickup)
+      : false;
+
+    const autoStart = evaluateAutoStart({ timeReached, originProximity, sustainedMovement, routeProgress });
+    if (autoStart.shouldStart && canTransitionTripStatus(trip.status, 'driver_approaching')) {
+      autoNextStatus = 'driver_approaching';
+      autoStartedAt = now;
+    }
+  }
+
+  // M-096/M-097 (spec §33): "pickup -> active" (boarding) without a button
+  // tap — `confirmPassengerAboard` (the manual driver-tap path) remains the
+  // independently-sufficient `driverConfirmed`/`passengerConfirmed` branch
+  // of the exact same `evaluateBoarding` contract; this is the automatic
+  // branch that previously had no caller at all.
+  if (!autoNextStatus && trip.status === 'pickup' && trip.pickupConfirmedAt) {
+    const sustainedProximityMet =
+      now.getTime() - trip.pickupConfirmedAt.getTime() >= BOARDING_SUSTAINED_PROXIMITY_MIN_MS &&
+      haversineDistanceMeters(currentPos, pickup) <= PICKUP_ARRIVAL_RADIUS_M;
+    const movement = previousPos
+      ? haversineDistanceMeters(previousPos, currentPos) >= BOARDING_MOVEMENT_MIN_METERS
+      : false;
+    const routeContext = previousPos
+      ? haversineDistanceMeters(currentPos, destination) < haversineDistanceMeters(previousPos, destination)
+      : false;
+
+    const boarding = evaluateBoarding({
+      sustainedProximityMet,
+      movement,
+      routeContext,
+      pickupTimingPlausible: true, // already at `pickup` status — timing is inherently plausible
+      driverConfirmed: false,
+      passengerConfirmed: false,
+    });
+    if (boarding.shouldBoard && canTransitionTripStatus(trip.status, 'active')) {
+      autoNextStatus = 'active';
+    }
+  }
+
+  // M-090/EDGE-051/INV-08 (spec §29/§51): planned route vs. live feasible
+  // corridor. Only meaningful against a real (non-haversine-fallback)
+  // route — `lib/routing.ts`'s fallback always yields an empty polyline,
+  // which can't be projected against.
+  let routeDeviationStatus: ReturnType<typeof classifyRouteDeviation> | null = null;
+  let liveCorridorWaypoints: unknown = trip.liveCorridorWaypoints;
+  let deviationJustDetected = false;
+  const plannedPolyline = trip.booking.ride.routePolyline;
+  if (plannedPolyline) {
+    const plannedRoute = { waypoints: decodePolyline(plannedPolyline) };
+    const projection = projectPointOntoRoute(currentPos, plannedRoute.waypoints);
+    routeDeviationStatus = classifyRouteDeviation(projection.distanceM);
+    const priorLiveCorridor = trip.liveCorridorWaypoints
+      ? { waypoints: trip.liveCorridorWaypoints as { lat: number; lng: number }[] }
+      : plannedRoute;
+    const nextState = updateLiveCorridor(
+      { plannedRoute, liveCorridor: priorLiveCorridor },
+      routeDeviationStatus,
+      // A simplified live corridor — the driver's current position through
+      // to their unchanged planned destination, not a freshly re-routed
+      // polyline (that needs a real routing-engine call per update, a
+      // heavier SCALE-phase concern per CLAUDE.md's NOW/NEXT/SCALE
+      // horizons — this is the honest v1: real classification, real
+      // invariant enforcement, a simplified corridor shape).
+      [currentPos, destination],
+    );
+    liveCorridorWaypoints = nextState.liveCorridor.waypoints;
+    deviationJustDetected =
+      routeDeviationStatus === 'real_deviation' && trip.routeDeviationStatus !== 'real_deviation';
+  }
 
   const [updated] = await db
     .update(trips)
@@ -385,22 +526,45 @@ export async function updateTripLocation(
       currentAccuracyM: input.accuracyM ?? null,
       locationUpdatedAt: now,
       updatedAt: now,
+      ...(routeDeviationStatus ? { routeDeviationStatus, liveCorridorWaypoints } : {}),
       ...(autoNextStatus ? { status: autoNextStatus } : {}),
+      ...(autoStartedAt ? { startedAt: autoStartedAt } : {}),
       ...(autoNextStatus === 'pickup' ? { pickupConfirmedAt: now } : {}),
       // completeTrip's manual path sets this too — the 24h rating-submission
       // window (packages/domain's isWithinRatingWindow) anchors on it, so a
       // GPS-auto-completed trip needs the same real timestamp, not null.
       ...(autoNextStatus === 'completed' ? { completedAt: now } : {}),
+      ...(driverNearOriginThisPing && !trip.driverEverNearOriginAt ? { driverEverNearOriginAt: now } : {}),
     })
     .where(eq(trips.id, tripId))
     .returning();
   if (!updated) throw new Error('Failed to update trip location');
 
+  if (autoNextStatus === 'driver_approaching') {
+    await notifyBestEffort(db, trip.booking.riderId, 'trip_driver_approaching', { tripId, bookingId: trip.bookingId });
+    await syncRideStatusOnTripStart(db, trip.booking.ride.id);
+  }
   if (autoNextStatus === 'pickup') {
     await notifyBestEffort(db, trip.booking.riderId, 'trip_pickup_arrived', { tripId, bookingId: trip.bookingId });
   }
+  if (autoNextStatus === 'active' && trip.status === 'pickup') {
+    // M-094/INV-06: the exact moment passenger-facing live tracking
+    // becomes available — worth a real notification, not just a silent
+    // status flip the rider would only notice by happening to poll.
+    await notifyBestEffort(db, trip.booking.riderId, 'trip_passenger_onboard', { tripId, bookingId: trip.bookingId });
+    // M-113 (spec §39, "live journey started") — same driver-facing
+    // counterpart confirmPassengerAboard's manual path sends, for the
+    // GPS-inferred boarding path.
+    await notifyBestEffort(db, trip.booking.ride.driverProfile.userId, 'trip_active', {
+      tripId,
+      bookingId: trip.bookingId,
+    });
+  }
   if (autoNextStatus === 'arriving') {
     await notifyBestEffort(db, trip.booking.riderId, 'trip_arriving', { tripId, bookingId: trip.bookingId });
+  }
+  if (deviationJustDetected) {
+    await notifyBestEffort(db, trip.booking.riderId, 'trip_route_deviation', { tripId, bookingId: trip.bookingId });
   }
   if (autoNextStatus === 'completed') {
     // GPS confirmed real arrival at the destination (computeAutoTripStatusTransition's
@@ -415,6 +579,7 @@ export async function updateTripLocation(
 
   let etaSec: number | null = null;
   let distanceRemainingM: number | null = null;
+  let meaningfulEtaChangeSec: number | null = null;
   const lastComputed = lastEtaComputedAt.get(tripId) ?? 0;
   if (now.getTime() - lastComputed >= ETA_RECOMPUTE_INTERVAL_MS) {
     lastEtaComputedAt.set(tripId, now.getTime());
@@ -422,9 +587,31 @@ export async function updateTripLocation(
       const route = await getRoute(currentPos, destination);
       etaSec = route.durationSec;
       distanceRemainingM = route.distanceM;
+
+      // M-113: the first-ever computation just establishes a baseline (no
+      // "changed" to report yet, nothing to compare against); a later one
+      // only counts as notify-worthy once it drifts past the threshold —
+      // and only THEN does the stored baseline move, so a slow drift across
+      // many small recomputes still eventually crosses it exactly once,
+      // rather than resetting the comparison point on every tick.
+      const previousNotifiedEtaSec = trip.lastNotifiedEtaSec;
+      if (previousNotifiedEtaSec === null) {
+        await db.update(trips).set({ lastNotifiedEtaSec: etaSec }).where(eq(trips.id, tripId));
+      } else if (Math.abs(etaSec - previousNotifiedEtaSec) >= ETA_CHANGE_NOTIFY_THRESHOLD_SEC) {
+        await db.update(trips).set({ lastNotifiedEtaSec: etaSec }).where(eq(trips.id, tripId));
+        meaningfulEtaChangeSec = etaSec;
+      }
     } catch (err) {
       getLogger().warn({ err, tripId }, 'Live ETA recompute failed — continuing without it');
     }
+  }
+
+  if (meaningfulEtaChangeSec !== null) {
+    await notifyBestEffort(db, trip.booking.riderId, 'trip_eta_changed', {
+      tripId,
+      bookingId: trip.bookingId,
+      etaMinutes: Math.round(meaningfulEtaChangeSec / 60),
+    });
   }
 
   const trackingStatus = deriveTrackingStatus({
@@ -473,6 +660,13 @@ export async function reportTrackingIssue(
 export interface TrackingState {
   tripStatus: TripStatus;
   trackingStatus: ReturnType<typeof deriveTrackingStatus>;
+  // M-007 (docs/unified_driver_and_passenger_journey.md P7, spec §29):
+  // "ETAs are estimates. VAYA should distinguish: estimated, confirmed,
+  // inferred, unavailable." Confirmed live (this pass, before the fix)
+  // that `classifyEtaConfidence` (packages/domain) existed with no real
+  // caller anywhere — every tracking read implicitly claimed the same
+  // certainty regardless of feed health or route-data quality.
+  etaConfidence: ReturnType<typeof classifyEtaConfidence>;
   currentLat: number | null;
   currentLng: number | null;
   currentHeadingDeg: number | null;
@@ -487,6 +681,33 @@ export interface TrackingState {
  *  polling fallback (the same shape the WebSocket pushes incrementally) —
  *  RTK Query can poll this exactly like every other list in this app when a
  *  socket connection isn't available. */
+// M-094/INV-06 (docs/unified_driver_and_passenger_journey.md §32, §62,
+// hard invariant): "Pre-boarding: passenger sees ETA/pickup/route info,
+// NEVER raw driver GPS." Confirmed live (this pass) that `getTrackingState`
+// previously returned raw `currentLat`/`currentLng`/heading/speed to a
+// passenger regardless of trip status — a passenger polling this endpoint
+// the moment a request was accepted could see the driver's exact live
+// position hours before pickup. Boarding is `pickup -> active` (matches
+// `evaluateBoarding`'s own transition, trip/boarding-inference.ts) — every
+// status before that is pre-boarding for privacy purposes. The driver
+// always sees their own raw position (no privacy concern viewing your own
+// GPS); operational tracking itself (M-093, `updateTripLocation`) is
+// unaffected — only this passenger-facing READ is scoped.
+const PRE_BOARDING_TRIP_STATUSES: readonly TripStatus[] = ['scheduled', 'driver_approaching', 'pickup'];
+
+/** Whether `userId` is this trip's driver (vs. its rider) — used by the WS
+ *  tracking route (trips.routes.ts) to tag a connecting socket with its
+ *  role, so lib/realtime.ts's broadcast fan-out can apply the same
+ *  pre-boarding GPS redaction `getTrackingState` applies below. Callers
+ *  that already resolved a `getTrackingState` result don't need this; it's
+ *  for connection setup, where only the role (not the full state) is
+ *  needed yet. */
+export async function isTripDriver(db: Database, tripId: string, userId: string): Promise<boolean> {
+  const trip = await getTripWithPartiesOrThrow(db, tripId);
+  assertIsParty(trip, userId);
+  return trip.booking.ride.driverProfile.userId === userId;
+}
+
 export async function getTrackingState(
   db: Database,
   tripId: string,
@@ -495,19 +716,32 @@ export async function getTrackingState(
   const trip = await getTripWithPartiesOrThrow(db, tripId);
   assertIsParty(trip, requestingUserId);
 
+  const isDriver = trip.booking.ride.driverProfile.userId === requestingUserId;
+  const isPreBoarding = PRE_BOARDING_TRIP_STATUSES.includes(trip.status);
+  const withholdRawGps = !isDriver && isPreBoarding;
+
   const destination = destinationPoint(trip);
+  const liveTrackingStatus = deriveTrackingStatus({
+    tripStatus: trip.status,
+    locationUpdatedAt: trip.locationUpdatedAt,
+    now: new Date(),
+  });
   return {
     tripStatus: trip.status,
-    trackingStatus: deriveTrackingStatus({
-      tripStatus: trip.status,
-      locationUpdatedAt: trip.locationUpdatedAt,
-      now: new Date(),
+    trackingStatus: liveTrackingStatus,
+    // A non-empty routePolyline means the ride's route came from a real
+    // routing engine at publish time (lib/routing.ts's haversine fallback
+    // always sets it to '') — the same real/estimate distinction pricing
+    // and matching already use, reused here rather than a second concept.
+    etaConfidence: classifyEtaConfidence({
+      trackingStatus: liveTrackingStatus,
+      hasRealRouteData: Boolean(trip.booking.ride.routePolyline),
     }),
-    currentLat: trip.currentLat,
-    currentLng: trip.currentLng,
-    currentHeadingDeg: trip.currentHeadingDeg,
-    currentSpeedMps: trip.currentSpeedMps,
-    locationUpdatedAt: trip.locationUpdatedAt,
+    currentLat: withholdRawGps ? null : trip.currentLat,
+    currentLng: withholdRawGps ? null : trip.currentLng,
+    currentHeadingDeg: withholdRawGps ? null : trip.currentHeadingDeg,
+    currentSpeedMps: withholdRawGps ? null : trip.currentSpeedMps,
+    locationUpdatedAt: withholdRawGps ? null : trip.locationUpdatedAt,
     routePolyline: trip.booking.ride.routePolyline,
     pickup: {
       lat: trip.booking.pickupLat,
@@ -609,6 +843,7 @@ export interface TripStalenessSweepResult {
   scanned: number;
   reminded: number;
   autoCompleted: number;
+  autoNoShowClassified: number;
 }
 
 /**
@@ -618,6 +853,11 @@ export interface TripStalenessSweepResult {
  * it says. Never throws on a single trip's failure — one bad row must not
  * abort the sweep for every other trip in the batch (mirrors
  * notification-dispatch.worker.ts's per-job isolation).
+ *
+ * M-104 (spec §37) is evaluated first, per trip, ahead of the `!startedAt`
+ * skip below — a `scheduled` trip (the driver-no-show candidate) never has
+ * `startedAt` set at all, so it would otherwise never reach this sweep's
+ * logic a single time.
  */
 export async function runTripStalenessSweep(db: Database): Promise<TripStalenessSweepResult> {
   const staleCandidates = await db.query.trips.findMany({
@@ -626,9 +866,35 @@ export async function runTripStalenessSweep(db: Database): Promise<TripStaleness
   });
 
   const now = new Date();
-  const result: TripStalenessSweepResult = { scanned: staleCandidates.length, reminded: 0, autoCompleted: 0 };
+  const result: TripStalenessSweepResult = {
+    scanned: staleCandidates.length,
+    reminded: 0,
+    autoCompleted: 0,
+    autoNoShowClassified: 0,
+  };
 
   for (const trip of staleCandidates) {
+    if (trip.status === 'scheduled' || trip.status === 'pickup') {
+      try {
+        const departureAt = trip.booking.ride.departureAt;
+        const classification = evaluateAutoNoShowClassification({
+          tripStatus: trip.status,
+          msSincePickupConfirmed: trip.pickupConfirmedAt ? now.getTime() - trip.pickupConfirmedAt.getTime() : null,
+          msSinceDeparture: now.getTime() - departureAt.getTime(),
+          driverLocationActiveSinceDeparture:
+            trip.locationUpdatedAt != null && trip.locationUpdatedAt.getTime() >= departureAt.getTime(),
+          driverEverNearOrigin: trip.driverEverNearOriginAt != null,
+        });
+        if (classification.shouldClassify && classification.reportedParty) {
+          await applyAutoNoShowClassification(db, trip.bookingId, classification.reportedParty);
+          result.autoNoShowClassified += 1;
+          continue; // Now terminal (no_show) — nothing else in this loop applies to it.
+        }
+      } catch (err) {
+        getLogger().error({ err, tripId: trip.id }, 'Auto no-show classification failed for one trip — continuing with the rest');
+      }
+    }
+
     // Always set once startTrip runs (the only way a trip reaches a
     // TRACKABLE_STATUSES status) — defensive null-check only, not an
     // expected real case.

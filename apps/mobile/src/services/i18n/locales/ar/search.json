@@ -47,7 +47,15 @@
     "pointDetails": "تفاصيل نقطة {{label}}",
     "walkFromOrigin": "{{minutes}} من موقع انطلاقك.",
     "driverValidatedStop": "تم اعتماد هذه النقطة من قبل السائق كمحطة على مساره.",
-    "confirmPickup": "تأكيد نقطة الالتقاء هذه"
+    "confirmPickup": "تأكيد نقطة الالتقاء هذه",
+    "overrideHint": "اضغط مطولاً على الخريطة لاختيار نقطة أخرى",
+    "overrideSheetTitle": "نقطة مخصصة",
+    "overrideWalk": "{{minutes}} من موقعك",
+    "overrideDetourImpact": "يضيف حوالي {{duration}} إلى رحلة السائق",
+    "overrideDetourUnknown": "تأثير هذه النقطة على رحلة السائق غير معروف بعد — سيُتحقق منه عند التأكيد.",
+    "overrideNotFeasible": "تبتعد هذه النقطة كثيرًا عن مسار السائق المخطط. لا يزال بإمكانك إرسال طلبك.",
+    "overrideConfirm": "استخدام هذه النقطة",
+    "overrideLoading": "جارٍ حساب التأثير الفعلي…"
   },
   "dropoffPoint": {
     "noDropoff": "لم يتم العثور على نقطة وصول متاحة.",

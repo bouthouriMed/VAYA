@@ -43,7 +43,15 @@
     "pointDetails": "Détails du point {{label}}",
     "walkFromOrigin": "{{minutes}} depuis votre position de départ.",
     "driverValidatedStop": "Ce point a été validé par le conducteur comme arrêt sur son trajet.",
-    "confirmPickup": "Confirmer ce point de rendez-vous"
+    "confirmPickup": "Confirmer ce point de rendez-vous",
+    "overrideHint": "Maintenez le doigt sur la carte pour choisir un autre point",
+    "overrideSheetTitle": "Point personnalisé",
+    "overrideWalk": "{{minutes}} depuis votre position",
+    "overrideDetourImpact": "Ajoute environ {{duration}} au trajet du conducteur",
+    "overrideDetourUnknown": "Impact sur le trajet du conducteur pas encore calculable — vérifié à la confirmation.",
+    "overrideNotFeasible": "Ce point s'écarte beaucoup du trajet prévu du conducteur. Vous pouvez quand même envoyer votre demande.",
+    "overrideConfirm": "Utiliser ce point",
+    "overrideLoading": "Calcul de l'impact réel…"
   },
   "dropoffPoint": {
     "noDropoff": "Aucun point de dépose accessible",

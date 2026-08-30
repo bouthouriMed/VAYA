@@ -1,8 +1,9 @@
-import { and, eq, gte, inArray, lte } from 'drizzle-orm';
+import { and, eq, gte, inArray, isNotNull, lte } from 'drizzle-orm';
 import type { getDatabase } from '../../lib/database.js';
-import { demandSignals, rides, routeStops } from '../../db/schema/index.js';
+import { bookings, demandSignals, rides, routeStops, trips } from '../../db/schema/index.js';
 import { haversineDistanceMeters } from '../../lib/geo.js';
 import { getRoute } from '../../lib/routing.js';
+import { getActiveOperationalConfig } from '../operational-config/operational-config.service.js';
 import {
   findCandidateRideIdsByCorridor,
   findCandidateRideIdsByEndpoints,
@@ -18,7 +19,11 @@ import {
   classifyTripProfile,
   detourAllowanceSec,
   getMatchingThresholds,
-  MAX_DETOUR_RATIO,
+  rankStopsByJointOptimum,
+  wouldExceedCapacity,
+  VIA_STOP_DETOUR_BUDGET,
+  type BookingSegment,
+  type JointStopCandidate,
   type MatchingThresholds,
 } from '@vaya/domain';
 import type { MatchingSearchInput, NotifyMeInput } from '@vaya/validation';
@@ -67,6 +72,14 @@ export const OVERLAP_CORRIDOR_WIDTH_M = 150;
 // the route-passthrough tier against a degenerate "both points land on
 // nearly the same spot on the route" match, which isn't a usable trip.
 const MIN_ROUTE_FRACTION_GAP = 0.02;
+
+// M-091/EDGE-050 (spec §30/§50/§62): how far "behind" the driver's own
+// live route-position (as a 0..1 route-length fraction) a candidate pickup
+// can still project before EDGE-050's "already passed" rejection kicks in
+// — not zero, since projectPointOntoRoute's fixed sampling spacing and
+// ordinary GPS noise both introduce a little slack around the driver's
+// exact fraction. ASSUMPTION, not calibrated against real data.
+const IN_PROGRESS_BEHIND_TOLERANCE_FRACTION = 0.01;
 
 // How far ahead the closest-departure tier will look for *any* ride on a
 // matching corridor once even route-passthrough finds nothing at a
@@ -146,6 +159,20 @@ export function deriveMatchingThresholds(input: MatchingSearchInput): MatchingTh
   return getMatchingThresholds(profile.type);
 }
 
+/**
+ * M-039: the normalization ceiling `pickRecommendedStopId` uses for a
+ * candidate stop's driver-side deviation component — the largest real
+ * detour ANY stop on a ride of this trip length could have survived
+ * generation with (a freehand 'via' city stop's own profile-scaled budget,
+ * always ≥ an auto-generated micro-stop's much tighter MAX_DEVIATION_METERS
+ * cap), so both stop kinds land on one coherent 0..1 scale.
+ */
+function deriveMaxDeviationM(origin: LatLng, destination: LatLng): number {
+  const straightLineDistanceM = haversineDistanceMeters(origin, destination);
+  const profile = classifyTripProfile(straightLineDistanceM);
+  return VIA_STOP_DETOUR_BUDGET[profile.type].maxMeters;
+}
+
 function clamp01(n: number): number {
   return Math.max(0, Math.min(1, n));
 }
@@ -198,6 +225,14 @@ export interface MatchCandidate {
    *  "use the ride's own destination as the dropoff" — the pre-Phase-13
    *  behavior, unchanged for any ride with zero route_stops. */
   rankedDropoffStops: RankedStop[];
+  /** M-039 (spec §13): VAYA's own genuine joint-optimum recommendation —
+   *  the stop id (from `rankedStops`) that best balances the passenger's
+   *  walk distance AND the driver's real detour cost/road suitability, not
+   *  merely the closest one by foot (`rankedStops[0]`, which those two can
+   *  genuinely disagree on). Null whenever `rankedStops` is empty. */
+  recommendedStopId: string | null;
+  /** Dropoff-side mirror of `recommendedStopId`, over `rankedDropoffStops`. */
+  recommendedDropoffStopId: string | null;
   /** False only when this ride has driver-selected route_stops but none of
    *  them fall within a walkable radius of the passenger's requested
    *  origin — a real, legitimate "this ride doesn't reach you
@@ -360,7 +395,80 @@ async function fetchPublishedRidesInWindow(
 }
 
 type CandidateRide = Awaited<ReturnType<typeof fetchPublishedRidesInWindow>>[number];
-type StopRow = { id: string; label: string; lat: number; lng: number };
+type StopRow = {
+  id: string;
+  label: string;
+  lat: number;
+  lng: number;
+  // M-039: the driver-side signal computed once at stop-candidates.service.ts's
+  // generation time — carried through here so this module's ranking can
+  // actually use it instead of discarding it.
+  suitabilityScore: number;
+  deviationMeters: number;
+  // M-081: a real route_stop's ordering position, needed to map a
+  // resolved stop id onto a BookingSegment's pickupSequence/dropoffSequence
+  // for segment-aware capacity checks.
+  sequence: number;
+};
+
+/**
+ * M-039 (spec §13): VAYA's own genuine joint-optimum recommendation among a
+ * ride's already-walkable stops — considers both the passenger's real walk
+ * distance AND the driver-side cost/suitability `stop-candidates.service.ts`
+ * already computed at generation time, via `@vaya/domain`'s
+ * rankStopsByJointOptimum (see that module's doc comment for the full
+ * "two disconnected single-objective passes" gap this closes). Purely
+ * additive: `rankedStops`' own walk-distance ordering is unchanged — this
+ * only decides which single stop, among those already offered, is VAYA's
+ * actual recommendation, distinct from "closest by foot".
+ */
+function pickRecommendedStopId(
+  rankedStops: RankedStop[],
+  rideStops: StopRow[],
+  maxWalkDistanceM: number,
+  maxDeviationM: number,
+): string | null {
+  if (rankedStops.length === 0) return null;
+  const stopsById = new Map(rideStops.map((s) => [s.id, s]));
+  const candidates: JointStopCandidate[] = [];
+  for (const r of rankedStops) {
+    const stop = stopsById.get(r.stopId);
+    if (!stop) continue;
+    candidates.push({
+      stopId: r.stopId,
+      walkDistanceMeters: r.walkMinutes * WALK_SPEED_M_PER_MIN,
+      suitabilityScore: stop.suitabilityScore,
+      deviationMeters: stop.deviationMeters,
+    });
+  }
+  if (candidates.length === 0) return null;
+  const ranked = rankStopsByJointOptimum(candidates, maxWalkDistanceM, maxDeviationM);
+  return ranked[0]?.stopId ?? null;
+}
+
+/**
+ * M-091 (spec §30): each in-progress ride's real, already-reported live GPS
+ * fix — never fabricated from the ride's (by definition, already-passed)
+ * stored origin. A ride can have several `trips` rows (one per accepted
+ * booking, all sharing the one driver's physical position — see
+ * apps/mobile's useDriverLocationBroadcast), so this picks whichever of a
+ * ride's trips most recently reported a real fix; a ride with zero trips
+ * that have ever reported one is simply absent from the returned map.
+ */
+async function fetchLiveTripPositionsByRide(db: Database, rideIds: string[]): Promise<Map<string, LatLng>> {
+  const positions = new Map<string, LatLng>();
+  if (rideIds.length === 0) return positions;
+  const tripRows = await db.query.trips.findMany({
+    where: and(inArray(trips.rideId, rideIds), isNotNull(trips.currentLat), isNotNull(trips.currentLng)),
+    orderBy: (t, { desc }) => desc(t.locationUpdatedAt),
+  });
+  for (const trip of tripRows) {
+    if (!positions.has(trip.rideId) && trip.currentLat != null && trip.currentLng != null) {
+      positions.set(trip.rideId, { lat: trip.currentLat, lng: trip.currentLng });
+    }
+  }
+  return positions;
+}
 
 async function fetchStopsByRide(db: Database, rideIds: string[]): Promise<Map<string, StopRow[]>> {
   const stopsByRide = new Map<string, StopRow[]>();
@@ -374,6 +482,76 @@ async function fetchStopsByRide(db: Database, rideIds: string[]): Promise<Map<st
     stopsByRide.set(stop.rideId, list);
   }
   return stopsByRide;
+}
+
+/**
+ * M-081 (docs/unified_driver_and_passenger_journey.md §25): "Segment
+ * capacity constraint applies to: search, candidate pooling, request
+ * validation, acceptance, pricing, driver itinerary, live matching (ALL of
+ * these, not just acceptance)." Before this, every candidate-building
+ * function here gated on the ride-global `rides.seatsAvailable` scalar —
+ * confirmed live to be the ride's *bottleneck*-segment occupancy
+ * (bookings.service.ts's `loadRideSegmentState`'s own doc comment: "seatsTotal
+ * minus the ride's current bottleneck-segment occupancy"), a real,
+ * conservative-in-the-wrong-direction proxy: a ride saturated on ONE
+ * segment reads `seatsAvailable: 0` and vanishes from search entirely, even
+ * when the rider's own requested segment has full capacity — exactly the
+ * "Madrid→Zaragoza full, Zaragoza→Barcelona wide open" example spec §25
+ * names. Batched across every candidate ride in one query (mirrors
+ * `fetchStopsByRide`'s own pattern) — search evaluates many rides at once,
+ * never N+1 queries per candidate.
+ */
+async function fetchAcceptedSegmentsByRide(
+  db: Database,
+  rideIds: string[],
+  stopsByRide: Map<string, StopRow[]>,
+): Promise<Map<string, BookingSegment[]>> {
+  const segmentsByRide = new Map<string, BookingSegment[]>();
+  if (rideIds.length === 0) return segmentsByRide;
+  const accepted = await db.query.bookings.findMany({
+    where: and(inArray(bookings.rideId, rideIds), eq(bookings.status, 'accepted')),
+  });
+  for (const booking of accepted) {
+    const sequenceByStopId = new Map((stopsByRide.get(booking.rideId) ?? []).map((s) => [s.id, s.sequence]));
+    const segment: BookingSegment = {
+      seatsRequested: booking.seatsRequested,
+      // Same conservative direction as bookings.service.ts's own
+      // bookingToSegment: an unresolved/free-form reference spans the
+      // ride's true start/end, never narrower than reality.
+      pickupSequence: booking.pickupStopId ? (sequenceByStopId.get(booking.pickupStopId) ?? -Infinity) : -Infinity,
+      dropoffSequence: booking.dropoffStopId ? (sequenceByStopId.get(booking.dropoffStopId) ?? Infinity) : Infinity,
+    };
+    const list = segmentsByRide.get(booking.rideId) ?? [];
+    list.push(segment);
+    segmentsByRide.set(booking.rideId, list);
+  }
+  return segmentsByRide;
+}
+
+/**
+ * Whether at least one seat is genuinely free for THIS rider's own implied
+ * segment (their resolved pickup/dropoff stop, or the ride's true start/end
+ * for a stop-less endpoint match) — the real, segment-aware replacement for
+ * a flat `ride.seatsAvailable < 1` check. `stopId` is `undefined` for a
+ * point not resolved to any real route_stop (an endpoint match with no
+ * stops, or a not-yet-viable side of a partially-viable one) — never
+ * narrower than reality, same "-Infinity/+Infinity spans the true edge"
+ * convention `BookingSegment` already establishes.
+ */
+function hasSegmentCapacity(
+  existingSegments: BookingSegment[],
+  seatsTotal: number,
+  pickupStopId: string | undefined,
+  dropoffStopId: string | undefined,
+  stops: StopRow[],
+): boolean {
+  const sequenceByStopId = new Map(stops.map((s) => [s.id, s.sequence]));
+  const candidate: BookingSegment = {
+    seatsRequested: 1,
+    pickupSequence: pickupStopId ? (sequenceByStopId.get(pickupStopId) ?? -Infinity) : -Infinity,
+    dropoffSequence: dropoffStopId ? (sequenceByStopId.get(dropoffStopId) ?? Infinity) : Infinity,
+  };
+  return !wouldExceedCapacity(existingSegments, candidate, seatsTotal);
 }
 
 /**
@@ -392,11 +570,19 @@ function buildEndpointCandidate(
     destination: LatLng;
     riderRoutePoints: LatLng[];
     stopsByRide: Map<string, StopRow[]>;
+    segmentsByRide: Map<string, BookingSegment[]>;
     pickupRadiusM: number;
     dropoffRadiusM: number;
+    maxDeviationM: number;
   },
 ): MatchCandidate | null {
-  if (ride.seatsAvailable < 1) return null;
+  // M-081 (spec §25): ride.seatsAvailable is the ride's *bottleneck*-segment
+  // occupancy (bookings.service.ts's loadRideSegmentState — "seatsTotal
+  // minus the ride's current bottleneck-segment occupancy"), not this
+  // rider's own segment — deliberately NOT gated on here (a ride saturated
+  // on one segment but wide open on the rider's own requested segment must
+  // still surface). The real, segment-precise gate runs further down, once
+  // this rider's own implied stop pair is known.
 
   const pickupDistanceM = haversineDistanceMeters(ctx.origin, {
     lat: ride.originLat,
@@ -435,6 +621,31 @@ function buildEndpointCandidate(
   const rankedDropoffStops = rankStopsByWalkDistance(ctx.destination, rideStops);
   const pickupViable = isPickupViable(rideStops.length, rankedStops.length);
   const dropoffViable = isDropoffViable(rideStops.length, rankedDropoffStops.length);
+  const recommendedStopId = pickRecommendedStopId(rankedStops, rideStops, ctx.pickupRadiusM, ctx.maxDeviationM);
+  const recommendedDropoffStopId = pickRecommendedStopId(
+    rankedDropoffStops,
+    rideStops,
+    ctx.dropoffRadiusM,
+    ctx.maxDeviationM,
+  );
+
+  // M-081 (spec §25): the actual segment-precise capacity gate — this
+  // rider's own implied pickup/dropoff stop pair (their real offered
+  // resolution, not the ride-global bottleneck) checked against every
+  // already-accepted booking's own segment.
+  const impliedPickupStopId = recommendedStopId ?? rankedStops[0]?.stopId;
+  const impliedDropoffStopId = recommendedDropoffStopId ?? rankedDropoffStops[0]?.stopId;
+  if (
+    !hasSegmentCapacity(
+      ctx.segmentsByRide.get(ride.id) ?? [],
+      ride.seatsTotal,
+      impliedPickupStopId,
+      impliedDropoffStopId,
+      rideStops,
+    )
+  ) {
+    return null;
+  }
 
   return {
     rideId: ride.id,
@@ -457,6 +668,8 @@ function buildEndpointCandidate(
     routePolyline: ride.routePolyline,
     rankedStops,
     rankedDropoffStops,
+    recommendedStopId,
+    recommendedDropoffStopId,
     pickupViable,
     dropoffViable,
     matchType: 'endpoint',
@@ -519,10 +732,10 @@ async function scoreCandidates(
   const riderRoute = await getRoute(origin, destination);
   const riderRoutePoints = riderRoute.polyline ? decodePolyline(riderRoute.polyline) : [];
 
-  const stopsByRide = await fetchStopsByRide(
-    db,
-    candidateRides.map((r) => r.id),
-  );
+  const rideIds = candidateRides.map((r) => r.id);
+  const stopsByRide = await fetchStopsByRide(db, rideIds);
+  const segmentsByRide = await fetchAcceptedSegmentsByRide(db, rideIds, stopsByRide);
+  const maxDeviationM = deriveMaxDeviationM(origin, destination);
 
   const scored: MatchCandidate[] = [];
   for (const ride of candidateRides) {
@@ -531,8 +744,10 @@ async function scoreCandidates(
       destination,
       riderRoutePoints,
       stopsByRide,
+      segmentsByRide,
       pickupRadiusM,
       dropoffRadiusM,
+      maxDeviationM,
     });
     if (candidate) scored.push(candidate);
   }
@@ -608,14 +823,17 @@ async function scorePassThroughCandidates(
     candidateIds ?? undefined,
   );
 
-  const stopsByRide = await fetchStopsByRide(
-    db,
-    candidateRides.map((r) => r.id),
-  );
+  const passThroughRideIds = candidateRides.map((r) => r.id);
+  const stopsByRide = await fetchStopsByRide(db, passThroughRideIds);
+  const segmentsByRide = await fetchAcceptedSegmentsByRide(db, passThroughRideIds, stopsByRide);
+  const maxDeviationM = deriveMaxDeviationM(origin, destination);
 
   const results: MatchCandidate[] = [];
   for (const ride of candidateRides) {
-    if (ride.seatsAvailable < 1) continue;
+    // M-081 (spec §25): NOT gated on ride.seatsAvailable (the ride's
+    // bottleneck-segment occupancy, not this specific pickup->dropoff
+    // segment) — the real, segment-precise gate runs further down, once
+    // this rider's own resolved stop pair is known.
     if (!ride.routePolyline) continue; // No real route geometry to project onto — skip, don't fabricate.
 
     const routePoints = decodePolyline(ride.routePolyline);
@@ -632,6 +850,31 @@ async function scorePassThroughCandidates(
     const rankedStops = rankStopsByWalkDistance(origin, rideStops);
     const rankedDropoffStops = rankStopsByWalkDistance(destination, rideStops);
     if (rankedStops.length === 0 || rankedDropoffStops.length === 0) continue;
+    // rankStopsByWalkDistance was called with no explicit radius above, so
+    // it used its own default cutoff (WIDE_PICKUP_RADIUS_M) for both
+    // pickup and dropoff — the normalization ceiling here must match that,
+    // not candidateSearchRadiusM (a different, PostGIS-pre-filter radius).
+    const recommendedStopId = pickRecommendedStopId(rankedStops, rideStops, WIDE_PICKUP_RADIUS_M, maxDeviationM);
+    const recommendedDropoffStopId = pickRecommendedStopId(
+      rankedDropoffStops,
+      rideStops,
+      WIDE_PICKUP_RADIUS_M,
+      maxDeviationM,
+    );
+
+    // M-081: the segment-precise capacity gate, both ends always real
+    // stops in this tier.
+    if (
+      !hasSegmentCapacity(
+        segmentsByRide.get(ride.id) ?? [],
+        ride.seatsTotal,
+        recommendedStopId ?? rankedStops[0]!.stopId,
+        recommendedDropoffStopId ?? rankedDropoffStops[0]!.stopId,
+        rideStops,
+      )
+    ) {
+      continue;
+    }
 
     const pickupWalkMinutes = rankedStops[0]!.walkMinutes;
     const dropoffWalkMinutes = rankedDropoffStops[0]!.walkMinutes;
@@ -672,6 +915,8 @@ async function scorePassThroughCandidates(
       routePolyline: ride.routePolyline,
       rankedStops,
       rankedDropoffStops,
+      recommendedStopId,
+      recommendedDropoffStopId,
       pickupViable: true,
       dropoffViable: true,
       matchType: 'route_passthrough',
@@ -692,6 +937,210 @@ async function scorePassThroughCandidates(
           reliabilityScore: ride.driverProfile.reliabilityScore,
         }),
         'Sur votre trajet',
+      ],
+      clusterLabel: buildClusterLabel(timeDeltaMin),
+    });
+  }
+
+  return results.sort((a, b) => b.score - a.score);
+}
+
+/**
+ * M-091/EDGE-050 (spec §30, §50, §62 — the audit's own P0 finding): a trip
+ * that has already started is NOT invisible to search. Spec's own example:
+ * "Driver: Madrid -> Barcelona has already left Madrid. While approaching
+ * Zaragoza: Passenger searches Zaragoza -> Barcelona. VAYA should evaluate
+ * the request against the driver's current position and remaining
+ * journey... If feasible, the passenger can receive the trip." Before this,
+ * every tier filtered strictly on `status = 'published'` — the instant a
+ * trip started (`syncRideStatusOnTripStart` flips `rides.status` to
+ * `in_progress`), the ride vanished from search entirely, with zero regard
+ * for how much genuinely-feasible route remained ahead of the driver.
+ *
+ * Reuses `scorePassThroughCandidates`'s own route-projection/stop-viability
+ * qualification (this is fundamentally the same mechanic — a real driver-
+ * selected stop sitting on the road ahead of the rider), with the two real
+ * differences that mechanic doesn't have: (1) `status = 'in_progress'`
+ * rather than `published`, evaluated against the driver's real live
+ * position rather than the ride's stale stored origin, and (2) EDGE-050's
+ * hard rejection — a candidate pickup (or an offerable stop) that projects
+ * BEHIND the driver's own current route-position is never offered, however
+ * close it is to the rider. A ride whose driver hasn't reported a single
+ * GPS fix yet has no real "current position" to evaluate against and is
+ * skipped outright — never assume the stale origin is still current.
+ *
+ * No PostGIS stage-1 filter here (unlike the other tiers): the candidate
+ * pool this scans is bounded by "how many rides are genuinely in progress
+ * right now", not "how many rides exist total" — a full scan of that small,
+ * transient set is cheap enough not to need the two-stage architecture the
+ * other, much larger candidate pools do.
+ */
+async function scoreInProgressCandidates(
+  db: Database,
+  input: MatchingSearchInput,
+  timeWindowMin: number,
+): Promise<MatchCandidate[]> {
+  const windowStart = new Date(input.when.getTime() - timeWindowMin * 60_000);
+  const windowEnd = new Date(input.when.getTime() + timeWindowMin * 60_000);
+
+  const origin = { lat: input.originLat, lng: input.originLng };
+  const destination = { lat: input.destinationLat, lng: input.destinationLng };
+
+  const candidateRides = await db.query.rides.findMany({
+    where: and(
+      eq(rides.status, 'in_progress'),
+      gte(rides.departureAt, windowStart),
+      lte(rides.departureAt, windowEnd),
+    ),
+    with: { driverProfile: { with: { user: true } } },
+  });
+  if (candidateRides.length === 0) return [];
+
+  const inProgressRideIds = candidateRides.map((r) => r.id);
+  const livePositionByRide = await fetchLiveTripPositionsByRide(db, inProgressRideIds);
+  const stopsByRide = await fetchStopsByRide(db, inProgressRideIds);
+  const segmentsByRide = await fetchAcceptedSegmentsByRide(db, inProgressRideIds, stopsByRide);
+  const maxDeviationM = deriveMaxDeviationM(origin, destination);
+
+  const results: MatchCandidate[] = [];
+  for (const ride of candidateRides) {
+    // M-081 (spec §25): NOT gated on ride.seatsAvailable here either — see
+    // buildEndpointCandidate's own comment for why; the segment-precise
+    // gate runs further down.
+    if (!ride.routePolyline) continue; // No real route geometry to project onto — skip, don't fabricate.
+
+    const livePos = livePositionByRide.get(ride.id);
+    if (!livePos) continue; // No real reported position yet — never assume the stale origin is still current.
+
+    const routePoints = decodePolyline(ride.routePolyline);
+    if (routePoints.length < 2) continue;
+
+    const driverProj = projectPointOntoRoute(livePos, routePoints);
+    const originProj = projectPointOntoRoute(origin, routePoints);
+    const destProj = projectPointOntoRoute(destination, routePoints);
+
+    // EDGE-050: a pickup already behind the driver's real live position is
+    // never offered, however close it is to the rider.
+    if (originProj.fraction < driverProj.fraction - IN_PROGRESS_BEHIND_TOLERANCE_FRACTION) continue;
+    if (destProj.fraction - originProj.fraction < MIN_ROUTE_FRACTION_GAP) continue;
+
+    const rideStops = stopsByRide.get(ride.id) ?? [];
+    // Same EDGE-050 guarantee, applied to which of the driver's own
+    // selected stops are even offerable: a stop the driver has already
+    // physically driven past can't be walked back to, regardless of how
+    // close it sits to the rider's requested point.
+    const stopsAheadOfDriver = rideStops.filter(
+      (stop) =>
+        projectPointOntoRoute(stop, routePoints).fraction >=
+        driverProj.fraction - IN_PROGRESS_BEHIND_TOLERANCE_FRACTION,
+    );
+    const rankedStops = rankStopsByWalkDistance(origin, stopsAheadOfDriver);
+    const rankedDropoffStops = rankStopsByWalkDistance(destination, stopsAheadOfDriver);
+
+    // M-091 real gap, found and fixed while verifying this tier end-to-end
+    // (a real HTTP journey, not just the direct-service-call integration
+    // test): the spec's own worked example — "Passenger searches Zaragoza
+    // -> Barcelona" where Barcelona is the driver's own, unchanged final
+    // destination — was unmatchable, because this tier unconditionally
+    // required BOTH ends to resolve via a real route_stop (mirroring
+    // scorePassThroughCandidates, whose pure-passthrough case genuinely
+    // needs that). A search endpoint that's simply the ride's own
+    // origin/destination doesn't need a stop at all — mirrors
+    // buildEndpointCandidate's own direct-radius check, the same real
+    // property that already lets an ordinary published-ride search work
+    // this way.
+    const originMatchesRideOriginM = haversineDistanceMeters(origin, {
+      lat: ride.originLat,
+      lng: ride.originLng,
+    });
+    const destMatchesRideDestinationM = haversineDistanceMeters(destination, {
+      lat: ride.destinationLat,
+      lng: ride.destinationLng,
+    });
+    const pickupViaRideOrigin = originMatchesRideOriginM <= WIDE_PICKUP_RADIUS_M;
+    const dropoffViaRideDestination = destMatchesRideDestinationM <= WIDE_PICKUP_RADIUS_M;
+    if (rankedStops.length === 0 && !pickupViaRideOrigin) continue;
+    if (rankedDropoffStops.length === 0 && !dropoffViaRideDestination) continue;
+
+    const recommendedStopId = pickRecommendedStopId(
+      rankedStops,
+      stopsAheadOfDriver,
+      WIDE_PICKUP_RADIUS_M,
+      maxDeviationM,
+    );
+    const recommendedDropoffStopId = pickRecommendedStopId(
+      rankedDropoffStops,
+      stopsAheadOfDriver,
+      WIDE_PICKUP_RADIUS_M,
+      maxDeviationM,
+    );
+
+    // M-081: the segment-precise capacity gate — undefined stop ids
+    // (a direct ride-endpoint match, M-091's own fix) correctly span the
+    // ride's true start/end via hasSegmentCapacity's own -Infinity/
+    // +Infinity convention.
+    if (
+      !hasSegmentCapacity(
+        segmentsByRide.get(ride.id) ?? [],
+        ride.seatsTotal,
+        recommendedStopId ?? rankedStops[0]?.stopId,
+        recommendedDropoffStopId ?? rankedDropoffStops[0]?.stopId,
+        stopsAheadOfDriver,
+      )
+    ) {
+      continue;
+    }
+
+    const pickupWalkMinutes = rankedStops[0]?.walkMinutes ?? originMatchesRideOriginM / WALK_SPEED_M_PER_MIN;
+    const dropoffWalkMinutes =
+      rankedDropoffStops[0]?.walkMinutes ?? destMatchesRideDestinationM / WALK_SPEED_M_PER_MIN;
+    const timeDeltaMin = Math.abs(ride.departureAt.getTime() - input.when.getTime()) / 60_000;
+    const segmentFraction = clamp01(destProj.fraction - originProj.fraction);
+
+    const score =
+      clamp01(1 - (pickupWalkMinutes * WALK_SPEED_M_PER_MIN) / TIGHT_PICKUP_RADIUS_M) * 0.35 +
+      clamp01(1 - timeDeltaMin / TIGHT_TIME_WINDOW_MIN) * 0.25 +
+      clamp01(1 - (dropoffWalkMinutes * WALK_SPEED_M_PER_MIN) / TIGHT_DROPOFF_RADIUS_M) * 0.25 +
+      segmentFraction * 0.15;
+
+    results.push({
+      rideId: ride.id,
+      driverUserId: ride.driverProfile.userId,
+      driverFullName: ride.driverProfile.user?.fullName ?? null,
+      driverAvatarUrl: ride.driverProfile.user?.avatarUrl ?? null,
+      ratingAvg: ride.driverProfile.ratingAvg,
+      tripCount: ride.driverProfile.tripCount,
+      departureAt: ride.departureAt,
+      seatsAvailable: ride.seatsAvailable,
+      contributionPerSeat: ride.contributionPerSeat,
+      pickupWalkMinutes,
+      dropoffWalkMinutes,
+      routeOverlapPercent: 100,
+      score,
+      originLat: ride.originLat,
+      originLng: ride.originLng,
+      destinationLat: ride.destinationLat,
+      destinationLng: ride.destinationLng,
+      routePolyline: ride.routePolyline,
+      rankedStops,
+      rankedDropoffStops,
+      recommendedStopId,
+      recommendedDropoffStopId,
+      pickupViable: true,
+      dropoffViable: true,
+      matchType: 'route_passthrough',
+      detour: null,
+      pickupEtaSeconds: Math.round((ride.estimatedDurationSec ?? 0) * clamp01(originProj.fraction)),
+      dropoffEtaSeconds: Math.round((ride.estimatedDurationSec ?? 0) * clamp01(destProj.fraction)),
+      detourRoutePolyline: null,
+      reasons: [
+        ...buildReasons({
+          pickupWalkMinutes,
+          timeDeltaMin,
+          routeOverlapPercent: 100,
+          reliabilityScore: ride.driverProfile.reliabilityScore,
+        }),
+        'Déjà en route vers votre trajet',
       ],
       clusterLabel: buildClusterLabel(timeDeltaMin),
     });
@@ -727,6 +1176,7 @@ async function scoreDetourCandidates(
   input: MatchingSearchInput,
   timeWindowMin: number,
   thresholds: MatchingThresholds,
+  maxDetourRatio: number,
 ): Promise<MatchCandidate[]> {
   const windowStart = new Date(input.when.getTime() - timeWindowMin * 60_000);
   const windowEnd = new Date(input.when.getTime() + timeWindowMin * 60_000);
@@ -808,6 +1258,7 @@ async function scoreDetourCandidates(
       ride.estimatedDurationSec,
       thresholds.detourFloorSec,
       thresholds.detourCeilingSec,
+      maxDetourRatio,
     );
     if (extraDurationSeconds > allowanceSec) continue;
 
@@ -834,7 +1285,7 @@ async function scoreDetourCandidates(
     const dropoffWalkMinutes = 0; // Same reasoning — the driver detours to the rider's actual dropoff too.
 
     const score =
-      clamp01(1 - detourRatio / (MAX_DETOUR_RATIO * 1.2)) * 0.5 +
+      clamp01(1 - detourRatio / (maxDetourRatio * 1.2)) * 0.5 +
       clamp01(1 - timeDeltaMin / TIGHT_TIME_WINDOW_MIN) * 0.3 +
       clamp01(1 - extraDurationSeconds / thresholds.detourCeilingSec) * 0.2;
 
@@ -859,6 +1310,10 @@ async function scoreDetourCandidates(
       routePolyline: ride.routePolyline,
       rankedStops: [],
       rankedDropoffStops: [],
+      // No real driver-selected stop is involved at all in a detour match
+      // (see the pickupViable/dropoffViable comment right below).
+      recommendedStopId: null,
+      recommendedDropoffStopId: null,
       // Deliberately false — see MatchCandidate.detour's doc comment. This
       // tier surfaces a real, calculated possibility, not a bookable stop.
       pickupViable: false,
@@ -929,10 +1384,10 @@ async function findClosestDepartures(
   );
   const riderRoute = await getRoute(origin, destination);
   const riderRoutePoints = riderRoute.polyline ? decodePolyline(riderRoute.polyline) : [];
-  const stopsByRide = await fetchStopsByRide(
-    db,
-    candidateRides.map((r) => r.id),
-  );
+  const closestDepartureRideIds = candidateRides.map((r) => r.id);
+  const stopsByRide = await fetchStopsByRide(db, closestDepartureRideIds);
+  const segmentsByRide = await fetchAcceptedSegmentsByRide(db, closestDepartureRideIds, stopsByRide);
+  const maxDeviationM = deriveMaxDeviationM(origin, destination);
 
   const built: MatchCandidate[] = [];
   for (const ride of candidateRides) {
@@ -941,8 +1396,10 @@ async function findClosestDepartures(
       destination,
       riderRoutePoints,
       stopsByRide,
+      segmentsByRide,
       pickupRadiusM: thresholds.widePickupRadiusM,
       dropoffRadiusM: thresholds.wideDropoffRadiusM,
+      maxDeviationM,
     });
     if (candidate) built.push(candidate);
   }
@@ -1124,7 +1581,7 @@ export async function searchRides(db: Database, input: MatchingSearchInput): Pro
   // see deriveMatchingThresholds's own doc comment.
   const thresholds = deriveMatchingThresholds(input);
 
-  const [endpointCandidates, passThroughCandidates] = await Promise.all([
+  const [endpointCandidates, passThroughCandidates, inProgressCandidates] = await Promise.all([
     scoreCandidates(
       db,
       input,
@@ -1133,8 +1590,14 @@ export async function searchRides(db: Database, input: MatchingSearchInput): Pro
       WIDE_TIME_WINDOW_MIN,
     ),
     scorePassThroughCandidates(db, input, thresholds, WIDE_TIME_WINDOW_MIN),
+    // M-091/EDGE-050: a trip already in progress is matchable against the
+    // driver's current position and remaining route — merged in alongside
+    // the other two retrieval mechanisms rather than gated as a separate
+    // fallback tier, since a genuinely feasible in-progress match is a real,
+    // ordinary result, not a degraded last resort.
+    scoreInProgressCandidates(db, input, WIDE_TIME_WINDOW_MIN),
   ]);
-  const merged = mergeCandidatesByRide(endpointCandidates, passThroughCandidates);
+  const merged = mergeCandidatesByRide(endpointCandidates, passThroughCandidates, inProgressCandidates);
 
   if (merged.length > 0) {
     const { ranked, standoutRideId } = rankMatchCandidates(merged, input);
@@ -1147,7 +1610,19 @@ export async function searchRides(db: Database, input: MatchingSearchInput): Pro
     };
   }
 
-  const detour = await scoreDetourCandidates(db, input, WIDE_TIME_WINDOW_MIN, thresholds);
+  // M-085/M-085a (spec §28): the admin-configurable override, resolved only
+  // here (Stage A already returned nothing, the one real consumer of this
+  // value) rather than unconditionally on every search — same "don't pay
+  // for a config read the common case never needs" discipline the rest of
+  // this cascade already follows for detour's own routing calls.
+  const operationalConfig = await getActiveOperationalConfig(db);
+  const detour = await scoreDetourCandidates(
+    db,
+    input,
+    WIDE_TIME_WINDOW_MIN,
+    thresholds,
+    operationalConfig.maxDetourRatio,
+  );
   if (detour.length > 0) {
     const { ranked, standoutRideId } = rankMatchCandidates(detour, input);
     return { tier: 'detour_match', candidates: ranked, standoutRideId, message: TIER_MESSAGES.detour_match };

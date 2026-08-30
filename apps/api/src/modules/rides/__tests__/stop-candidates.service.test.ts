@@ -8,8 +8,11 @@ import {
   computeCustomStopSequence,
   computeViaStopInsertion,
   polylineDistanceMeters,
+  isPedestrianOnlyLocation,
+  exceedsStopAccessDistance,
   MAX_DEVIATION_METERS,
   MAX_DEVIATION_SECONDS,
+  MAX_STOP_ACCESS_METERS,
   type ScoredStopCandidate,
 } from '../stop-candidates.service.js';
 
@@ -95,6 +98,59 @@ describe('scoreStopCandidate — rejection rules', () => {
     expect(result.rejectReason).toBe('max_deviation');
   });
 
+  // M-014 (docs/unified_driver_and_passenger_journey.md §4.1, matrix test id
+  // A.stop-candidates.reject-pedestrian-zone): "Recommended pickup points
+  // must not be in pedestrian-only areas."
+  it('rejects a candidate whose raw OSM tag confirms a pedestrian-only area, regardless of otherwise-good deviation/road-class', () => {
+    const result = scoreStopCandidate({
+      deviationMeters: 5,
+      deviationSeconds: 5,
+      roadClass: 'secondary',
+      hasLabel: true,
+      osmClass: 'highway',
+      osmType: 'pedestrian',
+    });
+    expect(result.accepted).toBe(false);
+    expect(result.rejectReason).toBe('pedestrian_zone');
+    expect(result.suitabilityScore).toBe(0);
+  });
+
+  it('does not reject when osmClass/osmType are absent (no signal, never guessed)', () => {
+    const result = scoreStopCandidate({
+      deviationMeters: 5,
+      deviationSeconds: 5,
+      roadClass: 'secondary',
+      hasLabel: true,
+    });
+    expect(result.accepted).toBe(true);
+  });
+
+  // M-015 (spec §4.1, matrix test id
+  // A.stop-candidates.reject-no-stopping-feasibility): "Recommended pickup
+  // points must not be operationally unsuitable / vehicle cannot stop."
+  it('rejects a candidate too far from any drivable road for a vehicle to plausibly stop there', () => {
+    const result = scoreStopCandidate({
+      deviationMeters: 5,
+      deviationSeconds: 5,
+      roadClass: 'secondary',
+      hasLabel: true,
+      snapDistanceM: MAX_STOP_ACCESS_METERS + 1,
+    });
+    expect(result.accepted).toBe(false);
+    expect(result.rejectReason).toBe('no_stopping_feasibility');
+    expect(result.suitabilityScore).toBe(0);
+  });
+
+  it('does not reject on stop-access distance when snapDistanceM is absent (pre-existing call sites unaffected)', () => {
+    const result = scoreStopCandidate({
+      deviationMeters: 5,
+      deviationSeconds: 5,
+      roadClass: 'secondary',
+      hasLabel: true,
+    });
+    expect(result.accepted).toBe(true);
+  });
+
   it('accepts a well-placed secondary-road candidate within threshold', () => {
     const result = scoreStopCandidate({
       deviationMeters: 20,
@@ -130,6 +186,75 @@ describe('scoreStopCandidate — rejection rules', () => {
       hasLabel: false,
     });
     expect(result.accepted).toBe(true);
+  });
+});
+
+// M-014: pure OSM-tag classification, no I/O — direct unit coverage of the
+// allowlist itself (scoreStopCandidate's own tests above cover it wired
+// into the wider scoring/rejection pipeline).
+describe('isPedestrianOnlyLocation', () => {
+  it('rejects a real pedestrian-street tag', () => {
+    expect(isPedestrianOnlyLocation('highway', 'pedestrian')).toBe(true);
+  });
+
+  it('rejects a footway/path/steps/cycleway', () => {
+    expect(isPedestrianOnlyLocation('highway', 'footway')).toBe(true);
+    expect(isPedestrianOnlyLocation('highway', 'path')).toBe(true);
+    expect(isPedestrianOnlyLocation('highway', 'steps')).toBe(true);
+    expect(isPedestrianOnlyLocation('highway', 'cycleway')).toBe(true);
+  });
+
+  it('does NOT reject a living_street — vehicles are still permitted there', () => {
+    expect(isPedestrianOnlyLocation('highway', 'living_street')).toBe(false);
+  });
+
+  it('rejects a park/garden/playground', () => {
+    expect(isPedestrianOnlyLocation('leisure', 'park')).toBe(true);
+    expect(isPedestrianOnlyLocation('leisure', 'garden')).toBe(true);
+    expect(isPedestrianOnlyLocation('leisure', 'playground')).toBe(true);
+  });
+
+  it('rejects a public square', () => {
+    expect(isPedestrianOnlyLocation('place', 'square')).toBe(true);
+  });
+
+  it('rejects any natural feature (beach, water, wood)', () => {
+    expect(isPedestrianOnlyLocation('natural', 'beach')).toBe(true);
+    expect(isPedestrianOnlyLocation('natural', 'water')).toBe(true);
+  });
+
+  it('accepts a normal residential/primary/secondary road tag', () => {
+    expect(isPedestrianOnlyLocation('highway', 'residential')).toBe(false);
+    expect(isPedestrianOnlyLocation('highway', 'primary')).toBe(false);
+    expect(isPedestrianOnlyLocation('highway', 'secondary')).toBe(false);
+  });
+
+  it('never rejects when class/type are null or undefined — no signal, no guess', () => {
+    expect(isPedestrianOnlyLocation(null, null)).toBe(false);
+    expect(isPedestrianOnlyLocation(undefined, undefined)).toBe(false);
+    expect(isPedestrianOnlyLocation('highway', null)).toBe(false);
+  });
+
+  it('never rejects an unrecognized class — conservative allowlist, not a denylist', () => {
+    expect(isPedestrianOnlyLocation('shop', 'supermarket')).toBe(false);
+    expect(isPedestrianOnlyLocation('amenity', 'restaurant')).toBe(false);
+  });
+});
+
+// M-015: pure distance-threshold classification.
+describe('exceedsStopAccessDistance', () => {
+  it('does not reject a point close to a drivable road', () => {
+    expect(exceedsStopAccessDistance(50)).toBe(false);
+    expect(exceedsStopAccessDistance(500)).toBe(false);
+  });
+
+  it('accepts exactly at the threshold', () => {
+    expect(exceedsStopAccessDistance(MAX_STOP_ACCESS_METERS)).toBe(false);
+  });
+
+  it('rejects a point genuinely far from any drivable road', () => {
+    expect(exceedsStopAccessDistance(MAX_STOP_ACCESS_METERS + 1)).toBe(true);
+    expect(exceedsStopAccessDistance(50_000)).toBe(true);
   });
 });
 

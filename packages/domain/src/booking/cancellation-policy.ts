@@ -37,6 +37,23 @@
 export const CANCELLATION_TIERS = ['free', 'moderate', 'severe'] as const;
 export type CancellationTier = (typeof CANCELLATION_TIERS)[number];
 
+/**
+ * A lightweight, required, fixed-set reason (spec §38 — matrix M-110):
+ * "Pre-trip-start: both driver and passenger can cancel with a lightweight
+ * required reason from a fixed set." Confirmed live (this pass) that no
+ * *mechanism* previously existed anywhere in the codebase — not a mobile UI
+ * picker component, not a persisted column, not a request-body field —
+ * `POST /bookings/:bookingId/cancel` accepted an empty body and
+ * `cancelBooking` took no reason parameter at all. The four values here
+ * exactly match `apps/mobile`'s pre-existing (already French/English/Arabic
+ * translated) `booking:cancellation.reasons.*` i18n keys, which were already
+ * present but orphaned — no UI component ever rendered them before this
+ * pass. Shared by both roles (driver/rider) since the persisted column and
+ * the spec's own wording are role-agnostic.
+ */
+export const CANCELLATION_REASONS = ['change_of_plans', 'found_alternative', 'emergency', 'other'] as const;
+export type CancellationReason = (typeof CANCELLATION_REASONS)[number];
+
 /** ≥24h before departure is the free-cancellation window. */
 export const CANCELLATION_FREE_WINDOW_HOURS = 24;
 /** ≥30min (but <24h) before departure is the moderate window; below this is severe. */
@@ -110,16 +127,27 @@ export interface CancellationPolicyResult {
  * final cancel endpoint can call this with the same guarantee of agreeing
  * (the only difference between them is *when* `cancelledAt` is captured).
  */
+/**
+ * M-085a (docs/unified_driver_and_passenger_journey.md §28, journey-contract
+ * second pass): tier boundaries are injectable, not just exported named
+ * constants — an admin-configured override (apps/api's
+ * operational-config.service.ts) can change them without rewriting this
+ * function, mirroring `detourAllowanceSec`'s established floor/ceiling
+ * override pattern (matching-thresholds.ts). Omitting the overrides keeps
+ * today's default behavior exactly as it was.
+ */
 export function computeCancellationPolicy(
   departureAt: Date,
   cancelledAt: Date,
+  freeWindowHours: number = CANCELLATION_FREE_WINDOW_HOURS,
+  moderateWindowMinutes: number = CANCELLATION_MODERATE_WINDOW_MINUTES,
 ): CancellationPolicyResult {
   const minutesBeforeDeparture = (departureAt.getTime() - cancelledAt.getTime()) / 60_000;
 
   let tier: CancellationTier;
-  if (minutesBeforeDeparture >= CANCELLATION_FREE_WINDOW_HOURS * 60) {
+  if (minutesBeforeDeparture >= freeWindowHours * 60) {
     tier = 'free';
-  } else if (minutesBeforeDeparture >= CANCELLATION_MODERATE_WINDOW_MINUTES) {
+  } else if (minutesBeforeDeparture >= moderateWindowMinutes) {
     tier = 'moderate';
   } else {
     tier = 'severe';
@@ -138,9 +166,69 @@ export function computeCancellationPolicy(
  * `NO_SHOW_MIN_MINUTES_AFTER_DEPARTURE` minutes have passed since
  * `departureAt`. Server-side enforcement point (bookings.service.ts's
  * reportNoShow) — the mobile UI's guidance text about attempting contact
- * first is a nicety on top of this, not a substitute for it.
+ * first is a nicety on top of this, not a substitute for it. Injectable
+ * override, same M-085a pattern as computeCancellationPolicy above.
  */
-export function canReportNoShow(departureAt: Date, reportedAt: Date): boolean {
+export function canReportNoShow(
+  departureAt: Date,
+  reportedAt: Date,
+  minMinutesAfterDeparture: number = NO_SHOW_MIN_MINUTES_AFTER_DEPARTURE,
+): boolean {
   const minutesPastDeparture = (reportedAt.getTime() - departureAt.getTime()) / 60_000;
-  return minutesPastDeparture >= NO_SHOW_MIN_MINUTES_AFTER_DEPARTURE;
+  return minutesPastDeparture >= minMinutesAfterDeparture;
+}
+
+/**
+ * No-show should be contextual (spec §37 — matrix M-102): "A passenger
+ * sitting at home should not simply be able to report: Driver is a no-show.
+ * The action becomes relevant around: scheduled pickup time, pickup
+ * location, driver/passenger physical proximity, expected arrival window."
+ *
+ * Extends `canReportNoShow`'s already-shipped, already-correct time gate
+ * (left completely unmodified, still the sole rule when no location fix is
+ * available) with a location-proximity check: reporting requires the
+ * reporter to genuinely be near the meeting point, not merely that the
+ * clock has ticked past the grace period. Missing location data degrades
+ * gracefully to the existing time-only behavior — a report from a passenger
+ * whose phone has no GPS fix must not become permanently unreportable, since
+ * `canReportNoShow`'s current time-only path is itself a real, valid path
+ * today and must keep working unchanged.
+ *
+ * Pure function: no I/O.
+ */
+export const NO_SHOW_MAX_REPORTER_DISTANCE_METERS = 200;
+
+export interface NoShowReportEvidence {
+  /** The reporter's distance from the scheduled meeting point, in meters —
+   *  `null` when no location fix is available. */
+  reporterDistanceMetersFromMeetingPoint: number | null;
+}
+
+export type NoShowReportReason = 'time_not_elapsed' | 'reporter_too_far' | 'ok';
+
+export interface NoShowReportResult {
+  allowed: boolean;
+  reason: NoShowReportReason;
+}
+
+export function evaluateNoShowReport(
+  departureAt: Date,
+  reportedAt: Date,
+  evidence: NoShowReportEvidence,
+  minMinutesAfterDeparture: number = NO_SHOW_MIN_MINUTES_AFTER_DEPARTURE,
+  maxReporterDistanceMeters: number = NO_SHOW_MAX_REPORTER_DISTANCE_METERS,
+): NoShowReportResult {
+  if (!canReportNoShow(departureAt, reportedAt, minMinutesAfterDeparture)) {
+    return { allowed: false, reason: 'time_not_elapsed' };
+  }
+
+  const { reporterDistanceMetersFromMeetingPoint } = evidence;
+  if (
+    reporterDistanceMetersFromMeetingPoint !== null &&
+    reporterDistanceMetersFromMeetingPoint > maxReporterDistanceMeters
+  ) {
+    return { allowed: false, reason: 'reporter_too_far' };
+  }
+
+  return { allowed: true, reason: 'ok' };
 }

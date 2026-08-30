@@ -14,6 +14,7 @@ import {
   getPendingRatingForUser,
   getTrackingState,
   getTripByBookingId,
+  isTripDriver,
   reportTrackingIssue,
   startTrip,
   updateTripLocation,
@@ -203,16 +204,22 @@ export async function tripsRoutes(fastify: FastifyInstance): Promise<void> {
     async (socket, request) => {
       const tripId = request.params.id;
       let initialState;
+      let isDriver = false;
       try {
         const decoded = fastify.jwt.verify<{ sub: string }>(request.query.token);
         initialState = await getTrackingState(db, tripId, decoded.sub); // throws Forbidden/NotFound if not a party
+        isDriver = await isTripDriver(db, tripId, decoded.sub);
       } catch (err) {
         getLogger().warn({ err, tripId }, 'Rejected unauthorized WS tracking connection');
         socket.close(4401, err instanceof ForbiddenError || err instanceof NotFoundError ? err.message : 'Unauthorized');
         return;
       }
 
-      registerTripSocket(tripId, socket);
+      // M-094/INV-06: the room needs to know this socket's role so
+      // subsequent `location` broadcasts (lib/realtime.ts's deliverLocally)
+      // can redact raw GPS for a pre-boarding rider — the same rule this
+      // `initialState` snapshot already applies via getTrackingState above.
+      registerTripSocket(tripId, socket, isDriver);
       socket.send(JSON.stringify({ type: 'snapshot', ...initialState }));
 
       socket.on('close', () => unregisterTripSocket(tripId, socket));

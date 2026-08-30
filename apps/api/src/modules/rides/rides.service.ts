@@ -1,12 +1,21 @@
-import { and, desc, eq } from 'drizzle-orm';
+import { and, desc, eq, inArray } from 'drizzle-orm';
 import type { getDatabase } from '../../lib/database.js';
-import { driverProfiles, recurringPatterns, rides, vehicles } from '../../db/schema/index.js';
+import { bookings, driverProfiles, recurringPatterns, rides, trips, vehicles } from '../../db/schema/index.js';
 import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from '../../lib/errors.js';
-import { canTransitionRideStatus, computeSuggestedPrice, type SuggestedPrice } from '@vaya/domain';
+import {
+  canCancelTrip,
+  canTransitionRideStatus,
+  computeCancellationPolicy,
+  computeSuggestedPrice,
+  type SuggestedPrice,
+} from '@vaya/domain';
 import { getRoute, type RouteResult } from '../../lib/routing.js';
 import { upsertRouteGeometry } from '../../lib/spatial.js';
 import { getActivePricingConfig } from '../pricing/pricing.service.js';
 import { redeemRouteToken } from './route-options.service.js';
+import { notifyBestEffort } from '../notifications/notifications.service.js';
+import { closeConversationBestEffort } from '../conversations/conversations.service.js';
+import { applyCancellationPenalty } from '../ratings/ratings.service.js';
 import type { CreateRideInput, UpdateRideInput } from '@vaya/validation';
 
 type Database = ReturnType<typeof getDatabase>;
@@ -311,11 +320,94 @@ export async function cancelRide(db: Database, rideId: string, userId: string) {
     throw new ConflictError(`Cannot cancel a ride in status "${ride.status}"`);
   }
 
-  const [updated] = await db
-    .update(rides)
-    .set({ status: 'cancelled', updatedAt: new Date() })
-    .where(eq(rides.id, rideId))
-    .returning();
-  if (!updated) throw new Error('Failed to cancel ride');
+  // M-101/INV-04 (docs/unified_driver_and_passenger_journey.md §36, §62):
+  // no cancellation once ANY passenger's journey has genuinely started —
+  // a ride can have multiple accepted bookings, each with its own `trips`
+  // row (trips.bookingId is 1:1), so this must check every trip on the
+  // ride, not assume a single ride-level trip. Uses the same shared
+  // `canCancelTrip` predicate `assertTripNotStarted` (bookings.service.ts)
+  // already enforces at the booking level, so the rule can never drift
+  // between the two enforcement points.
+  const rideTrips = await db.query.trips.findMany({ where: eq(trips.rideId, rideId) });
+  if (rideTrips.some((trip) => !canCancelTrip(trip.status))) {
+    throw new ConflictError('Cannot cancel a ride once a passenger\'s trip has started');
+  }
+
+  // EDGE-046/M-111 (docs/unified_driver_and_passenger_journey.md §46, §38):
+  // "Driver cancels before trip: bookings closed, seats released, matching
+  // stopped, passengers notified... stale requests unacceptable after."
+  // Confirmed live this pass that cancelRide previously had ZERO cascade at
+  // all — a passenger's `accepted` booking stayed `accepted` after its ride
+  // was cancelled. Matching/search eligibility is naturally covered by the
+  // ride's own `status: 'cancelled'` (search already filters on ride
+  // status), so this only needs to handle the bookings/trips/notification
+  // side. `pending` requests are closed too (EDGE-046's "stale requests
+  // unacceptable after") — the ride they were requesting no longer exists.
+  const cancelledAt = new Date();
+  const cancellationPolicy = computeCancellationPolicy(ride.departureAt, cancelledAt);
+
+  const [updated, affectedBookings] = await db.transaction(async (tx) => {
+    const [updatedRide] = await tx
+      .update(rides)
+      .set({ status: 'cancelled', updatedAt: cancelledAt })
+      .where(eq(rides.id, rideId))
+      .returning();
+    if (!updatedRide) throw new Error('Failed to cancel ride');
+
+    const openBookings = await tx.query.bookings.findMany({
+      where: and(eq(bookings.rideId, rideId), inArray(bookings.status, ['pending', 'accepted'])),
+    });
+
+    if (openBookings.length > 0) {
+      await tx
+        .update(bookings)
+        .set({
+          status: 'cancelled_by_driver',
+          respondedAt: cancelledAt,
+          updatedAt: cancelledAt,
+        })
+        .where(
+          inArray(
+            bookings.id,
+            openBookings.map((b) => b.id),
+          ),
+        );
+    }
+
+    if (rideTrips.length > 0) {
+      await tx
+        .update(trips)
+        .set({ status: 'cancelled', updatedAt: cancelledAt })
+        .where(eq(trips.rideId, rideId));
+    }
+
+    // Original (pre-update) statuses — needed below to know which bookings
+    // actually had a conversation (only ever created at `accepted`).
+    return [updatedRide, openBookings] as const;
+  });
+
+  // Best-effort side effects (never fail the cancellation that already
+  // committed above), mirroring cancelBooking's own discipline.
+  for (const booking of affectedBookings) {
+    if (booking.status === 'accepted') {
+      await closeConversationBestEffort(db, booking.id);
+    }
+    await notifyBestEffort(db, booking.riderId, 'booking_cancelled', {
+      bookingId: booking.id,
+      rideId,
+      cancelledBy: 'driver',
+      recipientRole: 'rider',
+      wasConfirmed: booking.status === 'accepted',
+      originLabel: ride.originLabel,
+      destinationLabel: ride.destinationLabel,
+      departureAt: ride.departureAt.toISOString(),
+      tier: cancellationPolicy.tier,
+      reason: 'ride_cancelled',
+    });
+  }
+  if (affectedBookings.length > 0) {
+    await applyCancellationPenalty(db, userId, true, cancellationPolicy.penaltyPoints);
+  }
+
   return updated;
 }

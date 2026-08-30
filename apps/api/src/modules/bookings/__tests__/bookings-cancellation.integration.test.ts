@@ -20,7 +20,7 @@ import {
   reportNoShow,
 } from '../bookings.service.js';
 import { startTrip } from '../../trips/trips.service.js';
-import { ConflictError, ForbiddenError } from '../../../lib/errors.js';
+import { ConflictError, ForbiddenError, ValidationError } from '../../../lib/errors.js';
 
 /**
  * Phase 10 (docs/roadmap/phase-10-cancellation-no-show.md) — real Postgres,
@@ -156,7 +156,7 @@ describe('bookings.service — cancellation & no-show (Phase 10)', () => {
       .from(driverProfiles)
       .where(eq(driverProfiles.id, driverProfileId));
 
-    const result = await cancelBooking(db, booking.id, rider.id);
+    const result = await cancelBooking(db, booking.id, rider.id, 'change_of_plans');
 
     expect(result.booking.status).toBe('cancelled_by_rider');
     expect(result.cancellationPolicy.tier).toBe('moderate');
@@ -166,6 +166,11 @@ describe('bookings.service — cancellation & no-show (Phase 10)', () => {
     const [rideAfterCancel] = await db.select().from(rides).where(eq(rides.id, ride.id));
     expect(rideAfterCancel!.seatsAvailable).toBe(2);
     expect(rideAfterCancel!.status).toBe('published');
+
+    // M-110: the reason is real, persisted product data — not discarded
+    // after the response is sent.
+    const [bookingRow] = await db.select().from(bookings).where(eq(bookings.id, booking.id));
+    expect(bookingRow!.cancellationReason).toBe('change_of_plans');
 
     // Trip is terminal.
     const trip = await db.query.trips.findFirst({ where: eq(trips.bookingId, booking.id) });
@@ -201,7 +206,7 @@ describe('bookings.service — cancellation & no-show (Phase 10)', () => {
     expect(driverAfter!.reliabilityPenaltyPoints).toBe(driverBefore!.reliabilityPenaltyPoints);
 
     // A second cancel attempt on the now-terminal booking is rejected.
-    await expect(cancelBooking(db, booking.id, rider.id)).rejects.toBeInstanceOf(ConflictError);
+    await expect(cancelBooking(db, booking.id, rider.id, 'change_of_plans')).rejects.toBeInstanceOf(ConflictError);
   });
 
   it('only lets one of two concurrent cancel attempts on the same booking win, without double-crediting the seat', async () => {
@@ -219,8 +224,8 @@ describe('bookings.service — cancellation & no-show (Phase 10)', () => {
 
     // Both the rider and the driver race to cancel the same booking at once.
     const results = await Promise.allSettled([
-      cancelBooking(db, booking.id, rider.id),
-      cancelBooking(db, booking.id, driverUserId),
+      cancelBooking(db, booking.id, rider.id, 'change_of_plans'),
+      cancelBooking(db, booking.id, driverUserId, 'change_of_plans'),
     ]);
 
     const fulfilled = results.filter((r) => r.status === 'fulfilled');
@@ -263,14 +268,33 @@ describe('bookings.service — cancellation & no-show (Phase 10)', () => {
     await expect(previewBookingCancellation(db, booking.id, rider.id)).rejects.toBeInstanceOf(
       ForbiddenError,
     );
-    await expect(cancelBooking(db, booking.id, rider.id)).rejects.toBeInstanceOf(ForbiddenError);
-    await expect(cancelBooking(db, booking.id, driverUserId)).rejects.toBeInstanceOf(ForbiddenError);
+    await expect(cancelBooking(db, booking.id, rider.id, 'change_of_plans')).rejects.toBeInstanceOf(ForbiddenError);
+    await expect(cancelBooking(db, booking.id, driverUserId, 'change_of_plans')).rejects.toBeInstanceOf(ForbiddenError);
 
     // The booking is untouched — still accepted, seat still held.
     const stillAccepted = await db.query.bookings.findFirst({ where: eq(bookings.id, booking.id) });
     expect(stillAccepted!.status).toBe('accepted');
     const [rideAfter] = await db.select().from(rides).where(eq(rides.id, ride.id));
     expect(rideAfter!.seatsAvailable).toBe(1);
+  });
+
+  it('M-110: rejects a cancellation whose reason is not one of the fixed set — enforced at the service layer, not just the HTTP route schema', async () => {
+    const rider = await makeRider('4b');
+    const ride = await makeRide(new Date(Date.now() + 6 * 60 * 60_000), 2);
+    const booking = await createBooking(db, ride.id, rider.id, {
+      seatsRequested: 1,
+      pickup: { label: 'Pickup', lat: 36.8, lng: 10.18 },
+    });
+
+    // @ts-expect-error deliberately calling with a reason outside the fixed
+    // set, to prove a direct service-level caller can't bypass M-110 either.
+    await expect(cancelBooking(db, booking.id, rider.id, 'not_a_real_reason')).rejects.toBeInstanceOf(
+      ValidationError,
+    );
+
+    // Untouched — the rejected attempt had no side effect.
+    const stillPending = await db.query.bookings.findFirst({ where: eq(bookings.id, booking.id) });
+    expect(stillPending!.status).toBe('pending');
   });
 
   it('rejects reporting a no-show before the scheduled departure time', async () => {

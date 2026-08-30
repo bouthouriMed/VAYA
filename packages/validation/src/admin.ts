@@ -112,3 +112,25 @@ export const adminAnalyticsQuerySchema = z.object({
   days: z.coerce.number().int().min(1).max(90).default(30),
 });
 export type AdminAnalyticsQuery = z.infer<typeof adminAnalyticsQuerySchema>;
+
+// VAYA Operational Policy Configuration
+// (docs/unified_driver_and_passenger_journey.md §28). Every field optional
+// — a PATCH updates only the thresholds the admin actually changed, never
+// forces every other value to be resupplied.
+export const updateOperationalConfigSchema = z.object({
+  maxDetourRatio: z.number().min(0).max(1).optional(),
+  existingPassengerMaxDelayRatio: z.number().min(0).max(1).optional(),
+  existingPassengerMaxAbsoluteDelayMinutes: z.number().min(0).optional(),
+  cancellationFreeWindowHours: z.number().min(0).optional(),
+  cancellationModerateWindowMinutes: z.number().min(0).optional(),
+  noShowMinMinutesAfterDeparture: z.number().min(0).optional(),
+  noShowMaxReporterDistanceMeters: z.number().min(0).optional(),
+  routeDeviationNoiseThresholdMeters: z.number().min(0).optional(),
+  routeDeviationRealThresholdMeters: z.number().min(0).optional(),
+  bookingResponseWindowMinutes: z.number().min(0).optional(),
+  sameJourneyPickupRadiusMeters: z.number().min(0).optional(),
+  sameJourneyDropoffRadiusMeters: z.number().min(0).optional(),
+  sameJourneyTimeWindowMinutes: z.number().min(0).optional(),
+  maxActiveRequestsPerJourney: z.number().int().min(1).optional(),
+});
+export type UpdateOperationalConfigInput = z.infer<typeof updateOperationalConfigSchema>;

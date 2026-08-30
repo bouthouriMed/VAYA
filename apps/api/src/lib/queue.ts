@@ -24,6 +24,10 @@ export const RECURRING_PATTERN_SCAN_JOB_NAME = 'recurring-pattern-scan';
 // third job type on this same one queue, same "job.name routes it" pattern
 // Phase 11 already established for the recurring-pattern scan.
 export const TRIP_STALENESS_SWEEP_JOB_NAME = 'trip-staleness-sweep';
+// Journey-contract second pass (docs/unified_driver_and_passenger_journey.md
+// §20, M-058): "Request expiry closes only that request automatically" —
+// a fourth job type on this same one queue/worker, same pattern.
+export const BOOKING_EXPIRY_SWEEP_JOB_NAME = 'booking-expiry-sweep';
 
 // Stable id for the repeatable recurring-pattern-scan job — BullMQ
 // deduplicates repeatable jobs registered with the same id/options, so
@@ -31,6 +35,7 @@ export const TRIP_STALENESS_SWEEP_JOB_NAME = 'trip-staleness-sweep';
 // idempotent no-op rather than accumulating duplicate schedules.
 export const RECURRING_PATTERN_SCAN_REPEATABLE_JOB_ID = 'recurring-pattern-scan-schedule';
 export const TRIP_STALENESS_SWEEP_REPEATABLE_JOB_ID = 'trip-staleness-sweep-schedule';
+export const BOOKING_EXPIRY_SWEEP_REPEATABLE_JOB_ID = 'booking-expiry-sweep-schedule';
 
 // How often the recurring-pattern scan runs — an operational cadence
 // constant, not a business threshold (those live in
@@ -45,6 +50,13 @@ export const RECURRING_PATTERN_SCAN_INTERVAL_MS = 24 * 60 * 60 * 1000;
 // moment, at most) not to matter running this often.
 export const TRIP_STALENESS_SWEEP_INTERVAL_MS = 15 * 60 * 1000;
 
+// Every 2 minutes — needs to run noticeably more often than the 7-minute
+// BOOKING_REQUEST_RESPONSE_WINDOW_MINUTES default
+// (@vaya/domain's request-deadline.ts) it's sweeping against, so an expired
+// request's status flips promptly rather than staying visibly "pending"
+// well past its own displayed deadline.
+export const BOOKING_EXPIRY_SWEEP_INTERVAL_MS = 2 * 60 * 1000;
+
 export interface NotificationDispatchJobData {
   notificationId: string;
 }
@@ -57,7 +69,15 @@ export type RecurringPatternScanJobData = Record<string, never>;
 // trip, not a specific target passed at enqueue time.
 export type TripStalenessSweepJobData = Record<string, never>;
 
-export type QueueJobData = NotificationDispatchJobData | RecurringPatternScanJobData | TripStalenessSweepJobData;
+// No payload: the sweep always operates over every currently-pending,
+// past-deadline booking, not a specific target passed at enqueue time.
+export type BookingExpirySweepJobData = Record<string, never>;
+
+export type QueueJobData =
+  | NotificationDispatchJobData
+  | RecurringPatternScanJobData
+  | TripStalenessSweepJobData
+  | BookingExpirySweepJobData;
 
 let _connection: IORedis | null = null;
 let _queue: Queue<QueueJobData> | null = null;
@@ -184,6 +204,34 @@ export async function scheduleTripStalenessSweepJob(): Promise<void> {
     );
   } catch (err) {
     getLogger().error({ err }, 'Failed to schedule trip-staleness-sweep job');
+  }
+}
+
+/**
+ * Registers the periodic booking-expiry sweep as a BullMQ repeatable job —
+ * same mechanism/idempotency contract as scheduleTripStalenessSweepJob
+ * above.
+ */
+export async function scheduleBookingExpirySweepJob(): Promise<void> {
+  const queue = getNotificationDispatchQueue();
+  if (!queue) {
+    getLogger().warn(
+      'Notification queue unavailable (no REDIS_URL) — skipping booking-expiry-sweep schedule',
+    );
+    return;
+  }
+  try {
+    await queue.upsertJobScheduler(
+      BOOKING_EXPIRY_SWEEP_REPEATABLE_JOB_ID,
+      { every: BOOKING_EXPIRY_SWEEP_INTERVAL_MS },
+      {
+        name: BOOKING_EXPIRY_SWEEP_JOB_NAME,
+        data: {},
+        opts: { removeOnComplete: { count: 50 }, removeOnFail: { count: 50 } },
+      },
+    );
+  } catch (err) {
+    getLogger().error({ err }, 'Failed to schedule booking-expiry-sweep job');
   }
 }
 

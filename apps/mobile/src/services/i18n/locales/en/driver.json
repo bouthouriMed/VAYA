@@ -333,6 +333,7 @@
       "ridesWithYou": "Rides with you",
       "segmentDistance": "{{distance}} · {{duration}}",
       "newEta": "New arrival time if accepted: {{time}}",
+      "respondBy": "Respond by {{time}}",
       "viewProfile": "View {{name}}'s profile",
       "newOnVaya": "New on VAYA",
       "openInMaps": "Open {{label}} in Maps"

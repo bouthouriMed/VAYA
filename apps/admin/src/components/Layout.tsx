@@ -26,6 +26,7 @@ const NAV_GROUPS: NavGroup[] = [
       { to: '/users', label: 'Directory', icon: 'users' },
       { to: '/verifications', label: 'Trust', icon: 'shield' },
       { to: '/reports', label: 'Reports', icon: 'flag' },
+      { to: '/operational-config', label: 'Operational Policy', icon: 'database' },
     ],
   },
   {
@@ -47,6 +48,7 @@ const PARENT_TITLES: Record<string, { title: string; parent?: { to: string; labe
   '/analytics': { title: 'Intelligence' },
   '/reports': { title: 'Reports' },
   '/audit-log': { title: 'Audit Log' },
+  '/operational-config': { title: 'Operational Policy' },
 };
 
 function initials(name: string): string {

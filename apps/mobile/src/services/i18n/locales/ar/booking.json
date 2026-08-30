@@ -45,6 +45,7 @@
     "confirmCta": "تأكيد الإلغاء",
     "cancelCta": "الاحتفاظ بالحجز",
     "error": "تعذر الإلغاء. أعد المحاولة.",
+    "reasonPrompt": "لماذا تريد الإلغاء؟",
     "reasons": {
       "change_of_plans": "تغيير في الخطط",
       "found_alternative": "وجدت رحلة أخرى",

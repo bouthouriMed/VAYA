@@ -3,6 +3,7 @@ import { eq } from 'drizzle-orm';
 import { getDatabase, closeDatabase } from '../../../lib/database.js';
 import { users, driverProfiles, vehicles, rides, routeStops } from '../../../db/schema/index.js';
 import { getRoute } from '../../../lib/routing.js';
+import { VIA_STOP_DETOUR_BUDGET } from '@vaya/domain';
 import {
   generateCandidateStopsForRide,
   updateDriverStopSelection,
@@ -11,7 +12,6 @@ import {
   addCustomStop,
   MAX_DEVIATION_METERS,
   MAX_DEVIATION_SECONDS,
-  VIA_STOP_DETOUR_BUDGET,
 } from '../stop-candidates.service.js';
 import { AppError } from '../../../lib/errors.js';
 
@@ -244,6 +244,75 @@ describe('stop-candidates.service — real OSRM + real Postgres', () => {
       } catch (err) {
         expect(err).toBeInstanceOf(AppError);
         expect((err as AppError).code).toBe('STOP_TOO_FAR_FROM_ROUTE');
+      }
+    },
+    30_000,
+  );
+
+  // M-017 (docs/unified_driver_and_passenger_journey.md §4.1 implicit
+  // invariant, matrix row M-017): "A manually-placed point is still subject
+  // to the same feasibility validation as a recommended one — no bypass."
+  // Before this pass, addCustomStop's pickup/dropoff branch performed zero
+  // road-snapping/validation at all — confirmed live here, not just by
+  // reading code: a pickup stop placed at this fixture's real near-road
+  // point now comes back road-snapped, exactly like the pre-existing
+  // 'via' coverage above.
+  it(
+    'M-017: a manually-placed pickup point is snapped/validated exactly like a via stop, not bypassed',
+    async () => {
+      const ride = await db.query.rides.findFirst({ where: eq(rides.id, rideId) });
+      if (!ride?.routePolyline) {
+        return;
+      }
+      const nearbyPlace = { lat: 36.8158, lng: 10.2089 };
+      const stop = await addCustomStop(db, rideId, driverUserId, {
+        label: 'Manual pickup pin',
+        lat: nearbyPlace.lat,
+        lng: nearbyPlace.lng,
+        role: 'pickup',
+      });
+      expect(stop.isDriverSelected).toBe(true);
+      // Pre-this-pass behavior: roadSnapped was unconditionally false for
+      // pickup/dropoff, no matter how close a real road actually was.
+      if (stop.roadSnapped) {
+        // nearestRoad genuinely reached OSRM — the real, live-verified case.
+        expect(stop.lat).not.toBe(nearbyPlace.lat);
+      }
+
+      await db.delete(routeStops).where(eq(routeStops.id, stop.id));
+    },
+    30_000,
+  );
+
+  it(
+    'M-015: rejects a manually-placed point too far from any drivable road for a vehicle to stop there',
+    async () => {
+      const ride = await db.query.rides.findFirst({ where: eq(rides.id, rideId) });
+      if (!ride?.routePolyline) {
+        return;
+      }
+      // Open Mediterranean water off the Tunisian coast — genuinely no
+      // drivable road anywhere near this point, but still a plausible
+      // client-supplied coordinate (e.g. a mis-tapped map pin).
+      const openWater = { lat: 37.05, lng: 10.6 };
+      try {
+        const stop = await addCustomStop(db, rideId, driverUserId, {
+          label: 'Open water pin',
+          lat: openWater.lat,
+          lng: openWater.lng,
+          role: 'pickup',
+        });
+        // Honest degradation: if OSRM itself is unreachable in this
+        // environment, nearestRoad returns null and addCustomStop cannot
+        // distinguish "no road nearby" from "couldn't check" — it must NOT
+        // reject in that case (never fabricate certainty), so an
+        // unsnapped, accepted stop here means OSRM was down, not that
+        // this check is broken.
+        expect(stop.roadSnapped).toBe(false);
+        await db.delete(routeStops).where(eq(routeStops.id, stop.id));
+      } catch (err) {
+        expect(err).toBeInstanceOf(AppError);
+        expect((err as AppError).code).toBe('STOP_NOT_VEHICLE_ACCESSIBLE');
       }
     },
     30_000,

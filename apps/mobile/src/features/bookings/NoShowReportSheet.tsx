@@ -4,6 +4,7 @@ import { BottomSheet, Button, Text, useAppTheme, spacing, haptics } from '@vaya/
 import { useTranslation } from 'react-i18next';
 import { useReportNoShowMutation } from '../../state/api';
 import { trackEvent } from '../../services/analytics/analytics';
+import { useCurrentPosition } from '../../services/location/useCurrentPosition';
 
 interface NoShowReportSheetProps {
   visible: boolean;
@@ -27,6 +28,13 @@ interface NoShowReportSheetProps {
  * bookings.service.ts's reportNoShow) — a report attempted too early comes
  * back as a 409, surfaced here as an honest inline error, never silently
  * retried or hidden.
+ *
+ * M-102 (journey-contract second pass, spec §37): also attaches a
+ * best-effort current-location fix — `useCurrentPosition`'s existing
+ * foreground-permission + single-shot-fix hook (already used by driver
+ * location broadcast), never blocking the report if permission is denied
+ * or the fix fails (the server's `evaluateNoShowReport` degrades
+ * gracefully to the pure time-only rule either way).
  */
 export function NoShowReportSheet({
   visible,
@@ -40,6 +48,7 @@ export function NoShowReportSheet({
   const theme = useAppTheme().colors;
   const [reportNoShow, { isLoading }] = useReportNoShowMutation();
   const [error, setError] = useState<string | undefined>();
+  const { refresh: refreshPosition } = useCurrentPosition(false);
 
   useEffect(() => {
     if (!visible) setError(undefined);
@@ -51,7 +60,11 @@ export function NoShowReportSheet({
   async function handleConfirm(): Promise<void> {
     setError(undefined);
     try {
-      await reportNoShow(bookingId).unwrap();
+      // Best-effort — a denied permission or failed fix resolves to null,
+      // and the report still proceeds via the server's own graceful
+      // degradation to the time-only rule.
+      const position = await refreshPosition();
+      await reportNoShow({ bookingId, reporterLat: position?.lat, reporterLng: position?.lng }).unwrap();
       haptics.warning();
       trackEvent('no_show_reported', { role });
       onReported?.();

@@ -1,8 +1,13 @@
 import { useEffect, useState } from 'react';
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
-import { BottomSheet, Badge, Button, Text, useAppTheme, spacing, haptics } from '@vaya/design-system';
+import { BottomSheet, Badge, Button, Chip, Text, useAppTheme, spacing, haptics } from '@vaya/design-system';
 import { useTranslation } from 'react-i18next';
-import { useCancelBookingMutation, useGetCancellationPreviewQuery } from '../../state/api';
+import {
+  useCancelBookingMutation,
+  useGetCancellationPreviewQuery,
+  CANCELLATION_REASONS,
+  type CancellationReason,
+} from '../../state/api';
 import { trackEvent } from '../../services/analytics/analytics';
 import { cancellationTierBadge, buildCancellationAnalyticsPayload } from './cancellationHelpers';
 
@@ -52,15 +57,20 @@ export function CancellationSheet({
   } = useGetCancellationPreviewQuery(bookingId, { skip: !visible || !bookingId });
   const [cancelBooking, { isLoading: cancelling }] = useCancelBookingMutation();
   const [submitError, setSubmitError] = useState<string | undefined>();
+  const [reason, setReason] = useState<CancellationReason | undefined>();
 
   useEffect(() => {
-    if (!visible) setSubmitError(undefined);
+    if (!visible) {
+      setSubmitError(undefined);
+      setReason(undefined);
+    }
   }, [visible]);
 
   async function handleConfirm(): Promise<void> {
+    if (!reason) return;
     setSubmitError(undefined);
     try {
-      const result = await cancelBooking(bookingId).unwrap();
+      const result = await cancelBooking({ bookingId, reason }).unwrap();
       haptics.success();
       trackEvent(
         'booking_cancelled',
@@ -97,6 +107,21 @@ export function CancellationSheet({
             <Text variant="body" color={theme.ink}>
               {preview.consequence}
             </Text>
+
+            <Text variant="bodySmall" color={theme.ink}>
+              {t('booking:cancellation.reasonPrompt')}
+            </Text>
+            <View style={styles.reasonRow}>
+              {CANCELLATION_REASONS.map((option) => (
+                <Chip
+                  key={option}
+                  label={t(`booking:cancellation.reasons.${option}`)}
+                  selected={reason === option}
+                  onPress={() => setReason(option)}
+                  theme={theme}
+                />
+              ))}
+            </View>
           </>
         )}
 
@@ -111,7 +136,7 @@ export function CancellationSheet({
           size="lg"
           variant="outline"
           loading={cancelling}
-          disabled={isFetching || !preview}
+          disabled={isFetching || !preview || !reason}
           onPress={() => void handleConfirm()}
           style={styles.cta}
           theme={theme}
@@ -135,6 +160,11 @@ const styles = StyleSheet.create({
   },
   loading: {
     marginVertical: spacing.lg,
+  },
+  reasonRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
   },
   cta: {
     width: '100%',

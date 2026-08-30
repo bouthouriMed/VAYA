@@ -238,6 +238,10 @@ export class GooglePlacesProvider implements LocationProvider {
         countryCode:
           data.addressComponents?.find((c) => c.types.includes('country'))?.shortText ?? null,
         source: 'google',
+        // M-014: Google's Places/Geocoding responses carry no equivalent of
+        // OSM's class/type tags — honestly absent, never guessed.
+        osmClass: null,
+        osmType: null,
       };
     } catch (err) {
       getLogger().warn({ err, provider: 'google', placeId }, 'Place Details request failed');
@@ -274,6 +278,8 @@ export class GooglePlacesProvider implements LocationProvider {
         countryCode:
           result.address_components.find((c) => c.types.includes('country'))?.short_name ?? null,
         source: 'google',
+        osmClass: null,
+        osmType: null,
       };
     } catch (err) {
       getLogger().warn({ err, provider: 'google', lat, lng }, 'Reverse geocode request failed');

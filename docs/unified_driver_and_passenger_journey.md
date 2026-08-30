@@ -730,26 +730,91 @@ VAYA therefore uses internal configurable thresholds.
 
 Passengers and normal drivers should not need to configure these thresholds.
 
-28. Admin Configuration
+28. Admin Configuration — VAYA Operational Policy Configuration
 
-Internal constraints should be configurable through the admin system.
+This section is the authoritative statement of how every numerical or
+operational threshold in this specification is governed. It applies
+wherever this document says "acceptable", "substantial", "sufficiently
+strong evidence", "grace period", "tolerance", "corridor width", or any
+other qualitative judgment that a real system must eventually express as a
+concrete number.
 
-Examples include:
+VAYA owns these policies. They are operational decisions the marketplace
+operator makes and revises as real usage data accumulates — not properties
+of the product's behavioral contract, and not something either side of the
+marketplace negotiates per-trip.
 
-maximum driver detour
-acceptable passenger ETA impact
-pickup walking thresholds
-drop-off walking thresholds
-route deviation thresholds
-timing tolerance
-other matching constraints
+- Passengers do not configure these thresholds. No screen, setting, or API
+  surface exposes them to a passenger, in v1 or as an ordinary feature.
+- Ordinary drivers do not configure these thresholds either, for the same
+  reason.
+- The Admin Panel is the authoritative interface for setting and changing
+  these values. An admin operator changes a global default there; the
+  running system picks it up without a code deployment.
+- The existing admin configuration system (the `pricing_configs` /
+  `recurring_detection_configs` pattern already shipped) should be extended
+  to cover matching, timing, and lifecycle thresholds too, rather than
+  inventing a second, parallel configuration mechanism per category.
 
-The existing admin configuration system should be extended rather than duplicated.
+Architecture requirement: because these are operational, not behavioral,
+every domain function that reads one of these thresholds must accept it as
+an explicit, injected parameter (or a config object), never as a value
+baked into the function body as a numeric literal or an un-parameterized
+module constant. A policy value must be changeable — including by an admin
+adjusting it at runtime — without rewriting or redeploying the domain logic
+that consumes it. A pure default (used when no admin override exists yet)
+is fine and expected, matching this codebase's own established pattern
+(`packages/domain`'s existing default-config modules); what is not
+acceptable is a threshold a caller has no way to override at all.
+
+This is a spec-level policy governance section, not an exhaustive parameter
+list. Below is a non-exhaustive, illustrative set of categories this
+specification's own sections rely on — later sections may introduce more,
+and each is independently VAYA-owned config per the rule above, not a
+one-off exception:
+
+- maximum driver detour (distance and/or time)
+- acceptable passenger ETA impact on existing passengers (§27)
+- pickup walking thresholds
+- drop-off walking thresholds
+- route deviation thresholds — the noise-vs-real-deviation boundary (§29)
+- timing tolerance
+- no-show eligibility timing and proximity thresholds (§37)
+- lateness / grace-period thresholds
+- cancellation timing tiers (§36, §38)
+- matching corridor tolerances
+- boarding/auto-start inference evidence-sufficiency thresholds (§33, §35)
+- request expiration / driver response-window duration (§20)
+- other operational constraints this specification identifies elsewhere
+
+Any specific number that appears elsewhere in this document — including in
+a worked example such as "+15 minutes on a 3-hour trip" (§27) or an
+existing shipped default (such as the current 24-hour/30-minute
+cancellation tiers, or the current 15-minute no-show grace period) — is a
+current default value, not a fixed requirement of this specification. A
+future admin-configured value that changes that number is compliant with
+this specification as long as the underlying behavioral property it
+protects (see each section's own invariant) still holds.
+
+Testing implication: an executable test built against this specification
+must validate the underlying behavioral property against an injected or
+otherwise clearly-configured threshold value (a named constant, a fixture
+default, an explicit test-local override) — never by re-asserting a bare
+numeric literal as if the specific number were itself the requirement. A
+test is allowed to lock in *today's current default* as a regression guard,
+but must do so by referencing the same named default the implementation
+exposes, so the test tracks the configured value instead of silently
+re-freezing it as an unrelated hardcoded expectation.
 
 Future possibility:
 
 driver-specific configuration
-premium driver controls
+premium driver controls — a future phase may allow certain thresholds to be
+loosened or tightened per driver (for example, a highly-rated premium
+driver accepting a larger detour budget), where explicitly supported by a
+later product decision. This is a possible extension of the same
+admin-owned configuration mechanism, not a v1 requirement, and not a
+passenger- or driver-initiated setting until such a decision is made.
 
 These should not be exposed as ordinary user configuration in v1.
 

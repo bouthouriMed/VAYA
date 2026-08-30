@@ -50,6 +50,7 @@ const searchState: RootState['search'] = {
   desiredDepartureAt: null,
   selectedStop: null,
   selectedDropoffStop: null,
+  overriddenPickup: null,
   passengers: 1,
   searchId: 'search-1',
 };

@@ -46,6 +46,20 @@ export const locationPointSchema = z.object({
   /** Which provider actually resolved this — never displayed to the user,
    *  kept for observability/debugging (which provider is live in prod). */
   source: z.enum(['google', 'nominatim', 'device', 'manual']),
+  // M-014 (docs/unified_driver_and_passenger_journey.md §4.1): "Recommended
+  // pickup points must not be in pedestrian-only areas." Raw OSM `class`/
+  // `type` tags (e.g. class=highway/type=pedestrian, class=leisure/
+  // type=park) — the only currently-available real signal for "is a
+  // vehicle physically allowed here at all", consumed server-side by
+  // apps/api's stop-candidates.service.ts to reject a custom stop placed
+  // in one. Internal/operational, never surfaced in any UI copy — not part
+  // of the public `LocationType` display taxonomy above, which stays
+  // coarse on purpose. Real only for the Nominatim provider (whose
+  // response actually carries OSM tags); always null from Google (Places/
+  // Geocoding don't expose an equivalent tag — honestly absent, never
+  // guessed).
+  osmClass: z.string().nullable(),
+  osmType: z.string().nullable(),
 });
 export type LocationPoint = z.infer<typeof locationPointSchema>;
 
@@ -104,5 +118,13 @@ export const geocodeResultSchema = z.object({
   label: z.string(),
   lat: z.number(),
   lng: z.number(),
+  // M-014/M-015 mirror of LocationPoint.osmClass/osmType above — carried
+  // through here so stop-candidates.service.ts's addCustomStop (which goes
+  // through geocoding.service.ts's reverseGeocode, not the raw provider)
+  // can classify ground accessibility for a driver-placed point. The
+  // public `/geocoding/reverse` HTTP route strips these (its own inline
+  // response schema doesn't list them) — internal/server-side only.
+  osmClass: z.string().nullable(),
+  osmType: z.string().nullable(),
 });
 export type GeocodeResult = z.infer<typeof geocodeResultSchema>;

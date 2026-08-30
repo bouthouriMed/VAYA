@@ -10,9 +10,13 @@ export * from './driver/verification-transitions';
 export * from './route/route.types';
 export * from './route/trip-profile.types';
 export * from './route/classify-trip-profile';
+export * from './route/live-corridor';
 
 export * from './matching/matching-thresholds.types';
 export * from './matching/matching-thresholds';
+export * from './matching/existing-passenger-impact-thresholds';
+export * from './matching/existing-passenger-impact';
+export * from './matching/joint-stop-score';
 
 export * from './ride/ride.types';
 export * from './ride/ride-status';
@@ -21,12 +25,19 @@ export * from './booking/booking.types';
 export * from './booking/booking-status';
 export * from './booking/cancellation-policy';
 export * from './booking/segment-capacity';
+export * from './booking/request-deadline';
+export * from './booking/journey-grouping';
 
 export * from './trip/trip.types';
 export * from './trip/trip-status';
 export * from './trip/tracking-status';
 export * from './trip/tracking-transitions';
 export * from './trip/trip-staleness';
+export * from './trip/auto-start-inference';
+export * from './trip/boarding-inference';
+export * from './trip/eta-confidence';
+export * from './trip/cancellation-guard';
+export * from './trip/no-show-inference';
 
 export * from './rating/rating.types';
 export * from './rating/trust-tier';

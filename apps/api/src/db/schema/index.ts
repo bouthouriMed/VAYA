@@ -37,6 +37,7 @@ export * from './relationship-signals.schema';
 export * from './demand-signals.schema';
 export * from './notifications.schema';
 export * from './pricing-configs.schema';
+export * from './operational-configs.schema';
 export * from './recurring-detection-configs.schema';
 export * from './device-tokens.schema';
 export * from './conversations.schema';

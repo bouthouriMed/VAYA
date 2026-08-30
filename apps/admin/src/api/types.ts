@@ -252,3 +252,24 @@ export interface UserDetailResult {
   ridesAsDriver: RideRow[];
   bookingsAsRider: BookingRow[];
 }
+
+// VAYA Operational Policy Configuration
+// (docs/unified_driver_and_passenger_journey.md §28) — every threshold
+// always resolved (an admin override, or @vaya/domain's own pure default),
+// never a bare null the UI would have to guess a fallback for.
+export interface OperationalConfig {
+  maxDetourRatio: number;
+  existingPassengerMaxDelayRatio: number;
+  existingPassengerMaxAbsoluteDelayMinutes: number;
+  cancellationFreeWindowHours: number;
+  cancellationModerateWindowMinutes: number;
+  noShowMinMinutesAfterDeparture: number;
+  noShowMaxReporterDistanceMeters: number;
+  routeDeviationNoiseThresholdMeters: number;
+  routeDeviationRealThresholdMeters: number;
+  bookingResponseWindowMinutes: number;
+  sameJourneyPickupRadiusMeters: number;
+  sameJourneyDropoffRadiusMeters: number;
+  sameJourneyTimeWindowMinutes: number;
+  maxActiveRequestsPerJourney: number;
+}

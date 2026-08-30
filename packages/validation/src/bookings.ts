@@ -24,11 +24,25 @@ export const createBookingSchema = z
     seatsRequested: z.coerce.number().int().min(1).max(8),
     pickupStopId: z.string().uuid().optional(),
     pickup: pickupPointSchema.optional(),
+    // M-004/M-020 (docs/unified_driver_and_passenger_journey.md §5/§13):
+    // "A selected stop is not a fixed pickup coordinate... VAYA later
+    // determines the actual passenger pickup/drop-off location." The
+    // passenger's own actually-searched point (the same origin the search
+    // that surfaced this ride's `pickupStopId` was run against) — sent
+    // ALONGSIDE `pickupStopId`, never instead of it, so createBooking can
+    // independently re-validate the selection against a real point instead
+    // of trusting an opaque id with no distance context at all. Optional
+    // for backward compatibility with clients built before this field
+    // existed — createBooking skips the new validation/resolution when
+    // it's absent, exactly the pre-existing behavior.
+    requestedPickup: pickupPointSchema.optional(),
     // Phase 13 (docs/roadmap/phase-13-search-engine.md): dropoff-side
     // mirror of pickupStopId, always optional — omitting it means "drop me
     // at the ride's own destination", the behavior every booking had
     // before this field existed.
     dropoffStopId: z.string().uuid().optional(),
+    // Dropoff-side mirror of requestedPickup above, same reasoning.
+    requestedDropoff: pickupPointSchema.optional(),
     // Free-form dropoff-coordinates mirror of `pickup` above — same
     // detour_match reasoning, same createBooking-side live validation.
     // Previously had no counterpart at all (dropoff was always either a
