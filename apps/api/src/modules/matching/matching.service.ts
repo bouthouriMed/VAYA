@@ -114,13 +114,6 @@ const POSTGIS_CANDIDATE_CAP = 50;
 // docs/product/search-engine-audit-v2-active-trip-2026-08-23.md §7 for the
 // full reasoning.
 
-// Cheap PostGIS stage-1 radius (lib/spatial.ts's findCandidateRideIdsByCorridor,
-// reused with a wider width than route_passthrough's 150m): a ride whose
-// route runs further than this from the rider is not worth an expensive
-// per-candidate routing call at all, regardless of how small its eventual
-// computed detour might be. ASSUMPTION.
-const DETOUR_SEARCH_RADIUS_M = 2500;
-
 // The hard cap on how many candidates ever reach a real routing-API call —
 // the single most important number in this tier, since it's what prevents
 // the "N candidates x N routing calls" cost explosion the brief explicitly
@@ -1184,11 +1177,27 @@ async function scoreDetourCandidates(
   const origin = { lat: input.originLat, lng: input.originLng };
   const destination = { lat: input.destinationLat, lng: input.destinationLng };
 
+  // Real bug found live (a published Madrid->Barcelona ride was
+  // undiscoverable for a genuine Zaragoza->Lleida sub-corridor search): this
+  // cheap PostGIS pre-filter used to be a flat, profile-independent 2.5km
+  // constant, while every other radius in this matching engine
+  // (widePickupRadiusM/corridorWidthM/etc., deriveMatchingThresholds) scales
+  // with trip length — 20km for an intercity profile vs 4km for a commute.
+  // A real intercity highway route legitimately sits several km from a
+  // rider's city-center search point (Zaragoza's real route deviation here
+  // measured ~3.4km, Lleida's ~7.1km, both past the old flat cap) — reusing
+  // the same wide radius scorePassThroughCandidates already established for
+  // its own PostGIS pre-filter, rather than a second, narrower, unscaled
+  // number. The real qualification bar stays exactly the same real routing
+  // call + detourAllowanceSec below; this only changes which candidates are
+  // cheap enough to even reach that call.
+  const detourSearchRadiusM = Math.max(thresholds.widePickupRadiusM, thresholds.wideDropoffRadiusM);
+
   const candidateIds = await findCandidateRideIdsByCorridor(
     db,
     origin,
     destination,
-    DETOUR_SEARCH_RADIUS_M,
+    detourSearchRadiusM,
     windowStart,
     windowEnd,
     DETOUR_CANDIDATE_CAP,
