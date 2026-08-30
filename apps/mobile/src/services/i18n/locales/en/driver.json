@@ -281,6 +281,9 @@
       "journeyCompletePartialError": "Some trips could not be finished. Please try again.",
       "passengerAboard": "Passenger aboard",
       "passengerAboardError": "Could not confirm boarding. Please try again.",
+      "confirmedBadge": "Confirmed",
+      "pickupPrefix": "Pickup",
+      "dropoffPrefix": "Drop-off",
       "locationPermissionBanner": "Turn on location so your passengers can see where you are.",
       "locationPermissionRetry": "Retry",
       "tripStatus": {
@@ -328,7 +331,7 @@
       "onRoute": "Already on your route",
       "notOnRoute": "Not on your planned route",
       "stopPosition": "Stop {{index}} of {{total}}",
-      "addsDetour": "Adds about {{distance}} · {{duration}} to your route",
+      "addsDetour": "Adds about {{duration}} to your route",
       "estimateNote": "Estimated — this ride's route isn't from a real routing provider.",
       "ridesWithYou": "Rides with you",
       "segmentDistance": "{{distance}} · {{duration}}",
