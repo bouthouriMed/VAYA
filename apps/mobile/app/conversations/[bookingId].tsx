@@ -169,7 +169,17 @@ export default function ConversationScreen(): React.JSX.Element {
           <Icon name="chevron-back" size="md" color={theme.ink} />
         </TouchableOpacity>
 
-        <View style={styles.headerIdentity}>
+        <TouchableOpacity
+          style={styles.headerIdentity}
+          onPress={() =>
+            router.push({
+              pathname: '/search/trust',
+              params: { driverUserId: conversation.otherParty.id, bookingId },
+            })
+          }
+          accessibilityRole="button"
+          accessibilityLabel={t('common:actions.viewProfile', { name: conversation.otherParty.fullName })}
+        >
           <View style={styles.avatarWrap}>
             <Avatar
               uri={conversation.otherParty.avatarUrl}
@@ -197,7 +207,7 @@ export default function ConversationScreen(): React.JSX.Element {
               {conversation.otherPartyRole === 'driver' ? t('booking:driver') : t('booking:passenger')}
             </Text>
           </View>
-        </View>
+        </TouchableOpacity>
       </View>
 
       {/* Persistent trip-context bar */}

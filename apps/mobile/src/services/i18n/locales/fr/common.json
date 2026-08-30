@@ -22,7 +22,8 @@
     "search": "Rechercher",
     "swap": "Inverser départ et arrivée",
     "accept": "Accepter",
-    "decline": "Refuser"
+    "decline": "Refuser",
+    "viewProfile": "Voir le profil de {{name}}"
   },
   "status": {
     "loading": "Chargement…",

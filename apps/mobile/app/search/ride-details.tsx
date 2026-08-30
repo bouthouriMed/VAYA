@@ -723,6 +723,15 @@ export default function RideDetailsScreen(): React.JSX.Element {
                   key={passenger.userId}
                   style={[styles.passengerRow, i > 0 && { borderTopColor: theme.outlineVariant, borderTopWidth: 1 }]}
                 >
+                  {/* Deliberately not a profile link, unlike the driver
+                   *  avatar above: `useListFellowPassengersQuery`'s own doc
+                   *  comment (state/api.ts) is explicit that a fellow
+                   *  passenger's identity here is "public, first-name-only
+                   *  ... never a full identity" — a real backend privacy
+                   *  boundary, not just a UI choice. `GET /users/:id/
+                   *  public-profile` always returns a full legal name, so
+                   *  wiring this avatar to trust.tsx would leak exactly
+                   *  what that endpoint deliberately withholds. */}
                   <Avatar
                     uri={passenger.avatarUrl}
                     name={passenger.firstName}

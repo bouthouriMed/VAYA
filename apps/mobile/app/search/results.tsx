@@ -163,7 +163,20 @@ function RideResultCard({
     routeBadgeLabel: candidate.matchType === 'route_passthrough' ? t('search:results.onYourRoute') : undefined,
   };
 
-  return <DriverListCard theme={theme} bestMatch={bestMatch} data={data} onPress={onPress} />;
+  return (
+    <DriverListCard
+      theme={theme}
+      bestMatch={bestMatch}
+      data={data}
+      onPress={onPress}
+      onAvatarPress={() =>
+        router.push({ pathname: '/search/trust', params: { rideId: candidate.rideId, driverUserId: candidate.driverUserId } })
+      }
+      avatarAccessibilityLabel={t('common:actions.viewProfile', {
+        name: candidate.driverFullName ?? t('search:results.driverFallback'),
+      })}
+    />
+  );
 }
 
 export default function ResultsScreen(): React.JSX.Element {

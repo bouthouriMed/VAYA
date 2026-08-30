@@ -64,6 +64,16 @@ export function DriverBookingDetailSheet({
     router.push(`/conversations/${booking!.id}`);
   }
 
+  function viewProfile(): void {
+    if (!booking!.rider) return;
+    haptics.selection();
+    onClose();
+    router.push({
+      pathname: '/search/trust',
+      params: { driverUserId: booking!.riderId, bookingId: booking!.id },
+    });
+  }
+
   return (
     <>
       <BottomSheet
@@ -74,7 +84,15 @@ export function DriverBookingDetailSheet({
         theme={theme}
       >
         <View style={styles.content}>
-          <View style={styles.identityRow}>
+          <TouchableOpacity
+            style={styles.identityRow}
+            onPress={viewProfile}
+            disabled={!booking.rider}
+            accessibilityRole={booking.rider ? 'button' : undefined}
+            accessibilityLabel={
+              booking.rider ? t('common:actions.viewProfile', { name: booking.rider.fullName }) : undefined
+            }
+          >
             <Avatar uri={booking.rider?.avatarUrl} name={booking.rider?.fullName ?? '?'} sizePx={48} />
             <View style={styles.identityText}>
               <Text variant="body" color={theme.ink} style={styles.riderName} numberOfLines={1}>
@@ -84,7 +102,7 @@ export function DriverBookingDetailSheet({
                 {t('driver:rides.bookingDetail.seatsAndPrice', { seatLabel: t('common:terms.seat', { count: booking.seatsRequested }), price: booking.contributionTotal })}
               </Text>
             </View>
-          </View>
+          </TouchableOpacity>
 
           <View style={[styles.factRow, { backgroundColor: theme.surfaceMuted }]}>
             <Icon name="navigate-outline" size="sm" color={theme.inkMuted} />

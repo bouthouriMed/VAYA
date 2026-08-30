@@ -126,7 +126,7 @@ function DriverCard({
         onPress={onOpenProfile}
         activeOpacity={0.7}
         accessibilityRole="button"
-        accessibilityLabel={`${t('booking:detail.viewProfile')} — ${fullName}`}
+        accessibilityLabel={t('common:actions.viewProfile', { name: fullName })}
       >
         <Avatar
           uri={avatarUrl}
@@ -273,9 +273,12 @@ export default function BookingDetailScreen(): React.JSX.Element {
   function openDriverProfile(): void {
     if (!booking?.ride?.driverUserId) return;
     haptics.selection();
+    // bookingId lets trust.tsx check for a real conversation (Phase 8:
+    // created only once this booking reaches `accepted`) and enable a real
+    // Message button instead of always showing it disabled.
     router.push({
       pathname: '/search/trust',
-      params: { rideId: booking.rideId, driverUserId: booking.ride.driverUserId },
+      params: { rideId: booking.rideId, driverUserId: booking.ride.driverUserId, bookingId: booking.id },
     });
   }
 

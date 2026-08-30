@@ -441,7 +441,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
             ]
           }
         >
-          mar. 25 août · 8:30
+          Tue, Aug 25 · 8:30 AM
         </Text>
         <View
           style={
@@ -524,7 +524,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
                   ]
                 }
               >
-                8:30
+                8:30 AM
               </Text>
             </View>
             <TouchableOpacity
@@ -712,7 +712,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
         }
       >
         <TouchableOpacity
-          accessibilityLabel="booking:detail.viewProfile — Amine Ben Salah"
+          accessibilityLabel="common:actions.viewProfile"
           accessibilityRole="button"
           activeOpacity={0.7}
           onPress={[Function]}

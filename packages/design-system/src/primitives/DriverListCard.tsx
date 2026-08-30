@@ -67,6 +67,17 @@ interface DriverListCardProps {
    *  ClusterMarker/DriverMapPin, not a new ranking signal. */
   bestMatch?: boolean;
   onPress?: () => void;
+  /** When given, the driver's avatar becomes its own nested tap target
+   *  (independent of the card's own `onPress`, e.g. straight to the
+   *  driver's profile instead of ride-details) — RN's standard
+   *  nested-Touchable responder behavior means a touch on the avatar is
+   *  claimed here and never also fires the outer card's `onPress`.
+   *  Omitted entirely (the default) renders exactly as before. */
+  onAvatarPress?: () => void;
+  /** Translated accessibility label for the avatar's own tap target —
+   *  only read when `onAvatarPress` is given. Same translation-agnostic
+   *  convention as `bestMatchLabel`/`seatsLabel`. */
+  avatarAccessibilityLabel?: string;
   /** Theme colors from `useAppTheme()` — this primitive has no palette
    *  opinion of its own, it just renders whichever the caller passes. */
   theme: AppPalette;
@@ -120,7 +131,14 @@ function RouteRow({
  * A single ride-match row for the search Results list. Built from existing
  * `Avatar`/`Icon`/`Text` — no bespoke local styling.
  */
-export function DriverListCard({ data, bestMatch, onPress, theme }: DriverListCardProps): React.JSX.Element {
+export function DriverListCard({
+  data,
+  bestMatch,
+  onPress,
+  onAvatarPress,
+  avatarAccessibilityLabel,
+  theme,
+}: DriverListCardProps): React.JSX.Element {
   return (
     <View>
       {bestMatch ? (
@@ -196,7 +214,21 @@ export function DriverListCard({ data, bestMatch, onPress, theme }: DriverListCa
 
           <View style={styles.footerRow}>
             <View style={styles.driverRow}>
-              <Avatar uri={data.driverAvatarUrl ?? null} name={data.driverName} size="sm" />
+              {onAvatarPress ? (
+                <TouchableOpacity
+                  onPress={() => {
+                    haptics.selection();
+                    onAvatarPress();
+                  }}
+                  hitSlop={6}
+                  accessibilityRole="button"
+                  accessibilityLabel={avatarAccessibilityLabel ?? data.driverName}
+                >
+                  <Avatar uri={data.driverAvatarUrl ?? null} name={data.driverName} size="sm" />
+                </TouchableOpacity>
+              ) : (
+                <Avatar uri={data.driverAvatarUrl ?? null} name={data.driverName} size="sm" />
+              )}
               <View>
                 <Text variant="bodySmall" color={theme.ink} style={styles.driverName}>
                   {data.driverName}

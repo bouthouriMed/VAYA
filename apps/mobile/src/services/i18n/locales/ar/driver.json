@@ -367,7 +367,9 @@
       "respondBy": "الرد قبل {{time}}",
       "viewProfile": "عرض الملف الشخصي لـ{{name}}",
       "newOnVaya": "جديد على VAYA",
-      "openInMaps": "فتح {{label}} في الخرائط"
+      "openInMaps": "فتح {{label}} في الخرائط",
+      "yourRoute": "مسارك",
+      "thisRequest": "هذا الطلب"
     },
     "bookingDetail": {
       "passenger": "راكب",

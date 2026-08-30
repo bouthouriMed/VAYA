@@ -80,7 +80,7 @@ function formatWhen(iso: string, t: (key: string) => string, locale: string): st
 }
 
 type CardCounterpart =
-  | { kind: 'person'; name: string; avatarUrl?: string | null }
+  | { kind: 'person'; name: string; avatarUrl?: string | null; userId?: string }
   | { kind: 'text'; label: string };
 
 /**
@@ -114,6 +114,7 @@ function TripCard({
   onPress: () => void;
   dimmed?: boolean;
 }): React.JSX.Element {
+  const { t } = useTranslation('common');
   return (
     <TouchableOpacity
       style={[
@@ -155,13 +156,32 @@ function TripCard({
       <View style={[styles.tripCardBottomRow, { borderTopColor: theme.outlineVariant }]}>
         {counterpart.kind === 'person' ? (
           <View style={styles.counterpartRow}>
-            <Avatar
-              uri={counterpart.avatarUrl}
-              name={counterpart.name}
-              sizePx={28}
-              fallbackBackgroundColor={theme.surfaceMuted}
-              fallbackTextColor={theme.ink}
-            />
+            {counterpart.userId ? (
+              <TouchableOpacity
+                onPress={() =>
+                  router.push({ pathname: '/search/trust', params: { driverUserId: counterpart.userId! } })
+                }
+                hitSlop={8}
+                accessibilityRole="button"
+                accessibilityLabel={t('common:actions.viewProfile', { name: counterpart.name })}
+              >
+                <Avatar
+                  uri={counterpart.avatarUrl}
+                  name={counterpart.name}
+                  sizePx={28}
+                  fallbackBackgroundColor={theme.surfaceMuted}
+                  fallbackTextColor={theme.ink}
+                />
+              </TouchableOpacity>
+            ) : (
+              <Avatar
+                uri={counterpart.avatarUrl}
+                name={counterpart.name}
+                sizePx={28}
+                fallbackBackgroundColor={theme.surfaceMuted}
+                fallbackTextColor={theme.ink}
+              />
+            )}
             <Text variant="bodySmall" color={theme.inkMuted} numberOfLines={1} style={styles.counterpartName}>
               {counterpart.name}
             </Text>
@@ -668,7 +688,7 @@ export default function TripsScreen(): React.JSX.Element {
                     destinationLabel={
                       booking.dropoffLabel ?? booking.ride?.destinationLabel ?? t('booking:arrival')
                     }
-                    counterpart={{ kind: 'person', name: booking.ride?.driverFullName ?? t('booking:driver') }}
+                    counterpart={{ kind: 'person', name: booking.ride?.driverFullName ?? t('booking:driver'), userId: booking.ride?.driverUserId }}
                     priceLabel={formatCurrency(booking.contributionTotal, locale as SupportedLocale)}
                     onPress={() =>
                       router.push({ pathname: '/bookings/[bookingId]', params: { bookingId: booking.id } })
@@ -690,7 +710,7 @@ export default function TripsScreen(): React.JSX.Element {
                         destinationLabel={
                           booking.dropoffLabel ?? booking.ride?.destinationLabel ?? t('booking:arrival')
                         }
-                        counterpart={{ kind: 'person', name: booking.ride?.driverFullName ?? t('booking:driver') }}
+                        counterpart={{ kind: 'person', name: booking.ride?.driverFullName ?? t('booking:driver'), userId: booking.ride?.driverUserId }}
                         priceLabel={formatCurrency(booking.contributionTotal, locale as SupportedLocale)}
                         onPress={() =>
                       router.push({ pathname: '/bookings/[bookingId]', params: { bookingId: booking.id } })

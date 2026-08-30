@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, ActivityIndicator, Modal } from 'react-native';
+import { Marker, Polyline } from 'react-native-maps';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import {
   BottomSheet,
   Badge,
@@ -8,10 +11,14 @@ import {
   Icon,
   Text,
   MapPreview,
+  MapCanvas,
+  PickupPin,
+  DropoffPin,
   useAppTheme,
   spacing,
   radii,
   haptics,
+  regionForPoints,
 } from '@vaya/design-system';
 import { useTranslation } from 'react-i18next';
 import { router } from 'expo-router';
@@ -152,11 +159,22 @@ export function RequestDetailSheet({
   const { t, i18n } = useTranslation();
   const locale = i18n.language as SupportedLocale;
   const theme = useAppTheme().colors;
+  const insets = useSafeAreaInsets();
+  const [fullscreenMapOpen, setFullscreenMapOpen] = useState(false);
   const {
     data: preview,
     isFetching,
     isError,
   } = useGetBookingDetourPreviewQuery(booking?.id ?? '', { skip: !visible || !booking?.id });
+
+  // The driver's own real, whole-trip route — never sliced — so the
+  // fullscreen view can show it underneath the requested segment for
+  // context ("does this fit my planned route?"), not just the isolated
+  // leg the compact preview shows.
+  const fullRouteCoordinates = useMemo(
+    () => (routePolyline ? decodePolyline(routePolyline) : []),
+    [routePolyline],
+  );
 
   // This specific request's segment, not the driver's whole route. When
   // either point is a real detour (not on the ride's own routePolyline at
@@ -178,6 +196,19 @@ export function RequestDetailSheet({
       { latitude: preview.dropoff.lat, longitude: preview.dropoff.lng },
     );
   }, [routePolyline, preview]);
+
+  // Fits both the driver's full route AND the requested segment (a
+  // route-passthrough/detour request's pickup/dropoff can sit well outside
+  // the ride's own endpoints) — never just the segment alone, or the
+  // fullscreen view could crop the very context it exists to show.
+  const fullscreenRegion = preview
+    ? (regionForPoints([
+        ...fullRouteCoordinates.map((p) => ({ lat: p.latitude, lng: p.longitude })),
+        { lat: preview.pickup.lat, lng: preview.pickup.lng },
+        { lat: preview.dropoff.lat, lng: preview.dropoff.lng },
+      ]) ?? undefined)
+    : undefined;
+
   const [acceptBooking, acceptState] = useAcceptBookingMutation();
   const [declineBooking, declineState] = useDeclineBookingMutation();
   const [actionError, setActionError] = useState<string | null>(null);
@@ -220,18 +251,26 @@ export function RequestDetailSheet({
     if (!booking!.rider) return;
     haptics.selection();
     onClose();
-    router.push({ pathname: '/search/trust', params: { driverUserId: booking!.riderId } });
+    // bookingId lets trust.tsx check for a real conversation (Phase 8:
+    // created only once this booking reaches `accepted`) and enable a real
+    // Message button instead of always showing it disabled.
+    router.push({
+      pathname: '/search/trust',
+      params: { driverUserId: booking!.riderId, bookingId: booking!.id },
+    });
   }
 
   const isBusy = acceptState.isLoading || declineState.isLoading;
 
   return (
+    <>
     <BottomSheet
       visible={visible}
       onClose={onClose}
       title={t('driver:rides.requestDetail.title')}
       heightRatio={0.72}
       theme={theme}
+      bottomInset={insets.bottom}
     >
       <View style={styles.content}>
         <TouchableOpacity
@@ -289,14 +328,33 @@ export function RequestDetailSheet({
           </Text>
         ) : (
           <>
-            <MapPreview
-              height={120}
-              pickup={{ latitude: preview.pickup.lat, longitude: preview.pickup.lng }}
-              dropoff={{ latitude: preview.dropoff.lat, longitude: preview.dropoff.lng }}
-              theme={theme}
-              routeCoordinates={segmentCoordinates}
-              style={styles.map}
-            />
+            {/* Tappable + explicitly labeled expand affordance (same
+             *  pattern driver/rides/[rideId].tsx's own route preview uses)
+             *  — opens a real pannable/zoomable view of the driver's whole
+             *  route with this request's segment overlaid on top, not just
+             *  the isolated compact preview. */}
+            <TouchableOpacity
+              style={styles.mapWrap}
+              activeOpacity={0.85}
+              onPress={() => setFullscreenMapOpen(true)}
+              accessibilityRole="button"
+              accessibilityLabel={t('driver:rides.rideDetail.viewRouteFullscreen')}
+            >
+              <MapPreview
+                height={120}
+                pickup={{ latitude: preview.pickup.lat, longitude: preview.pickup.lng }}
+                dropoff={{ latitude: preview.dropoff.lat, longitude: preview.dropoff.lng }}
+                theme={theme}
+                routeCoordinates={segmentCoordinates}
+                style={styles.map}
+              />
+              <View style={[styles.expandBtn, { backgroundColor: theme.surface }]}>
+                <Icon name="expand-outline" size="xs" color={theme.ink} />
+                <Text variant="caption" color={theme.ink}>
+                  {t('driver:rides.rideDetail.viewRouteFullscreen')}
+                </Text>
+              </View>
+            </TouchableOpacity>
             <Text variant="label" color={theme.inkMuted} style={styles.sectionLabel}>
               {t('driver:rides.requestDetail.routeFit')}
             </Text>
@@ -376,6 +434,74 @@ export function RequestDetailSheet({
         </View>
       </View>
     </BottomSheet>
+
+    {/* Fullscreen route view — the driver's whole real route (muted, thin)
+     *  with this specific request's segment overlaid on top (accent,
+     *  thick), so "does this fit my route?" is answerable at a glance
+     *  instead of guessing from the 120px compact preview. Same Modal +
+     *  MapCanvas + Polyline/Marker pattern driver/rides/[rideId].tsx's own
+     *  "view route fullscreen" already establishes, not a new one. */}
+    <Modal visible={fullscreenMapOpen} animationType="slide" onRequestClose={() => setFullscreenMapOpen(false)}>
+      <View style={[styles.routeModal, { backgroundColor: theme.background }]}>
+        {preview ? (
+          <MapCanvas region={fullscreenRegion} style={styles.routeModalMap}>
+            {fullRouteCoordinates.length > 1 ? (
+              <Polyline coordinates={fullRouteCoordinates} strokeColor={theme.outline} strokeWidth={4} />
+            ) : null}
+            {segmentCoordinates.length > 1 ? (
+              <Polyline
+                coordinates={segmentCoordinates}
+                strokeColor={theme.accent}
+                strokeWidth={6}
+                zIndex={10}
+              />
+            ) : null}
+            <Marker
+              coordinate={{ latitude: preview.pickup.lat, longitude: preview.pickup.lng }}
+              anchor={{ x: 0.5, y: 0.5 }}
+              zIndex={20}
+            >
+              <PickupPin theme={theme} />
+            </Marker>
+            <Marker
+              coordinate={{ latitude: preview.dropoff.lat, longitude: preview.dropoff.lng }}
+              anchor={{ x: 0.5, y: 0.5 }}
+              zIndex={20}
+            >
+              <DropoffPin theme={theme} />
+            </Marker>
+          </MapCanvas>
+        ) : null}
+
+        {/* Legend — the whole point of overlaying two lines is lost if a
+         *  driver can't tell which is which at a glance. */}
+        <View style={[styles.legend, { top: insets.top + spacing.sm, backgroundColor: theme.surface }]}>
+          <View style={styles.legendRow}>
+            <View style={[styles.legendSwatch, { backgroundColor: theme.outline }]} />
+            <Text variant="caption" color={theme.ink}>
+              {t('driver:rides.requestDetail.yourRoute')}
+            </Text>
+          </View>
+          <View style={styles.legendRow}>
+            <View style={[styles.legendSwatch, styles.legendSwatchThick, { backgroundColor: theme.accent }]} />
+            <Text variant="caption" color={theme.ink}>
+              {t('driver:rides.requestDetail.thisRequest')}
+            </Text>
+          </View>
+        </View>
+
+        <TouchableOpacity
+          style={[styles.routeModalClose, { top: insets.top + spacing.sm, backgroundColor: theme.surface }]}
+          onPress={() => setFullscreenMapOpen(false)}
+          hitSlop={12}
+          accessibilityRole="button"
+          accessibilityLabel={t('driver:rides.rideDetail.close')}
+        >
+          <Ionicons name="close" size={22} color={theme.ink} />
+        </TouchableOpacity>
+      </View>
+    </Modal>
+    </>
   );
 }
 
@@ -387,6 +513,70 @@ const styles = StyleSheet.create({
   map: {
     borderRadius: radii.xl,
     overflow: 'hidden',
+  },
+  mapWrap: {
+    position: 'relative',
+  },
+  expandBtn: {
+    position: 'absolute',
+    right: spacing.sm,
+    bottom: spacing.sm,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    borderRadius: radii.full,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  routeModal: {
+    flex: 1,
+  },
+  routeModalMap: {
+    flex: 1,
+  },
+  routeModalClose: {
+    position: 'absolute',
+    right: spacing.lg,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  legend: {
+    position: 'absolute',
+    left: spacing.lg,
+    borderRadius: radii.lg,
+    padding: spacing.sm,
+    gap: spacing.xs,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  legendRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  legendSwatch: {
+    width: 16,
+    height: 3,
+    borderRadius: radii.full,
+  },
+  legendSwatchThick: {
+    height: 4,
   },
   identityRow: {
     flexDirection: 'row',

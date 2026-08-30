@@ -102,15 +102,49 @@ function PendingRequestRow({
   }
 
   return (
-    <View style={[styles.glassRow, { backgroundColor: theme.surfaceMuted, borderColor: theme.outlineVariant }]}>
+    // The whole card opens the request-detail sheet now, not just the small
+    // info icon that used to be the only tappable spot in the identity row
+    // — Accept/Decline stay their own nested TouchableOpacitys below, and a
+    // touch starting on either of them is claimed by that inner responder
+    // first (RN's standard nested-Touchable behavior), so they keep working
+    // independently of this outer tap target.
+    <TouchableOpacity
+      style={[styles.glassRow, { backgroundColor: theme.surfaceMuted, borderColor: theme.outlineVariant }]}
+      onPress={onOpenDetails}
+      activeOpacity={0.8}
+      accessibilityRole="button"
+      accessibilityLabel={`${t('rides.requestsSheet.viewDetails')} — ${booking.rider?.fullName ?? ''}`}
+    >
       <View style={styles.requestIdentityRow}>
-        <Avatar
-          uri={booking.rider?.avatarUrl}
-          name={booking.rider?.fullName ?? '?'}
-          sizePx={40}
-          fallbackBackgroundColor={theme.surface}
-          fallbackTextColor={theme.ink}
-        />
+        {booking.rider ? (
+          <TouchableOpacity
+            onPress={() =>
+              router.push({
+                pathname: '/search/trust',
+                params: { driverUserId: booking.rider!.id, bookingId: booking.id },
+              })
+            }
+            hitSlop={6}
+            accessibilityRole="button"
+            accessibilityLabel={t('common:actions.viewProfile', { name: booking.rider.fullName })}
+          >
+            <Avatar
+              uri={booking.rider.avatarUrl}
+              name={booking.rider.fullName}
+              sizePx={40}
+              fallbackBackgroundColor={theme.surface}
+              fallbackTextColor={theme.ink}
+            />
+          </TouchableOpacity>
+        ) : (
+          <Avatar
+            uri={undefined}
+            name="?"
+            sizePx={40}
+            fallbackBackgroundColor={theme.surface}
+            fallbackTextColor={theme.ink}
+          />
+        )}
         <View style={styles.requestIdentityText}>
           <Text variant="body" color={theme.ink} numberOfLines={1}>
             {booking.rider?.fullName ?? t('rides.rideDetail.passenger')}
@@ -135,14 +169,7 @@ function PendingRequestRow({
             </Text>
           ) : null}
         </View>
-        <TouchableOpacity
-          onPress={onOpenDetails}
-          hitSlop={10}
-          accessibilityRole="button"
-          accessibilityLabel={t('rides.requestsSheet.viewDetails')}
-        >
-          <Icon name="information-circle-outline" size="sm" color={theme.inkMuted} />
-        </TouchableOpacity>
+        <Icon name="chevron-forward" size="sm" color={theme.inkFaint} />
       </View>
       <View style={styles.requestActions}>
         <TouchableOpacity
@@ -175,7 +202,7 @@ function PendingRequestRow({
           {error}
         </Text>
       ) : null}
-    </View>
+    </TouchableOpacity>
   );
 }
 
@@ -713,13 +740,35 @@ export default function DriverRideHubScreen(): React.JSX.Element {
                       manageable ? `${t('rides.manageSheet.title')} ${booking.rider?.fullName ?? t('rides.bookingDetail.passenger')}` : undefined
                     }
                   >
-                    <Avatar
-                      uri={booking.rider?.avatarUrl}
-                      name={booking.rider?.fullName ?? '?'}
-                      sizePx={36}
-                      fallbackBackgroundColor={theme.surface}
-                      fallbackTextColor={theme.ink}
-                    />
+                    {booking.rider ? (
+                      <TouchableOpacity
+                        onPress={() =>
+                          router.push({
+                            pathname: '/search/trust',
+                            params: { driverUserId: booking.rider!.id, bookingId: booking.id },
+                          })
+                        }
+                        hitSlop={6}
+                        accessibilityRole="button"
+                        accessibilityLabel={t('common:actions.viewProfile', { name: booking.rider.fullName })}
+                      >
+                        <Avatar
+                          uri={booking.rider.avatarUrl}
+                          name={booking.rider.fullName}
+                          sizePx={36}
+                          fallbackBackgroundColor={theme.surface}
+                          fallbackTextColor={theme.ink}
+                        />
+                      </TouchableOpacity>
+                    ) : (
+                      <Avatar
+                        uri={undefined}
+                        name="?"
+                        sizePx={36}
+                        fallbackBackgroundColor={theme.surface}
+                        fallbackTextColor={theme.ink}
+                      />
+                    )}
                     <View style={styles.requestIdentityText}>
                       <Text variant="bodySmall" color={theme.ink} numberOfLines={1}>
                         {booking.rider?.fullName ?? t('rides.bookingDetail.passenger')}

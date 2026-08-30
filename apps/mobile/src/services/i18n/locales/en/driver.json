@@ -339,7 +339,9 @@
       "respondBy": "Respond by {{time}}",
       "viewProfile": "View {{name}}'s profile",
       "newOnVaya": "New on VAYA",
-      "openInMaps": "Open {{label}} in Maps"
+      "openInMaps": "Open {{label}} in Maps",
+      "yourRoute": "Your route",
+      "thisRequest": "This request"
     },
     "bookingDetail": {
       "passenger": "Passenger",

@@ -22,7 +22,8 @@
     "search": "بحث",
     "swap": "تبديل نقطة الانطلاق والوجهة",
     "accept": "قبول",
-    "decline": "رفض"
+    "decline": "رفض",
+    "viewProfile": "عرض الملف الشخصي لـ{{name}}"
   },
   "status": {
     "loading": "جارٍ التحميل…",

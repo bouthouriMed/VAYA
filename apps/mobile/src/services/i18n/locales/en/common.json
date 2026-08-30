@@ -22,7 +22,8 @@
     "search": "Search",
     "swap": "Swap origin and destination",
     "accept": "Accept",
-    "decline": "Decline"
+    "decline": "Decline",
+    "viewProfile": "View {{name}}'s profile"
   },
   "status": {
     "loading": "Loading…",

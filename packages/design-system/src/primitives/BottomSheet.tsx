@@ -47,6 +47,16 @@ interface BottomSheetProps {
    *  legacy static `colors` token. Unused anywhere this primitive hasn't
    *  been migrated yet. */
   theme?: AppPalette;
+  /** Real device bottom inset — pass `useSafeAreaInsets().bottom` from the
+   *  caller so content anchored to the sheet's bottom edge (an action bar's
+   *  Accept/Decline pair, a CTA button) clears the home indicator on iOS /
+   *  the gesture-nav bar on Android instead of being rendered underneath
+   *  it. Mirrors Toast's own `topInset` prop precedent — this package
+   *  deliberately never imports `react-native-safe-area-context` itself
+   *  (no `SafeAreaProvider` ancestor exists in this package's own tests),
+   *  so the real value has to come from the caller. Defaults to 0 (the
+   *  previous, unpadded behavior) when omitted. */
+  bottomInset?: number;
 }
 
 const DISMISS_DRAG_PX = 100;
@@ -125,6 +135,7 @@ export function BottomSheet({
   heightRatio = 0.6,
   theme,
   contentGesture,
+  bottomInset = 0,
 }: BottomSheetProps): React.JSX.Element {
   const screenHeight = Dimensions.get('window').height;
   const sheetHeight = screenHeight * heightRatio;
@@ -274,7 +285,15 @@ export function BottomSheet({
                     </Text>
                   ) : null)}
               </View>
-              <View style={styles.content}>{children}</View>
+              <View
+                style={
+                  bottomInset > 0
+                    ? [styles.content, { paddingBottom: bottomInset + spacing.sm }]
+                    : styles.content
+                }
+              >
+                {children}
+              </View>
             </Animated.View>
           </GestureDetector>
         </KeyboardAvoidingView>

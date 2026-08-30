@@ -5,40 +5,52 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { Text, Avatar, Icon, useAppTheme, spacing, radii } from '@vaya/design-system';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useGetUserPublicProfileQuery, useGetUserTrustSummaryQuery } from '../../src/state/api';
+import {
+  useGetUserPublicProfileQuery,
+  useGetUserTrustSummaryQuery,
+  useGetConversationByBookingQuery,
+} from '../../src/state/api';
 import { trackEvent } from '../../src/services/analytics/analytics';
 
 // Real reliabilityScore threshold for the "Fiable" pill — chosen once here
 // rather than hardcoded inline so the rationale lives in one place: below
 // this, a driver isn't lying about being unreliable, but this screen
-// shouldn't actively vouch for them as a highlight either.
+// shouldn't actively vouch for them as a highlight either. Only ever
+// evaluated for a driver profile — GET /users/:id/public-profile has no
+// equivalent reliabilityScore field for a rider.
 const RELIABLE_THRESHOLD = 0.85;
 
-/** Stitch's "Driver Profile" — pure trust/vetting content. The actual
- *  booking request lives on search/ride-details.tsx (reached *before* this
- *  screen, from results.tsx); this screen is reached by tapping the driver
- *  row there, and its own footer action is "Message Driver" — rendered
- *  disabled since messaging is booking-scoped (Phase 8) and no conversation
- *  can exist before a booking is even requested.
+/** Stitch's "Driver Profile," generalized into this app's one real "view
+ *  someone's profile" screen — reached from search/results.tsx (rider
+ *  viewing a driver, pre-booking) AND from RequestDetailSheet (a driver
+ *  viewing a passenger who requested a seat). Real gap this closed: every
+ *  stat/pill/verification section below was gated on `profile.driver`
+ *  alone, so a passenger's own profile rendered as nothing more than an
+ *  avatar and a first name — this reads whichever of `trustSummary.driver`/
+ *  `trustSummary.rider` actually applies (GET /users/:id/trust-summary
+ *  already computes both real TierAggregates for every user) rather than
+ *  showing real data for one role and nothing at all for the other. What
+ *  stays role-gated on purpose: KYC verification, bio, and vehicle are
+ *  genuinely driver-only facts (riders never go through onboarding) — never
+ *  fabricated for a rider just to fill the card.
  *
- *  New-driver experience: a driver with zero completed trips would
- *  otherwise render as "0.0 ★ / 0 trajets" stat tiles and a reviews link
- *  into fabricated content — reading as a red flag when it's really just a
- *  beginning. Instead, everything shown stays real (public profile +
- *  trust-summary keyed by the tapped ride's driverUserId) and the empty
- *  history is reframed honestly: a warm welcome panel naming what IS
- *  verified, a checklist of the actual VAYA vetting steps, and review-copy
- *  that asks the passenger to be the first to share their experience after
- *  the trip — encouraging both the booking and the review, never
- *  fabricating either. */
+ *  Messaging: enabled for real (not just re-labeled) once a conversation
+ *  actually exists for the `bookingId` param — Phase 8 only ever creates
+ *  one once a booking reaches `accepted`, so a still-pending request keeps
+ *  the honest disabled state instead of linking into nothing. */
 export default function TrustScreen(): React.JSX.Element {
-  const { driverUserId } = useLocalSearchParams<{ rideId: string; driverUserId: string }>();
+  const { driverUserId, bookingId } = useLocalSearchParams<{
+    rideId: string;
+    driverUserId: string;
+    bookingId?: string;
+  }>();
   const insets = useSafeAreaInsets();
   const { colors: theme } = useAppTheme();
   const { t } = useTranslation(['search', 'common']);
 
   const { data: profile, isLoading: isProfileLoading } = useGetUserPublicProfileQuery(driverUserId);
   const { data: trustSummary } = useGetUserTrustSummaryQuery(driverUserId);
+  const { data: conversation } = useGetConversationByBookingQuery(bookingId ?? '', { skip: !bookingId });
 
   useEffect(() => {
     if (trustSummary?.driver) {
@@ -66,16 +78,33 @@ export default function TrustScreen(): React.JSX.Element {
 
   const firstName = profile.fullName.split(' ')[0]!;
   const driverStats = profile.driver;
-  const isTopRated = trustSummary?.driver?.tier === 'top_rated';
-  const isReliable = (driverStats?.reliabilityScore ?? 0) >= RELIABLE_THRESHOLD;
-  // tripCount === 0 alone determines the brand-new experience — it implies
-  // tier 'new' (≤4 trips), and comes straight from the public profile so the
-  // layout doesn't flash the stat-tile version while trust-summary loads.
-  const tripCount = driverStats?.tripCount ?? 0;
-  const isBrandNew = driverStats != null && tripCount === 0;
-  const isNewTier = trustSummary?.driver?.tier === 'new';
-  const ratingLabel =
-    driverStats && (driverStats.ratingAvg ?? 0) > 0 ? driverStats.ratingAvg.toFixed(1) : '—';
+  const isDriverProfile = driverStats != null;
+  // Whichever real TierAggregate actually applies to the profile being
+  // viewed — GET /users/:id/trust-summary computes both roles for every
+  // user, so a rider being viewed still has real tier/rating/trip data,
+  // not just whatever happens to sit on `trustSummary.driver`.
+  const relevantTier = isDriverProfile ? trustSummary?.driver : trustSummary?.rider;
+  const hasStats = isDriverProfile ? true : relevantTier != null;
+  const isTopRated = relevantTier?.tier === 'top_rated';
+  const isNewTier = relevantTier?.tier === 'new';
+  // reliabilityScore only exists on a driver's public profile — never
+  // fabricated for a rider, who simply never gets this pill.
+  const isReliable = isDriverProfile && (driverStats?.reliabilityScore ?? 0) >= RELIABLE_THRESHOLD;
+  // tripCount === 0 alone determines the brand-new experience. For a driver
+  // this comes straight from the public profile (available immediately, no
+  // flash while trust-summary loads); a rider has no equivalent field on
+  // the public profile, so it waits on the real trust-summary tripCount
+  // instead of guessing.
+  const tripCount = isDriverProfile ? (driverStats?.tripCount ?? 0) : (relevantTier?.tripCount ?? 0);
+  const isBrandNew = hasStats && tripCount === 0;
+  const ratingValue = isDriverProfile ? (driverStats?.ratingAvg ?? 0) : (relevantTier?.ratingAvg ?? 0);
+  const ratingLabel = ratingValue > 0 ? ratingValue.toFixed(1) : '—';
+  const canMessage = Boolean(conversation);
+
+  function openConversation(): void {
+    if (!bookingId) return;
+    router.push(`/conversations/${bookingId}`);
+  }
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -89,7 +118,7 @@ export default function TrustScreen(): React.JSX.Element {
           <Ionicons name="chevron-back" size={22} color={theme.ink} />
         </TouchableOpacity>
         <Text variant="h3" color={theme.ink}>
-          Vaya
+          {t('search:trust.title')}
         </Text>
         <View style={{ width: 22 }} />
       </View>
@@ -131,7 +160,7 @@ export default function TrustScreen(): React.JSX.Element {
           ) : null}
         </View>
 
-        {driverStats && !isBrandNew ? (
+        {hasStats && !isBrandNew ? (
           <View style={styles.statsRow}>
             <View style={[styles.statTile, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
               <View style={styles.statValueRow}>
@@ -171,18 +200,22 @@ export default function TrustScreen(): React.JSX.Element {
               </Text>
             </View>
             <Text variant="bodySmall" color={theme.inkMuted}>
-              {t('search:trust.welcomeDescription')}
+              {isDriverProfile
+                ? t('search:trust.welcomeDescription')
+                : t('search:trust.welcomeDescriptionRider')}
             </Text>
             <View style={styles.encourageRow}>
               <Icon name="heart" size="xs" color={theme.accent} />
               <Text variant="bodySmall" color={theme.ink}>
-                {t('search:trust.welcomeEncourage', { name: firstName })}
+                {isDriverProfile
+                  ? t('search:trust.welcomeEncourage', { name: firstName })
+                  : t('search:trust.welcomeEncourageRider', { name: firstName })}
               </Text>
             </View>
           </View>
         ) : null}
 
-        {driverStats ? (
+        {hasStats ? (
           <View style={styles.pillsRow}>
             {isNewTier ? (
               <View style={[styles.pill, { backgroundColor: theme.surfaceMuted }]}>
@@ -323,19 +356,39 @@ export default function TrustScreen(): React.JSX.Element {
 
       <View style={[styles.footer, { backgroundColor: theme.surface, borderTopColor: theme.outlineVariant, paddingBottom: insets.bottom + spacing.sm }]}>
         {/* Messaging is booking-scoped (Phase 8) — a conversation is only
-         *  created once a booking reaches `accepted`, so there is no real
-         *  backend path for messaging a driver before a seat is even
-         *  requested. Rendered as the design's solid "Message Driver" pill,
-         *  just disabled, rather than wired to nothing. */}
-        <View style={[styles.cta, styles.ctaDisabled, { backgroundColor: theme.ink }]}>
-          <Icon name="chatbubble-outline" size="sm" color={theme.onInk} />
-          <Text variant="label" color={theme.onInk}>
-            {t('search:trust.messageDriver')}
-          </Text>
-        </View>
-        <Text variant="caption" color={theme.inkFaint} align="center">
-          {t('search:trust.messageAvailability')}
-        </Text>
+         *  created once a booking this screen was opened from actually
+         *  reaches `accepted`. `canMessage` is a real, queried fact (GET
+         *  /conversations/:bookingId), not a guess from booking status —
+         *  once it's true this is a genuine working entry into that
+         *  conversation, never just a re-labeled dead button. */}
+        {canMessage ? (
+          <TouchableOpacity
+            style={[styles.cta, { backgroundColor: theme.accent }]}
+            onPress={openConversation}
+            activeOpacity={0.85}
+            accessibilityRole="button"
+            accessibilityLabel={t('common:actions.message')}
+          >
+            <Icon name="chatbubble-outline" size="sm" color={theme.onAccent} />
+            <Text variant="label" color={theme.onAccent}>
+              {t('common:actions.message')}
+            </Text>
+          </TouchableOpacity>
+        ) : (
+          <>
+            <View style={[styles.cta, styles.ctaDisabled, { backgroundColor: theme.ink }]}>
+              <Icon name="chatbubble-outline" size="sm" color={theme.onInk} />
+              <Text variant="label" color={theme.onInk}>
+                {t('common:actions.message')}
+              </Text>
+            </View>
+            <Text variant="caption" color={theme.inkFaint} align="center">
+              {isDriverProfile
+                ? t('search:trust.messageAvailability')
+                : t('search:trust.messageAvailabilityDriver')}
+            </Text>
+          </>
+        )}
       </View>
     </View>
   );
