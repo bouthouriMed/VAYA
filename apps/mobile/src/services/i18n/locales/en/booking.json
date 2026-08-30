@@ -69,6 +69,7 @@
   },
   "conversation": {
     "unavailable": "Conversation unavailable",
+    "unavailableDescription": "This conversation couldn't be loaded — it may no longer exist, or you may not have access to it.",
     "closed": "This conversation is closed.",
     "viewRide": "View ride",
     "sayHello": "Say hello!",
@@ -114,6 +115,7 @@
     "viewRouteFullscreen": "View route in full screen",
     "sendMessage": "Send message",
     "newOnVaya": "New on VAYA",
+    "viewProfile": "View profile",
     "pickupPoint": "Meeting point",
     "dropoffPoint": "Drop-off point",
     "distanceToPickup": "{{distance}} from your location · ≈ {{minutes}} walk to the meeting point",
