@@ -3,6 +3,8 @@ import { useReportsList, useUpdateReport } from '../api/hooks/reports';
 import { LoadingBlock, ErrorState, EmptyState } from '../components/States';
 import { Pagination } from '../components/Pagination';
 import { Badge, ReportStatusBadge } from '../components/Badge';
+import { PageHeader } from '../components/PageHeader';
+import { Avatar } from '../components/Avatar';
 import { formatDate, humanize } from '../utils/format';
 import type { ReportRow, ReportStatus } from '../api/types';
 
@@ -19,11 +21,20 @@ export function ReportsPage(): React.JSX.Element {
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState('open');
   const [selected, setSelected] = useState<ReportRow | null>(null);
-  const { data, isLoading, isError, error, refetch } = useReportsList({ page, limit: LIMIT, status: status || undefined });
+  const { data, isLoading, isError, error, refetch } = useReportsList({
+    page,
+    limit: LIMIT,
+    status: status || undefined,
+  });
 
   return (
     <div>
-      <div className="table-toolbar">
+      <PageHeader
+        title="Reports"
+        sub="Safety and trust reports filed by riders and drivers. Track them to resolution."
+      />
+
+      <div className="table-toolbar" style={{ border: 'none', padding: '0 0 16px' }}>
         {STATUS_TABS.map((tab) => (
           <button
             key={tab.value}
@@ -37,9 +48,11 @@ export function ReportsPage(): React.JSX.Element {
             {tab.label}
           </button>
         ))}
+        <span className="table-toolbar__spacer" />
+        {data ? <span className="table__cell-muted">{data.total} total</span> : null}
       </div>
 
-      <div className="card card--flush">
+      <div className="table-card">
         {isLoading ? (
           <div style={{ padding: 20 }}>
             <LoadingBlock rows={6} />
@@ -49,11 +62,11 @@ export function ReportsPage(): React.JSX.Element {
             <ErrorState message={(error as Error).message} onRetry={() => refetch()} />
           </div>
         ) : !data || data.items.length === 0 ? (
-          <EmptyState icon="🛡️" title="No reports" hint="Nothing matches this filter." />
+          <EmptyState icon="flag" title="No reports" hint="Nothing matches this filter." />
         ) : (
           <>
             <div className="table-wrap">
-              <table className="table">
+              <table className="table table--selectable">
                 <thead>
                   <tr>
                     <th>Category</th>
@@ -69,9 +82,19 @@ export function ReportsPage(): React.JSX.Element {
                       <td>
                         <Badge label={humanize(report.category)} tone="warning" />
                       </td>
-                      <td>{report.reporter?.fullName ?? '—'}</td>
-                      <td>{report.reportedUser?.fullName ?? '—'}</td>
-                      <td>{formatDate(report.createdAt)}</td>
+                      <td className="table__primary">
+                        <span className="table__cell-user">
+                          <Avatar name={report.reporter?.fullName ?? ''} size="sm" variant="sage" />
+                          {report.reporter?.fullName ?? '—'}
+                        </span>
+                      </td>
+                      <td className="table__secondary">
+                        <span className="table__cell-user">
+                          <Avatar name={report.reportedUser?.fullName ?? ''} size="sm" variant="navy" />
+                          {report.reportedUser?.fullName ?? '—'}
+                        </span>
+                      </td>
+                      <td className="table__cell-muted">{formatDate(report.createdAt)}</td>
                       <td>
                         <ReportStatusBadge status={report.status} />
                       </td>
@@ -90,7 +113,13 @@ export function ReportsPage(): React.JSX.Element {
   );
 }
 
-function ReportDialog({ report, onClose }: { report: ReportRow; onClose: () => void }): React.JSX.Element {
+function ReportDialog({
+  report,
+  onClose,
+}: {
+  report: ReportRow;
+  onClose: () => void;
+}): React.JSX.Element {
   const [status, setStatus] = useState<ReportStatus>(report.status);
   const [notes, setNotes] = useState(report.resolutionNotes ?? '');
   const update = useUpdateReport(report.id);
@@ -117,7 +146,11 @@ function ReportDialog({ report, onClose }: { report: ReportRow; onClose: () => v
 
         <div className="field">
           <label className="field__label">Status</label>
-          <select className="select" value={status} onChange={(e) => setStatus(e.target.value as ReportStatus)}>
+          <select
+            className="select"
+            value={status}
+            onChange={(e) => setStatus(e.target.value as ReportStatus)}
+          >
             <option value="open">Open</option>
             <option value="investigating">Investigating</option>
             <option value="resolved">Resolved</option>
@@ -128,20 +161,36 @@ function ReportDialog({ report, onClose }: { report: ReportRow; onClose: () => v
           <label className="field__label" htmlFor="resolution-notes">
             Resolution notes
           </label>
-          <textarea id="resolution-notes" className="textarea" value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} />
+          <textarea
+            id="resolution-notes"
+            className="textarea"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            rows={3}
+          />
         </div>
 
         {update.isError ? <p className="field__error">{(update.error as Error).message}</p> : null}
 
         <div className="modal__actions">
-          <button type="button" className="btn btn--ghost" onClick={onClose} disabled={update.isPending}>
+          <button
+            type="button"
+            className="btn btn--ghost"
+            onClick={onClose}
+            disabled={update.isPending}
+          >
             Close
           </button>
           <button
             type="button"
             className="btn btn--primary"
             disabled={update.isPending}
-            onClick={() => update.mutate({ status, resolutionNotes: notes.trim() || undefined }, { onSuccess: onClose })}
+            onClick={() =>
+              update.mutate(
+                { status, resolutionNotes: notes.trim() || undefined },
+                { onSuccess: onClose },
+              )
+            }
           >
             {update.isPending ? 'Saving…' : 'Save'}
           </button>

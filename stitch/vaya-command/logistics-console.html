@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Vaya Command - Logistics Workspace (Rides)</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-container-high": "#e6e8ea",
+                      "border-refined": "#e2e8f0",
+                      "secondary-fixed": "#dae2fc",
+                      "primary-fixed": "#e1e0ff",
+                      "on-secondary": "#ffffff",
+                      "primary": "#2c2abc",
+                      "warning": "#f59e0b",
+                      "outline": "#767586",
+                      "on-primary-fixed-variant": "#2e2ebe",
+                      "on-secondary-fixed-variant": "#3e465b",
+                      "primary-fixed-dim": "#c0c1ff",
+                      "on-error": "#ffffff",
+                      "on-surface": "#191c1e",
+                      "on-surface-variant": "#464554",
+                      "surface-container-lowest": "#ffffff",
+                      "on-tertiary-fixed": "#301400",
+                      "inverse-primary": "#c0c1ff",
+                      "tertiary-container": "#904900",
+                      "surface-tint": "#494bd6",
+                      "on-primary": "#ffffff",
+                      "surface-bright": "#f7f9fb",
+                      "surface-container-low": "#f2f4f6",
+                      "on-secondary-fixed": "#131b2e",
+                      "background": "#f7f9fb",
+                      "outline-variant": "#c6c5d7",
+                      "on-background": "#191c1e",
+                      "secondary-container": "#d7dff9",
+                      "on-tertiary-fixed-variant": "#703800",
+                      "on-primary-fixed": "#06006c",
+                      "surface-dim": "#d8dadc",
+                      "text-muted": "#64748b",
+                      "error-container": "#ffdad6",
+                      "secondary-fixed-dim": "#bec6e0",
+                      "secondary": "#565e74",
+                      "tertiary-fixed-dim": "#ffb782",
+                      "on-secondary-container": "#5a6278",
+                      "tertiary-fixed": "#ffdcc5",
+                      "surface-variant": "#e0e3e5",
+                      "on-tertiary": "#ffffff",
+                      "success": "#10b981",
+                      "on-error-container": "#93000a",
+                      "surface-container-highest": "#e0e3e5",
+                      "on-tertiary-container": "#ffcaa6",
+                      "inverse-on-surface": "#eff1f3",
+                      "primary-container": "#4648d4",
+                      "tertiary": "#6d3600",
+                      "on-primary-container": "#d1d1ff",
+                      "surface-container": "#eceef0",
+                      "inverse-surface": "#2d3133",
+                      "error": "#e11d48",
+                      "surface": "#f7f9fb"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "row-h": "16px",
+                      "sidebar-width": "240px",
+                      "max-content-width": "1440px",
+                      "grid-unit": "4px",
+                      "margin-edge": "32px",
+                      "row-v": "12px",
+                      "gutter": "24px"
+              },
+              "fontFamily": {
+                      "headline-sm": [
+                              "Inter"
+                      ],
+                      "label-lg": [
+                              "Inter"
+                      ],
+                      "body-md": [
+                              "Inter"
+                      ],
+                      "body-lg": [
+                              "Inter"
+                      ],
+                      "headline-lg": [
+                              "Inter"
+                      ],
+                      "headline-md": [
+                              "Inter"
+                      ],
+                      "display-stat": [
+                              "Inter"
+                      ],
+                      "body-sm": [
+                              "Inter"
+                      ],
+                      "mono-data": [
+                              "JetBrains Mono"
+                      ],
+                      "mono-micro": [
+                              "JetBrains Mono"
+                      ]
+              },
+              "fontSize": {
+                      "headline-sm": [
+                              "18px",
+                              {
+                                      "lineHeight": "24px",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "label-lg": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "letterSpacing": "0.01em",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "body-md": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "body-lg": [
+                              "16px",
+                              {
+                                      "lineHeight": "24px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "headline-lg": [
+                              "32px",
+                              {
+                                      "lineHeight": "40px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "headline-md": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "display-stat": [
+                              "48px",
+                              {
+                                      "lineHeight": "1",
+                                      "letterSpacing": "-0.04em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "body-sm": [
+                              "13px",
+                              {
+                                      "lineHeight": "18px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "mono-data": [
+                              "12px",
+                              {
+                                      "lineHeight": "16px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "mono-micro": [
+                              "10px",
+                              {
+                                      "lineHeight": "1",
+                                      "fontWeight": "500"
+                              }
+                      ]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+        .journey-line {
+            position: relative;
+            width: 100%;
+            height: 2px;
+            background-color: #e2e8f0; /* border-refined */
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .journey-line::before, .journey-line::after {
+            content: '';
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: #64748b; /* text-muted */
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        .journey-line::before { left: 0; }
+        .journey-line::after { right: 0; }
+        
+        /* Active/Progress states for visual route */
+        .journey-progress {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            background-color: #2c2abc; /* primary */
+        }
+        
+        .row-hover-actions {
+            opacity: 0;
+            transition: opacity 0.2s ease-in-out;
+            pointer-events: none;
+        }
+        tr:hover .row-hover-actions {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        
+        /* Ensure table header sticks if scrolling vertically */
+        th {
+            position: sticky;
+            top: 64px; /* below header */
+            z-index: 10;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body-md min-h-screen overflow-x-hidden flex">
+<!-- SideNavBar (Shared Component) -->
+<nav class="hidden md:flex fixed left-0 top-0 h-screen w-sidebar-width border-r border-refined bg-surface flex-col py-row-v z-20">
+<!-- Brand/Header -->
+<div class="px-gutter mb-8 flex flex-col gap-1">
+<h1 class="font-headline-sm text-headline-sm font-bold text-on-surface">Vaya Command</h1>
+<span class="font-mono-micro text-mono-micro text-muted uppercase tracking-widest">Kinetic Ops</span>
+</div>
+<!-- Navigation Tabs -->
+<ul class="flex flex-col gap-1 flex-grow">
+<!-- Active: Logistics (implied by Logistics Workspace) -->
+<li>
+<a class="flex items-center gap-3 px-gutter py-3 text-muted hover:text-on-surface hover:bg-surface-container-low transition-colors active:scale-[0.98] transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="hub">hub</span>
+<span class="font-label-lg text-label-lg">Network</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-gutter py-3 border-l-2 border-primary bg-primary/10 text-primary font-semibold hover:bg-surface-container-low transition-colors active:scale-[0.98] transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="local_shipping" style="font-variation-settings: 'FILL' 1;">local_shipping</span>
+<span class="font-label-lg text-label-lg">Logistics</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-gutter py-3 text-muted hover:text-on-surface hover:bg-surface-container-low transition-colors active:scale-[0.98] transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="groups">groups</span>
+<span class="font-label-lg text-label-lg">Directory</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-gutter py-3 text-muted hover:text-on-surface hover:bg-surface-container-low transition-colors active:scale-[0.98] transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="verified_user">verified_user</span>
+<span class="font-label-lg text-label-lg">Trust</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-gutter py-3 text-muted hover:text-on-surface hover:bg-surface-container-low transition-colors active:scale-[0.98] transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span class="font-label-lg text-label-lg">Intelligence</span>
+</a>
+</li>
+</ul>
+<!-- Footer Tabs -->
+<div class="mt-auto px-gutter mb-4">
+<button class="w-full bg-primary text-on-primary font-label-lg text-label-lg py-3 rounded-DEFAULT hover:bg-primary/90 transition-colors mb-6 shadow-sm">
+                New Dispatch
+            </button>
+<ul class="flex flex-col gap-1">
+<li>
+<a class="flex items-center gap-3 py-2 text-muted hover:text-on-surface transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-label-lg text-label-lg">Settings</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 py-2 text-muted hover:text-on-surface transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="help_outline">help_outline</span>
+<span class="font-label-lg text-label-lg">Support</span>
+</a>
+</li>
+</ul>
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="ml-0 md:ml-sidebar-width flex-1 flex flex-col min-h-screen">
+<!-- TopAppBar (Shared Component) -->
+<header class="fixed top-0 right-0 left-0 md:left-sidebar-width h-16 bg-surface/80 backdrop-blur-md border-b border-refined z-20 flex justify-between items-center px-margin-edge w-full">
+<div class="flex items-center gap-8 h-full">
+<span class="font-headline-md text-headline-md tracking-tighter text-on-surface hidden lg:block">Vaya Command Kinetic</span>
+<!-- Navigation Links -->
+<nav class="hidden md:flex h-full gap-6">
+<a class="flex items-center h-full text-primary font-bold border-b-2 border-primary font-label-lg text-label-lg" href="#">Operations</a>
+<a class="flex items-center h-full text-muted hover:text-on-surface transition-colors opacity-90 hover:opacity-100 font-label-lg text-label-lg" href="#">Reports</a>
+<a class="flex items-center h-full text-muted hover:text-on-surface transition-colors opacity-90 hover:opacity-100 font-label-lg text-label-lg" href="#">Fleet</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<!-- Search (on_left relative to trailing actions) -->
+<div class="relative hidden sm:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-muted" data-icon="search">search</span>
+<input class="pl-10 pr-4 py-1.5 bg-surface-container-low border-refined rounded-full font-body-sm text-body-sm text-on-surface focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all w-48" placeholder="Search..." type="text"/>
+</div>
+<div class="h-6 w-px bg-border-refined mx-2 hidden sm:block"></div>
+<!-- Trailing Primary Action -->
+<button class="font-label-lg text-label-lg text-primary hover:bg-primary/5 px-3 py-1.5 rounded-DEFAULT transition-colors">
+                    System Status
+                </button>
+<!-- Trailing Icon Actions -->
+<div class="flex items-center gap-2 text-muted">
+<button class="p-2 hover:text-on-surface hover:bg-surface-container-low rounded-full transition-colors active:scale-95">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="p-2 hover:text-on-surface hover:bg-surface-container-low rounded-full transition-colors active:scale-95">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+</button>
+<button class="p-2 hover:text-on-surface hover:bg-surface-container-low rounded-full transition-colors active:scale-95">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Canvas Area -->
+<div class="pt-24 px-margin-edge pb-12 w-full max-w-max-content-width mx-auto flex-1 flex flex-col gap-6">
+<!-- Context Header & Live Filter Bar -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-refined">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Active Journeys</h2>
+<p class="font-body-sm text-body-sm text-muted mt-1">Real-time operational view of ongoing rides.</p>
+</div>
+<!-- Filter Bar -->
+<div class="flex items-center gap-3 flex-wrap">
+<div class="relative">
+<select class="appearance-none bg-surface-container-lowest border border-refined rounded-DEFAULT pl-3 pr-8 py-2 font-label-lg text-label-lg text-on-surface focus:ring-2 focus:ring-primary/20 outline-none">
+<option>All Routes</option>
+<option>North Corridor</option>
+<option>South Sector</option>
+</select>
+<span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-muted pointer-events-none text-sm" data-icon="expand_more">expand_more</span>
+</div>
+<div class="relative">
+<select class="appearance-none bg-surface-container-lowest border border-refined rounded-DEFAULT pl-3 pr-8 py-2 font-label-lg text-label-lg text-on-surface focus:ring-2 focus:ring-primary/20 outline-none">
+<option>Status: Any</option>
+<option>Normal</option>
+<option>Delayed</option>
+<option>Exception</option>
+</select>
+<span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-muted pointer-events-none text-sm" data-icon="expand_more">expand_more</span>
+</div>
+<button class="flex items-center gap-2 bg-surface-container-low hover:bg-surface-variant text-on-surface px-4 py-2 rounded-DEFAULT font-label-lg text-label-lg transition-colors border border-transparent">
+<span class="material-symbols-outlined text-[18px]" data-icon="filter_list">filter_list</span>
+                        More Filters
+                    </button>
+</div>
+</div>
+<!-- Journey Data Table (Canvas-integrated, no heavy cards) -->
+<div class="w-full overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead class="bg-surface/95 backdrop-blur-sm border-b border-refined">
+<tr>
+<th class="py-3 px-4 font-label-lg text-label-lg text-muted uppercase tracking-wider font-medium w-1/4">Route &amp; Progress</th>
+<th class="py-3 px-4 font-label-lg text-label-lg text-muted uppercase tracking-wider font-medium">Driver</th>
+<th class="py-3 px-4 font-label-lg text-label-lg text-muted uppercase tracking-wider font-medium">Passengers</th>
+<th class="py-3 px-4 font-label-lg text-label-lg text-muted uppercase tracking-wider font-medium">Timing</th>
+<th class="py-3 px-4 font-label-lg text-label-lg text-muted uppercase tracking-wider font-medium">Health</th>
+<th class="py-3 px-4 font-label-lg text-label-lg text-muted uppercase tracking-wider font-medium text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="font-body-md divide-y divide-refined">
+<!-- Row 1: Normal State -->
+<tr class="group hover:bg-surface-container-low transition-colors relative">
+<td class="py-4 px-4 align-middle">
+<div class="flex flex-col gap-2 w-full max-w-[280px]">
+<div class="flex justify-between font-mono-data text-mono-data text-on-surface">
+<span>MAD (Origin)</span>
+<span>BCN (Dest)</span>
+</div>
+<div class="journey-line">
+<div class="journey-progress w-[65%]"></div>
+</div>
+</div>
+</td>
+<td class="py-4 px-4 align-middle">
+<div class="flex items-center gap-3">
+<img class="w-8 h-8 rounded-full object-cover border border-refined" data-alt="A professional headshot of a commercial driver in uniform, neutral background, sharp focus, modern corporate style, evenly lit." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAezX_9B0BJyK8dQ64qE_p0OBxSl3yCdWjTYImQh3EYiQ7GQieaA4YLF04A7dE_JvYoF5y5sC5dW3P-PAxFVWhl1gjZ3vj_8ZTG0125puifBL1EIMQ6UbiU3wNiBi7U0T6qzQ5AQocKDu30Ozg3Jg36uRhSe-k_K9D2YG7LRWcdS0TQ7zyjx9Cg7dZIi01f-u4K9bd3qx1xhoX8ULfkB-2VVRHoLKvIG76n2hauM0PBeyWDBRkhc_z7"/>
+<div class="flex flex-col">
+<span class="font-medium text-on-surface">Carlos R.</span>
+<span class="font-mono-micro text-muted">ID: DRV-891</span>
+</div>
+</div>
+</td>
+<td class="py-4 px-4 align-middle">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-muted text-[18px]" data-icon="group">group</span>
+<span class="font-mono-data text-on-surface">3/4</span>
+</div>
+</td>
+<td class="py-4 px-4 align-middle">
+<div class="flex flex-col">
+<span class="text-on-surface font-mono-data">ETA: 14:30</span>
+<span class="text-success font-mono-micro">On Time</span>
+</div>
+</td>
+<td class="py-4 px-4 align-middle">
+<span class="inline-flex items-center px-2 py-1 rounded-DEFAULT bg-success/10 text-success font-mono-data">Normal</span>
+</td>
+<td class="py-4 px-4 align-middle text-right">
+<div class="flex justify-end gap-2 row-hover-actions">
+<button class="p-1.5 text-muted hover:text-primary transition-colors" title="Contact Driver">
+<span class="material-symbols-outlined text-[20px]" data-icon="chat">chat</span>
+</button>
+<button class="p-1.5 text-muted hover:text-primary transition-colors" title="View Map">
+<span class="material-symbols-outlined text-[20px]" data-icon="map">map</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 2: Delayed State -->
+<tr class="group hover:bg-surface-container-low transition-colors relative">
+<td class="py-4 px-4 align-middle">
+<div class="flex flex-col gap-2 w-full max-w-[280px]">
+<div class="flex justify-between font-mono-data text-mono-data text-on-surface">
+<span>VLC (Origin)</span>
+<span>ZAZ (Dest)</span>
+</div>
+<div class="journey-line">
+<div class="journey-progress w-[30%] bg-warning"></div>
+</div>
+</div>
+</td>
+<td class="py-4 px-4 align-middle">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-surface-variant flex items-center justify-center text-muted font-label-lg">MS</div>
+<div class="flex flex-col">
+<span class="font-medium text-on-surface">Maria S.</span>
+<span class="font-mono-micro text-muted">ID: DRV-442</span>
+</div>
+</div>
+</td>
+<td class="py-4 px-4 align-middle">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-muted text-[18px]" data-icon="group">group</span>
+<span class="font-mono-data text-on-surface">4/4 (Full)</span>
+</div>
+</td>
+<td class="py-4 px-4 align-middle">
+<div class="flex flex-col">
+<span class="text-on-surface font-mono-data">ETA: 16:15</span>
+<span class="text-warning font-mono-micro">+15m Delay</span>
+</div>
+</td>
+<td class="py-4 px-4 align-middle">
+<span class="inline-flex items-center px-2 py-1 rounded-DEFAULT bg-warning/10 text-warning font-mono-data">Delayed</span>
+</td>
+<td class="py-4 px-4 align-middle text-right">
+<div class="flex justify-end gap-2 row-hover-actions">
+<button class="p-1.5 text-muted hover:text-primary transition-colors" title="Contact Driver">
+<span class="material-symbols-outlined text-[20px]" data-icon="chat">chat</span>
+</button>
+<button class="p-1.5 text-muted hover:text-primary transition-colors" title="View Map">
+<span class="material-symbols-outlined text-[20px]" data-icon="map">map</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 3: Exception State -->
+<tr class="group hover:bg-surface-container-low transition-colors relative">
+<td class="py-4 px-4 align-middle">
+<div class="flex flex-col gap-2 w-full max-w-[280px]">
+<div class="flex justify-between font-mono-data text-mono-data text-on-surface">
+<span>SEV (Origin)</span>
+<span>MAD (Dest)</span>
+</div>
+<div class="journey-line">
+<div class="journey-progress w-[85%] bg-error"></div>
+</div>
+</div>
+</td>
+<td class="py-4 px-4 align-middle">
+<div class="flex items-center gap-3">
+<img class="w-8 h-8 rounded-full object-cover border border-refined" data-alt="A professional headshot of a female commercial driver, wearing a dark cap and uniform, modern logistics setting, neutral background, evenly lit." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAMph4N4Pl5xqwKtNPJgV9fw4kx8qSVmfNA8IBKfu3_UoNSyTpyFYQ-eONeDmggY4sHOXVMxGfqYUaA7COYhLjcnHDaPHa3lSA96bFy5tJ4ryQ2JtK7v2W8LKWRaqARoRCXMQ6E5AfxhpWLSIJFoXkb6zQq9PHu_EDg5o7hmzYnmG9kG0gGm8UBRU74s2T3ytYrMYouUsktK5KGNnIJmigz7S3pEf0MNdMN-dXoK0lUnk6Vj2yPM46M"/>
+<div class="flex flex-col">
+<span class="font-medium text-on-surface">Elena G.</span>
+<span class="font-mono-micro text-muted">ID: DRV-110</span>
+</div>
+</div>
+</td>
+<td class="py-4 px-4 align-middle">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-muted text-[18px]" data-icon="group">group</span>
+<span class="font-mono-data text-on-surface">1/4</span>
+</div>
+</td>
+<td class="py-4 px-4 align-middle">
+<div class="flex flex-col">
+<span class="text-on-surface font-mono-data line-through text-muted">ETA: 09:00</span>
+<span class="text-error font-mono-micro font-bold">Halted</span>
+</div>
+</td>
+<td class="py-4 px-4 align-middle">
+<span class="inline-flex items-center px-2 py-1 rounded-DEFAULT bg-error/10 text-error font-mono-data">Exception</span>
+</td>
+<td class="py-4 px-4 align-middle text-right">
+<div class="flex justify-end gap-2 row-hover-actions">
+<button class="p-1.5 text-error hover:bg-error/10 rounded transition-colors flex items-center gap-1 font-label-lg text-label-lg" title="Resolve">
+<span class="material-symbols-outlined text-[18px]" data-icon="build">build</span>
+                                        Resolve
+                                    </button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination / Load More (Simple) -->
+<div class="flex justify-between items-center pt-4 text-muted border-t border-refined">
+<span class="font-mono-micro text-mono-micro">Showing 3 of 42 Active Journeys</span>
+<button class="font-label-lg text-label-lg hover:text-primary transition-colors flex items-center gap-1">
+                    Load More <span class="material-symbols-outlined text-[18px]" data-icon="arrow_downward">arrow_downward</span>
+</button>
+</div>
+</div>
+</main>
+</body></html>
