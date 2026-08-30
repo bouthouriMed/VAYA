@@ -18,6 +18,12 @@ import { notificationEventTypeEnum } from '../../../db/schema/notifications.sche
  * should be" (a separate, deeper question already answered for the
  * existing types by bookings-notifications.integration.test.ts and
  * ratings-notification.integration.test.ts elsewhere in this codebase).
+ *
+ * All 4 previously-structurally-missing event types (booking_deadline_
+ * approaching, booking_sibling_cancelled, trip_active, trip_eta_changed)
+ * are now real, dispatched event types — see each real dispatch site's own
+ * doc comment (bookings.service.ts's runBookingExpirySweep/acceptBooking,
+ * trips.service.ts's confirmPassengerAboard/updateTripLocation).
  */
 const EXISTING_EVENTS = new Set(notificationEventTypeEnum.enumValues as readonly string[]);
 
@@ -57,27 +63,25 @@ describe('notification event coverage — spec §39\'s 12-item list vs. the real
     expect(EXISTING_EVENTS.has('review_requested')).toBe(false);
   });
 
-  it('FAIL (missing, M-113): "request deadline approaching" has no event type at all', () => {
-    expect(EXISTING_EVENTS.has('booking_deadline_approaching')).toBe(false);
+  it('RESOLVED (M-113): "request deadline approaching" -> booking_deadline_approaching now exists, dispatched once per pending booking by runBookingExpirySweep\'s new reminder pass (bookings.service.ts)', () => {
+    expect(EXISTING_EVENTS.has('booking_deadline_approaching')).toBe(true);
   });
 
-  it('FAIL (missing, M-113/M-055): "other passenger requests cancelled" (sibling-cancellation) has no event type at all', () => {
-    expect(EXISTING_EVENTS.has('booking_sibling_cancelled')).toBe(false);
-    expect(EXISTING_EVENTS.has('request_group_closed')).toBe(false);
+  it('RESOLVED (M-113/M-055): "other passenger requests cancelled" -> booking_sibling_cancelled now exists, replacing the previous conflated reuse of booking_declined in acceptBooking\'s sibling-supersede notification', () => {
+    expect(EXISTING_EVENTS.has('booking_sibling_cancelled')).toBe(true);
   });
 
   it('RESOLVED (M-113, journey-contract second pass): "passenger onboard" -> trip_passenger_onboard now exists, dispatched from both the auto-boarding-inference path and the manual confirmPassengerAboard tap (trips.service.ts)', () => {
     expect(EXISTING_EVENTS.has('trip_passenger_onboard')).toBe(true);
   });
 
-  it('FAIL (missing, M-113): "live journey started" has no distinct event type — trip_passenger_onboard (boarding) is the closest existing signal, but a driver-side "you are now live/en route" moment remains conflated with pickup rather than dispatched separately', () => {
-    expect(EXISTING_EVENTS.has('trip_active')).toBe(false);
-    expect(EXISTING_EVENTS.has('live_journey_started')).toBe(false);
+  it('RESOLVED (M-113): "live journey started" -> trip_active now exists, dispatched to the driver (distinct from the rider-facing trip_passenger_onboard) from both the manual confirmPassengerAboard tap and its GPS-inferred counterpart', () => {
+    expect(EXISTING_EVENTS.has('trip_active')).toBe(true);
   });
 
-  it('PARTIALLY RESOLVED (M-113/M-090, journey-contract second pass): "route ... changed" -> trip_route_deviation now exists (dispatched once per genuine, non-noise deviation — classifyRouteDeviation/updateLiveCorridor). "... ETA changed" in isolation (no route deviation, just a recompute) is still WebSocket-only, never persisted/pushed as its own notification.', () => {
+  it('RESOLVED (M-113/M-090, journey-contract second pass): "route ... changed" -> trip_route_deviation (unchanged, dispatched once per genuine, non-noise deviation) AND "... ETA changed" in isolation -> trip_eta_changed now exists too, dispatched only when a live ETA recompute drifts past ETA_CHANGE_NOTIFY_THRESHOLD_SEC from the last one a rider was told about — never on every ~20s recompute', () => {
     expect(EXISTING_EVENTS.has('trip_route_deviation')).toBe(true);
-    expect(EXISTING_EVENTS.has('trip_eta_changed')).toBe(false);
+    expect(EXISTING_EVENTS.has('trip_eta_changed')).toBe(true);
   });
 
   it('documents the exact current event surface, so a future addition updates this test deliberately rather than silently', () => {
@@ -105,6 +109,10 @@ describe('notification event coverage — spec §39\'s 12-item list vs. the real
         'verification_declined',
         'verification_resubmission_required',
         'rating_received',
+        'booking_deadline_approaching',
+        'booking_sibling_cancelled',
+        'trip_active',
+        'trip_eta_changed',
       ]),
     );
   });

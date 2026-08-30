@@ -332,6 +332,14 @@ export async function confirmPassengerAboard(db: Database, tripId: string, reque
   // becomes available is worth a real notification regardless of which
   // path (manual tap or GPS-inferred) reached it.
   await notifyBestEffort(db, trip.booking.riderId, 'trip_passenger_onboard', { tripId, bookingId: trip.bookingId });
+  // M-113 (spec §39, "live journey started") — the driver-facing
+  // counterpart of the same pickup -> active transition: distinct from
+  // trip_passenger_onboard (rider-facing, "you can now track this trip")
+  // rather than reusing it for both parties.
+  await notifyBestEffort(db, trip.booking.ride.driverProfile.userId, 'trip_active', {
+    tripId,
+    bookingId: trip.bookingId,
+  });
   await publishTripUpdate(tripId, { type: 'status', tripStatus: updated.status });
   return updated;
 }
@@ -379,6 +387,16 @@ const BOARDING_MOVEMENT_MIN_METERS = 15;
 // trade for not adding a shared-state dependency to this hot path.
 const ETA_RECOMPUTE_INTERVAL_MS = 20_000;
 const lastEtaComputedAt = new Map<string, number>();
+
+// M-113 (spec §39, "route/ETA changed" — the ETA-only half): how much a
+// fresh live ETA recompute must drift from the last one a rider was
+// actually notified about before it's worth a real notification, not just
+// the WebSocket-only update every recompute already gets. Deliberately
+// much coarser than the 20s recompute interval above — this is the
+// difference between "the number on screen ticked down normally" and "your
+// arrival time genuinely moved," per M-114's "no notification spam from
+// routine pings" invariant.
+const ETA_CHANGE_NOTIFY_THRESHOLD_SEC = 5 * 60;
 
 /** Driver's location ping. Persists only the latest fix (no history table —
  *  CLAUDE.md's live-tracking brief: minimize retention), evaluates the
@@ -534,6 +552,13 @@ export async function updateTripLocation(
     // becomes available — worth a real notification, not just a silent
     // status flip the rider would only notice by happening to poll.
     await notifyBestEffort(db, trip.booking.riderId, 'trip_passenger_onboard', { tripId, bookingId: trip.bookingId });
+    // M-113 (spec §39, "live journey started") — same driver-facing
+    // counterpart confirmPassengerAboard's manual path sends, for the
+    // GPS-inferred boarding path.
+    await notifyBestEffort(db, trip.booking.ride.driverProfile.userId, 'trip_active', {
+      tripId,
+      bookingId: trip.bookingId,
+    });
   }
   if (autoNextStatus === 'arriving') {
     await notifyBestEffort(db, trip.booking.riderId, 'trip_arriving', { tripId, bookingId: trip.bookingId });
@@ -554,6 +579,7 @@ export async function updateTripLocation(
 
   let etaSec: number | null = null;
   let distanceRemainingM: number | null = null;
+  let meaningfulEtaChangeSec: number | null = null;
   const lastComputed = lastEtaComputedAt.get(tripId) ?? 0;
   if (now.getTime() - lastComputed >= ETA_RECOMPUTE_INTERVAL_MS) {
     lastEtaComputedAt.set(tripId, now.getTime());
@@ -561,9 +587,31 @@ export async function updateTripLocation(
       const route = await getRoute(currentPos, destination);
       etaSec = route.durationSec;
       distanceRemainingM = route.distanceM;
+
+      // M-113: the first-ever computation just establishes a baseline (no
+      // "changed" to report yet, nothing to compare against); a later one
+      // only counts as notify-worthy once it drifts past the threshold —
+      // and only THEN does the stored baseline move, so a slow drift across
+      // many small recomputes still eventually crosses it exactly once,
+      // rather than resetting the comparison point on every tick.
+      const previousNotifiedEtaSec = trip.lastNotifiedEtaSec;
+      if (previousNotifiedEtaSec === null) {
+        await db.update(trips).set({ lastNotifiedEtaSec: etaSec }).where(eq(trips.id, tripId));
+      } else if (Math.abs(etaSec - previousNotifiedEtaSec) >= ETA_CHANGE_NOTIFY_THRESHOLD_SEC) {
+        await db.update(trips).set({ lastNotifiedEtaSec: etaSec }).where(eq(trips.id, tripId));
+        meaningfulEtaChangeSec = etaSec;
+      }
     } catch (err) {
       getLogger().warn({ err, tripId }, 'Live ETA recompute failed — continuing without it');
     }
+  }
+
+  if (meaningfulEtaChangeSec !== null) {
+    await notifyBestEffort(db, trip.booking.riderId, 'trip_eta_changed', {
+      tripId,
+      bookingId: trip.bookingId,
+      etaMinutes: Math.round(meaningfulEtaChangeSec / 60),
+    });
   }
 
   const trackingStatus = deriveTrackingStatus({

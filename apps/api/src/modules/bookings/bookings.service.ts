@@ -1,4 +1,4 @@
-import { and, eq, inArray, isNotNull, lte, ne } from 'drizzle-orm';
+import { and, eq, inArray, isNotNull, ne } from 'drizzle-orm';
 import type { getDatabase } from '../../lib/database.js';
 import { bookings, rides, routeStops, riderProfiles, trips, users } from '../../db/schema/index.js';
 import { AppError, ConflictError, ForbiddenError, NotFoundError, ValidationError } from '../../lib/errors.js';
@@ -17,6 +17,7 @@ import {
   evaluateNoShowReport,
   findSameJourneySiblings,
   getMatchingThresholds,
+  isDeadlineApproaching,
   wouldExceedCapacity,
   CANCELLATION_REASONS,
   NO_SHOW_PENALTY_POINTS,
@@ -1156,11 +1157,15 @@ export async function acceptBooking(db: Database, bookingId: string, requestingU
     departureAt: booking.ride.departureAt.toISOString(),
   });
 
-  // M-055 (spec §20): the rider whose other requests were just closed by
-  // this acceptance is told why — never a silent status flip they'd only
-  // discover by happening to reopen the app.
+  // M-055/M-113 (spec §20/§39): the rider whose other requests were just
+  // closed by this acceptance is told why — never a silent status flip
+  // they'd only discover by happening to reopen the app. A real, distinct
+  // event type (was silently conflated with an ordinary 'booking_declined'
+  // before M-113 — notification-event-coverage.contract.test.ts's own
+  // "documents the exact current event surface" test confirmed the type
+  // didn't exist at all).
   for (const sibling of supersededSiblings) {
-    await notifyBestEffort(db, booking.riderId, 'booking_declined', {
+    await notifyBestEffort(db, booking.riderId, 'booking_sibling_cancelled', {
       bookingId: sibling.id,
       rideId: booking.rideId,
       reason: 'superseded_by_accepted_sibling',
@@ -1705,6 +1710,7 @@ export async function cancelBooking(
 export interface BookingExpirySweepResult {
   scanned: number;
   expired: number;
+  deadlineReminded: number;
 }
 
 /**
@@ -1718,29 +1724,58 @@ export interface BookingExpirySweepResult {
  * `pending` booking never held a seat — Phase 1's atomic accounting only
  * decrements on `accepted` — so there is nothing to release), no effect on
  * any other request for the same journey.
+ *
+ * M-113 (spec §39, "request deadline approaching") shares this same sweep
+ * rather than a second periodic job: a still-`pending` booking whose
+ * `expiresAt` is inside `isDeadlineApproaching`'s lead window gets exactly
+ * one reminder — to the DRIVER, the party who actually needs to act before
+ * it lapses — never re-sent on a later pass (`deadlineReminderSentAt`,
+ * mirrors `trips.completionReminderSentAt`'s own once-only pattern).
  */
 export async function runBookingExpirySweep(db: Database): Promise<BookingExpirySweepResult> {
   const now = new Date();
   const candidates = await db.query.bookings.findMany({
-    where: and(eq(bookings.status, 'pending'), isNotNull(bookings.expiresAt), lte(bookings.expiresAt, now)),
+    where: and(eq(bookings.status, 'pending'), isNotNull(bookings.expiresAt)),
+    with: { ride: { with: { driverProfile: true } } },
   });
 
-  const result: BookingExpirySweepResult = { scanned: candidates.length, expired: 0 };
+  const result: BookingExpirySweepResult = { scanned: candidates.length, expired: 0, deadlineReminded: 0 };
 
   for (const candidate of candidates) {
-    const [updated] = await db
-      .update(bookings)
-      .set({ status: 'expired', respondedAt: now, updatedAt: now })
-      .where(and(eq(bookings.id, candidate.id), eq(bookings.status, 'pending')))
-      .returning();
-    if (!updated) continue; // lost a race (e.g. accepted/declined/cancelled moments ago) — not an error.
-    result.expired += 1;
+    const expiresAt = candidate.expiresAt!; // isNotNull filtered above
 
-    await notifyBestEffort(db, candidate.riderId, 'booking_declined', {
-      bookingId: candidate.id,
-      rideId: candidate.rideId,
-      reason: 'request_expired',
-    });
+    if (expiresAt.getTime() <= now.getTime()) {
+      const [updated] = await db
+        .update(bookings)
+        .set({ status: 'expired', respondedAt: now, updatedAt: now })
+        .where(and(eq(bookings.id, candidate.id), eq(bookings.status, 'pending')))
+        .returning();
+      if (!updated) continue; // lost a race (e.g. accepted/declined/cancelled moments ago) — not an error.
+      result.expired += 1;
+
+      await notifyBestEffort(db, candidate.riderId, 'booking_declined', {
+        bookingId: candidate.id,
+        rideId: candidate.rideId,
+        reason: 'request_expired',
+      });
+      continue;
+    }
+
+    if (!candidate.deadlineReminderSentAt && isDeadlineApproaching(expiresAt, now)) {
+      const [updated] = await db
+        .update(bookings)
+        .set({ deadlineReminderSentAt: now, updatedAt: now })
+        .where(and(eq(bookings.id, candidate.id), eq(bookings.status, 'pending')))
+        .returning();
+      if (!updated) continue; // lost a race — not an error.
+      result.deadlineReminded += 1;
+
+      await notifyBestEffort(db, candidate.ride.driverProfile.userId, 'booking_deadline_approaching', {
+        bookingId: candidate.id,
+        rideId: candidate.rideId,
+        expiresAt: expiresAt.toISOString(),
+      });
+    }
   }
 
   return result;

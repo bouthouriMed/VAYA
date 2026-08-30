@@ -40,6 +40,34 @@ export const notificationEventTypeEnum = pgEnum('notification_event_type', [
   // Ratings & trust (docs/domain/model.md): ratings.service.ts's createRating
   // notifies whichever party was just rated.
   'rating_received',
+  // M-113 (docs/unified_driver_and_passenger_journey.md §39, journey-contract
+  // second pass): closes the 4 structurally-missing event types
+  // notification-event-coverage.contract.test.ts's own "documents the exact
+  // current event surface" test previously confirmed absent from this enum
+  // entirely (not just undispatched).
+  //
+  // "request deadline approaching" — a one-time reminder to the DRIVER
+  // (they're the one who needs to act) before a pending request's
+  // M-054 expiresAt lapses (bookings.service.ts's runBookingExpirySweep).
+  'booking_deadline_approaching',
+  // "other passenger requests cancelled" — was silently reusing
+  // 'booking_declined' with a reason code (bookings.service.ts's
+  // acceptBooking, M-055's sibling-supersede notification) — a real,
+  // distinct event type now, not conflated with an ordinary decline.
+  'booking_sibling_cancelled',
+  // "live journey started" — the pickup -> active transition
+  // (trips.service.ts's confirmPassengerAboard and its GPS-inferred
+  // counterpart), distinct from 'trip_passenger_onboard' (which already
+  // fires at the same moment for the rider specifically): this one is the
+  // driver-facing "you are now live" signal the spec names separately.
+  'trip_active',
+  // "route/ETA changed" (the ETA-only half — 'trip_route_deviation' above
+  // already covers the route half) — dispatched only when a live ETA
+  // recompute (trips.service.ts's updateTripLocation) changes by more than
+  // a meaningful threshold from the last one a rider was actually told
+  // about, never on every ~20s recompute (that stays WebSocket-only, per
+  // M-114's "no notification spam from routine pings" invariant).
+  'trip_eta_changed',
 ]);
 
 export const notifications = pgTable('notifications', {

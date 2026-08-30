@@ -42,6 +42,14 @@ export const NOTIFICATION_EVENT_TYPES = [
   // rating is recorded (recordAutomaticNoShowRating) — symmetric for both
   // roles, unlike most other event types here which are role-specific.
   'rating_received',
+  // M-113 (docs/unified_driver_and_passenger_journey.md §39, journey-contract
+  // second pass) — must stay in sync with
+  // apps/api/src/db/schema/notifications.schema.ts's notificationEventTypeEnum,
+  // which carries the full reasoning for each of these 4.
+  'booking_deadline_approaching',
+  'booking_sibling_cancelled',
+  'trip_active',
+  'trip_eta_changed',
 ] as const;
 export type NotificationEventType = (typeof NOTIFICATION_EVENT_TYPES)[number];
 

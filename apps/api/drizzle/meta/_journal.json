@@ -183,6 +183,13 @@
       "when": 1788046718356,
       "tag": "0025_chubby_galactus",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1788047432805,
+      "tag": "0026_dapper_la_nuit",
+      "breakpoints": true
     }
   ]
 }

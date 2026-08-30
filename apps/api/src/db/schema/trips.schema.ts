@@ -1,4 +1,4 @@
-﻿import { doublePrecision, index, jsonb, pgEnum, pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
+﻿import { doublePrecision, index, integer, jsonb, pgEnum, pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
 import { bookings } from './bookings.schema';
 import { rides } from './rides.schema';
 
@@ -90,6 +90,14 @@ export const trips = pgTable(
     // one on the same terminal booking/trip status, for observability/
     // support tooling. Never set by the manual reportNoShow path.
     autoNoShowClassifiedAt: timestamp('auto_no_show_classified_at', { withTimezone: true }),
+    // M-113 (spec §39, "route/ETA changed" — the ETA-only half): the last
+    // live-recomputed ETA a rider was actually notified about
+    // (updateTripLocation dispatches 'trip_eta_changed' only when a fresh
+    // recompute differs from this by more than ETA_CHANGE_NOTIFY_THRESHOLD_SEC,
+    // then updates it) — never on every ~20s recompute, only a genuinely
+    // meaningful change. Null until the first live ETA has ever been
+    // computed for this trip.
+    lastNotifiedEtaSec: integer('last_notified_eta_sec'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },

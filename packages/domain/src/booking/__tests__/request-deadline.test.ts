@@ -2,7 +2,9 @@ import { describe, it, expect } from 'vitest';
 import {
   computeBookingExpiresAt,
   hasBookingRequestExpired,
+  isDeadlineApproaching,
   BOOKING_REQUEST_RESPONSE_WINDOW_MINUTES,
+  DEADLINE_APPROACHING_LEAD_MINUTES,
 } from '../request-deadline';
 
 describe('request-deadline — server-authoritative response window (M-054)', () => {
@@ -27,5 +29,30 @@ describe('request-deadline — server-authoritative response window (M-054)', ()
     expect(hasBookingRequestExpired(expiresAt, new Date(expiresAt.getTime() - 1))).toBe(false);
     expect(hasBookingRequestExpired(expiresAt, expiresAt)).toBe(true);
     expect(hasBookingRequestExpired(expiresAt, new Date(expiresAt.getTime() + 1))).toBe(true);
+  });
+});
+
+describe('isDeadlineApproaching — M-113 "request deadline approaching" reminder gate', () => {
+  const expiresAt = new Date('2026-09-01T10:07:00.000Z');
+
+  it('not yet approaching well before the deadline', () => {
+    const now = new Date(expiresAt.getTime() - (DEADLINE_APPROACHING_LEAD_MINUTES + 1) * 60_000);
+    expect(isDeadlineApproaching(expiresAt, now)).toBe(false);
+  });
+
+  it('approaching once inside the configured lead window', () => {
+    const now = new Date(expiresAt.getTime() - (DEADLINE_APPROACHING_LEAD_MINUTES - 1) * 60_000);
+    expect(isDeadlineApproaching(expiresAt, now)).toBe(true);
+  });
+
+  it('no longer "approaching" once the deadline has actually passed — that is expiry, a separate state', () => {
+    expect(isDeadlineApproaching(expiresAt, expiresAt)).toBe(false);
+    expect(isDeadlineApproaching(expiresAt, new Date(expiresAt.getTime() + 1000))).toBe(false);
+  });
+
+  it('respects an injected lead-time override rather than hardcoding the default', () => {
+    const now = new Date(expiresAt.getTime() - 4 * 60_000);
+    expect(isDeadlineApproaching(expiresAt, now, 2)).toBe(false);
+    expect(isDeadlineApproaching(expiresAt, now, 5)).toBe(true);
   });
 });

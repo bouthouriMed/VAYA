@@ -88,6 +88,12 @@ export const bookings = pgTable(
     // `createBooking` at request time (requestedAt + the configured
     // response window, @vaya/domain's computeBookingExpiresAt).
     expiresAt: timestamp('expires_at', { withTimezone: true }),
+    // M-113 (spec §39, "request deadline approaching"): set the first (and
+    // only) time runBookingExpirySweep sends the driver a reminder that this
+    // pending request's expiresAt is close — mirrors trips.
+    // completionReminderSentAt's exact "never re-notify on a later sweep
+    // pass" pattern. Never set for a booking with no expiresAt at all.
+    deadlineReminderSentAt: timestamp('deadline_reminder_sent_at', { withTimezone: true }),
     // Journey-contract second pass (docs/unified_driver_and_passenger_journey.md
     // §38, M-110): "a lightweight required reason from a fixed set"
     // (@vaya/domain's CANCELLATION_REASONS). Nullable/additive — every

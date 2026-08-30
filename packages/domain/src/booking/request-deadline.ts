@@ -25,3 +25,23 @@ export function computeBookingExpiresAt(
 export function hasBookingRequestExpired(expiresAt: Date, now: Date): boolean {
   return now.getTime() >= expiresAt.getTime();
 }
+
+/**
+ * M-113 (spec §39, "request deadline approaching"). Scaled to the response
+ * window itself, not a fixed absolute number — `BOOKING_REQUEST_RESPONSE_
+ * WINDOW_MINUTES`'s own 7-minute default makes a fixed 10/15-minute lead
+ * (a plausible choice for a longer SLA) meaningless here, since it would
+ * always report "approaching" from the very moment the request was made.
+ * Injectable override, same M-085a pattern as the rest of this suite's
+ * policy thresholds.
+ */
+export const DEADLINE_APPROACHING_LEAD_MINUTES = 2;
+
+export function isDeadlineApproaching(
+  expiresAt: Date,
+  now: Date,
+  leadMinutes: number = DEADLINE_APPROACHING_LEAD_MINUTES,
+): boolean {
+  const msRemaining = expiresAt.getTime() - now.getTime();
+  return msRemaining > 0 && msRemaining <= leadMinutes * 60_000;
+}

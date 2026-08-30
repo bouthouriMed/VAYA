@@ -148,6 +148,11 @@ const TITLES: Partial<Record<NotificationEventType, string>> = {
   verification_declined: 'Vérification refusée',
   verification_resubmission_required: 'Vérification à mettre à jour',
   rating_received: 'Nouvel avis reçu',
+  // M-113 (docs/unified_driver_and_passenger_journey.md §39).
+  booking_deadline_approaching: 'Réponse attendue bientôt',
+  booking_sibling_cancelled: 'Demande annulée',
+  trip_active: 'Trajet en direct',
+  trip_eta_changed: 'Heure d’arrivée mise à jour',
 };
 
 function titleFor(type: NotificationEventType): string {
@@ -246,6 +251,20 @@ function bodyFor(type: NotificationEventType, payload: Record<string, unknown>):
       return typeof payload.raterName === 'string' && typeof payload.stars === 'number'
         ? `${payload.raterName} vous a laissé un avis (${payload.stars.toFixed(1)}/5).`
         : 'Vous avez reçu un nouvel avis.';
+    // M-113 (docs/unified_driver_and_passenger_journey.md §39) — see
+    // bookings.service.ts's runBookingExpirySweep/acceptBooking and
+    // trips.service.ts's updateTripLocation/confirmPassengerAboard for each
+    // dispatch site.
+    case 'booking_deadline_approaching':
+      return 'Une demande de réservation attend votre réponse avant l’expiration du délai.';
+    case 'booking_sibling_cancelled':
+      return 'Une de vos autres demandes pour ce trajet a été annulée automatiquement.';
+    case 'trip_active':
+      return 'Votre trajet est maintenant en cours.';
+    case 'trip_eta_changed':
+      return typeof payload.etaMinutes === 'number'
+        ? `Nouvelle heure d’arrivée estimée : environ ${Math.round(payload.etaMinutes)} min.`
+        : 'L’heure d’arrivée estimée a changé.';
     default:
       return 'Vous avez une nouvelle notification.';
   }
