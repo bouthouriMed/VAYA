@@ -1183,42 +1183,49 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
             }
           />
         </View>
-        <View
-          accessibilityLabel="Photo de Amine Ben Salah"
-          accessibilityRole="image"
-          accessible={true}
-          style={
-            [
-              {
-                "alignItems": "center",
-                "justifyContent": "center",
-              },
-              {
-                "backgroundColor": "#E4EDFB",
-                "borderRadius": 24,
-                "height": 48,
-                "width": 48,
-              },
-            ]
-          }
+        <TouchableOpacity
+          accessibilityLabel="common:actions.viewProfile"
+          accessibilityRole="button"
+          hitSlop={6}
+          onPress={[Function]}
         >
-          <Text
+          <View
+            accessibilityLabel="Photo de Amine Ben Salah"
+            accessibilityRole="image"
+            accessible={true}
             style={
               [
                 {
-                  "color": "#FFFFFF",
-                  "fontWeight": "600",
+                  "alignItems": "center",
+                  "justifyContent": "center",
                 },
                 {
-                  "color": "#14201B",
-                  "fontSize": 19,
+                  "backgroundColor": "#E4EDFB",
+                  "borderRadius": 24,
+                  "height": 48,
+                  "width": 48,
                 },
               ]
             }
           >
-            AB
-          </Text>
-        </View>
+            <Text
+              style={
+                [
+                  {
+                    "color": "#FFFFFF",
+                    "fontWeight": "600",
+                  },
+                  {
+                    "color": "#14201B",
+                    "fontSize": 19,
+                  },
+                ]
+              }
+            >
+              AB
+            </Text>
+          </View>
+        </TouchableOpacity>
         <View
           style={
             {
@@ -1475,42 +1482,49 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
             }
           }
         />
-        <View
-          accessibilityLabel="Photo de Salma Trabelsi"
-          accessibilityRole="image"
-          accessible={true}
-          style={
-            [
-              {
-                "alignItems": "center",
-                "justifyContent": "center",
-              },
-              {
-                "backgroundColor": "#E4EDFB",
-                "borderRadius": 24,
-                "height": 48,
-                "width": 48,
-              },
-            ]
-          }
+        <TouchableOpacity
+          accessibilityLabel="common:actions.viewProfile"
+          accessibilityRole="button"
+          hitSlop={6}
+          onPress={[Function]}
         >
-          <Text
+          <View
+            accessibilityLabel="Photo de Salma Trabelsi"
+            accessibilityRole="image"
+            accessible={true}
             style={
               [
                 {
-                  "color": "#FFFFFF",
-                  "fontWeight": "600",
+                  "alignItems": "center",
+                  "justifyContent": "center",
                 },
                 {
-                  "color": "#14201B",
-                  "fontSize": 19,
+                  "backgroundColor": "#E4EDFB",
+                  "borderRadius": 24,
+                  "height": 48,
+                  "width": 48,
                 },
               ]
             }
           >
-            ST
-          </Text>
-        </View>
+            <Text
+              style={
+                [
+                  {
+                    "color": "#FFFFFF",
+                    "fontWeight": "600",
+                  },
+                  {
+                    "color": "#14201B",
+                    "fontSize": 19,
+                  },
+                ]
+              }
+            >
+              ST
+            </Text>
+          </View>
+        </TouchableOpacity>
         <View
           style={
             {

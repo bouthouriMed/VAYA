@@ -441,7 +441,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
             ]
           }
         >
-          mar. 25 août · 8:30
+          Tue, Aug 25 · 8:30 AM
         </Text>
         <View
           style={
@@ -524,7 +524,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
                   ]
                 }
               >
-                8:30
+                8:30 AM
               </Text>
             </View>
             <TouchableOpacity
@@ -720,42 +720,49 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
             }
           }
         >
-          <View
-            accessibilityLabel="Photo de Amine Ben Salah"
-            accessibilityRole="image"
-            accessible={true}
-            style={
-              [
-                {
-                  "alignItems": "center",
-                  "justifyContent": "center",
-                },
-                {
-                  "backgroundColor": "#E4EDFB",
-                  "borderRadius": 26,
-                  "height": 52,
-                  "width": 52,
-                },
-              ]
-            }
+          <TouchableOpacity
+            accessibilityLabel="common:actions.viewProfile"
+            accessibilityRole="button"
+            hitSlop={8}
+            onPress={[Function]}
           >
-            <Text
+            <View
+              accessibilityLabel="Photo de Amine Ben Salah"
+              accessibilityRole="image"
+              accessible={true}
               style={
                 [
                   {
-                    "color": "#FFFFFF",
-                    "fontWeight": "600",
+                    "alignItems": "center",
+                    "justifyContent": "center",
                   },
                   {
-                    "color": "#14201B",
-                    "fontSize": 21,
+                    "backgroundColor": "#E4EDFB",
+                    "borderRadius": 26,
+                    "height": 52,
+                    "width": 52,
                   },
                 ]
               }
             >
-              AB
-            </Text>
-          </View>
+              <Text
+                style={
+                  [
+                    {
+                      "color": "#FFFFFF",
+                      "fontWeight": "600",
+                    },
+                    {
+                      "color": "#14201B",
+                      "fontSize": 21,
+                    },
+                  ]
+                }
+              >
+                AB
+              </Text>
+            </View>
+          </TouchableOpacity>
           <View
             style={
               {

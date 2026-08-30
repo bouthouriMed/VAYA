@@ -2173,42 +2173,49 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
               }
             }
           >
-            <View
-              accessibilityLabel="Photo de Dinara Kochakajeva"
-              accessibilityRole="image"
-              accessible={true}
-              style={
-                [
-                  {
-                    "alignItems": "center",
-                    "justifyContent": "center",
-                  },
-                  {
-                    "backgroundColor": "#FFFFFF",
-                    "borderRadius": 20,
-                    "height": 40,
-                    "width": 40,
-                  },
-                ]
-              }
+            <TouchableOpacity
+              accessibilityLabel="common:actions.viewProfile"
+              accessibilityRole="button"
+              hitSlop={6}
+              onPress={[Function]}
             >
-              <Text
+              <View
+                accessibilityLabel="Photo de Dinara Kochakajeva"
+                accessibilityRole="image"
+                accessible={true}
                 style={
                   [
                     {
-                      "color": "#FFFFFF",
-                      "fontWeight": "600",
+                      "alignItems": "center",
+                      "justifyContent": "center",
                     },
                     {
-                      "color": "#14201B",
-                      "fontSize": 16,
+                      "backgroundColor": "#FFFFFF",
+                      "borderRadius": 20,
+                      "height": 40,
+                      "width": 40,
                     },
                   ]
                 }
               >
-                DK
-              </Text>
-            </View>
+                <Text
+                  style={
+                    [
+                      {
+                        "color": "#FFFFFF",
+                        "fontWeight": "600",
+                      },
+                      {
+                        "color": "#14201B",
+                        "fontSize": 16,
+                      },
+                    ]
+                  }
+                >
+                  DK
+                </Text>
+              </View>
+            </TouchableOpacity>
             <View
               style={
                 {
@@ -2446,42 +2453,49 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
               ]
             }
           >
-            <View
-              accessibilityLabel="Photo de Karim Fassi"
-              accessibilityRole="image"
-              accessible={true}
-              style={
-                [
-                  {
-                    "alignItems": "center",
-                    "justifyContent": "center",
-                  },
-                  {
-                    "backgroundColor": "#FFFFFF",
-                    "borderRadius": 18,
-                    "height": 36,
-                    "width": 36,
-                  },
-                ]
-              }
+            <TouchableOpacity
+              accessibilityLabel="common:actions.viewProfile"
+              accessibilityRole="button"
+              hitSlop={6}
+              onPress={[Function]}
             >
-              <Text
+              <View
+                accessibilityLabel="Photo de Karim Fassi"
+                accessibilityRole="image"
+                accessible={true}
                 style={
                   [
                     {
-                      "color": "#FFFFFF",
-                      "fontWeight": "600",
+                      "alignItems": "center",
+                      "justifyContent": "center",
                     },
                     {
-                      "color": "#14201B",
-                      "fontSize": 14,
+                      "backgroundColor": "#FFFFFF",
+                      "borderRadius": 18,
+                      "height": 36,
+                      "width": 36,
                     },
                   ]
                 }
               >
-                KF
-              </Text>
-            </View>
+                <Text
+                  style={
+                    [
+                      {
+                        "color": "#FFFFFF",
+                        "fontWeight": "600",
+                      },
+                      {
+                        "color": "#14201B",
+                        "fontSize": 14,
+                      },
+                    ]
+                  }
+                >
+                  KF
+                </Text>
+              </View>
+            </TouchableOpacity>
             <View
               style={
                 {

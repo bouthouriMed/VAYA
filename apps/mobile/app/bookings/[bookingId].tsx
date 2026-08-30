@@ -91,6 +91,7 @@ function DriverCard({
   t,
   fullName,
   avatarUrl,
+  driverUserId,
   ratingAvg,
   tripCount,
   trustTier,
@@ -102,6 +103,7 @@ function DriverCard({
   t: TFn;
   fullName: string;
   avatarUrl: string | null;
+  driverUserId?: string;
   ratingAvg?: number;
   tripCount?: number;
   trustTier?: TrustTier;
@@ -114,13 +116,30 @@ function DriverCard({
   return (
     <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
       <View style={styles.driverRow}>
-        <Avatar
-          uri={avatarUrl}
-          name={fullName}
-          sizePx={52}
-          fallbackBackgroundColor={theme.surfaceMuted}
-          fallbackTextColor={theme.ink}
-        />
+        {driverUserId ? (
+          <TouchableOpacity
+            onPress={() => router.push({ pathname: '/search/trust', params: { driverUserId, bookingId } })}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel={t('common:actions.viewProfile', { name: fullName })}
+          >
+            <Avatar
+              uri={avatarUrl}
+              name={fullName}
+              sizePx={52}
+              fallbackBackgroundColor={theme.surfaceMuted}
+              fallbackTextColor={theme.ink}
+            />
+          </TouchableOpacity>
+        ) : (
+          <Avatar
+            uri={avatarUrl}
+            name={fullName}
+            sizePx={52}
+            fallbackBackgroundColor={theme.surfaceMuted}
+            fallbackTextColor={theme.ink}
+          />
+        )}
         <View style={styles.driverText}>
           <Text variant="label" color={theme.ink} numberOfLines={1}>
             {fullName}
@@ -536,6 +555,7 @@ export default function BookingDetailScreen(): React.JSX.Element {
           t={t}
           fullName={driverProfile?.fullName ?? booking.ride.driverFullName ?? t('common:terms.driver')}
           avatarUrl={driverProfile?.avatarUrl ?? null}
+          driverUserId={booking.ride.driverUserId}
           ratingAvg={driverProfile?.driver?.ratingAvg}
           tripCount={driverProfile?.driver?.tripCount}
           trustTier={trustSummary?.driver?.tier}

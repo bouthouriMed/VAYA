@@ -395,13 +395,25 @@ export default function MessagesScreen(): React.JSX.Element {
                 ) : null}
               </View>
 
-              <Avatar
-                uri={item.otherParty.avatarUrl}
-                name={item.otherParty.fullName}
-                sizePx={48}
-                fallbackBackgroundColor={theme.surfaceMuted}
-                fallbackTextColor={theme.ink}
-              />
+              <TouchableOpacity
+                onPress={() =>
+                  router.push({
+                    pathname: '/search/trust',
+                    params: { driverUserId: item.otherParty.id, bookingId: item.bookingId },
+                  })
+                }
+                hitSlop={6}
+                accessibilityRole="button"
+                accessibilityLabel={t('common:actions.viewProfile', { name: item.otherParty.fullName })}
+              >
+                <Avatar
+                  uri={item.otherParty.avatarUrl}
+                  name={item.otherParty.fullName}
+                  sizePx={48}
+                  fallbackBackgroundColor={theme.surfaceMuted}
+                  fallbackTextColor={theme.ink}
+                />
+              </TouchableOpacity>
 
               <View style={styles.rowBody}>
                 <View style={styles.nameRow}>

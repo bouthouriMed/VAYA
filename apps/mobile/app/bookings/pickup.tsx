@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { Text, Button, Avatar, MapPreview, colors, spacing, radii } from '@vaya/design-system';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -10,6 +10,7 @@ export default function PickupScreen(): React.JSX.Element {
   const params = useLocalSearchParams<{
     bookingId?: string;
     driverName?: string;
+    driverUserId?: string;
     price?: string;
     vehicleLabel?: string;
     pickupLabel?: string;
@@ -41,7 +42,23 @@ export default function PickupScreen(): React.JSX.Element {
       </View>
 
       <View style={styles.driverRow}>
-        <Avatar name={driverName} size="md" />
+        {params.driverUserId ? (
+          <TouchableOpacity
+            onPress={() =>
+              router.push({
+                pathname: '/search/trust',
+                params: { driverUserId: params.driverUserId!, bookingId: params.bookingId },
+              })
+            }
+            hitSlop={6}
+            accessibilityRole="button"
+            accessibilityLabel={t('common:actions.viewProfile', { name: driverName })}
+          >
+            <Avatar name={driverName} size="md" />
+          </TouchableOpacity>
+        ) : (
+          <Avatar name={driverName} size="md" />
+        )}
         <View style={styles.driverText}>
           <Text variant="label">
             {params.vehicleLabel ? `${params.vehicleLabel} · ` : ''}
