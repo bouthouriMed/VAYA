@@ -711,7 +711,11 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
           ]
         }
       >
-        <View
+        <TouchableOpacity
+          accessibilityLabel="common:actions.viewProfile"
+          accessibilityRole="button"
+          activeOpacity={0.7}
+          onPress={[Function]}
           style={
             {
               "alignItems": "center",
@@ -720,49 +724,42 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
             }
           }
         >
-          <TouchableOpacity
-            accessibilityLabel="common:actions.viewProfile"
-            accessibilityRole="button"
-            hitSlop={8}
-            onPress={[Function]}
+          <View
+            accessibilityLabel="Photo de Amine Ben Salah"
+            accessibilityRole="image"
+            accessible={true}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "justifyContent": "center",
+                },
+                {
+                  "backgroundColor": "#E4EDFB",
+                  "borderRadius": 26,
+                  "height": 52,
+                  "width": 52,
+                },
+              ]
+            }
           >
-            <View
-              accessibilityLabel="Photo de Amine Ben Salah"
-              accessibilityRole="image"
-              accessible={true}
+            <Text
               style={
                 [
                   {
-                    "alignItems": "center",
-                    "justifyContent": "center",
+                    "color": "#FFFFFF",
+                    "fontWeight": "600",
                   },
                   {
-                    "backgroundColor": "#E4EDFB",
-                    "borderRadius": 26,
-                    "height": 52,
-                    "width": 52,
+                    "color": "#14201B",
+                    "fontSize": 21,
                   },
                 ]
               }
             >
-              <Text
-                style={
-                  [
-                    {
-                      "color": "#FFFFFF",
-                      "fontWeight": "600",
-                    },
-                    {
-                      "color": "#14201B",
-                      "fontSize": 21,
-                    },
-                  ]
-                }
-              >
-                AB
-              </Text>
-            </View>
-          </TouchableOpacity>
+              AB
+            </Text>
+          </View>
           <View
             style={
               {
@@ -882,7 +879,14 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
               Confiance
             </Text>
           </View>
-        </View>
+          <Ionicons
+            accessibilityElementsHidden={true}
+            color="#D3E1F5"
+            importantForAccessibility="no-hide-descendants"
+            name="chevron-forward"
+            size={16}
+          />
+        </TouchableOpacity>
         <View
           style={
             {

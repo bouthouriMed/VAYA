@@ -69,6 +69,7 @@
   },
   "conversation": {
     "unavailable": "المحادثة غير متاحة",
+    "unavailableDescription": "تعذّر تحميل هذه المحادثة — ربما لم تعد موجودة، أو ليس لديك إذن للوصول إليها.",
     "closed": "تم إغلاق هذه المحادثة.",
     "viewRide": "عرض الرحلة",
     "sayHello": "قل مرحبًا!",
@@ -114,6 +115,7 @@
     "viewRouteFullscreen": "عرض المسار في وضع ملء الشاشة",
     "sendMessage": "إرسال رسالة",
     "newOnVaya": "جديد على VAYA",
+    "viewProfile": "عرض الملف الشخصي",
     "pickupPoint": "نقطة الالتقاء",
     "dropoffPoint": "نقطة التوصيل",
     "distanceToPickup": "{{distance}} من موقعك · ≈ {{minutes}} سيرًا حتى نقطة الالتقاء",

@@ -91,11 +91,11 @@ function DriverCard({
   t,
   fullName,
   avatarUrl,
-  driverUserId,
   ratingAvg,
   tripCount,
   trustTier,
   onOpenConversation,
+  onOpenProfile,
   callEnabled,
   bookingId,
 }: {
@@ -103,43 +103,38 @@ function DriverCard({
   t: TFn;
   fullName: string;
   avatarUrl: string | null;
-  driverUserId?: string;
   ratingAvg?: number;
   tripCount?: number;
   trustTier?: TrustTier;
   onOpenConversation: () => void;
+  onOpenProfile: () => void;
   callEnabled: boolean;
   bookingId: string;
 }): React.JSX.Element {
-  const tierMeta = trustTier ? trustTierBadge(trustTier) : null;
+  // Real UX feedback: a "Nouveau" trust-tier badge here is redundant with
+  // "New on VAYA" already shown right below the driver's name — both are
+  // the exact same real fact (no rating data exists yet), just told twice.
+  // "Confiance"/"Top VAYA" (the tiers a driver with real trip/rating
+  // history can actually earn) stay shown — those genuinely add
+  // information the caption doesn't.
+  const tierMeta = trustTier && trustTier !== 'new' ? trustTierBadge(trustTier) : null;
   const { call, isLoading: isCalling } = useCallCounterpart(bookingId);
   return (
     <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
-      <View style={styles.driverRow}>
-        {driverUserId ? (
-          <TouchableOpacity
-            onPress={() => router.push({ pathname: '/search/trust', params: { driverUserId, bookingId } })}
-            hitSlop={8}
-            accessibilityRole="button"
-            accessibilityLabel={t('common:actions.viewProfile', { name: fullName })}
-          >
-            <Avatar
-              uri={avatarUrl}
-              name={fullName}
-              sizePx={52}
-              fallbackBackgroundColor={theme.surfaceMuted}
-              fallbackTextColor={theme.ink}
-            />
-          </TouchableOpacity>
-        ) : (
-          <Avatar
-            uri={avatarUrl}
-            name={fullName}
-            sizePx={52}
-            fallbackBackgroundColor={theme.surfaceMuted}
-            fallbackTextColor={theme.ink}
-          />
-        )}
+      <TouchableOpacity
+        style={styles.driverRow}
+        onPress={onOpenProfile}
+        activeOpacity={0.7}
+        accessibilityRole="button"
+        accessibilityLabel={t('common:actions.viewProfile', { name: fullName })}
+      >
+        <Avatar
+          uri={avatarUrl}
+          name={fullName}
+          sizePx={52}
+          fallbackBackgroundColor={theme.surfaceMuted}
+          fallbackTextColor={theme.ink}
+        />
         <View style={styles.driverText}>
           <Text variant="label" color={theme.ink} numberOfLines={1}>
             {fullName}
@@ -163,7 +158,8 @@ function DriverCard({
           )}
         </View>
         {tierMeta ? <Badge label={tierMeta.label} variant={tierMeta.variant} theme={theme} /> : null}
-      </View>
+        <Icon name="chevron-forward" size="xs" color={theme.outline} />
+      </TouchableOpacity>
       <View style={styles.quickActionsRow}>
         <TouchableOpacity
           style={[styles.quickAction, { backgroundColor: theme.surfaceMuted }]}
@@ -272,6 +268,18 @@ export default function BookingDetailScreen(): React.JSX.Element {
     if (!booking) return;
     haptics.selection();
     router.push(`/conversations/${booking.id}`);
+  }
+
+  function openDriverProfile(): void {
+    if (!booking?.ride?.driverUserId) return;
+    haptics.selection();
+    // bookingId lets trust.tsx check for a real conversation (Phase 8:
+    // created only once this booking reaches `accepted`) and enable a real
+    // Message button instead of always showing it disabled.
+    router.push({
+      pathname: '/search/trust',
+      params: { rideId: booking.rideId, driverUserId: booking.ride.driverUserId, bookingId: booking.id },
+    });
   }
 
   if (isBookingsLoading || (booking && isRideLoading)) {
@@ -555,11 +563,11 @@ export default function BookingDetailScreen(): React.JSX.Element {
           t={t}
           fullName={driverProfile?.fullName ?? booking.ride.driverFullName ?? t('common:terms.driver')}
           avatarUrl={driverProfile?.avatarUrl ?? null}
-          driverUserId={booking.ride.driverUserId}
           ratingAvg={driverProfile?.driver?.ratingAvg}
           tripCount={driverProfile?.driver?.tripCount}
           trustTier={trustSummary?.driver?.tier}
           onOpenConversation={openConversation}
+          onOpenProfile={openDriverProfile}
           callEnabled={booking.status === 'accepted'}
           bookingId={booking.id}
         />

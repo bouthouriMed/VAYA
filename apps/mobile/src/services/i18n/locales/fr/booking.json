@@ -69,6 +69,7 @@
   },
   "conversation": {
     "unavailable": "Conversation indisponible",
+    "unavailableDescription": "Cette conversation n'a pas pu être chargée — elle n'existe peut-être plus, ou vous n'y avez pas accès.",
     "closed": "Cette conversation est terminée.",
     "viewRide": "Voir le trajet",
     "sayHello": "Dites bonjour !",
@@ -114,6 +115,7 @@
     "viewRouteFullscreen": "Voir l'itinéraire en plein écran",
     "sendMessage": "Envoyer un message",
     "newOnVaya": "Nouveau sur VAYA",
+    "viewProfile": "Voir le profil",
     "pickupPoint": "Point de rendez-vous",
     "dropoffPoint": "Point de dépose",
     "distanceToPickup": "{{distance}} de votre position · ≈ {{minutes}} à pied jusqu'au point de rendez-vous",
