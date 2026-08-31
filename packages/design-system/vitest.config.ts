@@ -16,6 +16,7 @@ export default defineConfig({
       react: path.resolve(__dirname, './node_modules/react'),
       'react-native': path.resolve(__dirname, './src/__mocks__/react-native.ts'),
       'expo-haptics': path.resolve(__dirname, './src/__mocks__/expo-haptics.ts'),
+      'expo-constants': path.resolve(__dirname, './src/__mocks__/expo-constants.ts'),
       '@expo/vector-icons': path.resolve(__dirname, './src/__mocks__/expo-vector-icons.ts'),
       'react-native-maps': path.resolve(__dirname, './src/__mocks__/react-native-maps.ts'),
       'expo-blur': path.resolve(__dirname, './src/__mocks__/expo-blur.ts'),

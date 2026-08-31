@@ -1,9 +1,25 @@
 import React, { useState } from 'react';
 import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import MapView, { PROVIDER_GOOGLE } from 'react-native-maps';
+import Constants, { ExecutionEnvironment } from 'expo-constants';
 import { colors, radii } from '../tokens/index';
 import { SkeletonBlock } from './Skeleton';
 import type { MapRegion } from '../utils/mapGeometry';
+
+// Expo Go's shared binary has no way to carry this app's own Google Maps
+// SDK key/config plugin (withGoogleMapsIOS, apps/mobile/app.config.js) — it's
+// a generic client built once for every Expo app, not a rebuild of this one.
+// Forcing PROVIDER_GOOGLE there mounts a MapView the native SDK was never
+// initialized for, which crashes the app natively (no JS error, nothing
+// catchable) the instant it renders — exactly what happened here: the small
+// MapPreview thumbnail elsewhere on the same screen still defaults to
+// PROVIDER_DEFAULT and works, while this primitive's explicit PROVIDER_GOOGLE
+// only ever gets exercised the first time something using MapCanvas (e.g. the
+// driver ride-hub's fullscreen route modal) actually mounts. A real dev-client
+// or production build (Constants.executionEnvironment !== StoreClient) DOES
+// have the key baked in via the config plugin, so it keeps the intended
+// explicit Google provider there — this only degrades inside Expo Go.
+const isExpoGo = Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
 
 // Wide default so a MapCanvas rendered before any real region is known
 // (e.g. before a search result loads) still shows recognizable terrain
@@ -50,7 +66,7 @@ export function MapCanvas({ height, region, style, children, onLongPress }: MapC
         // Maps-SDK-provider selection. iOS additionally needs the native
         // GMSServices API key wired via the withGoogleMapsIOS config plugin
         // (apps/mobile/plugins/) — see apps/mobile/.env.example.
-        provider={PROVIDER_GOOGLE}
+        provider={isExpoGo ? undefined : PROVIDER_GOOGLE}
         style={StyleSheet.absoluteFillObject}
         initialRegion={region ?? DEFAULT_REGION}
         onMapReady={() => setIsReady(true)}

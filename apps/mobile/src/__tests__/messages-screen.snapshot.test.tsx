@@ -51,8 +51,15 @@ vi.mock('expo-linking', () => ({
   createURL: (path: string) => `vaya://${path}`,
   parse: (url: string) => ({ queryParams: {}, hostname: null, path: url }),
 }));
+// The design-system barrel's MapCanvas also reads Constants.executionEnvironment
+// (to detect Expo Go, where PROVIDER_GOOGLE crashes — see MapCanvas.tsx) — this
+// local mock needs that same shape, or importing the barrel at all throws.
 vi.mock('expo-constants', () => ({
-  default: { expoConfig: { extra: { apiBaseUrl: 'http://localhost:3000/api/v1' } } },
+  default: {
+    expoConfig: { extra: { apiBaseUrl: 'http://localhost:3000/api/v1' } },
+    executionEnvironment: 'bare',
+  },
+  ExecutionEnvironment: { Bare: 'bare', Standalone: 'standalone', StoreClient: 'storeClient' },
 }));
 
 const OPEN_TODAY: InboxConversation = {

@@ -31,6 +31,7 @@ export default defineConfig({
       react: path.resolve(__dirname, './node_modules/react'),
       'react-native': path.resolve(designSystemMocks, 'react-native.ts'),
       'expo-haptics': path.resolve(designSystemMocks, 'expo-haptics.ts'),
+      'expo-constants': path.resolve(designSystemMocks, 'expo-constants.ts'),
       '@expo/vector-icons': path.resolve(designSystemMocks, 'expo-vector-icons.ts'),
       'react-native-maps': path.resolve(designSystemMocks, 'react-native-maps.ts'),
       'expo-blur': path.resolve(designSystemMocks, 'expo-blur.ts'),

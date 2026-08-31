@@ -14,6 +14,7 @@
   "peerDependencies": {
     "@expo/vector-icons": "^15.1.1",
     "expo-blur": "*",
+    "expo-constants": "*",
     "expo-haptics": "*",
     "expo-linear-gradient": "*",
     "react": "^19.1.0",
@@ -29,6 +30,7 @@
     "@types/react-test-renderer": "19.1.0",
     "eslint": "^9.11.1",
     "expo-blur": "~15.0.8",
+    "expo-constants": "~18.0.14",
     "expo-haptics": "~15.0.8",
     "expo-linear-gradient": "~15.0.8",
     "react": "19.1.0",
