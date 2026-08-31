@@ -20,7 +20,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { BlurView } from 'expo-blur';
 import { Text } from './Text';
-import { colors, radii, spacing, elevation } from '../tokens/index';
+import { colors, radii, spacing, elevation, springs } from '../tokens/index';
 import type { AppPalette } from '../theme/palette';
 
 interface BottomSheetProps {
@@ -98,8 +98,10 @@ export function isDismissalDrag(e: {
 // damping must be >= ~2*sqrt(stiffness) (here ~26.8) to be critically damped;
 // the previous {18, 180} was well underdamped, so the open animation flew
 // past translateY 0 and visibly bounced back down into place instead of
-// settling directly.
-const SPRING_CONFIG = { damping: 28, stiffness: 180, overshootClamping: true };
+// settling directly. Now sourced from the shared `springs.gentle` token
+// (tokens/motion.ts) — same numbers, so every sheet/card/expanding-section
+// animation in the app shares this exact feel instead of each hand-rolling it.
+const SPRING_CONFIG = springs.gentle;
 
 /**
  * A modal sheet anchored to the bottom of the screen — the standard pattern

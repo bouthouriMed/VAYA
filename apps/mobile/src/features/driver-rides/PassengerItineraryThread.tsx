@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
-import { Text, Icon, Avatar, PassengerStopPin, spacing, radii } from '@vaya/design-system';
+import Reanimated, { FadeInDown } from 'react-native-reanimated';
+import { Text, Icon, Avatar, PassengerStopPin, spacing, radii, staggerDelay, durations } from '@vaya/design-system';
 import type { AppPalette } from '@vaya/design-system';
 import type { ItineraryThread, ItineraryThreadNode } from './itineraryThread';
 
@@ -52,21 +53,25 @@ export function PassengerItineraryThread({
         const isLast = index === thread.nodes.length - 1;
         const segment = !isLast ? thread.segments[index] : undefined;
         return (
-          <ThreadRow
-            key={node.key}
-            node={node}
-            connectorOnboardSeats={segment?.onboardSeats}
-            isLast={isLast}
-            seatsTotal={seatsTotal}
-            theme={theme}
-            originEyebrow={originEyebrow}
-            destinationEyebrow={destinationEyebrow}
-            pickupPrefix={pickupPrefix}
-            dropoffPrefix={dropoffPrefix}
-            onboardRangeTemplate={onboardRangeTemplate}
-            occupancyTagTemplate={occupancyTagTemplate}
-            onPressPassenger={onPressPassenger}
-          />
+          // Rows reveal top-to-bottom on mount, the same "journey unfolds
+          // in order" register the search-results list stagger uses —
+          // fitting here since this thread literally IS the trip's order.
+          <Reanimated.View key={node.key} entering={FadeInDown.delay(staggerDelay(index)).duration(durations.base)}>
+            <ThreadRow
+              node={node}
+              connectorOnboardSeats={segment?.onboardSeats}
+              isLast={isLast}
+              seatsTotal={seatsTotal}
+              theme={theme}
+              originEyebrow={originEyebrow}
+              destinationEyebrow={destinationEyebrow}
+              pickupPrefix={pickupPrefix}
+              dropoffPrefix={dropoffPrefix}
+              onboardRangeTemplate={onboardRangeTemplate}
+              occupancyTagTemplate={occupancyTagTemplate}
+              onPressPassenger={onPressPassenger}
+            />
+          </Reanimated.View>
         );
       })}
     </View>

@@ -56,9 +56,13 @@ const Easing = {
   cubic: 'cubic' as const,
 };
 
-// StepProgress.tsx checks the OS reduce-motion setting to skip its wipe.
+// StepProgress.tsx and useReducedMotion() check the OS reduce-motion
+// setting to skip decorative motion; useReducedMotion also subscribes to
+// live changes — same "exists and is removable, never actually fires in a
+// snapshot render" rationale as BackHandler/AppState below.
 const AccessibilityInfo = {
   isReduceMotionEnabled: async (): Promise<boolean> => false,
+  addEventListener: () => ({ remove: () => {} }),
 };
 
 // BottomSheet.tsx registers a hardware-back consumer while open. No back

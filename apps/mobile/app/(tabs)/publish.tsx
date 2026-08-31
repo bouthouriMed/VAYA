@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Animated,
-  AccessibilityInfo,
   useWindowDimensions,
 } from 'react-native';
 import MapView, { Marker, Polyline, PROVIDER_DEFAULT, type Region } from 'react-native-maps';
@@ -40,6 +39,7 @@ import {
   darkMapStyle,
   StatusBarBlend,
   useToast,
+  useReducedMotion,
   type AppPalette,
   type MapRegion,
 } from '@vaya/design-system';
@@ -458,27 +458,21 @@ export default function PublishTabScreen(): React.JSX.Element {
   // this on every `step` change.
   const stepFade = useRef(new Animated.Value(1)).current;
   const stepRise = useRef(new Animated.Value(0)).current;
+  const reduceMotion = useReducedMotion();
   useEffect(() => {
-    let cancelled = false;
-    void AccessibilityInfo.isReduceMotionEnabled().then((reduced) => {
-      if (cancelled) return;
-      if (reduced) {
-        stepFade.setValue(1);
-        stepRise.setValue(0);
-        return;
-      }
-      stepFade.setValue(0);
-      stepRise.setValue(10);
-      Animated.parallel([
-        Animated.timing(stepFade, { toValue: 1, duration: 260, useNativeDriver: true }),
-        Animated.timing(stepRise, { toValue: 0, duration: 260, useNativeDriver: true }),
-      ]).start();
-    });
-    return () => {
-      cancelled = true;
-    };
+    if (reduceMotion) {
+      stepFade.setValue(1);
+      stepRise.setValue(0);
+      return;
+    }
+    stepFade.setValue(0);
+    stepRise.setValue(10);
+    Animated.parallel([
+      Animated.timing(stepFade, { toValue: 1, duration: 260, useNativeDriver: true }),
+      Animated.timing(stepRise, { toValue: 0, duration: 260, useNativeDriver: true }),
+    ]).start();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step]);
+  }, [step, reduceMotion]);
   const stepMotionStyle = { opacity: stepFade, transform: [{ translateY: stepRise }] };
 
   // Drives the map-expansion transformation itself (§5-11): entering
