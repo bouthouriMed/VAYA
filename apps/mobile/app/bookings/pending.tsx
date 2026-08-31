@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, ScrollView, Share } from 'react-native';
+import Reanimated, { FadeInDown, ZoomIn } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
-import { Text, Icon, MapPreview, useAppTheme, haptics, spacing, radii } from '@vaya/design-system';
+import { Text, Icon, MapPreview, useAppTheme, haptics, spacing, radii, staggerDelay, durations } from '@vaya/design-system';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { CancellationSheet } from '../../src/features/bookings/CancellationSheet';
@@ -74,22 +75,35 @@ export default function PendingScreen(): React.JSX.Element {
         )}
 
         <View style={styles.content}>
-          <View style={[styles.statusCard, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
-            <View style={[styles.confirmedPill, { backgroundColor: theme.accentGlow + '40' }]}>
+          <Reanimated.View
+            entering={FadeInDown.duration(durations.moderate)}
+            style={[styles.statusCard, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}
+          >
+            {/* Echoes confirmed.tsx's own badge pop-in at a smaller scale —
+             *  the same "just confirmed" motif carried across the replace
+             *  navigation, so the state machine reads as continuous instead
+             *  of each screen inventing its own arrival cue. */}
+            <Reanimated.View
+              entering={ZoomIn.springify().damping(24).stiffness(320).overshootClamping(1)}
+              style={[styles.confirmedPill, { backgroundColor: theme.accentGlow + '40' }]}
+            >
               <Icon name="checkmark-circle" size="xs" color={theme.accentStrong} />
               <Text variant="caption" color={theme.accentStrong}>
                 {t('booking:status_confirmed')}
               </Text>
-            </View>
+            </Reanimated.View>
             <Text variant="h1" color={theme.ink}>
               {t('booking:status_confirmed_title')}
             </Text>
             <Text variant="body" color={theme.inkMuted}>
               {t('booking:status_confirmed_hint', { name: firstName })}
             </Text>
-          </View>
+          </Reanimated.View>
 
-          <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
+          <Reanimated.View
+            entering={FadeInDown.delay(staggerDelay(1)).duration(durations.moderate)}
+            style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}
+          >
             <View style={styles.driverHeaderRow}>
               <View style={styles.driverIdentity}>
                 <View style={[styles.avatarPlaceholder, { backgroundColor: theme.surfaceMuted }]}>
@@ -156,9 +170,12 @@ export default function PendingScreen(): React.JSX.Element {
                 </View>
               </View>
             ) : null}
-          </View>
+          </Reanimated.View>
 
-          <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
+          <Reanimated.View
+            entering={FadeInDown.delay(staggerDelay(2)).duration(durations.moderate)}
+            style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}
+          >
             <Text variant="caption" color={theme.inkFaint} style={styles.sectionLabel}>
               {t('booking:section_trip')}
             </Text>
@@ -187,10 +204,13 @@ export default function PendingScreen(): React.JSX.Element {
                 </View>
               </View>
             </View>
-          </View>
+          </Reanimated.View>
 
           {params.price ? (
-            <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
+            <Reanimated.View
+              entering={FadeInDown.delay(staggerDelay(3)).duration(durations.moderate)}
+              style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}
+            >
               <View style={styles.paymentHeaderRow}>
                 <Text variant="caption" color={theme.inkFaint} style={styles.sectionLabel}>
                   {t('booking:section_payment')}
@@ -205,7 +225,7 @@ export default function PendingScreen(): React.JSX.Element {
                   {t('booking:settlement_pay', { price: params.price, name: firstName })}
                 </Text>
               </View>
-            </View>
+            </Reanimated.View>
           ) : null}
         </View>
       </ScrollView>

@@ -1,14 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react';
-import {
-  View,
-  StyleSheet,
-  Animated,
-  Easing,
-  AccessibilityInfo,
-  type StyleProp,
-  type ViewStyle,
-} from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { View, StyleSheet, Animated, Easing, type StyleProp, type ViewStyle } from 'react-native';
 import { colors, spacing, radii } from '../tokens/index';
+import { useReducedMotion } from '../utils/useReducedMotion';
 import type { AppPalette } from '../theme/palette';
 
 interface StepProgressProps {
@@ -32,18 +25,8 @@ export function StepProgress({
   theme,
   style,
 }: StepProgressProps): React.JSX.Element {
-  const [reduceMotion, setReduceMotion] = useState(false);
+  const reduceMotion = useReducedMotion();
   const fill = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    let cancelled = false;
-    void AccessibilityInfo.isReduceMotionEnabled().then((enabled) => {
-      if (!cancelled) setReduceMotion(enabled);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   useEffect(() => {
     if (reduceMotion) {

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { View, StyleSheet, ActivityIndicator, TouchableOpacity, ScrollView } from 'react-native';
+import Reanimated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps';
 import { Ionicons } from '@expo/vector-icons';
@@ -20,6 +21,8 @@ import {
   isSameDay,
   regionForPoints,
   haptics,
+  staggerDelay,
+  durations,
   type AppPalette,
   type DriverListCardData,
 } from '@vaya/design-system';
@@ -98,6 +101,7 @@ function RideResultCard({
   searchAt,
   theme,
   onPress,
+  index,
 }: {
   candidate: MatchCandidate;
   bestMatch: boolean;
@@ -106,6 +110,12 @@ function RideResultCard({
   searchAt: string | null;
   theme: AppPalette;
   onPress: () => void;
+  /** Position in the results list — staggers this card's entrance behind
+   *  the ones above it, so the list reads as "VAYA found these for you"
+   *  revealing in order rather than dumping every card at once. Capped by
+   *  `staggerDelay` so a long list doesn't leave the last card waiting on
+   *  an ever-growing queue. */
+  index: number;
 }): React.JSX.Element {
   const { data: passengers } = useListFellowPassengersQuery(candidate.rideId);
   const { t, i18n } = useTranslation(['search', 'common', 'booking']);
@@ -164,18 +174,20 @@ function RideResultCard({
   };
 
   return (
-    <DriverListCard
-      theme={theme}
-      bestMatch={bestMatch}
-      data={data}
-      onPress={onPress}
-      onAvatarPress={() =>
-        router.push({ pathname: '/search/trust', params: { rideId: candidate.rideId, driverUserId: candidate.driverUserId } })
-      }
-      avatarAccessibilityLabel={t('common:actions.viewProfile', {
-        name: candidate.driverFullName ?? t('search:results.driverFallback'),
-      })}
-    />
+    <Reanimated.View entering={FadeInDown.delay(staggerDelay(index)).duration(durations.moderate)}>
+      <DriverListCard
+        theme={theme}
+        bestMatch={bestMatch}
+        data={data}
+        onPress={onPress}
+        onAvatarPress={() =>
+          router.push({ pathname: '/search/trust', params: { rideId: candidate.rideId, driverUserId: candidate.driverUserId } })
+        }
+        avatarAccessibilityLabel={t('common:actions.viewProfile', {
+          name: candidate.driverFullName ?? t('search:results.driverFallback'),
+        })}
+      />
+    </Reanimated.View>
   );
 }
 
@@ -407,7 +419,7 @@ export default function ResultsScreen(): React.JSX.Element {
             ) : null}
 
             <View style={styles.cardsCol}>
-              {sorted.map((candidate) => (
+              {sorted.map((candidate, index) => (
                 <RideResultCard
                   key={candidate.rideId}
                   theme={theme}
@@ -417,6 +429,7 @@ export default function ResultsScreen(): React.JSX.Element {
                   destination={destination}
                   searchAt={searchAt}
                   onPress={() => selectCandidate(candidate)}
+                  index={index}
                 />
               ))}
             </View>
