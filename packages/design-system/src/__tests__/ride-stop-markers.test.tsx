@@ -77,23 +77,25 @@ describe('StopPin', () => {
 });
 
 describe('PassengerStopPin', () => {
-  it('renders a small accentStrong-filled circle with a person glyph for pickup', () => {
+  it('renders a small accent-filled circle with a "+" glyph for pickup', () => {
     const tree = asNode(renderJSON(<PassengerStopPin theme={lightPalette} kind="pickup" />));
 
     expect(tree.type).toBe('View');
-    expect(mergedStyle(tree).backgroundColor).toBe(lightPalette.accentStrong);
+    expect(mergedStyle(tree).backgroundColor).toBe(lightPalette.accent);
     expect(mergedStyle(tree).borderColor).toBe(lightPalette.surface);
 
     const glyph = childrenOf(tree)[0]!;
     expect(glyph.type).toBe('Ionicons');
-    expect(glyph.props.name).toBe('person');
+    expect(glyph.props.name).toBe('add');
+    expect(glyph.props.color).toBe(lightPalette.onAccent);
   });
 
-  it('renders a checkmark glyph for dropoff, same accentStrong fill', () => {
+  it('renders an error-filled circle with a "−" glyph for dropoff', () => {
     const tree = asNode(renderJSON(<PassengerStopPin theme={lightPalette} kind="dropoff" />));
 
-    expect(mergedStyle(tree).backgroundColor).toBe(lightPalette.accentStrong);
+    expect(mergedStyle(tree).backgroundColor).toBe(lightPalette.error);
     const glyph = childrenOf(tree)[0]!;
-    expect(glyph.props.name).toBe('checkmark');
+    expect(glyph.props.name).toBe('remove');
+    expect(glyph.props.color).toBe(lightPalette.onError);
   });
 });

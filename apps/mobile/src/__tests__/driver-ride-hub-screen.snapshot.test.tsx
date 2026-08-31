@@ -139,6 +139,42 @@ const ACCEPTED_REQUEST: Booking = {
   rider: { id: 'u-rider-2', fullName: 'Karim Fassi', avatarUrl: null },
 };
 
+// Two accepted, non-endpoint-coincident bookings whose onboard windows
+// genuinely overlap (the second boards while the first is still aboard) —
+// exercises the threaded itinerary's real reason for existing: the old
+// flat list showed both as indistinguishable rows with no signal that the
+// car ever carries both passengers at once.
+const OVERLAP_FIRST: Booking = {
+  ...PENDING_REQUEST,
+  id: 'booking-overlap-first',
+  riderId: 'u-rider-3',
+  status: 'accepted',
+  respondedAt: '2026-08-24T09:06:00',
+  rider: { id: 'u-rider-3', fullName: 'Dinara Kochakajeva', avatarUrl: null },
+  seatsRequested: 1,
+  pickupLabel: 'Sidi Bou Said',
+  pickupLat: 36.75,
+  pickupLng: 10.3,
+  dropoffLabel: 'Enfidha',
+  dropoffLat: 36.13,
+  dropoffLng: 10.38,
+};
+const OVERLAP_SECOND: Booking = {
+  ...PENDING_REQUEST,
+  id: 'booking-overlap-second',
+  riderId: 'u-rider-4',
+  status: 'accepted',
+  respondedAt: '2026-08-24T09:07:00',
+  rider: { id: 'u-rider-4', fullName: 'Alex Martin', avatarUrl: null },
+  seatsRequested: 1,
+  pickupLabel: 'Hammamet',
+  pickupLat: 36.4,
+  pickupLng: 10.6,
+  dropoffLabel: 'Msaken',
+  dropoffLat: 35.73,
+  dropoffLng: 10.58,
+};
+
 // Live tracking (docs/domain/live-tracking.md): every accepted booking gets
 // its own `trips` row (created at acceptance) — 'scheduled' here is the
 // real starting state, exercising the "Démarrer le trajet" footer action.
@@ -221,6 +257,18 @@ describe('driver/rides/[rideId].tsx snapshots', () => {
 
   it('no requests yet — honest empty state, not a fabricated list', async () => {
     expect(await renderScreen([])).toMatchSnapshot();
+  });
+
+  it('two overlapping passengers: the threaded itinerary flags the moment the second boards while the first is still aboard', async () => {
+    const tree = await renderScreen([OVERLAP_FIRST, OVERLAP_SECOND]);
+    expect(tree).toMatchSnapshot();
+
+    const json = JSON.stringify(tree);
+    expect(json).toContain('Dinara Kochakajeva');
+    expect(json).toContain('Alex Martin');
+    // The overlap tag only ever renders on the pickup that finds someone
+    // else already aboard — see itineraryThread.ts's `overlapping` field.
+    expect(json).toContain('rides.rideDetail.occupancyTag');
   });
 
   it('an active trip shows its real status and the "Terminer le trajet" footer action, not "Démarrer"', async () => {

@@ -353,6 +353,226 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
           [
             {
               "borderRadius": 16,
+              "flexDirection": "row",
+              "marginHorizontal": 16,
+              "marginTop": 12,
+              "overflow": "hidden",
+            },
+            {
+              "backgroundColor": "#E4EDFB",
+            },
+          ]
+        }
+      >
+        <View
+          style={
+            {
+              "flex": 1,
+              "gap": 6,
+              "padding": 12,
+            }
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 14,
+                  "fontWeight": "500",
+                  "lineHeight": 21,
+                },
+                {
+                  "color": "#5B6572",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                {
+                  "letterSpacing": 0.4,
+                  "textTransform": "uppercase",
+                },
+              ]
+            }
+          >
+            rides.rideDetail.capacityLabel
+          </Text>
+          <View
+            style={
+              {
+                "flexDirection": "row",
+                "gap": 4,
+              }
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "borderRadius": 4,
+                    "height": 8,
+                    "width": 16,
+                  },
+                  {
+                    "backgroundColor": "#2E9E6C",
+                  },
+                ]
+              }
+            />
+            <View
+              style={
+                [
+                  {
+                    "borderRadius": 4,
+                    "height": 8,
+                    "width": 16,
+                  },
+                  {
+                    "backgroundColor": "#2E9E6C",
+                  },
+                ]
+              }
+            />
+            <View
+              style={
+                [
+                  {
+                    "borderRadius": 4,
+                    "height": 8,
+                    "width": 16,
+                  },
+                  {
+                    "backgroundColor": "#E4EDFB",
+                  },
+                ]
+              }
+            />
+            <View
+              style={
+                [
+                  {
+                    "borderRadius": 4,
+                    "height": 8,
+                    "width": 16,
+                  },
+                  {
+                    "backgroundColor": "#E4EDFB",
+                  },
+                ]
+              }
+            />
+          </View>
+          <Text
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "lineHeight": 21,
+                },
+                {
+                  "color": "#14201B",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            rides.rideDetail.seatsBooked
+          </Text>
+        </View>
+        <View
+          style={
+            [
+              {
+                "width": 1,
+              },
+              {
+                "backgroundColor": "#E4EDFB",
+              },
+            ]
+          }
+        />
+        <View
+          style={
+            {
+              "flex": 1,
+              "gap": 6,
+              "padding": 12,
+            }
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 14,
+                  "fontWeight": "500",
+                  "lineHeight": 21,
+                },
+                {
+                  "color": "#5B6572",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                {
+                  "letterSpacing": 0.4,
+                  "textTransform": "uppercase",
+                },
+              ]
+            }
+          >
+            rides.rideDetail.earningsLabel
+          </Text>
+          <Text
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "lineHeight": 21,
+                },
+                {
+                  "color": "#14201B",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                {
+                  "fontWeight": "700",
+                },
+              ]
+            }
+          >
+            rides.rideDetail.pricePerSeat
+          </Text>
+          <Text
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "lineHeight": 18,
+                },
+                {
+                  "color": "#8B93A3",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            rides.rideDetail.maxPotentialRevenue
+          </Text>
+        </View>
+      </View>
+      <View
+        style={
+          [
+            {
+              "borderRadius": 16,
               "borderWidth": 1,
               "gap": 8,
               "marginHorizontal": 16,
@@ -435,165 +655,16 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
           </View>
         </View>
         <View
-          style={
-            {
-              "flexDirection": "row",
-              "gap": 8,
-            }
-          }
+          accessibilityRole="list"
         >
           <View
+            accessibilityLabel="rides.rideDetail.departure, 8:30, Tunis"
+            accessibilityRole="text"
+            accessible={true}
             style={
-              [
-                {
-                  "borderRadius": 5,
-                  "borderWidth": 2,
-                  "height": 10,
-                  "marginTop": 4,
-                  "width": 10,
-                },
-                {
-                  "backgroundColor": "#2E9E6C",
-                  "borderColor": "#FFFFFF",
-                },
-              ]
-            }
-          />
-          <View
-            style={
-              {
-                "flex": 1,
-                "gap": 1,
-              }
-            }
-          >
-            <View
-              style={
-                {
-                  "alignItems": "center",
-                  "flexDirection": "row",
-                  "justifyContent": "space-between",
-                }
-              }
-            >
-              <Text
-                style={
-                  [
-                    {
-                      "fontSize": 14,
-                      "fontWeight": "400",
-                      "lineHeight": 21,
-                    },
-                    {
-                      "color": "#5B6572",
-                      "textAlign": undefined,
-                      "writingDirection": "ltr",
-                    },
-                    undefined,
-                  ]
-                }
-              >
-                rides.rideDetail.departure
-              </Text>
-              <Text
-                style={
-                  [
-                    {
-                      "fontSize": 14,
-                      "fontWeight": "400",
-                      "lineHeight": 21,
-                    },
-                    {
-                      "color": "#5B6572",
-                      "textAlign": undefined,
-                      "writingDirection": "ltr",
-                    },
-                    undefined,
-                  ]
-                }
-              >
-                8:30 AM
-              </Text>
-            </View>
-            <Text
-              numberOfLines={1}
-              style={
-                [
-                  {
-                    "fontSize": 16,
-                    "fontWeight": "400",
-                    "lineHeight": 24,
-                  },
-                  {
-                    "color": "#14201B",
-                    "textAlign": undefined,
-                    "writingDirection": "ltr",
-                  },
-                  undefined,
-                ]
-              }
-            >
-              Tunis
-            </Text>
-            <Text
-              numberOfLines={1}
-              style={
-                [
-                  {
-                    "fontSize": 12,
-                    "fontWeight": "400",
-                    "lineHeight": 18,
-                  },
-                  {
-                    "color": "#8B93A3",
-                    "textAlign": undefined,
-                    "writingDirection": "ltr",
-                  },
-                  undefined,
-                ]
-              }
-            >
-              common:terms.pickup
-               · 
-              Avenue Habib Bourguiba, Tunis
-            </Text>
-          </View>
-        </View>
-        <View
-          style={
-            [
               {
                 "flexDirection": "row",
                 "gap": 8,
-              },
-              {
-                "marginBottom": 4,
-              },
-            ]
-          }
-        >
-          <View
-            style={
-              [
-                {
-                  "borderRadius": 5,
-                  "borderWidth": 2,
-                  "height": 10,
-                  "marginTop": 4,
-                  "width": 10,
-                },
-                {
-                  "backgroundColor": "#14201B",
-                  "borderColor": "#FFFFFF",
-                },
-              ]
-            }
-          />
-          <View
-            style={
-              {
-                "flex": 1,
-                "gap": 1,
               }
             }
           >
@@ -601,165 +672,315 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
               style={
                 {
                   "alignItems": "center",
-                  "flexDirection": "row",
-                  "justifyContent": "space-between",
+                  "width": 26,
                 }
               }
             >
-              <Text
+              <View
                 style={
                   [
                     {
-                      "fontSize": 14,
-                      "fontWeight": "400",
-                      "lineHeight": 21,
+                      "alignItems": "center",
+                      "borderRadius": 13,
+                      "borderWidth": 2,
+                      "height": 26,
+                      "justifyContent": "center",
+                      "width": 26,
                     },
                     {
-                      "color": "#5B6572",
-                      "textAlign": undefined,
-                      "writingDirection": "ltr",
+                      "backgroundColor": "#14201B",
+                      "borderColor": "#FFFFFF",
                     },
-                    undefined,
                   ]
                 }
               >
-                rides.rideDetail.arrival
-              </Text>
-              <Text
+                <Ionicons
+                  accessibilityElementsHidden={true}
+                  color="#FFFFFF"
+                  importantForAccessibility="no-hide-descendants"
+                  name="car"
+                  size={16}
+                />
+              </View>
+              <View
                 style={
                   [
                     {
-                      "fontSize": 14,
-                      "fontWeight": "400",
-                      "lineHeight": 21,
+                      "flex": 1,
+                      "marginVertical": 2,
+                      "minHeight": 16,
                     },
                     {
-                      "color": "#5B6572",
-                      "textAlign": undefined,
-                      "writingDirection": "ltr",
+                      "borderLeftColor": "#D3E1F5",
+                      "borderLeftWidth": 2,
+                      "borderStyle": "dashed",
                     },
-                    undefined,
                   ]
                 }
-              >
-                10:30
-              </Text>
+              />
             </View>
-            <Text
-              numberOfLines={1}
+            <View
               style={
-                [
-                  {
-                    "fontSize": 16,
-                    "fontWeight": "400",
-                    "lineHeight": 24,
-                  },
-                  {
-                    "color": "#14201B",
-                    "textAlign": undefined,
-                    "writingDirection": "ltr",
-                  },
-                  undefined,
-                ]
+                {
+                  "flex": 1,
+                }
               }
             >
-              Sousse
-            </Text>
-            <Text
-              numberOfLines={1}
-              style={
-                [
+              <View
+                style={
                   {
-                    "fontSize": 12,
-                    "fontWeight": "400",
-                    "lineHeight": 18,
-                  },
-                  {
-                    "color": "#8B93A3",
-                    "textAlign": undefined,
-                    "writingDirection": "ltr",
-                  },
-                  undefined,
-                ]
-              }
-            >
-              common:terms.dropoff
-               · 
-              Boulevard Hedi Chaker, Sousse
-            </Text>
+                    "gap": 2,
+                    "paddingBottom": 12,
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "alignItems": "baseline",
+                      "flexDirection": "row",
+                      "justifyContent": "space-between",
+                    }
+                  }
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "400",
+                          "lineHeight": 21,
+                        },
+                        {
+                          "color": "#5B6572",
+                          "textAlign": undefined,
+                          "writingDirection": "ltr",
+                        },
+                        undefined,
+                      ]
+                    }
+                  >
+                    rides.rideDetail.departure
+                  </Text>
+                  <Text
+                    style={
+                      [
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "400",
+                          "lineHeight": 21,
+                        },
+                        {
+                          "color": "#5B6572",
+                          "textAlign": undefined,
+                          "writingDirection": "ltr",
+                        },
+                        undefined,
+                      ]
+                    }
+                  >
+                    8:30
+                  </Text>
+                </View>
+                <Text
+                  numberOfLines={1}
+                  style={
+                    [
+                      {
+                        "fontSize": 16,
+                        "fontWeight": "400",
+                        "lineHeight": 24,
+                      },
+                      {
+                        "color": "#14201B",
+                        "textAlign": undefined,
+                        "writingDirection": "ltr",
+                      },
+                      {
+                        "fontWeight": "700",
+                      },
+                    ]
+                  }
+                >
+                  Tunis
+                </Text>
+                <Text
+                  numberOfLines={1}
+                  style={
+                    [
+                      {
+                        "fontSize": 12,
+                        "fontWeight": "400",
+                        "lineHeight": 18,
+                      },
+                      {
+                        "color": "#8B93A3",
+                        "textAlign": undefined,
+                        "writingDirection": "ltr",
+                      },
+                      undefined,
+                    ]
+                  }
+                >
+                  common:terms.pickup · Avenue Habib Bourguiba, Tunis
+                </Text>
+              </View>
+            </View>
           </View>
-        </View>
-        <View
-          style={
-            {
-              "alignItems": "center",
-              "flexDirection": "row",
-              "gap": 8,
-            }
-          }
-        >
-          <Ionicons
-            accessibilityElementsHidden={true}
-            color="#5B6572"
-            importantForAccessibility="no-hide-descendants"
-            name="people-outline"
-            size={20}
-          />
-          <Text
+          <View
+            accessibilityLabel="rides.rideDetail.arrival, 10:30, Sousse"
+            accessibilityRole="text"
+            accessible={true}
             style={
-              [
-                {
-                  "fontSize": 14,
-                  "fontWeight": "400",
-                  "lineHeight": 21,
-                },
-                {
-                  "color": "#5B6572",
-                  "textAlign": undefined,
-                  "writingDirection": "ltr",
-                },
-                undefined,
-              ]
+              {
+                "flexDirection": "row",
+                "gap": 8,
+              }
             }
           >
-            rides.rideDetail.seatsAvailable
-          </Text>
-        </View>
-        <View
-          style={
-            {
-              "alignItems": "center",
-              "flexDirection": "row",
-              "gap": 8,
-            }
-          }
-        >
-          <Ionicons
-            accessibilityElementsHidden={true}
-            color="#5B6572"
-            importantForAccessibility="no-hide-descendants"
-            name="cash-outline"
-            size={20}
-          />
-          <Text
-            style={
-              [
+            <View
+              style={
                 {
-                  "fontSize": 14,
-                  "fontWeight": "400",
-                  "lineHeight": 21,
-                },
+                  "alignItems": "center",
+                  "width": 26,
+                }
+              }
+            >
+              <View
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 13,
+                      "borderWidth": 2,
+                      "height": 26,
+                      "justifyContent": "center",
+                      "width": 26,
+                    },
+                    {
+                      "backgroundColor": "#14201B",
+                      "borderColor": "#FFFFFF",
+                    },
+                  ]
+                }
+              >
+                <Ionicons
+                  accessibilityElementsHidden={true}
+                  color="#FFFFFF"
+                  importantForAccessibility="no-hide-descendants"
+                  name="flag"
+                  size={16}
+                />
+              </View>
+            </View>
+            <View
+              style={
                 {
-                  "color": "#5B6572",
-                  "textAlign": undefined,
-                  "writingDirection": "ltr",
-                },
-                undefined,
-              ]
-            }
-          >
-            rides.rideDetail.pricePerSeat
-          </Text>
+                  "flex": 1,
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "gap": 2,
+                    "paddingBottom": 12,
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "alignItems": "baseline",
+                      "flexDirection": "row",
+                      "justifyContent": "space-between",
+                    }
+                  }
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "400",
+                          "lineHeight": 21,
+                        },
+                        {
+                          "color": "#5B6572",
+                          "textAlign": undefined,
+                          "writingDirection": "ltr",
+                        },
+                        undefined,
+                      ]
+                    }
+                  >
+                    rides.rideDetail.arrival
+                  </Text>
+                  <Text
+                    style={
+                      [
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "400",
+                          "lineHeight": 21,
+                        },
+                        {
+                          "color": "#5B6572",
+                          "textAlign": undefined,
+                          "writingDirection": "ltr",
+                        },
+                        undefined,
+                      ]
+                    }
+                  >
+                    10:30
+                  </Text>
+                </View>
+                <Text
+                  numberOfLines={1}
+                  style={
+                    [
+                      {
+                        "fontSize": 16,
+                        "fontWeight": "400",
+                        "lineHeight": 24,
+                      },
+                      {
+                        "color": "#14201B",
+                        "textAlign": undefined,
+                        "writingDirection": "ltr",
+                      },
+                      {
+                        "fontWeight": "700",
+                      },
+                    ]
+                  }
+                >
+                  Sousse
+                </Text>
+                <Text
+                  numberOfLines={1}
+                  style={
+                    [
+                      {
+                        "fontSize": 12,
+                        "fontWeight": "400",
+                        "lineHeight": 18,
+                      },
+                      {
+                        "color": "#8B93A3",
+                        "textAlign": undefined,
+                        "writingDirection": "ltr",
+                      },
+                      undefined,
+                    ]
+                  }
+                >
+                  common:terms.dropoff · Boulevard Hedi Chaker, Sousse
+                </Text>
+              </View>
+            </View>
+          </View>
         </View>
       </View>
       <View
@@ -1433,7 +1654,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                       "width": 18,
                     },
                     {
-                      "backgroundColor": "#22794F",
+                      "backgroundColor": "#2E9E6C",
                       "borderColor": "#FFFFFF",
                     },
                   ]
@@ -1443,7 +1664,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                   accessibilityElementsHidden={true}
                   color="#0D1512"
                   importantForAccessibility="no-hide-descendants"
-                  name="person"
+                  name="add"
                   size={16}
                 />
               </View>
@@ -1544,6 +1765,226 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
           [
             {
               "borderRadius": 16,
+              "flexDirection": "row",
+              "marginHorizontal": 16,
+              "marginTop": 12,
+              "overflow": "hidden",
+            },
+            {
+              "backgroundColor": "#E4EDFB",
+            },
+          ]
+        }
+      >
+        <View
+          style={
+            {
+              "flex": 1,
+              "gap": 6,
+              "padding": 12,
+            }
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 14,
+                  "fontWeight": "500",
+                  "lineHeight": 21,
+                },
+                {
+                  "color": "#5B6572",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                {
+                  "letterSpacing": 0.4,
+                  "textTransform": "uppercase",
+                },
+              ]
+            }
+          >
+            rides.rideDetail.capacityLabel
+          </Text>
+          <View
+            style={
+              {
+                "flexDirection": "row",
+                "gap": 4,
+              }
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "borderRadius": 4,
+                    "height": 8,
+                    "width": 16,
+                  },
+                  {
+                    "backgroundColor": "#2E9E6C",
+                  },
+                ]
+              }
+            />
+            <View
+              style={
+                [
+                  {
+                    "borderRadius": 4,
+                    "height": 8,
+                    "width": 16,
+                  },
+                  {
+                    "backgroundColor": "#2E9E6C",
+                  },
+                ]
+              }
+            />
+            <View
+              style={
+                [
+                  {
+                    "borderRadius": 4,
+                    "height": 8,
+                    "width": 16,
+                  },
+                  {
+                    "backgroundColor": "#E4EDFB",
+                  },
+                ]
+              }
+            />
+            <View
+              style={
+                [
+                  {
+                    "borderRadius": 4,
+                    "height": 8,
+                    "width": 16,
+                  },
+                  {
+                    "backgroundColor": "#E4EDFB",
+                  },
+                ]
+              }
+            />
+          </View>
+          <Text
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "lineHeight": 21,
+                },
+                {
+                  "color": "#14201B",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            rides.rideDetail.seatsBooked
+          </Text>
+        </View>
+        <View
+          style={
+            [
+              {
+                "width": 1,
+              },
+              {
+                "backgroundColor": "#E4EDFB",
+              },
+            ]
+          }
+        />
+        <View
+          style={
+            {
+              "flex": 1,
+              "gap": 6,
+              "padding": 12,
+            }
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 14,
+                  "fontWeight": "500",
+                  "lineHeight": 21,
+                },
+                {
+                  "color": "#5B6572",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                {
+                  "letterSpacing": 0.4,
+                  "textTransform": "uppercase",
+                },
+              ]
+            }
+          >
+            rides.rideDetail.earningsLabel
+          </Text>
+          <Text
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "lineHeight": 21,
+                },
+                {
+                  "color": "#14201B",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                {
+                  "fontWeight": "700",
+                },
+              ]
+            }
+          >
+            rides.rideDetail.confirmedAmount
+          </Text>
+          <Text
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "lineHeight": 18,
+                },
+                {
+                  "color": "#8B93A3",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            rides.rideDetail.maxPotentialRevenue
+          </Text>
+        </View>
+      </View>
+      <View
+        style={
+          [
+            {
+              "borderRadius": 16,
               "borderWidth": 1,
               "gap": 8,
               "marginHorizontal": 16,
@@ -1626,289 +2067,16 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
           </View>
         </View>
         <View
-          style={
-            {
-              "flexDirection": "row",
-              "gap": 8,
-            }
-          }
+          accessibilityRole="list"
         >
           <View
+            accessibilityLabel="rides.rideDetail.departure, 8:30, Tunis"
+            accessibilityRole="text"
+            accessible={true}
             style={
-              [
-                {
-                  "borderRadius": 5,
-                  "borderWidth": 2,
-                  "height": 10,
-                  "marginTop": 4,
-                  "width": 10,
-                },
-                {
-                  "backgroundColor": "#2E9E6C",
-                  "borderColor": "#FFFFFF",
-                },
-              ]
-            }
-          />
-          <View
-            style={
-              {
-                "flex": 1,
-                "gap": 1,
-              }
-            }
-          >
-            <View
-              style={
-                {
-                  "alignItems": "center",
-                  "flexDirection": "row",
-                  "justifyContent": "space-between",
-                }
-              }
-            >
-              <Text
-                style={
-                  [
-                    {
-                      "fontSize": 14,
-                      "fontWeight": "400",
-                      "lineHeight": 21,
-                    },
-                    {
-                      "color": "#5B6572",
-                      "textAlign": undefined,
-                      "writingDirection": "ltr",
-                    },
-                    undefined,
-                  ]
-                }
-              >
-                rides.rideDetail.departure
-              </Text>
-              <Text
-                style={
-                  [
-                    {
-                      "fontSize": 14,
-                      "fontWeight": "400",
-                      "lineHeight": 21,
-                    },
-                    {
-                      "color": "#5B6572",
-                      "textAlign": undefined,
-                      "writingDirection": "ltr",
-                    },
-                    undefined,
-                  ]
-                }
-              >
-                8:30 AM
-              </Text>
-            </View>
-            <Text
-              numberOfLines={1}
-              style={
-                [
-                  {
-                    "fontSize": 16,
-                    "fontWeight": "400",
-                    "lineHeight": 24,
-                  },
-                  {
-                    "color": "#14201B",
-                    "textAlign": undefined,
-                    "writingDirection": "ltr",
-                  },
-                  undefined,
-                ]
-              }
-            >
-              Tunis
-            </Text>
-            <Text
-              numberOfLines={1}
-              style={
-                [
-                  {
-                    "fontSize": 12,
-                    "fontWeight": "400",
-                    "lineHeight": 18,
-                  },
-                  {
-                    "color": "#8B93A3",
-                    "textAlign": undefined,
-                    "writingDirection": "ltr",
-                  },
-                  undefined,
-                ]
-              }
-            >
-              common:terms.pickup
-               · 
-              Avenue Habib Bourguiba, Tunis
-            </Text>
-          </View>
-        </View>
-        <View
-          style={
-            {
-              "flexDirection": "row",
-              "gap": 8,
-            }
-          }
-        >
-          <View
-            style={
-              [
-                {
-                  "borderRadius": 5,
-                  "borderWidth": 2,
-                  "height": 10,
-                  "marginTop": 4,
-                  "width": 10,
-                },
-                {
-                  "backgroundColor": "#22794F",
-                  "borderColor": "#FFFFFF",
-                },
-              ]
-            }
-          />
-          <View
-            style={
-              {
-                "flex": 1,
-                "gap": 1,
-              }
-            }
-          >
-            <View
-              style={
-                {
-                  "alignItems": "center",
-                  "flexDirection": "row",
-                  "justifyContent": "space-between",
-                }
-              }
-            >
-              <Text
-                numberOfLines={1}
-                style={
-                  [
-                    {
-                      "fontSize": 14,
-                      "fontWeight": "400",
-                      "lineHeight": 21,
-                    },
-                    {
-                      "color": "#5B6572",
-                      "textAlign": undefined,
-                      "writingDirection": "ltr",
-                    },
-                    undefined,
-                  ]
-                }
-              >
-                Karim Fassi
-              </Text>
-              <Text
-                style={
-                  [
-                    {
-                      "fontSize": 14,
-                      "fontWeight": "400",
-                      "lineHeight": 21,
-                    },
-                    {
-                      "color": "#5B6572",
-                      "textAlign": undefined,
-                      "writingDirection": "ltr",
-                    },
-                    undefined,
-                  ]
-                }
-              >
-                08:30
-              </Text>
-            </View>
-            <Text
-              numberOfLines={1}
-              style={
-                [
-                  {
-                    "fontSize": 16,
-                    "fontWeight": "400",
-                    "lineHeight": 24,
-                  },
-                  {
-                    "color": "#14201B",
-                    "textAlign": undefined,
-                    "writingDirection": "ltr",
-                  },
-                  undefined,
-                ]
-              }
-            >
-              Angle Rue de Kairouan
-            </Text>
-            <Text
-              numberOfLines={1}
-              style={
-                [
-                  {
-                    "fontSize": 12,
-                    "fontWeight": "400",
-                    "lineHeight": 18,
-                  },
-                  {
-                    "color": "#8B93A3",
-                    "textAlign": undefined,
-                    "writingDirection": "ltr",
-                  },
-                  undefined,
-                ]
-              }
-            >
-              rides.rideDetail.pickupPrefix
-            </Text>
-          </View>
-        </View>
-        <View
-          style={
-            [
               {
                 "flexDirection": "row",
                 "gap": 8,
-              },
-              {
-                "marginBottom": 4,
-              },
-            ]
-          }
-        >
-          <View
-            style={
-              [
-                {
-                  "borderRadius": 5,
-                  "borderWidth": 2,
-                  "height": 10,
-                  "marginTop": 4,
-                  "width": 10,
-                },
-                {
-                  "backgroundColor": "#14201B",
-                  "borderColor": "#FFFFFF",
-                },
-              ]
-            }
-          />
-          <View
-            style={
-              {
-                "flex": 1,
-                "gap": 1,
               }
             }
           >
@@ -1916,201 +2084,543 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
               style={
                 {
                   "alignItems": "center",
-                  "flexDirection": "row",
-                  "justifyContent": "space-between",
+                  "width": 26,
                 }
               }
             >
-              <Text
+              <View
                 style={
                   [
                     {
-                      "fontSize": 14,
-                      "fontWeight": "400",
-                      "lineHeight": 21,
+                      "alignItems": "center",
+                      "borderRadius": 13,
+                      "borderWidth": 2,
+                      "height": 26,
+                      "justifyContent": "center",
+                      "width": 26,
                     },
                     {
-                      "color": "#5B6572",
-                      "textAlign": undefined,
-                      "writingDirection": "ltr",
+                      "backgroundColor": "#14201B",
+                      "borderColor": "#FFFFFF",
                     },
-                    undefined,
                   ]
                 }
               >
-                rides.rideDetail.arrival
-              </Text>
-              <Text
+                <Ionicons
+                  accessibilityElementsHidden={true}
+                  color="#FFFFFF"
+                  importantForAccessibility="no-hide-descendants"
+                  name="car"
+                  size={16}
+                />
+              </View>
+              <View
                 style={
                   [
                     {
-                      "fontSize": 14,
-                      "fontWeight": "400",
-                      "lineHeight": 21,
+                      "flex": 1,
+                      "marginVertical": 2,
+                      "minHeight": 16,
                     },
                     {
-                      "color": "#5B6572",
-                      "textAlign": undefined,
-                      "writingDirection": "ltr",
+                      "borderLeftColor": "#D3E1F5",
+                      "borderLeftWidth": 2,
+                      "borderStyle": "dashed",
                     },
-                    undefined,
                   ]
                 }
-              >
-                10:30
-              </Text>
+              />
             </View>
-            <Text
-              numberOfLines={1}
+            <View
               style={
-                [
-                  {
-                    "fontSize": 16,
-                    "fontWeight": "400",
-                    "lineHeight": 24,
-                  },
-                  {
-                    "color": "#14201B",
-                    "textAlign": undefined,
-                    "writingDirection": "ltr",
-                  },
-                  undefined,
-                ]
+                {
+                  "flex": 1,
+                }
               }
             >
-              Sousse
-            </Text>
-            <Text
-              numberOfLines={1}
-              style={
-                [
+              <View
+                style={
                   {
-                    "fontSize": 12,
-                    "fontWeight": "400",
-                    "lineHeight": 18,
-                  },
-                  {
-                    "color": "#8B93A3",
-                    "textAlign": undefined,
-                    "writingDirection": "ltr",
-                  },
-                  undefined,
-                ]
-              }
-            >
-              common:terms.dropoff
-               · 
-              Boulevard Hedi Chaker, Sousse
-            </Text>
+                    "gap": 2,
+                    "paddingBottom": 12,
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "alignItems": "baseline",
+                      "flexDirection": "row",
+                      "justifyContent": "space-between",
+                    }
+                  }
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "400",
+                          "lineHeight": 21,
+                        },
+                        {
+                          "color": "#5B6572",
+                          "textAlign": undefined,
+                          "writingDirection": "ltr",
+                        },
+                        undefined,
+                      ]
+                    }
+                  >
+                    rides.rideDetail.departure
+                  </Text>
+                  <Text
+                    style={
+                      [
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "400",
+                          "lineHeight": 21,
+                        },
+                        {
+                          "color": "#5B6572",
+                          "textAlign": undefined,
+                          "writingDirection": "ltr",
+                        },
+                        undefined,
+                      ]
+                    }
+                  >
+                    8:30
+                  </Text>
+                </View>
+                <Text
+                  numberOfLines={1}
+                  style={
+                    [
+                      {
+                        "fontSize": 16,
+                        "fontWeight": "400",
+                        "lineHeight": 24,
+                      },
+                      {
+                        "color": "#14201B",
+                        "textAlign": undefined,
+                        "writingDirection": "ltr",
+                      },
+                      {
+                        "fontWeight": "700",
+                      },
+                    ]
+                  }
+                >
+                  Tunis
+                </Text>
+                <Text
+                  numberOfLines={1}
+                  style={
+                    [
+                      {
+                        "fontSize": 12,
+                        "fontWeight": "400",
+                        "lineHeight": 18,
+                      },
+                      {
+                        "color": "#8B93A3",
+                        "textAlign": undefined,
+                        "writingDirection": "ltr",
+                      },
+                      undefined,
+                    ]
+                  }
+                >
+                  common:terms.pickup · Avenue Habib Bourguiba, Tunis
+                </Text>
+              </View>
+            </View>
           </View>
-        </View>
-        <View
-          style={
-            {
-              "alignItems": "center",
-              "flexDirection": "row",
-              "gap": 8,
-            }
-          }
-        >
-          <Ionicons
-            accessibilityElementsHidden={true}
-            color="#5B6572"
-            importantForAccessibility="no-hide-descendants"
-            name="people-outline"
-            size={20}
-          />
-          <Text
+          <View
+            accessibilityLabel="rides.rideDetail.pickupPrefix, 08:30, Angle Rue de Kairouan, Karim Fassi"
+            accessibilityRole="text"
+            accessible={true}
             style={
-              [
-                {
-                  "fontSize": 14,
-                  "fontWeight": "400",
-                  "lineHeight": 21,
-                },
-                {
-                  "color": "#5B6572",
-                  "textAlign": undefined,
-                  "writingDirection": "ltr",
-                },
-                undefined,
-              ]
+              {
+                "flexDirection": "row",
+                "gap": 8,
+              }
             }
           >
-            rides.rideDetail.seatsAvailable
-          </Text>
-        </View>
-        <View
-          style={
-            {
-              "alignItems": "center",
-              "flexDirection": "row",
-              "gap": 8,
-            }
-          }
-        >
-          <Ionicons
-            accessibilityElementsHidden={true}
-            color="#5B6572"
-            importantForAccessibility="no-hide-descendants"
-            name="cash-outline"
-            size={20}
-          />
-          <Text
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "width": 26,
+                }
+              }
+            >
+              <View
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 9,
+                      "borderWidth": 2,
+                      "elevation": 2,
+                      "height": 18,
+                      "justifyContent": "center",
+                      "shadowColor": "#000",
+                      "shadowOffset": {
+                        "height": 1,
+                        "width": 0,
+                      },
+                      "shadowOpacity": 0.15,
+                      "shadowRadius": 2,
+                      "width": 18,
+                    },
+                    {
+                      "backgroundColor": "#2E9E6C",
+                      "borderColor": "#FFFFFF",
+                    },
+                  ]
+                }
+              >
+                <Ionicons
+                  accessibilityElementsHidden={true}
+                  color="#0D1512"
+                  importantForAccessibility="no-hide-descendants"
+                  name="add"
+                  size={16}
+                />
+              </View>
+              <View
+                style={
+                  [
+                    {
+                      "flex": 1,
+                      "marginVertical": 2,
+                      "minHeight": 16,
+                    },
+                    {
+                      "backgroundColor": "#2E9E6C",
+                      "borderRadius": 1.5,
+                      "width": 3,
+                    },
+                  ]
+                }
+              />
+            </View>
+            <View
+              style={
+                {
+                  "flex": 1,
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "gap": 2,
+                    "paddingBottom": 12,
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 8,
+                    }
+                  }
+                >
+                  <TouchableOpacity
+                    accessibilityLabel="Karim Fassi"
+                    accessibilityRole="button"
+                    hitSlop={6}
+                    onPress={[Function]}
+                  >
+                    <View
+                      accessibilityLabel="Photo de Karim Fassi"
+                      accessibilityRole="image"
+                      accessible={true}
+                      style={
+                        [
+                          {
+                            "alignItems": "center",
+                            "justifyContent": "center",
+                          },
+                          {
+                            "backgroundColor": "#2E3B42",
+                            "borderRadius": 14,
+                            "height": 28,
+                            "width": 28,
+                          },
+                        ]
+                      }
+                    >
+                      <Text
+                        style={
+                          [
+                            {
+                              "color": "#FFFFFF",
+                              "fontWeight": "600",
+                            },
+                            {
+                              "color": undefined,
+                              "fontSize": 11,
+                            },
+                          ]
+                        }
+                      >
+                        KF
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                  <Text
+                    numberOfLines={1}
+                    style={
+                      [
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "400",
+                          "lineHeight": 21,
+                        },
+                        {
+                          "color": "#14201B",
+                          "textAlign": undefined,
+                          "writingDirection": "ltr",
+                        },
+                        {
+                          "flex": 1,
+                          "fontWeight": "600",
+                        },
+                      ]
+                    }
+                  >
+                    Karim Fassi
+                  </Text>
+                  <Text
+                    style={
+                      [
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "400",
+                          "lineHeight": 21,
+                        },
+                        {
+                          "color": "#5B6572",
+                          "textAlign": undefined,
+                          "writingDirection": "ltr",
+                        },
+                        undefined,
+                      ]
+                    }
+                  >
+                    08:30
+                  </Text>
+                </View>
+                <Text
+                  numberOfLines={1}
+                  style={
+                    [
+                      {
+                        "fontSize": 12,
+                        "fontWeight": "400",
+                        "lineHeight": 18,
+                      },
+                      {
+                        "color": "#8B93A3",
+                        "textAlign": undefined,
+                        "writingDirection": "ltr",
+                      },
+                      {
+                        "marginLeft": 36,
+                      },
+                    ]
+                  }
+                >
+                  rides.rideDetail.pickupPrefix
+                   · 
+                  Angle Rue de Kairouan
+                </Text>
+                <Text
+                  style={
+                    [
+                      {
+                        "fontSize": 12,
+                        "fontWeight": "400",
+                        "lineHeight": 18,
+                      },
+                      {
+                        "color": "#8B93A3",
+                        "textAlign": undefined,
+                        "writingDirection": "ltr",
+                      },
+                      {
+                        "marginLeft": 36,
+                      },
+                    ]
+                  }
+                >
+                  rides.rideDetail.onboardRange
+                </Text>
+              </View>
+            </View>
+          </View>
+          <View
+            accessibilityLabel="rides.rideDetail.arrival, 10:30, Sousse"
+            accessibilityRole="text"
+            accessible={true}
             style={
-              [
-                {
-                  "fontSize": 14,
-                  "fontWeight": "400",
-                  "lineHeight": 21,
-                },
-                {
-                  "color": "#5B6572",
-                  "textAlign": undefined,
-                  "writingDirection": "ltr",
-                },
-                undefined,
-              ]
+              {
+                "flexDirection": "row",
+                "gap": 8,
+              }
             }
           >
-            rides.rideDetail.pricePerSeat
-          </Text>
-        </View>
-        <View
-          style={
-            {
-              "alignItems": "center",
-              "flexDirection": "row",
-              "gap": 8,
-            }
-          }
-        >
-          <Ionicons
-            accessibilityElementsHidden={true}
-            color="#5B6572"
-            importantForAccessibility="no-hide-descendants"
-            name="wallet-outline"
-            size={20}
-          />
-          <Text
-            style={
-              [
+            <View
+              style={
                 {
-                  "fontSize": 14,
-                  "fontWeight": "400",
-                  "lineHeight": 21,
-                },
+                  "alignItems": "center",
+                  "width": 26,
+                }
+              }
+            >
+              <View
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 13,
+                      "borderWidth": 2,
+                      "height": 26,
+                      "justifyContent": "center",
+                      "width": 26,
+                    },
+                    {
+                      "backgroundColor": "#14201B",
+                      "borderColor": "#FFFFFF",
+                    },
+                  ]
+                }
+              >
+                <Ionicons
+                  accessibilityElementsHidden={true}
+                  color="#FFFFFF"
+                  importantForAccessibility="no-hide-descendants"
+                  name="flag"
+                  size={16}
+                />
+              </View>
+            </View>
+            <View
+              style={
                 {
-                  "color": "#5B6572",
-                  "textAlign": undefined,
-                  "writingDirection": "ltr",
-                },
-                undefined,
-              ]
-            }
-          >
-            rides.rideDetail.confirmedRevenue
-          </Text>
+                  "flex": 1,
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "gap": 2,
+                    "paddingBottom": 12,
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "alignItems": "baseline",
+                      "flexDirection": "row",
+                      "justifyContent": "space-between",
+                    }
+                  }
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "400",
+                          "lineHeight": 21,
+                        },
+                        {
+                          "color": "#5B6572",
+                          "textAlign": undefined,
+                          "writingDirection": "ltr",
+                        },
+                        undefined,
+                      ]
+                    }
+                  >
+                    rides.rideDetail.arrival
+                  </Text>
+                  <Text
+                    style={
+                      [
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "400",
+                          "lineHeight": 21,
+                        },
+                        {
+                          "color": "#5B6572",
+                          "textAlign": undefined,
+                          "writingDirection": "ltr",
+                        },
+                        undefined,
+                      ]
+                    }
+                  >
+                    10:30
+                  </Text>
+                </View>
+                <Text
+                  numberOfLines={1}
+                  style={
+                    [
+                      {
+                        "fontSize": 16,
+                        "fontWeight": "400",
+                        "lineHeight": 24,
+                      },
+                      {
+                        "color": "#14201B",
+                        "textAlign": undefined,
+                        "writingDirection": "ltr",
+                      },
+                      {
+                        "fontWeight": "700",
+                      },
+                    ]
+                  }
+                >
+                  Sousse
+                </Text>
+                <Text
+                  numberOfLines={1}
+                  style={
+                    [
+                      {
+                        "fontSize": 12,
+                        "fontWeight": "400",
+                        "lineHeight": 18,
+                      },
+                      {
+                        "color": "#8B93A3",
+                        "textAlign": undefined,
+                        "writingDirection": "ltr",
+                      },
+                      undefined,
+                    ]
+                  }
+                >
+                  common:terms.dropoff · Boulevard Hedi Chaker, Sousse
+                </Text>
+              </View>
+            </View>
+          </View>
         </View>
       </View>
       <View
@@ -2828,7 +3338,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                       "width": 18,
                     },
                     {
-                      "backgroundColor": "#22794F",
+                      "backgroundColor": "#2E9E6C",
                       "borderColor": "#FFFFFF",
                     },
                   ]
@@ -2838,7 +3348,3063 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                   accessibilityElementsHidden={true}
                   color="#0D1512"
                   importantForAccessibility="no-hide-descendants"
-                  name="person"
+                  name="add"
+                  size={16}
+                />
+              </View>
+            </Marker>
+            <Marker
+              anchor={
+                {
+                  "x": 0.5,
+                  "y": 0.5,
+                }
+              }
+              coordinate={
+                {
+                  "latitude": 35.82,
+                  "longitude": 10.63,
+                }
+              }
+            >
+              <View
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "borderBottomLeftRadius": 2,
+                      "borderRadius": 13,
+                      "borderWidth": 2.5,
+                      "elevation": 3,
+                      "height": 26,
+                      "justifyContent": "center",
+                      "shadowColor": "#000",
+                      "shadowOffset": {
+                        "height": 2,
+                        "width": 0,
+                      },
+                      "shadowOpacity": 0.2,
+                      "shadowRadius": 4,
+                      "transform": [
+                        {
+                          "rotate": "-45deg",
+                        },
+                      ],
+                      "width": 26,
+                    },
+                    {
+                      "backgroundColor": "#14201B",
+                      "borderColor": "#FFFFFF",
+                    },
+                  ]
+                }
+              >
+                <View
+                  style={
+                    [
+                      {
+                        "borderRadius": 3.5,
+                        "height": 7,
+                        "transform": [
+                          {
+                            "rotate": "45deg",
+                          },
+                        ],
+                        "width": 7,
+                      },
+                      {
+                        "backgroundColor": "#FFFFFF",
+                      },
+                    ]
+                  }
+                />
+              </View>
+            </Marker>
+          </MapView>
+          <View
+            pointerEvents="none"
+            style={
+              {
+                "backgroundColor": "#EDEBE1",
+                "opacity": 0.18,
+              }
+            }
+          />
+          <Animated.View
+            accessibilityElementsHidden={true}
+            importantForAccessibility="no-hide-descendants"
+            style={
+              [
+                {
+                  "backgroundColor": "#EAE7DC",
+                },
+                {
+                  "borderRadius": 0,
+                  "height": 16,
+                  "opacity": AnimatedValue {
+                    "value": 0.45,
+                  },
+                  "width": "100%",
+                },
+                {},
+              ]
+            }
+          />
+        </View>
+        <TouchableOpacity
+          accessibilityLabel="rides.rideDetail.close"
+          accessibilityRole="button"
+          hitSlop={12}
+          onPress={[Function]}
+          style={
+            [
+              {
+                "alignItems": "center",
+                "borderRadius": 20,
+                "elevation": 3,
+                "height": 40,
+                "justifyContent": "center",
+                "position": "absolute",
+                "right": 16,
+                "shadowColor": "#000",
+                "shadowOffset": {
+                  "height": 2,
+                  "width": 0,
+                },
+                "shadowOpacity": 0.15,
+                "shadowRadius": 6,
+                "width": 40,
+              },
+              {
+                "backgroundColor": "#FFFFFF",
+                "top": 8,
+              },
+            ]
+          }
+        >
+          <Ionicons
+            color="#14201B"
+            name="close"
+            size={22}
+          />
+        </TouchableOpacity>
+      </View>
+    </Modal>
+  </View>,
+  <View
+    pointerEvents="box-none"
+    style={
+      {
+        "gap": 8,
+        "left": 16,
+        "position": "absolute",
+        "right": 16,
+        "top": 32,
+      }
+    }
+  />,
+]
+`;
+
+exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the threaded itinerary flags the moment the second boards while the first is still aboard 1`] = `
+[
+  <View
+    style={
+      [
+        {
+          "flex": 1,
+        },
+        {
+          "backgroundColor": "#FFFFFF",
+        },
+      ]
+    }
+  >
+    <ScrollView
+      contentContainerStyle={
+        {
+          "paddingBottom": 20,
+        }
+      }
+      showsVerticalScrollIndicator={false}
+    >
+      <View
+        style={
+          [
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "paddingBottom": 8,
+              "paddingHorizontal": 16,
+            },
+            {
+              "paddingTop": 8,
+            },
+          ]
+        }
+      >
+        <TouchableOpacity
+          accessibilityLabel="rides.rideDetail.back"
+          accessibilityRole="button"
+          hitSlop={12}
+          onPress={[Function]}
+        >
+          <Ionicons
+            color="#14201B"
+            name="chevron-back"
+            size={24}
+          />
+        </TouchableOpacity>
+        <Text
+          style={
+            [
+              {
+                "fontSize": 24,
+                "fontWeight": "600",
+                "lineHeight": 28.799999999999997,
+              },
+              {
+                "color": "#14201B",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              {
+                "flex": 1,
+                "textAlign": "center",
+              },
+            ]
+          }
+        >
+          rides.rideDetail.myRide
+        </Text>
+        <View
+          style={
+            {
+              "width": 24,
+            }
+          }
+        />
+      </View>
+      <View
+        style={
+          {
+            "marginHorizontal": 16,
+            "position": "relative",
+          }
+        }
+      >
+        <View
+          style={
+            [
+              {
+                "backgroundColor": "#EDEBE1",
+                "borderRadius": 16,
+                "overflow": "hidden",
+                "position": "relative",
+              },
+              {
+                "height": 160,
+              },
+              {},
+            ]
+          }
+        >
+          <MapView
+            customMapStyle={[]}
+            initialRegion={
+              {
+                "latitude": 36.31,
+                "latitudeDelta": 1.5679999999999952,
+                "longitude": 10.405000000000001,
+                "longitudeDelta": 0.7200000000000017,
+              }
+            }
+            onMapReady={[Function]}
+            pitchEnabled={false}
+            pointerEvents="none"
+            provider="default"
+            rotateEnabled={false}
+            scrollEnabled={false}
+            style={{}}
+            userInterfaceStyle="light"
+            zoomEnabled={false}
+          >
+            <Marker
+              anchor={
+                {
+                  "x": 0.5,
+                  "y": 0.5,
+                }
+              }
+              coordinate={
+                {
+                  "latitude": 36.8,
+                  "longitude": 10.18,
+                }
+              }
+            >
+              <View
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "borderBottomLeftRadius": 2,
+                      "borderRadius": 13,
+                      "borderWidth": 2.5,
+                      "elevation": 3,
+                      "height": 26,
+                      "justifyContent": "center",
+                      "shadowColor": "#000",
+                      "shadowOffset": {
+                        "height": 2,
+                        "width": 0,
+                      },
+                      "shadowOpacity": 0.2,
+                      "shadowRadius": 4,
+                      "transform": [
+                        {
+                          "rotate": "-45deg",
+                        },
+                      ],
+                      "width": 26,
+                    },
+                    {
+                      "backgroundColor": "#2E9E6C",
+                      "borderColor": "#FFFFFF",
+                    },
+                  ]
+                }
+              >
+                <View
+                  style={
+                    [
+                      {
+                        "borderRadius": 3.5,
+                        "height": 7,
+                        "transform": [
+                          {
+                            "rotate": "45deg",
+                          },
+                        ],
+                        "width": 7,
+                      },
+                      {
+                        "backgroundColor": "#0D1512",
+                      },
+                    ]
+                  }
+                />
+              </View>
+            </Marker>
+            <Marker
+              anchor={
+                {
+                  "x": 0.5,
+                  "y": 0.5,
+                }
+              }
+              coordinate={
+                {
+                  "latitude": 35.82,
+                  "longitude": 10.63,
+                }
+              }
+            >
+              <View
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "borderBottomLeftRadius": 2,
+                      "borderRadius": 13,
+                      "borderWidth": 2.5,
+                      "elevation": 3,
+                      "height": 26,
+                      "justifyContent": "center",
+                      "shadowColor": "#000",
+                      "shadowOffset": {
+                        "height": 2,
+                        "width": 0,
+                      },
+                      "shadowOpacity": 0.2,
+                      "shadowRadius": 4,
+                      "transform": [
+                        {
+                          "rotate": "-45deg",
+                        },
+                      ],
+                      "width": 26,
+                    },
+                    {
+                      "backgroundColor": "#14201B",
+                      "borderColor": "#FFFFFF",
+                    },
+                  ]
+                }
+              >
+                <View
+                  style={
+                    [
+                      {
+                        "borderRadius": 3.5,
+                        "height": 7,
+                        "transform": [
+                          {
+                            "rotate": "45deg",
+                          },
+                        ],
+                        "width": 7,
+                      },
+                      {
+                        "backgroundColor": "#FFFFFF",
+                      },
+                    ]
+                  }
+                />
+              </View>
+            </Marker>
+            <Marker
+              anchor={
+                {
+                  "x": 0.5,
+                  "y": 0.5,
+                }
+              }
+              coordinate={
+                {
+                  "latitude": 36.75,
+                  "longitude": 10.3,
+                }
+              }
+              zIndex={10}
+            >
+              <View
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 9,
+                      "borderWidth": 2,
+                      "elevation": 2,
+                      "height": 18,
+                      "justifyContent": "center",
+                      "shadowColor": "#000",
+                      "shadowOffset": {
+                        "height": 1,
+                        "width": 0,
+                      },
+                      "shadowOpacity": 0.15,
+                      "shadowRadius": 2,
+                      "width": 18,
+                    },
+                    {
+                      "backgroundColor": "#2E9E6C",
+                      "borderColor": "#FFFFFF",
+                    },
+                  ]
+                }
+              >
+                <Ionicons
+                  accessibilityElementsHidden={true}
+                  color="#0D1512"
+                  importantForAccessibility="no-hide-descendants"
+                  name="add"
+                  size={16}
+                />
+              </View>
+            </Marker>
+            <Marker
+              anchor={
+                {
+                  "x": 0.5,
+                  "y": 0.5,
+                }
+              }
+              coordinate={
+                {
+                  "latitude": 36.4,
+                  "longitude": 10.6,
+                }
+              }
+              zIndex={10}
+            >
+              <View
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 9,
+                      "borderWidth": 2,
+                      "elevation": 2,
+                      "height": 18,
+                      "justifyContent": "center",
+                      "shadowColor": "#000",
+                      "shadowOffset": {
+                        "height": 1,
+                        "width": 0,
+                      },
+                      "shadowOpacity": 0.15,
+                      "shadowRadius": 2,
+                      "width": 18,
+                    },
+                    {
+                      "backgroundColor": "#2E9E6C",
+                      "borderColor": "#FFFFFF",
+                    },
+                  ]
+                }
+              >
+                <Ionicons
+                  accessibilityElementsHidden={true}
+                  color="#0D1512"
+                  importantForAccessibility="no-hide-descendants"
+                  name="add"
+                  size={16}
+                />
+              </View>
+            </Marker>
+            <Marker
+              anchor={
+                {
+                  "x": 0.5,
+                  "y": 0.5,
+                }
+              }
+              coordinate={
+                {
+                  "latitude": 36.13,
+                  "longitude": 10.38,
+                }
+              }
+              zIndex={10}
+            >
+              <View
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 9,
+                      "borderWidth": 2,
+                      "elevation": 2,
+                      "height": 18,
+                      "justifyContent": "center",
+                      "shadowColor": "#000",
+                      "shadowOffset": {
+                        "height": 1,
+                        "width": 0,
+                      },
+                      "shadowOpacity": 0.15,
+                      "shadowRadius": 2,
+                      "width": 18,
+                    },
+                    {
+                      "backgroundColor": "#B5503C",
+                      "borderColor": "#FFFFFF",
+                    },
+                  ]
+                }
+              >
+                <Ionicons
+                  accessibilityElementsHidden={true}
+                  color="#FFFFFF"
+                  importantForAccessibility="no-hide-descendants"
+                  name="remove"
+                  size={16}
+                />
+              </View>
+            </Marker>
+            <Marker
+              anchor={
+                {
+                  "x": 0.5,
+                  "y": 0.5,
+                }
+              }
+              coordinate={
+                {
+                  "latitude": 35.73,
+                  "longitude": 10.58,
+                }
+              }
+              zIndex={10}
+            >
+              <View
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 9,
+                      "borderWidth": 2,
+                      "elevation": 2,
+                      "height": 18,
+                      "justifyContent": "center",
+                      "shadowColor": "#000",
+                      "shadowOffset": {
+                        "height": 1,
+                        "width": 0,
+                      },
+                      "shadowOpacity": 0.15,
+                      "shadowRadius": 2,
+                      "width": 18,
+                    },
+                    {
+                      "backgroundColor": "#B5503C",
+                      "borderColor": "#FFFFFF",
+                    },
+                  ]
+                }
+              >
+                <Ionicons
+                  accessibilityElementsHidden={true}
+                  color="#FFFFFF"
+                  importantForAccessibility="no-hide-descendants"
+                  name="remove"
+                  size={16}
+                />
+              </View>
+            </Marker>
+          </MapView>
+          <View
+            pointerEvents="none"
+            style={
+              {
+                "backgroundColor": "#EDEBE1",
+                "opacity": 0.18,
+              }
+            }
+          />
+          <Animated.View
+            accessibilityElementsHidden={true}
+            importantForAccessibility="no-hide-descendants"
+            style={
+              [
+                {
+                  "backgroundColor": "#EAE7DC",
+                },
+                {
+                  "borderRadius": 0,
+                  "height": 16,
+                  "opacity": AnimatedValue {
+                    "value": 0.45,
+                  },
+                  "width": "100%",
+                },
+                {},
+              ]
+            }
+          />
+        </View>
+        <TouchableOpacity
+          accessibilityLabel="rides.rideDetail.viewRouteFullscreen"
+          accessibilityRole="button"
+          activeOpacity={0.85}
+          onPress={[Function]}
+          style={
+            [
+              {
+                "alignItems": "center",
+                "borderRadius": 9999,
+                "bottom": 8,
+                "elevation": 2,
+                "flexDirection": "row",
+                "gap": 4,
+                "paddingHorizontal": 8,
+                "paddingVertical": 4,
+                "position": "absolute",
+                "right": 8,
+                "shadowColor": "#000",
+                "shadowOffset": {
+                  "height": 2,
+                  "width": 0,
+                },
+                "shadowOpacity": 0.12,
+                "shadowRadius": 6,
+              },
+              {
+                "backgroundColor": "#FFFFFF",
+              },
+            ]
+          }
+        >
+          <Ionicons
+            accessibilityElementsHidden={true}
+            color="#14201B"
+            importantForAccessibility="no-hide-descendants"
+            name="expand-outline"
+            size={16}
+          />
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "lineHeight": 18,
+                },
+                {
+                  "color": "#14201B",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            rides.rideDetail.viewRouteFullscreen
+          </Text>
+        </TouchableOpacity>
+      </View>
+      <View
+        style={
+          [
+            {
+              "borderRadius": 16,
+              "flexDirection": "row",
+              "marginHorizontal": 16,
+              "marginTop": 12,
+              "overflow": "hidden",
+            },
+            {
+              "backgroundColor": "#E4EDFB",
+            },
+          ]
+        }
+      >
+        <View
+          style={
+            {
+              "flex": 1,
+              "gap": 6,
+              "padding": 12,
+            }
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 14,
+                  "fontWeight": "500",
+                  "lineHeight": 21,
+                },
+                {
+                  "color": "#5B6572",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                {
+                  "letterSpacing": 0.4,
+                  "textTransform": "uppercase",
+                },
+              ]
+            }
+          >
+            rides.rideDetail.capacityLabel
+          </Text>
+          <View
+            style={
+              {
+                "flexDirection": "row",
+                "gap": 4,
+              }
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "borderRadius": 4,
+                    "height": 8,
+                    "width": 16,
+                  },
+                  {
+                    "backgroundColor": "#2E9E6C",
+                  },
+                ]
+              }
+            />
+            <View
+              style={
+                [
+                  {
+                    "borderRadius": 4,
+                    "height": 8,
+                    "width": 16,
+                  },
+                  {
+                    "backgroundColor": "#2E9E6C",
+                  },
+                ]
+              }
+            />
+            <View
+              style={
+                [
+                  {
+                    "borderRadius": 4,
+                    "height": 8,
+                    "width": 16,
+                  },
+                  {
+                    "backgroundColor": "#E4EDFB",
+                  },
+                ]
+              }
+            />
+            <View
+              style={
+                [
+                  {
+                    "borderRadius": 4,
+                    "height": 8,
+                    "width": 16,
+                  },
+                  {
+                    "backgroundColor": "#E4EDFB",
+                  },
+                ]
+              }
+            />
+          </View>
+          <Text
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "lineHeight": 21,
+                },
+                {
+                  "color": "#14201B",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            rides.rideDetail.seatsBooked
+          </Text>
+        </View>
+        <View
+          style={
+            [
+              {
+                "width": 1,
+              },
+              {
+                "backgroundColor": "#E4EDFB",
+              },
+            ]
+          }
+        />
+        <View
+          style={
+            {
+              "flex": 1,
+              "gap": 6,
+              "padding": 12,
+            }
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 14,
+                  "fontWeight": "500",
+                  "lineHeight": 21,
+                },
+                {
+                  "color": "#5B6572",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                {
+                  "letterSpacing": 0.4,
+                  "textTransform": "uppercase",
+                },
+              ]
+            }
+          >
+            rides.rideDetail.earningsLabel
+          </Text>
+          <Text
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "lineHeight": 21,
+                },
+                {
+                  "color": "#14201B",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                {
+                  "fontWeight": "700",
+                },
+              ]
+            }
+          >
+            rides.rideDetail.confirmedAmount
+          </Text>
+          <Text
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "lineHeight": 18,
+                },
+                {
+                  "color": "#8B93A3",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            rides.rideDetail.maxPotentialRevenue
+          </Text>
+        </View>
+      </View>
+      <View
+        style={
+          [
+            {
+              "borderRadius": 16,
+              "borderWidth": 1,
+              "gap": 8,
+              "marginHorizontal": 16,
+              "marginTop": 12,
+              "padding": 12,
+            },
+            {
+              "backgroundColor": "#FFFFFF",
+              "borderColor": "#E4EDFB",
+            },
+          ]
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "gap": 8,
+              "justifyContent": "space-between",
+            }
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 14,
+                  "fontWeight": "500",
+                  "lineHeight": 21,
+                },
+                {
+                  "color": "#5B6572",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                {
+                  "letterSpacing": 0.4,
+                  "textTransform": "uppercase",
+                },
+              ]
+            }
+          >
+            rides.rideDetail.itinerary
+          </Text>
+          <View
+            accessibilityLabel="rides.rideDetail.startedWithEta"
+            accessibilityRole="text"
+            accessible={true}
+            style={
+              [
+                {
+                  "alignSelf": "flex-start",
+                  "borderRadius": 9999,
+                  "paddingHorizontal": 8,
+                  "paddingVertical": 4,
+                },
+                {
+                  "backgroundColor": "#F3E8CE",
+                },
+                undefined,
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 12,
+                    "fontWeight": "500",
+                  },
+                  {
+                    "color": "#B58A2E",
+                  },
+                ]
+              }
+            >
+              rides.rideDetail.startedWithEta
+            </Text>
+          </View>
+        </View>
+        <View
+          accessibilityRole="list"
+        >
+          <View
+            accessibilityLabel="rides.rideDetail.departure, 8:30, Tunis"
+            accessibilityRole="text"
+            accessible={true}
+            style={
+              {
+                "flexDirection": "row",
+                "gap": 8,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "width": 26,
+                }
+              }
+            >
+              <View
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 13,
+                      "borderWidth": 2,
+                      "height": 26,
+                      "justifyContent": "center",
+                      "width": 26,
+                    },
+                    {
+                      "backgroundColor": "#14201B",
+                      "borderColor": "#FFFFFF",
+                    },
+                  ]
+                }
+              >
+                <Ionicons
+                  accessibilityElementsHidden={true}
+                  color="#FFFFFF"
+                  importantForAccessibility="no-hide-descendants"
+                  name="car"
+                  size={16}
+                />
+              </View>
+              <View
+                style={
+                  [
+                    {
+                      "flex": 1,
+                      "marginVertical": 2,
+                      "minHeight": 16,
+                    },
+                    {
+                      "borderLeftColor": "#D3E1F5",
+                      "borderLeftWidth": 2,
+                      "borderStyle": "dashed",
+                    },
+                  ]
+                }
+              />
+            </View>
+            <View
+              style={
+                {
+                  "flex": 1,
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "gap": 2,
+                    "paddingBottom": 12,
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "alignItems": "baseline",
+                      "flexDirection": "row",
+                      "justifyContent": "space-between",
+                    }
+                  }
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "400",
+                          "lineHeight": 21,
+                        },
+                        {
+                          "color": "#5B6572",
+                          "textAlign": undefined,
+                          "writingDirection": "ltr",
+                        },
+                        undefined,
+                      ]
+                    }
+                  >
+                    rides.rideDetail.departure
+                  </Text>
+                  <Text
+                    style={
+                      [
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "400",
+                          "lineHeight": 21,
+                        },
+                        {
+                          "color": "#5B6572",
+                          "textAlign": undefined,
+                          "writingDirection": "ltr",
+                        },
+                        undefined,
+                      ]
+                    }
+                  >
+                    8:30
+                  </Text>
+                </View>
+                <Text
+                  numberOfLines={1}
+                  style={
+                    [
+                      {
+                        "fontSize": 16,
+                        "fontWeight": "400",
+                        "lineHeight": 24,
+                      },
+                      {
+                        "color": "#14201B",
+                        "textAlign": undefined,
+                        "writingDirection": "ltr",
+                      },
+                      {
+                        "fontWeight": "700",
+                      },
+                    ]
+                  }
+                >
+                  Tunis
+                </Text>
+                <Text
+                  numberOfLines={1}
+                  style={
+                    [
+                      {
+                        "fontSize": 12,
+                        "fontWeight": "400",
+                        "lineHeight": 18,
+                      },
+                      {
+                        "color": "#8B93A3",
+                        "textAlign": undefined,
+                        "writingDirection": "ltr",
+                      },
+                      undefined,
+                    ]
+                  }
+                >
+                  common:terms.pickup · Avenue Habib Bourguiba, Tunis
+                </Text>
+              </View>
+            </View>
+          </View>
+          <View
+            accessibilityLabel="rides.rideDetail.pickupPrefix, 08:30, Sidi Bou Said, Dinara Kochakajeva"
+            accessibilityRole="text"
+            accessible={true}
+            style={
+              {
+                "flexDirection": "row",
+                "gap": 8,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "width": 26,
+                }
+              }
+            >
+              <View
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 9,
+                      "borderWidth": 2,
+                      "elevation": 2,
+                      "height": 18,
+                      "justifyContent": "center",
+                      "shadowColor": "#000",
+                      "shadowOffset": {
+                        "height": 1,
+                        "width": 0,
+                      },
+                      "shadowOpacity": 0.15,
+                      "shadowRadius": 2,
+                      "width": 18,
+                    },
+                    {
+                      "backgroundColor": "#2E9E6C",
+                      "borderColor": "#FFFFFF",
+                    },
+                  ]
+                }
+              >
+                <Ionicons
+                  accessibilityElementsHidden={true}
+                  color="#0D1512"
+                  importantForAccessibility="no-hide-descendants"
+                  name="add"
+                  size={16}
+                />
+              </View>
+              <View
+                style={
+                  [
+                    {
+                      "flex": 1,
+                      "marginVertical": 2,
+                      "minHeight": 16,
+                    },
+                    {
+                      "backgroundColor": "#2E9E6C",
+                      "borderRadius": 1.5,
+                      "width": 3,
+                    },
+                  ]
+                }
+              />
+            </View>
+            <View
+              style={
+                {
+                  "flex": 1,
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "gap": 2,
+                    "paddingBottom": 12,
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 8,
+                    }
+                  }
+                >
+                  <TouchableOpacity
+                    accessibilityLabel="Dinara Kochakajeva"
+                    accessibilityRole="button"
+                    hitSlop={6}
+                    onPress={[Function]}
+                  >
+                    <View
+                      accessibilityLabel="Photo de Dinara Kochakajeva"
+                      accessibilityRole="image"
+                      accessible={true}
+                      style={
+                        [
+                          {
+                            "alignItems": "center",
+                            "justifyContent": "center",
+                          },
+                          {
+                            "backgroundColor": "#587566",
+                            "borderRadius": 14,
+                            "height": 28,
+                            "width": 28,
+                          },
+                        ]
+                      }
+                    >
+                      <Text
+                        style={
+                          [
+                            {
+                              "color": "#FFFFFF",
+                              "fontWeight": "600",
+                            },
+                            {
+                              "color": undefined,
+                              "fontSize": 11,
+                            },
+                          ]
+                        }
+                      >
+                        DK
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                  <Text
+                    numberOfLines={1}
+                    style={
+                      [
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "400",
+                          "lineHeight": 21,
+                        },
+                        {
+                          "color": "#14201B",
+                          "textAlign": undefined,
+                          "writingDirection": "ltr",
+                        },
+                        {
+                          "flex": 1,
+                          "fontWeight": "600",
+                        },
+                      ]
+                    }
+                  >
+                    Dinara Kochakajeva
+                  </Text>
+                  <Text
+                    style={
+                      [
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "400",
+                          "lineHeight": 21,
+                        },
+                        {
+                          "color": "#5B6572",
+                          "textAlign": undefined,
+                          "writingDirection": "ltr",
+                        },
+                        undefined,
+                      ]
+                    }
+                  >
+                    08:30
+                  </Text>
+                </View>
+                <Text
+                  numberOfLines={1}
+                  style={
+                    [
+                      {
+                        "fontSize": 12,
+                        "fontWeight": "400",
+                        "lineHeight": 18,
+                      },
+                      {
+                        "color": "#8B93A3",
+                        "textAlign": undefined,
+                        "writingDirection": "ltr",
+                      },
+                      {
+                        "marginLeft": 36,
+                      },
+                    ]
+                  }
+                >
+                  rides.rideDetail.pickupPrefix
+                   · 
+                  Sidi Bou Said
+                </Text>
+                <Text
+                  style={
+                    [
+                      {
+                        "fontSize": 12,
+                        "fontWeight": "400",
+                        "lineHeight": 18,
+                      },
+                      {
+                        "color": "#8B93A3",
+                        "textAlign": undefined,
+                        "writingDirection": "ltr",
+                      },
+                      {
+                        "marginLeft": 36,
+                      },
+                    ]
+                  }
+                >
+                  rides.rideDetail.onboardRange
+                </Text>
+              </View>
+            </View>
+          </View>
+          <View
+            accessibilityLabel="rides.rideDetail.pickupPrefix, 08:30, Hammamet, Alex Martin"
+            accessibilityRole="text"
+            accessible={true}
+            style={
+              {
+                "flexDirection": "row",
+                "gap": 8,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "width": 26,
+                }
+              }
+            >
+              <View
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 9,
+                      "borderWidth": 2,
+                      "elevation": 2,
+                      "height": 18,
+                      "justifyContent": "center",
+                      "shadowColor": "#000",
+                      "shadowOffset": {
+                        "height": 1,
+                        "width": 0,
+                      },
+                      "shadowOpacity": 0.15,
+                      "shadowRadius": 2,
+                      "width": 18,
+                    },
+                    {
+                      "backgroundColor": "#2E9E6C",
+                      "borderColor": "#FFFFFF",
+                    },
+                  ]
+                }
+              >
+                <Ionicons
+                  accessibilityElementsHidden={true}
+                  color="#0D1512"
+                  importantForAccessibility="no-hide-descendants"
+                  name="add"
+                  size={16}
+                />
+              </View>
+              <View
+                style={
+                  [
+                    {
+                      "flex": 1,
+                      "marginVertical": 2,
+                      "minHeight": 16,
+                    },
+                    {
+                      "backgroundColor": "#22794F",
+                      "borderRadius": 2,
+                      "width": 4,
+                    },
+                  ]
+                }
+              />
+            </View>
+            <View
+              style={
+                {
+                  "flex": 1,
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "gap": 2,
+                    "paddingBottom": 12,
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 8,
+                    }
+                  }
+                >
+                  <TouchableOpacity
+                    accessibilityLabel="Alex Martin"
+                    accessibilityRole="button"
+                    hitSlop={6}
+                    onPress={[Function]}
+                  >
+                    <View
+                      accessibilityLabel="Photo de Alex Martin"
+                      accessibilityRole="image"
+                      accessible={true}
+                      style={
+                        [
+                          {
+                            "alignItems": "center",
+                            "justifyContent": "center",
+                          },
+                          {
+                            "backgroundColor": "#B08A4E",
+                            "borderRadius": 14,
+                            "height": 28,
+                            "width": 28,
+                          },
+                        ]
+                      }
+                    >
+                      <Text
+                        style={
+                          [
+                            {
+                              "color": "#FFFFFF",
+                              "fontWeight": "600",
+                            },
+                            {
+                              "color": undefined,
+                              "fontSize": 11,
+                            },
+                          ]
+                        }
+                      >
+                        AM
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                  <Text
+                    numberOfLines={1}
+                    style={
+                      [
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "400",
+                          "lineHeight": 21,
+                        },
+                        {
+                          "color": "#14201B",
+                          "textAlign": undefined,
+                          "writingDirection": "ltr",
+                        },
+                        {
+                          "flex": 1,
+                          "fontWeight": "600",
+                        },
+                      ]
+                    }
+                  >
+                    Alex Martin
+                  </Text>
+                  <Text
+                    style={
+                      [
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "400",
+                          "lineHeight": 21,
+                        },
+                        {
+                          "color": "#5B6572",
+                          "textAlign": undefined,
+                          "writingDirection": "ltr",
+                        },
+                        undefined,
+                      ]
+                    }
+                  >
+                    08:30
+                  </Text>
+                </View>
+                <Text
+                  numberOfLines={1}
+                  style={
+                    [
+                      {
+                        "fontSize": 12,
+                        "fontWeight": "400",
+                        "lineHeight": 18,
+                      },
+                      {
+                        "color": "#8B93A3",
+                        "textAlign": undefined,
+                        "writingDirection": "ltr",
+                      },
+                      {
+                        "marginLeft": 36,
+                      },
+                    ]
+                  }
+                >
+                  rides.rideDetail.pickupPrefix
+                   · 
+                  Hammamet
+                </Text>
+                <Text
+                  style={
+                    [
+                      {
+                        "fontSize": 12,
+                        "fontWeight": "400",
+                        "lineHeight": 18,
+                      },
+                      {
+                        "color": "#8B93A3",
+                        "textAlign": undefined,
+                        "writingDirection": "ltr",
+                      },
+                      {
+                        "marginLeft": 36,
+                      },
+                    ]
+                  }
+                >
+                  rides.rideDetail.onboardRange
+                </Text>
+                <View
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "alignSelf": "flex-start",
+                        "borderRadius": 9999,
+                        "flexDirection": "row",
+                        "gap": 5,
+                        "marginLeft": 36,
+                        "marginTop": 4,
+                        "paddingHorizontal": 8,
+                        "paddingVertical": 3,
+                      },
+                      {
+                        "backgroundColor": "#F3E8CE",
+                      },
+                    ]
+                  }
+                >
+                  <View
+                    style={
+                      [
+                        {
+                          "borderRadius": 3,
+                          "height": 6,
+                          "width": 6,
+                        },
+                        {
+                          "backgroundColor": "#B58A2E",
+                        },
+                      ]
+                    }
+                  />
+                  <Text
+                    style={
+                      [
+                        {
+                          "fontSize": 12,
+                          "fontWeight": "400",
+                          "lineHeight": 18,
+                        },
+                        {
+                          "color": "#B58A2E",
+                          "textAlign": undefined,
+                          "writingDirection": "ltr",
+                        },
+                        {
+                          "fontWeight": "600",
+                        },
+                      ]
+                    }
+                  >
+                    rides.rideDetail.occupancyTag
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </View>
+          <View
+            accessibilityLabel="rides.rideDetail.dropoffPrefix, 10:30, Enfidha, Dinara Kochakajeva"
+            accessibilityRole="text"
+            accessible={true}
+            style={
+              {
+                "flexDirection": "row",
+                "gap": 8,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "width": 26,
+                }
+              }
+            >
+              <View
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 9,
+                      "borderWidth": 2,
+                      "elevation": 2,
+                      "height": 18,
+                      "justifyContent": "center",
+                      "shadowColor": "#000",
+                      "shadowOffset": {
+                        "height": 1,
+                        "width": 0,
+                      },
+                      "shadowOpacity": 0.15,
+                      "shadowRadius": 2,
+                      "width": 18,
+                    },
+                    {
+                      "backgroundColor": "#B5503C",
+                      "borderColor": "#FFFFFF",
+                    },
+                  ]
+                }
+              >
+                <Ionicons
+                  accessibilityElementsHidden={true}
+                  color="#FFFFFF"
+                  importantForAccessibility="no-hide-descendants"
+                  name="remove"
+                  size={16}
+                />
+              </View>
+              <View
+                style={
+                  [
+                    {
+                      "flex": 1,
+                      "marginVertical": 2,
+                      "minHeight": 16,
+                    },
+                    {
+                      "backgroundColor": "#2E9E6C",
+                      "borderRadius": 1.5,
+                      "width": 3,
+                    },
+                  ]
+                }
+              />
+            </View>
+            <View
+              style={
+                {
+                  "flex": 1,
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "gap": 2,
+                    "paddingBottom": 12,
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 8,
+                    }
+                  }
+                >
+                  <TouchableOpacity
+                    accessibilityLabel="Dinara Kochakajeva"
+                    accessibilityRole="button"
+                    hitSlop={6}
+                    onPress={[Function]}
+                  >
+                    <View
+                      accessibilityLabel="Photo de Dinara Kochakajeva"
+                      accessibilityRole="image"
+                      accessible={true}
+                      style={
+                        [
+                          {
+                            "alignItems": "center",
+                            "justifyContent": "center",
+                          },
+                          {
+                            "backgroundColor": "#587566",
+                            "borderRadius": 14,
+                            "height": 28,
+                            "width": 28,
+                          },
+                        ]
+                      }
+                    >
+                      <Text
+                        style={
+                          [
+                            {
+                              "color": "#FFFFFF",
+                              "fontWeight": "600",
+                            },
+                            {
+                              "color": undefined,
+                              "fontSize": 11,
+                            },
+                          ]
+                        }
+                      >
+                        DK
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                  <Text
+                    numberOfLines={1}
+                    style={
+                      [
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "400",
+                          "lineHeight": 21,
+                        },
+                        {
+                          "color": "#14201B",
+                          "textAlign": undefined,
+                          "writingDirection": "ltr",
+                        },
+                        {
+                          "flex": 1,
+                          "fontWeight": "600",
+                        },
+                      ]
+                    }
+                  >
+                    Dinara Kochakajeva
+                  </Text>
+                  <Text
+                    style={
+                      [
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "400",
+                          "lineHeight": 21,
+                        },
+                        {
+                          "color": "#5B6572",
+                          "textAlign": undefined,
+                          "writingDirection": "ltr",
+                        },
+                        undefined,
+                      ]
+                    }
+                  >
+                    10:30
+                  </Text>
+                </View>
+                <Text
+                  numberOfLines={1}
+                  style={
+                    [
+                      {
+                        "fontSize": 12,
+                        "fontWeight": "400",
+                        "lineHeight": 18,
+                      },
+                      {
+                        "color": "#8B93A3",
+                        "textAlign": undefined,
+                        "writingDirection": "ltr",
+                      },
+                      {
+                        "marginLeft": 36,
+                      },
+                    ]
+                  }
+                >
+                  rides.rideDetail.dropoffPrefix
+                   · 
+                  Enfidha
+                </Text>
+              </View>
+            </View>
+          </View>
+          <View
+            accessibilityLabel="rides.rideDetail.dropoffPrefix, 10:30, Msaken, Alex Martin"
+            accessibilityRole="text"
+            accessible={true}
+            style={
+              {
+                "flexDirection": "row",
+                "gap": 8,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "width": 26,
+                }
+              }
+            >
+              <View
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 9,
+                      "borderWidth": 2,
+                      "elevation": 2,
+                      "height": 18,
+                      "justifyContent": "center",
+                      "shadowColor": "#000",
+                      "shadowOffset": {
+                        "height": 1,
+                        "width": 0,
+                      },
+                      "shadowOpacity": 0.15,
+                      "shadowRadius": 2,
+                      "width": 18,
+                    },
+                    {
+                      "backgroundColor": "#B5503C",
+                      "borderColor": "#FFFFFF",
+                    },
+                  ]
+                }
+              >
+                <Ionicons
+                  accessibilityElementsHidden={true}
+                  color="#FFFFFF"
+                  importantForAccessibility="no-hide-descendants"
+                  name="remove"
+                  size={16}
+                />
+              </View>
+              <View
+                style={
+                  [
+                    {
+                      "flex": 1,
+                      "marginVertical": 2,
+                      "minHeight": 16,
+                    },
+                    {
+                      "borderLeftColor": "#D3E1F5",
+                      "borderLeftWidth": 2,
+                      "borderStyle": "dashed",
+                    },
+                  ]
+                }
+              />
+            </View>
+            <View
+              style={
+                {
+                  "flex": 1,
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "gap": 2,
+                    "paddingBottom": 12,
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 8,
+                    }
+                  }
+                >
+                  <TouchableOpacity
+                    accessibilityLabel="Alex Martin"
+                    accessibilityRole="button"
+                    hitSlop={6}
+                    onPress={[Function]}
+                  >
+                    <View
+                      accessibilityLabel="Photo de Alex Martin"
+                      accessibilityRole="image"
+                      accessible={true}
+                      style={
+                        [
+                          {
+                            "alignItems": "center",
+                            "justifyContent": "center",
+                          },
+                          {
+                            "backgroundColor": "#B08A4E",
+                            "borderRadius": 14,
+                            "height": 28,
+                            "width": 28,
+                          },
+                        ]
+                      }
+                    >
+                      <Text
+                        style={
+                          [
+                            {
+                              "color": "#FFFFFF",
+                              "fontWeight": "600",
+                            },
+                            {
+                              "color": undefined,
+                              "fontSize": 11,
+                            },
+                          ]
+                        }
+                      >
+                        AM
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                  <Text
+                    numberOfLines={1}
+                    style={
+                      [
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "400",
+                          "lineHeight": 21,
+                        },
+                        {
+                          "color": "#14201B",
+                          "textAlign": undefined,
+                          "writingDirection": "ltr",
+                        },
+                        {
+                          "flex": 1,
+                          "fontWeight": "600",
+                        },
+                      ]
+                    }
+                  >
+                    Alex Martin
+                  </Text>
+                  <Text
+                    style={
+                      [
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "400",
+                          "lineHeight": 21,
+                        },
+                        {
+                          "color": "#5B6572",
+                          "textAlign": undefined,
+                          "writingDirection": "ltr",
+                        },
+                        undefined,
+                      ]
+                    }
+                  >
+                    10:30
+                  </Text>
+                </View>
+                <Text
+                  numberOfLines={1}
+                  style={
+                    [
+                      {
+                        "fontSize": 12,
+                        "fontWeight": "400",
+                        "lineHeight": 18,
+                      },
+                      {
+                        "color": "#8B93A3",
+                        "textAlign": undefined,
+                        "writingDirection": "ltr",
+                      },
+                      {
+                        "marginLeft": 36,
+                      },
+                    ]
+                  }
+                >
+                  rides.rideDetail.dropoffPrefix
+                   · 
+                  Msaken
+                </Text>
+              </View>
+            </View>
+          </View>
+          <View
+            accessibilityLabel="rides.rideDetail.arrival, 10:30, Sousse"
+            accessibilityRole="text"
+            accessible={true}
+            style={
+              {
+                "flexDirection": "row",
+                "gap": 8,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "width": 26,
+                }
+              }
+            >
+              <View
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 13,
+                      "borderWidth": 2,
+                      "height": 26,
+                      "justifyContent": "center",
+                      "width": 26,
+                    },
+                    {
+                      "backgroundColor": "#14201B",
+                      "borderColor": "#FFFFFF",
+                    },
+                  ]
+                }
+              >
+                <Ionicons
+                  accessibilityElementsHidden={true}
+                  color="#FFFFFF"
+                  importantForAccessibility="no-hide-descendants"
+                  name="flag"
+                  size={16}
+                />
+              </View>
+            </View>
+            <View
+              style={
+                {
+                  "flex": 1,
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "gap": 2,
+                    "paddingBottom": 12,
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "alignItems": "baseline",
+                      "flexDirection": "row",
+                      "justifyContent": "space-between",
+                    }
+                  }
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "400",
+                          "lineHeight": 21,
+                        },
+                        {
+                          "color": "#5B6572",
+                          "textAlign": undefined,
+                          "writingDirection": "ltr",
+                        },
+                        undefined,
+                      ]
+                    }
+                  >
+                    rides.rideDetail.arrival
+                  </Text>
+                  <Text
+                    style={
+                      [
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "400",
+                          "lineHeight": 21,
+                        },
+                        {
+                          "color": "#5B6572",
+                          "textAlign": undefined,
+                          "writingDirection": "ltr",
+                        },
+                        undefined,
+                      ]
+                    }
+                  >
+                    10:30
+                  </Text>
+                </View>
+                <Text
+                  numberOfLines={1}
+                  style={
+                    [
+                      {
+                        "fontSize": 16,
+                        "fontWeight": "400",
+                        "lineHeight": 24,
+                      },
+                      {
+                        "color": "#14201B",
+                        "textAlign": undefined,
+                        "writingDirection": "ltr",
+                      },
+                      {
+                        "fontWeight": "700",
+                      },
+                    ]
+                  }
+                >
+                  Sousse
+                </Text>
+                <Text
+                  numberOfLines={1}
+                  style={
+                    [
+                      {
+                        "fontSize": 12,
+                        "fontWeight": "400",
+                        "lineHeight": 18,
+                      },
+                      {
+                        "color": "#8B93A3",
+                        "textAlign": undefined,
+                        "writingDirection": "ltr",
+                      },
+                      undefined,
+                    ]
+                  }
+                >
+                  common:terms.dropoff · Boulevard Hedi Chaker, Sousse
+                </Text>
+              </View>
+            </View>
+          </View>
+        </View>
+      </View>
+      <View
+        style={
+          {
+            "gap": 8,
+            "marginTop": 16,
+            "paddingHorizontal": 16,
+          }
+        }
+      >
+        <Text
+          style={
+            [
+              {
+                "fontSize": 14,
+                "fontWeight": "500",
+                "lineHeight": 21,
+              },
+              {
+                "color": "#5B6572",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              {
+                "letterSpacing": 0.4,
+                "textTransform": "uppercase",
+              },
+            ]
+          }
+        >
+          rides.rideDetail.pendingSection
+        </Text>
+        <Text
+          style={
+            [
+              {
+                "fontSize": 14,
+                "fontWeight": "400",
+                "lineHeight": 21,
+              },
+              {
+                "color": "#8B93A3",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              {
+                "paddingVertical": 8,
+              },
+            ]
+          }
+        >
+          rides.rideDetail.noPendingRequests
+        </Text>
+      </View>
+      <View
+        style={
+          {
+            "gap": 8,
+            "marginTop": 16,
+            "paddingHorizontal": 16,
+          }
+        }
+      >
+        <Text
+          style={
+            [
+              {
+                "fontSize": 14,
+                "fontWeight": "500",
+                "lineHeight": 21,
+              },
+              {
+                "color": "#5B6572",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              {
+                "letterSpacing": 0.4,
+                "textTransform": "uppercase",
+              },
+            ]
+          }
+        >
+          rides.rideDetail.passengers
+        </Text>
+        <View
+          style={
+            {
+              "gap": 4,
+            }
+          }
+        >
+          <TouchableOpacity
+            accessibilityLabel="rides.manageSheet.title Dinara Kochakajeva"
+            accessibilityRole="button"
+            activeOpacity={0.7}
+            disabled={false}
+            onPress={[Function]}
+            style={
+              [
+                {
+                  "borderRadius": 16,
+                  "borderWidth": 1,
+                  "gap": 8,
+                  "padding": 12,
+                },
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 8,
+                },
+                {
+                  "backgroundColor": "#E4EDFB",
+                  "borderColor": "#E4EDFB",
+                },
+              ]
+            }
+          >
+            <TouchableOpacity
+              accessibilityLabel="common:actions.viewProfile"
+              accessibilityRole="button"
+              hitSlop={6}
+              onPress={[Function]}
+            >
+              <View
+                accessibilityLabel="Photo de Dinara Kochakajeva"
+                accessibilityRole="image"
+                accessible={true}
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                    {
+                      "backgroundColor": "#FFFFFF",
+                      "borderRadius": 18,
+                      "height": 36,
+                      "width": 36,
+                    },
+                  ]
+                }
+              >
+                <Text
+                  style={
+                    [
+                      {
+                        "color": "#FFFFFF",
+                        "fontWeight": "600",
+                      },
+                      {
+                        "color": "#14201B",
+                        "fontSize": 14,
+                      },
+                    ]
+                  }
+                >
+                  DK
+                </Text>
+              </View>
+            </TouchableOpacity>
+            <View
+              style={
+                {
+                  "flex": 1,
+                  "gap": 1,
+                }
+              }
+            >
+              <Text
+                numberOfLines={1}
+                style={
+                  [
+                    {
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "lineHeight": 21,
+                    },
+                    {
+                      "color": "#14201B",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                Dinara Kochakajeva
+              </Text>
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 12,
+                      "fontWeight": "400",
+                      "lineHeight": 18,
+                    },
+                    {
+                      "color": "#5B6572",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                1 place
+              </Text>
+            </View>
+            <View
+              accessibilityLabel="rides.rideDetail.confirmedBadge"
+              accessibilityRole="text"
+              accessible={true}
+              style={
+                [
+                  {
+                    "alignSelf": "flex-start",
+                    "borderRadius": 9999,
+                    "paddingHorizontal": 8,
+                    "paddingVertical": 4,
+                  },
+                  {
+                    "backgroundColor": "#8FD9B4",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 12,
+                      "fontWeight": "500",
+                    },
+                    {
+                      "color": "#22794F",
+                    },
+                  ]
+                }
+              >
+                rides.rideDetail.confirmedBadge
+              </Text>
+            </View>
+            <Ionicons
+              accessibilityElementsHidden={true}
+              color="#D3E1F5"
+              importantForAccessibility="no-hide-descendants"
+              name="chevron-forward"
+              size={16}
+            />
+          </TouchableOpacity>
+        </View>
+        <View
+          style={
+            {
+              "gap": 4,
+            }
+          }
+        >
+          <TouchableOpacity
+            accessibilityLabel="rides.manageSheet.title Alex Martin"
+            accessibilityRole="button"
+            activeOpacity={0.7}
+            disabled={false}
+            onPress={[Function]}
+            style={
+              [
+                {
+                  "borderRadius": 16,
+                  "borderWidth": 1,
+                  "gap": 8,
+                  "padding": 12,
+                },
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 8,
+                },
+                {
+                  "backgroundColor": "#E4EDFB",
+                  "borderColor": "#E4EDFB",
+                },
+              ]
+            }
+          >
+            <TouchableOpacity
+              accessibilityLabel="common:actions.viewProfile"
+              accessibilityRole="button"
+              hitSlop={6}
+              onPress={[Function]}
+            >
+              <View
+                accessibilityLabel="Photo de Alex Martin"
+                accessibilityRole="image"
+                accessible={true}
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                    {
+                      "backgroundColor": "#FFFFFF",
+                      "borderRadius": 18,
+                      "height": 36,
+                      "width": 36,
+                    },
+                  ]
+                }
+              >
+                <Text
+                  style={
+                    [
+                      {
+                        "color": "#FFFFFF",
+                        "fontWeight": "600",
+                      },
+                      {
+                        "color": "#14201B",
+                        "fontSize": 14,
+                      },
+                    ]
+                  }
+                >
+                  AM
+                </Text>
+              </View>
+            </TouchableOpacity>
+            <View
+              style={
+                {
+                  "flex": 1,
+                  "gap": 1,
+                }
+              }
+            >
+              <Text
+                numberOfLines={1}
+                style={
+                  [
+                    {
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "lineHeight": 21,
+                    },
+                    {
+                      "color": "#14201B",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                Alex Martin
+              </Text>
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 12,
+                      "fontWeight": "400",
+                      "lineHeight": 18,
+                    },
+                    {
+                      "color": "#5B6572",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                1 place
+              </Text>
+            </View>
+            <View
+              accessibilityLabel="rides.rideDetail.confirmedBadge"
+              accessibilityRole="text"
+              accessible={true}
+              style={
+                [
+                  {
+                    "alignSelf": "flex-start",
+                    "borderRadius": 9999,
+                    "paddingHorizontal": 8,
+                    "paddingVertical": 4,
+                  },
+                  {
+                    "backgroundColor": "#8FD9B4",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 12,
+                      "fontWeight": "500",
+                    },
+                    {
+                      "color": "#22794F",
+                    },
+                  ]
+                }
+              >
+                rides.rideDetail.confirmedBadge
+              </Text>
+            </View>
+            <Ionicons
+              accessibilityElementsHidden={true}
+              color="#D3E1F5"
+              importantForAccessibility="no-hide-descendants"
+              name="chevron-forward"
+              size={16}
+            />
+          </TouchableOpacity>
+        </View>
+      </View>
+      <View
+        style={
+          {
+            "height": 32,
+          }
+        }
+      />
+    </ScrollView>
+    <View
+      style={
+        [
+          {
+            "borderTopWidth": 1,
+            "gap": 8,
+            "paddingHorizontal": 16,
+            "paddingTop": 8,
+          },
+          {
+            "backgroundColor": "#FFFFFF",
+            "borderTopColor": "#E4EDFB",
+            "paddingBottom": 12,
+          },
+        ]
+      }
+    >
+      <Pressable
+        accessibilityLabel="rides.rideDetail.cancelRide"
+        accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": false,
+            "disabled": false,
+          }
+        }
+        disabled={false}
+        onPress={[Function]}
+        style={[Function]}
+      >
+        <Text
+          style={
+            [
+              {
+                "fontWeight": "600",
+              },
+              {
+                "fontSize": 16,
+              },
+              {
+                "color": "#14201B",
+              },
+            ]
+          }
+        >
+          rides.rideDetail.cancelRide
+        </Text>
+      </Pressable>
+    </View>
+    <Modal
+      animationType="slide"
+      onRequestClose={[Function]}
+      visible={false}
+    >
+      <View
+        style={
+          [
+            {
+              "flex": 1,
+            },
+            {
+              "backgroundColor": "#FFFFFF",
+            },
+          ]
+        }
+      >
+        <View
+          style={
+            [
+              {
+                "borderRadius": 16,
+                "overflow": "hidden",
+                "position": "relative",
+              },
+              {
+                "flex": 1,
+                "minHeight": 200,
+              },
+              {
+                "flex": 1,
+              },
+            ]
+          }
+        >
+          <MapView
+            customMapStyle={[]}
+            initialRegion={
+              {
+                "latitude": 36.265,
+                "latitudeDelta": 1.7120000000000006,
+                "longitude": 10.405000000000001,
+                "longitudeDelta": 0.7200000000000017,
+              }
+            }
+            onMapReady={[Function]}
+            provider="google"
+            style={{}}
+          >
+            <Marker
+              anchor={
+                {
+                  "x": 0.5,
+                  "y": 0.5,
+                }
+              }
+              coordinate={
+                {
+                  "latitude": 36.8,
+                  "longitude": 10.18,
+                }
+              }
+            >
+              <View
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "borderBottomLeftRadius": 2,
+                      "borderRadius": 13,
+                      "borderWidth": 2.5,
+                      "elevation": 3,
+                      "height": 26,
+                      "justifyContent": "center",
+                      "shadowColor": "#000",
+                      "shadowOffset": {
+                        "height": 2,
+                        "width": 0,
+                      },
+                      "shadowOpacity": 0.2,
+                      "shadowRadius": 4,
+                      "transform": [
+                        {
+                          "rotate": "-45deg",
+                        },
+                      ],
+                      "width": 26,
+                    },
+                    {
+                      "backgroundColor": "#2E9E6C",
+                      "borderColor": "#FFFFFF",
+                    },
+                  ]
+                }
+              >
+                <View
+                  style={
+                    [
+                      {
+                        "borderRadius": 3.5,
+                        "height": 7,
+                        "transform": [
+                          {
+                            "rotate": "45deg",
+                          },
+                        ],
+                        "width": 7,
+                      },
+                      {
+                        "backgroundColor": "#0D1512",
+                      },
+                    ]
+                  }
+                />
+              </View>
+            </Marker>
+            <Marker
+              anchor={
+                {
+                  "x": 0.5,
+                  "y": 0.5,
+                }
+              }
+              coordinate={
+                {
+                  "latitude": 36.75,
+                  "longitude": 10.3,
+                }
+              }
+              zIndex={10}
+            >
+              <View
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 9,
+                      "borderWidth": 2,
+                      "elevation": 2,
+                      "height": 18,
+                      "justifyContent": "center",
+                      "shadowColor": "#000",
+                      "shadowOffset": {
+                        "height": 1,
+                        "width": 0,
+                      },
+                      "shadowOpacity": 0.15,
+                      "shadowRadius": 2,
+                      "width": 18,
+                    },
+                    {
+                      "backgroundColor": "#2E9E6C",
+                      "borderColor": "#FFFFFF",
+                    },
+                  ]
+                }
+              >
+                <Ionicons
+                  accessibilityElementsHidden={true}
+                  color="#0D1512"
+                  importantForAccessibility="no-hide-descendants"
+                  name="add"
+                  size={16}
+                />
+              </View>
+            </Marker>
+            <Marker
+              anchor={
+                {
+                  "x": 0.5,
+                  "y": 0.5,
+                }
+              }
+              coordinate={
+                {
+                  "latitude": 36.4,
+                  "longitude": 10.6,
+                }
+              }
+              zIndex={10}
+            >
+              <View
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 9,
+                      "borderWidth": 2,
+                      "elevation": 2,
+                      "height": 18,
+                      "justifyContent": "center",
+                      "shadowColor": "#000",
+                      "shadowOffset": {
+                        "height": 1,
+                        "width": 0,
+                      },
+                      "shadowOpacity": 0.15,
+                      "shadowRadius": 2,
+                      "width": 18,
+                    },
+                    {
+                      "backgroundColor": "#2E9E6C",
+                      "borderColor": "#FFFFFF",
+                    },
+                  ]
+                }
+              >
+                <Ionicons
+                  accessibilityElementsHidden={true}
+                  color="#0D1512"
+                  importantForAccessibility="no-hide-descendants"
+                  name="add"
+                  size={16}
+                />
+              </View>
+            </Marker>
+            <Marker
+              anchor={
+                {
+                  "x": 0.5,
+                  "y": 0.5,
+                }
+              }
+              coordinate={
+                {
+                  "latitude": 36.13,
+                  "longitude": 10.38,
+                }
+              }
+              zIndex={10}
+            >
+              <View
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 9,
+                      "borderWidth": 2,
+                      "elevation": 2,
+                      "height": 18,
+                      "justifyContent": "center",
+                      "shadowColor": "#000",
+                      "shadowOffset": {
+                        "height": 1,
+                        "width": 0,
+                      },
+                      "shadowOpacity": 0.15,
+                      "shadowRadius": 2,
+                      "width": 18,
+                    },
+                    {
+                      "backgroundColor": "#B5503C",
+                      "borderColor": "#FFFFFF",
+                    },
+                  ]
+                }
+              >
+                <Ionicons
+                  accessibilityElementsHidden={true}
+                  color="#FFFFFF"
+                  importantForAccessibility="no-hide-descendants"
+                  name="remove"
+                  size={16}
+                />
+              </View>
+            </Marker>
+            <Marker
+              anchor={
+                {
+                  "x": 0.5,
+                  "y": 0.5,
+                }
+              }
+              coordinate={
+                {
+                  "latitude": 35.73,
+                  "longitude": 10.58,
+                }
+              }
+              zIndex={10}
+            >
+              <View
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 9,
+                      "borderWidth": 2,
+                      "elevation": 2,
+                      "height": 18,
+                      "justifyContent": "center",
+                      "shadowColor": "#000",
+                      "shadowOffset": {
+                        "height": 1,
+                        "width": 0,
+                      },
+                      "shadowOpacity": 0.15,
+                      "shadowRadius": 2,
+                      "width": 18,
+                    },
+                    {
+                      "backgroundColor": "#B5503C",
+                      "borderColor": "#FFFFFF",
+                    },
+                  ]
+                }
+              >
+                <Ionicons
+                  accessibilityElementsHidden={true}
+                  color="#FFFFFF"
+                  importantForAccessibility="no-hide-descendants"
+                  name="remove"
                   size={16}
                 />
               </View>

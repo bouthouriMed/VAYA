@@ -55,8 +55,20 @@ interface MapPreviewProps {
    *  from useAppTheme() wherever this preview sits inside a themed,
    *  dark-capable screen. */
   isDark?: boolean;
-  /** Decoded route geometry (see MapRoute's coordinates prop). */
+  /** Decoded route geometry (see MapRoute's coordinates prop). Ignored when
+   *  `occupancySegments` is given (that's the same route, just pre-split
+   *  into per-leg pieces so each can be colored independently). */
   routeCoordinates?: LatLng[];
+  /** The route split into consecutive legs, each tagged with how many
+   *  seats are occupied while traveling it — an empty leg (0) renders
+   *  dashed and muted, one passenger renders solid `accent`, two or more
+   *  renders solid, heavier, `accentStrong`. Lets a driver read "how full
+   *  is the car right now" straight off the map instead of only from the
+   *  itinerary list below it (driver/rides/[rideId].tsx's
+   *  buildItineraryThread supplies these). Requires `theme`, same as
+   *  `showPremiumPins` — falls back to the single flat `routeCoordinates`
+   *  line when either is absent, so every existing caller is unaffected. */
+  occupancySegments?: { coordinates: LatLng[]; onboardSeats: number }[];
   /** Real accepted passengers' own boarding/alighting points — distinct
    *  from `pickup`/`dropoff` (the driver's own primary meeting points) so a
    *  driver can actually tell a specific passenger's stop apart from their
@@ -83,6 +95,7 @@ export function MapPreview({
   theme,
   isDark = false,
   routeCoordinates,
+  occupancySegments,
   passengerStops,
   style,
   children,
@@ -93,6 +106,7 @@ export function MapPreview({
     .map((p) => ({ lat: p.latitude, lng: p.longitude }));
   const region = regionForPoints(points) ?? DEFAULT_REGION;
   const showPremiumPins = Boolean(pickup && dropoff && theme);
+  const showOccupancySegments = Boolean(occupancySegments && occupancySegments.length > 0 && theme);
 
   return (
     <View style={[styles.wrap, { height }, style]}>
@@ -114,9 +128,25 @@ export function MapPreview({
         // iOS). userInterfaceStyle is the Apple Maps equivalent knob.
         userInterfaceStyle={isDark ? 'dark' : 'light'}
       >
-        {routeCoordinates && routeCoordinates.length > 1 ? (
-          <Polyline coordinates={routeCoordinates} strokeColor={colors.mapRouteLine} strokeWidth={3} />
-        ) : null}
+        {showOccupancySegments
+          ? occupancySegments!.map((segment, i) => (
+              <Polyline
+                key={`occupancy-${i}`}
+                coordinates={segment.coordinates}
+                strokeColor={
+                  segment.onboardSeats === 0
+                    ? theme!.outline
+                    : segment.onboardSeats === 1
+                      ? theme!.accent
+                      : theme!.accentStrong
+                }
+                strokeWidth={segment.onboardSeats >= 2 ? 5 : segment.onboardSeats === 1 ? 4 : 3}
+                lineDashPattern={segment.onboardSeats === 0 ? [6, 6] : undefined}
+              />
+            ))
+          : routeCoordinates && routeCoordinates.length > 1
+            ? <Polyline coordinates={routeCoordinates} strokeColor={colors.mapRouteLine} strokeWidth={3} />
+            : null}
         {showPremiumPins && pickup && dropoff && theme ? (
           <>
             <Marker coordinate={pickup} anchor={{ x: 0.5, y: 0.5 }}>
