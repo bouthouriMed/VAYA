@@ -38,13 +38,15 @@ import {
   type Trip,
   type TripStatus,
 } from '../../../src/state/api';
-import { decodePolyline, routeOrderFraction, haversineKm } from '../../../src/utils/polyline';
+import { decodePolyline, routeOrderFraction, haversineKm, sliceRouteBetween } from '../../../src/utils/polyline';
 import { DriverBookingDetailSheet } from '../../../src/features/driver-rides/DriverBookingDetailSheet';
 import { RequestDetailSheet } from '../../../src/features/driver-rides/RequestDetailSheet';
 import { ManageRideSheet } from '../../../src/features/driver-rides/ManageRideSheet';
 import { useDriverLocationBroadcast } from '../../../src/features/driver-rides/useDriverLocationBroadcast';
 import { trackEvent } from '../../../src/services/analytics/analytics';
 import { estimateArrivalLabel, computeTripPhase } from '../../../src/features/driver-rides/myRidesHelpers';
+import { buildItineraryThread, type ItineraryStopEvent } from '../../../src/features/driver-rides/itineraryThread';
+import { PassengerItineraryThread } from '../../../src/features/driver-rides/PassengerItineraryThread';
 import { formatTime, formatRelativeTime, toIntlTag } from '../../../src/utils/localeFormat';
 
 const TRACKABLE_TRIP_STATUSES: readonly TripStatus[] = ['driver_approaching', 'pickup', 'active', 'arriving'];
@@ -394,15 +396,7 @@ export default function DriverRideHubScreen(): React.JSX.Element {
     ? acceptedBookings
         .flatMap((booking) => {
           const passengerName = booking.rider?.fullName ?? t('rides.bookingDetail.passenger');
-          const points: {
-            kind: 'pickup' | 'dropoff';
-            lat: number;
-            lng: number;
-            label: string;
-            passengerName: string;
-            fraction: number;
-            etaLabel: string | null;
-          }[] = [];
+          const points: ItineraryStopEvent[] = [];
 
           function etaAt(fraction: number): string | null {
             if (ride!.estimatedDurationSec == null) return null;
@@ -418,13 +412,17 @@ export default function DriverRideHubScreen(): React.JSX.Element {
           if (haversineKm(pickupLatLng, originLatLng) * 1000 > DISTINCT_FROM_ENDPOINT_KM * 1000) {
             const fraction = routeCoordinates.length > 1 ? routeOrderFraction(routeCoordinates, pickupLatLng) : 0;
             points.push({
+              bookingId: booking.id,
               kind: 'pickup',
               lat: booking.pickupLat,
               lng: booking.pickupLng,
               label: booking.pickupLabel,
               passengerName,
+              avatarUrl: booking.rider?.avatarUrl ?? null,
+              riderId: booking.rider?.id ?? null,
+              seatsRequested: booking.seatsRequested,
               fraction,
-              etaLabel: etaAt(fraction),
+              timeLabel: etaAt(fraction),
             });
           }
 
@@ -435,13 +433,17 @@ export default function DriverRideHubScreen(): React.JSX.Element {
           if (haversineKm(dropoffLatLng, destinationLatLng) * 1000 > DISTINCT_FROM_ENDPOINT_KM * 1000) {
             const fraction = routeCoordinates.length > 1 ? routeOrderFraction(routeCoordinates, dropoffLatLng) : 1;
             points.push({
+              bookingId: booking.id,
               kind: 'dropoff',
               lat: dropoffLat,
               lng: dropoffLng,
               label: booking.dropoffLabel ?? ride!.destinationLabel,
               passengerName,
+              avatarUrl: booking.rider?.avatarUrl ?? null,
+              riderId: booking.rider?.id ?? null,
+              seatsRequested: booking.seatsRequested,
               fraction,
-              etaLabel: etaAt(fraction),
+              timeLabel: etaAt(fraction),
             });
           }
 
@@ -449,6 +451,64 @@ export default function DriverRideHubScreen(): React.JSX.Element {
         })
         .sort((a, b) => a.fraction - b.fraction)
     : [];
+
+  // The threaded itinerary (2026-08-31 overlap-clarity fix,
+  // docs/domain/ride-engine.md): turns the same real, route-order-sorted
+  // points above into an origin->events->destination node thread plus a
+  // per-leg onboard-seat count, so two overlapping passengers (one picked
+  // up before the other is dropped off) are visible as a real "car is
+  // fuller here" signal instead of two indistinguishable rows in a flat
+  // list. See itineraryThread.ts's own doc comment for the full rationale.
+  const itineraryThread = ride
+    ? buildItineraryThread(
+        {
+          lat: ride.originLat,
+          lng: ride.originLng,
+          label: ride.originLabel,
+          timeLabel: formatTime(new Date(ride.departureAt), locale),
+          subLabel:
+            pickupStop && pickupStop.label !== ride.originLabel
+              ? `${t('common:terms.pickup')} · ${pickupStop.label}`
+              : undefined,
+        },
+        {
+          lat: ride.destinationLat,
+          lng: ride.destinationLng,
+          label: ride.destinationLabel,
+          timeLabel: arrivalLabel,
+          subLabel:
+            dropoffStop && dropoffStop.label !== ride.destinationLabel
+              ? `${t('common:terms.dropoff')} · ${dropoffStop.label}`
+              : undefined,
+        },
+        passengerItineraryPoints,
+      )
+    : null;
+
+  // Same per-leg onboard-seat counts, now sliced against the real decoded
+  // route geometry (utils/polyline.ts's sliceRouteBetween — already used
+  // elsewhere in this app for a sub-trip's own segment) so the map's route
+  // line can be colored/dashed exactly like the itinerary thread reads:
+  // solid where passengers are aboard, dashed on an empty leg, heavier
+  // still when two or more are aboard at once.
+  const occupancySegments =
+    itineraryThread && routeCoordinates.length > 1
+      ? (() => {
+          const nodesByKey = new Map(itineraryThread.nodes.map((n) => [n.key, n]));
+          return itineraryThread.segments.map((segment) => {
+            const from = nodesByKey.get(segment.fromKey)!;
+            const to = nodesByKey.get(segment.toKey)!;
+            return {
+              coordinates: sliceRouteBetween(
+                routeCoordinates,
+                { latitude: from.lat, longitude: from.lng },
+                { latitude: to.lat, longitude: to.lng },
+              ),
+              onboardSeats: segment.onboardSeats,
+            };
+          });
+        })()
+      : undefined;
 
   if (isRideLoading) {
     return (
@@ -542,6 +602,7 @@ export default function DriverRideHubScreen(): React.JSX.Element {
             theme={theme}
             isDark={scheme === 'dark'}
             routeCoordinates={routeCoordinates}
+            occupancySegments={occupancySegments}
             style={styles.map}
           />
           {/* The preview thumbnail is deliberately non-interactive (same as
@@ -562,6 +623,48 @@ export default function DriverRideHubScreen(): React.JSX.Element {
           </TouchableOpacity>
         </View>
 
+        {/* Capacity & earnings summary bar (2026-08-31 itinerary redesign):
+         *  replaces 3 stacked icon+text fact rows with a single glanceable
+         *  two-stat card directly under the map — a real seat-by-seat fill
+         *  indicator instead of only a "2/3" number, and the confirmed
+         *  amount next to what the ride could still earn if it fills up,
+         *  instead of two disconnected lines. */}
+        <View style={[styles.statsBar, { backgroundColor: theme.surfaceMuted }]}>
+          <View style={styles.statsCol}>
+            <Text variant="label" color={theme.inkMuted} style={styles.sectionHeading}>
+              {t('rides.rideDetail.capacityLabel')}
+            </Text>
+            <View style={styles.seatPipsRow}>
+              {Array.from({ length: ride.seatsTotal }).map((_, i) => (
+                <View
+                  key={i}
+                  style={[
+                    styles.seatPip,
+                    { backgroundColor: i < ride.seatsTotal - ride.seatsAvailable ? theme.accent : theme.outlineVariant },
+                  ]}
+                />
+              ))}
+            </View>
+            <Text variant="bodySmall" color={theme.ink} numberOfLines={1}>
+              {t('rides.rideDetail.seatsBooked', { booked: ride.seatsTotal - ride.seatsAvailable, total: ride.seatsTotal })}
+            </Text>
+          </View>
+          <View style={[styles.statsDivider, { backgroundColor: theme.outlineVariant }]} />
+          <View style={styles.statsCol}>
+            <Text variant="label" color={theme.inkMuted} style={styles.sectionHeading}>
+              {t('rides.rideDetail.earningsLabel')}
+            </Text>
+            <Text variant="bodySmall" color={theme.ink} numberOfLines={1} style={styles.boldStat}>
+              {confirmedBookings.length > 0
+                ? t('rides.rideDetail.confirmedAmount', { revenue: confirmedRevenue })
+                : t('rides.rideDetail.pricePerSeat', { price: ride.contributionPerSeat })}
+            </Text>
+            <Text variant="caption" color={theme.inkFaint} numberOfLines={1}>
+              {t('rides.rideDetail.maxPotentialRevenue', { max: ride.contributionPerSeat * ride.seatsTotal })}
+            </Text>
+          </View>
+        </View>
+
         <View style={[styles.infoCard, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
           <View style={styles.infoTitleRow}>
             <Text variant="label" color={theme.inkMuted} style={styles.sectionHeading}>
@@ -570,122 +673,35 @@ export default function DriverRideHubScreen(): React.JSX.Element {
             <Badge label={statusBadge.label} variant={statusBadge.variant} theme={theme} />
           </View>
 
-          {/* Compact itinerary (2026-08-27 redesign): departure/arrival time
-           *  integrated directly into the origin/destination row instead of
-           *  a separate fact row below, and the driver's actual confirmed
-           *  pickup/dropoff address shown as an intuitive smaller secondary
-           *  line — replaces the old shared RouteTimeline's role-label rows
-           *  (which, for the normal 2-stop shape, mislabeled BOTH the
-           *  pickup and dropoff stop as "Drop-off point"). */}
-          <View style={styles.compactStop}>
-            <View style={[styles.compactStopDot, { backgroundColor: theme.accent, borderColor: theme.surface }]} />
-            <View style={styles.compactStopTextCol}>
-              <View style={styles.compactStopHeaderRow}>
-                <Text variant="bodySmall" color={theme.inkMuted}>
-                  {t('rides.rideDetail.departure')}
-                </Text>
-                <Text variant="bodySmall" color={theme.inkMuted}>
-                  {formatTime(new Date(ride.departureAt), locale)}
-                </Text>
-              </View>
-              <Text variant="body" color={theme.ink} numberOfLines={1}>
-                {ride.originLabel}
-              </Text>
-              {pickupStop && pickupStop.label !== ride.originLabel ? (
-                <Text variant="caption" color={theme.inkFaint} numberOfLines={1}>
-                  {t('common:terms.pickup')} · {pickupStop.label}
-                </Text>
-              ) : null}
-            </View>
-          </View>
-
           {intermediateStops.length > 0 ? (
             <Text variant="caption" color={theme.inkFaint} style={styles.compactStopsNote}>
               {t('rides.rideDetail.intermediateStopsNote', { count: intermediateStops.length })}
             </Text>
           ) : null}
 
-          {/* Real accepted passengers' own pickup/dropoff, interleaved in
-              real route order between Departure and Arrival — see this
-              file's own passengerItineraryPoints comment above for the full
-              "why" (a route-passthrough/detour-match booking's own stop was
-              previously invisible here entirely). Same accent-strong dot
-              PassengerStopPin uses on the map above, so the two views read
-              as the same real point. */}
-          {passengerItineraryPoints.map((point) => (
-            <View key={`${point.kind}-${point.passengerName}-${point.lat}-${point.lng}`} style={styles.compactStop}>
-              <View
-                style={[styles.compactStopDot, { backgroundColor: theme.accentStrong, borderColor: theme.surface }]}
-              />
-              <View style={styles.compactStopTextCol}>
-                <View style={styles.compactStopHeaderRow}>
-                  <Text variant="bodySmall" color={theme.inkMuted} numberOfLines={1}>
-                    {point.passengerName}
-                  </Text>
-                  {point.etaLabel ? (
-                    <Text variant="bodySmall" color={theme.inkMuted}>
-                      {point.etaLabel}
-                    </Text>
-                  ) : null}
-                </View>
-                <Text variant="body" color={theme.ink} numberOfLines={1}>
-                  {point.label}
-                </Text>
-                <Text variant="caption" color={theme.inkFaint} numberOfLines={1}>
-                  {point.kind === 'pickup'
-                    ? t('rides.rideDetail.pickupPrefix')
-                    : t('rides.rideDetail.dropoffPrefix')}
-                </Text>
-              </View>
-            </View>
-          ))}
-
-          <View style={[styles.compactStop, styles.compactStopLast]}>
-            <View style={[styles.compactStopDot, { backgroundColor: theme.ink, borderColor: theme.surface }]} />
-            <View style={styles.compactStopTextCol}>
-              <View style={styles.compactStopHeaderRow}>
-                <Text variant="bodySmall" color={theme.inkMuted}>
-                  {t('rides.rideDetail.arrival')}
-                </Text>
-                {/* Real OSRM/Google-derived duration only — estimateArrivalLabel
-                 *  returns null (nothing rendered) rather than inventing an
-                 *  arrival time for a haversine-fallback route. */}
-                {arrivalLabel ? (
-                  <Text variant="bodySmall" color={theme.inkMuted}>
-                    {arrivalLabel}
-                  </Text>
-                ) : null}
-              </View>
-              <Text variant="body" color={theme.ink} numberOfLines={1}>
-                {ride.destinationLabel}
-              </Text>
-              {dropoffStop && dropoffStop.label !== ride.destinationLabel ? (
-                <Text variant="caption" color={theme.inkFaint} numberOfLines={1}>
-                  {t('common:terms.dropoff')} · {dropoffStop.label}
-                </Text>
-              ) : null}
-            </View>
-          </View>
-
-          <View style={styles.factRow}>
-            <Icon name="people-outline" size="sm" color={theme.inkMuted} />
-            <Text variant="bodySmall" color={theme.inkMuted}>
-              {t('rides.rideDetail.seatsAvailable', { available: ride.seatsAvailable, total: ride.seatsTotal })}
-            </Text>
-          </View>
-          <View style={styles.factRow}>
-            <Icon name="cash-outline" size="sm" color={theme.inkMuted} />
-            <Text variant="bodySmall" color={theme.inkMuted}>
-              {t('rides.rideDetail.pricePerSeat', { price: ride.contributionPerSeat })}
-            </Text>
-          </View>
-          {confirmedBookings.length > 0 ? (
-            <View style={styles.factRow}>
-              <Icon name="wallet-outline" size="sm" color={theme.inkMuted} />
-              <Text variant="bodySmall" color={theme.inkMuted}>
-                {t('rides.rideDetail.confirmedRevenue', { revenue: confirmedRevenue, count: confirmedBookings.length })}
-              </Text>
-            </View>
+          {/* The threaded itinerary (see itineraryThread.ts's doc comment):
+           *  origin, each real accepted passenger's own pickup/dropoff in
+           *  real route order, destination — each leg's connector colored
+           *  and weighted by how many seats are actually occupied on it,
+           *  and an inline tag the moment a second passenger boards while
+           *  the first is still aboard. Replaces the old flat compactStop
+           *  rows, which showed the same real points but no overlap
+           *  signal at all. */}
+          {itineraryThread ? (
+            <PassengerItineraryThread
+              thread={itineraryThread}
+              seatsTotal={ride.seatsTotal}
+              theme={theme}
+              originEyebrow={t('rides.rideDetail.departure')}
+              destinationEyebrow={t('rides.rideDetail.arrival')}
+              pickupPrefix={t('rides.rideDetail.pickupPrefix')}
+              dropoffPrefix={t('rides.rideDetail.dropoffPrefix')}
+              onboardRangeTemplate={(from, to) => t('rides.rideDetail.onboardRange', { from, to })}
+              occupancyTagTemplate={(seats, total) => t('rides.rideDetail.occupancyTag', { seats, total })}
+              onPressPassenger={({ riderId, bookingId }) =>
+                router.push({ pathname: '/search/trust', params: { driverUserId: riderId, bookingId } })
+              }
+            />
           ) : null}
         </View>
 
@@ -857,9 +873,29 @@ export default function DriverRideHubScreen(): React.JSX.Element {
       >
         <View style={[styles.routeModal, { backgroundColor: theme.background }]}>
           <MapCanvas region={fullRouteRegion} style={styles.routeModalMap}>
-            {routeCoordinates.length > 1 ? (
-              <Polyline coordinates={routeCoordinates} strokeColor={theme.ink} strokeWidth={4} />
-            ) : null}
+            {/* Same per-leg onboard-seat coloring as the map preview above
+             *  (occupancySegments) — a driver expanding to the fullscreen
+             *  route sees the exact same "how full is the car here" signal,
+             *  not a flat single-color line. */}
+            {occupancySegments && occupancySegments.length > 0
+              ? occupancySegments.map((segment, i) => (
+                  <Polyline
+                    key={`occupancy-${i}`}
+                    coordinates={segment.coordinates}
+                    strokeColor={
+                      segment.onboardSeats === 0
+                        ? theme.outline
+                        : segment.onboardSeats === 1
+                          ? theme.accent
+                          : theme.accentStrong
+                    }
+                    strokeWidth={segment.onboardSeats >= 2 ? 6 : segment.onboardSeats === 1 ? 5 : 4}
+                    lineDashPattern={segment.onboardSeats === 0 ? [8, 8] : undefined}
+                  />
+                ))
+              : routeCoordinates.length > 1
+                ? <Polyline coordinates={routeCoordinates} strokeColor={theme.ink} strokeWidth={4} />
+                : null}
             <Marker
               coordinate={
                 pickupStop
@@ -1039,36 +1075,35 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: spacing.sm,
   },
-  factRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  compactStop: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-  },
-  compactStopLast: {
-    marginBottom: spacing.xs,
-  },
-  compactStopDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    borderWidth: 2,
-    marginTop: 4,
-  },
-  compactStopTextCol: {
-    flex: 1,
-    gap: 1,
-  },
-  compactStopHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
   compactStopsNote: {
     marginLeft: spacing.lg,
+  },
+  statsBar: {
+    flexDirection: 'row',
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.md,
+    borderRadius: radii.xl,
+    overflow: 'hidden',
+  },
+  statsCol: {
+    flex: 1,
+    padding: spacing.md,
+    gap: 6,
+  },
+  statsDivider: {
+    width: StyleSheet.hairlineWidth,
+  },
+  seatPipsRow: {
+    flexDirection: 'row',
+    gap: 4,
+  },
+  seatPip: {
+    width: 16,
+    height: 8,
+    borderRadius: 4,
+  },
+  boldStat: {
+    fontWeight: '700',
   },
   section: {
     paddingHorizontal: spacing.lg,

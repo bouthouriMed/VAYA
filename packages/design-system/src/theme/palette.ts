@@ -76,6 +76,16 @@ export interface AppPalette {
   glimmer: string;
   error: string;
   errorMuted: string;
+  /** Text/icon color placed on top of a solid `error`-filled circle/badge
+   *  (a dropoff pin, a destructive solid CTA) — added alongside the
+   *  driver-itinerary thread's pickup/dropoff pins, which are the first
+   *  consumer to fill a shape solid with `error` rather than only using it
+   *  as muted-background/foreground text (Badge's `error` variant). `error`
+   *  flips lightness between themes (a dark rust in light mode, a pale
+   *  coral in dark mode) the same way `accent`/`ink` do, so this needs its
+   *  own token rather than reusing `onInk`/`onAccent` and guessing right in
+   *  only one theme. */
+  onError: string;
   /** Tertiary "used elsewhere in the flow but not accent/error" moments,
    *  like the results list's "Best Match" label. Not for CTAs. */
   info: string;
@@ -115,6 +125,7 @@ export const lightPalette: AppPalette = {
   glimmer: 'rgba(255,255,255,0.55)',
   error: '#B5503C',
   errorMuted: '#F3D9CE',
+  onError: '#FFFFFF',
   info: '#4A7C8C',
   warning: '#B58A2E',
   warningMuted: '#F3E8CE',
@@ -141,6 +152,7 @@ export const darkPalette: AppPalette = {
   glimmer: 'rgba(255,255,255,0.16)',
   error: '#E08672',
   errorMuted: '#5C2E24',
+  onError: '#0D1512',
   info: '#8FB8C7',
   warning: '#E0BB72',
   warningMuted: '#5C4A24',

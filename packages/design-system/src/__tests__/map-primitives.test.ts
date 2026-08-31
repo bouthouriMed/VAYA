@@ -1,7 +1,19 @@
 import { describe, it, expect } from 'vitest';
-import { Fragment } from 'react';
+import { Fragment, createElement } from 'react';
 import { MapRoute } from '../primitives/MapRoute';
+import { MapPreview } from '../primitives/MapPreview';
 import { regionForPoints } from '../utils/mapGeometry';
+import { lightPalette } from '../theme/palette';
+import { renderJSON } from './test-utils/renderJSON';
+
+type JsonNode = { type: string; props: Record<string, unknown>; children?: (JsonNode | string)[] | null };
+
+function findAllByType(node: JsonNode | JsonNode[] | string | null, type: string): JsonNode[] {
+  if (node === null || typeof node === 'string') return [];
+  if (Array.isArray(node)) return node.flatMap((n) => findAllByType(n, type));
+  const self = node.type === type ? [node] : [];
+  return [...self, ...findAllByType((node.children as JsonNode[] | null) ?? [], type)];
+}
 
 // MapRoute has no internal hooks, so — same technique as Phase 2's
 // accessibility.test.ts — it can be called directly as a plain function
@@ -64,5 +76,61 @@ describe('Phase 3 real map primitives', () => {
     expect(line.type).toBe('Polyline');
     expect(corridor.props.strokeColor).not.toBe('transparent');
     expect(corridor.props.strokeWidth).toBeGreaterThan(line.props.strokeWidth);
+  });
+});
+
+// MapPreview does use useState (for its onMapReady skeleton), unlike
+// MapRoute above — but react-test-renderer handles that fine via
+// renderJSON (see ride-stop-markers.test.tsx for the same pattern against
+// the mocked opaque 'View'/'Ionicons' host types); react-native-maps'
+// mock makes MapView/Marker/Polyline equally opaque host-type strings, so
+// this doesn't need a real native bridge either.
+describe('MapPreview occupancy segments (driver ride-hub itinerary thread)', () => {
+  const A = { latitude: 36.8, longitude: 10.18 };
+  const B = { latitude: 36.82, longitude: 10.2 };
+  const C = { latitude: 36.84, longitude: 10.22 };
+
+  it('colors each leg by onboard seats: dashed/outline when empty, accent for one, accentStrong for two+', () => {
+    const tree = renderJSON(
+      createElement(MapPreview, {
+        theme: lightPalette,
+        occupancySegments: [
+          { coordinates: [A, B], onboardSeats: 0 },
+          { coordinates: [B, C], onboardSeats: 1 },
+          { coordinates: [C, A], onboardSeats: 2 },
+        ],
+      }),
+    );
+
+    const polylines = findAllByType(tree as JsonNode, 'Polyline');
+    expect(polylines).toHaveLength(3);
+
+    expect(polylines[0]!.props.strokeColor).toBe(lightPalette.outline);
+    expect(polylines[0]!.props.lineDashPattern).toEqual([6, 6]);
+
+    expect(polylines[1]!.props.strokeColor).toBe(lightPalette.accent);
+    expect(polylines[1]!.props.lineDashPattern).toBeUndefined();
+
+    expect(polylines[2]!.props.strokeColor).toBe(lightPalette.accentStrong);
+    expect(polylines[2]!.props.strokeWidth).toBeGreaterThan(polylines[1]!.props.strokeWidth as number);
+  });
+
+  it('falls back to a single flat routeCoordinates polyline when no occupancySegments are given', () => {
+    const tree = renderJSON(createElement(MapPreview, { routeCoordinates: [A, B, C] }));
+    const polylines = findAllByType(tree as JsonNode, 'Polyline');
+    expect(polylines).toHaveLength(1);
+    expect(polylines[0]!.props.coordinates).toEqual([A, B, C]);
+  });
+
+  it('ignores occupancySegments when no theme is given, same as showPremiumPins', () => {
+    const tree = renderJSON(
+      createElement(MapPreview, {
+        routeCoordinates: [A, B, C],
+        occupancySegments: [{ coordinates: [A, B], onboardSeats: 1 }],
+      }),
+    );
+    const polylines = findAllByType(tree as JsonNode, 'Polyline');
+    expect(polylines).toHaveLength(1);
+    expect(polylines[0]!.props.coordinates).toEqual([A, B, C]);
   });
 });
