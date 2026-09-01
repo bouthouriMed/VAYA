@@ -43,9 +43,6 @@ export interface DateCalendarSheetProps {
   /** "Aujourd'hui"/"Demain" for the quick-pick day chips — same words
    *  `buildDayOptions` already uses elsewhere (`DepartureTimeSheet`). */
   dayLabelWords?: DepartureLabelWords;
-  /** Toggle for the full month grid, collapsed behind this link by
-   *  default so the quick day-chip row is the primary path. */
-  pickAnotherDateLabel?: string;
   /** Real device bottom inset — same contract as `BottomSheet`'s own
    *  `bottomInset` prop (this package deliberately never imports
    *  `react-native-safe-area-context` itself), forwarded straight through
@@ -78,7 +75,6 @@ export function DateCalendarSheet({
   nextMonthLabel = 'Mois suivant',
   confirmLabel = 'Confirmer la date',
   dayLabelWords,
-  pickAnotherDateLabel = 'Choisir une autre date',
   bottomInset = 0,
 }: DateCalendarSheetProps): React.JSX.Element {
   const { colors: theme } = useAppTheme();
@@ -87,19 +83,15 @@ export function DateCalendarSheet({
     () => new Date(value.getFullYear(), value.getMonth(), 1),
   );
   const [selected, setSelected] = useState(() => startOfDay(value));
-  // Quick day-chip row (Today/Tomorrow/next few dates) is the primary
-  // interaction now — real UX-audit finding: a full month grid, mostly
-  // disabled/grayed-out past days, was an invasive default for what's
-  // usually a 1-2-tap decision (screenshot evidence: `calendar_data_sheet.
-  // jfif`). The month grid is unchanged underneath, just collapsed behind
-  // "Pick another date" unless the target day is further out than the
-  // quick row covers.
+  // Quick day-chip row (Today/Tomorrow/next few dates) sits above the
+  // full month grid — both shown together, always, real user feedback:
+  // an earlier version collapsed the grid behind a "Pick another date"
+  // toggle by default, which read as an extra, unnecessary tap rather
+  // than a helpful default. The grid needs no gating; it's what makes
+  // any date beyond the quick row's short reach actually selectable.
   const quickDays = useMemo(
     () => buildDayOptions(now, QUICK_DAY_COUNT, locale, dayLabelWords),
     [now, locale, dayLabelWords],
-  );
-  const [showGrid, setShowGrid] = useState(
-    () => !quickDays.some((day) => isSameDay(day.date, value)),
   );
 
   const grid = useMemo(() => buildMonthGrid(monthAnchor, now), [monthAnchor, now]);
@@ -115,7 +107,6 @@ export function DateCalendarSheet({
     if (!visible) return;
     setMonthAnchor(new Date(value.getFullYear(), value.getMonth(), 1));
     setSelected(startOfDay(value));
-    setShowGrid(!quickDays.some((day) => isSameDay(day.date, value)));
     // Only re-sync on the open transition — not on every `value` tick —
     // so an in-progress selection isn't clobbered while the sheet is open.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -196,13 +187,7 @@ export function DateCalendarSheet({
     <BottomSheet
       visible={visible}
       onClose={onClose}
-      // Real UX-audit finding, confirmed on-device: a fixed 0.6 ratio was
-      // sized for the month grid being visible always. Once the grid
-      // collapsed behind "Pick another date" by default, that same fixed
-      // height left a large dead gap between the day chips and the
-      // Confirm button. Sized to each state's own actual content instead
-      // of one size fitting neither well.
-      heightRatio={showGrid ? 0.62 : 0.4}
+      heightRatio={0.68}
       theme={theme}
       contentGesture={monthSwipeGesture}
       bottomInset={bottomInset}
@@ -252,21 +237,6 @@ export function DateCalendarSheet({
         })}
       </ScrollView>
 
-      <TouchableOpacity
-        onPress={() => setShowGrid((prev) => !prev)}
-        style={styles.pickAnotherRow}
-        accessibilityRole="button"
-        accessibilityState={{ expanded: showGrid }}
-      >
-        <Icon name="calendar-outline" size="xs" color={theme.accent} />
-        <Text variant="bodySmall" color={theme.accent}>
-          {pickAnotherDateLabel}
-        </Text>
-        <Icon name={showGrid ? 'chevron-up' : 'chevron-forward'} size="xs" color={theme.accent} />
-      </TouchableOpacity>
-
-      {showGrid ? (
-        <>
       <View style={styles.monthHeader}>
         {/* Outer cells share the calendar's 100/7% column width, so each
          *  arrow centers exactly over the first/last weekday column below. */}
@@ -368,8 +338,6 @@ export function DateCalendarSheet({
           })}
         </Animated.View>
       </GestureDetector>
-        </>
-      ) : null}
 
       <View style={styles.footer}>
         <TouchableOpacity
@@ -416,14 +384,6 @@ const styles = StyleSheet.create({
   quickDayRow: {
     gap: spacing.sm,
     paddingBottom: spacing.md,
-  },
-  pickAnotherRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-    alignSelf: 'flex-start',
-    paddingVertical: spacing.sm,
-    marginBottom: spacing.xs,
   },
   monthHeader: {
     flexDirection: 'row',

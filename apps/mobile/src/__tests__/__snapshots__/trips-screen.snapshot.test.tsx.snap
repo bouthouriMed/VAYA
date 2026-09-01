@@ -372,6 +372,7 @@ exports[`trips.tsx snapshots > driver dashboard — hero ride card over segmente
                 "longitudeDelta": 0.7286400000000015,
               }
             }
+            mapType="standard"
             onMapReady={[Function]}
             pitchEnabled={false}
             pointerEvents="none"
@@ -1062,6 +1063,7 @@ exports[`trips.tsx snapshots > driver dashboard — hero ride card over segmente
                 "longitudeDelta": 0.6719999999999999,
               }
             }
+            mapType="standard"
             onMapReady={[Function]}
             pitchEnabled={false}
             pointerEvents="none"
@@ -2727,6 +2729,7 @@ exports[`trips.tsx snapshots > rider view — booking card shows the real driver
                 "longitudeDelta": 0.6719999999999999,
               }
             }
+            mapType="standard"
             onMapReady={[Function]}
             pitchEnabled={false}
             pointerEvents="none"

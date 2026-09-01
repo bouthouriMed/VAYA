@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import { StyleSheet, View, Platform, type StyleProp, type ViewStyle } from 'react-native';
 import MapView, { PROVIDER_GOOGLE } from 'react-native-maps';
 import Constants, { ExecutionEnvironment } from 'expo-constants';
 import { colors, radii, lightMapStyle, darkMapStyle } from '../tokens/index';
@@ -79,6 +79,14 @@ export function MapCanvas({ height, region, style, children, onLongPress }: MapC
         initialRegion={region ?? DEFAULT_REGION}
         onMapReady={() => setIsReady(true)}
         onLongPress={onLongPress ? (e) => onLongPress(e.nativeEvent.coordinate) : undefined}
+        // customMapStyle only takes effect on Google's renderer — Expo Go
+        // always falls back to Apple Maps (PROVIDER_DEFAULT) on iOS,
+        // which silently ignores it. `mapType="mutedStandard"` is
+        // MapKit's own real desaturated style, the one lever that
+        // actually mutes Apple Maps' rendering without a Google provider
+        // — confirmed live, this prop alone had zero visible effect
+        // while testing in Expo Go.
+        mapType={Platform.OS === 'ios' ? 'mutedStandard' : 'standard'}
         customMapStyle={scheme === 'dark' ? darkMapStyle : lightMapStyle}
       >
         {children}

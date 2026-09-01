@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
+import { View, Text, StyleSheet, Platform, type StyleProp, type ViewStyle } from 'react-native';
 import MapView, { Marker, Polyline, PROVIDER_DEFAULT, type LatLng } from 'react-native-maps';
 import { colors, radii, spacing, typography, lightMapStyle, darkMapStyle } from '../tokens/index';
 import { regionForPoints, type LatLngPoint, type MapRegion } from '../utils/mapGeometry';
@@ -107,7 +107,11 @@ export function MapPreview({
         // follows the DEVICE's OS appearance instead of this app's own
         // theme (the reported "always dark even in light mode" bug on
         // iOS). userInterfaceStyle is the Apple Maps equivalent knob.
+        // mapType="mutedStandard" is the actual style lever Apple Maps
+        // honors — confirmed live, customMapStyle alone had zero visible
+        // effect on this always-PROVIDER_DEFAULT primitive.
         userInterfaceStyle={isDark ? 'dark' : 'light'}
+        mapType={Platform.OS === 'ios' ? 'mutedStandard' : 'standard'}
       >
         {showOccupancySegments
           ? occupancySegments!.map((segment, i) => (

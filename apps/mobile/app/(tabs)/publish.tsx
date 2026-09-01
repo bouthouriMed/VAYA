@@ -2270,7 +2270,6 @@ export default function PublishTabScreen(): React.JSX.Element {
           today: t('driver:publish.formStep.dateToday'),
           tomorrow: t('driver:publish.formStep.dateTomorrow'),
         }}
-        pickAnotherDateLabel={t('driver:publish.formStep.pickAnotherDate')}
         bottomInset={insets.bottom}
       />
       <TimeWheelSheet

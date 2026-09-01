@@ -292,6 +292,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
                 "longitudeDelta": 0.6719999999999999,
               }
             }
+            mapType="standard"
             onMapReady={[Function]}
             pitchEnabled={false}
             pointerEvents="none"
@@ -1559,6 +1560,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
                 "longitudeDelta": 0.6719999999999999,
               }
             }
+            mapType="standard"
             onMapReady={[Function]}
             provider="google"
             style={{}}

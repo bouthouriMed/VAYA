@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
 import Constants, { ExecutionEnvironment } from 'expo-constants';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -213,11 +213,18 @@ export default function HomeSearchScreen(): React.JSX.Element {
         rotateEnabled={false}
         pointerEvents="none"
         // customMapStyle only takes effect on Google's renderer — Apple
-        // Maps (PROVIDER_DEFAULT on iOS) silently ignores it, which is
-        // why this map used to render Apple's own default green terrain
-        // regardless of this prop. `userInterfaceStyle` is the Apple Maps
-        // equivalent knob, kept as a fallback for whenever Expo Go forces
-        // the platform default.
+        // Maps (PROVIDER_DEFAULT, what Expo Go always falls back to since
+        // it can't carry this app's native Google Maps SDK key) silently
+        // ignores it, confirmed live: this prop alone had zero visible
+        // effect while testing in Expo Go. `mapType="mutedStandard"` is
+        // MapKit's own real desaturated style — the one lever that
+        // actually changes Apple Maps' rendering without a Google
+        // provider, so both paths get a genuinely muted map instead of
+        // only the (real dev-client/production-only) Google path doing
+        // anything. Android has no equivalent mapType, but PROVIDER_
+        // GOOGLE is its actual default renderer there already, so
+        // customMapStyle alone covers it.
+        mapType={Platform.OS === 'ios' ? 'mutedStandard' : 'standard'}
         customMapStyle={scheme === 'dark' ? darkMapStyle : lightMapStyle}
         userInterfaceStyle={scheme}
       >
@@ -358,58 +365,57 @@ export default function HomeSearchScreen(): React.JSX.Element {
             ) : null}
           </View>
 
-          {/* Date and Time share ONE bordered cell visually (was two
-           *  separate cells plus a third full-width Passengers row below
-           *  them — three controls, now two) — matches the reference's
-           *  single "Today / Now" button exactly, while keeping BOTH
-           *  pickers directly, independently reachable: the date line and
-           *  the time line are their own tap targets inside the same
-           *  card, so the time wheel is never buried behind picking a
-           *  date first. Passengers now shares this same 2-column grid
-           *  instead of its own separate wide row. */}
+          {/* Three separate, fully-tappable cells (Date / Time /
+           *  Passengers) in one row — real UX finding, not a style
+           *  preference: an earlier version merged Date+Time into one
+           *  visual card with two tiny sub-zone tap targets inside it
+           *  ("split touch targets"), matching the reference's single
+           *  "Today / Now" button pixel-for-pixel — but a card that
+           *  LOOKS like one button while secretly needing a precise tap
+           *  on one of two small text lines inside it is a genuinely
+           *  confusing pattern, confirmed on-device: it read as "can't
+           *  select time" rather than as two controls. Each cell here is
+           *  its own whole-card TouchableOpacity — unambiguous, and each
+           *  picker (including the time wheel) is always directly,
+           *  reliably reachable. */}
           <View style={styles.paramsGrid}>
-            <View style={[styles.paramBtn, styles.whenCell, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
+            <TouchableOpacity
+              style={[styles.paramBtnThird, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}
+              onPress={() => setIsDateSheetOpen(true)}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel={`${t('common:terms.date')}, ${dateLabel}`}
+            >
               <Icon name="calendar-outline" size="sm" color={theme.inkFaint} />
-              <View style={styles.whenTextCol}>
-                <TouchableOpacity
-                  onPress={() => setIsDateSheetOpen(true)}
-                  hitSlop={4}
-                  accessibilityRole="button"
-                  accessibilityLabel={`${t('common:terms.date')}, ${dateLabel}`}
-                >
-                  <Text variant="bodySmall" color={theme.ink}>
-                    {dateLabel}
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => setIsTimeSheetOpen(true)}
-                  hitSlop={4}
-                  accessibilityRole="button"
-                  accessibilityLabel={`${t('common:terms.time')}, ${timeLabel}`}
-                >
-                  <Text variant="caption" color={theme.inkFaint}>
-                    {timeLabel}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
+              <Text variant="bodySmall" color={theme.ink} numberOfLines={1}>
+                {dateLabel}
+              </Text>
+            </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.paramBtn, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}
+              style={[styles.paramBtnThird, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}
+              onPress={() => setIsTimeSheetOpen(true)}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel={`${t('common:terms.time')}, ${timeLabel}`}
+            >
+              <Icon name="time-outline" size="sm" color={theme.inkFaint} />
+              <Text variant="bodySmall" color={theme.ink} numberOfLines={1}>
+                {timeLabel}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.paramBtnThird, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}
               onPress={() => setIsPassengerSheetOpen(true)}
               activeOpacity={0.7}
               accessibilityRole="button"
               accessibilityLabel={`${t('common:terms.passengers')}, ${t('common:terms.passenger', { count: passengers })}`}
             >
               <Icon name="person-outline" size="sm" color={theme.inkFaint} />
-              <View>
-                <Text variant="bodySmall" color={theme.ink}>
-                  {t('common:terms.passenger', { count: passengers })}
-                </Text>
-                <Text variant="caption" color={theme.inkFaint}>
-                  {t('common:terms.passengers')}
-                </Text>
-              </View>
+              <Text variant="bodySmall" color={theme.ink} numberOfLines={1}>
+                {t('common:terms.passenger', { count: passengers })}
+              </Text>
             </TouchableOpacity>
           </View>
 
@@ -476,7 +482,6 @@ export default function HomeSearchScreen(): React.JSX.Element {
           today: t('search:datePickerSheet.today'),
           tomorrow: t('search:datePickerSheet.tomorrow'),
         }}
-        pickAnotherDateLabel={t('search:datePickerSheet.pickAnotherDate')}
         bottomInset={insets.bottom}
       />
       <TimeWheelSheet
@@ -643,27 +648,22 @@ const styles = StyleSheet.create({
   },
   paramsGrid: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     gap: spacing.sm,
   },
-  paramBtn: {
-    flexBasis: '47%',
-    flexGrow: 1,
+  // Three equal cells in one row (Date / Time / Passengers), each its
+  // own single whole-card TouchableOpacity — compact single-line label,
+  // not the old two-line stacked layout, since there's no secondary
+  // value to show underneath each one anymore.
+  paramBtnThird: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm,
+    justifyContent: 'center',
+    gap: spacing.xs,
     borderRadius: radii.xl,
     borderWidth: 1,
-    padding: spacing.md,
-  },
-  // The date/time cell isn't a single TouchableOpacity like the other
-  // param cells — its two lines are independently tappable (date sheet /
-  // time sheet), so this wraps them without itself being a touch target.
-  whenCell: {
-    alignItems: 'flex-start',
-  },
-  whenTextCol: {
-    gap: 2,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.xs,
   },
   cta: {
     flexDirection: 'row',
