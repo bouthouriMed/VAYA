@@ -353,6 +353,7 @@
       "thisRequest": "Cette demande"
     },
     "bookingDetail": {
+      "title": "Détails de la réservation",
       "passenger": "Passager",
       "destination": "Destination du trajet",
       "message": "Message",
