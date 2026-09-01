@@ -251,6 +251,30 @@ export default function HomeSearchScreen(): React.JSX.Element {
         ) : null}
       </MapView>
 
+      {/* Tile wash — mapType="mutedStandard" above is the only lever Expo
+       *  Go can actually reach (it never carries this app's Google Maps SDK
+       *  key, so it's always Apple Maps there), and Apple's own muted style
+       *  still renders its own fixed palette — a greenish/tan land tone
+       *  that doesn't match the Stitch reference's pale, cool gray-blue
+       *  map (confirmed against a real device screenshot: still visibly
+       *  green under mutedStandard alone). A translucent wash in the
+       *  theme's own surfaceMuted tone pushes the visible result toward
+       *  that reference regardless of which renderer is actually active
+       *  underneath — the same technique MapCanvas/MapPreview already use
+       *  for their own thumbnails (colors.mapTileTint at a low opacity),
+       *  just a stronger, theme-aware version here since this map is the
+       *  screen's dominant full-bleed background, not a small card accent.
+       *  A real PROVIDER_GOOGLE + customMapStyle build would still be the
+       *  exact-color fix, but that needs a real dev-client/production
+       *  build — this is the practical stand-in for Expo Go specifically. */}
+      <View
+        pointerEvents="none"
+        style={[
+          StyleSheet.absoluteFillObject,
+          { backgroundColor: theme.surfaceMuted, opacity: scheme === 'dark' ? 0.4 : 0.55 },
+        ]}
+      />
+
       {/* Glass header overlaid on the map — the VAYA wordmark + bell,
        *  fading from a near-opaque wash at the very top (behind the OS
        *  status bar) down to fully transparent, so the map genuinely
