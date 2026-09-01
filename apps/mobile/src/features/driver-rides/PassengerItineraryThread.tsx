@@ -211,7 +211,12 @@ function PassengerContent({
   const avatar = <Avatar uri={node.avatarUrl ?? null} name={node.passengerName ?? ''} sizePx={28} />;
 
   return (
-    <View style={styles.contentPad}>
+    // A real bordered card, not a bare row — the endpoint rows above/below
+    // stay plain, so a passenger stop reads as its own distinct grouped
+    // unit against the thread line instead of blurring into a continuous
+    // flat list. Matches the Stitch-reviewed reference's own treatment of
+    // pickup/dropoff rows specifically.
+    <View style={[styles.passengerCard, { backgroundColor: theme.surfaceMuted, borderColor: theme.outlineVariant }]}>
       <View style={styles.passengerHeaderRow}>
         {canOpenProfile ? (
           <TouchableOpacity
@@ -234,11 +239,11 @@ function PassengerContent({
           </Text>
         ) : null}
       </View>
-      <Text variant="caption" color={theme.inkFaint} numberOfLines={1} style={styles.placeCaption}>
+      <Text variant="caption" color={theme.inkFaint} numberOfLines={1} style={styles.placeCaptionInCard}>
         {prefix} · {node.placeLabel}
       </Text>
       {node.onboardRange ? (
-        <Text variant="caption" color={theme.inkFaint} style={styles.placeCaption}>
+        <Text variant="caption" color={theme.inkFaint} style={styles.placeCaptionInCard}>
           {onboardRangeTemplate(node.onboardRange.from, node.onboardRange.to)}
         </Text>
       ) : null}
@@ -296,6 +301,13 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.md,
     gap: 2,
   },
+  passengerCard: {
+    marginBottom: spacing.md,
+    borderRadius: radii.lg,
+    borderWidth: 1,
+    padding: spacing.sm,
+    gap: 2,
+  },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'baseline',
@@ -316,12 +328,17 @@ const styles = StyleSheet.create({
   placeCaption: {
     marginLeft: 28 + spacing.sm,
   },
+  // Passenger content now renders inside its own bordered card
+  // (`passengerCard`) — no manual left-offset needed to align with the
+  // avatar the way the old bare, unbordered row required.
+  placeCaptionInCard: {
+    marginLeft: 0,
+  },
   occupancyTag: {
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'flex-start',
     gap: 5,
-    marginLeft: 28 + spacing.sm,
     marginTop: 4,
     paddingHorizontal: spacing.sm,
     paddingVertical: 3,

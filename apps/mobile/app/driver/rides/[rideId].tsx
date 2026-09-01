@@ -608,19 +608,25 @@ export default function DriverRideHubScreen(): React.JSX.Element {
           {/* The preview thumbnail is deliberately non-interactive (same as
            *  every MapPreview elsewhere) — this is the way in to a real,
            *  pannable/zoomable view of the whole route, matching the
-           *  passenger's own ride-details.tsx "Voir l'itinéraire" pattern. */}
-          <TouchableOpacity
-            style={[styles.viewRouteBtn, { backgroundColor: theme.surface }]}
-            onPress={() => setRouteModalOpen(true)}
-            activeOpacity={0.85}
-            accessibilityRole="button"
-            accessibilityLabel={t('rides.rideDetail.viewRouteFullscreen')}
-          >
-            <Icon name="expand-outline" size="xs" color={theme.ink} />
-            <Text variant="caption" color={theme.ink}>
-              {t('rides.rideDetail.viewRouteFullscreen')}
-            </Text>
-          </TouchableOpacity>
+           *  passenger's own ride-details.tsx "Voir l'itinéraire" pattern.
+           *  Top-center, not bottom-right — matches the Stitch-reviewed
+           *  reference; centered over the route reads as "expand this map"
+           *  more clearly than a corner-anchored pill competing with the
+           *  pickup/dropoff pins below it. */}
+          <View style={styles.viewRouteBtnWrap} pointerEvents="box-none">
+            <TouchableOpacity
+              style={[styles.viewRouteBtn, { backgroundColor: theme.surface }]}
+              onPress={() => setRouteModalOpen(true)}
+              activeOpacity={0.85}
+              accessibilityRole="button"
+              accessibilityLabel={t('rides.rideDetail.viewRouteFullscreen')}
+            >
+              <Icon name="expand-outline" size="xs" color={theme.ink} />
+              <Text variant="caption" color={theme.ink}>
+                {t('rides.rideDetail.viewRouteFullscreen')}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Capacity & earnings summary bar (2026-08-31 itinerary redesign):
@@ -659,9 +665,11 @@ export default function DriverRideHubScreen(): React.JSX.Element {
                 ? t('rides.rideDetail.confirmedAmount', { revenue: confirmedRevenue })
                 : t('rides.rideDetail.pricePerSeat', { price: ride.contributionPerSeat })}
             </Text>
-            <Text variant="caption" color={theme.inkFaint} numberOfLines={1}>
-              {t('rides.rideDetail.maxPotentialRevenue', { max: ride.contributionPerSeat * ride.seatsTotal })}
-            </Text>
+            <View style={[styles.maxRevenuePill, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
+              <Text variant="caption" color={theme.inkFaint} numberOfLines={1}>
+                {t('rides.rideDetail.maxPotentialRevenue', { max: ride.contributionPerSeat * ride.seatsTotal })}
+              </Text>
+            </View>
           </View>
         </View>
 
@@ -1007,10 +1015,18 @@ const styles = StyleSheet.create({
     marginHorizontal: spacing.lg,
   },
   map: {},
-  viewRouteBtn: {
+  // A full-width, non-interactive wrapper that only centers its child —
+  // `alignItems: 'center'` on a real flex parent, not a fixed-width
+  // manual-offset hack, so this stays correctly centered regardless of
+  // how wide the button's translated label renders in any locale.
+  viewRouteBtnWrap: {
     position: 'absolute',
-    right: spacing.sm,
-    bottom: spacing.sm,
+    top: spacing.sm,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+  },
+  viewRouteBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
@@ -1104,6 +1120,13 @@ const styles = StyleSheet.create({
   },
   boldStat: {
     fontWeight: '700',
+  },
+  maxRevenuePill: {
+    alignSelf: 'flex-start',
+    borderRadius: radii.full,
+    borderWidth: 1,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
   },
   section: {
     paddingHorizontal: spacing.lg,
