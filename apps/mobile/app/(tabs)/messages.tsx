@@ -33,6 +33,7 @@ import {
   type InboxConversation,
   type InboxFilter,
 } from '../../src/features/conversations/inboxHelpers';
+import { shortenPlaceLabel } from '../../src/utils/placeLabel';
 
 /** Full-screen wash shared by every render path (guest, loading, error,
  *  populated) — a flat theme.background fill read as generic/basic; this
@@ -372,6 +373,16 @@ export default function MessagesScreen(): React.JSX.Element {
           const isActive = state === 'active';
           const isClosed = state === 'past';
           const departureLabel = isClosed ? null : formatDepartureLabel(item.departureAt, t);
+          // Shortened for the same reason trips.tsx's hero card already
+          // shortens its own route line: pickupLabel/dropoffLabel are this
+          // booking's real, accurate stop labels (not swapped for the
+          // ride's endpoints — still correct for a route_passthrough
+          // booking), but can be a full street-level address that overruns
+          // this compact row's single line — shortenPlaceLabel keeps the
+          // same real text, just "locality, area" instead of the whole
+          // string.
+          const pickupShort = shortenPlaceLabel(item.pickupLabel);
+          const dropoffShort = shortenPlaceLabel(item.dropoffLabel);
           return (
             <TouchableOpacity
               style={[
@@ -387,7 +398,7 @@ export default function MessagesScreen(): React.JSX.Element {
               }}
               activeOpacity={0.7}
               accessibilityRole="button"
-              accessibilityLabel={`${t('messages:conversationWith')} ${item.otherParty.fullName}, ${item.pickupLabel} → ${item.dropoffLabel}${isActive ? `, ${t('messages:tripInProgress')}` : ''}`}
+              accessibilityLabel={`${t('messages:conversationWith')} ${item.otherParty.fullName}, ${pickupShort} → ${dropoffShort}${isActive ? `, ${t('messages:tripInProgress')}` : ''}`}
             >
               <View style={styles.unreadDotSlot}>
                 {item.hasUnread ? (
@@ -457,8 +468,8 @@ export default function MessagesScreen(): React.JSX.Element {
                     style={styles.routeText}
                   >
                     {departureLabel
-                      ? `${item.pickupLabel} → ${item.dropoffLabel} (${departureLabel})`
-                      : `${item.pickupLabel} → ${item.dropoffLabel}`}
+                      ? `${pickupShort} → ${dropoffShort} (${departureLabel})`
+                      : `${pickupShort} → ${dropoffShort}`}
                   </Text>
                   {isClosed ? (
                     <Icon name="checkmark-circle" size="xs" color={theme.accent} />

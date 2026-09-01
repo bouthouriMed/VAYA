@@ -40,6 +40,7 @@ import {
   submitMessage,
 } from '../../src/features/conversations/conversationHelpers';
 import { trackEvent } from '../../src/services/analytics/analytics';
+import { shortenPlaceLabel } from '../../src/utils/placeLabel';
 
 // Polling-based delivery only (docs/roadmap/phase-08-messaging.md — no
 // WebSockets/real-time infra for v1). 4s keeps a trip-coordination
@@ -86,7 +87,7 @@ export default function ConversationScreen(): React.JSX.Element {
   const [sendConversationMessage, { isLoading: isSending }] = useSendConversationMessageMutation();
 
   const sendAllowed = canSendMessage(conversation);
-  const tripContext = conversation ? getTripContext(conversation) : null;
+  const tripContext = conversation ? getTripContext(conversation, t) : null;
   const dayGroups = useMemo(
     () => (messages && messages.length > 0 ? groupMessagesByDay(messages, t) : []),
     [messages],
@@ -210,7 +211,18 @@ export default function ConversationScreen(): React.JSX.Element {
         </TouchableOpacity>
       </View>
 
-      {/* Persistent trip-context bar */}
+      {/* Persistent trip-context bar — a status row (live dot + label, with
+       *  the "View ride" link opposite it) over one prominent, shortened
+       *  pickup → dropoff line, with the departure date/time broken onto
+       *  its own row underneath. Was a single numberOfLines={1} line
+       *  cramming the status, both raw stop labels, and the time together —
+       *  a long real stop label (a full street address, not just a city)
+       *  either truncated the destination entirely or made the whole bar
+       *  unreadable. shortenPlaceLabel keeps this booking's own accurate
+       *  pickup/dropoff (not the ride's endpoints — still correct for a
+       *  route_passthrough booking whose segment differs from the ride),
+       *  just compacted to "locality, area" the same way trips.tsx's hero
+       *  card already does. */}
       {tripContext ? (
         <View
           style={[
@@ -218,29 +230,59 @@ export default function ConversationScreen(): React.JSX.Element {
             { backgroundColor: theme.surface, borderBottomColor: theme.outlineVariant },
           ]}
         >
-          <View style={[styles.statusDot, { backgroundColor: tripContext.isLive ? theme.accent : theme.outlineVariant }]} />
-          <View style={styles.tripBarTextCol}>
-            <Text variant="caption" color={tripContext.isLive ? theme.accent : theme.inkMuted} style={styles.tripBarLabel}>
-              {tripContext.label.toUpperCase()}
+          <View style={styles.tripBarStatusRow}>
+            <View style={styles.tripBarStatusLeft}>
+              <View
+                style={[
+                  styles.statusDot,
+                  { backgroundColor: tripContext.isLive ? theme.accent : theme.outlineVariant },
+                ]}
+              />
+              <Text
+                variant="caption"
+                color={tripContext.isLive ? theme.accent : theme.inkMuted}
+                style={styles.tripBarLabel}
+              >
+                {tripContext.label.toUpperCase()}
+              </Text>
+            </View>
+            <TouchableOpacity
+              onPress={() =>
+                conversation.viewerRole === 'driver'
+                  ? router.push(`/driver/rides/${conversation.rideId}`)
+                  : router.push(`/bookings/${conversation.bookingId}`)
+              }
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel={t('booking:conversation.viewRide')}
+            >
+              <Text variant="caption" color={theme.accent} style={styles.tripBarViewRide}>
+                {t('booking:conversation.viewRide')}
+              </Text>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.tripBarRouteRow}>
+            <Text
+              variant="body"
+              color={theme.ink}
+              numberOfLines={1}
+              style={styles.tripBarRouteText}
+            >
+              {shortenPlaceLabel(conversation.pickupLabel)}
             </Text>
-            <Text variant="bodySmall" color={theme.ink} numberOfLines={1}>
-              {`${conversation.pickupLabel} → ${conversation.dropoffLabel} · ${formatDeparture(conversation.departureAt, locale)}`}
+            <Icon name="arrow-forward" size="xs" color={theme.inkFaint} />
+            <Text
+              variant="body"
+              color={theme.ink}
+              numberOfLines={1}
+              style={styles.tripBarRouteText}
+            >
+              {shortenPlaceLabel(conversation.dropoffLabel)}
             </Text>
           </View>
-          <TouchableOpacity
-            onPress={() =>
-              conversation.viewerRole === 'driver'
-                ? router.push(`/driver/rides/${conversation.rideId}`)
-                : router.push(`/bookings/${conversation.bookingId}`)
-            }
-            hitSlop={8}
-            accessibilityRole="button"
-            accessibilityLabel={t('booking:conversation.viewRide')}
-          >
-            <Text variant="caption" color={theme.accent}>
-              {t('booking:conversation.viewRide')}
-            </Text>
-          </TouchableOpacity>
+          <Text variant="caption" color={theme.inkMuted}>
+            {formatDeparture(conversation.departureAt, locale)}
+          </Text>
         </View>
       ) : null}
 
@@ -409,24 +451,41 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   tripBar: {
+    gap: spacing.xs,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  tripBarStatusRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    justifyContent: 'space-between',
+  },
+  tripBarStatusLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
   },
   statusDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
   },
-  tripBarTextCol: {
-    flex: 1,
-    gap: 1,
-  },
   tripBarLabel: {
+    fontWeight: '700',
+    letterSpacing: 0.4,
+  },
+  tripBarViewRide: {
     fontWeight: '600',
+  },
+  tripBarRouteRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  tripBarRouteText: {
+    fontWeight: '600',
+    flexShrink: 1,
   },
   closedBanner: {
     flexDirection: 'row',

@@ -18,6 +18,9 @@ const mockT: TFunction = ((key: string) => {
     'common:time.tomorrow': 'Demain',
     'booking:status_completed': 'Terminé',
     'booking:status_in_progress': 'En cours',
+    'booking:conversation.tripUpcoming': 'Trajet à venir',
+    'booking:conversation.tripActive': 'Trajet en cours',
+    'booking:conversation.tripCompleted': 'Trajet terminé',
   };
   return translations[key] ?? key;
 }) as unknown as TFunction;
@@ -137,14 +140,14 @@ describe('submitMessage', () => {
 
 describe('getTripContext', () => {
   it('labels an upcoming trip before departure with no live trip yet', () => {
-    expect(getTripContext(makeConversation({ tripStatus: null }))).toEqual({
+    expect(getTripContext(makeConversation({ tripStatus: null }), mockT)).toEqual({
       label: 'Trajet à venir',
       isLive: false,
     });
   });
 
   it('labels a scheduled trip as upcoming too', () => {
-    expect(getTripContext(makeConversation({ tripStatus: 'scheduled' }))).toEqual({
+    expect(getTripContext(makeConversation({ tripStatus: 'scheduled' }), mockT)).toEqual({
       label: 'Trajet à venir',
       isLive: false,
     });
@@ -152,22 +155,22 @@ describe('getTripContext', () => {
 
   it('marks active trip statuses as live', () => {
     for (const status of ['driver_approaching', 'pickup', 'active', 'arriving']) {
-      expect(getTripContext(makeConversation({ tripStatus: status })).isLive).toBe(true);
+      expect(getTripContext(makeConversation({ tripStatus: status }), mockT).isLive).toBe(true);
     }
-    expect(getTripContext(makeConversation({ tripStatus: 'pickup' })).label).toBe(
+    expect(getTripContext(makeConversation({ tripStatus: 'pickup' }), mockT).label).toBe(
       'Trajet en cours',
     );
   });
 
   it('labels terminal trips and closed conversations as finished, never live', () => {
     for (const status of ['completed', 'no_show', 'cancelled']) {
-      expect(getTripContext(makeConversation({ tripStatus: status }))).toEqual({
+      expect(getTripContext(makeConversation({ tripStatus: status }), mockT)).toEqual({
         label: 'Trajet terminé',
         isLive: false,
       });
     }
     expect(
-      getTripContext(makeConversation({ status: 'closed', tripStatus: 'completed' })),
+      getTripContext(makeConversation({ status: 'closed', tripStatus: 'completed' }), mockT),
     ).toEqual({ label: 'Trajet terminé', isLive: false });
   });
 });
