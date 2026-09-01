@@ -67,19 +67,22 @@ export interface TripContext {
 /**
  * The chat header's persistent trip-context label, derived ONLY from real
  * state the server returned — never a fabricated "confirmed" when the
- * underlying booking/trip says otherwise.
+ * underlying booking/trip says otherwise. Was hardcoded French regardless
+ * of the app's own en/fr/ar locale (a real bug — every other label on this
+ * screen goes through `t()`); now takes `t` like formatInboxTimestamp/
+ * roleLabel already do elsewhere in this same feature.
  */
-export function getTripContext(conversation: Conversation): TripContext {
+export function getTripContext(conversation: Conversation, t: TFunction): TripContext {
   if (
     conversation.status === 'closed' ||
     (conversation.tripStatus !== null && TERMINAL_TRIP_STATUSES.has(conversation.tripStatus))
   ) {
-    return { label: 'Trajet terminé', isLive: false };
+    return { label: t('booking:conversation.tripCompleted'), isLive: false };
   }
   if (conversation.tripStatus !== null && LIVE_TRIP_STATUSES.has(conversation.tripStatus)) {
-    return { label: 'Trajet en cours', isLive: true };
+    return { label: t('booking:conversation.tripActive'), isLive: true };
   }
-  return { label: 'Trajet à venir', isLive: false };
+  return { label: t('booking:conversation.tripUpcoming'), isLive: false };
 }
 
 export interface MessageDayGroup {
