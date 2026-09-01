@@ -2266,6 +2266,11 @@ export default function PublishTabScreen(): React.JSX.Element {
         previousMonthLabel={t('driver:publish.formStep.previousMonth')}
         nextMonthLabel={t('driver:publish.formStep.nextMonth')}
         confirmLabel={t('driver:publish.formStep.confirmDate')}
+        dayLabelWords={{
+          today: t('driver:publish.formStep.dateToday'),
+          tomorrow: t('driver:publish.formStep.dateTomorrow'),
+        }}
+        pickAnotherDateLabel={t('driver:publish.formStep.pickAnotherDate')}
         bottomInset={insets.bottom}
       />
       <TimeWheelSheet
@@ -2278,6 +2283,12 @@ export default function PublishTabScreen(): React.JSX.Element {
         subtitleLabel={t('driver:publish.formStep.timeSheetSubtitle')}
         summaryLabel={(time) => t('driver:publish.formStep.timeSheetSummary', { time })}
         confirmLabel={t('common:actions.confirm')}
+        quickOptionLabels={{
+          now: t('driver:publish.formStep.timeQuickNow'),
+          plus30: t('driver:publish.formStep.timeQuickPlus30'),
+          plus1h: t('driver:publish.formStep.timeQuickPlus1h'),
+          custom: t('driver:publish.formStep.timeQuickCustom'),
+        }}
         bottomInset={insets.bottom}
       />
       <PassengerSheet

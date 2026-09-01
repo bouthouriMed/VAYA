@@ -21,6 +21,15 @@ export const lightMapStyle: MapStyleElement[] = [
   { elementType: 'labels.icon', stylers: [{ visibility: 'off' }] },
   { elementType: 'labels.text.fill', stylers: [{ color: '#5B6572' }] },
   { elementType: 'labels.text.stroke', stylers: [{ color: '#FFFFFF' }] },
+  // Explicit, not just inherited from the base `geometry` rule above —
+  // `landscape.natural`'s default vegetation texture is specific enough
+  // that leaving it to inherit was still showing through as a green cast
+  // on real terrain in testing.
+  {
+    featureType: 'landscape.natural',
+    elementType: 'geometry',
+    stylers: [{ color: '#F3F1E9' }],
+  },
   {
     featureType: 'administrative',
     elementType: 'geometry',
@@ -40,15 +49,20 @@ export const lightMapStyle: MapStyleElement[] = [
     elementType: 'labels.text.fill',
     stylers: [{ color: '#7A8677' }],
   },
+  // Cooled from an earlier sage-green (#C7D9CC) — real user feedback: it
+  // read as a distinctly "green map," not the neutral cool-toned map the
+  // Stitch-reviewed reference (Find a Ride) actually shows. Blue-gray,
+  // consistent with the rest of this palette's cream/gray-blue family
+  // instead of pulling the whole map toward one saturated hue.
   {
     featureType: 'poi.park',
     elementType: 'geometry',
-    stylers: [{ color: '#C7D9CC' }],
+    stylers: [{ color: '#DDE3E0' }],
   },
   {
     featureType: 'poi.park',
     elementType: 'labels.text.fill',
-    stylers: [{ color: '#587566' }],
+    stylers: [{ color: '#5B6572' }],
   },
   {
     featureType: 'road',

@@ -22,10 +22,17 @@
       "decrementSeat": "إزالة مقعد",
       "timeSheetSubtitle": "في أي وقت تريد الانطلاق؟",
       "timeSheetSummary": "الانطلاق الساعة {{time}}",
+      "timeQuickNow": "الآن",
+      "timeQuickPlus30": "+30 دقيقة",
+      "timeQuickPlus1h": "+1 ساعة",
+      "timeQuickCustom": "مخصص",
       "weekdayLabels": ["ن", "ث", "ر", "خ", "ج", "س", "ح"],
       "previousMonth": "الشهر السابق",
       "nextMonth": "الشهر التالي",
       "confirmDate": "تأكيد التاريخ",
+      "dateToday": "اليوم",
+      "dateTomorrow": "غدًا",
+      "pickAnotherDate": "اختر تاريخًا آخر",
       "choosePriceCta": "اختيار السعر"
     },
     "routeStep": {
