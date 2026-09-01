@@ -340,7 +340,6 @@ export default function ProfileScreen(): React.JSX.Element {
     {
       title: t('profile:sections.account'),
       rows: [
-        { key: 'payment', icon: 'card-outline', label: t('profile:rows.payment') },
         {
           key: 'notifications',
           icon: 'notifications-outline',
@@ -353,13 +352,14 @@ export default function ProfileScreen(): React.JSX.Element {
           label: t('profile:rows.history'),
           onPress: () => router.push('/(tabs)/trips'),
         },
-      ],
-    },
-    {
-      title: t('profile:sections.security'),
-      rows: [
-        { key: 'security', icon: 'lock-closed-outline', label: t('profile:rows.securityPassword') },
-        { key: 'privacy', icon: 'shield-checkmark-outline', label: t('profile:rows.privacy') },
+        // Real UX-audit finding: three visually-identical "coming soon" rows
+        // (Payment, Security and password, Privacy) spread across two
+        // sections read as an unfinished product. Consolidated into the one
+        // row that's still genuinely unbuilt as a single feature area,
+        // rather than three separate dead entries — Payment specifically
+        // dropped rather than kept alongside, since this app has no payment
+        // rail at all yet (not even a partial one) to gesture toward.
+        { key: 'security-privacy', icon: 'shield-checkmark-outline', label: t('profile:rows.securityPrivacy') },
       ],
     },
     {

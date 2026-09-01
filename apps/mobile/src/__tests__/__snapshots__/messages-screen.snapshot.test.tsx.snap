@@ -1586,7 +1586,7 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
                 ]
               }
             >
-              Hier
+              common:time.yesterday
             </Text>
           </View>
           <View

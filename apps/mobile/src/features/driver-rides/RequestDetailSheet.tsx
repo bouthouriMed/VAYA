@@ -26,6 +26,7 @@ import type { SupportedLocale } from '@vaya/config';
 import type { Booking, DetourPreviewPoint } from '../../state/api';
 import {
   useGetBookingDetourPreviewQuery,
+  useGetUserTrustSummaryQuery,
   useAcceptBookingMutation,
   useDeclineBookingMutation,
 } from '../../state/api';
@@ -108,21 +109,7 @@ function RouteFitRow({
               </Text>
             ) : null}
           </View>
-        ) : (
-          // Real bug found live: a genuine routing detour (forced through a
-          // real waypoint) can legitimately return a real, honest distance
-          // delta near/below zero — the alternate path Google finds can be
-          // marginally SHORTER while genuinely slower (different road type/
-          // speed limits/traffic), never a fabricated number, but "Adds
-          // about 0 m · 17 min" reads as self-contradictory. The real
-          // accept/reject decision (detourAllowanceSec) is duration-only
-          // anyway — distance was never load-bearing here, just confusing.
-          <Text variant="caption" color={theme.warning}>
-            {t('driver:rides.requestDetail.addsDetour', {
-              duration: durationLabel(point.deviationSeconds ?? 0, t),
-            })}
-          </Text>
-        )}
+        ) : null}
       </View>
       <TouchableOpacity
         onPress={() => openInMaps(point.lat, point.lng, point.label)}
@@ -132,6 +119,43 @@ function RouteFitRow({
       >
         <Icon name="map-outline" size="sm" color={theme.inkMuted} />
       </TouchableOpacity>
+    </View>
+  );
+}
+
+/** Single glanceable "does this fit?" summary, replacing what used to be
+ *  two separate per-point cards each repeating their own "+X min" text —
+ *  real UX-audit finding (screenshot evidence: `request_details.jfif`
+ *  showed the identical number twice, once per stacked card). Only renders
+ *  when there's a genuine detour to report — a request that lands
+ *  entirely on the driver's already-planned stops has nothing to combine
+ *  here, and RouteFitRow's own "on route" badges already cover that case. */
+function DetourHeroBadge({
+  pickup,
+  dropoff,
+  t,
+  theme,
+}: {
+  pickup: DetourPreviewPoint;
+  dropoff: DetourPreviewPoint;
+  t: (key: string, params?: Record<string, unknown>) => string;
+  theme: ReturnType<typeof useAppTheme>['colors'];
+}): React.JSX.Element | null {
+  const pickupDeviation = pickup.isPlannedStop ? 0 : (pickup.deviationSeconds ?? 0);
+  const dropoffDeviation = dropoff.isPlannedStop ? 0 : (dropoff.deviationSeconds ?? 0);
+  const totalDeviation = pickupDeviation + dropoffDeviation;
+  if (totalDeviation <= 0) return null;
+
+  return (
+    <View style={[styles.heroBadge, { backgroundColor: theme.warningMuted }]}>
+      <Icon name="git-merge-outline" size="sm" color={theme.warning} />
+      <Text variant="bodySmall" color={theme.ink} style={styles.heroBadgeText}>
+        {pickupDeviation > 0
+          ? t('driver:rides.requestDetail.heroPickup', { duration: durationLabel(pickupDeviation, t) })
+          : null}
+        {pickupDeviation > 0 ? ' · ' : ''}
+        {t('driver:rides.requestDetail.heroTotal', { duration: durationLabel(totalDeviation, t) })}
+      </Text>
     </View>
   );
 }
@@ -166,6 +190,16 @@ export function RequestDetailSheet({
     isFetching,
     isError,
   } = useGetBookingDetourPreviewQuery(booking?.id ?? '', { skip: !visible || !booking?.id });
+
+  // Real rating, not a fabricated one — riders have no KYC/"Verified" state
+  // in this domain (only driver_profiles carry verificationStatus), so this
+  // sheet surfaces the rider's real trust-tier rating here and nothing more;
+  // adding a "Verified" badge for a rider would misrepresent a status that
+  // doesn't exist for them. Absent entirely (not a placeholder star) until
+  // the query actually resolves.
+  const { data: riderTrust } = useGetUserTrustSummaryQuery(booking?.rider?.id ?? '', {
+    skip: !visible || !booking?.rider?.id,
+  });
 
   // The driver's own real, whole-trip route — never sliced — so the
   // fullscreen view can show it underneath the requested segment for
@@ -290,9 +324,19 @@ export function RequestDetailSheet({
             sizePx={48}
           />
           <View style={styles.identityText}>
-            <Text variant="body" color={theme.ink} style={styles.riderName} numberOfLines={1}>
-              {booking.rider?.fullName ?? t('booking:passenger')}
-            </Text>
+            <View style={styles.riderNameRow}>
+              <Text variant="body" color={theme.ink} style={styles.riderName} numberOfLines={1}>
+                {booking.rider?.fullName ?? t('booking:passenger')}
+              </Text>
+              {riderTrust?.rider ? (
+                <View style={styles.ratingPill}>
+                  <Icon name="star" size="xs" color={theme.accent} />
+                  <Text variant="caption" color={theme.ink}>
+                    {riderTrust.rider.ratingAvg.toFixed(1)}
+                  </Text>
+                </View>
+              ) : null}
+            </View>
             <Text variant="caption" color={theme.inkMuted} numberOfLines={1}>
               {t('driver:rides.bookingDetail.seatsAndPrice', {
                 seatLabel: t('common:terms.seat', { count: booking.seatsRequested }),
@@ -355,6 +399,7 @@ export function RequestDetailSheet({
                 </Text>
               </View>
             </TouchableOpacity>
+            <DetourHeroBadge pickup={preview.pickup} dropoff={preview.dropoff} t={t} theme={theme} />
             <Text variant="label" color={theme.inkMuted} style={styles.sectionLabel}>
               {t('driver:rides.requestDetail.routeFit')}
             </Text>
@@ -588,7 +633,29 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: 1,
   },
+  riderNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
   riderName: {
+    fontWeight: '600',
+  },
+  ratingPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+  },
+  heroBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    borderRadius: radii.full,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  heroBadgeText: {
+    flex: 1,
     fontWeight: '600',
   },
   loading: {

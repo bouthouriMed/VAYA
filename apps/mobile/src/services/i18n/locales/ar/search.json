@@ -145,12 +145,19 @@
     "weekdayLabels": ["ن", "ث", "ر", "خ", "ج", "س", "ح"],
     "previousMonth": "الشهر السابق",
     "nextMonth": "الشهر التالي",
-    "confirm": "تأكيد التاريخ"
+    "confirm": "تأكيد التاريخ",
+    "today": "اليوم",
+    "tomorrow": "غدًا",
+    "pickAnotherDate": "اختر تاريخًا آخر"
   },
   "timeWheelSheet": {
     "title": "الوقت",
     "subtitle": "في أي وقت تريد المغادرة؟",
-    "summary": "البحث حوالي {{time}}"
+    "summary": "البحث حوالي {{time}}",
+    "quickNow": "الآن",
+    "quickPlus30": "+30 دقيقة",
+    "quickPlus1h": "+1 ساعة",
+    "quickCustom": "مخصص"
   },
   "passengerPicker": {
     "hint": "حتى {{count}} ركاب لكل رحلة",

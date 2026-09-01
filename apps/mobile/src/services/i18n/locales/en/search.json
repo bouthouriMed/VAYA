@@ -137,12 +137,19 @@
     "weekdayLabels": ["M", "T", "W", "T", "F", "S", "S"],
     "previousMonth": "Previous month",
     "nextMonth": "Next month",
-    "confirm": "Confirm date"
+    "confirm": "Confirm date",
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "pickAnotherDate": "Pick another date"
   },
   "timeWheelSheet": {
     "title": "Time",
     "subtitle": "What time would you like to leave?",
-    "summary": "Search around {{time}}"
+    "summary": "Search around {{time}}",
+    "quickNow": "Now",
+    "quickPlus30": "+30 min",
+    "quickPlus1h": "+1 hr",
+    "quickCustom": "Custom"
   },
   "passengerPicker": {
     "hint": "Up to {{count}} passengers per ride",

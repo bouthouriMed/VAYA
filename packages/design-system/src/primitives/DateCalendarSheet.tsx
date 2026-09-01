@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { GestureDetector, Gesture } from 'react-native-gesture-handler';
 import Animated, {
   useSharedValue,
@@ -10,9 +10,20 @@ import Animated, {
 import { BottomSheet } from './BottomSheet';
 import { Text } from './Text';
 import { Icon } from './Icon';
+import { Chip } from './Chip';
 import { spacing, radii } from '../tokens/index';
 import { useAppTheme } from '../theme/AppThemeProvider';
-import { buildMonthGrid, formatMonthName, formatYearLabel, isSameDay, startOfDay } from '../utils/scheduling';
+import {
+  buildDayOptions,
+  buildMonthGrid,
+  formatMonthName,
+  formatYearLabel,
+  isSameDay,
+  startOfDay,
+  type DepartureLabelWords,
+} from '../utils/scheduling';
+
+const QUICK_DAY_COUNT = 6;
 
 export interface DateCalendarSheetProps {
   visible: boolean;
@@ -29,6 +40,12 @@ export interface DateCalendarSheetProps {
   previousMonthLabel?: string;
   nextMonthLabel?: string;
   confirmLabel?: string;
+  /** "Aujourd'hui"/"Demain" for the quick-pick day chips — same words
+   *  `buildDayOptions` already uses elsewhere (`DepartureTimeSheet`). */
+  dayLabelWords?: DepartureLabelWords;
+  /** Toggle for the full month grid, collapsed behind this link by
+   *  default so the quick day-chip row is the primary path. */
+  pickAnotherDateLabel?: string;
 }
 
 const CELL_SIZE = 40;
@@ -54,6 +71,8 @@ export function DateCalendarSheet({
   previousMonthLabel = 'Mois précédent',
   nextMonthLabel = 'Mois suivant',
   confirmLabel = 'Confirmer la date',
+  dayLabelWords,
+  pickAnotherDateLabel = 'Choisir une autre date',
 }: DateCalendarSheetProps): React.JSX.Element {
   const { colors: theme } = useAppTheme();
   const now = useMemo(() => new Date(), []);
@@ -61,6 +80,20 @@ export function DateCalendarSheet({
     () => new Date(value.getFullYear(), value.getMonth(), 1),
   );
   const [selected, setSelected] = useState(() => startOfDay(value));
+  // Quick day-chip row (Today/Tomorrow/next few dates) is the primary
+  // interaction now — real UX-audit finding: a full month grid, mostly
+  // disabled/grayed-out past days, was an invasive default for what's
+  // usually a 1-2-tap decision (screenshot evidence: `calendar_data_sheet.
+  // jfif`). The month grid is unchanged underneath, just collapsed behind
+  // "Pick another date" unless the target day is further out than the
+  // quick row covers.
+  const quickDays = useMemo(
+    () => buildDayOptions(now, QUICK_DAY_COUNT, locale, dayLabelWords),
+    [now, locale, dayLabelWords],
+  );
+  const [showGrid, setShowGrid] = useState(
+    () => !quickDays.some((day) => isSameDay(day.date, value)),
+  );
 
   const grid = useMemo(() => buildMonthGrid(monthAnchor, now), [monthAnchor, now]);
   const isCurrentMonth =
@@ -75,10 +108,16 @@ export function DateCalendarSheet({
     if (!visible) return;
     setMonthAnchor(new Date(value.getFullYear(), value.getMonth(), 1));
     setSelected(startOfDay(value));
+    setShowGrid(!quickDays.some((day) => isSameDay(day.date, value)));
     // Only re-sync on the open transition — not on every `value` tick —
     // so an in-progress selection isn't clobbered while the sheet is open.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible]);
+
+  function pickQuickDay(date: Date): void {
+    setSelected(startOfDay(date));
+    setMonthAnchor(new Date(date.getFullYear(), date.getMonth(), 1));
+  }
 
   function goToMonth(offset: number): void {
     setMonthAnchor((prev) => {
@@ -171,6 +210,41 @@ export function DateCalendarSheet({
         </View>
       }
     >
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.quickDayRow}
+      >
+        {quickDays.map((day) => {
+          const isSelected = isSameDay(day.date, selected);
+          return (
+            <Chip
+              key={day.date.toISOString()}
+              label={day.label}
+              tone={isSelected ? 'default' : 'dim'}
+              selected={isSelected}
+              onPress={() => pickQuickDay(day.date)}
+              theme={theme}
+            />
+          );
+        })}
+      </ScrollView>
+
+      <TouchableOpacity
+        onPress={() => setShowGrid((prev) => !prev)}
+        style={styles.pickAnotherRow}
+        accessibilityRole="button"
+        accessibilityState={{ expanded: showGrid }}
+      >
+        <Icon name="calendar-outline" size="xs" color={theme.accent} />
+        <Text variant="bodySmall" color={theme.accent}>
+          {pickAnotherDateLabel}
+        </Text>
+        <Icon name={showGrid ? 'chevron-up' : 'chevron-forward'} size="xs" color={theme.accent} />
+      </TouchableOpacity>
+
+      {showGrid ? (
+        <>
       <View style={styles.monthHeader}>
         {/* Outer cells share the calendar's 100/7% column width, so each
          *  arrow centers exactly over the first/last weekday column below. */}
@@ -272,6 +346,8 @@ export function DateCalendarSheet({
           })}
         </Animated.View>
       </GestureDetector>
+        </>
+      ) : null}
 
       <View style={styles.footer}>
         <TouchableOpacity
@@ -310,6 +386,18 @@ const styles = StyleSheet.create({
     height: 32,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  quickDayRow: {
+    gap: spacing.sm,
+    paddingBottom: spacing.md,
+  },
+  pickAnotherRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    alignSelf: 'flex-start',
+    paddingVertical: spacing.sm,
+    marginBottom: spacing.xs,
   },
   monthHeader: {
     flexDirection: 'row',

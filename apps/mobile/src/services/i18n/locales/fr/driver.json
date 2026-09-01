@@ -339,6 +339,8 @@
       "notOnRoute": "Pas sur votre itinéraire prévu",
       "stopPosition": "Arrêt {{index}} sur {{total}}",
       "addsDetour": "Ajoute environ {{duration}} à votre itinéraire",
+      "heroPickup": "+{{duration}} prise en charge",
+      "heroTotal": "+{{duration}} détour total",
       "estimateNote": "Estimation — l'itinéraire de ce trajet ne provient pas d'un service de calcul d'itinéraire réel.",
       "ridesWithYou": "Voyage avec vous",
       "segmentDistance": "{{distance}} · {{duration}}",

@@ -21,6 +21,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { BottomSheet } from './BottomSheet';
 import { Text } from './Text';
 import { Icon } from './Icon';
+import { Chip } from './Chip';
 import { spacing, radii } from '../tokens/index';
 import { useAppTheme } from '../theme/AppThemeProvider';
 import { haptics } from '../utils/haptics';
@@ -39,6 +40,30 @@ export interface TimeWheelSheetProps {
    *  can place the time however their language's word order needs. */
   summaryLabel?: (time: string) => string;
   confirmLabel?: string;
+  /** Quick-select chip labels — same prop-based localization convention as
+   *  every other label here, not a hook, so this primitive stays
+   *  presentational. */
+  quickOptionLabels?: { now: string; plus30: string; plus1h: string; custom: string };
+}
+
+type QuickOption = 'now' | 'plus30' | 'plus1h' | 'custom';
+
+/** Which preset (if any) the current hour/minute already matches — used
+ *  both to pick the initial chip and to keep a chip visually selected if
+ *  the user reaches the same value a different way. Rounds to the minute
+ *  the preset itself would produce, not an exact-millisecond match. */
+function matchingQuickOption(hour: number, minute: number, now: Date): QuickOption {
+  const nowRounded = roundUpToSlot(now, MINUTE_STEP);
+  if (hour === nowRounded.getHours() && minute === nowRounded.getMinutes()) return 'now';
+  const plus30 = new Date(now.getTime() + 30 * 60_000);
+  if (hour === plus30.getHours() && minute === Math.round(plus30.getMinutes() / MINUTE_STEP) * MINUTE_STEP) {
+    return 'plus30';
+  }
+  const plus1h = new Date(now.getTime() + 60 * 60_000);
+  if (hour === plus1h.getHours() && minute === Math.round(plus1h.getMinutes() / MINUTE_STEP) * MINUTE_STEP) {
+    return 'plus1h';
+  }
+  return 'custom';
 }
 
 const ITEM_HEIGHT = 48;
@@ -225,6 +250,7 @@ export function TimeWheelSheet({
   subtitleLabel = 'À quelle heure souhaitez-vous partir ?',
   summaryLabel = (time) => `Rechercher vers ${time}`,
   confirmLabel = 'Confirmer',
+  quickOptionLabels = { now: 'Maintenant', plus30: '+30 min', plus1h: '+1 h', custom: 'Personnalisé' },
 }: TimeWheelSheetProps): React.JSX.Element {
   const { colors: theme } = useAppTheme();
   const [hour, setHour] = useState(value.getHours());
@@ -234,6 +260,15 @@ export function TimeWheelSheet({
   });
 
   const now = useMemo(() => new Date(), []);
+  // Quick-select chips (Now/+30min/+1hr/Custom) are the primary
+  // interaction now — the wheel below is only shown once "Custom" is
+  // picked, real UX-audit finding: a bare wheel with no quick options was
+  // a genuine decision-bottleneck (screenshot evidence: `time_weel_sheet.
+  // jfif`). The wheel itself (native scroll-snap, reanimated) is
+  // unchanged — this only adds a faster path in front of it.
+  const [quickOption, setQuickOption] = useState<QuickOption>(() =>
+    matchingQuickOption(value.getHours(), Math.round(value.getMinutes() / MINUTE_STEP) * MINUTE_STEP, now),
+  );
 
   // Re-syncs to the live `value` every time the sheet opens (same reason as
   // DateCalendarSheet's identical effect) — the wheel itself remounts fresh
@@ -245,8 +280,21 @@ export function TimeWheelSheet({
     setHour(value.getHours());
     const rounded = Math.round(value.getMinutes() / MINUTE_STEP) * MINUTE_STEP;
     setMinute(rounded >= 60 ? 0 : rounded);
+    setQuickOption(matchingQuickOption(value.getHours(), rounded, now));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible]);
+
+  function pickQuickOption(option: QuickOption): void {
+    haptics.selection();
+    setQuickOption(option);
+    if (option === 'custom') return; // wheel takes over from here
+    const base =
+      option === 'now'
+        ? roundUpToSlot(now, MINUTE_STEP)
+        : new Date(now.getTime() + (option === 'plus30' ? 30 : 60) * 60_000);
+    setHour(base.getHours());
+    setMinute(Math.round(base.getMinutes() / MINUTE_STEP) * MINUTE_STEP);
+  }
 
   function confirm(): void {
     const merged = new Date(value);
@@ -284,6 +332,19 @@ export function TimeWheelSheet({
         </View>
       }
     >
+      <View style={styles.quickRow}>
+        {(['now', 'plus30', 'plus1h', 'custom'] as const).map((option) => (
+          <Chip
+            key={option}
+            label={quickOptionLabels[option]}
+            tone={quickOption === option ? 'default' : 'dim'}
+            selected={quickOption === option}
+            onPress={() => pickQuickOption(option)}
+            theme={theme}
+          />
+        ))}
+      </View>
+
       <View style={styles.summary}>
         <Text variant="bodySmall" color={theme.inkMuted}>
           {subtitleLabel}
@@ -298,33 +359,35 @@ export function TimeWheelSheet({
         </Text>
       </View>
 
-      <View style={styles.wheelWrap}>
-        <View
-          pointerEvents="none"
-          style={[styles.highlightBox, { backgroundColor: theme.surfaceMuted, borderColor: theme.outlineVariant }]}
-        />
-        <WheelColumn values={HOURS} selected={hour} onSettle={setHour} theme={theme} />
-        <View style={styles.separatorWrap}>
-          <Text variant="h2" color={theme.ink} style={styles.separator}>
-            :
-          </Text>
-        </View>
-        <WheelColumn values={MINUTES} selected={minute} onSettle={setMinute} theme={theme} />
+      {quickOption === 'custom' ? (
+        <View style={styles.wheelWrap}>
+          <View
+            pointerEvents="none"
+            style={[styles.highlightBox, { backgroundColor: theme.surfaceMuted, borderColor: theme.outlineVariant }]}
+          />
+          <WheelColumn values={HOURS} selected={hour} onSettle={setHour} theme={theme} />
+          <View style={styles.separatorWrap}>
+            <Text variant="h2" color={theme.ink} style={styles.separator}>
+              :
+            </Text>
+          </View>
+          <WheelColumn values={MINUTES} selected={minute} onSettle={setMinute} theme={theme} />
 
-        {/* Top/bottom edge fades — the classic wheel-picker affordance that
-            tells the eye "more values continue past here," and softens the
-            otherwise-abrupt clip at the column's top/bottom edge. */}
-        <LinearGradient
-          pointerEvents="none"
-          colors={[`${theme.surface}FF`, `${theme.surface}00`]}
-          style={[styles.edgeFade, styles.edgeFadeTop]}
-        />
-        <LinearGradient
-          pointerEvents="none"
-          colors={[`${theme.surface}00`, `${theme.surface}FF`]}
-          style={[styles.edgeFade, styles.edgeFadeBottom]}
-        />
-      </View>
+          {/* Top/bottom edge fades — the classic wheel-picker affordance that
+              tells the eye "more values continue past here," and softens the
+              otherwise-abrupt clip at the column's top/bottom edge. */}
+          <LinearGradient
+            pointerEvents="none"
+            colors={[`${theme.surface}FF`, `${theme.surface}00`]}
+            style={[styles.edgeFade, styles.edgeFadeTop]}
+          />
+          <LinearGradient
+            pointerEvents="none"
+            colors={[`${theme.surface}00`, `${theme.surface}FF`]}
+            style={[styles.edgeFade, styles.edgeFadeBottom]}
+          />
+        </View>
+      ) : null}
 
       <View style={styles.footer}>
         <TouchableOpacity
@@ -362,6 +425,12 @@ const styles = StyleSheet.create({
     height: 32,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  quickRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    justifyContent: 'center',
+    flexWrap: 'wrap',
   },
   summary: {
     alignItems: 'center',

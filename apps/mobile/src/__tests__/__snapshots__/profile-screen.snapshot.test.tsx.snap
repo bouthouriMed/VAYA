@@ -28,9 +28,9 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
         style={
           {
             "alignItems": "center",
-            "paddingBottom": 16,
+            "paddingBottom": 32,
             "paddingHorizontal": 20,
-            "paddingTop": 8,
+            "paddingTop": 12,
           }
         }
       >
@@ -193,39 +193,6 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
               Confiance
             </Text>
           </View>
-          <TouchableOpacity
-            accessibilityLabel="profile:photo.addAria"
-            accessibilityRole="button"
-            disabled={false}
-            onPress={[Function]}
-            style={
-              {
-                "marginTop": 4,
-                "paddingHorizontal": 8,
-                "paddingVertical": 4,
-              }
-            }
-          >
-            <Text
-              style={
-                [
-                  {
-                    "fontSize": 14,
-                    "fontWeight": "400",
-                    "lineHeight": 21,
-                  },
-                  {
-                    "color": "#8B93A3",
-                    "textAlign": undefined,
-                    "writingDirection": "ltr",
-                  },
-                  undefined,
-                ]
-              }
-            >
-              profile:photo.addText
-            </Text>
-          </TouchableOpacity>
         </View>
       </View>
       <TouchableOpacity
@@ -516,91 +483,6 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
           >
             <View>
               <TouchableOpacity
-                accessibilityLabel="profile:rows.payment"
-                accessibilityRole="text"
-                accessibilityState={
-                  {
-                    "disabled": true,
-                  }
-                }
-                activeOpacity={0.6}
-                disabled={true}
-                style={
-                  {
-                    "alignItems": "center",
-                    "flexDirection": "row",
-                    "gap": 16,
-                    "paddingHorizontal": 16,
-                    "paddingVertical": 16,
-                  }
-                }
-              >
-                <View>
-                  <Ionicons
-                    accessibilityElementsHidden={true}
-                    color="#D3E1F5"
-                    importantForAccessibility="no-hide-descendants"
-                    name="card-outline"
-                    size={20}
-                  />
-                </View>
-                <Text
-                  style={
-                    [
-                      {
-                        "fontSize": 16,
-                        "fontWeight": "400",
-                        "lineHeight": 24,
-                      },
-                      {
-                        "color": "#8B93A3",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      {
-                        "flex": 1,
-                      },
-                    ]
-                  }
-                >
-                  profile:rows.payment
-                </Text>
-                <Text
-                  style={
-                    [
-                      {
-                        "fontSize": 12,
-                        "fontWeight": "400",
-                        "lineHeight": 18,
-                      },
-                      {
-                        "color": "#8B93A3",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      undefined,
-                    ]
-                  }
-                >
-                  common:status.comingSoon
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <View>
-              <View
-                style={
-                  [
-                    {
-                      "height": 1,
-                      "marginHorizontal": 16,
-                    },
-                    {
-                      "backgroundColor": "#E4EDFB",
-                    },
-                  ]
-                }
-              />
-              <TouchableOpacity
                 accessibilityLabel="profile:rows.notifications"
                 accessibilityRole="button"
                 accessibilityState={
@@ -734,123 +616,6 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                 />
               </TouchableOpacity>
             </View>
-          </View>
-        </View>
-        <View>
-          <Text
-            style={
-              [
-                {
-                  "fontSize": 12,
-                  "fontWeight": "400",
-                  "lineHeight": 18,
-                },
-                {
-                  "color": "#8B93A3",
-                  "textAlign": undefined,
-                  "writingDirection": "ltr",
-                },
-                {
-                  "letterSpacing": 0.8,
-                  "marginBottom": 8,
-                  "marginHorizontal": 8,
-                  "textTransform": "uppercase",
-                },
-              ]
-            }
-          >
-            profile:sections.security
-          </Text>
-          <View
-            style={
-              [
-                {
-                  "borderRadius": 12,
-                  "borderWidth": 1,
-                  "overflow": "hidden",
-                },
-                {
-                  "backgroundColor": "#FFFFFF",
-                  "borderColor": "#E4EDFB",
-                },
-                {
-                  "elevation": 1,
-                },
-              ]
-            }
-          >
-            <View>
-              <TouchableOpacity
-                accessibilityLabel="profile:rows.securityPassword"
-                accessibilityRole="text"
-                accessibilityState={
-                  {
-                    "disabled": true,
-                  }
-                }
-                activeOpacity={0.6}
-                disabled={true}
-                style={
-                  {
-                    "alignItems": "center",
-                    "flexDirection": "row",
-                    "gap": 16,
-                    "paddingHorizontal": 16,
-                    "paddingVertical": 16,
-                  }
-                }
-              >
-                <View>
-                  <Ionicons
-                    accessibilityElementsHidden={true}
-                    color="#D3E1F5"
-                    importantForAccessibility="no-hide-descendants"
-                    name="lock-closed-outline"
-                    size={20}
-                  />
-                </View>
-                <Text
-                  style={
-                    [
-                      {
-                        "fontSize": 16,
-                        "fontWeight": "400",
-                        "lineHeight": 24,
-                      },
-                      {
-                        "color": "#8B93A3",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      {
-                        "flex": 1,
-                      },
-                    ]
-                  }
-                >
-                  profile:rows.securityPassword
-                </Text>
-                <Text
-                  style={
-                    [
-                      {
-                        "fontSize": 12,
-                        "fontWeight": "400",
-                        "lineHeight": 18,
-                      },
-                      {
-                        "color": "#8B93A3",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      undefined,
-                    ]
-                  }
-                >
-                  common:status.comingSoon
-                </Text>
-              </TouchableOpacity>
-            </View>
             <View>
               <View
                 style={
@@ -866,7 +631,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                 }
               />
               <TouchableOpacity
-                accessibilityLabel="profile:rows.privacy"
+                accessibilityLabel="profile:rows.securityPrivacy"
                 accessibilityRole="text"
                 accessibilityState={
                   {
@@ -913,7 +678,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                     ]
                   }
                 >
-                  profile:rows.privacy
+                  profile:rows.securityPrivacy
                 </Text>
                 <Text
                   style={
@@ -1504,9 +1269,9 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
         style={
           {
             "alignItems": "center",
-            "paddingBottom": 16,
+            "paddingBottom": 32,
             "paddingHorizontal": 20,
-            "paddingTop": 8,
+            "paddingTop": 12,
           }
         }
       >
@@ -1669,39 +1434,6 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
               Nouveau
             </Text>
           </View>
-          <TouchableOpacity
-            accessibilityLabel="profile:photo.addAria"
-            accessibilityRole="button"
-            disabled={false}
-            onPress={[Function]}
-            style={
-              {
-                "marginTop": 4,
-                "paddingHorizontal": 8,
-                "paddingVertical": 4,
-              }
-            }
-          >
-            <Text
-              style={
-                [
-                  {
-                    "fontSize": 14,
-                    "fontWeight": "400",
-                    "lineHeight": 21,
-                  },
-                  {
-                    "color": "#8B93A3",
-                    "textAlign": undefined,
-                    "writingDirection": "ltr",
-                  },
-                  undefined,
-                ]
-              }
-            >
-              profile:photo.addText
-            </Text>
-          </TouchableOpacity>
         </View>
       </View>
       <View
@@ -1953,91 +1685,6 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
           >
             <View>
               <TouchableOpacity
-                accessibilityLabel="profile:rows.payment"
-                accessibilityRole="text"
-                accessibilityState={
-                  {
-                    "disabled": true,
-                  }
-                }
-                activeOpacity={0.6}
-                disabled={true}
-                style={
-                  {
-                    "alignItems": "center",
-                    "flexDirection": "row",
-                    "gap": 16,
-                    "paddingHorizontal": 16,
-                    "paddingVertical": 16,
-                  }
-                }
-              >
-                <View>
-                  <Ionicons
-                    accessibilityElementsHidden={true}
-                    color="#D3E1F5"
-                    importantForAccessibility="no-hide-descendants"
-                    name="card-outline"
-                    size={20}
-                  />
-                </View>
-                <Text
-                  style={
-                    [
-                      {
-                        "fontSize": 16,
-                        "fontWeight": "400",
-                        "lineHeight": 24,
-                      },
-                      {
-                        "color": "#8B93A3",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      {
-                        "flex": 1,
-                      },
-                    ]
-                  }
-                >
-                  profile:rows.payment
-                </Text>
-                <Text
-                  style={
-                    [
-                      {
-                        "fontSize": 12,
-                        "fontWeight": "400",
-                        "lineHeight": 18,
-                      },
-                      {
-                        "color": "#8B93A3",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      undefined,
-                    ]
-                  }
-                >
-                  common:status.comingSoon
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <View>
-              <View
-                style={
-                  [
-                    {
-                      "height": 1,
-                      "marginHorizontal": 16,
-                    },
-                    {
-                      "backgroundColor": "#E4EDFB",
-                    },
-                  ]
-                }
-              />
-              <TouchableOpacity
                 accessibilityLabel="profile:rows.notifications"
                 accessibilityRole="button"
                 accessibilityState={
@@ -2171,123 +1818,6 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                 />
               </TouchableOpacity>
             </View>
-          </View>
-        </View>
-        <View>
-          <Text
-            style={
-              [
-                {
-                  "fontSize": 12,
-                  "fontWeight": "400",
-                  "lineHeight": 18,
-                },
-                {
-                  "color": "#8B93A3",
-                  "textAlign": undefined,
-                  "writingDirection": "ltr",
-                },
-                {
-                  "letterSpacing": 0.8,
-                  "marginBottom": 8,
-                  "marginHorizontal": 8,
-                  "textTransform": "uppercase",
-                },
-              ]
-            }
-          >
-            profile:sections.security
-          </Text>
-          <View
-            style={
-              [
-                {
-                  "borderRadius": 12,
-                  "borderWidth": 1,
-                  "overflow": "hidden",
-                },
-                {
-                  "backgroundColor": "#FFFFFF",
-                  "borderColor": "#E4EDFB",
-                },
-                {
-                  "elevation": 1,
-                },
-              ]
-            }
-          >
-            <View>
-              <TouchableOpacity
-                accessibilityLabel="profile:rows.securityPassword"
-                accessibilityRole="text"
-                accessibilityState={
-                  {
-                    "disabled": true,
-                  }
-                }
-                activeOpacity={0.6}
-                disabled={true}
-                style={
-                  {
-                    "alignItems": "center",
-                    "flexDirection": "row",
-                    "gap": 16,
-                    "paddingHorizontal": 16,
-                    "paddingVertical": 16,
-                  }
-                }
-              >
-                <View>
-                  <Ionicons
-                    accessibilityElementsHidden={true}
-                    color="#D3E1F5"
-                    importantForAccessibility="no-hide-descendants"
-                    name="lock-closed-outline"
-                    size={20}
-                  />
-                </View>
-                <Text
-                  style={
-                    [
-                      {
-                        "fontSize": 16,
-                        "fontWeight": "400",
-                        "lineHeight": 24,
-                      },
-                      {
-                        "color": "#8B93A3",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      {
-                        "flex": 1,
-                      },
-                    ]
-                  }
-                >
-                  profile:rows.securityPassword
-                </Text>
-                <Text
-                  style={
-                    [
-                      {
-                        "fontSize": 12,
-                        "fontWeight": "400",
-                        "lineHeight": 18,
-                      },
-                      {
-                        "color": "#8B93A3",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      undefined,
-                    ]
-                  }
-                >
-                  common:status.comingSoon
-                </Text>
-              </TouchableOpacity>
-            </View>
             <View>
               <View
                 style={
@@ -2303,7 +1833,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                 }
               />
               <TouchableOpacity
-                accessibilityLabel="profile:rows.privacy"
+                accessibilityLabel="profile:rows.securityPrivacy"
                 accessibilityRole="text"
                 accessibilityState={
                   {
@@ -2350,7 +1880,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                     ]
                   }
                 >
-                  profile:rows.privacy
+                  profile:rows.securityPrivacy
                 </Text>
                 <Text
                   style={
@@ -2941,9 +2471,9 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
         style={
           {
             "alignItems": "center",
-            "paddingBottom": 16,
+            "paddingBottom": 32,
             "paddingHorizontal": 20,
-            "paddingTop": 8,
+            "paddingTop": 12,
           }
         }
       >
@@ -3106,39 +2636,6 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
               Nouveau
             </Text>
           </View>
-          <TouchableOpacity
-            accessibilityLabel="profile:photo.addAria"
-            accessibilityRole="button"
-            disabled={false}
-            onPress={[Function]}
-            style={
-              {
-                "marginTop": 4,
-                "paddingHorizontal": 8,
-                "paddingVertical": 4,
-              }
-            }
-          >
-            <Text
-              style={
-                [
-                  {
-                    "fontSize": 14,
-                    "fontWeight": "400",
-                    "lineHeight": 21,
-                  },
-                  {
-                    "color": "#8B93A3",
-                    "textAlign": undefined,
-                    "writingDirection": "ltr",
-                  },
-                  undefined,
-                ]
-              }
-            >
-              profile:photo.addText
-            </Text>
-          </TouchableOpacity>
         </View>
       </View>
       <TouchableOpacity
@@ -3406,91 +2903,6 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
           >
             <View>
               <TouchableOpacity
-                accessibilityLabel="profile:rows.payment"
-                accessibilityRole="text"
-                accessibilityState={
-                  {
-                    "disabled": true,
-                  }
-                }
-                activeOpacity={0.6}
-                disabled={true}
-                style={
-                  {
-                    "alignItems": "center",
-                    "flexDirection": "row",
-                    "gap": 16,
-                    "paddingHorizontal": 16,
-                    "paddingVertical": 16,
-                  }
-                }
-              >
-                <View>
-                  <Ionicons
-                    accessibilityElementsHidden={true}
-                    color="#D3E1F5"
-                    importantForAccessibility="no-hide-descendants"
-                    name="card-outline"
-                    size={20}
-                  />
-                </View>
-                <Text
-                  style={
-                    [
-                      {
-                        "fontSize": 16,
-                        "fontWeight": "400",
-                        "lineHeight": 24,
-                      },
-                      {
-                        "color": "#8B93A3",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      {
-                        "flex": 1,
-                      },
-                    ]
-                  }
-                >
-                  profile:rows.payment
-                </Text>
-                <Text
-                  style={
-                    [
-                      {
-                        "fontSize": 12,
-                        "fontWeight": "400",
-                        "lineHeight": 18,
-                      },
-                      {
-                        "color": "#8B93A3",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      undefined,
-                    ]
-                  }
-                >
-                  common:status.comingSoon
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <View>
-              <View
-                style={
-                  [
-                    {
-                      "height": 1,
-                      "marginHorizontal": 16,
-                    },
-                    {
-                      "backgroundColor": "#E4EDFB",
-                    },
-                  ]
-                }
-              />
-              <TouchableOpacity
                 accessibilityLabel="profile:rows.notifications"
                 accessibilityRole="button"
                 accessibilityState={
@@ -3624,123 +3036,6 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                 />
               </TouchableOpacity>
             </View>
-          </View>
-        </View>
-        <View>
-          <Text
-            style={
-              [
-                {
-                  "fontSize": 12,
-                  "fontWeight": "400",
-                  "lineHeight": 18,
-                },
-                {
-                  "color": "#8B93A3",
-                  "textAlign": undefined,
-                  "writingDirection": "ltr",
-                },
-                {
-                  "letterSpacing": 0.8,
-                  "marginBottom": 8,
-                  "marginHorizontal": 8,
-                  "textTransform": "uppercase",
-                },
-              ]
-            }
-          >
-            profile:sections.security
-          </Text>
-          <View
-            style={
-              [
-                {
-                  "borderRadius": 12,
-                  "borderWidth": 1,
-                  "overflow": "hidden",
-                },
-                {
-                  "backgroundColor": "#FFFFFF",
-                  "borderColor": "#E4EDFB",
-                },
-                {
-                  "elevation": 1,
-                },
-              ]
-            }
-          >
-            <View>
-              <TouchableOpacity
-                accessibilityLabel="profile:rows.securityPassword"
-                accessibilityRole="text"
-                accessibilityState={
-                  {
-                    "disabled": true,
-                  }
-                }
-                activeOpacity={0.6}
-                disabled={true}
-                style={
-                  {
-                    "alignItems": "center",
-                    "flexDirection": "row",
-                    "gap": 16,
-                    "paddingHorizontal": 16,
-                    "paddingVertical": 16,
-                  }
-                }
-              >
-                <View>
-                  <Ionicons
-                    accessibilityElementsHidden={true}
-                    color="#D3E1F5"
-                    importantForAccessibility="no-hide-descendants"
-                    name="lock-closed-outline"
-                    size={20}
-                  />
-                </View>
-                <Text
-                  style={
-                    [
-                      {
-                        "fontSize": 16,
-                        "fontWeight": "400",
-                        "lineHeight": 24,
-                      },
-                      {
-                        "color": "#8B93A3",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      {
-                        "flex": 1,
-                      },
-                    ]
-                  }
-                >
-                  profile:rows.securityPassword
-                </Text>
-                <Text
-                  style={
-                    [
-                      {
-                        "fontSize": 12,
-                        "fontWeight": "400",
-                        "lineHeight": 18,
-                      },
-                      {
-                        "color": "#8B93A3",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      undefined,
-                    ]
-                  }
-                >
-                  common:status.comingSoon
-                </Text>
-              </TouchableOpacity>
-            </View>
             <View>
               <View
                 style={
@@ -3756,7 +3051,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                 }
               />
               <TouchableOpacity
-                accessibilityLabel="profile:rows.privacy"
+                accessibilityLabel="profile:rows.securityPrivacy"
                 accessibilityRole="text"
                 accessibilityState={
                   {
@@ -3803,7 +3098,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                     ]
                   }
                 >
-                  profile:rows.privacy
+                  profile:rows.securityPrivacy
                 </Text>
                 <Text
                   style={
@@ -4394,9 +3689,9 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
         style={
           {
             "alignItems": "center",
-            "paddingBottom": 16,
+            "paddingBottom": 32,
             "paddingHorizontal": 20,
-            "paddingTop": 8,
+            "paddingTop": 12,
           }
         }
       >
@@ -4559,39 +3854,6 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
               Nouveau
             </Text>
           </View>
-          <TouchableOpacity
-            accessibilityLabel="profile:photo.addAria"
-            accessibilityRole="button"
-            disabled={false}
-            onPress={[Function]}
-            style={
-              {
-                "marginTop": 4,
-                "paddingHorizontal": 8,
-                "paddingVertical": 4,
-              }
-            }
-          >
-            <Text
-              style={
-                [
-                  {
-                    "fontSize": 14,
-                    "fontWeight": "400",
-                    "lineHeight": 21,
-                  },
-                  {
-                    "color": "#8B93A3",
-                    "textAlign": undefined,
-                    "writingDirection": "ltr",
-                  },
-                  undefined,
-                ]
-              }
-            >
-              profile:photo.addText
-            </Text>
-          </TouchableOpacity>
         </View>
       </View>
       <View
@@ -4850,91 +4112,6 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
           >
             <View>
               <TouchableOpacity
-                accessibilityLabel="profile:rows.payment"
-                accessibilityRole="text"
-                accessibilityState={
-                  {
-                    "disabled": true,
-                  }
-                }
-                activeOpacity={0.6}
-                disabled={true}
-                style={
-                  {
-                    "alignItems": "center",
-                    "flexDirection": "row",
-                    "gap": 16,
-                    "paddingHorizontal": 16,
-                    "paddingVertical": 16,
-                  }
-                }
-              >
-                <View>
-                  <Ionicons
-                    accessibilityElementsHidden={true}
-                    color="#D3E1F5"
-                    importantForAccessibility="no-hide-descendants"
-                    name="card-outline"
-                    size={20}
-                  />
-                </View>
-                <Text
-                  style={
-                    [
-                      {
-                        "fontSize": 16,
-                        "fontWeight": "400",
-                        "lineHeight": 24,
-                      },
-                      {
-                        "color": "#8B93A3",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      {
-                        "flex": 1,
-                      },
-                    ]
-                  }
-                >
-                  profile:rows.payment
-                </Text>
-                <Text
-                  style={
-                    [
-                      {
-                        "fontSize": 12,
-                        "fontWeight": "400",
-                        "lineHeight": 18,
-                      },
-                      {
-                        "color": "#8B93A3",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      undefined,
-                    ]
-                  }
-                >
-                  common:status.comingSoon
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <View>
-              <View
-                style={
-                  [
-                    {
-                      "height": 1,
-                      "marginHorizontal": 16,
-                    },
-                    {
-                      "backgroundColor": "#E4EDFB",
-                    },
-                  ]
-                }
-              />
-              <TouchableOpacity
                 accessibilityLabel="profile:rows.notifications"
                 accessibilityRole="button"
                 accessibilityState={
@@ -5068,123 +4245,6 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                 />
               </TouchableOpacity>
             </View>
-          </View>
-        </View>
-        <View>
-          <Text
-            style={
-              [
-                {
-                  "fontSize": 12,
-                  "fontWeight": "400",
-                  "lineHeight": 18,
-                },
-                {
-                  "color": "#8B93A3",
-                  "textAlign": undefined,
-                  "writingDirection": "ltr",
-                },
-                {
-                  "letterSpacing": 0.8,
-                  "marginBottom": 8,
-                  "marginHorizontal": 8,
-                  "textTransform": "uppercase",
-                },
-              ]
-            }
-          >
-            profile:sections.security
-          </Text>
-          <View
-            style={
-              [
-                {
-                  "borderRadius": 12,
-                  "borderWidth": 1,
-                  "overflow": "hidden",
-                },
-                {
-                  "backgroundColor": "#FFFFFF",
-                  "borderColor": "#E4EDFB",
-                },
-                {
-                  "elevation": 1,
-                },
-              ]
-            }
-          >
-            <View>
-              <TouchableOpacity
-                accessibilityLabel="profile:rows.securityPassword"
-                accessibilityRole="text"
-                accessibilityState={
-                  {
-                    "disabled": true,
-                  }
-                }
-                activeOpacity={0.6}
-                disabled={true}
-                style={
-                  {
-                    "alignItems": "center",
-                    "flexDirection": "row",
-                    "gap": 16,
-                    "paddingHorizontal": 16,
-                    "paddingVertical": 16,
-                  }
-                }
-              >
-                <View>
-                  <Ionicons
-                    accessibilityElementsHidden={true}
-                    color="#D3E1F5"
-                    importantForAccessibility="no-hide-descendants"
-                    name="lock-closed-outline"
-                    size={20}
-                  />
-                </View>
-                <Text
-                  style={
-                    [
-                      {
-                        "fontSize": 16,
-                        "fontWeight": "400",
-                        "lineHeight": 24,
-                      },
-                      {
-                        "color": "#8B93A3",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      {
-                        "flex": 1,
-                      },
-                    ]
-                  }
-                >
-                  profile:rows.securityPassword
-                </Text>
-                <Text
-                  style={
-                    [
-                      {
-                        "fontSize": 12,
-                        "fontWeight": "400",
-                        "lineHeight": 18,
-                      },
-                      {
-                        "color": "#8B93A3",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      undefined,
-                    ]
-                  }
-                >
-                  common:status.comingSoon
-                </Text>
-              </TouchableOpacity>
-            </View>
             <View>
               <View
                 style={
@@ -5200,7 +4260,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                 }
               />
               <TouchableOpacity
-                accessibilityLabel="profile:rows.privacy"
+                accessibilityLabel="profile:rows.securityPrivacy"
                 accessibilityRole="text"
                 accessibilityState={
                   {
@@ -5247,7 +4307,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                     ]
                   }
                 >
-                  profile:rows.privacy
+                  profile:rows.securityPrivacy
                 </Text>
                 <Text
                   style={
@@ -5838,9 +4898,9 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
         style={
           {
             "alignItems": "center",
-            "paddingBottom": 16,
+            "paddingBottom": 32,
             "paddingHorizontal": 20,
-            "paddingTop": 8,
+            "paddingTop": 12,
           }
         }
       >
@@ -6003,39 +5063,6 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
               Nouveau
             </Text>
           </View>
-          <TouchableOpacity
-            accessibilityLabel="profile:photo.addAria"
-            accessibilityRole="button"
-            disabled={false}
-            onPress={[Function]}
-            style={
-              {
-                "marginTop": 4,
-                "paddingHorizontal": 8,
-                "paddingVertical": 4,
-              }
-            }
-          >
-            <Text
-              style={
-                [
-                  {
-                    "fontSize": 14,
-                    "fontWeight": "400",
-                    "lineHeight": 21,
-                  },
-                  {
-                    "color": "#8B93A3",
-                    "textAlign": undefined,
-                    "writingDirection": "ltr",
-                  },
-                  undefined,
-                ]
-              }
-            >
-              profile:photo.addText
-            </Text>
-          </TouchableOpacity>
         </View>
       </View>
       <TouchableOpacity
@@ -6303,91 +5330,6 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
           >
             <View>
               <TouchableOpacity
-                accessibilityLabel="profile:rows.payment"
-                accessibilityRole="text"
-                accessibilityState={
-                  {
-                    "disabled": true,
-                  }
-                }
-                activeOpacity={0.6}
-                disabled={true}
-                style={
-                  {
-                    "alignItems": "center",
-                    "flexDirection": "row",
-                    "gap": 16,
-                    "paddingHorizontal": 16,
-                    "paddingVertical": 16,
-                  }
-                }
-              >
-                <View>
-                  <Ionicons
-                    accessibilityElementsHidden={true}
-                    color="#D3E1F5"
-                    importantForAccessibility="no-hide-descendants"
-                    name="card-outline"
-                    size={20}
-                  />
-                </View>
-                <Text
-                  style={
-                    [
-                      {
-                        "fontSize": 16,
-                        "fontWeight": "400",
-                        "lineHeight": 24,
-                      },
-                      {
-                        "color": "#8B93A3",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      {
-                        "flex": 1,
-                      },
-                    ]
-                  }
-                >
-                  profile:rows.payment
-                </Text>
-                <Text
-                  style={
-                    [
-                      {
-                        "fontSize": 12,
-                        "fontWeight": "400",
-                        "lineHeight": 18,
-                      },
-                      {
-                        "color": "#8B93A3",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      undefined,
-                    ]
-                  }
-                >
-                  common:status.comingSoon
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <View>
-              <View
-                style={
-                  [
-                    {
-                      "height": 1,
-                      "marginHorizontal": 16,
-                    },
-                    {
-                      "backgroundColor": "#E4EDFB",
-                    },
-                  ]
-                }
-              />
-              <TouchableOpacity
                 accessibilityLabel="profile:rows.notifications"
                 accessibilityRole="button"
                 accessibilityState={
@@ -6521,123 +5463,6 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                 />
               </TouchableOpacity>
             </View>
-          </View>
-        </View>
-        <View>
-          <Text
-            style={
-              [
-                {
-                  "fontSize": 12,
-                  "fontWeight": "400",
-                  "lineHeight": 18,
-                },
-                {
-                  "color": "#8B93A3",
-                  "textAlign": undefined,
-                  "writingDirection": "ltr",
-                },
-                {
-                  "letterSpacing": 0.8,
-                  "marginBottom": 8,
-                  "marginHorizontal": 8,
-                  "textTransform": "uppercase",
-                },
-              ]
-            }
-          >
-            profile:sections.security
-          </Text>
-          <View
-            style={
-              [
-                {
-                  "borderRadius": 12,
-                  "borderWidth": 1,
-                  "overflow": "hidden",
-                },
-                {
-                  "backgroundColor": "#FFFFFF",
-                  "borderColor": "#E4EDFB",
-                },
-                {
-                  "elevation": 1,
-                },
-              ]
-            }
-          >
-            <View>
-              <TouchableOpacity
-                accessibilityLabel="profile:rows.securityPassword"
-                accessibilityRole="text"
-                accessibilityState={
-                  {
-                    "disabled": true,
-                  }
-                }
-                activeOpacity={0.6}
-                disabled={true}
-                style={
-                  {
-                    "alignItems": "center",
-                    "flexDirection": "row",
-                    "gap": 16,
-                    "paddingHorizontal": 16,
-                    "paddingVertical": 16,
-                  }
-                }
-              >
-                <View>
-                  <Ionicons
-                    accessibilityElementsHidden={true}
-                    color="#D3E1F5"
-                    importantForAccessibility="no-hide-descendants"
-                    name="lock-closed-outline"
-                    size={20}
-                  />
-                </View>
-                <Text
-                  style={
-                    [
-                      {
-                        "fontSize": 16,
-                        "fontWeight": "400",
-                        "lineHeight": 24,
-                      },
-                      {
-                        "color": "#8B93A3",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      {
-                        "flex": 1,
-                      },
-                    ]
-                  }
-                >
-                  profile:rows.securityPassword
-                </Text>
-                <Text
-                  style={
-                    [
-                      {
-                        "fontSize": 12,
-                        "fontWeight": "400",
-                        "lineHeight": 18,
-                      },
-                      {
-                        "color": "#8B93A3",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      undefined,
-                    ]
-                  }
-                >
-                  common:status.comingSoon
-                </Text>
-              </TouchableOpacity>
-            </View>
             <View>
               <View
                 style={
@@ -6653,7 +5478,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                 }
               />
               <TouchableOpacity
-                accessibilityLabel="profile:rows.privacy"
+                accessibilityLabel="profile:rows.securityPrivacy"
                 accessibilityRole="text"
                 accessibilityState={
                   {
@@ -6700,7 +5525,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                     ]
                   }
                 >
-                  profile:rows.privacy
+                  profile:rows.securityPrivacy
                 </Text>
                 <Text
                   style={

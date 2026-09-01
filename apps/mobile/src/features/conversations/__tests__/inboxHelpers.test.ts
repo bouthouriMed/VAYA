@@ -93,19 +93,19 @@ describe('filterConversations', () => {
 
 describe('formatInboxTimestamp', () => {
   it('shows clock time for today', () => {
-    expect(formatInboxTimestamp(new Date(2026, 0, 14, 9, 30).toISOString(), NOW, 'fr')).toBe('09:30');
+    expect(formatInboxTimestamp(new Date(2026, 0, 14, 9, 30).toISOString(), mockT, NOW, 'fr')).toBe('09:30');
   });
 
-  it('shows "Hier" for yesterday', () => {
-    expect(formatInboxTimestamp(new Date(2026, 0, 13, 22, 5).toISOString(), NOW, 'fr')).toBe('Hier');
+  it('shows a real localized "yesterday", not a hardcoded French string regardless of locale', () => {
+    expect(formatInboxTimestamp(new Date(2026, 0, 13, 22, 5).toISOString(), mockT, NOW, 'fr')).toBe('Hier');
   });
 
   it('shows a short date within the same year', () => {
-    expect(formatInboxTimestamp(new Date(2026, 0, 3, 8, 0).toISOString(), NOW, 'fr')).toContain('3');
+    expect(formatInboxTimestamp(new Date(2026, 0, 3, 8, 0).toISOString(), mockT, NOW, 'fr')).toContain('3');
   });
 
   it('degrades to empty string on an invalid timestamp rather than throwing', () => {
-    expect(formatInboxTimestamp('not-a-date', NOW, 'fr')).toBe('');
+    expect(formatInboxTimestamp('not-a-date', mockT, NOW, 'fr')).toBe('');
   });
 });
 

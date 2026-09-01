@@ -105,7 +105,176 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
           }
         >
           <MapView
-            customMapStyle={[]}
+            customMapStyle={
+              [
+                {
+                  "elementType": "geometry",
+                  "stylers": [
+                    {
+                      "color": "#F3F1E9",
+                    },
+                  ],
+                },
+                {
+                  "elementType": "labels.icon",
+                  "stylers": [
+                    {
+                      "visibility": "off",
+                    },
+                  ],
+                },
+                {
+                  "elementType": "labels.text.fill",
+                  "stylers": [
+                    {
+                      "color": "#5B6572",
+                    },
+                  ],
+                },
+                {
+                  "elementType": "labels.text.stroke",
+                  "stylers": [
+                    {
+                      "color": "#FFFFFF",
+                    },
+                  ],
+                },
+                {
+                  "elementType": "geometry",
+                  "featureType": "administrative",
+                  "stylers": [
+                    {
+                      "color": "#D3CFC0",
+                    },
+                  ],
+                },
+                {
+                  "featureType": "administrative.land_parcel",
+                  "stylers": [
+                    {
+                      "visibility": "off",
+                    },
+                  ],
+                },
+                {
+                  "elementType": "geometry",
+                  "featureType": "poi",
+                  "stylers": [
+                    {
+                      "color": "#E7E3D5",
+                    },
+                  ],
+                },
+                {
+                  "elementType": "labels.text.fill",
+                  "featureType": "poi",
+                  "stylers": [
+                    {
+                      "color": "#7A8677",
+                    },
+                  ],
+                },
+                {
+                  "elementType": "geometry",
+                  "featureType": "poi.park",
+                  "stylers": [
+                    {
+                      "color": "#C7D9CC",
+                    },
+                  ],
+                },
+                {
+                  "elementType": "labels.text.fill",
+                  "featureType": "poi.park",
+                  "stylers": [
+                    {
+                      "color": "#587566",
+                    },
+                  ],
+                },
+                {
+                  "elementType": "geometry",
+                  "featureType": "road",
+                  "stylers": [
+                    {
+                      "color": "#FFFFFF",
+                    },
+                  ],
+                },
+                {
+                  "elementType": "geometry.stroke",
+                  "featureType": "road",
+                  "stylers": [
+                    {
+                      "color": "#E4DFCE",
+                    },
+                  ],
+                },
+                {
+                  "elementType": "labels.text.fill",
+                  "featureType": "road",
+                  "stylers": [
+                    {
+                      "color": "#8B93A3",
+                    },
+                  ],
+                },
+                {
+                  "elementType": "geometry",
+                  "featureType": "road.highway",
+                  "stylers": [
+                    {
+                      "color": "#EDE8D6",
+                    },
+                  ],
+                },
+                {
+                  "elementType": "geometry.stroke",
+                  "featureType": "road.highway",
+                  "stylers": [
+                    {
+                      "color": "#D9D2B8",
+                    },
+                  ],
+                },
+                {
+                  "elementType": "labels.text.fill",
+                  "featureType": "road.highway",
+                  "stylers": [
+                    {
+                      "color": "#5B6572",
+                    },
+                  ],
+                },
+                {
+                  "elementType": "geometry",
+                  "featureType": "transit",
+                  "stylers": [
+                    {
+                      "color": "#E7E3D5",
+                    },
+                  ],
+                },
+                {
+                  "elementType": "geometry",
+                  "featureType": "water",
+                  "stylers": [
+                    {
+                      "color": "#B9D6DE",
+                    },
+                  ],
+                },
+                {
+                  "elementType": "labels.text.fill",
+                  "featureType": "water",
+                  "stylers": [
+                    {
+                      "color": "#5B7D8A",
+                    },
+                  ],
+                },
+              ]
+            }
             initialRegion={
               {
                 "latitude": 36.620999999999995,
@@ -441,7 +610,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
             ]
           }
         >
-          Tue, Aug 25 · 8:30 AM
+          mar. 25 août · 8:30
         </Text>
         <View
           style={
@@ -524,7 +693,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
                   ]
                 }
               >
-                8:30 AM
+                8:30
               </Text>
             </View>
             <TouchableOpacity
@@ -1194,7 +1363,176 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
           }
         >
           <MapView
-            customMapStyle={[]}
+            customMapStyle={
+              [
+                {
+                  "elementType": "geometry",
+                  "stylers": [
+                    {
+                      "color": "#F3F1E9",
+                    },
+                  ],
+                },
+                {
+                  "elementType": "labels.icon",
+                  "stylers": [
+                    {
+                      "visibility": "off",
+                    },
+                  ],
+                },
+                {
+                  "elementType": "labels.text.fill",
+                  "stylers": [
+                    {
+                      "color": "#5B6572",
+                    },
+                  ],
+                },
+                {
+                  "elementType": "labels.text.stroke",
+                  "stylers": [
+                    {
+                      "color": "#FFFFFF",
+                    },
+                  ],
+                },
+                {
+                  "elementType": "geometry",
+                  "featureType": "administrative",
+                  "stylers": [
+                    {
+                      "color": "#D3CFC0",
+                    },
+                  ],
+                },
+                {
+                  "featureType": "administrative.land_parcel",
+                  "stylers": [
+                    {
+                      "visibility": "off",
+                    },
+                  ],
+                },
+                {
+                  "elementType": "geometry",
+                  "featureType": "poi",
+                  "stylers": [
+                    {
+                      "color": "#E7E3D5",
+                    },
+                  ],
+                },
+                {
+                  "elementType": "labels.text.fill",
+                  "featureType": "poi",
+                  "stylers": [
+                    {
+                      "color": "#7A8677",
+                    },
+                  ],
+                },
+                {
+                  "elementType": "geometry",
+                  "featureType": "poi.park",
+                  "stylers": [
+                    {
+                      "color": "#C7D9CC",
+                    },
+                  ],
+                },
+                {
+                  "elementType": "labels.text.fill",
+                  "featureType": "poi.park",
+                  "stylers": [
+                    {
+                      "color": "#587566",
+                    },
+                  ],
+                },
+                {
+                  "elementType": "geometry",
+                  "featureType": "road",
+                  "stylers": [
+                    {
+                      "color": "#FFFFFF",
+                    },
+                  ],
+                },
+                {
+                  "elementType": "geometry.stroke",
+                  "featureType": "road",
+                  "stylers": [
+                    {
+                      "color": "#E4DFCE",
+                    },
+                  ],
+                },
+                {
+                  "elementType": "labels.text.fill",
+                  "featureType": "road",
+                  "stylers": [
+                    {
+                      "color": "#8B93A3",
+                    },
+                  ],
+                },
+                {
+                  "elementType": "geometry",
+                  "featureType": "road.highway",
+                  "stylers": [
+                    {
+                      "color": "#EDE8D6",
+                    },
+                  ],
+                },
+                {
+                  "elementType": "geometry.stroke",
+                  "featureType": "road.highway",
+                  "stylers": [
+                    {
+                      "color": "#D9D2B8",
+                    },
+                  ],
+                },
+                {
+                  "elementType": "labels.text.fill",
+                  "featureType": "road.highway",
+                  "stylers": [
+                    {
+                      "color": "#5B6572",
+                    },
+                  ],
+                },
+                {
+                  "elementType": "geometry",
+                  "featureType": "transit",
+                  "stylers": [
+                    {
+                      "color": "#E7E3D5",
+                    },
+                  ],
+                },
+                {
+                  "elementType": "geometry",
+                  "featureType": "water",
+                  "stylers": [
+                    {
+                      "color": "#B9D6DE",
+                    },
+                  ],
+                },
+                {
+                  "elementType": "labels.text.fill",
+                  "featureType": "water",
+                  "stylers": [
+                    {
+                      "color": "#5B7D8A",
+                    },
+                  ],
+                },
+              ]
+            }
             initialRegion={
               {
                 "latitude": 36.620999999999995,

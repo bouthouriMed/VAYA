@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Tabs, useNavigation } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useAppTheme, haptics } from '@vaya/design-system';
 import { useAppSelector } from '../../src/state/store';
 import { useListConversationsQuery } from '../../src/state/api';
@@ -14,6 +15,10 @@ export default function TabLayout(): React.JSX.Element {
   const accessToken = useAppSelector((s) => s.auth.accessToken);
   const navigation = useNavigation();
   const { colors: theme } = useAppTheme();
+  // 'navigation' namespace (locales/*/navigation.json) already carried
+  // correct en/fr/ar tab labels — this screen just never read them, and
+  // hardcoded French strings regardless of the user's language setting.
+  const { t } = useTranslation('navigation');
 
   // messages.tsx guards itself for guests (see the comment below), so this
   // query is skipped the same way rather than firing for a signed-out user.
@@ -43,6 +48,11 @@ export default function TabLayout(): React.JSX.Element {
   // browsing — see index.tsx's doc comment). trips.tsx/messages.tsx guard
   // themselves individually instead, since only those two specifically
   // require an account.
+  //
+  // Tab order below is deliberately not file order: Publish sits in the
+  // true center of the 5 tabs (3rd of 5) — its primary/create-action
+  // position in the Stitch-reviewed design — rather than 4th, where it
+  // previously sat crowded next to Profile.
   return (
     <Tabs
       screenOptions={{
@@ -62,14 +72,14 @@ export default function TabLayout(): React.JSX.Element {
       <Tabs.Screen
         name="explore"
         options={{
-          title: 'Recherche',
+          title: t('tabs.explore'),
           tabBarIcon: ({ color, size }) => <Ionicons name="search" size={size} color={color} />,
         }}
       />
       <Tabs.Screen
         name="trips"
         options={{
-          title: 'Trajets',
+          title: t('tabs.trips'),
           // Every tab icon stays the same outline-stroke family — only the
           // active tab's color differs — so "car"/"add-circle"/"person"
           // (their filled glyphs) don't stand out against "search" (which
@@ -78,9 +88,18 @@ export default function TabLayout(): React.JSX.Element {
         }}
       />
       <Tabs.Screen
+        name="publish"
+        options={{
+          title: t('tabs.publish'),
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="add-circle-outline" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="messages"
         options={{
-          title: 'Messages',
+          title: t('tabs.messages'),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="chatbubble-outline" size={size} color={color} />
           ),
@@ -89,18 +108,9 @@ export default function TabLayout(): React.JSX.Element {
         }}
       />
       <Tabs.Screen
-        name="publish"
-        options={{
-          title: 'Publier',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="add-circle-outline" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
         name="profile"
         options={{
-          title: 'Profil',
+          title: t('tabs.profile'),
           tabBarIcon: ({ color, size }) => <Ionicons name="person-outline" size={size} color={color} />,
         }}
       />
