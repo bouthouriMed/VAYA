@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { StyleSheet, View, Platform, type StyleProp, type ViewStyle } from 'react-native';
 import MapView, { PROVIDER_GOOGLE } from 'react-native-maps';
 import Constants, { ExecutionEnvironment } from 'expo-constants';
-import { colors, radii, lightMapStyle, darkMapStyle } from '../tokens/index';
+import { radii, lightMapStyle, darkMapStyle } from '../tokens/index';
 import { SkeletonBlock } from './Skeleton';
 import { useAppTheme } from '../theme/AppThemeProvider';
 import type { MapRegion } from '../utils/mapGeometry';
@@ -63,7 +63,7 @@ export function MapCanvas({ height, region, style, children, onLongPress }: MapC
   // (saturated yellow roads, bright blue water) regardless of theme. Real
   // gap, not a style preference — fixed to match the Stitch-reviewed
   // reference screens' muted sage/cream/blue-gray terrain.
-  const { scheme } = useAppTheme();
+  const { scheme, colors: theme } = useAppTheme();
 
   return (
     <View style={[styles.wrap, height !== undefined ? { height } : styles.flexFill, style]}>
@@ -91,8 +91,20 @@ export function MapCanvas({ height, region, style, children, onLongPress }: MapC
       >
         {children}
       </MapView>
-      {/* Brand tile wash — sits above raw tiles, doesn't intercept gestures. */}
-      <View style={styles.tint} pointerEvents="none" />
+      {/* Brand tile wash — sits above raw tiles, doesn't intercept gestures.
+       *  Was a fixed, legacy colors.mapTileTint (warm cream, 0.18 opacity) —
+       *  too weak and the wrong hue to meaningfully change what's actually
+       *  rendered underneath. mapType="mutedStandard" (Apple's own fixed
+       *  style, the only lever Expo Go can reach) still comes out
+       *  greenish/tan, confirmed live, nowhere near the Stitch reference's
+       *  pale cool gray-blue map. theme.surfaceMuted at a real opacity —
+       *  not a token-consuming color-only swap — is what actually pushes
+       *  the visible result toward that reference, regardless of which
+       *  renderer is active underneath. */}
+      <View
+        style={[styles.tint, { backgroundColor: theme.surfaceMuted, opacity: scheme === 'dark' ? 0.4 : 0.55 }]}
+        pointerEvents="none"
+      />
       {!isReady ? <SkeletonBlock radius="none" style={StyleSheet.absoluteFillObject} /> : null}
     </View>
   );
@@ -108,9 +120,9 @@ const styles = StyleSheet.create({
     flex: 1,
     minHeight: 200,
   },
+  // backgroundColor/opacity are always supplied inline (theme-aware,
+  // scheme-dependent) — this only carries the shared position/layout.
   tint: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: colors.mapTileTint,
-    opacity: 0.18,
   },
 });

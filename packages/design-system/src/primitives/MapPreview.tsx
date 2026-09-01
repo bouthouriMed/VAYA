@@ -168,7 +168,22 @@ export function MapPreview({
             ))
           : null}
       </MapView>
-      <View style={styles.tint} pointerEvents="none" />
+      {/* Brand tile wash — same theme.surfaceMuted treatment MapCanvas now
+       *  uses (mapType="mutedStandard" alone still renders greenish/tan
+       *  under Expo Go, confirmed live, nowhere near the Stitch reference's
+       *  pale cool gray-blue map). Falls back to the legacy flat
+       *  colors.mapTileTint at its original low opacity for the callers
+       *  that don't pass `theme` — every existing untouched caller keeps
+       *  its current look, unchanged. */}
+      <View
+        style={[
+          styles.tint,
+          theme
+            ? { backgroundColor: theme.surfaceMuted, opacity: isDark ? 0.4 : 0.55 }
+            : null,
+        ]}
+        pointerEvents="none"
+      />
       {!isReady ? <SkeletonBlock radius="none" style={StyleSheet.absoluteFillObject} /> : null}
       {badge ? (
         <View style={styles.badge}>

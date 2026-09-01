@@ -441,10 +441,16 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
           <View
             pointerEvents="none"
             style={
-              {
-                "backgroundColor": "#EDEBE1",
-                "opacity": 0.18,
-              }
+              [
+                {
+                  "backgroundColor": "#EDEBE1",
+                  "opacity": 0.18,
+                },
+                {
+                  "backgroundColor": "#E4EDFB",
+                  "opacity": 0.55,
+                },
+              ]
             }
           />
           <Animated.View
@@ -1667,10 +1673,13 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
           <View
             pointerEvents="none"
             style={
-              {
-                "backgroundColor": "#EDEBE1",
-                "opacity": 0.18,
-              }
+              [
+                {},
+                {
+                  "backgroundColor": "#E4EDFB",
+                  "opacity": 0.55,
+                },
+              ]
             }
           />
           <Animated.View
