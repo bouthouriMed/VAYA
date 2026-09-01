@@ -62,12 +62,12 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
               "shadowColor": "#14201B",
             },
             {
-              "height": 506.4,
+              "height": 523.28,
             },
             {
               "transform": [
                 {
-                  "translateY": 506.4,
+                  "translateY": 523.28,
                 },
               ],
             },
@@ -181,6 +181,12 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
             }
             horizontal={true}
             showsHorizontalScrollIndicator={false}
+            style={
+              {
+                "flexGrow": 0,
+                "flexShrink": 0,
+              }
+            }
           >
             <TouchableOpacity
               accessibilityLabel="Aujourd'hui"
@@ -2263,7 +2269,8 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
           <View
             style={
               {
-                "marginTop": 40,
+                "marginTop": "auto",
+                "paddingTop": 16,
               }
             }
           >
@@ -4282,7 +4289,8 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
           <View
             style={
               {
-                "marginTop": 40,
+                "marginTop": "auto",
+                "paddingTop": 16,
               }
             }
           >

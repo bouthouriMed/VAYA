@@ -44,6 +44,12 @@ export interface TimeWheelSheetProps {
    *  every other label here, not a hook, so this primitive stays
    *  presentational. */
   quickOptionLabels?: { now: string; plus30: string; plus1h: string; custom: string };
+  /** Real device bottom inset — same contract as `BottomSheet`'s own
+   *  `bottomInset` prop (this package deliberately never imports
+   *  `react-native-safe-area-context` itself), forwarded straight through
+   *  so the Confirm button clears the home indicator / gesture bar
+   *  instead of sitting flush against it. */
+  bottomInset?: number;
 }
 
 type QuickOption = 'now' | 'plus30' | 'plus1h' | 'custom';
@@ -251,6 +257,7 @@ export function TimeWheelSheet({
   summaryLabel = (time) => `Rechercher vers ${time}`,
   confirmLabel = 'Confirmer',
   quickOptionLabels = { now: 'Maintenant', plus30: '+30 min', plus1h: '+1 h', custom: 'Personnalisé' },
+  bottomInset = 0,
 }: TimeWheelSheetProps): React.JSX.Element {
   const { colors: theme } = useAppTheme();
   const [hour, setHour] = useState(value.getHours());
@@ -312,8 +319,14 @@ export function TimeWheelSheet({
     <BottomSheet
       visible={visible}
       onClose={onClose}
-      heightRatio={0.62}
+      // Real UX-audit finding, confirmed on-device: a fixed 0.62 ratio was
+      // sized for the wheel being visible always. Once it collapsed
+      // behind the "Custom" chip by default, that same fixed height left
+      // a large dead gap between the time summary and the Confirm
+      // button. Sized to each state's own actual content instead.
+      heightRatio={quickOption === 'custom' ? 0.62 : 0.4}
       theme={theme}
+      bottomInset={bottomInset}
       headerContent={
         <View style={styles.header}>
           <View style={styles.headerSpacer} />
@@ -504,7 +517,13 @@ const styles = StyleSheet.create({
     bottom: 0,
   },
   footer: {
-    marginTop: spacing['4xl'],
+    // `auto` (not a fixed spacing value) is deliberate: it pins the
+    // footer to the bottom of the sheet's flex:1 content area regardless
+    // of exactly how tall the content above it is — content packs
+    // naturally at the top, the Confirm button sits at the bottom, no
+    // dead gap in between whether the wheel is showing or not.
+    marginTop: 'auto',
+    paddingTop: spacing.lg,
   },
   confirmBtn: {
     height: 52,

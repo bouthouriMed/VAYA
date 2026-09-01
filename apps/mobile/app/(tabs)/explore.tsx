@@ -476,6 +476,7 @@ export default function HomeSearchScreen(): React.JSX.Element {
           tomorrow: t('search:datePickerSheet.tomorrow'),
         }}
         pickAnotherDateLabel={t('search:datePickerSheet.pickAnotherDate')}
+        bottomInset={insets.bottom}
       />
       <TimeWheelSheet
         visible={isTimeSheetOpen}
@@ -493,6 +494,7 @@ export default function HomeSearchScreen(): React.JSX.Element {
           plus1h: t('search:timeWheelSheet.quickPlus1h'),
           custom: t('search:timeWheelSheet.quickCustom'),
         }}
+        bottomInset={insets.bottom}
       />
       <PassengerSheet
         visible={isPassengerSheetOpen}
