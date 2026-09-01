@@ -4,6 +4,7 @@ import { BottomSheet, Button, Avatar, Icon, Text, useAppTheme, spacing, radii, h
 import { useTranslation } from 'react-i18next';
 import { router } from 'expo-router';
 import type { Booking } from '../../state/api';
+import { useGetUserTrustSummaryQuery } from '../../state/api';
 import { CancellationSheet } from '../bookings/CancellationSheet';
 import { NoShowReportSheet } from '../bookings/NoShowReportSheet';
 import { useCallCounterpart } from '../bookings/useCallCounterpart';
@@ -42,6 +43,12 @@ export function DriverBookingDetailSheet({
   const [cancelling, setCancelling] = useState(false);
   const [reportingNoShow, setReportingNoShow] = useState(false);
   const { call, isLoading: isCalling } = useCallCounterpart(booking?.id ?? '');
+  // Real rating, not fabricated — same source and same reasoning as
+  // RequestDetailSheet's identical addition: no "Verified" badge here
+  // either, since riders carry no KYC/verification state in this domain.
+  const { data: riderTrust } = useGetUserTrustSummaryQuery(booking?.rider?.id ?? '', {
+    skip: !visible || !booking?.rider?.id,
+  });
 
   useEffect(() => {
     if (!visible) {
@@ -79,7 +86,7 @@ export function DriverBookingDetailSheet({
       <BottomSheet
         visible={visible && !cancelling && !reportingNoShow}
         onClose={onClose}
-        title={booking.rider?.fullName ?? t('booking:passenger')}
+        title={t('driver:rides.bookingDetail.title')}
         heightRatio={0.5}
         theme={theme}
       >
@@ -95,26 +102,42 @@ export function DriverBookingDetailSheet({
           >
             <Avatar uri={booking.rider?.avatarUrl} name={booking.rider?.fullName ?? '?'} sizePx={48} />
             <View style={styles.identityText}>
-              <Text variant="body" color={theme.ink} style={styles.riderName} numberOfLines={1}>
-                {booking.rider?.fullName ?? t('booking:passenger')}
-              </Text>
+              <View style={styles.riderNameRow}>
+                <Text variant="body" color={theme.ink} style={styles.riderName} numberOfLines={1}>
+                  {booking.rider?.fullName ?? t('booking:passenger')}
+                </Text>
+                {riderTrust?.rider ? (
+                  <View style={styles.ratingPill}>
+                    <Icon name="star" size="xs" color={theme.accent} />
+                    <Text variant="caption" color={theme.ink}>
+                      {riderTrust.rider.ratingAvg.toFixed(1)}
+                    </Text>
+                  </View>
+                ) : null}
+              </View>
               <Text variant="caption" color={theme.inkMuted} numberOfLines={1}>
                 {t('driver:rides.bookingDetail.seatsAndPrice', { seatLabel: t('common:terms.seat', { count: booking.seatsRequested }), price: booking.contributionTotal })}
               </Text>
             </View>
           </TouchableOpacity>
 
+          {/* One compact route row instead of two full-width stacked
+           *  address cards — real UX-audit finding (screenshot evidence:
+           *  `passenger_trip_sheet.jfif` showed the full raw pickup/dropoff
+           *  labels each in their own card). Both labels still shown in
+           *  full (never truncated to a bare city name — this driver needs
+           *  the real meeting point, not just a route summary), just
+           *  sharing one card with a route icon instead of two. */}
           <View style={[styles.factRow, { backgroundColor: theme.surfaceMuted }]}>
-            <Icon name="navigate-outline" size="sm" color={theme.inkMuted} />
-            <Text variant="bodySmall" color={theme.ink} numberOfLines={2} style={styles.factText}>
-              {booking.pickupLabel}
-            </Text>
-          </View>
-          <View style={[styles.factRow, { backgroundColor: theme.surfaceMuted }]}>
-            <Icon name="flag-outline" size="sm" color={theme.inkMuted} />
-            <Text variant="bodySmall" color={theme.ink} numberOfLines={2} style={styles.factText}>
-              {booking.dropoffLabel ?? rideDestinationLabel ?? t('booking:destination')}
-            </Text>
+            <Icon name="git-compare-outline" size="sm" color={theme.inkMuted} />
+            <View style={styles.factText}>
+              <Text variant="bodySmall" color={theme.ink} numberOfLines={2}>
+                {booking.pickupLabel}
+              </Text>
+              <Text variant="bodySmall" color={theme.inkMuted} numberOfLines={2}>
+                {`→ ${booking.dropoffLabel ?? rideDestinationLabel ?? t('booking:destination')}`}
+              </Text>
+            </View>
           </View>
 
           <View style={styles.actionRow}>
@@ -185,8 +208,18 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: 1,
   },
+  riderNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
   riderName: {
     fontWeight: '600',
+  },
+  ratingPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
   },
   factRow: {
     flexDirection: 'row',
@@ -197,6 +230,7 @@ const styles = StyleSheet.create({
   },
   factText: {
     flex: 1,
+    gap: 2,
   },
   actionButton: {
     width: '100%',

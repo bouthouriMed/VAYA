@@ -353,6 +353,7 @@
       "thisRequest": "This request"
     },
     "bookingDetail": {
+      "title": "Booking details",
       "passenger": "Passenger",
       "destination": "Trip destination",
       "message": "Message",

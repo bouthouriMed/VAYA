@@ -381,6 +381,7 @@
       "thisRequest": "هذا الطلب"
     },
     "bookingDetail": {
+      "title": "تفاصيل الحجز",
       "passenger": "راكب",
       "destination": "وجهة الرحلة",
       "message": "رسالة",
