@@ -18,10 +18,17 @@
       "decrementSeat": "Retirer une place",
       "timeSheetSubtitle": "À quelle heure partez-vous ?",
       "timeSheetSummary": "Départ à {{time}}",
+      "timeQuickNow": "Maintenant",
+      "timeQuickPlus30": "+30 min",
+      "timeQuickPlus1h": "+1 h",
+      "timeQuickCustom": "Personnalisé",
       "weekdayLabels": ["L", "M", "M", "J", "V", "S", "D"],
       "previousMonth": "Mois précédent",
       "nextMonth": "Mois suivant",
       "confirmDate": "Confirmer la date",
+      "dateToday": "Aujourd'hui",
+      "dateTomorrow": "Demain",
+      "pickAnotherDate": "Choisir une autre date",
       "choosePriceCta": "Choisir le prix"
     },
     "routeStep": {

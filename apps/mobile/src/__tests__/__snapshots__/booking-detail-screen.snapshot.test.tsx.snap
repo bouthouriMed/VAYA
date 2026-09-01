@@ -141,6 +141,15 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
                 },
                 {
                   "elementType": "geometry",
+                  "featureType": "landscape.natural",
+                  "stylers": [
+                    {
+                      "color": "#F3F1E9",
+                    },
+                  ],
+                },
+                {
+                  "elementType": "geometry",
                   "featureType": "administrative",
                   "stylers": [
                     {
@@ -179,7 +188,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
                   "featureType": "poi.park",
                   "stylers": [
                     {
-                      "color": "#C7D9CC",
+                      "color": "#DDE3E0",
                     },
                   ],
                 },
@@ -188,7 +197,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
                   "featureType": "poi.park",
                   "stylers": [
                     {
-                      "color": "#587566",
+                      "color": "#5B6572",
                     },
                   ],
                 },
@@ -1399,6 +1408,15 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
                 },
                 {
                   "elementType": "geometry",
+                  "featureType": "landscape.natural",
+                  "stylers": [
+                    {
+                      "color": "#F3F1E9",
+                    },
+                  ],
+                },
+                {
+                  "elementType": "geometry",
                   "featureType": "administrative",
                   "stylers": [
                     {
@@ -1437,7 +1455,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
                   "featureType": "poi.park",
                   "stylers": [
                     {
-                      "color": "#C7D9CC",
+                      "color": "#DDE3E0",
                     },
                   ],
                 },
@@ -1446,7 +1464,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
                   "featureType": "poi.park",
                   "stylers": [
                     {
-                      "color": "#587566",
+                      "color": "#5B6572",
                     },
                   ],
                 },

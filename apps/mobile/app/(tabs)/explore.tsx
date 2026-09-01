@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, useWindowDimensions } from 'react-native';
-import MapView, { Marker, Polyline, PROVIDER_DEFAULT } from 'react-native-maps';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
+import Constants, { ExecutionEnvironment } from 'expo-constants';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -21,7 +22,6 @@ import {
   regionForPoints,
   lightMapStyle,
   darkMapStyle,
-  StatusBarBlend,
   type MapRegion,
 } from '@vaya/design-system';
 import { router } from 'expo-router';
@@ -40,9 +40,7 @@ import { useCurrentPosition } from '../../src/services/location/useCurrentPositi
 import { useMatchingSearchQuery, useListNotificationsQuery, useLazyGeocodeReverseQuery } from '../../src/state/api';
 import { trackEvent } from '../../src/services/analytics/analytics';
 
-// A tight, "you are here" urban crop — not a whole-metro overview. Stitch's
-// own reference map is a close-in neighborhood view, not a zoomed-out city;
-// 0.35° (~35km) read as a generic wide-area map, nothing like the reference.
+// A tight, "you are here" urban crop — not a whole-metro overview.
 const TUNIS_REGION: MapRegion = {
   latitude: 36.8065,
   longitude: 10.1815,
@@ -50,21 +48,24 @@ const TUNIS_REGION: MapRegion = {
   longitudeDelta: 0.045,
 };
 
-// The mobile map block is `h-[35vh]`, matching the Stitch reference.
-const MAP_HEIGHT_RATIO = 0.35;
-// "Vaya" sits over the map's own bottom edge, inside a precise 4-stop
-// gradient fading transparent -> the fully opaque page background (see the
-// LinearGradient at its usage site) — that gradient alone is what makes the
-// map genuinely dissolve into the page, not a uniform translucent/blurred
-// block sitting on top of it.
-const BRAND_BAR_HEIGHT = 64;
+// Same Expo-Go-safe pattern MapCanvas.tsx already establishes: Expo Go's
+// shared binary carries no native Google Maps SDK key, so PROVIDER_GOOGLE
+// there crashes the app natively on mount. This screen used to default to
+// PROVIDER_DEFAULT unconditionally (Apple Maps on iOS), which is exactly
+// why `customMapStyle` never had any visible effect here — Apple Maps
+// ignores that prop entirely; only Google's renderer honors it. Real dev
+// client / production builds get the intended themed map; Expo Go alone
+// degrades to the platform default, same as MapCanvas.
+const isExpoGo = Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
 
 /** apps/mobile/app/search/composer.tsx is still the real From/To picker
- *  (autocomplete + current position); this screen is Stitch's "Search
- *  Ride" — the always-visible card that opens it. */
+ *  (autocomplete + current position); this screen is Stitch's "Find a
+ *  ride" home — the always-visible card that opens it, floating over a
+ *  full-bleed map background (not a fixed-height map section above a
+ *  separately-sized card — that was the previous, different Stitch
+ *  reference this screen was originally built against). */
 export default function HomeSearchScreen(): React.JSX.Element {
   const insets = useSafeAreaInsets();
-  const { height: windowHeight } = useWindowDimensions();
   const dispatch = useAppDispatch();
   const { colors: theme, scheme } = useAppTheme();
   const { t } = useTranslation();
@@ -193,81 +194,77 @@ export default function HomeSearchScreen(): React.JSX.Element {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      {/* A normal flex child sized to exactly `35vh` (the reference's
-       *  `h-[35vh]`), not an absoluteFill layer behind an overlaid sheet —
-       *  its rendered height is genuinely just the space above the card, so
-       *  `region`'s centered point actually lands in the visible area
-       *  instead of half-hidden behind the sheet. */}
-      <View style={[styles.mapSection, { height: windowHeight * MAP_HEIGHT_RATIO }]}>
-        <MapView
-          provider={PROVIDER_DEFAULT}
-          style={StyleSheet.absoluteFillObject}
-          region={region}
-          scrollEnabled={false}
-          zoomEnabled={false}
-          pitchEnabled={false}
-          rotateEnabled={false}
-          pointerEvents="none"
-          // Follows the app theme instead of always forcing the light
-          // Google style — matches the reference (light map in light mode)
-          // while giving dark mode a real dark map instead of a jarring
-          // light rectangle inside an otherwise dark screen. Google's style
-          // JSON only applies on Android (PROVIDER_DEFAULT is Apple Maps on
-          // iOS); `userInterfaceStyle` is what makes iOS follow the same
-          // app-driven scheme instead of the device's own OS appearance.
-          customMapStyle={scheme === 'dark' ? darkMapStyle : lightMapStyle}
-          userInterfaceStyle={scheme}
-        >
-          {origin && destination ? (
-            <Polyline
-              coordinates={[
-                { latitude: origin.lat, longitude: origin.lng },
-                { latitude: destination.lat, longitude: destination.lng },
-              ]}
-              strokeColor={theme.accent}
-              strokeWidth={2}
-              lineDashPattern={[6, 6]}
-            />
-          ) : null}
-          {origin ? (
-            <Marker coordinate={{ latitude: origin.lat, longitude: origin.lng }} anchor={{ x: 0.5, y: 0.5 }}>
-              <PickupPin theme={theme} />
-            </Marker>
-          ) : null}
-          {destination ? (
-            <Marker coordinate={{ latitude: destination.lat, longitude: destination.lng }} anchor={{ x: 0.5, y: 0.5 }}>
-              <DropoffPin theme={theme} />
-            </Marker>
-          ) : null}
-        </MapView>
+      {/* Full-bleed map background — a real `StyleSheet.absoluteFillObject`
+       *  layer behind everything, not a fixed-height section stacked above
+       *  a separately-sized card (that was a DIFFERENT, earlier Stitch
+       *  reference this screen used to match; the current one floats the
+       *  card over a map that fills the whole screen). This is also what
+       *  fixes the dead white gap that used to sit between the card and
+       *  the tab bar: there's no second opaque section below the card
+       *  anymore for a gap to open up in — the map is visible everywhere
+       *  the card doesn't cover, all the way down. */}
+      <MapView
+        provider={isExpoGo ? undefined : PROVIDER_GOOGLE}
+        style={StyleSheet.absoluteFillObject}
+        region={region}
+        scrollEnabled={false}
+        zoomEnabled={false}
+        pitchEnabled={false}
+        rotateEnabled={false}
+        pointerEvents="none"
+        // customMapStyle only takes effect on Google's renderer — Apple
+        // Maps (PROVIDER_DEFAULT on iOS) silently ignores it, which is
+        // why this map used to render Apple's own default green terrain
+        // regardless of this prop. `userInterfaceStyle` is the Apple Maps
+        // equivalent knob, kept as a fallback for whenever Expo Go forces
+        // the platform default.
+        customMapStyle={scheme === 'dark' ? darkMapStyle : lightMapStyle}
+        userInterfaceStyle={scheme}
+      >
+        {origin && destination ? (
+          <Polyline
+            coordinates={[
+              { latitude: origin.lat, longitude: origin.lng },
+              { latitude: destination.lat, longitude: destination.lng },
+            ]}
+            strokeColor={theme.accent}
+            strokeWidth={2}
+            lineDashPattern={[6, 6]}
+          />
+        ) : null}
+        {origin ? (
+          <Marker coordinate={{ latitude: origin.lat, longitude: origin.lng }} anchor={{ x: 0.5, y: 0.5 }}>
+            <PickupPin theme={theme} />
+          </Marker>
+        ) : null}
+        {destination ? (
+          <Marker coordinate={{ latitude: destination.lat, longitude: destination.lng }} anchor={{ x: 0.5, y: 0.5 }}>
+            <DropoffPin theme={theme} />
+          </Marker>
+        ) : null}
+      </MapView>
 
-        {/* Frosted blend under the OS status bar, sized to exactly that
-         *  zone (insets.top) plus a hair of dissolve room below it — the
-         *  map stays full-bleed behind the clock/battery/signal icons but
-         *  melts into a soft frost instead of sitting under a gray band.
-         *  Theme-aware: near-white wash + light frost in light mode,
-         *  near-black wash + dark frost in dark mode. */}
-        <StatusBarBlend theme={theme} scheme={scheme} height={insets.top - spacing.sm} />
-
-        {/* A precise 4-stop fade from transparent to the fully opaque page
-         *  background, matching the reference exactly — the map genuinely
-         *  dissolves into the page under "Vaya" instead of sitting behind
-         *  a uniform translucent block (which read as a hard-edged plate,
-         *  not a blend). `LinearGradient` renders `children` on top of its
-         *  own gradient, so there's no separate-layer z-order risk either.
-         *  No profile icon here: this is a tab root. */}
+      {/* Glass header overlaid on the map — the VAYA wordmark + bell,
+       *  fading from a near-opaque wash at the very top (behind the OS
+       *  status bar) down to fully transparent, so the map genuinely
+       *  shows through beneath it instead of sitting under a flat bar. */}
+      <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]} pointerEvents="box-none">
         <LinearGradient
-          colors={[`${theme.background}00`, `${theme.background}8C`, `${theme.background}EB`, theme.background]}
-          locations={[0, 0.45, 0.78, 1]}
-          style={styles.brandBar}
+          colors={[`${theme.background}F2`, `${theme.background}B8`, `${theme.background}00`]}
+          locations={[0, 0.55, 1]}
+          style={StyleSheet.absoluteFillObject}
+          pointerEvents="none"
         />
+        <Text variant="headlineDisplay" color={theme.ink} style={styles.wordmark}>
+          VAYA
+        </Text>
         <TouchableOpacity
           onPress={() => router.push(accessToken ? '/notifications' : '/sign-in')}
           accessibilityRole="button"
           accessibilityLabel={hasUnreadNotifications ? t('trips:notificationsUnreadAria') : t('trips:notificationsAria')}
           style={[
             styles.notificationButton,
-            { top: insets.top + spacing.sm, backgroundColor: theme.surface, shadowColor: theme.ink },
+            { backgroundColor: theme.surface, shadowColor: theme.ink, borderColor: theme.outlineVariant },
           ]}
         >
           <Ionicons name="notifications-outline" size={20} color={theme.ink} />
@@ -277,6 +274,14 @@ export default function HomeSearchScreen(): React.JSX.Element {
         </TouchableOpacity>
       </View>
 
+      {/* Bottom-anchored content wrapper — `flex: 1` + `justifyContent:
+       *  'flex-end'` (the reference's own `flex-1 ... justify-end`), so
+       *  the card sits directly above the tab bar with no leftover gap
+       *  regardless of exactly how tall its content renders, and the map
+       *  stays visible in whatever space the card doesn't fill above it.
+       *  `pointerEvents="box-none"` lets map gestures (were any enabled)
+       *  pass through the empty area above the card. */}
+      <View style={styles.bottomWrap} pointerEvents="box-none">
       <View
         style={[
           styles.card,
@@ -353,35 +358,41 @@ export default function HomeSearchScreen(): React.JSX.Element {
             ) : null}
           </View>
 
-          {/* Date and Time collapsed into ONE tappable cell (was two
+          {/* Date and Time share ONE bordered cell visually (was two
            *  separate cells plus a third full-width Passengers row below
-           *  them) — real cognitive-load reduction: one glance shows both
-           *  "when," one tap starts the whole scheduling flow instead of
-           *  requiring the rider to find and tap two different buttons.
-           *  Opens the date sheet first, then chains into the time sheet
-           *  right after a date is confirmed (a short delay lets the date
-           *  sheet's own close animation finish first, matching
-           *  BottomSheet's 220ms close timing, so the two sheets don't
-           *  visually collide mid-transition). Passengers now shares this
-           *  same 2-column grid instead of its own separate wide row. */}
+           *  them — three controls, now two) — matches the reference's
+           *  single "Today / Now" button exactly, while keeping BOTH
+           *  pickers directly, independently reachable: the date line and
+           *  the time line are their own tap targets inside the same
+           *  card, so the time wheel is never buried behind picking a
+           *  date first. Passengers now shares this same 2-column grid
+           *  instead of its own separate wide row. */}
           <View style={styles.paramsGrid}>
-            <TouchableOpacity
-              style={[styles.paramBtn, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}
-              onPress={() => setIsDateSheetOpen(true)}
-              activeOpacity={0.7}
-              accessibilityRole="button"
-              accessibilityLabel={`${t('common:terms.date')} ${dateLabel}, ${t('common:terms.time')} ${timeLabel}`}
-            >
+            <View style={[styles.paramBtn, styles.whenCell, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
               <Icon name="calendar-outline" size="sm" color={theme.inkFaint} />
-              <View>
-                <Text variant="bodySmall" color={theme.ink}>
-                  {dateLabel}
-                </Text>
-                <Text variant="caption" color={theme.inkFaint}>
-                  {timeLabel}
-                </Text>
+              <View style={styles.whenTextCol}>
+                <TouchableOpacity
+                  onPress={() => setIsDateSheetOpen(true)}
+                  hitSlop={4}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${t('common:terms.date')}, ${dateLabel}`}
+                >
+                  <Text variant="bodySmall" color={theme.ink}>
+                    {dateLabel}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => setIsTimeSheetOpen(true)}
+                  hitSlop={4}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${t('common:terms.time')}, ${timeLabel}`}
+                >
+                  <Text variant="caption" color={theme.inkFaint}>
+                    {timeLabel}
+                  </Text>
+                </TouchableOpacity>
               </View>
-            </TouchableOpacity>
+            </View>
 
             <TouchableOpacity
               style={[styles.paramBtn, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}
@@ -447,19 +458,13 @@ export default function HomeSearchScreen(): React.JSX.Element {
             </Text>
           ) : null}
       </View>
+      </View>
 
       <DateCalendarSheet
         visible={isDateSheetOpen}
         onClose={() => setIsDateSheetOpen(false)}
         value={desiredDepartureAt ? new Date(desiredDepartureAt) : new Date()}
-        onChange={(date) => {
-          dispatch(setDesiredDepartureAt(date.toISOString()));
-          // Chains straight into the time sheet — the merged "when" cell
-          // above opens one flow, not two separate buttons the rider has
-          // to find. Delay matches BottomSheet's own 220ms close timing
-          // so this sheet finishes animating away before the next opens.
-          setTimeout(() => setIsTimeSheetOpen(true), 260);
-        }}
+        onChange={(date) => dispatch(setDesiredDepartureAt(date.toISOString()))}
         title={t('search:datePickerSheet.title')}
         locale={intlTag}
         weekdayLabels={t('search:datePickerSheet.weekdayLabels', { returnObjects: true }) as [string, string, string, string, string, string, string]}
@@ -514,28 +519,31 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  // A normal flex sibling above the card, sized to an explicit height (not
-  // flex:1, not an absoluteFill layer behind it) — see the comment at its
-  // usage site. `position: relative` so brandBar can anchor to its bottom.
-  mapSection: {
-    position: 'relative',
-    overflow: 'hidden',
-  },
-  brandBar: {
+  // Overlays the full-bleed map at the top — a real flex row (wordmark +
+  // bell), not an absolutely-positioned button floating alone. The
+  // gradient wash behind it (rendered as its own absoluteFill sibling,
+  // see the JSX) is what fades from near-opaque near the status bar down
+  // to fully transparent, so the map itself shows through underneath.
+  header: {
     position: 'absolute',
+    top: 0,
     left: 0,
     right: 0,
-    bottom: 0,
-    height: BRAND_BAR_HEIGHT,
+    zIndex: 10,
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing['3xl'],
+  },
+  wordmark: {
+    letterSpacing: -0.5,
   },
   notificationButton: {
-    position: 'absolute',
-    right: spacing.lg,
     width: 40,
     height: 40,
     borderRadius: radii.full,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
     shadowOffset: { width: 0, height: 2 },
@@ -552,14 +560,26 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     borderWidth: 1.5,
   },
+  // `flex: 1` + `justifyContent: 'flex-end'` — the fix for the dead gap
+  // that used to sit between the card and the tab bar: content packs to
+  // the bottom of whatever space is actually available instead of the
+  // card just sitting at its own natural height with empty space (or,
+  // before that, a second opaque section) trailing after it.
+  bottomWrap: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    zIndex: 5,
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.md,
+  },
   card: {
-    borderTopLeftRadius: radii['3xl'],
-    borderTopRightRadius: radii['3xl'],
+    borderRadius: radii['3xl'],
+    overflow: 'hidden',
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.lg,
     gap: spacing.lg,
-    shadowOffset: { width: 0, height: -8 },
-    shadowOpacity: 0.08,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.16,
     shadowRadius: 24,
     elevation: 8,
   },
@@ -635,6 +655,15 @@ const styles = StyleSheet.create({
     borderRadius: radii.xl,
     borderWidth: 1,
     padding: spacing.md,
+  },
+  // The date/time cell isn't a single TouchableOpacity like the other
+  // param cells — its two lines are independently tappable (date sheet /
+  // time sheet), so this wraps them without itself being a touch target.
+  whenCell: {
+    alignItems: 'flex-start',
+  },
+  whenTextCol: {
+    gap: 2,
   },
   cta: {
     flexDirection: 'row',

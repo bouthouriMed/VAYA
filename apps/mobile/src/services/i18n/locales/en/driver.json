@@ -18,10 +18,17 @@
       "decrementSeat": "Remove a seat",
       "timeSheetSubtitle": "What time are you leaving?",
       "timeSheetSummary": "Leaving at {{time}}",
+      "timeQuickNow": "Now",
+      "timeQuickPlus30": "+30 min",
+      "timeQuickPlus1h": "+1 hr",
+      "timeQuickCustom": "Custom",
       "weekdayLabels": ["M", "T", "W", "T", "F", "S", "S"],
       "previousMonth": "Previous month",
       "nextMonth": "Next month",
       "confirmDate": "Confirm date",
+      "dateToday": "Today",
+      "dateTomorrow": "Tomorrow",
+      "pickAnotherDate": "Pick another date",
       "choosePriceCta": "Choose price"
     },
     "routeStep": {
