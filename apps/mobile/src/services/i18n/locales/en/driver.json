@@ -339,6 +339,8 @@
       "notOnRoute": "Not on your planned route",
       "stopPosition": "Stop {{index}} of {{total}}",
       "addsDetour": "Adds about {{duration}} to your route",
+      "heroPickup": "+{{duration}} pickup",
+      "heroTotal": "+{{duration}} total detour",
       "estimateNote": "Estimated — this ride's route isn't from a real routing provider.",
       "ridesWithYou": "Rides with you",
       "segmentDistance": "{{distance}} · {{duration}}",

@@ -88,12 +88,24 @@ function isSameCalendarDay(a: Date, b: Date): boolean {
 }
 
 /**
- * Row timestamp: clock time for today ("10:42"), "Hier" for yesterday,
- * a short date ("12 janv.") within the year, full date beyond that —
- * mirroring the mockup's time/day/weekday progression without ever
- * inventing a relative phrase the data can't back.
+ * Row timestamp: clock time for today ("10:42"), a real localized
+ * "Yesterday" for yesterday, a short date ("12 janv.") within the year,
+ * full date beyond that — mirroring the mockup's time/day/weekday
+ * progression without ever inventing a relative phrase the data can't
+ * back. Real bug fixed here: this used to hardcode the literal string
+ * 'Hier' regardless of `locale` — every other user-facing string on this
+ * screen (including this same row's own section header, just above it)
+ * went through `t()`, so an English- or Arabic-language user saw a French
+ * word sitting directly under an English "YESTERDAY" header. `t` is now
+ * required, matching `formatDaySectionLabel`'s own signature — there's no
+ * safe non-fabricated fallback to keep it optional.
  */
-export function formatInboxTimestamp(iso: string, now: Date = new Date(), locale: string = 'en'): string {
+export function formatInboxTimestamp(
+  iso: string,
+  t: TFunction,
+  now: Date = new Date(),
+  locale: string = 'en',
+): string {
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return '';
 
@@ -103,7 +115,7 @@ export function formatInboxTimestamp(iso: string, now: Date = new Date(), locale
   if (isSameCalendarDay(date, now)) {
     return date.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
   }
-  if (isSameCalendarDay(date, yesterday)) return 'Hier';
+  if (isSameCalendarDay(date, yesterday)) return t('common:time.yesterday');
 
   const sameYear = date.getFullYear() === now.getFullYear();
   return date.toLocaleDateString(locale, {

@@ -364,7 +364,7 @@ export default function MessagesScreen(): React.JSX.Element {
           </View>
         )}
         renderItem={({ item }) => {
-          const timestamp = formatInboxTimestamp(item.lastMessage?.createdAt ?? item.updatedAt, new Date(), locale);
+          const timestamp = formatInboxTimestamp(item.lastMessage?.createdAt ?? item.updatedAt, t, new Date(), locale);
           const preview =
             item.lastMessage?.body ??
             (item.status === 'closed' ? t('messages:conversationClosed') : t('messages:noMessages'));

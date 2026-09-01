@@ -471,6 +471,11 @@ export default function HomeSearchScreen(): React.JSX.Element {
         previousMonthLabel={t('search:datePickerSheet.previousMonth')}
         nextMonthLabel={t('search:datePickerSheet.nextMonth')}
         confirmLabel={t('search:datePickerSheet.confirm')}
+        dayLabelWords={{
+          today: t('search:datePickerSheet.today'),
+          tomorrow: t('search:datePickerSheet.tomorrow'),
+        }}
+        pickAnotherDateLabel={t('search:datePickerSheet.pickAnotherDate')}
       />
       <TimeWheelSheet
         visible={isTimeSheetOpen}
@@ -482,6 +487,12 @@ export default function HomeSearchScreen(): React.JSX.Element {
         subtitleLabel={t('search:timeWheelSheet.subtitle')}
         summaryLabel={(time) => t('search:timeWheelSheet.summary', { time })}
         confirmLabel={t('common:actions.confirm')}
+        quickOptionLabels={{
+          now: t('search:timeWheelSheet.quickNow'),
+          plus30: t('search:timeWheelSheet.quickPlus30'),
+          plus1h: t('search:timeWheelSheet.quickPlus1h'),
+          custom: t('search:timeWheelSheet.quickCustom'),
+        }}
       />
       <PassengerSheet
         visible={isPassengerSheetOpen}

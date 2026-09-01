@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import MapView, { PROVIDER_GOOGLE } from 'react-native-maps';
 import Constants, { ExecutionEnvironment } from 'expo-constants';
-import { colors, radii } from '../tokens/index';
+import { colors, radii, lightMapStyle, darkMapStyle } from '../tokens/index';
 import { SkeletonBlock } from './Skeleton';
+import { useAppTheme } from '../theme/AppThemeProvider';
 import type { MapRegion } from '../utils/mapGeometry';
 
 // Expo Go's shared binary has no way to carry this app's own Google Maps
@@ -56,6 +57,13 @@ interface MapCanvasProps {
  */
 export function MapCanvas({ height, region, style, children, onLongPress }: MapCanvasProps): React.JSX.Element {
   const [isReady, setIsReady] = useState(false);
+  // Was hardcoded `customMapStyle={[]}` — the token file's own doc comment
+  // already claimed MapCanvas followed useAppTheme()'s scheme, but nothing
+  // actually wired it up, so every map rendered raw default-Google colors
+  // (saturated yellow roads, bright blue water) regardless of theme. Real
+  // gap, not a style preference — fixed to match the Stitch-reviewed
+  // reference screens' muted sage/cream/blue-gray terrain.
+  const { scheme } = useAppTheme();
 
   return (
     <View style={[styles.wrap, height !== undefined ? { height } : styles.flexFill, style]}>
@@ -71,10 +79,7 @@ export function MapCanvas({ height, region, style, children, onLongPress }: MapC
         initialRegion={region ?? DEFAULT_REGION}
         onMapReady={() => setIsReady(true)}
         onLongPress={onLongPress ? (e) => onLongPress(e.nativeEvent.coordinate) : undefined}
-        // Forces the default light Google Maps style regardless of the
-        // device's system dark-mode setting (Android can otherwise render
-        // tiles dark even in a forced-light app).
-        customMapStyle={[]}
+        customMapStyle={scheme === 'dark' ? darkMapStyle : lightMapStyle}
       >
         {children}
       </MapView>

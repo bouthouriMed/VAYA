@@ -367,6 +367,8 @@
       "notOnRoute": "ليست على مسارك المخطط",
       "stopPosition": "المحطة {{index}} من {{total}}",
       "addsDetour": "يضيف حوالي {{duration}} إلى مسارك",
+      "heroPickup": "+{{duration}} للاستلام",
+      "heroTotal": "+{{duration}} إجمالي الانحراف",
       "estimateNote": "تقديري — مسار هذه الرحلة لا يعتمد على خدمة توجيه حقيقية.",
       "ridesWithYou": "يرافقك",
       "segmentDistance": "{{distance}} · {{duration}}",
