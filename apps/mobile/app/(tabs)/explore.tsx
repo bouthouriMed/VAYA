@@ -283,10 +283,6 @@ export default function HomeSearchScreen(): React.JSX.Element {
           { backgroundColor: theme.surface, shadowColor: theme.ink, paddingBottom: insets.bottom + spacing.md },
         ]}
       >
-        <View style={styles.handle}>
-          <View style={[styles.handleBar, { backgroundColor: theme.outlineVariant }]} />
-          </View>
-
           <Text variant="headlineDisplay" color={theme.ink} style={styles.headline}>
             {t('search:composer.findRide')}
           </Text>
@@ -357,61 +353,54 @@ export default function HomeSearchScreen(): React.JSX.Element {
             ) : null}
           </View>
 
+          {/* Date and Time collapsed into ONE tappable cell (was two
+           *  separate cells plus a third full-width Passengers row below
+           *  them) — real cognitive-load reduction: one glance shows both
+           *  "when," one tap starts the whole scheduling flow instead of
+           *  requiring the rider to find and tap two different buttons.
+           *  Opens the date sheet first, then chains into the time sheet
+           *  right after a date is confirmed (a short delay lets the date
+           *  sheet's own close animation finish first, matching
+           *  BottomSheet's 220ms close timing, so the two sheets don't
+           *  visually collide mid-transition). Passengers now shares this
+           *  same 2-column grid instead of its own separate wide row. */}
           <View style={styles.paramsGrid}>
             <TouchableOpacity
               style={[styles.paramBtn, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}
               onPress={() => setIsDateSheetOpen(true)}
               activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel={`${t('common:terms.date')} ${dateLabel}, ${t('common:terms.time')} ${timeLabel}`}
             >
               <Icon name="calendar-outline" size="sm" color={theme.inkFaint} />
               <View>
-                <Text variant="caption" color={theme.inkFaint}>
-                  {t('common:terms.date')}
-                </Text>
                 <Text variant="bodySmall" color={theme.ink}>
                   {dateLabel}
+                </Text>
+                <Text variant="caption" color={theme.inkFaint}>
+                  {timeLabel}
                 </Text>
               </View>
             </TouchableOpacity>
 
             <TouchableOpacity
               style={[styles.paramBtn, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}
-              onPress={() => setIsTimeSheetOpen(true)}
+              onPress={() => setIsPassengerSheetOpen(true)}
               activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel={`${t('common:terms.passengers')}, ${t('common:terms.passenger', { count: passengers })}`}
             >
-              <Icon name="time-outline" size="sm" color={theme.inkFaint} />
+              <Icon name="person-outline" size="sm" color={theme.inkFaint} />
               <View>
-                <Text variant="caption" color={theme.inkFaint}>
-                  {t('common:terms.time')}
-                </Text>
                 <Text variant="bodySmall" color={theme.ink}>
-                  {timeLabel}
+                  {t('common:terms.passenger', { count: passengers })}
+                </Text>
+                <Text variant="caption" color={theme.inkFaint}>
+                  {t('common:terms.passengers')}
                 </Text>
               </View>
             </TouchableOpacity>
           </View>
-
-          {/* Same tap-to-open sheet grammar as Date/Heure — one consistent
-           *  filter row; the count itself is edited in a draggable sheet. */}
-          <TouchableOpacity
-            style={[styles.paramBtnWide, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}
-            onPress={() => setIsPassengerSheetOpen(true)}
-            activeOpacity={0.7}
-            accessibilityRole="button"
-              accessibilityLabel={`${t('common:terms.passengers')}, ${t('common:terms.passenger', { count: passengers })}`}
-          >
-            <View style={[styles.locationIconWrap, styles.filterIconWrap, { backgroundColor: theme.surfaceMuted }]}>
-              <Icon name="person-outline" size="sm" color={theme.inkFaint} />
-            </View>
-            <View>
-              <Text variant="caption" color={theme.inkFaint}>
-                {t('common:terms.passengers')}
-              </Text>
-              <Text variant="bodySmall" color={theme.ink}>
-                {t('common:terms.passenger', { count: passengers })}
-              </Text>
-            </View>
-          </TouchableOpacity>
 
           <TouchableOpacity
             style={[
@@ -463,7 +452,14 @@ export default function HomeSearchScreen(): React.JSX.Element {
         visible={isDateSheetOpen}
         onClose={() => setIsDateSheetOpen(false)}
         value={desiredDepartureAt ? new Date(desiredDepartureAt) : new Date()}
-        onChange={(date) => dispatch(setDesiredDepartureAt(date.toISOString()))}
+        onChange={(date) => {
+          dispatch(setDesiredDepartureAt(date.toISOString()));
+          // Chains straight into the time sheet — the merged "when" cell
+          // above opens one flow, not two separate buttons the rider has
+          // to find. Delay matches BottomSheet's own 220ms close timing
+          // so this sheet finishes animating away before the next opens.
+          setTimeout(() => setIsTimeSheetOpen(true), 260);
+        }}
         title={t('search:datePickerSheet.title')}
         locale={intlTag}
         weekdayLabels={t('search:datePickerSheet.weekdayLabels', { returnObjects: true }) as [string, string, string, string, string, string, string]}
@@ -476,6 +472,7 @@ export default function HomeSearchScreen(): React.JSX.Element {
           tomorrow: t('search:datePickerSheet.tomorrow'),
         }}
         pickAnotherDateLabel={t('search:datePickerSheet.pickAnotherDate')}
+        bottomInset={insets.bottom}
       />
       <TimeWheelSheet
         visible={isTimeSheetOpen}
@@ -493,6 +490,7 @@ export default function HomeSearchScreen(): React.JSX.Element {
           plus1h: t('search:timeWheelSheet.quickPlus1h'),
           custom: t('search:timeWheelSheet.quickCustom'),
         }}
+        bottomInset={insets.bottom}
       />
       <PassengerSheet
         visible={isPassengerSheetOpen}
@@ -555,24 +553,15 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
   },
   card: {
-    borderTopLeftRadius: radii['2xl'],
-    borderTopRightRadius: radii['2xl'],
+    borderTopLeftRadius: radii['3xl'],
+    borderTopRightRadius: radii['3xl'],
     paddingHorizontal: spacing.lg,
-    paddingTop: spacing.sm,
+    paddingTop: spacing.lg,
     gap: spacing.lg,
     shadowOffset: { width: 0, height: -8 },
     shadowOpacity: 0.08,
     shadowRadius: 24,
     elevation: 8,
-  },
-  handle: {
-    alignItems: 'center',
-    marginBottom: -spacing.sm,
-  },
-  handleBar: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
   },
   headline: {
     textAlign: 'center'
@@ -646,22 +635,6 @@ const styles = StyleSheet.create({
     borderRadius: radii.xl,
     borderWidth: 1,
     padding: spacing.md,
-  },
-  paramBtnWide: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    borderRadius: radii.xl,
-    borderWidth: 1,
-    padding: spacing.md,
-  },
-  // The filter cards' icon circle is smaller (30px) than the route card's
-  // (32px) — matches the reference's hierarchy between the primary route
-  // input and these secondary filters.
-  filterIconWrap: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
   },
   cta: {
     flexDirection: 'row',

@@ -2266,6 +2266,7 @@ export default function PublishTabScreen(): React.JSX.Element {
         previousMonthLabel={t('driver:publish.formStep.previousMonth')}
         nextMonthLabel={t('driver:publish.formStep.nextMonth')}
         confirmLabel={t('driver:publish.formStep.confirmDate')}
+        bottomInset={insets.bottom}
       />
       <TimeWheelSheet
         visible={isTimeSheetOpen}
@@ -2277,6 +2278,7 @@ export default function PublishTabScreen(): React.JSX.Element {
         subtitleLabel={t('driver:publish.formStep.timeSheetSubtitle')}
         summaryLabel={(time) => t('driver:publish.formStep.timeSheetSummary', { time })}
         confirmLabel={t('common:actions.confirm')}
+        bottomInset={insets.bottom}
       />
       <PassengerSheet
         visible={isSeatsSheetOpen}

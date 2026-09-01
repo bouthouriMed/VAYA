@@ -46,6 +46,12 @@ export interface DateCalendarSheetProps {
   /** Toggle for the full month grid, collapsed behind this link by
    *  default so the quick day-chip row is the primary path. */
   pickAnotherDateLabel?: string;
+  /** Real device bottom inset — same contract as `BottomSheet`'s own
+   *  `bottomInset` prop (this package deliberately never imports
+   *  `react-native-safe-area-context` itself), forwarded straight through
+   *  so the Confirm button clears the home indicator / gesture bar
+   *  instead of sitting flush against it. */
+  bottomInset?: number;
 }
 
 const CELL_SIZE = 40;
@@ -73,6 +79,7 @@ export function DateCalendarSheet({
   confirmLabel = 'Confirmer la date',
   dayLabelWords,
   pickAnotherDateLabel = 'Choisir une autre date',
+  bottomInset = 0,
 }: DateCalendarSheetProps): React.JSX.Element {
   const { colors: theme } = useAppTheme();
   const now = useMemo(() => new Date(), []);
@@ -189,9 +196,16 @@ export function DateCalendarSheet({
     <BottomSheet
       visible={visible}
       onClose={onClose}
-      heightRatio={0.6}
+      // Real UX-audit finding, confirmed on-device: a fixed 0.6 ratio was
+      // sized for the month grid being visible always. Once the grid
+      // collapsed behind "Pick another date" by default, that same fixed
+      // height left a large dead gap between the day chips and the
+      // Confirm button. Sized to each state's own actual content instead
+      // of one size fitting neither well.
+      heightRatio={showGrid ? 0.62 : 0.4}
       theme={theme}
       contentGesture={monthSwipeGesture}
+      bottomInset={bottomInset}
       headerContent={
         <View style={styles.header}>
           <View style={styles.headerSpacer} />
@@ -210,9 +224,17 @@ export function DateCalendarSheet({
         </View>
       }
     >
+      {/* `style` here is load-bearing, not decorative: a horizontal
+       *  ScrollView's own outer box defaults to `flexGrow: 1` regardless
+       *  of `contentContainerStyle` — same bug this codebase already
+       *  found and fixed once in messages.tsx's filter-pill row. Left
+       *  unset, this row silently stretched to fill the sheet's whole
+       *  flex:1 content area, which is exactly what pushed "Pick another
+       *  date" (and the grid/footer below it) down into a big dead gap. */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
+        style={styles.quickDayScroll}
         contentContainerStyle={styles.quickDayRow}
       >
         {quickDays.map((day) => {
@@ -387,6 +409,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  quickDayScroll: {
+    flexGrow: 0,
+    flexShrink: 0,
+  },
   quickDayRow: {
     gap: spacing.sm,
     paddingBottom: spacing.md,
@@ -456,7 +482,14 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
   footer: {
-    marginTop: spacing['4xl'],
+    // `auto` (not a fixed spacing value) is deliberate: it pins the
+    // footer to the bottom of the sheet's flex:1 content area regardless
+    // of exactly how tall the content above it is — content packs
+    // naturally at the top, the Confirm button sits at the bottom, no
+    // dead gap in between however short or tall the day-chip/grid state
+    // above happens to render on a given device.
+    marginTop: 'auto',
+    paddingTop: spacing.lg,
   },
   confirmBtn: {
     height: 48,
