@@ -20,6 +20,7 @@ concurrency:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     services:
       postgres:
         # postgis/postgis, not plain postgres — matches docker/docker-compose.yml
@@ -66,6 +67,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Verify migrations are journaled (catches an unapplied-migration class of bug)
+        run: pnpm --filter @vaya/api verify-migrations
+
       - name: Run database migrations
         run: pnpm --filter @vaya/api db:migrate
 
@@ -103,3 +107,25 @@ jobs:
 
       - name: Test
         run: pnpm test
+
+      - name: Dependency vulnerability audit
+        # Informational, not blocking: pnpm audit's advisory database has a
+        # real false-positive/no-fix-available rate that would otherwise
+        # turn this into noise contributors learn to ignore. Findings still
+        # show up in the job log for every run.
+        run: pnpm audit --audit-level=high || true
+
+  docker-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # GitHub-hosted runners have a real Docker daemon (unlike the sandboxed
+    # environment these Dockerfiles were originally authored/verified in —
+    # see docker/api.Dockerfile's own comments) — this is the first time
+    # either image is actually built end-to-end via `docker build`, not just
+    # replayed layer-by-layer outside Docker.
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build API image
+        run: docker build -f docker/api.Dockerfile -t vaya-api:ci .
+      - name: Build worker image
+        run: docker build -f docker/worker.Dockerfile -t vaya-worker:ci .

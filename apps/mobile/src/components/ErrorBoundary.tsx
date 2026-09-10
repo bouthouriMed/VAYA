@@ -2,6 +2,7 @@ import React from 'react';
 import { View } from 'react-native';
 import { Button, Screen, Stack, Text, colors, spacing } from '@vaya/design-system';
 import { useTranslation } from 'react-i18next';
+import { captureException } from '../services/monitoring/sentry';
 
 interface Props {
   children: React.ReactNode;
@@ -31,6 +32,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
       error,
       info.componentStack,
     );
+    captureException(error);
   }
 
   private handleRetry = (): void => {

@@ -17,11 +17,14 @@ import {
 } from 'fastify-type-provider-zod';
 import { eq } from 'drizzle-orm';
 import { getEnv } from './config/env.js';
+import { getLogger } from './config/logger.js';
 import { ForbiddenError, UnauthorizedError } from './lib/errors.js';
 import { errorHandler } from './middleware/error-handler.js';
 import { getDatabase } from './lib/database.js';
 import { users } from './db/schema/index.js';
 import { healthRoutes } from './modules/health/health.routes.js';
+import { metricsRoutes } from './modules/metrics/metrics.routes.js';
+import { httpRequestDurationSeconds, httpRequestsTotal } from './lib/metrics.js';
 import { authRoutes } from './modules/auth/auth.routes.js';
 import { googleOAuthRoutes } from './modules/auth/google-auth.routes.js';
 import { usersRoutes } from './modules/users/users.routes.js';
@@ -62,10 +65,14 @@ declare module '@fastify/jwt' {
 export async function buildApp() {
   const env = getEnv();
 
+  // A single shared logger (config/logger.ts), not a second inline
+  // `{level: env.LOG_LEVEL}` config previously duplicated here — the two
+  // instances diverged in practice (only config/logger.ts's had a dev-mode
+  // pino-pretty transport; adding redaction to one silently wouldn't have
+  // covered the other). Fastify decorates every request/response log line
+  // through whichever instance it's given, so this one change covers both.
   const app = Fastify({
-    logger: {
-      level: env.LOG_LEVEL,
-    },
+    loggerInstance: getLogger(),
     trustProxy: true,
   });
 
@@ -166,8 +173,23 @@ export async function buildApp() {
   // Error handler
   app.setErrorHandler(errorHandler);
 
+  // Records every response into the two /metrics series (lib/metrics.ts).
+  // Labeled by `routeOptions.url` (the parameterized pattern, e.g.
+  // `/users/:id`), never the raw request path — a raw-path label would
+  // create one time series per unique id ever requested, an unbounded-
+  // cardinality footgun Prometheus itself warns against.
+  app.addHook('onResponse', async (request, reply) => {
+    const route = request.routeOptions.url ?? 'unmatched';
+    const labels = { method: request.method, route, status_code: String(reply.statusCode) };
+    httpRequestDurationSeconds.observe(labels, reply.elapsedTime / 1000);
+    httpRequestsTotal.inc(labels);
+  });
+
   // Routes
   await app.register(healthRoutes, { prefix: env.API_PREFIX });
+  // Unprefixed — Prometheus scrape configs universally expect a bare
+  // `/metrics`, not this app's own `/api/v1` convention.
+  await app.register(metricsRoutes);
   await app.register(authRoutes, { prefix: env.API_PREFIX });
   // Unprefixed: Google redirects the browser to GOOGLE_CALLBACK_URL exactly
   // as registered in GCP, which this app doesn't get to reshape.

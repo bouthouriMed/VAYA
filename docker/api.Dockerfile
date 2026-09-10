@@ -55,4 +55,13 @@ WORKDIR /repo/apps/api
 
 EXPOSE 3000
 USER node
+
+# Orchestrator-agnostic liveness signal (Docker/Compose/ECS/Kubernetes all
+# read HEALTHCHECK status one way or another) — hits the real /health route
+# (modules/health/health.routes.ts), which itself checks DB + Redis, not
+# just "is the process alive". Assumes the default API_PREFIX; override
+# this instruction in a derived image if a deployment sets a different one.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
+  CMD wget -qO- http://localhost:3000/api/v1/health || exit 1
+
 CMD ["pnpm", "start"]

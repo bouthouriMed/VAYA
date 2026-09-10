@@ -43,6 +43,7 @@ export default defineConfig({
         __dirname,
         './src/__mocks__/react-native-safe-area-context.ts',
       ),
+      '@react-native-community/netinfo': path.resolve(__dirname, './src/__mocks__/netinfo.ts'),
     },
     coverage: {
       provider: 'v8',

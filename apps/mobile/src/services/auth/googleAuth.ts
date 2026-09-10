@@ -1,10 +1,9 @@
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
-import Constants from 'expo-constants';
+import { getApiBaseUrl } from '../../config/env';
 
 function getApiOrigin(): string {
-  const extra = Constants.expoConfig?.extra ?? Constants.manifest?.extra;
-  const base: string = extra?.apiBaseUrl ?? 'http://localhost:3000/api/v1';
+  const base = getApiBaseUrl();
   // /auth/google/start and /auth/google/callback are registered unprefixed
   // (see apps/api/src/app.ts) — google-auth.routes.ts's own comment explains
   // why: the callback URL is fixed by what's registered in Google Cloud

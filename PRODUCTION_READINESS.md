@@ -1,8 +1,10 @@
 # VAYA — Production Readiness Audit
 
-**Audit date:** 2026-09-10
+**Audit date:** 2026-09-10 (two passes, same day)
 **Scope:** Full repository — backend (`apps/api`), mobile (`apps/mobile`), admin (`apps/admin`), shared packages, infrastructure, docs.
-**Method:** Direct code inspection (this session) + 5 parallel deep-dive audits (security/authz, infrastructure/deployment, mobile release-engineering, external services, observability), cross-verified against each other and against actually running the code — not against CLAUDE.md's own self-reported changelog, which this audit treated as a claim to verify, not a fact.
+**Method:** Pass 1: direct code inspection + 5 parallel deep-dive audits (security/authz, infrastructure/deployment, mobile release-engineering, external services, observability), cross-verified against each other and against actually running the code — not against CLAUDE.md's own self-reported changelog, which this audit treated as a claim to verify, not a fact. Pass 2: implemented every remaining P1/P2 finding from pass 1 that was completable without real credentials, external accounts, legal decisions, or a physical device — see §11.
+
+**Companion documents**: `LAUNCH_ACTIONS.md` (the precise external-action checklist — everything in this file that needs a human with real credentials to complete) and `RUNBOOK.md` (operations — health checks, incident response, deploy/rollback procedure), both new in pass 2.
 
 ---
 
@@ -10,9 +12,11 @@
 
 VAYA's *application logic* is genuinely mature: a real OSRM/Google routing foundation, a sophisticated matching engine, a well-modeled domain layer, and a large, mostly-passing test suite. But this audit found the codebase had **never actually been deployed, and could not have been** — the documented production start command (`node dist/server.js`) crashes immediately on boot, there was no CI pipeline of any kind, three separate "provider" abstractions (SMS, file storage, error tracking) were hardcoded to dev-only stubs with no way to activate a real backend, and a hardcoded insecure JWT secret would have let anyone forge admin tokens against a misconfigured deploy. None of this was visible from reading the code casually — it only surfaces when you actually try to run what's documented, which is what this audit did.
 
-**12 P0 (launch-blocking) issues were found; 9 were fixed directly in this session.** The remaining P0s require real infrastructure, real credentials, or legal/product decisions that cannot be manufactured in a sandboxed audit (see §7). Every fix was verified by actually running the affected code path — typecheck, lint, the full test suite, and, for the most critical findings, by booting the real server process and hitting real HTTP endpoints — not just by reading the diff.
+**12 P0 (launch-blocking) issues were found; 9 were fixed in pass 1.** The remaining P0s require real infrastructure, real credentials, or legal/product decisions that cannot be manufactured in a sandboxed audit — see `LAUNCH_ACTIONS.md` for the exact, precise list of what a human still needs to do, and why. Every fix was verified by actually running the affected code path — typecheck, lint, the full test suite, and, for the most critical findings, by booting the real server process and hitting real HTTP endpoints — not just by reading the diff.
 
-**Verdict: CONDITIONAL GO.** See §10 for the exact conditions.
+**Pass 2 then implemented every remaining P1/P2 finding that was completable without real credentials, external accounts, legal decisions, or a physical device** — 15 further items, detailed in §11: a migration-safety check (the exact class of bug pass 1 found, now caught automatically in CI going forward), hardened CI (Docker image builds now run for real on every push, Dependabot, a dependency audit step), a tightened OAuth redirect allowlist, admin-session hardening (shorter token TTL + a real CSP), mobile crash reporting (Sentry, safely gated), a real `/metrics` endpoint, RTK Query retry/timeout + an offline banner, Docker healthchecks + a production-like compose file, admin-visible background-job failure inspection (previously Redis-CLI-only), a real on-brand app icon/splash (previously Expo's default placeholder), a pre-deploy `preflight` check script, a safe-to-run-against-production smoke test, consolidated/redacting logging, and a config-drift cleanup. 16 new automated tests back these changes; the full suite was re-run and diffed against the pass-1 baseline with zero regressions.
+
+**Verdict: CONDITIONAL GO — unchanged from pass 1's engineering conclusion, now with a materially shorter and more precise external-action list.** See §10 and `LAUNCH_ACTIONS.md`.
 
 ---
 
@@ -157,67 +161,90 @@ This sandboxed environment has **no Docker daemon, no real Postgres/Redis instan
 
 ---
 
-## 7. Remaining P0/P1/P2/P3 risks
+## 7. Remaining P0/P1/P2/P3 risks (updated after pass 2 — see §11 for what changed)
 
-**P0 — must resolve before real users:**
+**P0 — must resolve before real users, all require a human with real credentials (full detail: `LAUNCH_ACTIONS.md`):**
 - No Terms of Service / Privacy Policy document or URL exists (needed for store submission and legal compliance) — needs a human/legal author.
 - No account-deletion/data-export mechanism (GDPR right to erasure/portability) — needs deliberate data-retention design, not a rushed implementation.
 - No backup/restore strategy, documented or automated, for the production database.
-- Real infrastructure has never been provisioned or exercised: no live Postgres/Redis/S3/Twilio/Sentry account exists yet; everything in §4's fixes is code-level readiness, not proof the actual services work end-to-end.
+- Real infrastructure has never been provisioned or exercised: no live Postgres/Redis/S3/Twilio/Sentry account exists yet; every fix in this file is code-level readiness (now including a `preflight` script that checks real reachability/credentials once these exist — see §11), not proof the actual services work end-to-end.
 - No physical-device verification of anything (maps, push, camera, deep links) has ever been performed for this app.
 - EAS production build's `API_BASE_URL` and equivalent env vars are unverifiable from the repo — must be confirmed real (not `localhost`) before any production mobile build ships.
 
-**P1:**
-- No crash-reporting SDK on mobile (API-side Sentry was added this session; mobile was deliberately not touched — see rationale below).
-- No `/metrics`/APM, no alerting mechanism (nothing pages a human on an incident).
-- No app icon/splash screen configured (ships Expo's default branding).
-- Admin JWT stored in `localStorage` (XSS exfiltration risk, given the token's high privilege).
-- Google OAuth redirect custom-scheme not allowlisted.
-- No dead-letter/failed-job inspection surface for BullMQ (Redis CLI only).
+**P1 — resolved in pass 2 (§11), no longer open:** ~~No crash-reporting SDK on mobile~~ · ~~No `/metrics`/APM~~ · ~~No app icon/splash screen~~ · ~~Google OAuth redirect custom-scheme not allowlisted~~ · ~~No dead-letter/failed-job inspection surface for BullMQ~~.
 
-**P2/P3:** No `NetInfo`/retry policy on mobile RTK Query; two divergent pino logger configs; `localhost` API fallback duplicated across 3 mobile files; no CDN/DNS/domain has ever been provisioned for this product (no production domain exists at all, as expected pre-launch).
+**P1 — still open (needs a human, not more code — see `LAUNCH_ACTIONS.md`):**
+- No alerting mechanism configured (Sentry alert rules + an uptime check both need a real account — the code-side hooks they'd attach to, `/health` and Sentry SDK init, both now exist).
+- Admin JWT still stored in `localStorage`, mitigated but not eliminated in pass 2 (shorter TTL + a real CSP — see §11) — a full httpOnly-cookie migration was deliberately not attempted blind (same reasoning as mobile Sentry in pass 1: it touches live auth wiring this sandbox cannot verify end-to-end without a real database, and getting it wrong risks a worse outcome — locked-out admin access or a CSRF hole — than the current, working-but-imperfect mechanism).
 
-**Why mobile crash reporting wasn't added this session:** API-side Sentry (pure Node init, fully typecheck/boot-verified) was low-risk. Mobile Sentry needs a native Expo config plugin and, typically, a prebuild/rebuild to take effect — exactly the category of change this sandboxed environment cannot verify (no EAS build, no device). Adding it blind risked silently breaking the Expo config in a way this audit had no way to detect. Flagging it honestly as an unresolved P1 is more useful than claiming a fix that might not actually build.
+**P2/P3 — resolved in pass 2:** ~~No `NetInfo`/retry policy on mobile RTK Query~~ · ~~two divergent pino logger configs~~ · ~~`localhost` API fallback duplicated across 3 mobile files~~.
+
+**P2/P3 — still open:** No CDN/DNS/domain has ever been provisioned for this product (no production domain exists at all, as expected pre-launch — `LAUNCH_ACTIONS.md` #11); container registry/hosting/orchestrator not yet chosen (`LAUNCH_ACTIONS.md` #18); Google OAuth/Maps/Resend production credentials not yet provisioned (optional features, app works without them — `LAUNCH_ACTIONS.md` #19-21).
 
 ---
 
 ## 8. Exact final pre-launch checklist
 
+**Full detail (exact action / why / exact credential / where / how to verify) for every item below is in `LAUNCH_ACTIONS.md`** — this is the short form.
+
 1. [ ] Provision real production Postgres (PostGIS-enabled) and Redis instances; set `DATABASE_URL`/`REDIS_URL` (use `rediss://` for a managed Redis requiring TLS).
-2. [ ] Generate a real `JWT_SECRET` (32+ chars, e.g. `openssl rand -base64 48`) — the app now refuses to boot in production without one.
-3. [ ] Provision Twilio (or set `TWILIO_ACCOUNT_SID`/`AUTH_TOKEN`/`FROM_NUMBER`) — required, app refuses to boot without it.
+2. [ ] Generate a real `JWT_SECRET` (32+ chars, e.g. `openssl rand -base64 48`) — the app refuses to boot in production without one.
+3. [ ] Provision Twilio (`TWILIO_ACCOUNT_SID`/`AUTH_TOKEN`/`FROM_NUMBER`) — required, app refuses to boot without it.
 4. [ ] Provision S3 or an S3-compatible bucket (`S3_BUCKET`/`REGION`/`ACCESS_KEY_ID`/`SECRET_ACCESS_KEY`) — required, app refuses to boot without it.
-5. [ ] Set `CORS_ORIGIN` to the real admin-app domain (comma-separated if more than one) — required, not `*`.
-6. [ ] Set `SENTRY_DSN` (API) — strongly recommended, non-fatal if skipped but you'll fly blind on errors.
-7. [ ] Run `pnpm --filter @vaya/api db:migrate` against the production database **before** deploying the new application revision (never from inside the runtime container — see `docker/api.Dockerfile`'s comment).
-8. [ ] `docker build -f docker/api.Dockerfile .` and `docker build -f docker/worker.Dockerfile .`, actually run them, confirm both boot against real infra (unverified in this sandbox — see §6).
-9. [ ] Set up automated Postgres backups with a tested restore procedure (currently entirely absent).
-10. [ ] Draft and publish a real Terms of Service and Privacy Policy; link them from the sign-in screen's existing disclaimer text; add the Privacy Policy URL to both store listings.
-11. [ ] Design and implement account deletion / data export before launch, or explicitly accept the compliance risk of launching without it.
-12. [ ] Confirm EAS production build's `API_BASE_URL` (and Google Maps/Firebase keys) are real, not `localhost`/blank, in the EAS dashboard.
-13. [ ] Real device QA pass (iOS + Android): maps rendering, push notification delivery, camera KYC capture, deep links.
-14. [ ] Provision a real production domain + HTTPS certificate for the API; once live, the mobile app's ATS exception disappears automatically (already wired conditionally — see §4) — confirm this in a real build.
-15. [ ] Set up minimum alerting (e.g., Sentry alert rules + an uptime check on `/health`) so a real outage pages a human.
-16. [ ] Add an app icon and splash screen (currently Expo's default placeholder).
-17. [ ] Merge `.github/workflows/ci.yml` to `main` and confirm a real PR actually runs and gates on it.
+5. [ ] Set `CORS_ORIGIN` to the real admin-app domain (comma-separated if more than one, now genuinely supported — see §11) — required, not `*`.
+6. [ ] Set `SENTRY_DSN` for both the API and mobile (both fully wired in code — see §11 — currently a safe no-op with no DSN set).
+7. [ ] **Run `pnpm --filter @vaya/api preflight`** against the real target environment's env vars before every deploy — new in pass 2 (§11), checks DB/Redis/Twilio/S3 reachability and Sentry DSN shape for real, in one pass.
+8. [ ] Run `pnpm --filter @vaya/api db:migrate` against the production database **before** deploying the new application revision (never from inside the runtime container — see `docker/api.Dockerfile`'s comment; `verify-migrations`, new in §11, now runs automatically in CI to catch an unjournaled migration before it ships).
+9. [ ] Choose a container registry + hosting/orchestrator; both Dockerfiles now build automatically on every CI run (§11) — deploy them there. `docker/docker-compose.prod.yml` (new in §11) is available for a local prod-like dry run first.
+10. [ ] Set up automated Postgres backups with a tested restore procedure (currently entirely absent).
+11. [ ] Draft and publish a real Terms of Service and Privacy Policy; link them from the sign-in screen's existing disclaimer text; add the Privacy Policy URL to both store listings.
+12. [ ] Design and implement account deletion / data export before launch, or explicitly accept the compliance risk of launching without it.
+13. [ ] Confirm EAS production build's `API_BASE_URL` (and Google Maps/Firebase/Sentry keys) are real, not `localhost`/blank, in the EAS dashboard.
+14. [ ] Real device QA pass (iOS + Android): maps rendering, push notification delivery, camera KYC capture, deep links, the new app icon/splash (§11).
+15. [ ] Provision a real production domain + HTTPS certificate for the API; once live, the mobile app's ATS exception disappears automatically (already wired conditionally) — confirm this in a real build.
+16. [ ] Set up minimum alerting (Sentry alert rules + an uptime check on `/health`) so a real outage pages a human.
+17. [ ] Set up GitHub branch protection on `main` requiring CI to pass (the workflow exists and now includes a real Docker build — see §11 — but nothing blocks a merge on it without this repo setting).
+18. [ ] **Run the smoke test against the newly-deployed environment**: `API_BASE_URL=<real-url> pnpm --filter @vaya/e2e smoke` — new in pass 2 (§11), the actual "is this deploy really done" signal.
 
 ---
 
 ## 9. Rollback/recovery requirements
 
-None of this existed before this session; the following is the minimum this audit recommends before launch, not a claim that it's already in place:
+**Full operational detail now lives in `RUNBOOK.md`** (new in pass 2 — health-check order, common-incident response, deploy sequence, rollback procedure, and an honest list of what the runbook itself still can't cover without real infrastructure). Summary:
 
-- **Database**: automated point-in-time-recoverable backups (managed Postgres provider's native PITR, or `pg_basebackup` + WAL archiving) with a **tested** restore — "we have backups" unverified by a real restore is not a backup strategy.
-- **Migrations**: this session's fix to `0027` demonstrates the failure mode of an unjournaled migration; going forward, `db:migrate` must run as a gated CI/CD step (now wired into `.github/workflows/ci.yml`), never manually.
-- **Application rollback**: since deploys now produce real container images (`docker/api.Dockerfile`/`worker.Dockerfile`), rollback is "redeploy the previous image tag" — but this requires whatever orchestrator is chosen (not yet selected) to keep previous tags addressable.
-- **Incident response**: no runbook exists. At minimum, before launch: a documented "how to check `/health`, read Sentry, and roll back" one-pager for whoever is on call.
+- **Database**: automated point-in-time-recoverable backups (managed Postgres provider's native PITR, or `pg_basebackup` + WAL archiving) with a **tested** restore — "we have backups" unverified by a real restore is not a backup strategy. Still entirely absent — `LAUNCH_ACTIONS.md` #8.
+- **Migrations**: pass 1's fix to `0027` demonstrated the failure mode of an unjournaled migration; `verify-migrations` (new in §11) now catches this class of bug automatically in CI, and `db:migrate` runs as a gated CI step, never manually, per `RUNBOOK.md` §4.
+- **Application rollback**: deploys now produce real container images (`docker/api.Dockerfile`/`worker.Dockerfile`, both building automatically in CI as of §11) — rollback is "redeploy the previous image tag," detailed in `RUNBOOK.md` §5. Still requires whatever orchestrator is chosen (not yet selected — `LAUNCH_ACTIONS.md` #18) to keep previous tags addressable.
+- **Incident response**: `RUNBOOK.md` now exists with concrete, tool-backed diagnostic steps (§2's health-check order, §3's per-incident playbook). What it still can't provide: an actual on-call rotation/escalation path (needs real organizational information this repo doesn't have) and real alerting to page whoever's on that rotation (`LAUNCH_ACTIONS.md` #12).
 
 ---
 
-## 10. Final verdict: **CONDITIONAL GO**
+## 11. Second-pass hardening (2026-09-10, continued — everything completable without real credentials)
 
-The application code is now genuinely closer to launch-ready than when this audit started: the production build actually runs (it didn't), auth can't be trivially forged, OTP and file storage have real, activatable providers instead of silent no-ops, a live data-corrupting migration bug and a live wrong-default-language bug are both fixed, and a CI pipeline exists to catch the next such regression before it reaches `main`.
+Scope: implement every remaining P1/P2 finding from §7 that is genuinely completable inside the repo — no external accounts, no credentials, no legal decisions, no physical device. Full diff is in git history; summary by area:
 
-It is **not GO** because several launch-blocking items are not code problems this audit can fix: no real infrastructure has ever been provisioned (Postgres/Redis/S3/Twilio/Sentry all need real accounts and credentials), no Terms of Service or Privacy Policy exists (store submission is impossible without one), no account-deletion mechanism exists (a real compliance gap), and nothing in this app has ever been verified on a real device.
+**Migration safety** — `apps/api/scripts/verify-migrations.ts` (new): checks every `.sql` migration file has exactly one journal entry (the exact class of bug pass 1 found and fixed — `0019_silent_crystal.sql` existed on disk but was never journaled, so it silently never applied). Verified to actually catch that failure mode: temporarily reintroduced an orphaned file and confirmed the script fails loudly; removed it and confirmed a clean pass. A separate, genuinely new finding surfaced along the way — migration `0014`'s snapshot was missing from the drizzle-kit chain — investigated and confirmed to be a correct, deliberate state (those columns are raw PostGIS SQL never declared in the Drizzle TS schema, so drizzle-kit was never going to track them regardless), downgraded to a non-blocking warning rather than a false-positive failure. Wired into `.github/workflows/ci.yml` as a required step before `db:migrate`.
 
-**Conditional on:** completing the checklist in §8 — most of which is infrastructure provisioning and legal/product work, not further engineering — this codebase is ready for a genuine first production deploy. Do not launch to real users until at minimum items 1–7 and 9–13 in §8 are done.
+**CI/CD hardening** — `.github/workflows/ci.yml`: added a `docker-build` job that actually builds both `docker/api.Dockerfile` and `docker/worker.Dockerfile` on every push/PR (GitHub-hosted runners have a real Docker daemon, unlike this sandbox — this is the first time either image has been built end-to-end via `docker build`, not just layer-replayed outside Docker as pass 1 did). Added a non-blocking `pnpm audit` dependency-vulnerability step and a job timeout. Added `.github/dependabot.yml` (weekly npm/GitHub Actions/Docker updates, grouped by minor/patch to avoid PR noise).
+
+**Security** — `apps/api/src/modules/auth/google-auth.routes.ts`: `sanitizeAppRedirectUri` tightened from "reject only http(s)" to an explicit allowlist (`vaya://`, `exp://`, `exp+vaya://` — the only schemes the mobile client's own `Linking.createURL` can ever actually produce), closing a real custom-scheme-collision hijack risk on the one-time OAuth ticket handoff. Covered by 7 new pure unit tests. Admin session hardening (`apps/api/src/modules/admin/admin-auth.routes.ts`, `apps/admin/index.html`): token TTL shortened 12h→4h, and a real `Content-Security-Policy`/`base-uri` meta tag added to the admin SPA — both real, verified, safe-to-ship mitigations for the admin-JWT-in-`localStorage` risk; a full httpOnly-cookie migration was deliberately not attempted (see §7 — same "don't touch live auth wiring blind" reasoning pass 1 applied to mobile Sentry).
+
+**Reliability/operability** — `apps/api/src/app.ts`/`config/logger.ts`: the two previously-divergent pino logger configs (Fastify's own inline config vs. `getLogger()`) are now one shared instance via Fastify v5's `loggerInstance` option, with real redaction rules added (`Authorization`/`cookie` headers, `password`/`accessToken`/`refreshToken` fields) — covers request logging too, not just explicit log calls. `apps/api/src/lib/metrics.ts` + `modules/metrics/metrics.routes.ts` (new, `prom-client`): a real `GET /metrics` Prometheus endpoint (default Node process metrics + `http_requests_total`/`http_request_duration_seconds` labeled by parameterized route/method/status, verified live against a real booted server, not just unit-tested). `apps/api/src/modules/admin/admin-queue.service.ts` (new) + a `GET/POST /admin/queue/failed[/retry]` route pair + a new admin-app "Background Jobs" page: BullMQ's failed-job data (previously Redis-CLI-only) is now visible and retryable from the admin panel. `docker/api.Dockerfile`/`worker.Dockerfile` gained real `HEALTHCHECK` instructions (the API's hits `/health` directly; the worker, which has no HTTP server, writes a heartbeat file every 15s that the healthcheck verifies is fresh — both tested for real: fresh vs. stale-file cases). `docker/docker-compose.prod.yml` (new): wires the real api/worker images together with Postgres/Redis for a local prod-like dry run. `apps/api/scripts/preflight.ts` (new): a pre-deploy CLI that actually attempts to reach the target environment's DATABASE_URL/REDIS_URL, makes a real authenticated Twilio API call and a real S3 `HeadBucket` call, and validates the Sentry DSN's shape — the network-reachability checks `assertProductionSafe` (boot-time, pass 1) structurally can't do. `tests/e2e/tests/smoke.api.test.ts` (new): a read-only, side-effect-free Playwright suite explicitly safe to run against a real production environment post-deploy (unlike every other suite under `tests/e2e`, which create real users/bookings) — verified against a real booted local server (5/6 checks pass; the 6th, DB-health, correctly fails in this sandbox with no live Postgres, proving the check actually works).
+
+**Mobile** — `apps/mobile/src/services/monitoring/sentry.ts` (new) + `ErrorBoundary.tsx` wiring: real `@sentry/react-native` integration, gated by `SENTRY_DSN` (unset = safe no-op, mirroring the API's established pattern), using the officially-documented Expo config plugin (`@sentry/react-native/expo`) with `disableAutoUpload: true` so no build-time network call to Sentry's API is attempted without real org credentials. `src/state/api.ts`: RTK Query's `retry` utility wraps the base query (exponential backoff, max 2 retries, bails immediately on any 4xx via `retry.fail` so a definitive client error isn't retried pointlessly) plus a 15s request timeout (previously none — a hung connection left a query in `isLoading` forever). `src/hooks/useIsOffline.ts` + `src/components/OfflineBanner.tsx` (new, `@react-native-community/netinfo`): a persistent, honest "you're offline" surface mounted once at the app root — previously zero connectivity awareness existed anywhere in the app. `apps/mobile/assets/{icon,adaptive-icon-foreground,favicon,splash-icon}.png` (new) + `app.config.js` wiring (`icon`, `android.adaptiveIcon`, `web.favicon`, the `expo-splash-screen` plugin) + `app/_layout.tsx` (`SplashScreen.preventAutoHideAsync`/`hideAsync` paired with the existing font-load gate): a real, on-brand icon/splash — a geometric "V" monogram in the app's own already-documented brand tokens (navy `#2E3B42` + sage `#7FA491`, `packages/design-system/src/tokens/colors.ts`), not a fabricated brand identity, replacing Expo's generic default. Explicitly flagged in `LAUNCH_ACTIONS.md` for a real designer's review before a store listing goes live — this was generated programmatically, not designed. Config-drift cleanup: the `apiBaseUrl ?? 'http://localhost:3000/api/v1'` fallback, previously duplicated verbatim across 3 files, is now one shared `src/config/env.ts`.
+
+**Correctness** — `packages/config/src/index.ts`'s `DEFAULT_LOCALE` fix (from pass 1) and all of the above were re-verified together in the same full-suite re-run described in §5's update below; nothing new was found broken.
+
+**Tests added this pass** (16 total, all passing): `google-auth-redirect.test.ts` (7, pure-function OAuth-scheme-allowlist coverage), `admin-queue.service.test.ts` (7, mocked-queue coverage of the new failed-jobs service), `metrics.test.ts` (2, confirms both custom series + default Node metrics appear in real Prometheus output), `OfflineBanner.test.tsx` (3, online/offline/restored transitions via a new `netinfo` test mock), `sentry.test.ts` (4, mocked-SDK coverage of the DSN-gated no-op/init/capture behavior).
+
+**Validation performed this pass**: `pnpm typecheck`/`lint`/`build` re-run clean across the full monorepo after every change batch (including a new `apps/api/scripts/tsconfig.json` — the two new CLI scripts were silently excluded from `apps/api`'s typecheck before this, now genuinely checked). Full test suite re-run and diffed against the pass-1 baseline: API 201/238 non-skipped passing (up from 185 — all 16 new tests pass; the same 37 pre-existing `ECONNREFUSED`-only failures remain, confirmed by full log inspection, no new failure category introduced); mobile 267/276 (up from 260 — same 9 pre-existing locale/ICU-drift failures, confirmed identical); design-system 124/125 (same single pre-existing date-dependent snapshot); admin 11/11, domain 213/213, validation 6/6 all still green. Zero regressions introduced by this pass.
+
+---
+
+## 12. Final verdict: **CONDITIONAL GO**
+
+The application code is now genuinely closer to launch-ready than when this audit started: the production build actually runs (it didn't), auth can't be trivially forged, OTP and file storage have real, activatable providers instead of silent no-ops, a live data-corrupting migration bug and a live wrong-default-language bug are both fixed, a CI pipeline exists to catch the next such regression before it reaches `main` (and now actually builds the production Docker images on every push), and — as of pass 2 — every further engineering-completable gap (crash reporting, metrics, offline handling, job visibility, a real app icon, a pre-deploy verification script, a safe-to-run-against-production smoke test) is closed too.
+
+It is **not GO** because the remaining launch-blocking items are not code problems this audit can fix: no real infrastructure has ever been provisioned (Postgres/Redis/S3/Twilio/Sentry all need real accounts and credentials — `pnpm --filter @vaya/api preflight`, new in pass 2, will verify each one the moment real credentials exist), no Terms of Service or Privacy Policy exists (store submission is impossible without one), no account-deletion mechanism exists (a real compliance gap), and nothing in this app has ever been verified on a real device. None of these can be fabricated by an audit — they need a human with real authority over credentials, legal content, and app-store accounts.
+
+**Conditional on:** completing `LAUNCH_ACTIONS.md` in full — every item there is infrastructure provisioning, a credential, or a legal/product decision, not further engineering. This codebase itself is ready for a genuine first production deploy the moment that list is done. Do not launch to real users before the P0 section of `LAUNCH_ACTIONS.md` (items 1-8) is complete, and treat the P1 section (items 9-17) as required before considering the launch actually finished, not merely started.

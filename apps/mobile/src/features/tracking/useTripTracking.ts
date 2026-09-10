@@ -1,15 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { AppState, type AppStateStatus } from 'react-native';
 import { skipToken } from '@reduxjs/toolkit/query/react';
-import Constants from 'expo-constants';
 import { deriveTrackingStatus } from '@vaya/domain';
 import { useAppSelector } from '../../state/store';
 import { useGetTrackingStateQuery, type TrackingState } from '../../state/api';
-
-function getApiBaseUrl(): string {
-  const extra = Constants.expoConfig?.extra ?? Constants.manifest?.extra;
-  return extra?.apiBaseUrl ?? 'http://localhost:3000/api/v1';
-}
+import { getApiBaseUrl } from '../../config/env';
 
 /** `GET /ws/trips/:id?token=` (docs/domain/live-tracking.md) — auth travels
  *  as a query param since RN's WebSocket client can't set a custom

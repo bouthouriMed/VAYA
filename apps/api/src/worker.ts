@@ -1,3 +1,4 @@
+import { writeFileSync } from 'node:fs';
 import { Worker, type Job } from 'bullmq';
 import { validateEnv } from './config/env.js';
 import { getLogger } from './config/logger.js';
@@ -99,6 +100,25 @@ if (!connection) {
   void scheduleTripStalenessSweepJob();
   void scheduleBookingExpirySweepJob();
 
+  // This process has no HTTP server to expose a real /health route from
+  // (unlike server.ts) — a heartbeat file is the equivalent liveness signal
+  // docker/worker.Dockerfile's HEALTHCHECK reads. Written on an interval
+  // rather than only at startup so a worker that's still running but has
+  // stopped actually processing (e.g. wedged on a stuck job/connection) is
+  // distinguishable from one that's healthy — a stale file, not just a
+  // missing one, fails the healthcheck.
+  const heartbeatPath = '/tmp/worker-heartbeat';
+  const writeHeartbeat = (): void => {
+    try {
+      writeFileSync(heartbeatPath, String(Date.now()));
+    } catch (err) {
+      logger.warn({ err }, 'Failed to write worker heartbeat file');
+    }
+  };
+  writeHeartbeat();
+  const heartbeatInterval = setInterval(writeHeartbeat, 15_000);
+  heartbeatInterval.unref();
+
   // Mirrors server.ts's graceful-shutdown pattern — previously absent here,
   // so a container SIGTERM (rolling deploy, autoscaler scale-down) killed
   // the process mid-job with no drain. `worker.close()` waits for any
@@ -106,6 +126,7 @@ if (!connection) {
   // behavior) before this closes the shared Redis connection and DB pool.
   const shutdown = async (signal: string): Promise<void> => {
     logger.info(`Received ${signal}, shutting down worker gracefully...`);
+    clearInterval(heartbeatInterval);
     await worker.close();
     await closeQueue();
     await closeDatabase();

@@ -39,9 +39,17 @@ export async function adminAuthRoutes(fastify: FastifyInstance): Promise<void> {
     },
     async (request, reply) => {
       const admin = await loginAdmin(db, request.body);
+      // Shortened from 12h to 4h (2026-09-10 production-readiness pass):
+      // apps/admin currently stores this token in localStorage (see
+      // apps/admin/src/api/client.ts), which an XSS in the admin SPA could
+      // read directly — a shorter window is the safe, verifiable mitigation
+      // this pass could make without blind-testing an httpOnly-cookie
+      // migration against a live server (recommended next step — see
+      // LAUNCH_ACTIONS.md — genuinely fixes the exposure but needs the
+      // login round-trip actually exercised against a real DB to verify).
       const accessToken = app.jwt.sign(
         { sub: admin.id, type: 'admin', role: admin.role },
-        { expiresIn: '12h' },
+        { expiresIn: '4h' },
       );
       reply.send({
         accessToken,
