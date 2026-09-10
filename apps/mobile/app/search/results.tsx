@@ -223,7 +223,12 @@ export default function ResultsScreen(): React.JSX.Element {
   // search + matching/corridor-fallback) client-orchestrated pair and its
   // local "did the time drift?" banner heuristic with the server's own
   // tier + ready-to-render `message`.
-  const { data: searchResult, isLoading } = useMatchingSearchQuery(searchArgs ?? skipToken);
+  const {
+    data: searchResult,
+    isLoading,
+    isError,
+    refetch,
+  } = useMatchingSearchQuery(searchArgs ?? skipToken);
   const tier = searchResult?.tier;
   const [notifyMe, { isLoading: isNotifying, isSuccess: notified }] = useNotifyMeMutation();
   const showToast = useToast();
@@ -397,6 +402,20 @@ export default function ResultsScreen(): React.JSX.Element {
             <SkeletonBlock height={140} style={styles.skeletonCard} />
             <SkeletonBlock height={140} style={styles.skeletonCard} />
             <SkeletonBlock height={140} style={styles.skeletonCard} />
+          </View>
+        ) : isError ? (
+          // A genuine network/server failure previously fell straight into
+          // the "no results" empty state below — same UI as a real, honest
+          // zero-match search, which is exactly the "never show a fabricated
+          // state" principle this app is built around. This is a distinct,
+          // designed error surface with its own copy and a real retry.
+          <View style={styles.emptyWrap}>
+            <EmptyState
+              title={t('search:results.errorTitle')}
+              description={t('search:results.errorDescription')}
+              actionLabel={t('search:results.retry')}
+              onAction={() => void refetch()}
+            />
           </View>
         ) : sorted.length > 0 ? (
           <>

@@ -21,11 +21,20 @@ export async function adminAuthRoutes(fastify: FastifyInstance): Promise<void> {
 
   // Unauthenticated — the login endpoint itself. Rate-limited tighter than
   // the global default (100/min) since this is a credential-guessing
-  // surface, mirroring auth.routes.ts's OTP-request precedent.
+  // surface, mirroring auth.routes.ts's OTP-request precedent. Keyed by
+  // email (not the default req.ip, which is spoofable via a client-supplied
+  // X-Forwarded-For under app.ts's `trustProxy: true`) so a password-guessing
+  // attempt against one admin account can't reset its budget by rotating IP.
   app.post(
     '/login',
     {
-      config: { rateLimit: { max: 10, timeWindow: '1 minute' } },
+      config: {
+        rateLimit: {
+          max: 10,
+          timeWindow: '1 minute',
+          keyGenerator: (request) => (request.body as { email?: string })?.email ?? request.ip,
+        },
+      },
       schema: { body: adminLoginSchema, response: { 200: loginResponseSchema } },
     },
     async (request, reply) => {

@@ -4,6 +4,12 @@
 // physical device over LAN needs the host's LAN IP here, not localhost.
 const withGoogleMapsIOS = require('./plugins/withGoogleMapsIOS');
 
+// Derived once, at config-evaluation time, from the same env var the app
+// itself resolves its API origin from (extra.apiBaseUrl below) — see the ATS
+// comment on `infoPlist` for why this must never be an unconditional `true`.
+const apiBaseUrl = process.env.API_BASE_URL ?? 'http://localhost:3000/api/v1';
+const apiIsInsecureHttp = apiBaseUrl.startsWith('http://');
+
 module.exports = {
   expo: {
     name: 'VAYA',
@@ -16,8 +22,8 @@ module.exports = {
       supportsTablet: true,
       bundleIdentifier: 'com.vaya.app',
       // The API (apps/api/.env.example's default, and every LAN-IP dev
-      // setup CLAUDE.md documents) serves over plain http, not https — no
-      // production HTTPS backend exists yet. Android has no equivalent
+      // setup CLAUDE.md documents) serves over plain http, not https in dev
+      // — no production HTTPS backend exists yet. Android has no equivalent
       // restriction in this setup, but iOS's App Transport Security blocks
       // any non-https request by default outside Expo Go's own permissive
       // Info.plist, which is exactly why a real iOS build/dev-client shows
@@ -25,11 +31,21 @@ module.exports = {
       // to initials via Avatar's onError) while the same photo loads fine
       // on Android. Requires a native prebuild/rebuild to take effect —
       // same category as this file's other native-config notes.
-      infoPlist: {
-        NSAppTransportSecurity: {
-          NSAllowsArbitraryLoads: true,
-        },
-      },
+      //
+      // Only applied when API_BASE_URL is actually http:// at build time —
+      // an unconditional `NSAllowsArbitraryLoads: true` would disable HTTPS
+      // enforcement app-wide (any embedded webview/browser content too, not
+      // just the API) in every build including a real production one. Once
+      // API_BASE_URL is set to a real https:// domain for a production EAS
+      // build, this exception disappears automatically — nobody has to
+      // remember to flip a flag.
+      infoPlist: apiIsInsecureHttp
+        ? {
+            NSAppTransportSecurity: {
+              NSAllowsArbitraryLoads: true,
+            },
+          }
+        : {},
     },
     android: {
       package: 'com.vaya.app',
@@ -111,7 +127,7 @@ module.exports = {
       typedRoutes: true,
     },
     extra: {
-      apiBaseUrl: process.env.API_BASE_URL ?? 'http://localhost:3000/api/v1',
+      apiBaseUrl,
       eas: {
         // @bouthourimohamed/vaya — https://expo.dev/accounts/bouthourimohamed/projects/vaya
         projectId: '180c4be1-2a3c-438f-899a-68371c0635e4',

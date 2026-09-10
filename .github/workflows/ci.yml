@@ -1,0 +1,105 @@
+name: CI
+
+# Previously this repo had NO CI configuration at all — nothing gated a
+# merge to main on lint/typecheck/test passing, and there was no automated,
+# reproducible way to prove a change didn't break the build. This workflow
+# runs the exact commands CLAUDE.md's own "Testing requirements" section
+# already declares mandatory (`pnpm lint`, `pnpm typecheck`, `pnpm test`)
+# plus a real production build, against real Postgres/Redis service
+# containers (mirroring docker/docker-compose.yml).
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        # postgis/postgis, not plain postgres — matches docker/docker-compose.yml
+        # (migration 0014 requires `CREATE EXTENSION postgis`).
+        image: postgis/postgis:16-3.4-alpine
+        env:
+          POSTGRES_USER: vaya
+          POSTGRES_PASSWORD: vaya_dev
+          POSTGRES_DB: vaya
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U vaya -d vaya"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://vaya:vaya_dev@localhost:5433/vaya
+      REDIS_URL: redis://localhost:6379
+      JWT_SECRET: ci-test-secret-never-used-outside-this-workflow
+      OSRM_URL: http://localhost:5001
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.12.3
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run database migrations
+        run: pnpm --filter @vaya/api db:migrate
+
+      - name: Generate API client
+        # packages/api-client/src/generated/ is gitignored and generated
+        # from the API's own live OpenAPI spec (see packages/api-client's
+        # `generate` script) — mobile/admin can't typecheck without it, and
+        # generating it needs a running server, so this boots one just long
+        # enough to fetch openapi.json.
+        run: |
+          pnpm --filter @vaya/api start &
+          API_PID=$!
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:3000/api/v1/openapi.json -o /dev/null; then
+              echo "API is up"
+              break
+            fi
+            sleep 1
+          done
+          pnpm --filter @vaya/api-client generate
+          kill "$API_PID" 2>/dev/null || true
+          pkill -f "tsx src/server.ts" 2>/dev/null || true
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Format check
+        run: pnpm format:check
+
+      - name: Build
+        run: pnpm build
+
+      - name: Test
+        run: pnpm test

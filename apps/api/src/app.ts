@@ -1,4 +1,5 @@
 import path from 'node:path';
+import { mkdirSync } from 'node:fs';
 import Fastify, { type FastifyReply, type FastifyRequest } from 'fastify';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
@@ -45,6 +46,7 @@ declare module 'fastify' {
   interface FastifyInstance {
     authenticate: (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
     authenticateAdmin: (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
+    authenticateSuperAdmin: (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
   }
 }
 declare module '@fastify/jwt' {
@@ -71,7 +73,13 @@ export async function buildApp() {
   app.setSerializerCompiler(serializerCompiler);
 
   // Plugins
-  await app.register(cors, { origin: env.CORS_ORIGIN });
+  // CORS_ORIGIN is a single '*' in dev (assertProductionSafe in config/env.ts
+  // refuses to boot on that in production) or a real comma-separated origin
+  // list in production (e.g. the admin app's domain) — @fastify/cors treats
+  // a bare string as one literal origin, so a multi-origin value has to be
+  // split into an array for it to actually allow more than one origin.
+  const corsOrigin = env.CORS_ORIGIN === '*' ? '*' : env.CORS_ORIGIN.split(',').map((o) => o.trim());
+  await app.register(cors, { origin: corsOrigin });
   await app.register(helmet);
   // Conservative global default; per-route overrides (e.g. OTP request,
   // which has an SMS-cost/spam-abuse surface) use the `config.rateLimit`
@@ -83,8 +91,16 @@ export async function buildApp() {
   await app.register(jwt, { secret: env.JWT_SECRET });
   await app.register(multipart);
   await app.register(websocket);
+  // @fastify/static warns (harmlessly, but on every boot) if `root` doesn't
+  // exist yet — true on a fresh checkout/container before any upload has
+  // ever happened, since LocalDiskStorageAdapter only creates it lazily on
+  // first write. Harmless to create unconditionally even when S3StorageAdapter
+  // is active (lib/storage/index.ts) — this mount is then simply never
+  // written to.
+  const uploadsRoot = path.resolve(process.cwd(), 'uploads');
+  mkdirSync(uploadsRoot, { recursive: true });
   await app.register(staticPlugin, {
-    root: path.resolve(process.cwd(), 'uploads'),
+    root: uploadsRoot,
     prefix: '/uploads/',
   });
 
@@ -126,6 +142,24 @@ export async function buildApp() {
     }
     if (request.user.type !== 'admin') {
       throw new ForbiddenError('Admin access required');
+    }
+  });
+
+  // The `admin`/`superadmin` role distinction admin-auth.routes.ts already
+  // issues in every admin token's payload was previously never checked
+  // anywhere — every route behind authenticateAdmin was reachable by any
+  // admin account regardless of role. Routes with platform-wide blast radius
+  // (account suspension, platform pricing/matching/cancellation config) now
+  // require this stricter check; day-to-day moderation (KYC review, ride
+  // cancellation, report handling) stays on authenticateAdmin.
+  app.decorate('authenticateSuperAdmin', async (request: FastifyRequest, _reply: FastifyReply) => {
+    try {
+      await request.jwtVerify();
+    } catch {
+      throw new UnauthorizedError('Invalid or missing access token');
+    }
+    if (request.user.type !== 'admin' || request.user.role !== 'superadmin') {
+      throw new ForbiddenError('Superadmin access required');
     }
   });
 
