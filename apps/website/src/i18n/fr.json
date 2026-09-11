@@ -1,0 +1,150 @@
+{
+  "meta": {
+    "title": "VAYA — Votre trajet de confiance, au quotidien",
+    "description": "Des conducteurs réels, des profils vérifiés, un prix juste pour chaque trajet. VAYA, le covoiturage structuré pour la Tunisie."
+  },
+  "nav": {
+    "passengers": "Passagers",
+    "drivers": "Conducteurs",
+    "trust": "Confiance & sécurité",
+    "download": "Télécharger"
+  },
+  "hero": {
+    "eyebrow": "Le covoiturage, structuré pour la Tunisie",
+    "headline": "Votre trajet de confiance, au quotidien.",
+    "subhead": "Des conducteurs réels, des profils vérifiés, un prix juste pour chaque trajet.",
+    "ctaPrimary": "Télécharger VAYA",
+    "ctaSecondary": "Voir comment ça marche",
+    "storeNote": "Gratuit sur iOS et Android",
+    "scrollHint": "Faites défiler pour suivre le trajet"
+  },
+  "journey": {
+    "eyebrow": "Un trajet, du départ à l'arrivée",
+    "title": "Suivez un vrai trajet VAYA",
+    "steps": [
+      {
+        "label": "Où allez-vous ?",
+        "title": "Dites à VAYA où vous allez",
+        "body": "Recherchez votre trajet. VAYA cherche des conducteurs réels déjà en route dans votre direction — pas seulement ceux qui partent exactement d'où vous êtes."
+      },
+      {
+        "label": "Choisissez votre arrêt",
+        "title": "Un point de prise en charge réel, vérifié sur la route",
+        "body": "Jamais un point posé au hasard. VAYA propose un petit ensemble classé d'arrêts réels, sur le trajet effectif du conducteur."
+      },
+      {
+        "label": "Voyez le prix",
+        "title": "Un prix juste, avant de vous engager",
+        "body": "Chaque trajet affiche une fourchette de prix calculée sur la distance et la durée réelles — jamais une estimation, jamais une négociation."
+      },
+      {
+        "label": "Demandez",
+        "title": "Demandez votre place",
+        "body": "Un seul geste. Le conducteur est notifié instantanément."
+      },
+      {
+        "label": "Accepté",
+        "title": "Le conducteur accepte",
+        "body": "Votre place est confirmée — suivez le trajet et échangez avec votre conducteur directement dans l'application."
+      },
+      {
+        "label": "Place occupée",
+        "title": "Le conducteur rentabilise un trajet qu'il faisait déjà",
+        "body": "Aucun détour, aucun nouveau trajet — juste une place qui serait restée vide, qui couvre maintenant le coût de la route."
+      }
+    ]
+  },
+  "passenger": {
+    "eyebrow": "Pour les passagers",
+    "title": "Un trajet qui va vraiment dans votre direction",
+    "body": "La plupart des applications de covoiturage vous associent au départ et à l'arrivée exacts d'un conducteur. VAYA regarde l'ensemble du trajet — un conducteur qui passe près de vous compte aussi.",
+    "points": [
+      {
+        "title": "Une recherche, de vraies options",
+        "body": "Des trajets classés selon leur correspondance avec votre itinéraire et votre horaire — pas seulement le point le plus proche."
+      },
+      {
+        "title": "Un point de prise en charge fiable",
+        "body": "Chaque arrêt proposé est vérifié sur la route réelle — aucune prise en charge impossible, aucune approximation."
+      },
+      {
+        "title": "Voyez qui conduit, avant de demander",
+        "body": "Note, historique de trajets et statut de vérification sont visibles avant même de vous engager sur une place."
+      }
+    ]
+  },
+  "driver": {
+    "eyebrow": "Pour les conducteurs",
+    "title": "Rentabilisez vos places vides",
+    "body": "Vous faites déjà le trajet. VAYA remplit les places qui resteraient vides — avec de vraies personnes qui vont dans votre direction, associées à votre itinéraire réel.",
+    "points": [
+      {
+        "title": "Publiez votre trajet en quelques minutes",
+        "body": "VAYA cartographie votre trajet sur les routes réelles et propose des arrêts vérifiés sur le chemin."
+      },
+      {
+        "title": "Un prix juste à fixer",
+        "body": "Une fourchette de prix calculée sur la distance et la durée réelles — vous choisissez dans cette fourchette, jamais au hasard."
+      },
+      {
+        "title": "Des passagers qui connaissent les règles",
+        "body": "Points de prise en charge clairs, prix visible, et un système de notation qui récompense la fiabilité des deux côtés."
+      }
+    ]
+  },
+  "matching": {
+    "eyebrow": "Le moteur de correspondance",
+    "title": "VAYA trouve des trajets dans votre direction — pas seulement votre itinéraire exact",
+    "body": "Derrière chaque recherche se trouve un vrai moteur de routage, construit sur le réseau routier réel de la Tunisie. VAYA vérifie si le trajet d'un conducteur passe réellement près de vous — même en cours de route — avant de vous montrer une correspondance.",
+    "tiers": [
+      { "title": "Sur votre itinéraire exact", "body": "Un conducteur qui va de votre départ à votre arrivée." },
+      { "title": "Assez proche pour marcher", "body": "Un conducteur dont le trajet passe assez près du vôtre." },
+      { "title": "Sur le passage", "body": "Un conducteur dont le trajet traverse votre corridor, même si sa destination va plus loin." },
+      { "title": "Le prochain départ", "body": "Rien à l'heure exacte ? VAYA affiche le prochain meilleur départ sur le même corridor." }
+    ]
+  },
+  "trust": {
+    "eyebrow": "Confiance & sécurité",
+    "title": "Sachez avec qui vous voyagez, avant de réserver",
+    "body": "La confiance doit être visible avant l'engagement, pas découverte après coup.",
+    "points": [
+      {
+        "title": "Vérification par caméra en direct",
+        "body": "Chaque conducteur vérifie son identité par une prise de vue en direct — jamais une photo importée depuis la galerie."
+      },
+      {
+        "title": "Des notes visibles en premier",
+        "body": "Fiabilité, ponctualité et historique de trajets sont affichés avant la demande de place, pas après."
+      },
+      {
+        "title": "Une politique qui protège les deux parties",
+        "body": "Des règles claires d'annulation et d'absence, appliquées de la même façon aux passagers et aux conducteurs."
+      }
+    ]
+  },
+  "product": {
+    "eyebrow": "Dans l'application",
+    "title": "Voici la véritable application VAYA",
+    "body": "Aucune maquette en guise de produit — voici à quoi ressemble la réservation d'un vrai trajet."
+  },
+  "finalCta": {
+    "title": "Votre prochain trajet est déjà sur la route.",
+    "body": "Téléchargez VAYA et découvrez qui va dans votre direction.",
+    "ctaPrimary": "Télécharger VAYA",
+    "appStore": "Télécharger sur l'App Store",
+    "googlePlay": "Disponible sur Google Play"
+  },
+  "footer": {
+    "tagline": "Le covoiturage structuré pour la Tunisie.",
+    "product": "Produit",
+    "passengers": "Passagers",
+    "drivers": "Conducteurs",
+    "trust": "Confiance & sécurité",
+    "company": "Entreprise",
+    "legal": "Mentions légales",
+    "terms": "Conditions",
+    "privacy": "Confidentialité",
+    "language": "Langue",
+    "rights": "VAYA. Tous droits réservés."
+  }
+}
