@@ -31,8 +31,17 @@ export async function authRoutes(fastify: FastifyInstance): Promise<void> {
     '/auth/otp/request',
     {
       // Tighter than the global default: this endpoint sends an SMS per
-      // call, so it's both a cost and an abuse (OTP-spam) surface.
-      config: { rateLimit: { max: 5, timeWindow: '1 minute' } },
+      // call, so it's both a cost and an abuse (OTP-spam) surface. Keyed by
+      // phone (not the default req.ip) so the limit can't be reset by
+      // rotating a spoofable X-Forwarded-For value — see app.ts's
+      // `trustProxy: true` comment for why IP alone isn't a safe key here.
+      config: {
+        rateLimit: {
+          max: 5,
+          timeWindow: '1 minute',
+          keyGenerator: (request) => (request.body as { phone?: string })?.phone ?? request.ip,
+        },
+      },
       schema: {
         body: requestOtpSchema,
         response: { 200: z.object({ sent: z.boolean(), devCode: z.string().optional() }) },
@@ -50,7 +59,21 @@ export async function authRoutes(fastify: FastifyInstance): Promise<void> {
 
   app.post(
     '/auth/otp/verify',
-    { schema: { body: verifyOtpSchema, response: { 200: authTokensSchema } } },
+    {
+      // No per-route limit existed here before — verify is a 6-digit
+      // brute-force surface (1,000,000 combinations, 5-minute TTL) and the
+      // global 100/min default is both too loose and IP-keyed (spoofable,
+      // see above). Keyed by phone so an attacker can't reset the budget by
+      // rotating IP either.
+      config: {
+        rateLimit: {
+          max: 10,
+          timeWindow: '1 minute',
+          keyGenerator: (request) => (request.body as { phone?: string })?.phone ?? request.ip,
+        },
+      },
+      schema: { body: verifyOtpSchema, response: { 200: authTokensSchema } },
+    },
     async (request, reply) => {
       const tokens = await verifyOtpAndIssueTokens(
         db,

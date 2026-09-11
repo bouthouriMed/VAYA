@@ -1,4 +1,7 @@
 {
+  "offline": {
+    "message": "Vous êtes hors ligne — certains contenus peuvent ne pas se charger"
+  },
   "actions": {
     "back": "Retour",
     "cancel": "Annuler",

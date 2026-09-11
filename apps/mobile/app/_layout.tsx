@@ -4,6 +4,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import * as SplashScreen from 'expo-splash-screen';
 import { Provider as ReduxProvider, useDispatch } from 'react-redux';
 import {
   useFonts,
@@ -24,6 +25,8 @@ import { initI18n, detectDeviceLocale } from '../src/services/i18n';
 import { applyRtlDirection } from '../src/services/i18n/rtl';
 import { useLanguage } from '../src/hooks/useLanguage';
 import { ErrorBoundary } from '../src/components/ErrorBoundary';
+import { OfflineBanner } from '../src/components/OfflineBanner';
+import { initMonitoring } from '../src/services/monitoring/sentry';
 import { useNotificationSetup } from '../src/services/notifications/useNotificationSetup';
 import { PushPermissionBridge } from '../src/services/notifications/PushPermissionBridge';
 import { RatingPromptBridge } from '../src/features/ratings/RatingPromptBridge';
@@ -38,6 +41,18 @@ import { RecurringPatternPromptBridge } from '../src/features/recurring/Recurrin
 const startupLocale = detectDeviceLocale();
 applyRtlDirection(startupLocale);
 initI18n(startupLocale);
+
+// Keeps the native splash (expo-splash-screen's config in app.config.js)
+// on screen through Fraunces' async load below instead of the OS
+// auto-hiding it the instant the JS thread starts — without this, a device
+// would flash native-splash → BrandedLoadingScreen → real content instead
+// of native-splash → real content, since BrandedLoadingScreen's whole
+// purpose (a branded frame while fonts load) would otherwise render
+// underneath/after a splash that's already gone. Failures are swallowed —
+// worst case here is the native default (auto-hide), not a crash.
+void SplashScreen.preventAutoHideAsync().catch(() => {});
+
+initMonitoring();
 
 function BrandedLoadingScreen(): React.JSX.Element {
   return (
@@ -180,6 +195,14 @@ export default function RootLayout(): React.JSX.Element {
     Fraunces_500Medium_Italic,
   });
 
+  // Pairs with preventAutoHideAsync() above — hides the native splash only
+  // once fonts are actually ready, so the transition is native-splash →
+  // real (correctly-fonted) content, with BrandedLoadingScreen never
+  // visible at all on a fast load and only briefly on a slow one.
+  useEffect(() => {
+    if (fontsLoaded) void SplashScreen.hideAsync().catch(() => {});
+  }, [fontsLoaded]);
+
   // Expo Router mounts its own SafeAreaProvider around the whole app, so
   // this resolves to the real per-device inset — what lets ToastProvider
   // clear the status bar / notch / Dynamic Island exactly, instead of
@@ -213,6 +236,7 @@ export default function RootLayout(): React.JSX.Element {
               <RatingPromptBridge />
               <RecurringPatternPromptBridge />
               <ThemedStatusBar />
+              <OfflineBanner />
               <AuthHydrator>
                 <Stack screenOptions={{ headerShown: false }}>
                   <Stack.Screen name="index" />

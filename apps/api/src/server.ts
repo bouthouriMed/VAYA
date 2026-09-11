@@ -1,6 +1,7 @@
 import http from 'node:http';
 import { validateEnv } from './config/env.js';
 import { getLogger } from './config/logger.js';
+import { initMonitoring, captureException } from './config/monitoring.js';
 import { closeDatabase } from './lib/database.js';
 import { closeRedis } from './lib/redis.js';
 import { buildApp } from './app.js';
@@ -8,6 +9,7 @@ import { buildApp } from './app.js';
 async function main(): Promise<void> {
   validateEnv();
   const env = validateEnv();
+  initMonitoring();
   const logger = getLogger();
 
   const app = await buildApp();
@@ -61,6 +63,24 @@ async function main(): Promise<void> {
 
   process.on('SIGTERM', () => shutdown('SIGTERM'));
   process.on('SIGINT', () => shutdown('SIGINT'));
+
+  // Without these, an error that escapes Fastify's request lifecycle (e.g.
+  // thrown from a timer, a fire-and-forget promise, a background interval)
+  // previously crashed the process with only whatever Node's default handler
+  // happened to print — no structured log, nothing for a log aggregator to
+  // pick up. Logged with full context, then a clean exit (the process is in
+  // an undefined state after an uncaught exception; a process manager /
+  // container orchestrator is expected to restart it).
+  process.on('uncaughtException', (err) => {
+    logger.fatal({ err }, 'Uncaught exception — exiting');
+    captureException(err);
+    process.exit(1);
+  });
+  process.on('unhandledRejection', (reason) => {
+    logger.fatal({ err: reason }, 'Unhandled promise rejection — exiting');
+    captureException(reason);
+    process.exit(1);
+  });
 }
 
 main();

@@ -6,6 +6,7 @@
     "test:api": "playwright test --project=api",
     "test:web": "playwright test --project=web",
     "test:all": "playwright test",
+    "smoke": "playwright test smoke.api.test.ts --project=api",
     "test:ui": "playwright test --ui",
     "report": "playwright show-report"
   },

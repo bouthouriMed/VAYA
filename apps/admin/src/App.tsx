@@ -14,6 +14,7 @@ import { AnalyticsPage } from './pages/AnalyticsPage';
 import { ReportsPage } from './pages/ReportsPage';
 import { AuditLogPage } from './pages/AuditLogPage';
 import { OperationalConfigPage } from './pages/OperationalConfigPage';
+import { QueuePage } from './pages/QueuePage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -52,6 +53,7 @@ function AppRoutes(): React.JSX.Element {
         <Route path="/reports" element={<ReportsPage />} />
         <Route path="/audit-log" element={<AuditLogPage />} />
         <Route path="/operational-config" element={<OperationalConfigPage />} />
+        <Route path="/queue" element={<QueuePage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

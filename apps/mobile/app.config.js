@@ -4,6 +4,12 @@
 // physical device over LAN needs the host's LAN IP here, not localhost.
 const withGoogleMapsIOS = require('./plugins/withGoogleMapsIOS');
 
+// Derived once, at config-evaluation time, from the same env var the app
+// itself resolves its API origin from (extra.apiBaseUrl below) — see the ATS
+// comment on `infoPlist` for why this must never be an unconditional `true`.
+const apiBaseUrl = process.env.API_BASE_URL ?? 'http://localhost:3000/api/v1';
+const apiIsInsecureHttp = apiBaseUrl.startsWith('http://');
+
 module.exports = {
   expo: {
     name: 'VAYA',
@@ -12,12 +18,28 @@ module.exports = {
     orientation: 'portrait',
     userInterfaceStyle: 'automatic',
     scheme: 'vaya',
+    // A real, on-brand icon/splash (previously absent — every build shipped
+    // Expo's generic default icon and splash screen). Deliberately simple:
+    // a geometric "V" monogram in the app's actual, already-documented
+    // brand tokens (packages/design-system/src/tokens/colors.ts's navy
+    // `primary` #2E3B42 + sage `secondary` #7FA491) — not a fabricated
+    // brand identity, a functional application of the one this codebase
+    // already committed to everywhere else. Treat as a placeholder a real
+    // designer should refine before launch, not a finished deliverable —
+    // but a real branded icon beats Expo's default on every axis that
+    // matters pre-launch (store listing thumbnail, home-screen icon,
+    // app-switcher).
+    icon: './assets/icon.png',
+    // Splash config lives on the `expo-splash-screen` plugin below (this
+    // SDK's current recommended mechanism), not the legacy top-level
+    // `splash` key — the two would otherwise both try to own the same
+    // native config.
     ios: {
       supportsTablet: true,
       bundleIdentifier: 'com.vaya.app',
       // The API (apps/api/.env.example's default, and every LAN-IP dev
-      // setup CLAUDE.md documents) serves over plain http, not https — no
-      // production HTTPS backend exists yet. Android has no equivalent
+      // setup CLAUDE.md documents) serves over plain http, not https in dev
+      // — no production HTTPS backend exists yet. Android has no equivalent
       // restriction in this setup, but iOS's App Transport Security blocks
       // any non-https request by default outside Expo Go's own permissive
       // Info.plist, which is exactly why a real iOS build/dev-client shows
@@ -25,11 +47,21 @@ module.exports = {
       // to initials via Avatar's onError) while the same photo loads fine
       // on Android. Requires a native prebuild/rebuild to take effect —
       // same category as this file's other native-config notes.
-      infoPlist: {
-        NSAppTransportSecurity: {
-          NSAllowsArbitraryLoads: true,
-        },
-      },
+      //
+      // Only applied when API_BASE_URL is actually http:// at build time —
+      // an unconditional `NSAllowsArbitraryLoads: true` would disable HTTPS
+      // enforcement app-wide (any embedded webview/browser content too, not
+      // just the API) in every build including a real production one. Once
+      // API_BASE_URL is set to a real https:// domain for a production EAS
+      // build, this exception disappears automatically — nobody has to
+      // remember to flip a flag.
+      infoPlist: apiIsInsecureHttp
+        ? {
+            NSAppTransportSecurity: {
+              NSAllowsArbitraryLoads: true,
+            },
+          }
+        : {},
     },
     android: {
       package: 'com.vaya.app',
@@ -65,9 +97,19 @@ module.exports = {
           apiKey: process.env.GOOGLE_MAPS_ANDROID_API_KEY,
         },
       },
+      adaptiveIcon: {
+        // Android composites this foreground (transparent bg, glyph kept
+        // inside the ~66% safe zone) over backgroundColor itself, then
+        // applies whichever mask shape the OEM launcher uses (circle,
+        // squircle, rounded square) — unlike iOS/`icon` above, this can't
+        // just reuse the same flat PNG.
+        foregroundImage: './assets/adaptive-icon-foreground.png',
+        backgroundColor: '#2E3B42',
+      },
     },
     web: {
       bundler: 'metro',
+      favicon: './assets/favicon.png',
     },
     plugins: [
       'expo-router',
@@ -75,12 +117,34 @@ module.exports = {
       'expo-localization',
       'expo-secure-store',
       [
+        'expo-splash-screen',
+        {
+          image: './assets/splash-icon.png',
+          resizeMode: 'contain',
+          backgroundColor: '#2E3B42',
+        },
+      ],
+      [
+        '@sentry/react-native/expo',
+        {
+          // Native-SDK linking only — deliberately never attempts a
+          // source-map upload during build (which needs a real Sentry
+          // org/project/authToken this environment has none of, and would
+          // otherwise risk failing the build on a network/auth error over
+          // something that's supposed to be optional). Set these up for
+          // real once a Sentry project exists — see LAUNCH_ACTIONS.md.
+          disableAutoUpload: true,
+        },
+      ],
+      [
         'expo-notifications',
         {
-          // No custom icon asset exists yet — Android falls back to a
-          // silhouette generated from the app icon, which is functional
-          // but not final. color is the accent an Android notification
-          // icon/badge renders in, set to the brand sage token.
+          // No dedicated small-icon asset (Android's notification-tray icon
+          // must be a flat white silhouette, a distinct asset from the app
+          // icon above) — Android derives one from adaptiveIcon's
+          // foreground, functional but not final. color is the accent an
+          // Android notification icon/badge renders in, set to the brand
+          // sage token.
           color: '#7FA491',
         },
       ],
@@ -111,7 +175,13 @@ module.exports = {
       typedRoutes: true,
     },
     extra: {
-      apiBaseUrl: process.env.API_BASE_URL ?? 'http://localhost:3000/api/v1',
+      apiBaseUrl,
+      // Real error tracking (src/services/monitoring/sentry.ts) — a real
+      // DSN turns Sentry.init() on for real; unset by default (safe no-op),
+      // matching the exact "real provider when configured, safe fallback
+      // otherwise" pattern apps/api's lib/sms, lib/storage, and
+      // config/monitoring.ts already established.
+      sentryDsn: process.env.SENTRY_DSN ?? null,
       eas: {
         // @bouthourimohamed/vaya — https://expo.dev/accounts/bouthourimohamed/projects/vaya
         projectId: '180c4be1-2a3c-438f-899a-68371c0635e4',

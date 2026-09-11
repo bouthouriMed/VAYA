@@ -16,6 +16,8 @@ out/
 .env.development
 .env.test
 .env.production
+.env.prod
+docker/.env.prod
 
 # Testing
 coverage/

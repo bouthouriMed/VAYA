@@ -1,0 +1,89 @@
+# Production-*like* local stack — wires the real api/worker images (built
+# from docker/api.Dockerfile / worker.Dockerfile) together with Postgres and
+# Redis, so the full production wiring can be validated locally (or in CI)
+# before ever touching a real deploy target. This is NOT what actually runs
+# in production (no real orchestrator provisions services this way) — it's
+# the closest thing to "does the built image actually work end-to-end" this
+# repo can offer without real infrastructure.
+#
+# Usage: from the repo root,
+#   cp apps/api/.env.example docker/.env.prod   # fill in real values
+#   docker compose -f docker/docker-compose.prod.yml --env-file docker/.env.prod up --build
+#
+# Then, in a separate shell, run migrations against this stack once (see
+# api.Dockerfile's comment for why migrations aren't run from inside the
+# image itself):
+#   pnpm --filter @vaya/api db:migrate   # with DATABASE_URL pointed at the
+#                                         # postgres service below (localhost:5433)
+
+services:
+  postgres:
+    image: postgis/postgis:16-3.4-alpine
+    restart: unless-stopped
+    ports:
+      - '5433:5432'
+    environment:
+      POSTGRES_USER: vaya
+      POSTGRES_PASSWORD: vaya_dev
+      POSTGRES_DB: vaya
+    volumes:
+      - postgres_prod_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U vaya -d vaya']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_prod_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: ..
+      dockerfile: docker/api.Dockerfile
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+    env_file:
+      - .env.prod
+    environment:
+      # Overrides whatever .env.prod has for these two — they must point at
+      # the sibling services above, not wherever .env.prod's own DB/Redis
+      # values (possibly a real managed instance) point.
+      DATABASE_URL: postgresql://vaya:vaya_dev@postgres:5432/vaya
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker:
+    build:
+      context: ..
+      dockerfile: docker/worker.Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env.prod
+    environment:
+      DATABASE_URL: postgresql://vaya:vaya_dev@postgres:5432/vaya
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  postgres_prod_data:
+  redis_prod_data:

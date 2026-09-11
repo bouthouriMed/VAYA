@@ -1,1 +1,0 @@
-ALTER TYPE "notification_event_type" ADD VALUE 'rating_received';

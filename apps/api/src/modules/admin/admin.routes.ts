@@ -38,6 +38,7 @@ import {
   getActiveOperationalConfig,
   updateOperationalConfig,
 } from '../operational-config/operational-config.service.js';
+import { getFailedJobCount, listFailedJobs, retryFailedJob } from './admin-queue.service.js';
 
 // Admin-facing responses are intentionally permissive (z.any()/passthrough
 // shapes) rather than the fully-enumerated schemas the consumer-facing API
@@ -57,6 +58,7 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
   const app = fastify.withTypeProvider<ZodTypeProvider>();
   const db = getDatabase();
   const adminAuth = { onRequest: [fastify.authenticateAdmin] };
+  const superAdminAuth = { onRequest: [fastify.authenticateSuperAdmin] };
 
   // --- Users ---
   app.get('/users', { ...adminAuth, schema: { querystring: adminUsersQuerySchema, response: { 200: anyResponse } } }, async (request, reply) => {
@@ -65,13 +67,15 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
   app.get('/users/:id', { ...adminAuth, schema: { params: idParamSchema, response: { 200: anyResponse } } }, async (request, reply) => {
     reply.send(await getUserDetailForAdmin(db, request.params.id));
   });
-  app.post('/users/:id/suspend', { ...adminAuth, schema: { params: idParamSchema, body: suspendUserSchema, response: { 200: anyResponse } } }, async (request, reply) => {
+  // Account-lifecycle actions (suspend/restrict) have platform-wide blast
+  // radius, so they require superadmin, not just any authenticated admin.
+  app.post('/users/:id/suspend', { ...superAdminAuth, schema: { params: idParamSchema, body: suspendUserSchema, response: { 200: anyResponse } } }, async (request, reply) => {
     reply.send(await suspendUser(db, { userId: request.params.id, reason: request.body.reason, adminUserId: getAdminId(request) }));
   });
-  app.post('/users/:id/reactivate', { ...adminAuth, schema: { params: idParamSchema, response: { 200: anyResponse } } }, async (request, reply) => {
+  app.post('/users/:id/reactivate', { ...superAdminAuth, schema: { params: idParamSchema, response: { 200: anyResponse } } }, async (request, reply) => {
     reply.send(await reactivateUser(db, { userId: request.params.id, adminUserId: getAdminId(request) }));
   });
-  app.post('/users/:id/restrict-driver', { ...adminAuth, schema: { params: idParamSchema, body: suspendUserSchema, response: { 200: anyResponse } } }, async (request, reply) => {
+  app.post('/users/:id/restrict-driver', { ...superAdminAuth, schema: { params: idParamSchema, body: suspendUserSchema, response: { 200: anyResponse } } }, async (request, reply) => {
     reply.send(
       await setDriverPrivilegeRestriction(db, {
         userId: request.params.id,
@@ -81,7 +85,7 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
       }),
     );
   });
-  app.post('/users/:id/unrestrict-driver', { ...adminAuth, schema: { params: idParamSchema, response: { 200: anyResponse } } }, async (request, reply) => {
+  app.post('/users/:id/unrestrict-driver', { ...superAdminAuth, schema: { params: idParamSchema, response: { 200: anyResponse } } }, async (request, reply) => {
     reply.send(
       await setDriverPrivilegeRestriction(db, { userId: request.params.id, restrict: false, adminUserId: getAdminId(request) }),
     );
@@ -155,9 +159,40 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
   });
   app.patch(
     '/operational-config',
-    { ...adminAuth, schema: { body: updateOperationalConfigSchema, response: { 200: anyResponse } } },
+    { ...superAdminAuth, schema: { body: updateOperationalConfigSchema, response: { 200: anyResponse } } },
     async (request, reply) => {
       reply.send(await updateOperationalConfig(db, request.body, getAdminId(request)));
+    },
+  );
+
+  // --- Background job visibility (BullMQ dead-letter, apps/api/src/lib/queue.ts) ---
+  // Previously the only way to see what's actually failing in the
+  // notification-dispatch/recurring-scan/staleness-sweep queue was direct
+  // Redis CLI access — this surfaces the same data (BullMQ already retains
+  // up to 1000 failed jobs) through the admin API.
+  app.get(
+    '/queue/failed',
+    {
+      ...adminAuth,
+      schema: {
+        querystring: z.object({ limit: z.coerce.number().int().min(1).max(200).default(50) }),
+        response: { 200: anyResponse },
+      },
+    },
+    async (request, reply) => {
+      const [jobs, count] = await Promise.all([
+        listFailedJobs(request.query.limit),
+        getFailedJobCount(),
+      ]);
+      reply.send({ jobs, totalFailedCount: count });
+    },
+  );
+  app.post(
+    '/queue/failed/:id/retry',
+    { ...adminAuth, schema: { params: z.object({ id: z.string() }), response: { 200: anyResponse } } },
+    async (request, reply) => {
+      await retryFailedJob(request.params.id);
+      reply.send({ success: true });
     },
   );
 }
