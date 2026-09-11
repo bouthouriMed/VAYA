@@ -18,7 +18,7 @@
 # and the workspace packages it actually depends on, so the image doesn't
 # need to COPY the entire monorepo (mobile app, admin app, docs, etc).
 
-FROM node:22-alpine AS base
+FROM node:26-alpine AS base
 RUN corepack enable
 
 # --- Prune: compute the minimal subset of the monorepo @vaya/api needs ---
