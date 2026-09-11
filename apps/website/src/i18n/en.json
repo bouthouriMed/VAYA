@@ -1,0 +1,150 @@
+{
+  "meta": {
+    "title": "VAYA — Your trusted ride, every day",
+    "description": "Real drivers, verified profiles, and a fair price for every trip. VAYA is structured carpooling for Tunisia."
+  },
+  "nav": {
+    "passengers": "Passengers",
+    "drivers": "Drivers",
+    "trust": "Trust & safety",
+    "download": "Download"
+  },
+  "hero": {
+    "eyebrow": "Carpooling, structured for Tunisia",
+    "headline": "Your trusted ride, every day.",
+    "subhead": "Real drivers, verified profiles, and a fair price for every trip.",
+    "ctaPrimary": "Download VAYA",
+    "ctaSecondary": "See how it works",
+    "storeNote": "Free on iOS and Android",
+    "scrollHint": "Scroll to follow the ride"
+  },
+  "journey": {
+    "eyebrow": "One ride, start to finish",
+    "title": "Follow a real VAYA trip",
+    "steps": [
+      {
+        "label": "Where to?",
+        "title": "Tell VAYA where you're going",
+        "body": "Search your route. VAYA looks for real drivers already heading your way — not just ones who happen to start exactly where you are."
+      },
+      {
+        "label": "Pick your stop",
+        "title": "Choose a real, road-checked pickup point",
+        "body": "Never drop a pin in the middle of nowhere. VAYA offers a small, ranked set of real spots along the driver's actual route."
+      },
+      {
+        "label": "See the price",
+        "title": "A fair price, before you commit",
+        "body": "Every trip shows a computed price range from real distance and time — never a guess, never a bidding war."
+      },
+      {
+        "label": "Request",
+        "title": "Request your seat",
+        "body": "One tap. The driver is notified instantly."
+      },
+      {
+        "label": "Accepted",
+        "title": "The driver accepts",
+        "body": "Your seat is confirmed — track the ride and message your driver right from the app."
+      },
+      {
+        "label": "Empty seat, filled",
+        "title": "The driver earns on a trip they were already making",
+        "body": "No detour, no new trip — just a seat that would have gone empty, now covering the cost of the road."
+      }
+    ]
+  },
+  "passenger": {
+    "eyebrow": "For passengers",
+    "title": "A ride that's actually going your way",
+    "body": "Most carpooling apps match you to a driver's exact start and end point. VAYA looks at the whole route — so a driver passing near you counts too.",
+    "points": [
+      {
+        "title": "Search once, see real options",
+        "body": "Rides ranked by how well they match your route and your time, not just the closest pin."
+      },
+      {
+        "title": "A pickup point you can trust",
+        "body": "Every suggested stop is checked against the real road — no impossible pickups, no guessing."
+      },
+      {
+        "title": "See who's driving, before you request",
+        "body": "Rating, trip history and verification status are visible before you ever commit to a seat."
+      }
+    ]
+  },
+  "driver": {
+    "eyebrow": "For drivers",
+    "title": "Turn empty seats into income",
+    "body": "You're already making the trip. VAYA fills the seats that would otherwise ride empty — with real people going your way, matched to your actual route.",
+    "points": [
+      {
+        "title": "Publish your route in minutes",
+        "body": "VAYA maps your trip on real roads and suggests road-checked pickup points along the way."
+      },
+      {
+        "title": "A price that's fair to set",
+        "body": "A computed price range from real distance and duration — you choose within it, never a free-for-all."
+      },
+      {
+        "title": "Riders who know the rules",
+        "body": "Clear pickup points, visible pricing, and a rating system that rewards reliability on both sides."
+      }
+    ]
+  },
+  "matching": {
+    "eyebrow": "The matching engine",
+    "title": "VAYA finds rides going your way — not just your exact route",
+    "body": "Underneath every search is a real routing engine, built on Tunisia's actual road network. VAYA checks whether a driver's route genuinely passes near you — even mid-trip — before ever showing you a match.",
+    "tiers": [
+      { "title": "On your exact route", "body": "A driver going from your start to your end." },
+      { "title": "Close enough to walk", "body": "A driver whose route runs near enough to your trip." },
+      { "title": "Passing through", "body": "A driver whose route runs through your corridor, even if their own trip goes further." },
+      { "title": "Closest departure", "body": "Nothing at your exact time? VAYA shows the next best departure on the same corridor." }
+    ]
+  },
+  "trust": {
+    "eyebrow": "Trust & safety",
+    "title": "Know who you're riding with, before you book",
+    "body": "Trust has to be visible before commitment, not discovered after the fact.",
+    "points": [
+      {
+        "title": "Live-camera verification",
+        "body": "Every driver verifies identity through a live camera check — never an uploaded photo from a gallery."
+      },
+      {
+        "title": "Ratings you see first",
+        "body": "Reliability, punctuality and trip history are shown before you request a seat, not after."
+      },
+      {
+        "title": "A policy that protects both sides",
+        "body": "Clear cancellation and no-show rules, applied the same way for passengers and drivers."
+      }
+    ]
+  },
+  "product": {
+    "eyebrow": "Inside the app",
+    "title": "This is the actual VAYA app",
+    "body": "No mockups standing in for the product — this is what booking a real trip looks like."
+  },
+  "finalCta": {
+    "title": "Your next ride is already on the road.",
+    "body": "Download VAYA and see who's going your way.",
+    "ctaPrimary": "Download VAYA",
+    "appStore": "Download on the App Store",
+    "googlePlay": "Get it on Google Play"
+  },
+  "footer": {
+    "tagline": "Structured carpooling for Tunisia.",
+    "product": "Product",
+    "passengers": "Passengers",
+    "drivers": "Drivers",
+    "trust": "Trust & safety",
+    "company": "Company",
+    "legal": "Legal",
+    "terms": "Terms",
+    "privacy": "Privacy",
+    "language": "Language",
+    "rights": "VAYA. All rights reserved."
+  }
+}
