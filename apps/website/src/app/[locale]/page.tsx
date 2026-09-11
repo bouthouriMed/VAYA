@@ -1,6 +1,5 @@
 import { getDictionary, locales, type Locale } from '@/i18n/dictionaries';
 import { Nav } from '@/components/Nav';
-import { Hero } from '@/components/Hero';
 import { Journey } from '@/components/Journey';
 import { PassengerSection } from '@/components/PassengerSection';
 import { DriverSection } from '@/components/DriverSection';
@@ -26,7 +25,6 @@ export default async function HomePage({
     <>
       <Nav dict={dict} locale={locale} />
       <main>
-        <Hero dict={dict} />
         <Journey dict={dict} />
         <PassengerSection dict={dict} locale={locale} />
         <DriverSection dict={dict} locale={locale} />

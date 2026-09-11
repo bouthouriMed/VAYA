@@ -359,6 +359,9 @@ importers:
       '@react-three/fiber':
         specifier: ^9.0.0
         version: 9.7.0(@types/react@19.1.17)(expo-asset@12.0.13(expo@54.0.37)(react-native@0.81.5(@babel/core@7.29.7)(@react-native-community/cli@14.1.0(typescript@5.9.3))(@react-native/metro-config@0.87.0(@babel/core@7.29.7))(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)(typescript@5.9.3))(expo-file-system@19.0.24(expo@54.0.37)(react-native@0.81.5(@babel/core@7.29.7)(@react-native-community/cli@14.1.0(typescript@5.9.3))(@react-native/metro-config@0.87.0(@babel/core@7.29.7))(@types/react@19.1.17)(react@19.1.0)))(expo@54.0.37)(immer@11.1.17)(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.7)(@react-native-community/cli@14.1.0(typescript@5.9.3))(@react-native/metro-config@0.87.0(@babel/core@7.29.7))(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)(three@0.171.0)
+      '@react-three/postprocessing':
+        specifier: ^3.0.4
+        version: 3.1.1(@react-three/fiber@9.7.0(@types/react@19.1.17)(expo-asset@12.0.13(expo@54.0.37)(react-native@0.81.5(@babel/core@7.29.7)(@react-native-community/cli@14.1.0(typescript@5.9.3))(@react-native/metro-config@0.87.0(@babel/core@7.29.7))(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)(typescript@5.9.3))(expo-file-system@19.0.24(expo@54.0.37)(react-native@0.81.5(@babel/core@7.29.7)(@react-native-community/cli@14.1.0(typescript@5.9.3))(@react-native/metro-config@0.87.0(@babel/core@7.29.7))(@types/react@19.1.17)(react@19.1.0)))(expo@54.0.37)(immer@11.1.17)(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.7)(@react-native-community/cli@14.1.0(typescript@5.9.3))(@react-native/metro-config@0.87.0(@babel/core@7.29.7))(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)(three@0.171.0))(@types/three@0.171.0)(postprocessing@6.39.5(three@0.171.0))(react@19.1.0)(three@0.171.0)
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
@@ -371,6 +374,9 @@ importers:
       next:
         specifier: 15.1.6
         version: 15.1.6(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(@playwright/test@1.62.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+      postprocessing:
+        specifier: ^6.36.4
+        version: 6.39.5(three@0.171.0)
       react:
         specifier: 19.1.0
         version: 19.1.0
@@ -2940,6 +2946,14 @@ packages:
         optional: true
       react-native:
         optional: true
+
+  '@react-three/postprocessing@3.1.1':
+    resolution: {integrity: sha512-WG0dhAt/JDGU3eimwq21wuajvXS7SYN5u1kBau/ElTkllFB3CSpwILJNpNctZGxo4Dz157shB66CQb9ZSU/zMQ==}
+    peerDependencies:
+      '@react-three/fiber': '>=9.7.0'
+      postprocessing: ^6.36.0
+      react: ^19.0.0
+      three: '>= 0.156.0'
 
   '@redocly/ajv@8.11.2':
     resolution: {integrity: sha512-io1JpnwtIcvojV7QKDUSIuMN/ikdOUd1ReEnUnMKGfDVridQZ31J0MmIuqwuRjWDZfmvr+Q0MqCcfHM2gTivOg==}
@@ -6785,6 +6799,12 @@ packages:
   mz@2.7.0:
     resolution: {integrity: sha512-z81GNO7nnYMEhrGh9LeymoE4+Yr0Wn5McHIZMK5cfQCl+NDX08sCZgUc9/6MHni9IWuFLm1Z3HTCXu2z9fN62Q==}
 
+  n8ao@2.0.1:
+    resolution: {integrity: sha512-MoP1QKUdj4/3cKEnhFl917t0eQwWGER1l43ckz5mNOPyYWGRDGQbVoTOQz/VBvy01in6QVNG+AL6Xxx5AjZBYA==}
+    peerDependencies:
+      postprocessing: '>=6.30.0'
+      three: '>=0.137'
+
   nanoid@3.3.18:
     resolution: {integrity: sha512-DTg4MJbGMWkfi6VZFdNt2/caMbQy4Ou+Op/hJQvGEWcnVfoA1QA+xzRKAzw9jD6+GVOOeYr/mIcuDSdug6F6+w==}
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
@@ -7308,6 +7328,11 @@ packages:
   postgres-interval@1.2.0:
     resolution: {integrity: sha512-9ZhXKM/rw350N1ovuWHbGxnGh/SNJ4cnxHiM0rxE4VN41wsg8P8zWn9hv/buK00RP4WvlOyr/RBDiptyxVbkZQ==}
     engines: {node: '>=0.10.0'}
+
+  postprocessing@6.39.5:
+    resolution: {integrity: sha512-YmH+t74J2X1lwYjKzK/tgs9C9kqWWPB9JwZiDF5mEf4BdCEAmEFbO8lXBA7NM0/j4g+x6FgD/Tt5/kT7ogbEDA==}
+    peerDependencies:
+      three: '>= 0.168.0 < 0.187.0'
 
   potpack@1.0.2:
     resolution: {integrity: sha512-choctRBIV9EMT9WGAZHn3V7t0Z2pMQyl0EZE6pFc/6ml3ssw7Dlf/oAOvFwjm1HVsqfQN8GfeFyJ+d8tRzqueQ==}
@@ -11658,6 +11683,17 @@ snapshots:
     transitivePeerDependencies:
       - '@types/react'
       - immer
+
+  '@react-three/postprocessing@3.1.1(@react-three/fiber@9.7.0(@types/react@19.1.17)(expo-asset@12.0.13(expo@54.0.37)(react-native@0.81.5(@babel/core@7.29.7)(@react-native-community/cli@14.1.0(typescript@5.9.3))(@react-native/metro-config@0.87.0(@babel/core@7.29.7))(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)(typescript@5.9.3))(expo-file-system@19.0.24(expo@54.0.37)(react-native@0.81.5(@babel/core@7.29.7)(@react-native-community/cli@14.1.0(typescript@5.9.3))(@react-native/metro-config@0.87.0(@babel/core@7.29.7))(@types/react@19.1.17)(react@19.1.0)))(expo@54.0.37)(immer@11.1.17)(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.7)(@react-native-community/cli@14.1.0(typescript@5.9.3))(@react-native/metro-config@0.87.0(@babel/core@7.29.7))(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)(three@0.171.0))(@types/three@0.171.0)(postprocessing@6.39.5(three@0.171.0))(react@19.1.0)(three@0.171.0)':
+    dependencies:
+      '@react-three/fiber': 9.7.0(@types/react@19.1.17)(expo-asset@12.0.13(expo@54.0.37)(react-native@0.81.5(@babel/core@7.29.7)(@react-native-community/cli@14.1.0(typescript@5.9.3))(@react-native/metro-config@0.87.0(@babel/core@7.29.7))(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)(typescript@5.9.3))(expo-file-system@19.0.24(expo@54.0.37)(react-native@0.81.5(@babel/core@7.29.7)(@react-native-community/cli@14.1.0(typescript@5.9.3))(@react-native/metro-config@0.87.0(@babel/core@7.29.7))(@types/react@19.1.17)(react@19.1.0)))(expo@54.0.37)(immer@11.1.17)(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.7)(@react-native-community/cli@14.1.0(typescript@5.9.3))(@react-native/metro-config@0.87.0(@babel/core@7.29.7))(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)(three@0.171.0)
+      maath: 0.10.8(@types/three@0.171.0)(three@0.171.0)
+      n8ao: 2.0.1(postprocessing@6.39.5(three@0.171.0))(three@0.171.0)
+      postprocessing: 6.39.5(three@0.171.0)
+      react: 19.1.0
+      three: 0.171.0
+    transitivePeerDependencies:
+      - '@types/three'
 
   '@redocly/ajv@8.11.2':
     dependencies:
@@ -16142,6 +16178,11 @@ snapshots:
       object-assign: 4.1.1
       thenify-all: 1.6.0
 
+  n8ao@2.0.1(postprocessing@6.39.5(three@0.171.0))(three@0.171.0):
+    dependencies:
+      postprocessing: 6.39.5(three@0.171.0)
+      three: 0.171.0
+
   nanoid@3.3.18: {}
 
   napi-postinstall@0.3.4: {}
@@ -16694,6 +16735,10 @@ snapshots:
   postgres-interval@1.2.0:
     dependencies:
       xtend: 4.0.2
+
+  postprocessing@6.39.5(three@0.171.0):
+    dependencies:
+      three: 0.171.0
 
   potpack@1.0.2: {}
 

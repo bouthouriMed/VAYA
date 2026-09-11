@@ -3,7 +3,7 @@
 import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { RoundedBox } from '@react-three/drei';
-import { Group, Mesh, MeshStandardMaterial, Vector3 } from 'three';
+import { Group, Mesh, MeshStandardMaterial, Vector3, SpotLight } from 'three';
 import { roadCurve, beats, smoothstep, clamp01 } from '@/lib/curve';
 
 const UP = new Vector3(0, 1, 0);
@@ -15,18 +15,28 @@ const UP = new Vector3(0, 1, 0);
  * than a literal vehicle render. Appears once matching completes
  * (`beats.carAppearAt`), reaches the passenger at `beats.carPickupAt`
  * (a small emissive "rider" dot fades in and rides along), then continues
- * to `beats.carEnd`.
+ * to `beats.carEnd`. Wheels actually rotate, a warm headlight spotlight
+ * lights the road ahead (real dynamic light, not a decal), and a pair of
+ * fading speed-streaks behind it read as motion rather than a static toy.
  */
 export function Car({ progressRef }: { progressRef: React.MutableRefObject<number> }): React.JSX.Element {
   const group = useRef<Group>(null);
   const riderRef = useRef<Mesh>(null);
-  const riderMaterial = useMemo(() => new MeshStandardMaterial({
-    color: '#F6F1E7',
-    emissive: '#3FBE85',
-    emissiveIntensity: 1.4,
-  }), []);
+  const wheelRefs = useRef<(Group | null)[]>([]);
+  const spotRef = useRef<SpotLight>(null);
+  const spotTargetRef = useRef<Group>(null);
+  const streakRefs = useRef<(Mesh | null)[]>([]);
+  const riderMaterial = useMemo(
+    () =>
+      new MeshStandardMaterial({
+        color: '#F6F1E7',
+        emissive: '#3FBE85',
+        emissiveIntensity: 1.4,
+      }),
+    []
+  );
 
-  useFrame(() => {
+  useFrame((state, delta) => {
     const g = group.current;
     if (!g) return;
     const progress = progressRef.current;
@@ -51,12 +61,30 @@ export function Car({ progressRef }: { progressRef: React.MutableRefObject<numbe
       g.lookAt(target);
     }
 
+    // Wheel spin — purely cosmetic angular velocity, not tied to real speed,
+    // but fast enough to read as "moving" rather than "sliding".
+    wheelRefs.current.forEach((w) => {
+      if (w) w.rotation.x -= delta * 14;
+    });
+
     const riderVisibility = smoothstep(beats.carPickupAt, beats.carPickupAt + 0.04, progress);
     if (riderRef.current) {
       riderRef.current.visible = riderVisibility > 0.01;
       const rScale = 0.001 + riderVisibility * 0.999;
       riderRef.current.scale.set(rScale, rScale, rScale);
     }
+
+    if (spotRef.current && spotTargetRef.current) {
+      spotRef.current.target = spotTargetRef.current;
+      spotRef.current.intensity = 6 * visibility;
+    }
+
+    const flicker = 0.75 + Math.sin(state.clock.elapsedTime * 30) * 0.08;
+    streakRefs.current.forEach((s, i) => {
+      if (!s) return;
+      const mat = s.material as MeshStandardMaterial;
+      mat.opacity = 0.35 * visibility * (i === 0 ? flicker : 1);
+    });
   });
 
   return (
@@ -79,15 +107,65 @@ export function Car({ progressRef }: { progressRef: React.MutableRefObject<numbe
         [0.58, -0.16, -0.78],
         [-0.58, -0.16, -0.78],
       ].map((pos, i) => (
-        <mesh key={i} position={pos as [number, number, number]} rotation={[0, 0, Math.PI / 2]}>
-          <cylinderGeometry args={[0.22, 0.22, 0.18, 16]} />
-          <meshStandardMaterial color="#0D1512" roughness={0.8} />
+        <group
+          key={i}
+          position={pos as [number, number, number]}
+          ref={(el) => {
+            wheelRefs.current[i] = el;
+          }}
+        >
+          <mesh rotation={[0, 0, Math.PI / 2]}>
+            <cylinderGeometry args={[0.22, 0.22, 0.18, 16]} />
+            <meshStandardMaterial color="#0D1512" roughness={0.8} />
+          </mesh>
+        </group>
+      ))}
+
+      {/* Headlight — a real spotlight, not a decal, so it actually lights the road ahead */}
+      <group ref={spotTargetRef} position={[0, -0.1, 4]} />
+      <spotLight
+        ref={spotRef}
+        position={[0, 0.1, 1.05]}
+        angle={0.5}
+        penumbra={0.6}
+        color="#FFE9BE"
+        distance={9}
+        decay={2}
+      />
+      <mesh position={[0.36, 0.05, 1.15]}>
+        <sphereGeometry args={[0.07, 10, 10]} />
+        <meshStandardMaterial color="#FFE9BE" emissive="#FFE9BE" emissiveIntensity={2.4} toneMapped={false} />
+      </mesh>
+      <mesh position={[-0.36, 0.05, 1.15]}>
+        <sphereGeometry args={[0.07, 10, 10]} />
+        <meshStandardMaterial color="#FFE9BE" emissive="#FFE9BE" emissiveIntensity={2.4} toneMapped={false} />
+      </mesh>
+
+      {/* Tail lights + speed streaks — cosmetic motion cue trailing the car */}
+      <mesh position={[0, 0.05, -1.18]}>
+        <boxGeometry args={[0.9, 0.12, 0.06]} />
+        <meshStandardMaterial color="#3FBE85" emissive="#3FBE85" emissiveIntensity={1.2} toneMapped={false} />
+      </mesh>
+      {[0.32, -0.32].map((x, i) => (
+        <mesh
+          key={i}
+          ref={(el) => {
+            streakRefs.current[i] = el;
+          }}
+          position={[x, 0.05, -1.9 - i * 0.15]}
+        >
+          <boxGeometry args={[0.05, 0.03, 1.4]} />
+          <meshStandardMaterial
+            color="#3FBE85"
+            emissive="#3FBE85"
+            emissiveIntensity={1.4}
+            transparent
+            opacity={0.3}
+            toneMapped={false}
+          />
         </mesh>
       ))}
-      <mesh position={[0, 0.05, 1.2]}>
-        <boxGeometry args={[0.9, 0.12, 0.06]} />
-        <meshStandardMaterial color="#3FBE85" emissive="#3FBE85" emissiveIntensity={1.2} />
-      </mesh>
+
       <mesh ref={riderRef} position={[0, 0.55, -0.1]} material={riderMaterial} visible={false}>
         <sphereGeometry args={[0.16, 16, 16]} />
       </mesh>
