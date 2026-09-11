@@ -54,15 +54,114 @@ const envSchema = z.object({
   // lib/sms's DevSmsProvider fallback.
   RESEND_API_KEY: z.string().optional(),
   EMAIL_FROM: z.string().default('VAYA <no-reply@vaya-app.com>'),
+  // SMS/OTP delivery (lib/sms) — same direct-HTTP-call pattern as Resend
+  // above. All three required together to activate TwilioSmsProvider;
+  // unset in dev/test by default, falling back to DevSmsProvider (logs the
+  // OTP instead of sending it). Phone/OTP is this app's *default* auth path
+  // (Google is the only alternative), so assertProductionSafe below refuses
+  // to boot in production without a real provider configured — silently
+  // logging every user's OTP instead of sending it is not a safe default to
+  // ever reach production.
+  TWILIO_ACCOUNT_SID: z.string().optional(),
+  TWILIO_AUTH_TOKEN: z.string().optional(),
+  TWILIO_FROM_NUMBER: z.string().optional(),
+  // File storage (lib/storage) — KYC documents (license/insurance/selfie)
+  // and avatar/vehicle photos. All of S3_BUCKET/S3_REGION/S3_ACCESS_KEY_ID/
+  // S3_SECRET_ACCESS_KEY required together to activate S3StorageAdapter;
+  // unset in dev/test by default, falling back to LocalDiskStorageAdapter
+  // (writes to the container's local filesystem — fine for a single dev
+  // machine, but permanently loses every KYC document on any redeploy of an
+  // ephemeral production container). S3_ENDPOINT/S3_FORCE_PATH_STYLE are
+  // optional overrides for an S3-compatible provider other than AWS (e.g.
+  // Cloudflare R2, MinIO). S3_PUBLIC_URL_BASE overrides the public URL
+  // constructed for `save()` results (e.g. a CDN domain in front of the
+  // bucket) — defaults to the bucket's own virtual-hosted-style URL.
+  S3_BUCKET: z.string().optional(),
+  S3_REGION: z.string().optional(),
+  S3_ACCESS_KEY_ID: z.string().optional(),
+  S3_SECRET_ACCESS_KEY: z.string().optional(),
+  S3_ENDPOINT: z.string().url().optional(),
+  S3_FORCE_PATH_STYLE: z
+    .string()
+    .optional()
+    .transform((v) => v === 'true'),
+  S3_PUBLIC_URL_BASE: z.string().url().optional(),
+  // Error tracking (config/monitoring.ts) — a real Sentry DSN turns on
+  // Sentry.init for real; unset in dev/test by default (safe no-op).
+  SENTRY_DSN: z.string().optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;
+
+const INSECURE_JWT_SECRET_DEFAULT = 'dev-insecure-jwt-secret-change-in-production';
+
+// Values that are safe (even necessary) in development/test but must never
+// reach a real production deploy. Zod's per-field `.default()` can't express
+// "required unless NODE_ENV !== production" on its own, so this cross-field
+// check runs after the base schema — catching exactly the case CLAUDE.md's
+// own "no secrets in git" rule exists to prevent: a production boot silently
+// succeeding on a publicly-known-from-source-code secret or a wide-open CORS
+// default because the real env var was simply never set.
+function assertProductionSafe(env: Env): void {
+  if (env.NODE_ENV !== 'production') return;
+
+  const errors: string[] = [];
+  if (env.JWT_SECRET === INSECURE_JWT_SECRET_DEFAULT || env.JWT_SECRET.length < 32) {
+    errors.push(
+      'JWT_SECRET must be set to a real secret (32+ chars) in production — refusing to boot on the insecure default.'
+    );
+  }
+  if (env.CORS_ORIGIN === '*') {
+    errors.push(
+      'CORS_ORIGIN must not be "*" in production — set it to the real allowed origin(s) (admin app domain, etc).'
+    );
+  }
+  const hasTwilio = Boolean(env.TWILIO_ACCOUNT_SID && env.TWILIO_AUTH_TOKEN && env.TWILIO_FROM_NUMBER);
+  if (!hasTwilio) {
+    errors.push(
+      'TWILIO_ACCOUNT_SID/TWILIO_AUTH_TOKEN/TWILIO_FROM_NUMBER must all be set in production — refusing to boot with OTP codes only logged (DevSmsProvider), which means no user could ever complete phone/OTP sign-in.'
+    );
+  }
+  const hasS3 = Boolean(
+    env.S3_BUCKET && env.S3_REGION && env.S3_ACCESS_KEY_ID && env.S3_SECRET_ACCESS_KEY
+  );
+  if (!hasS3) {
+    errors.push(
+      'S3_BUCKET/S3_REGION/S3_ACCESS_KEY_ID/S3_SECRET_ACCESS_KEY must all be set in production — refusing to boot on LocalDiskStorageAdapter, which loses every KYC document/photo on container restart.'
+    );
+  }
+  if (errors.length > 0) {
+    console.error('Refusing to start in production with unsafe configuration:', errors);
+    process.exit(1);
+  }
+
+  // Non-fatal: these degrade to a dev-only fallback rather than breaking the
+  // core auth/document flows above, but silently doing so in production
+  // (nothing sent, nothing logged beyond a per-call warning) is still a real
+  // operational surprise worth a loud one-time boot warning.
+  const warnings: string[] = [];
+  if (!env.RESEND_API_KEY) {
+    warnings.push('RESEND_API_KEY is unset — transactional emails will only be logged, never sent.');
+  }
+  if (!env.REDIS_URL) {
+    warnings.push(
+      'REDIS_URL is unset — caching, rate-limit backing, and the BullMQ notification/recurring-scan queues are all disabled.'
+    );
+  }
+  if (!env.SENTRY_DSN) {
+    warnings.push('SENTRY_DSN is unset — unhandled exceptions are only logged, never reported anywhere.');
+  }
+  if (warnings.length > 0) {
+    console.warn('Starting in production with degraded configuration:', warnings);
+  }
+}
 
 let _env: Env | null = null;
 
 export function getEnv(): Env {
   if (!_env) {
     _env = envSchema.parse(process.env);
+    assertProductionSafe(_env);
   }
   return _env;
 }
@@ -73,6 +172,7 @@ export function validateEnv(): Env {
     console.error('Invalid environment variables:', result.error.flatten().fieldErrors);
     process.exit(1);
   }
+  assertProductionSafe(result.data);
   _env = result.data;
   return _env;
 }

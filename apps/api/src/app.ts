@@ -1,4 +1,5 @@
 import path from 'node:path';
+import { mkdirSync } from 'node:fs';
 import Fastify, { type FastifyReply, type FastifyRequest } from 'fastify';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
@@ -16,11 +17,14 @@ import {
 } from 'fastify-type-provider-zod';
 import { eq } from 'drizzle-orm';
 import { getEnv } from './config/env.js';
+import { getLogger } from './config/logger.js';
 import { ForbiddenError, UnauthorizedError } from './lib/errors.js';
 import { errorHandler } from './middleware/error-handler.js';
 import { getDatabase } from './lib/database.js';
 import { users } from './db/schema/index.js';
 import { healthRoutes } from './modules/health/health.routes.js';
+import { metricsRoutes } from './modules/metrics/metrics.routes.js';
+import { httpRequestDurationSeconds, httpRequestsTotal } from './lib/metrics.js';
 import { authRoutes } from './modules/auth/auth.routes.js';
 import { googleOAuthRoutes } from './modules/auth/google-auth.routes.js';
 import { usersRoutes } from './modules/users/users.routes.js';
@@ -45,6 +49,7 @@ declare module 'fastify' {
   interface FastifyInstance {
     authenticate: (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
     authenticateAdmin: (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
+    authenticateSuperAdmin: (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
   }
 }
 declare module '@fastify/jwt' {
@@ -60,10 +65,14 @@ declare module '@fastify/jwt' {
 export async function buildApp() {
   const env = getEnv();
 
+  // A single shared logger (config/logger.ts), not a second inline
+  // `{level: env.LOG_LEVEL}` config previously duplicated here — the two
+  // instances diverged in practice (only config/logger.ts's had a dev-mode
+  // pino-pretty transport; adding redaction to one silently wouldn't have
+  // covered the other). Fastify decorates every request/response log line
+  // through whichever instance it's given, so this one change covers both.
   const app = Fastify({
-    logger: {
-      level: env.LOG_LEVEL,
-    },
+    loggerInstance: getLogger(),
     trustProxy: true,
   });
 
@@ -71,7 +80,13 @@ export async function buildApp() {
   app.setSerializerCompiler(serializerCompiler);
 
   // Plugins
-  await app.register(cors, { origin: env.CORS_ORIGIN });
+  // CORS_ORIGIN is a single '*' in dev (assertProductionSafe in config/env.ts
+  // refuses to boot on that in production) or a real comma-separated origin
+  // list in production (e.g. the admin app's domain) — @fastify/cors treats
+  // a bare string as one literal origin, so a multi-origin value has to be
+  // split into an array for it to actually allow more than one origin.
+  const corsOrigin = env.CORS_ORIGIN === '*' ? '*' : env.CORS_ORIGIN.split(',').map((o) => o.trim());
+  await app.register(cors, { origin: corsOrigin });
   await app.register(helmet);
   // Conservative global default; per-route overrides (e.g. OTP request,
   // which has an SMS-cost/spam-abuse surface) use the `config.rateLimit`
@@ -83,8 +98,16 @@ export async function buildApp() {
   await app.register(jwt, { secret: env.JWT_SECRET });
   await app.register(multipart);
   await app.register(websocket);
+  // @fastify/static warns (harmlessly, but on every boot) if `root` doesn't
+  // exist yet — true on a fresh checkout/container before any upload has
+  // ever happened, since LocalDiskStorageAdapter only creates it lazily on
+  // first write. Harmless to create unconditionally even when S3StorageAdapter
+  // is active (lib/storage/index.ts) — this mount is then simply never
+  // written to.
+  const uploadsRoot = path.resolve(process.cwd(), 'uploads');
+  mkdirSync(uploadsRoot, { recursive: true });
   await app.register(staticPlugin, {
-    root: path.resolve(process.cwd(), 'uploads'),
+    root: uploadsRoot,
     prefix: '/uploads/',
   });
 
@@ -129,11 +152,44 @@ export async function buildApp() {
     }
   });
 
+  // The `admin`/`superadmin` role distinction admin-auth.routes.ts already
+  // issues in every admin token's payload was previously never checked
+  // anywhere — every route behind authenticateAdmin was reachable by any
+  // admin account regardless of role. Routes with platform-wide blast radius
+  // (account suspension, platform pricing/matching/cancellation config) now
+  // require this stricter check; day-to-day moderation (KYC review, ride
+  // cancellation, report handling) stays on authenticateAdmin.
+  app.decorate('authenticateSuperAdmin', async (request: FastifyRequest, _reply: FastifyReply) => {
+    try {
+      await request.jwtVerify();
+    } catch {
+      throw new UnauthorizedError('Invalid or missing access token');
+    }
+    if (request.user.type !== 'admin' || request.user.role !== 'superadmin') {
+      throw new ForbiddenError('Superadmin access required');
+    }
+  });
+
   // Error handler
   app.setErrorHandler(errorHandler);
 
+  // Records every response into the two /metrics series (lib/metrics.ts).
+  // Labeled by `routeOptions.url` (the parameterized pattern, e.g.
+  // `/users/:id`), never the raw request path — a raw-path label would
+  // create one time series per unique id ever requested, an unbounded-
+  // cardinality footgun Prometheus itself warns against.
+  app.addHook('onResponse', async (request, reply) => {
+    const route = request.routeOptions.url ?? 'unmatched';
+    const labels = { method: request.method, route, status_code: String(reply.statusCode) };
+    httpRequestDurationSeconds.observe(labels, reply.elapsedTime / 1000);
+    httpRequestsTotal.inc(labels);
+  });
+
   // Routes
   await app.register(healthRoutes, { prefix: env.API_PREFIX });
+  // Unprefixed — Prometheus scrape configs universally expect a bare
+  // `/metrics`, not this app's own `/api/v1` convention.
+  await app.register(metricsRoutes);
   await app.register(authRoutes, { prefix: env.API_PREFIX });
   // Unprefixed: Google redirects the browser to GOOGLE_CALLBACK_URL exactly
   // as registered in GCP, which this app doesn't get to reshape.

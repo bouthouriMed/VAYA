@@ -184,6 +184,21 @@ export interface AuditLogRow {
   createdAt: string;
 }
 
+export interface FailedJobRow {
+  id: string;
+  name: string;
+  data: unknown;
+  failedReason: string | undefined;
+  attemptsMade: number;
+  timestamp: number;
+  finishedOn: number | undefined;
+}
+
+export interface FailedJobsResponse {
+  jobs: FailedJobRow[];
+  totalFailedCount: number;
+}
+
 export interface OverviewMetrics {
   windowDays: number;
   users: { total: number; new: number; active: number; passengers: number; drivers: number; verifiedDrivers: number };

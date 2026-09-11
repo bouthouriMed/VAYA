@@ -1,0 +1,18 @@
+# Keep every workspace's package.json reachable (needed for `turbo prune` /
+# pnpm workspace resolution to see the full dependency graph) — only strip
+# heavy, regenerable build artifacts, not source directories.
+node_modules
+**/node_modules
+**/dist
+**/.turbo
+**/coverage
+.git
+apps/mobile/.expo
+apps/mobile/android
+apps/mobile/ios
+apps/admin/dist
+tests/e2e/playwright-report
+tests/e2e/test-results
+docker/osrm/data
+docker/data
+*.log

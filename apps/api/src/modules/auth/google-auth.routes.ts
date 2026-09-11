@@ -5,20 +5,36 @@ import { loginWithGoogleCode, issueOauthTicket } from './auth.service.js';
 
 const DEFAULT_APP_DEEP_LINK = 'vaya://auth/google';
 
+// Every legitimate caller of /auth/google/start is one of these three
+// schemes (apps/mobile/src/services/auth/googleAuth.ts's `Linking.createURL`
+// call resolves to exactly one of them, depending on runtime):
+//   vaya://          — a real standalone/production build (app.config.js's
+//                      `scheme: 'vaya'`)
+//   exp://           — Expo Go (dynamic <host>:<port>, can't be a fixed
+//                      literal, so this only checks the scheme prefix)
+//   exp+vaya://      — a custom dev-client build (Expo's own documented
+//                      `exp+<scheme>://` convention for dev clients)
+// Anything else (in particular another app's arbitrary custom scheme) is
+// rejected outright rather than merely "not http(s)" — a previous version
+// of this check only blocked http(s), which would have handed the one-time
+// OAuth ticket to any other installed app that happened to register a
+// colliding custom URL scheme.
+const ALLOWED_APP_REDIRECT_SCHEMES = [/^vaya:\/\//i, /^exp:\/\//i, /^exp\+vaya:\/\//i];
+
 /**
- * The app's actual return deep link isn't a fixed constant: a standalone or
- * dev-client build owns the `vaya://` scheme, but Expo Go doesn't — it
- * listens on its own dynamic `exp://<host>:<port>/--/...` URL instead
- * (`Linking.createURL()` on the client resolves to whichever is real for the
- * current runtime). /auth/google/start accepts the caller's real redirect
+ * The app's actual return deep link isn't a fixed constant — see the scheme
+ * list above for why. /auth/google/start accepts the caller's real redirect
  * URI and threads it through the signed `state` round-trip so the callback
  * can send the browser back to the exact URL the app is actually listening
- * on. Only custom (non-http/https) schemes are accepted — rejecting a web
- * URL here closes off using this endpoint to bounce someone's ticket to an
- * attacker-controlled page.
+ * on, but only ever to one of the allowlisted schemes — never an arbitrary
+ * caller-supplied value.
  */
-function sanitizeAppRedirectUri(candidate: unknown): string {
-  if (typeof candidate === 'string' && candidate.length > 0 && !/^https?:\/\//i.test(candidate)) {
+export function sanitizeAppRedirectUri(candidate: unknown): string {
+  if (
+    typeof candidate === 'string' &&
+    candidate.length > 0 &&
+    ALLOWED_APP_REDIRECT_SCHEMES.some((pattern) => pattern.test(candidate))
+  ) {
     return candidate;
   }
   return DEFAULT_APP_DEEP_LINK;

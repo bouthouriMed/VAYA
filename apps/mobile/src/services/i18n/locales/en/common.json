@@ -1,4 +1,7 @@
 {
+  "offline": {
+    "message": "You're offline — some things may not load"
+  },
   "actions": {
     "back": "Back",
     "cancel": "Cancel",

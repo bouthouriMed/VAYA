@@ -1,6 +1,7 @@
 import type { FastifyError, FastifyReply, FastifyRequest } from 'fastify';
 import { AppError } from '../lib/errors.js';
 import { getLogger } from '../config/logger.js';
+import { captureException } from '../config/monitoring.js';
 
 export function errorHandler(
   error: FastifyError | AppError | Error,
@@ -33,6 +34,11 @@ export function errorHandler(
   }
 
   logger.error({ err: error }, 'Unhandled error');
+  // Only genuinely unhandled (5xx, neither AppError nor a known statusCode
+  // error) errors are reported — AppError/known-statusCode branches above
+  // are expected application-level outcomes (validation, not-found,
+  // forbidden), not incidents.
+  captureException(error);
   reply.status(500).send({
     error: {
       code: 'INTERNAL_ERROR',

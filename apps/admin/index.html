@@ -4,6 +4,15 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#f7f9fb" />
+    <!-- Defense-in-depth against the admin session token's XSS-exfiltration
+         risk (see PRODUCTION_READINESS.md) — restricted to directives that
+         are both meta-tag-expressible and safe under Vite's dev server (no
+         `script-src` restriction here, since that would need `unsafe-eval`
+         in dev for HMR; the full script-src/frame-ancestors CSP belongs on
+         the real hosting layer's response headers once one is chosen — see
+         LAUNCH_ACTIONS.md). `object-src`/`base-uri` need no such carve-out
+         and hold in both dev and prod. -->
+    <meta http-equiv="Content-Security-Policy" content="object-src 'none'; base-uri 'self'" />
     <title>VAYA Admin</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

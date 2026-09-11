@@ -1,6 +1,5 @@
-import { createApi, fetchBaseQuery, type BaseQueryFn } from '@reduxjs/toolkit/query/react';
+import { createApi, fetchBaseQuery, retry, type BaseQueryFn } from '@reduxjs/toolkit/query/react';
 import type { FetchArgs, FetchBaseQueryError } from '@reduxjs/toolkit/query/react';
-import Constants from 'expo-constants';
 import type {
   RequestOtpInput,
   VerifyOtpInput,
@@ -16,11 +15,7 @@ import type {
 } from '@vaya/validation';
 import { setAccessToken, clearAuth } from './authSlice';
 import { clearTokens } from '../services/auth/tokenStorage';
-
-function getBaseUrl(): string {
-  const extra = Constants.expoConfig?.extra ?? Constants.manifest?.extra;
-  return extra?.apiBaseUrl ?? 'http://localhost:3000/api/v1';
-}
+import { getApiBaseUrl as getBaseUrl } from '../config/env';
 
 // POST /uploads returns a relative `/uploads/<file>` path rather than an
 // absolute URL (see apps/api/src/modules/uploads/uploads.routes.ts for why:
@@ -790,6 +785,11 @@ export interface FellowPassenger {
 
 const rawBaseQuery = fetchBaseQuery({
   baseUrl: getBaseUrl(),
+  // No timeout previously — a hung connection (plausible on a flaky mobile
+  // network, which this app's actual Tunisian target market genuinely has)
+  // left a query in `isLoading: true` indefinitely instead of failing out
+  // to a real retry/error state.
+  timeout: 15_000,
   prepareHeaders: (headers, { getState }) => {
     const token = (getState() as AuthPartialState).auth.accessToken;
     if (token) headers.set('Authorization', `Bearer ${token}`);
@@ -832,9 +832,30 @@ const baseQueryWithReauth: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQue
   return result;
 };
 
+// Previously no retry policy existed at all — a single dropped request on a
+// flaky connection surfaced immediately as a hard failure. Wraps the whole
+// auth-aware base query (reauth already ran by this point) with RTK
+// Query's own `retry` utility: exponential backoff, capped at 2 retries.
+// `retry.fail()` bails out immediately for any definitive 4xx (validation,
+// not-found, forbidden, conflict, and the already-handled 401) — retrying
+// those wastes round-trips on an error that will never resolve differently;
+// only network failures and 5xx actually get retried.
+const baseQueryWithReauthAndRetry: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError> =
+  retry(
+    async (args, queryApi, extraOptions) => {
+      const result = await baseQueryWithReauth(args, queryApi, extraOptions);
+      const status = result.error?.status;
+      if (typeof status === 'number' && status >= 400 && status < 500) {
+        retry.fail(result.error);
+      }
+      return result;
+    },
+    { maxRetries: 2 },
+  );
+
 export const api = createApi({
   reducerPath: 'api',
-  baseQuery: baseQueryWithReauth,
+  baseQuery: baseQueryWithReauthAndRetry,
   // Without these, a query only ever refetches when its own tag is
   // invalidated by a mutation *in this same app instance* — it never
   // reflects something that happened on someone else's device (a driver

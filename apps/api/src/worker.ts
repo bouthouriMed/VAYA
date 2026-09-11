@@ -1,9 +1,12 @@
+import { writeFileSync } from 'node:fs';
 import { Worker, type Job } from 'bullmq';
 import { validateEnv } from './config/env.js';
 import { getLogger } from './config/logger.js';
-import { getDatabase } from './lib/database.js';
+import { initMonitoring, captureException } from './config/monitoring.js';
+import { getDatabase, closeDatabase } from './lib/database.js';
 import {
   getQueueConnection,
+  closeQueue,
   NOTIFICATION_DISPATCH_QUEUE,
   RECURRING_PATTERN_SCAN_JOB_NAME,
   scheduleRecurringPatternScanJob,
@@ -35,9 +38,24 @@ import { processBookingExpirySweepJob } from './modules/bookings/booking-expiry-
  * detection scan — routed by `job.name` below, not a second Worker/queue.
  */
 validateEnv();
+initMonitoring();
 const logger = getLogger();
 const db = getDatabase();
 const connection = getQueueConnection();
+
+// Mirrors server.ts's handlers — BullMQ wraps each job handler in its own
+// try/catch, but an error escaping that (e.g. a fire-and-forget promise
+// inside a job) previously crashed this process with no structured log.
+process.on('uncaughtException', (err) => {
+  logger.fatal({ err }, 'Worker: uncaught exception — exiting');
+  captureException(err);
+  process.exit(1);
+});
+process.on('unhandledRejection', (reason) => {
+  logger.fatal({ err: reason }, 'Worker: unhandled promise rejection — exiting');
+  captureException(reason);
+  process.exit(1);
+});
 
 if (!connection) {
   logger.warn('REDIS_URL not configured — background worker exiting without starting');
@@ -68,6 +86,11 @@ if (!connection) {
     // isolate job failures (push-send, detection-scan) from anything
     // outside itself, including whatever triggered the job.
     logger.error({ jobId: job?.id, jobName: job?.name, err }, 'Background job failed (will retry per BullMQ backoff, up to the configured attempt limit)');
+    // Only report once retries are exhausted — an individual attempt
+    // failing mid-backoff is expected/routine, not yet an incident.
+    if (job && job.attemptsMade >= (job.opts.attempts ?? 1)) {
+      captureException(err);
+    }
   });
 
   logger.info('Background worker started (notification dispatch + recurring-pattern scan + trip-staleness sweep + booking-expiry sweep)');
@@ -76,4 +99,41 @@ if (!connection) {
   void scheduleRecurringPatternScanJob();
   void scheduleTripStalenessSweepJob();
   void scheduleBookingExpirySweepJob();
+
+  // This process has no HTTP server to expose a real /health route from
+  // (unlike server.ts) — a heartbeat file is the equivalent liveness signal
+  // docker/worker.Dockerfile's HEALTHCHECK reads. Written on an interval
+  // rather than only at startup so a worker that's still running but has
+  // stopped actually processing (e.g. wedged on a stuck job/connection) is
+  // distinguishable from one that's healthy — a stale file, not just a
+  // missing one, fails the healthcheck.
+  const heartbeatPath = '/tmp/worker-heartbeat';
+  const writeHeartbeat = (): void => {
+    try {
+      writeFileSync(heartbeatPath, String(Date.now()));
+    } catch (err) {
+      logger.warn({ err }, 'Failed to write worker heartbeat file');
+    }
+  };
+  writeHeartbeat();
+  const heartbeatInterval = setInterval(writeHeartbeat, 15_000);
+  heartbeatInterval.unref();
+
+  // Mirrors server.ts's graceful-shutdown pattern — previously absent here,
+  // so a container SIGTERM (rolling deploy, autoscaler scale-down) killed
+  // the process mid-job with no drain. `worker.close()` waits for any
+  // currently-processing job to finish (BullMQ's documented graceful-close
+  // behavior) before this closes the shared Redis connection and DB pool.
+  const shutdown = async (signal: string): Promise<void> => {
+    logger.info(`Received ${signal}, shutting down worker gracefully...`);
+    clearInterval(heartbeatInterval);
+    await worker.close();
+    await closeQueue();
+    await closeDatabase();
+    logger.info('Worker shut down');
+    process.exit(0);
+  };
+
+  process.on('SIGTERM', () => void shutdown('SIGTERM'));
+  process.on('SIGINT', () => void shutdown('SIGINT'));
 }
