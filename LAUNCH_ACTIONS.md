@@ -43,19 +43,21 @@ Each item: **exact action → why → exact credential/config → where → how 
 - **Where**: Secret store.
 - **Verify**: `pnpm --filter @vaya/api preflight` makes a real `HeadBucket` call and reports `✓ S3 storage: bucket "..." reachable and accessible`. Then do one real KYC document upload through the app and confirm it's retrievable afterward (not lost on a redeploy).
 
-### 6. Publish a real Terms of Service and Privacy Policy
-- **Action**: A human (ideally with legal review, given this handles location data, KYC documents, and payments-adjacent trust data) needs to write these and publish them at a real, permanently-reachable URL.
-- **Why**: The sign-in screen already shows a disclaimer referencing them, but it links to nothing — no such document exists anywhere in this repo. **Both the Apple App Store and Google Play require a working Privacy Policy URL to submit an app; submission is not possible without one.**
-- **Credential/config**: N/A — this is content, not a credential. Needs a hosting location (can be a static page, doesn't need to be in this repo).
-- **Where**: Once published, wire the URL into `apps/mobile/app/sign-in.tsx`'s legal disclaimer text (currently plain, unlinked text) and into both store listings' required Privacy Policy URL field.
-- **Verify**: The URL resolves publicly; the disclaimer text on the sign-in screen actually links to it; both store listing forms accept the URL.
+### 6. Publish a real Terms of Service and Privacy Policy — content drafted, human steps remain
+- **Status (2026-09-15)**: Real Terms & Conditions and a Privacy Policy now exist — `docs/legal/terms-and-conditions.md`/`privacy-policy.md` (French, canonical), rendered in-app in fr/en/ar at `apps/mobile/app/legal/{terms,privacy}.tsx`, and linked from `sign-in.tsx`'s previously-dead disclaimer text and from the profile screen. The remaining action items below are now specifically about what's still needed, not about writing the content from nothing.
+- **Action**: (a) Have a licensed Tunisian lawyer review both documents — the cost-sharing/intermediary framing in CGU Article 4 carries real legal weight in Tunisia specifically (no carpooling-specific statute exists; see `docs/legal/README.md`'s "Why this drafting approach" section for the full reasoning and enforcement-risk citations) and deserves real counsel, not just an AI-researched draft. (b) Have the Arabic translation reviewed by a native legal-Arabic speaker. (c) Publish the final content at a real, permanently-reachable public URL (the in-app screens alone don't satisfy the app stores' requirement for a URL). (d) Fill in the bracketed placeholders (registered entity name, RNE number, matricule fiscal, registered address, INPDP contact details) once VAYA's legal entity is actually registered.
+- **Why**: **Both the Apple App Store and Google Play require a working, public Privacy Policy URL to submit an app; submission is not possible with only an in-app screen.** The content itself, while substantive, was AI-drafted from public research, not legal advice.
+- **Credential/config**: N/A — this is content and legal review, not a credential. Needs a hosting location for the final public URL (can be a static page, doesn't need to be in this repo).
+- **Where**: Once the URL exists, add it to both store listings' required Privacy Policy URL field. `docs/legal/README.md` tracks this as an explicit open checklist item.
+- **Verify**: The URL resolves publicly; both store listing forms accept it; counsel has signed off on the Article 4 cost-sharing framing specifically.
 
-### 7. Design account deletion / data export, or explicitly accept the compliance risk
-- **Action**: A product/legal decision, not an engineering one: what does "delete my account" mean against bookings/ratings/financial-adjacent records a counterparty still has a legitimate claim to (soft-delete + anonymize vs. hard delete vs. delayed hard delete)? Once decided, it's a real (but bounded) engineering task — a `DELETE /users/me` endpoint plus whatever retention logic was decided.
-- **Why**: No such mechanism exists anywhere in the API today. GDPR's right to erasure/portability has no technical way to be fulfilled for a real EU user (and Tunisia's own data protection law, INPDP, has similar requirements). This was deliberately **not** implemented this session — a rushed implementation of the data model here risks being wrong in a way that's worse than not having it yet.
+### 7. Account deletion — done; data export remains open
+- **Status (2026-09-15)**: `DELETE /users/me` now exists (`apps/api/src/modules/users/`), soft-deletes and anonymizes the account (mirroring the existing `suspendedAt` pattern — a real hard delete was confirmed unsafe, since it would cascade into other users' bookings), purges KYC files from storage for real, revokes every session, and is blocked with a 409 while the user has an active booking/ride. Full reasoning and verification: `PRODUCTION_READINESS.md` §13.
+- **Action remaining**: Data *export*/portability (a GDPR/INPDP right distinct from deletion) was out of this pass's scope and still doesn't exist. Either scope a follow-up implementation, or explicitly accept that gap as a known risk before launch.
+- **Why**: GDPR's right to portability (and Tunisia's INPDP access-right equivalent, Loi 2004-63 Art. 32) has no technical way to be fulfilled for a data-export request today — only access (in-app) and erasure (now built) are covered.
 - **Credential/config**: N/A.
-- **Where**: A product decision, then a real implementation session.
-- **Verify**: N/A until designed.
+- **Where**: A future implementation session, scoped the same deliberate way deletion was.
+- **Verify**: N/A until built.
 
 ### 8. Set up automated Postgres backups with a tested restore
 - **Action**: Enable your Postgres provider's automated backup/PITR feature (most managed providers have this built in — RDS, Supabase, Neon, etc. all do). Then **actually restore a backup to a scratch instance once** to confirm it works.

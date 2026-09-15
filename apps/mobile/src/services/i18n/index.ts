@@ -21,6 +21,7 @@ import enValidation from './locales/en/validation.json';
 import enErrors from './locales/en/errors.json';
 import enTrips from './locales/en/trips.json';
 import enMessages from './locales/en/messages.json';
+import enLegal from './locales/en/legal.json';
 
 import frCommon from './locales/fr/common.json';
 import frNavigation from './locales/fr/navigation.json';
@@ -40,6 +41,7 @@ import frValidation from './locales/fr/validation.json';
 import frErrors from './locales/fr/errors.json';
 import frTrips from './locales/fr/trips.json';
 import frMessages from './locales/fr/messages.json';
+import frLegal from './locales/fr/legal.json';
 
 import arCommon from './locales/ar/common.json';
 import arNavigation from './locales/ar/navigation.json';
@@ -59,6 +61,7 @@ import arValidation from './locales/ar/validation.json';
 import arErrors from './locales/ar/errors.json';
 import arTrips from './locales/ar/trips.json';
 import arMessages from './locales/ar/messages.json';
+import arLegal from './locales/ar/legal.json';
 
 export const NAMESPACES = [
   'common',
@@ -79,6 +82,7 @@ export const NAMESPACES = [
   'errors',
   'trips',
   'messages',
+  'legal',
 ] as const;
 
 export const resources = {
@@ -101,6 +105,7 @@ export const resources = {
     errors: enErrors,
     trips: enTrips,
     messages: enMessages,
+    legal: enLegal,
   },
   fr: {
     common: frCommon,
@@ -121,6 +126,7 @@ export const resources = {
     errors: frErrors,
     trips: frTrips,
     messages: frMessages,
+    legal: frLegal,
   },
   ar: {
     common: arCommon,
@@ -141,6 +147,7 @@ export const resources = {
     errors: arErrors,
     trips: arTrips,
     messages: arMessages,
+    legal: arLegal,
   },
 } as const;
 

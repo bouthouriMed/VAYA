@@ -949,6 +949,14 @@ export const api = createApi({
       query: (body) => ({ url: '/users/me', method: 'PATCH', body }),
       invalidatesTags: ['Me'],
     }),
+    // Account deletion (docs/legal/privacy-policy.md §10). The server
+    // rejects with 409 while the Member has an active booking/ride — the
+    // caller (profile.tsx) surfaces that as a blocked-deletion message
+    // rather than a generic failure toast.
+    deleteMe: builder.mutation<{ success: true }, { reason?: string } | void>({
+      query: (body) => ({ url: '/users/me', method: 'DELETE', body: body ?? undefined }),
+      invalidatesTags: ['Me'],
+    }),
     // Attaching a phone to an already-authenticated (e.g. Google) account —
     // distinct from /auth/otp/*, which signs a session in/out. Same OTP
     // mechanics, but scoped to the current user and never creates a session.
@@ -1325,6 +1333,7 @@ export const {
   useNotifyMeMutation,
   useGetMeQuery,
   useUpdateMeMutation,
+  useDeleteMeMutation,
   useGetUserPublicProfileQuery,
   useGetMyDriverProfileQuery,
   useCreateDriverOnboardingMutation,

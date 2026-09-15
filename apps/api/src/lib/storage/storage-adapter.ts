@@ -28,4 +28,18 @@ export interface StorageAdapter {
    * location.
    */
   readSecure(fileUrlOrPath: string): Promise<{ buffer: Buffer; contentType: string } | null>;
+
+  /**
+   * Deletes a file previously written by `save` (public avatar/vehicle
+   * photos). Best-effort: a caller that already has nothing to delete (a
+   * missing file, an already-cleared URL) treats this as a no-op rather
+   * than an error — deletion always proceeds even if the file is already
+   * gone (docs/legal/privacy-policy.md §10, account deletion).
+   */
+  remove(fileUrlOrPath: string): Promise<void>;
+
+  /** Deletes a file previously written by `saveSecure` (driver KYC
+   *  documents) — the real erasure `docs/legal/privacy-policy.md` §10
+   *  promises on account deletion, not just a DB row soft-delete. */
+  removeSecure(fileUrlOrPath: string): Promise<void>;
 }

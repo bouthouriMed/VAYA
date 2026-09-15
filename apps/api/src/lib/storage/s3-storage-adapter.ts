@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import path from 'node:path';
 import {
+  DeleteObjectCommand,
   GetObjectCommand,
   PutObjectCommand,
   S3Client,
@@ -160,6 +161,31 @@ export class S3StorageAdapter implements StorageAdapter {
       } catch {
         return null;
       }
+    }
+  }
+
+  async remove(fileUrlOrPath: string): Promise<void> {
+    const name = basenameOf(fileUrlOrPath);
+    try {
+      await this.client.send(new DeleteObjectCommand({ Bucket: this.bucket, Key: `public/${name}` }));
+    } catch {
+      // Already gone (or never existed) — deletion still succeeds.
+    }
+  }
+
+  async removeSecure(fileUrlOrPath: string): Promise<void> {
+    const name = basenameOf(fileUrlOrPath);
+    try {
+      await this.client.send(new DeleteObjectCommand({ Bucket: this.bucket, Key: `secure/${name}` }));
+    } catch {
+      // Already gone (or never existed) — deletion still succeeds.
+    }
+    try {
+      // Legacy documents may sit under the old public/ prefix (readSecure's
+      // own fallback) — best-effort cleanup there too.
+      await this.client.send(new DeleteObjectCommand({ Bucket: this.bucket, Key: `public/${name}` }));
+    } catch {
+      // Already gone (or never existed) — deletion still succeeds.
     }
   }
 }

@@ -37,6 +37,7 @@ import {
 import { useLanguage } from '../../src/hooks/useLanguage';
 import { formatDate } from '../../src/utils/localeFormat';
 import {
+  useDeleteMeMutation,
   useGetMeQuery,
   useGetMyDriverProfileQuery,
   useGetUserTrustSummaryQuery,
@@ -115,6 +116,7 @@ export default function ProfileScreen(): React.JSX.Element {
 
   const [logout] = useLogoutMutation();
   const [updateMe] = useUpdateMeMutation();
+  const [deleteMe, { isLoading: isDeletingAccount }] = useDeleteMeMutation();
   const [uploadFile] = useUploadFileMutation();
   const [requestPhoneOtp, { isLoading: isSendingPhoneOtp }] = useRequestPhoneOtpMutation();
   const [verifyPhoneOtp, { isLoading: isVerifyingPhoneOtp }] = useVerifyPhoneOtpMutation();
@@ -122,6 +124,9 @@ export default function ProfileScreen(): React.JSX.Element {
     useContextualAuth();
 
   const [confirmingLogout, setConfirmingLogout] = useState(false);
+  const [confirmingDeleteWarning, setConfirmingDeleteWarning] = useState(false);
+  const [confirmingDeleteFinal, setConfirmingDeleteFinal] = useState(false);
+  const [deleteBlockedReason, setDeleteBlockedReason] = useState<string | undefined>();
   const [pickingLocale, setPickingLocale] = useState(false);
   const [pickingAppearance, setPickingAppearance] = useState(false);
   const [showingAccountInfo, setShowingAccountInfo] = useState(false);
@@ -195,6 +200,30 @@ export default function ProfileScreen(): React.JSX.Element {
     await clearTokens();
     dispatch(clearAuth());
     router.replace('/');
+  }
+
+  /** Real deletion (docs/legal/privacy-policy.md §10) — the server blocks
+   *  with a 409 while an active booking/ride exists, surfaced here as a
+   *  distinct blocked-state message rather than a generic failure toast.
+   *  A successful delete signs the device out exactly like handleLogout,
+   *  since the account no longer exists to stay signed into. */
+  async function handleDeleteAccount(): Promise<void> {
+    try {
+      await deleteMe().unwrap();
+      haptics.success();
+      await clearTokens();
+      dispatch(clearAuth());
+      router.replace('/');
+      toast({ message: t('profile:deleteAccount.successToast'), tone: 'success' });
+    } catch (err) {
+      haptics.error();
+      const status = (err as { status?: number } | undefined)?.status;
+      if (status === 409) {
+        setDeleteBlockedReason(t('profile:deleteAccount.blockedDescription'));
+      } else {
+        toast({ message: t('profile:deleteAccount.failureToast'), tone: 'error' });
+      }
+    }
   }
 
   /** The hub's driver block mirrors the real verification lifecycle —
@@ -360,6 +389,23 @@ export default function ProfileScreen(): React.JSX.Element {
         // dropped rather than kept alongside, since this app has no payment
         // rail at all yet (not even a partial one) to gesture toward.
         { key: 'security-privacy', icon: 'shield-checkmark-outline', label: t('profile:rows.securityPrivacy') },
+      ],
+    },
+    {
+      title: t('profile:sections.legal'),
+      rows: [
+        {
+          key: 'terms',
+          icon: 'document-text-outline',
+          label: t('profile:rows.terms'),
+          onPress: () => router.push('/legal/terms'),
+        },
+        {
+          key: 'privacy-policy',
+          icon: 'lock-closed-outline',
+          label: t('profile:rows.privacyPolicy'),
+          onPress: () => router.push('/legal/privacy'),
+        },
       ],
     },
     {
@@ -695,6 +741,22 @@ export default function ProfileScreen(): React.JSX.Element {
               {t('profile:logout.cta')}
             </Text>
           </TouchableOpacity>
+
+          {/* Deliberately a subtle text link, not a card matching Logout's
+           *  visual weight — deleting the account is a far more severe,
+           *  irreversible action and shouldn't read as an equally casual
+           *  choice next to signing out. */}
+          <TouchableOpacity
+            style={styles.deleteAccountLink}
+            onPress={() => setConfirmingDeleteWarning(true)}
+            activeOpacity={0.6}
+            accessibilityRole="button"
+            accessibilityLabel={t('profile:deleteAccount.accessibility')}
+          >
+            <Text variant="caption" color={theme.inkFaint} style={styles.deleteAccountLinkText}>
+              {t('profile:deleteAccount.cta')}
+            </Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
 
@@ -718,6 +780,57 @@ export default function ProfileScreen(): React.JSX.Element {
       >
         <Text variant="body" color={theme.inkMuted}>
           {t('profile:logout.description')}
+        </Text>
+      </Modal>
+
+      {/* Two-step destructive confirmation — deliberately more friction than
+       *  Logout's single Modal, since this is irreversible (docs/legal/
+       *  privacy-policy.md §10: "La suppression de compte est irréversible"). */}
+      <Modal
+        visible={confirmingDeleteWarning}
+        onClose={() => setConfirmingDeleteWarning(false)}
+        title={t('profile:deleteAccount.warningTitle')}
+        confirmLabel={t('profile:deleteAccount.warningCta')}
+        confirmDestructive
+        theme={theme}
+        onConfirm={() => {
+          setConfirmingDeleteWarning(false);
+          setConfirmingDeleteFinal(true);
+        }}
+      >
+        <Text variant="body" color={theme.inkMuted}>
+          {t('profile:deleteAccount.warningDescription')}
+        </Text>
+      </Modal>
+
+      <Modal
+        visible={confirmingDeleteFinal}
+        onClose={() => setConfirmingDeleteFinal(false)}
+        title={t('profile:deleteAccount.confirmTitle')}
+        confirmLabel={t('profile:deleteAccount.confirmCta')}
+        confirmDestructive
+        theme={theme}
+        onConfirm={() => {
+          setConfirmingDeleteFinal(false);
+          void handleDeleteAccount();
+        }}
+      >
+        <Text variant="body" color={theme.inkMuted}>
+          {t('profile:deleteAccount.confirmDescription')}
+        </Text>
+        {isDeletingAccount ? <ActivityIndicator size="small" color={theme.error} /> : null}
+      </Modal>
+
+      <Modal
+        visible={Boolean(deleteBlockedReason)}
+        onClose={() => setDeleteBlockedReason(undefined)}
+        title={t('profile:deleteAccount.blockedTitle')}
+        confirmLabel={t('common:actions.gotIt')}
+        theme={theme}
+        onConfirm={() => setDeleteBlockedReason(undefined)}
+      >
+        <Text variant="body" color={theme.inkMuted}>
+          {deleteBlockedReason}
         </Text>
       </Modal>
 
@@ -1101,6 +1214,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: spacing.sm,
     paddingVertical: spacing.lg,
+  },
+  deleteAccountLink: {
+    alignItems: 'center',
+    paddingVertical: spacing.md,
+  },
+  deleteAccountLinkText: {
+    textDecorationLine: 'underline',
   },
   sheetRow: {
     flexDirection: 'row',

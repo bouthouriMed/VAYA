@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { mkdir, readFile, writeFile, access } from 'node:fs/promises';
+import { mkdir, readFile, writeFile, access, unlink } from 'node:fs/promises';
 import path from 'node:path';
 import type { StorageAdapter } from './storage-adapter.js';
 
@@ -89,5 +89,29 @@ export class LocalDiskStorageAdapter implements StorageAdapter {
       return { buffer, contentType: contentTypeForExt(path.extname(name)) };
     }
     return null;
+  }
+
+  async remove(fileUrlOrPath: string): Promise<void> {
+    const name = basenameOf(fileUrlOrPath);
+    try {
+      await unlink(path.join(UPLOADS_DIR, name));
+    } catch {
+      // Already gone (or never existed) — deletion still succeeds.
+    }
+  }
+
+  async removeSecure(fileUrlOrPath: string): Promise<void> {
+    const name = basenameOf(fileUrlOrPath);
+    try {
+      await unlink(path.join(SECURE_UPLOADS_DIR, name));
+    } catch {
+      // Legacy documents may sit in the public dir instead (readSecure's
+      // own fallback) — try there too before giving up.
+      try {
+        await unlink(path.join(UPLOADS_DIR, name));
+      } catch {
+        // Already gone (or never existed) — deletion still succeeds.
+      }
+    }
   }
 }

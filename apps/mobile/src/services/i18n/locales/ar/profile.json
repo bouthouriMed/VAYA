@@ -3,7 +3,8 @@
     "identity": "الهوية",
     "account": "الحساب",
     "security": "الأمان",
-    "preferences": "التفضيلات"
+    "preferences": "التفضيلات",
+    "legal": "الشروط والخصوصية"
   },
   "rows": {
     "personalInfo": "المعلومات الشخصية",
@@ -15,7 +16,23 @@
     "privacy": "الخصوصية",
     "ridePrefs": "تفضيلات الرحلة",
     "language": "اللغة",
-    "appearance": "المظهر"
+    "appearance": "المظهر",
+    "terms": "شروط الاستخدام",
+    "privacyPolicy": "سياسة الخصوصية"
+  },
+  "deleteAccount": {
+    "cta": "حذف حسابي",
+    "accessibility": "حذف حسابي",
+    "warningTitle": "هل تريد حذف حسابك؟",
+    "warningDescription": "هذا الإجراء نهائي. سيتم حذف اسمك ورقم هاتفك ووثائق التحقق الخاصة بك. راجع سياسة الخصوصية لمزيد من التفاصيل.",
+    "warningCta": "متابعة",
+    "confirmTitle": "تأكيد الحذف",
+    "confirmDescription": "بمجرد التأكيد، لا يمكن التراجع عن هذا الحذف ولن تتمكن من تسجيل الدخول إلى هذا الحساب مرة أخرى.",
+    "confirmCta": "حذف نهائيًا",
+    "blockedTitle": "تعذّر حذف حسابك",
+    "blockedDescription": "لديك حجز نشط أو رحلة قيد التنفيذ. ألغِها أولاً ثم أعد المحاولة.",
+    "successToast": "تم حذف حسابك.",
+    "failureToast": "فشل الحذف. حاول مرة أخرى لاحقًا."
   },
   "driver": {
     "verified": "سائق موثّق",
