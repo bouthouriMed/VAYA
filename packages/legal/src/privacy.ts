@@ -2,10 +2,13 @@ import type { SupportedLocale } from '@vaya/config';
 import type { LegalDocument } from './types';
 
 /**
- * In-app rendering of VAYA's Privacy Policy. French is the canonical,
- * governing text — see `docs/legal/privacy-policy.md` and
- * `docs/legal/README.md` (governing-language note + legal-review status,
- * including the still-open INPDP declaration/authorization action items).
+ * Structured content for VAYA's Privacy Policy, shared by the mobile app
+ * and the marketing website — see the doc comment in `terms.ts` for why
+ * this lives in a shared package rather than being duplicated per app.
+ * French is the canonical, governing text — see
+ * `docs/legal/privacy-policy.md` and `docs/legal/README.md`
+ * (governing-language note + legal-review status, including the
+ * still-open INPDP declaration/authorization action items).
  */
 const fr: LegalDocument = {
   title: 'Politique de confidentialité',

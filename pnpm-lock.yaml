@@ -226,6 +226,9 @@ importers:
       '@vaya/domain':
         specifier: workspace:*
         version: link:../../packages/domain
+      '@vaya/legal':
+        specifier: workspace:*
+        version: link:../../packages/legal
       '@vaya/validation':
         specifier: workspace:*
         version: link:../../packages/validation
@@ -362,6 +365,9 @@ importers:
       '@react-three/postprocessing':
         specifier: ^3.0.4
         version: 3.1.1(@react-three/fiber@9.7.0(@types/react@19.1.17)(expo-asset@12.0.13(expo@54.0.37)(react-native@0.81.5(@babel/core@7.29.7)(@react-native-community/cli@14.1.0(typescript@5.9.3))(@react-native/metro-config@0.87.0(@babel/core@7.29.7))(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)(typescript@5.9.3))(expo-file-system@19.0.24(expo@54.0.37)(react-native@0.81.5(@babel/core@7.29.7)(@react-native-community/cli@14.1.0(typescript@5.9.3))(@react-native/metro-config@0.87.0(@babel/core@7.29.7))(@types/react@19.1.17)(react@19.1.0)))(expo@54.0.37)(immer@11.1.17)(react-dom@19.1.0(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.7)(@react-native-community/cli@14.1.0(typescript@5.9.3))(@react-native/metro-config@0.87.0(@babel/core@7.29.7))(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)(three@0.171.0))(@types/three@0.171.0)(postprocessing@6.39.5(three@0.171.0))(react@19.1.0)(three@0.171.0)
+      '@vaya/legal':
+        specifier: workspace:*
+        version: link:../../packages/legal
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
@@ -546,6 +552,16 @@ importers:
       eslint:
         specifier: ^9.11.1
         version: 9.39.5(jiti@1.21.7)
+
+  packages/legal:
+    dependencies:
+      '@vaya/config':
+        specifier: workspace:*
+        version: link:../config
+    devDependencies:
+      typescript:
+        specifier: ^5.5.4
+        version: 5.9.3
 
   packages/validation:
     dependencies:

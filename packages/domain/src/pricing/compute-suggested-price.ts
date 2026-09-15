@@ -7,12 +7,14 @@ import type { ComputeSuggestedPriceOptions, PricingConfigInput, SuggestedPrice }
  * which `docs/domain/pricing.md`'s "Very short rides" edge case explicitly
  * calls out as needing a floor on top of the multiplier-based bound.
  *
- * Value: 4 DT. Derived alongside `base_rate_per_km` (see the doc comment on
+ * Value: 4 DT — an independent minimum-viable-contribution judgment, kept
+ * unchanged by the 2026-09-15 rate revision (see the doc comment on
  * `DEFAULT_PRICING_CONFIG` below and `docs/domain/pricing.md`'s "Rate
- * derivation" section for the full reasoning) — it's what the formula
- * itself produces for a ~5-6km urban hop at the chosen base rate, so it
- * reads as "the formula's own answer for a short trip," not an arbitrary
- * separate number.
+ * derivation" section): no Tunisia-specific research surfaced evidence to
+ * move it either way, so it wasn't touched just because `baseRatePerKm`
+ * was. Not derived from the current per-km rate — it exists precisely
+ * because the per-km/per-min formula alone would suggest an unrealistic
+ * near-zero price for a very short hop.
  */
 export const ABSOLUTE_MIN_CONTRIBUTION_DT = 4;
 

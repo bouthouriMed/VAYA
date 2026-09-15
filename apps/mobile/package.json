@@ -31,6 +31,7 @@
     "@vaya/config": "workspace:*",
     "@vaya/design-system": "workspace:*",
     "@vaya/domain": "workspace:*",
+    "@vaya/legal": "workspace:*",
     "@vaya/validation": "workspace:*",
     "expo": "~54.0.0",
     "expo-blur": "~15.0.8",

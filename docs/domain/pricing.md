@@ -97,3 +97,100 @@ Derivation:
 - **Ride-creation flow, in practice.** `contributionPerSeat` is optional on `POST /rides`. If omitted (the normal mobile flow, since the driver hasn't seen a route-derived bound before the route exists), the server computes the route, derives `{min, recommended, max}`, and defaults `contributionPerSeat` to `recommended`. A new `PATCH /rides/:rideId` (draft-only) lets the driver commit an adjusted price after seeing the real bound — re-deriving and re-validating the bound server-side independently each time (never trusting a bound the client remembers from an earlier call). Both endpoints return the computed `{min, recommended, max}` and `routeIsEstimate` alongside the ride, so the mobile client never needs a second round-trip to render the price step.
 - **Haversine-fallback widening**, in practice, widens the `min`/`max` multiplier spread by ±0.2 around the config's own `minMultiplier`/`maxMultiplier` (`FALLBACK_MULTIPLIER_WIDENING` in `compute-suggested-price.ts`) rather than attempting to correct the underlying haversine distance itself — distance correction stays routing.ts's concern, not pricing's.
 - **Seed-data routes**: per this document's "Seed-data routes" edge case, `apps/api/src/db/seed.ts` was changed to derive every seeded route's `distanceKm`/`estimatedDurationMin`/`minContribution`/`recommendedContribution`/`maxContribution`, and every seeded ride's/booking's `contributionPerSeat`/`contributionTotal`, from real OSRM geometry run through `computeSuggestedPrice` with the same seeded `pricing_configs` row — not hand-typed. There is exactly one source of truth for seeded pricing now, not two silently-disagreeing ones.
+
+## Rate revision (2026-09-15, real Tunisia research)
+
+Supersedes the Phase 6 numbers above — read this section for the current values;
+the Phase 6 section is kept for its derivation methodology, not as the current
+truth. Full sourcing and the two flagged-open questions live in
+`packages/domain/src/pricing/default-pricing-config.ts`'s own doc comment;
+this section summarizes the reasoning and adds the sanity check that doc
+comment doesn't have room for.
+
+**New sourced inputs** (a background research pass into current Tunisian fuel
+prices, fleet composition, and comparable shared-transport pricing — WebSearch
+only, several primary sources were unreachable from the research sandbox, so
+treat as search-engine-attributed rather than independently verified against
+the original page):
+
+- **Fuel prices**: petrol ≈ 2.53 DT/L, diesel ≈ 2.21 DT/L (both dated ~Aug
+  2026, cross-corroborated by 2 independent sources each). Diesel is
+  meaningfully cheaper than petrol — worth modeling explicitly rather than
+  petrol-only, since Tunisia's fleet has a real diesel share.
+- **Fleet composition**: ≈74% petrol / 26% diesel among private cars (ANME
+  survey — dated, no more recent split found; treat as directional).
+- **Consumption**: ≈7.7 L/100km petrol, ≈7 L/100km diesel (Tunisia-attributed,
+  moderate confidence — smaller petrol/diesel efficiency gap than the generic
+  assumption of ~5-6L/100km diesel used going in, which this revision does
+  not use).
+- **Blended fuel cost**: 0.74×(7.7/100×2.53) + 0.26×(7/100×2.21) ≈
+  **0.184 DT/km** — almost exactly the Phase 6 session's 0.18 DT/km,
+  independently reconfirmed with better sourcing rather than overturned.
+- **Louage (regulated shared-taxi) tariff** — the genuinely new, decision-relevant
+  finding: Ministry of Transport decree (effective 15 Dec 2022, still cited as
+  current), **0.086 DT/km for 10-150km trips, 0.071 DT/km beyond 150km**, plus
+  a small flat base fare under 10km. Cross-validated against real reported
+  fares: Tunis-Sousse (~140km) at 0.086 DT/km ≈ 12 DT, matching the commonly
+  reported 12-13 DT real fare; several ~65-90km corridors (Nabeul, Hammamet,
+  Bizerte) land around ~7 DT at this rate, also matching reported figures.
+  This gives real confidence in the 0.086/0.071 DT/km numbers.
+- **Not found despite a real attempt**: any concrete current Tunisian informal
+  carpooling price (Facebook covoiturage groups, a public SPLIT per-km rate),
+  and any Tunisia-specific maintenance-cost-per-km rule of thumb beyond
+  anecdotal oil-change/annual-maintenance blog figures too weak to build a
+  multiplier on. Both are honest gaps, not filled in with invented numbers.
+
+**Why the rate changed**: the louage benchmark is the first real,
+government-set reference point for "what does a modest, per-passenger shared
+transport price look like in this market" that this project has had. Checking
+the Phase 6 rate against it is unflattering — `0.25 DT/km + 0.08 DT/min` on a
+Tunis-Sousse-length trip (~140km/~100min) works out to **~43 DT**, roughly
+**3.5× the real louage fare (~12-13 DT)** for the same route. That is in real
+tension with `docs/legal/terms-and-conditions.md` Article 4, which stakes
+VAYA's entire "this is cost-sharing, not a commercial transport service" legal
+framing on the Contribution staying well under a regulated/commercial fare —
+a price that runs several times higher than the state-regulated shared-taxi
+equivalent works against that framing rather than supporting it, independent
+of whether Tunisian carpooling norms would otherwise tolerate this rate.
+
+**What changed**: the markup over blended fuel cost is pulled back from 1.35×
+to ~1.1× — `base_rate_per_km = 0.184 × 1.1 ≈ 0.20 DT/km` (was 0.25) — and
+`time_component_per_min` scaled down in the same proportion, `0.08 × 0.20/0.25
+= 0.064`, rounded to **`0.06 DT/min`** (was 0.08). Re-running the Tunis-Sousse
+sanity check at the new rate: `0.20 × 140 + 0.06 × 100 ≈ 34 DT` — still above
+the ~12-13 DT louage fare, but meaningfully closer (down from ~3.5× to ~2.6×),
+and a real, sourced move in the right direction rather than an untethered
+guess. `min_multiplier`/`max_multiplier` (0.7/1.3) and the absolute floor
+(`ABSOLUTE_MIN_CONTRIBUTION_DT = 4`) are unchanged — nothing in this research
+pass surfaced evidence to move either.
+
+**What this revision does not claim to have solved** — flagged loudly rather
+than glossed over, per this file's own standing discipline:
+
+1. **The per-seat price is occupancy-blind.** `computeSuggestedPrice` has no
+   notion of how many seats a ride offers or how many end up filled — a fully
+   occupied ride collects `recommended × seatsFilled`, which can still exceed
+   both the louage benchmark and, at the extreme, the real total cost of the
+   trip, for a well-filled ride on a longer corridor. Fully closing the gap to
+   the louage benchmark implies pricing each seat as a genuine share of total
+   trip cost divided by expected occupancy (something closer to `0.09 DT/km`
+   per seat at typical 2-person occupancy — suspiciously close to the louage
+   rate itself, which is a reassuring cross-check but not something this pass
+   is implementing) rather than a flat per-km rate independent of how many
+   seats sell. That is a real formula-shape change — touching
+   `computeSuggestedPrice`'s signature, the API/mobile call sites, and
+   `pricing_configs`' shape — not a constant tweak, and is explicitly left
+   for a future phase to design and decide, not invented here.
+2. **This is still not real Tunisian carpooling survey/market data** — the one
+   source that would most directly answer "what do Tunisian drivers/riders
+   actually consider a fair contribution" (informal Facebook-group pricing,
+   or a real SPLIT rate) was searched for and not found. This revision is a
+   defensible, evidence-grounded correction using the best available proxies
+   (fuel cost, regulated louage tariff), not a replacement for that data once
+   it exists.
+
+Treat `base_rate_per_km = 0.20`/`time_component_per_min = 0.06` with the same
+posture the Phase 6 numbers had: a real, reasoned, sourced first cut, still
+pending actual business confirmation — not a settled monetization decision.
+`docs/roadmap/README.md`'s Open Decision #2 and `CLAUDE.md`'s "Important
+decisions" section are updated to reflect this revision.

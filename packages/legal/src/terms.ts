@@ -2,12 +2,16 @@ import type { SupportedLocale } from '@vaya/config';
 import type { LegalDocument } from './types';
 
 /**
- * In-app rendering of VAYA's Terms & Conditions. French is the canonical,
- * governing text — see `docs/legal/terms-and-conditions.md` and
- * `docs/legal/README.md` (governing-language note + legal-review status).
- * English/Arabic are faithful translations for accessibility, not
- * independent legal texts; the Arabic translation has not been reviewed by
- * a native legal-Arabic speaker (tracked in `docs/legal/README.md`).
+ * Structured content for VAYA's Terms & Conditions, shared by the mobile
+ * app (`apps/mobile/src/features/legal/`) and the marketing website
+ * (`apps/website/src/app/[locale]/legal/terms`) so both render the exact
+ * same text — no second, drifting copy. French is the canonical, governing
+ * text — see `docs/legal/terms-and-conditions.md` and `docs/legal/README.md`
+ * (governing-language note + legal-review status). English/Arabic are
+ * faithful translations for accessibility, not independent legal texts;
+ * the Arabic translation has not been reviewed by a native legal-Arabic
+ * speaker (tracked in `docs/legal/README.md`). The website only renders
+ * fr/en (its own `SUPPORTED_LOCALES`); `ar` here is mobile-only.
  */
 const fr: LegalDocument = {
   title: "Conditions Générales d'Utilisation",

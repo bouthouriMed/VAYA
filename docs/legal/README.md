@@ -5,11 +5,22 @@
 - [`privacy-policy.md`](./privacy-policy.md) — VAYA's Privacy Policy ("Politique de
   confidentialité"), canonical French text.
 
-Both documents are consumed in-app via `apps/mobile/src/features/legal/content/` (structured
-`fr`/`en`/`ar` content — see that module's own header comment for how it relates to these
-canonical `.md` files) and rendered at `apps/mobile/app/legal/[doc].tsx`, linked from the
-sign-in screen's acceptance text and from the profile screen's "Conditions et vie privée"
-row.
+Both documents are consumed as structured content in `packages/legal/src/{terms,privacy}.ts`
+(`fr`/`en`/`ar` — see that module's own header comment for how it relates to these canonical
+`.md` files), a shared package with two real consumers so the text can never drift between
+them:
+
+- **Mobile app**: `apps/mobile/app/legal/{terms,privacy}.tsx`, linked from the sign-in
+  screen's acceptance text and from the profile screen's "Conditions et vie privée" row.
+- **Marketing website**: `apps/website/src/app/[locale]/legal/{terms,privacy}/page.tsx`
+  (fr/en only — the website has no Arabic locale), statically generated at build time,
+  linked from the site footer's "Conditions"/"Confidentialité" links. **This is the real
+  public URL App Store/Play Store submission needs** — confirmed by an actual
+  `pnpm --filter @vaya/website build`, which generates real static HTML at
+  `/fr/legal/terms`, `/en/legal/terms`, `/fr/legal/privacy`, `/en/legal/privacy`. It only
+  satisfies the store requirement once the website itself is deployed to a real,
+  permanently-reachable domain (tracked as infrastructure work in `LAUNCH_ACTIONS.md`, not
+  a content or code gap anymore).
 
 ## Governing language
 
@@ -73,8 +84,14 @@ principle (`CLAUDE.md`), this status must not be glossed over:
   not be filled in without inventing it.
 - [ ] **Have the Arabic translation reviewed by a native legal-Arabic speaker** before
   relying on it for Arabic-speaking Members — the Arabic content in
-  `apps/mobile/src/features/legal/content/` was produced by the same drafting session as
-  the French original, not independently translated by a professional legal translator.
+  `packages/legal/src/{terms,privacy}.ts` was produced by the same drafting session as the
+  French original, not independently translated by a professional legal translator.
+- [ ] **Deploy `apps/website` to a real, permanently-reachable production domain**, then add
+  that domain's `/legal/privacy` URL to both store listings' required Privacy Policy field.
+  The pages themselves are done and build-verified (`pnpm --filter @vaya/website build`
+  generates real static HTML for all four `/{fr,en}/legal/{terms,privacy}` routes) — this is
+  purely the hosting/domain step, tracked in `LAUNCH_ACTIONS.md` #6 alongside the rest of
+  the Oracle Cloud deployment work.
 
 None of the above blocks shipping the *mechanism* (the in-app screens, the delete-account
 flow) — it blocks treating the *content* as legally final. Track these as the natural

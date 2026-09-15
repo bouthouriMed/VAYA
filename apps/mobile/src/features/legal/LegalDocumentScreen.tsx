@@ -4,9 +4,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Text, spacing, useAppTheme } from '@vaya/design-system';
+import { TERMS_CONTENT, PRIVACY_CONTENT } from '@vaya/legal';
 import { useAppSelector } from '../../state/store';
-import { TERMS_CONTENT } from './content/terms';
-import { PRIVACY_CONTENT } from './content/privacy';
 
 interface Props {
   doc: 'terms' | 'privacy';
