@@ -85,6 +85,60 @@ export const Easing = {
   inOut: () => (t: number) => t,
 };
 
+export function clamp(value: number, min: number, max: number): number {
+  return Math.min(Math.max(value, min), max);
+}
+
+// Real reanimated's layout-animation presets (FadeInDown, ZoomIn, ...) are
+// builder objects whose chained config calls (.delay(), .springify(),
+// .damping(), ...) return the same builder, ultimately used as an opaque
+// `entering`/`exiting` prop value — never actually run in a static-frame
+// snapshot test. Each listed method just returns the same builder; a Proxy
+// covering arbitrary method names was tried first but intercepts
+// `toString`/`valueOf`/etc. too, which broke pretty-format's snapshot
+// serialization ("Cannot convert object to primitive value").
+const LAYOUT_ANIMATION_CHAIN_METHODS = [
+  'delay',
+  'duration',
+  'springify',
+  'damping',
+  'dampingRatio',
+  'stiffness',
+  'mass',
+  'overshootClamping',
+  'restDisplacementThreshold',
+  'restSpeedThreshold',
+  'easing',
+  'randomDelay',
+  'withInitialValues',
+  'reduceMotion',
+] as const;
+
+type LayoutAnimationBuilder = Record<(typeof LAYOUT_ANIMATION_CHAIN_METHODS)[number], () => LayoutAnimationBuilder>;
+
+function createLayoutAnimationBuilder(): LayoutAnimationBuilder {
+  const builder = {} as LayoutAnimationBuilder;
+  for (const method of LAYOUT_ANIMATION_CHAIN_METHODS) {
+    builder[method] = () => builder;
+  }
+  return builder;
+}
+
+export const FadeIn = createLayoutAnimationBuilder();
+export const FadeInDown = createLayoutAnimationBuilder();
+export const FadeInUp = createLayoutAnimationBuilder();
+export const FadeInLeft = createLayoutAnimationBuilder();
+export const FadeInRight = createLayoutAnimationBuilder();
+export const FadeOut = createLayoutAnimationBuilder();
+export const FadeOutDown = createLayoutAnimationBuilder();
+export const FadeOutUp = createLayoutAnimationBuilder();
+export const ZoomIn = createLayoutAnimationBuilder();
+export const ZoomOut = createLayoutAnimationBuilder();
+export const SlideInDown = createLayoutAnimationBuilder();
+export const SlideInUp = createLayoutAnimationBuilder();
+export const SlideOutDown = createLayoutAnimationBuilder();
+export const SlideOutUp = createLayoutAnimationBuilder();
+
 // Mirrors __mocks__/react-native.ts's pattern (opaque element-type strings)
 // — Animated.View/Text/ScrollView are never actually rendered here, only
 // imported/instantiated for smoke and snapshot tests.

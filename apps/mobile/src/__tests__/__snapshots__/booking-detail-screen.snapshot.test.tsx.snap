@@ -443,7 +443,12 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
             style={
               {
                 "backgroundColor": "#EDEBE1",
+                "bottom": 0,
+                "left": 0,
                 "opacity": 0.18,
+                "position": "absolute",
+                "right": 0,
+                "top": 0,
               }
             }
           />
@@ -620,7 +625,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
             ]
           }
         >
-          mar. 25 août · 8:30
+          Tue, Aug 25 · 8:30 AM
         </Text>
         <View
           style={
@@ -703,7 +708,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
                   ]
                 }
               >
-                8:30
+                8:30 AM
               </Text>
             </View>
             <TouchableOpacity
@@ -1669,7 +1674,12 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
             style={
               {
                 "backgroundColor": "#EDEBE1",
+                "bottom": 0,
+                "left": 0,
                 "opacity": 0.18,
+                "position": "absolute",
+                "right": 0,
+                "top": 0,
               }
             }
           />

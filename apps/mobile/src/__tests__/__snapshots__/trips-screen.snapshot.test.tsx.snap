@@ -451,7 +451,12 @@ exports[`trips.tsx snapshots > driver dashboard — hero ride card over segmente
             style={
               {
                 "backgroundColor": "#EDEBE1",
+                "bottom": 0,
+                "left": 0,
                 "opacity": 0.18,
+                "position": "absolute",
+                "right": 0,
+                "top": 0,
               }
             }
           />
@@ -1214,7 +1219,12 @@ exports[`trips.tsx snapshots > driver dashboard — hero ride card over segmente
             style={
               {
                 "backgroundColor": "#EDEBE1",
+                "bottom": 0,
+                "left": 0,
                 "opacity": 0.18,
+                "position": "absolute",
+                "right": 0,
+                "top": 0,
               }
             }
           />
@@ -2880,7 +2890,12 @@ exports[`trips.tsx snapshots > rider view — booking card shows the real driver
             style={
               {
                 "backgroundColor": "#EDEBE1",
+                "bottom": 0,
+                "left": 0,
                 "opacity": 0.18,
+                "position": "absolute",
+                "right": 0,
+                "top": 0,
               }
             }
           />
