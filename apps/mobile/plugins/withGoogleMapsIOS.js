@@ -1,4 +1,4 @@
-const { withAppDelegate } = require('@expo/config-plugins');
+const { withAppDelegate } = require('expo/config-plugins');
 
 /**
  * react-native-maps' Google provider on iOS has no first-class Expo config
