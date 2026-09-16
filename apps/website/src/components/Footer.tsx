@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import type { Dictionary } from '@/i18n/dictionaries';
 import { LanguageSwitch } from './LanguageSwitch';
 
@@ -43,14 +44,14 @@ export function Footer({ dict, locale }: { dict: Dictionary; locale: string }): 
             </h3>
             <ul className="mt-4 space-y-2.5 text-sm text-ink-muted">
               <li>
-                <a href="#" className="transition-colors hover:text-ink">
+                <Link href={`/${locale}/legal/terms`} className="transition-colors hover:text-ink">
                   {dict.footer.terms}
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="transition-colors hover:text-ink">
+                <Link href={`/${locale}/legal/privacy`} className="transition-colors hover:text-ink">
                   {dict.footer.privacy}
-                </a>
+                </Link>
               </li>
             </ul>
           </div>

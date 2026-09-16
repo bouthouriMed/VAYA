@@ -139,6 +139,13 @@ export async function buildApp() {
     if (user?.suspendedAt) {
       throw new ForbiddenError('This account has been suspended');
     }
+    // Deletion (docs/legal/privacy-policy.md §10) revokes every refresh
+    // token at the time of deletion, but a still-live access token has its
+    // own short TTL independent of that — this stops it working on the
+    // very next request too, same discipline as the suspension check above.
+    if (user?.deletedAt) {
+      throw new ForbiddenError('This account has been deleted');
+    }
   });
 
   app.decorate('authenticateAdmin', async (request: FastifyRequest, _reply: FastifyReply) => {

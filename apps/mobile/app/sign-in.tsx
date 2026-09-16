@@ -334,6 +334,21 @@ export default function SignInScreen(): React.JSX.Element {
           >
             {t('auth:landing.legal')}
           </Text>
+          <View style={styles.legalLinksRow}>
+            <TouchableOpacity onPress={() => router.push('/legal/terms')} hitSlop={8}>
+              <Text variant="bodySmall" color={darkPalette.accent} style={styles.legalLink}>
+                {t('auth:landing.termsLink')}
+              </Text>
+            </TouchableOpacity>
+            <Text variant="bodySmall" color={darkPalette.inkFaint}>
+              {' · '}
+            </Text>
+            <TouchableOpacity onPress={() => router.push('/legal/privacy')} hitSlop={8}>
+              <Text variant="bodySmall" color={darkPalette.accent} style={styles.legalLink}>
+                {t('auth:landing.privacyLink')}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </Animated.View>
       </View>
     </TouchableWithoutFeedback>
@@ -484,5 +499,14 @@ const styles = StyleSheet.create({
   legalHint: {
     marginTop: spacing.md,
     maxWidth: 300,
+  },
+  legalLinksRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: spacing.xs,
+  },
+  legalLink: {
+    textDecorationLine: 'underline',
   },
 });

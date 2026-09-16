@@ -3,7 +3,8 @@
     "identity": "Identity",
     "account": "Account",
     "security": "Security",
-    "preferences": "Preferences"
+    "preferences": "Preferences",
+    "legal": "Terms & Privacy"
   },
   "rows": {
     "personalInfo": "Personal information",
@@ -15,7 +16,23 @@
     "securityPrivacy": "Security & privacy",
     "ridePrefs": "Ride preferences",
     "language": "Language",
-    "appearance": "Appearance"
+    "appearance": "Appearance",
+    "terms": "Terms & Conditions",
+    "privacyPolicy": "Privacy Policy"
+  },
+  "deleteAccount": {
+    "cta": "Delete my account",
+    "accessibility": "Delete my account",
+    "warningTitle": "Delete your account?",
+    "warningDescription": "This action is permanent. Your name, phone number, and verification documents will be deleted. See our Privacy Policy for full detail.",
+    "warningCta": "Continue",
+    "confirmTitle": "Confirm deletion",
+    "confirmDescription": "Once confirmed, this deletion is irreversible and you won't be able to sign back into this account.",
+    "confirmCta": "Permanently delete",
+    "blockedTitle": "Can't delete your account",
+    "blockedDescription": "You have an active booking or ride in progress. Cancel it first, then try again.",
+    "successToast": "Your account has been deleted.",
+    "failureToast": "Deletion failed. Try again later."
   },
   "driver": {
     "verified": "Verified driver",

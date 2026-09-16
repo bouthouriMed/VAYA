@@ -3,7 +3,8 @@
     "identity": "Identité",
     "account": "Compte",
     "security": "Sécurité",
-    "preferences": "Préférences"
+    "preferences": "Préférences",
+    "legal": "Conditions et vie privée"
   },
   "rows": {
     "personalInfo": "Informations personnelles",
@@ -15,7 +16,23 @@
     "privacy": "Confidentialité",
     "ridePrefs": "Préférences de trajet",
     "language": "Langue",
-    "appearance": "Apparence"
+    "appearance": "Apparence",
+    "terms": "Conditions d'utilisation",
+    "privacyPolicy": "Politique de confidentialité"
+  },
+  "deleteAccount": {
+    "cta": "Supprimer mon compte",
+    "accessibility": "Supprimer mon compte",
+    "warningTitle": "Supprimer votre compte ?",
+    "warningDescription": "Cette action est définitive. Votre nom, votre numéro de téléphone et vos documents de vérification seront supprimés. Voir notre Politique de confidentialité pour le détail.",
+    "warningCta": "Continuer",
+    "confirmTitle": "Confirmer la suppression",
+    "confirmDescription": "Une fois confirmée, cette suppression est irréversible et vous ne pourrez plus vous reconnecter à ce compte.",
+    "confirmCta": "Supprimer définitivement",
+    "blockedTitle": "Impossible de supprimer votre compte",
+    "blockedDescription": "Vous avez une réservation ou un trajet en cours. Annulez-le, puis réessayez.",
+    "successToast": "Votre compte a été supprimé.",
+    "failureToast": "Échec de la suppression. Réessayez plus tard."
   },
   "driver": {
     "verified": "Conducteur vérifié",

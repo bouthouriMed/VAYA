@@ -173,6 +173,7 @@ function mockApi({
     }),
     useLogoutMutation: () => [vi.fn(), { isLoading: false }],
     useUpdateMeMutation: () => [vi.fn(), { isLoading: false }],
+    useDeleteMeMutation: () => [vi.fn(), { isLoading: false }],
     useUploadFileMutation: () => [
       () => ({ unwrap: async () => ({ url: 'https://example.com/f.jpg' }) }),
       { isLoading: false },

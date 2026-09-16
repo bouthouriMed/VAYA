@@ -146,5 +146,8 @@
     "privacy": "Privacy",
     "language": "Language",
     "rights": "VAYA. All rights reserved."
+  },
+  "legal": {
+    "backToHome": "Back to VAYA"
   }
 }

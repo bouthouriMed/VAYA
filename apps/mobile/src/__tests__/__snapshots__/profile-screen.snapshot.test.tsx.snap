@@ -726,6 +726,186 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
               ]
             }
           >
+            profile:sections.legal
+          </Text>
+          <View
+            style={
+              [
+                {
+                  "borderRadius": 12,
+                  "borderWidth": 1,
+                  "overflow": "hidden",
+                },
+                {
+                  "backgroundColor": "#FFFFFF",
+                  "borderColor": "#E4EDFB",
+                },
+                {
+                  "elevation": 1,
+                },
+              ]
+            }
+          >
+            <View>
+              <TouchableOpacity
+                accessibilityLabel="profile:rows.terms"
+                accessibilityRole="button"
+                accessibilityState={
+                  {
+                    "disabled": false,
+                  }
+                }
+                activeOpacity={0.6}
+                disabled={false}
+                onPress={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "gap": 16,
+                    "paddingHorizontal": 16,
+                    "paddingVertical": 16,
+                  }
+                }
+              >
+                <View>
+                  <Ionicons
+                    accessibilityElementsHidden={true}
+                    color="#5B6572"
+                    importantForAccessibility="no-hide-descendants"
+                    name="document-text-outline"
+                    size={20}
+                  />
+                </View>
+                <Text
+                  style={
+                    [
+                      {
+                        "fontSize": 16,
+                        "fontWeight": "400",
+                        "lineHeight": 24,
+                      },
+                      {
+                        "color": "#14201B",
+                        "textAlign": undefined,
+                        "writingDirection": "ltr",
+                      },
+                      {
+                        "flex": 1,
+                      },
+                    ]
+                  }
+                >
+                  profile:rows.terms
+                </Text>
+                <Ionicons
+                  accessibilityElementsHidden={true}
+                  color="#D3E1F5"
+                  importantForAccessibility="no-hide-descendants"
+                  name="chevron-forward"
+                  size={16}
+                />
+              </TouchableOpacity>
+            </View>
+            <View>
+              <View
+                style={
+                  [
+                    {
+                      "height": 1,
+                      "marginHorizontal": 16,
+                    },
+                    {
+                      "backgroundColor": "#E4EDFB",
+                    },
+                  ]
+                }
+              />
+              <TouchableOpacity
+                accessibilityLabel="profile:rows.privacyPolicy"
+                accessibilityRole="button"
+                accessibilityState={
+                  {
+                    "disabled": false,
+                  }
+                }
+                activeOpacity={0.6}
+                disabled={false}
+                onPress={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "gap": 16,
+                    "paddingHorizontal": 16,
+                    "paddingVertical": 16,
+                  }
+                }
+              >
+                <View>
+                  <Ionicons
+                    accessibilityElementsHidden={true}
+                    color="#5B6572"
+                    importantForAccessibility="no-hide-descendants"
+                    name="lock-closed-outline"
+                    size={20}
+                  />
+                </View>
+                <Text
+                  style={
+                    [
+                      {
+                        "fontSize": 16,
+                        "fontWeight": "400",
+                        "lineHeight": 24,
+                      },
+                      {
+                        "color": "#14201B",
+                        "textAlign": undefined,
+                        "writingDirection": "ltr",
+                      },
+                      {
+                        "flex": 1,
+                      },
+                    ]
+                  }
+                >
+                  profile:rows.privacyPolicy
+                </Text>
+                <Ionicons
+                  accessibilityElementsHidden={true}
+                  color="#D3E1F5"
+                  importantForAccessibility="no-hide-descendants"
+                  name="chevron-forward"
+                  size={16}
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+        <View>
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "lineHeight": 18,
+                },
+                {
+                  "color": "#8B93A3",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                {
+                  "letterSpacing": 0.8,
+                  "marginBottom": 8,
+                  "marginHorizontal": 8,
+                  "textTransform": "uppercase",
+                },
+              ]
+            }
+          >
             profile:sections.preferences
           </Text>
           <View
@@ -1039,6 +1219,40 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
             profile:logout.cta
           </Text>
         </TouchableOpacity>
+        <TouchableOpacity
+          accessibilityLabel="profile:deleteAccount.accessibility"
+          accessibilityRole="button"
+          activeOpacity={0.6}
+          onPress={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "paddingVertical": 12,
+            }
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "lineHeight": 18,
+                },
+                {
+                  "color": "#8B93A3",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                {
+                  "textDecorationLine": "underline",
+                },
+              ]
+            }
+          >
+            profile:deleteAccount.cta
+          </Text>
+        </TouchableOpacity>
       </View>
     </ScrollView>
     <Modal
@@ -1218,6 +1432,556 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                   }
                 >
                   profile:logout.cta
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        </Animated.View>
+      </View>
+    </Modal>
+    <Modal
+      animationType="fade"
+      onRequestClose={[Function]}
+      transparent={true}
+      visible={false}
+    >
+      <TouchableWithoutFeedback
+        onPress={[Function]}
+      >
+        <View
+          style={
+            {
+              "backgroundColor": "rgba(38, 51, 58, 0.5)",
+            }
+          }
+        />
+      </TouchableWithoutFeedback>
+      <View
+        pointerEvents="box-none"
+        style={
+          {
+            "alignItems": "center",
+            "flex": 1,
+            "justifyContent": "center",
+            "padding": 20,
+          }
+        }
+      >
+        <Animated.View
+          style={
+            {
+              "opacity": AnimatedValue {
+                "value": 0,
+              },
+              "transform": [
+                {
+                  "scale": AnimatedValue {
+                    "value": 0.94,
+                  },
+                },
+              ],
+              "width": "100%",
+            }
+          }
+        >
+          <View
+            style={
+              [
+                {
+                  "backgroundColor": "#FFFFFF",
+                  "borderRadius": 24,
+                  "shadowColor": "#26333A",
+                },
+                {
+                  "elevation": 2,
+                },
+                {
+                  "padding": 16,
+                },
+                {
+                  "backgroundColor": "#FFFFFF",
+                  "gap": 12,
+                },
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 24,
+                    "fontWeight": "600",
+                    "lineHeight": 28.799999999999997,
+                  },
+                  {
+                    "color": "#14201B",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  {
+                    "marginBottom": 4,
+                  },
+                ]
+              }
+            >
+              profile:deleteAccount.warningTitle
+            </Text>
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  {
+                    "color": "#5B6572",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              profile:deleteAccount.warningDescription
+            </Text>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 16,
+                  "justifyContent": "flex-end",
+                  "marginTop": 8,
+                }
+              }
+            >
+              <Pressable
+                accessibilityLabel="Annuler"
+                accessibilityRole="button"
+                onPress={[Function]}
+                style={
+                  {
+                    "paddingHorizontal": 8,
+                    "paddingVertical": 8,
+                  }
+                }
+              >
+                <Text
+                  style={
+                    [
+                      {
+                        "fontSize": 14,
+                        "fontWeight": "500",
+                        "lineHeight": 21,
+                      },
+                      {
+                        "color": "#5B6572",
+                        "textAlign": undefined,
+                        "writingDirection": "ltr",
+                      },
+                      undefined,
+                    ]
+                  }
+                >
+                  Annuler
+                </Text>
+              </Pressable>
+              <Pressable
+                accessibilityLabel="profile:deleteAccount.warningCta"
+                accessibilityRole="button"
+                accessibilityState={
+                  {
+                    "busy": false,
+                    "disabled": false,
+                  }
+                }
+                disabled={false}
+                onPress={[Function]}
+                style={[Function]}
+              >
+                <Text
+                  style={
+                    [
+                      {
+                        "fontWeight": "600",
+                      },
+                      {
+                        "fontSize": 16,
+                      },
+                      {
+                        "color": "#FFFFFF",
+                      },
+                    ]
+                  }
+                >
+                  profile:deleteAccount.warningCta
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        </Animated.View>
+      </View>
+    </Modal>
+    <Modal
+      animationType="fade"
+      onRequestClose={[Function]}
+      transparent={true}
+      visible={false}
+    >
+      <TouchableWithoutFeedback
+        onPress={[Function]}
+      >
+        <View
+          style={
+            {
+              "backgroundColor": "rgba(38, 51, 58, 0.5)",
+            }
+          }
+        />
+      </TouchableWithoutFeedback>
+      <View
+        pointerEvents="box-none"
+        style={
+          {
+            "alignItems": "center",
+            "flex": 1,
+            "justifyContent": "center",
+            "padding": 20,
+          }
+        }
+      >
+        <Animated.View
+          style={
+            {
+              "opacity": AnimatedValue {
+                "value": 0,
+              },
+              "transform": [
+                {
+                  "scale": AnimatedValue {
+                    "value": 0.94,
+                  },
+                },
+              ],
+              "width": "100%",
+            }
+          }
+        >
+          <View
+            style={
+              [
+                {
+                  "backgroundColor": "#FFFFFF",
+                  "borderRadius": 24,
+                  "shadowColor": "#26333A",
+                },
+                {
+                  "elevation": 2,
+                },
+                {
+                  "padding": 16,
+                },
+                {
+                  "backgroundColor": "#FFFFFF",
+                  "gap": 12,
+                },
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 24,
+                    "fontWeight": "600",
+                    "lineHeight": 28.799999999999997,
+                  },
+                  {
+                    "color": "#14201B",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  {
+                    "marginBottom": 4,
+                  },
+                ]
+              }
+            >
+              profile:deleteAccount.confirmTitle
+            </Text>
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  {
+                    "color": "#5B6572",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              profile:deleteAccount.confirmDescription
+            </Text>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 16,
+                  "justifyContent": "flex-end",
+                  "marginTop": 8,
+                }
+              }
+            >
+              <Pressable
+                accessibilityLabel="Annuler"
+                accessibilityRole="button"
+                onPress={[Function]}
+                style={
+                  {
+                    "paddingHorizontal": 8,
+                    "paddingVertical": 8,
+                  }
+                }
+              >
+                <Text
+                  style={
+                    [
+                      {
+                        "fontSize": 14,
+                        "fontWeight": "500",
+                        "lineHeight": 21,
+                      },
+                      {
+                        "color": "#5B6572",
+                        "textAlign": undefined,
+                        "writingDirection": "ltr",
+                      },
+                      undefined,
+                    ]
+                  }
+                >
+                  Annuler
+                </Text>
+              </Pressable>
+              <Pressable
+                accessibilityLabel="profile:deleteAccount.confirmCta"
+                accessibilityRole="button"
+                accessibilityState={
+                  {
+                    "busy": false,
+                    "disabled": false,
+                  }
+                }
+                disabled={false}
+                onPress={[Function]}
+                style={[Function]}
+              >
+                <Text
+                  style={
+                    [
+                      {
+                        "fontWeight": "600",
+                      },
+                      {
+                        "fontSize": 16,
+                      },
+                      {
+                        "color": "#FFFFFF",
+                      },
+                    ]
+                  }
+                >
+                  profile:deleteAccount.confirmCta
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        </Animated.View>
+      </View>
+    </Modal>
+    <Modal
+      animationType="fade"
+      onRequestClose={[Function]}
+      transparent={true}
+      visible={false}
+    >
+      <TouchableWithoutFeedback
+        onPress={[Function]}
+      >
+        <View
+          style={
+            {
+              "backgroundColor": "rgba(38, 51, 58, 0.5)",
+            }
+          }
+        />
+      </TouchableWithoutFeedback>
+      <View
+        pointerEvents="box-none"
+        style={
+          {
+            "alignItems": "center",
+            "flex": 1,
+            "justifyContent": "center",
+            "padding": 20,
+          }
+        }
+      >
+        <Animated.View
+          style={
+            {
+              "opacity": AnimatedValue {
+                "value": 0,
+              },
+              "transform": [
+                {
+                  "scale": AnimatedValue {
+                    "value": 0.94,
+                  },
+                },
+              ],
+              "width": "100%",
+            }
+          }
+        >
+          <View
+            style={
+              [
+                {
+                  "backgroundColor": "#FFFFFF",
+                  "borderRadius": 24,
+                  "shadowColor": "#26333A",
+                },
+                {
+                  "elevation": 2,
+                },
+                {
+                  "padding": 16,
+                },
+                {
+                  "backgroundColor": "#FFFFFF",
+                  "gap": 12,
+                },
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 24,
+                    "fontWeight": "600",
+                    "lineHeight": 28.799999999999997,
+                  },
+                  {
+                    "color": "#14201B",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  {
+                    "marginBottom": 4,
+                  },
+                ]
+              }
+            >
+              profile:deleteAccount.blockedTitle
+            </Text>
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  {
+                    "color": "#5B6572",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            />
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 16,
+                  "justifyContent": "flex-end",
+                  "marginTop": 8,
+                }
+              }
+            >
+              <Pressable
+                accessibilityLabel="Annuler"
+                accessibilityRole="button"
+                onPress={[Function]}
+                style={
+                  {
+                    "paddingHorizontal": 8,
+                    "paddingVertical": 8,
+                  }
+                }
+              >
+                <Text
+                  style={
+                    [
+                      {
+                        "fontSize": 14,
+                        "fontWeight": "500",
+                        "lineHeight": 21,
+                      },
+                      {
+                        "color": "#5B6572",
+                        "textAlign": undefined,
+                        "writingDirection": "ltr",
+                      },
+                      undefined,
+                    ]
+                  }
+                >
+                  Annuler
+                </Text>
+              </Pressable>
+              <Pressable
+                accessibilityLabel="common:actions.gotIt"
+                accessibilityRole="button"
+                accessibilityState={
+                  {
+                    "busy": false,
+                    "disabled": false,
+                  }
+                }
+                disabled={false}
+                onPress={[Function]}
+                style={[Function]}
+              >
+                <Text
+                  style={
+                    [
+                      {
+                        "fontWeight": "600",
+                      },
+                      {
+                        "fontSize": 16,
+                      },
+                      {
+                        "color": "#FFFFFF",
+                      },
+                    ]
+                  }
+                >
+                  common:actions.gotIt
                 </Text>
               </Pressable>
             </View>
@@ -1928,6 +2692,186 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
               ]
             }
           >
+            profile:sections.legal
+          </Text>
+          <View
+            style={
+              [
+                {
+                  "borderRadius": 12,
+                  "borderWidth": 1,
+                  "overflow": "hidden",
+                },
+                {
+                  "backgroundColor": "#FFFFFF",
+                  "borderColor": "#E4EDFB",
+                },
+                {
+                  "elevation": 1,
+                },
+              ]
+            }
+          >
+            <View>
+              <TouchableOpacity
+                accessibilityLabel="profile:rows.terms"
+                accessibilityRole="button"
+                accessibilityState={
+                  {
+                    "disabled": false,
+                  }
+                }
+                activeOpacity={0.6}
+                disabled={false}
+                onPress={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "gap": 16,
+                    "paddingHorizontal": 16,
+                    "paddingVertical": 16,
+                  }
+                }
+              >
+                <View>
+                  <Ionicons
+                    accessibilityElementsHidden={true}
+                    color="#5B6572"
+                    importantForAccessibility="no-hide-descendants"
+                    name="document-text-outline"
+                    size={20}
+                  />
+                </View>
+                <Text
+                  style={
+                    [
+                      {
+                        "fontSize": 16,
+                        "fontWeight": "400",
+                        "lineHeight": 24,
+                      },
+                      {
+                        "color": "#14201B",
+                        "textAlign": undefined,
+                        "writingDirection": "ltr",
+                      },
+                      {
+                        "flex": 1,
+                      },
+                    ]
+                  }
+                >
+                  profile:rows.terms
+                </Text>
+                <Ionicons
+                  accessibilityElementsHidden={true}
+                  color="#D3E1F5"
+                  importantForAccessibility="no-hide-descendants"
+                  name="chevron-forward"
+                  size={16}
+                />
+              </TouchableOpacity>
+            </View>
+            <View>
+              <View
+                style={
+                  [
+                    {
+                      "height": 1,
+                      "marginHorizontal": 16,
+                    },
+                    {
+                      "backgroundColor": "#E4EDFB",
+                    },
+                  ]
+                }
+              />
+              <TouchableOpacity
+                accessibilityLabel="profile:rows.privacyPolicy"
+                accessibilityRole="button"
+                accessibilityState={
+                  {
+                    "disabled": false,
+                  }
+                }
+                activeOpacity={0.6}
+                disabled={false}
+                onPress={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "gap": 16,
+                    "paddingHorizontal": 16,
+                    "paddingVertical": 16,
+                  }
+                }
+              >
+                <View>
+                  <Ionicons
+                    accessibilityElementsHidden={true}
+                    color="#5B6572"
+                    importantForAccessibility="no-hide-descendants"
+                    name="lock-closed-outline"
+                    size={20}
+                  />
+                </View>
+                <Text
+                  style={
+                    [
+                      {
+                        "fontSize": 16,
+                        "fontWeight": "400",
+                        "lineHeight": 24,
+                      },
+                      {
+                        "color": "#14201B",
+                        "textAlign": undefined,
+                        "writingDirection": "ltr",
+                      },
+                      {
+                        "flex": 1,
+                      },
+                    ]
+                  }
+                >
+                  profile:rows.privacyPolicy
+                </Text>
+                <Ionicons
+                  accessibilityElementsHidden={true}
+                  color="#D3E1F5"
+                  importantForAccessibility="no-hide-descendants"
+                  name="chevron-forward"
+                  size={16}
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+        <View>
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "lineHeight": 18,
+                },
+                {
+                  "color": "#8B93A3",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                {
+                  "letterSpacing": 0.8,
+                  "marginBottom": 8,
+                  "marginHorizontal": 8,
+                  "textTransform": "uppercase",
+                },
+              ]
+            }
+          >
             profile:sections.preferences
           </Text>
           <View
@@ -2241,6 +3185,40 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
             profile:logout.cta
           </Text>
         </TouchableOpacity>
+        <TouchableOpacity
+          accessibilityLabel="profile:deleteAccount.accessibility"
+          accessibilityRole="button"
+          activeOpacity={0.6}
+          onPress={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "paddingVertical": 12,
+            }
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "lineHeight": 18,
+                },
+                {
+                  "color": "#8B93A3",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                {
+                  "textDecorationLine": "underline",
+                },
+              ]
+            }
+          >
+            profile:deleteAccount.cta
+          </Text>
+        </TouchableOpacity>
       </View>
     </ScrollView>
     <Modal
@@ -2420,6 +3398,556 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                   }
                 >
                   profile:logout.cta
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        </Animated.View>
+      </View>
+    </Modal>
+    <Modal
+      animationType="fade"
+      onRequestClose={[Function]}
+      transparent={true}
+      visible={false}
+    >
+      <TouchableWithoutFeedback
+        onPress={[Function]}
+      >
+        <View
+          style={
+            {
+              "backgroundColor": "rgba(38, 51, 58, 0.5)",
+            }
+          }
+        />
+      </TouchableWithoutFeedback>
+      <View
+        pointerEvents="box-none"
+        style={
+          {
+            "alignItems": "center",
+            "flex": 1,
+            "justifyContent": "center",
+            "padding": 20,
+          }
+        }
+      >
+        <Animated.View
+          style={
+            {
+              "opacity": AnimatedValue {
+                "value": 0,
+              },
+              "transform": [
+                {
+                  "scale": AnimatedValue {
+                    "value": 0.94,
+                  },
+                },
+              ],
+              "width": "100%",
+            }
+          }
+        >
+          <View
+            style={
+              [
+                {
+                  "backgroundColor": "#FFFFFF",
+                  "borderRadius": 24,
+                  "shadowColor": "#26333A",
+                },
+                {
+                  "elevation": 2,
+                },
+                {
+                  "padding": 16,
+                },
+                {
+                  "backgroundColor": "#FFFFFF",
+                  "gap": 12,
+                },
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 24,
+                    "fontWeight": "600",
+                    "lineHeight": 28.799999999999997,
+                  },
+                  {
+                    "color": "#14201B",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  {
+                    "marginBottom": 4,
+                  },
+                ]
+              }
+            >
+              profile:deleteAccount.warningTitle
+            </Text>
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  {
+                    "color": "#5B6572",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              profile:deleteAccount.warningDescription
+            </Text>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 16,
+                  "justifyContent": "flex-end",
+                  "marginTop": 8,
+                }
+              }
+            >
+              <Pressable
+                accessibilityLabel="Annuler"
+                accessibilityRole="button"
+                onPress={[Function]}
+                style={
+                  {
+                    "paddingHorizontal": 8,
+                    "paddingVertical": 8,
+                  }
+                }
+              >
+                <Text
+                  style={
+                    [
+                      {
+                        "fontSize": 14,
+                        "fontWeight": "500",
+                        "lineHeight": 21,
+                      },
+                      {
+                        "color": "#5B6572",
+                        "textAlign": undefined,
+                        "writingDirection": "ltr",
+                      },
+                      undefined,
+                    ]
+                  }
+                >
+                  Annuler
+                </Text>
+              </Pressable>
+              <Pressable
+                accessibilityLabel="profile:deleteAccount.warningCta"
+                accessibilityRole="button"
+                accessibilityState={
+                  {
+                    "busy": false,
+                    "disabled": false,
+                  }
+                }
+                disabled={false}
+                onPress={[Function]}
+                style={[Function]}
+              >
+                <Text
+                  style={
+                    [
+                      {
+                        "fontWeight": "600",
+                      },
+                      {
+                        "fontSize": 16,
+                      },
+                      {
+                        "color": "#FFFFFF",
+                      },
+                    ]
+                  }
+                >
+                  profile:deleteAccount.warningCta
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        </Animated.View>
+      </View>
+    </Modal>
+    <Modal
+      animationType="fade"
+      onRequestClose={[Function]}
+      transparent={true}
+      visible={false}
+    >
+      <TouchableWithoutFeedback
+        onPress={[Function]}
+      >
+        <View
+          style={
+            {
+              "backgroundColor": "rgba(38, 51, 58, 0.5)",
+            }
+          }
+        />
+      </TouchableWithoutFeedback>
+      <View
+        pointerEvents="box-none"
+        style={
+          {
+            "alignItems": "center",
+            "flex": 1,
+            "justifyContent": "center",
+            "padding": 20,
+          }
+        }
+      >
+        <Animated.View
+          style={
+            {
+              "opacity": AnimatedValue {
+                "value": 0,
+              },
+              "transform": [
+                {
+                  "scale": AnimatedValue {
+                    "value": 0.94,
+                  },
+                },
+              ],
+              "width": "100%",
+            }
+          }
+        >
+          <View
+            style={
+              [
+                {
+                  "backgroundColor": "#FFFFFF",
+                  "borderRadius": 24,
+                  "shadowColor": "#26333A",
+                },
+                {
+                  "elevation": 2,
+                },
+                {
+                  "padding": 16,
+                },
+                {
+                  "backgroundColor": "#FFFFFF",
+                  "gap": 12,
+                },
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 24,
+                    "fontWeight": "600",
+                    "lineHeight": 28.799999999999997,
+                  },
+                  {
+                    "color": "#14201B",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  {
+                    "marginBottom": 4,
+                  },
+                ]
+              }
+            >
+              profile:deleteAccount.confirmTitle
+            </Text>
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  {
+                    "color": "#5B6572",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              profile:deleteAccount.confirmDescription
+            </Text>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 16,
+                  "justifyContent": "flex-end",
+                  "marginTop": 8,
+                }
+              }
+            >
+              <Pressable
+                accessibilityLabel="Annuler"
+                accessibilityRole="button"
+                onPress={[Function]}
+                style={
+                  {
+                    "paddingHorizontal": 8,
+                    "paddingVertical": 8,
+                  }
+                }
+              >
+                <Text
+                  style={
+                    [
+                      {
+                        "fontSize": 14,
+                        "fontWeight": "500",
+                        "lineHeight": 21,
+                      },
+                      {
+                        "color": "#5B6572",
+                        "textAlign": undefined,
+                        "writingDirection": "ltr",
+                      },
+                      undefined,
+                    ]
+                  }
+                >
+                  Annuler
+                </Text>
+              </Pressable>
+              <Pressable
+                accessibilityLabel="profile:deleteAccount.confirmCta"
+                accessibilityRole="button"
+                accessibilityState={
+                  {
+                    "busy": false,
+                    "disabled": false,
+                  }
+                }
+                disabled={false}
+                onPress={[Function]}
+                style={[Function]}
+              >
+                <Text
+                  style={
+                    [
+                      {
+                        "fontWeight": "600",
+                      },
+                      {
+                        "fontSize": 16,
+                      },
+                      {
+                        "color": "#FFFFFF",
+                      },
+                    ]
+                  }
+                >
+                  profile:deleteAccount.confirmCta
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        </Animated.View>
+      </View>
+    </Modal>
+    <Modal
+      animationType="fade"
+      onRequestClose={[Function]}
+      transparent={true}
+      visible={false}
+    >
+      <TouchableWithoutFeedback
+        onPress={[Function]}
+      >
+        <View
+          style={
+            {
+              "backgroundColor": "rgba(38, 51, 58, 0.5)",
+            }
+          }
+        />
+      </TouchableWithoutFeedback>
+      <View
+        pointerEvents="box-none"
+        style={
+          {
+            "alignItems": "center",
+            "flex": 1,
+            "justifyContent": "center",
+            "padding": 20,
+          }
+        }
+      >
+        <Animated.View
+          style={
+            {
+              "opacity": AnimatedValue {
+                "value": 0,
+              },
+              "transform": [
+                {
+                  "scale": AnimatedValue {
+                    "value": 0.94,
+                  },
+                },
+              ],
+              "width": "100%",
+            }
+          }
+        >
+          <View
+            style={
+              [
+                {
+                  "backgroundColor": "#FFFFFF",
+                  "borderRadius": 24,
+                  "shadowColor": "#26333A",
+                },
+                {
+                  "elevation": 2,
+                },
+                {
+                  "padding": 16,
+                },
+                {
+                  "backgroundColor": "#FFFFFF",
+                  "gap": 12,
+                },
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 24,
+                    "fontWeight": "600",
+                    "lineHeight": 28.799999999999997,
+                  },
+                  {
+                    "color": "#14201B",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  {
+                    "marginBottom": 4,
+                  },
+                ]
+              }
+            >
+              profile:deleteAccount.blockedTitle
+            </Text>
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  {
+                    "color": "#5B6572",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            />
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 16,
+                  "justifyContent": "flex-end",
+                  "marginTop": 8,
+                }
+              }
+            >
+              <Pressable
+                accessibilityLabel="Annuler"
+                accessibilityRole="button"
+                onPress={[Function]}
+                style={
+                  {
+                    "paddingHorizontal": 8,
+                    "paddingVertical": 8,
+                  }
+                }
+              >
+                <Text
+                  style={
+                    [
+                      {
+                        "fontSize": 14,
+                        "fontWeight": "500",
+                        "lineHeight": 21,
+                      },
+                      {
+                        "color": "#5B6572",
+                        "textAlign": undefined,
+                        "writingDirection": "ltr",
+                      },
+                      undefined,
+                    ]
+                  }
+                >
+                  Annuler
+                </Text>
+              </Pressable>
+              <Pressable
+                accessibilityLabel="common:actions.gotIt"
+                accessibilityRole="button"
+                accessibilityState={
+                  {
+                    "busy": false,
+                    "disabled": false,
+                  }
+                }
+                disabled={false}
+                onPress={[Function]}
+                style={[Function]}
+              >
+                <Text
+                  style={
+                    [
+                      {
+                        "fontWeight": "600",
+                      },
+                      {
+                        "fontSize": 16,
+                      },
+                      {
+                        "color": "#FFFFFF",
+                      },
+                    ]
+                  }
+                >
+                  common:actions.gotIt
                 </Text>
               </Pressable>
             </View>
@@ -3146,6 +4674,186 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
               ]
             }
           >
+            profile:sections.legal
+          </Text>
+          <View
+            style={
+              [
+                {
+                  "borderRadius": 12,
+                  "borderWidth": 1,
+                  "overflow": "hidden",
+                },
+                {
+                  "backgroundColor": "#FFFFFF",
+                  "borderColor": "#E4EDFB",
+                },
+                {
+                  "elevation": 1,
+                },
+              ]
+            }
+          >
+            <View>
+              <TouchableOpacity
+                accessibilityLabel="profile:rows.terms"
+                accessibilityRole="button"
+                accessibilityState={
+                  {
+                    "disabled": false,
+                  }
+                }
+                activeOpacity={0.6}
+                disabled={false}
+                onPress={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "gap": 16,
+                    "paddingHorizontal": 16,
+                    "paddingVertical": 16,
+                  }
+                }
+              >
+                <View>
+                  <Ionicons
+                    accessibilityElementsHidden={true}
+                    color="#5B6572"
+                    importantForAccessibility="no-hide-descendants"
+                    name="document-text-outline"
+                    size={20}
+                  />
+                </View>
+                <Text
+                  style={
+                    [
+                      {
+                        "fontSize": 16,
+                        "fontWeight": "400",
+                        "lineHeight": 24,
+                      },
+                      {
+                        "color": "#14201B",
+                        "textAlign": undefined,
+                        "writingDirection": "ltr",
+                      },
+                      {
+                        "flex": 1,
+                      },
+                    ]
+                  }
+                >
+                  profile:rows.terms
+                </Text>
+                <Ionicons
+                  accessibilityElementsHidden={true}
+                  color="#D3E1F5"
+                  importantForAccessibility="no-hide-descendants"
+                  name="chevron-forward"
+                  size={16}
+                />
+              </TouchableOpacity>
+            </View>
+            <View>
+              <View
+                style={
+                  [
+                    {
+                      "height": 1,
+                      "marginHorizontal": 16,
+                    },
+                    {
+                      "backgroundColor": "#E4EDFB",
+                    },
+                  ]
+                }
+              />
+              <TouchableOpacity
+                accessibilityLabel="profile:rows.privacyPolicy"
+                accessibilityRole="button"
+                accessibilityState={
+                  {
+                    "disabled": false,
+                  }
+                }
+                activeOpacity={0.6}
+                disabled={false}
+                onPress={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "gap": 16,
+                    "paddingHorizontal": 16,
+                    "paddingVertical": 16,
+                  }
+                }
+              >
+                <View>
+                  <Ionicons
+                    accessibilityElementsHidden={true}
+                    color="#5B6572"
+                    importantForAccessibility="no-hide-descendants"
+                    name="lock-closed-outline"
+                    size={20}
+                  />
+                </View>
+                <Text
+                  style={
+                    [
+                      {
+                        "fontSize": 16,
+                        "fontWeight": "400",
+                        "lineHeight": 24,
+                      },
+                      {
+                        "color": "#14201B",
+                        "textAlign": undefined,
+                        "writingDirection": "ltr",
+                      },
+                      {
+                        "flex": 1,
+                      },
+                    ]
+                  }
+                >
+                  profile:rows.privacyPolicy
+                </Text>
+                <Ionicons
+                  accessibilityElementsHidden={true}
+                  color="#D3E1F5"
+                  importantForAccessibility="no-hide-descendants"
+                  name="chevron-forward"
+                  size={16}
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+        <View>
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "lineHeight": 18,
+                },
+                {
+                  "color": "#8B93A3",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                {
+                  "letterSpacing": 0.8,
+                  "marginBottom": 8,
+                  "marginHorizontal": 8,
+                  "textTransform": "uppercase",
+                },
+              ]
+            }
+          >
             profile:sections.preferences
           </Text>
           <View
@@ -3459,6 +5167,40 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
             profile:logout.cta
           </Text>
         </TouchableOpacity>
+        <TouchableOpacity
+          accessibilityLabel="profile:deleteAccount.accessibility"
+          accessibilityRole="button"
+          activeOpacity={0.6}
+          onPress={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "paddingVertical": 12,
+            }
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "lineHeight": 18,
+                },
+                {
+                  "color": "#8B93A3",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                {
+                  "textDecorationLine": "underline",
+                },
+              ]
+            }
+          >
+            profile:deleteAccount.cta
+          </Text>
+        </TouchableOpacity>
       </View>
     </ScrollView>
     <Modal
@@ -3638,6 +5380,556 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                   }
                 >
                   profile:logout.cta
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        </Animated.View>
+      </View>
+    </Modal>
+    <Modal
+      animationType="fade"
+      onRequestClose={[Function]}
+      transparent={true}
+      visible={false}
+    >
+      <TouchableWithoutFeedback
+        onPress={[Function]}
+      >
+        <View
+          style={
+            {
+              "backgroundColor": "rgba(38, 51, 58, 0.5)",
+            }
+          }
+        />
+      </TouchableWithoutFeedback>
+      <View
+        pointerEvents="box-none"
+        style={
+          {
+            "alignItems": "center",
+            "flex": 1,
+            "justifyContent": "center",
+            "padding": 20,
+          }
+        }
+      >
+        <Animated.View
+          style={
+            {
+              "opacity": AnimatedValue {
+                "value": 0,
+              },
+              "transform": [
+                {
+                  "scale": AnimatedValue {
+                    "value": 0.94,
+                  },
+                },
+              ],
+              "width": "100%",
+            }
+          }
+        >
+          <View
+            style={
+              [
+                {
+                  "backgroundColor": "#FFFFFF",
+                  "borderRadius": 24,
+                  "shadowColor": "#26333A",
+                },
+                {
+                  "elevation": 2,
+                },
+                {
+                  "padding": 16,
+                },
+                {
+                  "backgroundColor": "#FFFFFF",
+                  "gap": 12,
+                },
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 24,
+                    "fontWeight": "600",
+                    "lineHeight": 28.799999999999997,
+                  },
+                  {
+                    "color": "#14201B",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  {
+                    "marginBottom": 4,
+                  },
+                ]
+              }
+            >
+              profile:deleteAccount.warningTitle
+            </Text>
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  {
+                    "color": "#5B6572",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              profile:deleteAccount.warningDescription
+            </Text>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 16,
+                  "justifyContent": "flex-end",
+                  "marginTop": 8,
+                }
+              }
+            >
+              <Pressable
+                accessibilityLabel="Annuler"
+                accessibilityRole="button"
+                onPress={[Function]}
+                style={
+                  {
+                    "paddingHorizontal": 8,
+                    "paddingVertical": 8,
+                  }
+                }
+              >
+                <Text
+                  style={
+                    [
+                      {
+                        "fontSize": 14,
+                        "fontWeight": "500",
+                        "lineHeight": 21,
+                      },
+                      {
+                        "color": "#5B6572",
+                        "textAlign": undefined,
+                        "writingDirection": "ltr",
+                      },
+                      undefined,
+                    ]
+                  }
+                >
+                  Annuler
+                </Text>
+              </Pressable>
+              <Pressable
+                accessibilityLabel="profile:deleteAccount.warningCta"
+                accessibilityRole="button"
+                accessibilityState={
+                  {
+                    "busy": false,
+                    "disabled": false,
+                  }
+                }
+                disabled={false}
+                onPress={[Function]}
+                style={[Function]}
+              >
+                <Text
+                  style={
+                    [
+                      {
+                        "fontWeight": "600",
+                      },
+                      {
+                        "fontSize": 16,
+                      },
+                      {
+                        "color": "#FFFFFF",
+                      },
+                    ]
+                  }
+                >
+                  profile:deleteAccount.warningCta
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        </Animated.View>
+      </View>
+    </Modal>
+    <Modal
+      animationType="fade"
+      onRequestClose={[Function]}
+      transparent={true}
+      visible={false}
+    >
+      <TouchableWithoutFeedback
+        onPress={[Function]}
+      >
+        <View
+          style={
+            {
+              "backgroundColor": "rgba(38, 51, 58, 0.5)",
+            }
+          }
+        />
+      </TouchableWithoutFeedback>
+      <View
+        pointerEvents="box-none"
+        style={
+          {
+            "alignItems": "center",
+            "flex": 1,
+            "justifyContent": "center",
+            "padding": 20,
+          }
+        }
+      >
+        <Animated.View
+          style={
+            {
+              "opacity": AnimatedValue {
+                "value": 0,
+              },
+              "transform": [
+                {
+                  "scale": AnimatedValue {
+                    "value": 0.94,
+                  },
+                },
+              ],
+              "width": "100%",
+            }
+          }
+        >
+          <View
+            style={
+              [
+                {
+                  "backgroundColor": "#FFFFFF",
+                  "borderRadius": 24,
+                  "shadowColor": "#26333A",
+                },
+                {
+                  "elevation": 2,
+                },
+                {
+                  "padding": 16,
+                },
+                {
+                  "backgroundColor": "#FFFFFF",
+                  "gap": 12,
+                },
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 24,
+                    "fontWeight": "600",
+                    "lineHeight": 28.799999999999997,
+                  },
+                  {
+                    "color": "#14201B",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  {
+                    "marginBottom": 4,
+                  },
+                ]
+              }
+            >
+              profile:deleteAccount.confirmTitle
+            </Text>
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  {
+                    "color": "#5B6572",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              profile:deleteAccount.confirmDescription
+            </Text>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 16,
+                  "justifyContent": "flex-end",
+                  "marginTop": 8,
+                }
+              }
+            >
+              <Pressable
+                accessibilityLabel="Annuler"
+                accessibilityRole="button"
+                onPress={[Function]}
+                style={
+                  {
+                    "paddingHorizontal": 8,
+                    "paddingVertical": 8,
+                  }
+                }
+              >
+                <Text
+                  style={
+                    [
+                      {
+                        "fontSize": 14,
+                        "fontWeight": "500",
+                        "lineHeight": 21,
+                      },
+                      {
+                        "color": "#5B6572",
+                        "textAlign": undefined,
+                        "writingDirection": "ltr",
+                      },
+                      undefined,
+                    ]
+                  }
+                >
+                  Annuler
+                </Text>
+              </Pressable>
+              <Pressable
+                accessibilityLabel="profile:deleteAccount.confirmCta"
+                accessibilityRole="button"
+                accessibilityState={
+                  {
+                    "busy": false,
+                    "disabled": false,
+                  }
+                }
+                disabled={false}
+                onPress={[Function]}
+                style={[Function]}
+              >
+                <Text
+                  style={
+                    [
+                      {
+                        "fontWeight": "600",
+                      },
+                      {
+                        "fontSize": 16,
+                      },
+                      {
+                        "color": "#FFFFFF",
+                      },
+                    ]
+                  }
+                >
+                  profile:deleteAccount.confirmCta
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        </Animated.View>
+      </View>
+    </Modal>
+    <Modal
+      animationType="fade"
+      onRequestClose={[Function]}
+      transparent={true}
+      visible={false}
+    >
+      <TouchableWithoutFeedback
+        onPress={[Function]}
+      >
+        <View
+          style={
+            {
+              "backgroundColor": "rgba(38, 51, 58, 0.5)",
+            }
+          }
+        />
+      </TouchableWithoutFeedback>
+      <View
+        pointerEvents="box-none"
+        style={
+          {
+            "alignItems": "center",
+            "flex": 1,
+            "justifyContent": "center",
+            "padding": 20,
+          }
+        }
+      >
+        <Animated.View
+          style={
+            {
+              "opacity": AnimatedValue {
+                "value": 0,
+              },
+              "transform": [
+                {
+                  "scale": AnimatedValue {
+                    "value": 0.94,
+                  },
+                },
+              ],
+              "width": "100%",
+            }
+          }
+        >
+          <View
+            style={
+              [
+                {
+                  "backgroundColor": "#FFFFFF",
+                  "borderRadius": 24,
+                  "shadowColor": "#26333A",
+                },
+                {
+                  "elevation": 2,
+                },
+                {
+                  "padding": 16,
+                },
+                {
+                  "backgroundColor": "#FFFFFF",
+                  "gap": 12,
+                },
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 24,
+                    "fontWeight": "600",
+                    "lineHeight": 28.799999999999997,
+                  },
+                  {
+                    "color": "#14201B",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  {
+                    "marginBottom": 4,
+                  },
+                ]
+              }
+            >
+              profile:deleteAccount.blockedTitle
+            </Text>
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  {
+                    "color": "#5B6572",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            />
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 16,
+                  "justifyContent": "flex-end",
+                  "marginTop": 8,
+                }
+              }
+            >
+              <Pressable
+                accessibilityLabel="Annuler"
+                accessibilityRole="button"
+                onPress={[Function]}
+                style={
+                  {
+                    "paddingHorizontal": 8,
+                    "paddingVertical": 8,
+                  }
+                }
+              >
+                <Text
+                  style={
+                    [
+                      {
+                        "fontSize": 14,
+                        "fontWeight": "500",
+                        "lineHeight": 21,
+                      },
+                      {
+                        "color": "#5B6572",
+                        "textAlign": undefined,
+                        "writingDirection": "ltr",
+                      },
+                      undefined,
+                    ]
+                  }
+                >
+                  Annuler
+                </Text>
+              </Pressable>
+              <Pressable
+                accessibilityLabel="common:actions.gotIt"
+                accessibilityRole="button"
+                accessibilityState={
+                  {
+                    "busy": false,
+                    "disabled": false,
+                  }
+                }
+                disabled={false}
+                onPress={[Function]}
+                style={[Function]}
+              >
+                <Text
+                  style={
+                    [
+                      {
+                        "fontWeight": "600",
+                      },
+                      {
+                        "fontSize": 16,
+                      },
+                      {
+                        "color": "#FFFFFF",
+                      },
+                    ]
+                  }
+                >
+                  common:actions.gotIt
                 </Text>
               </Pressable>
             </View>
@@ -4355,6 +6647,186 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
               ]
             }
           >
+            profile:sections.legal
+          </Text>
+          <View
+            style={
+              [
+                {
+                  "borderRadius": 12,
+                  "borderWidth": 1,
+                  "overflow": "hidden",
+                },
+                {
+                  "backgroundColor": "#FFFFFF",
+                  "borderColor": "#E4EDFB",
+                },
+                {
+                  "elevation": 1,
+                },
+              ]
+            }
+          >
+            <View>
+              <TouchableOpacity
+                accessibilityLabel="profile:rows.terms"
+                accessibilityRole="button"
+                accessibilityState={
+                  {
+                    "disabled": false,
+                  }
+                }
+                activeOpacity={0.6}
+                disabled={false}
+                onPress={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "gap": 16,
+                    "paddingHorizontal": 16,
+                    "paddingVertical": 16,
+                  }
+                }
+              >
+                <View>
+                  <Ionicons
+                    accessibilityElementsHidden={true}
+                    color="#5B6572"
+                    importantForAccessibility="no-hide-descendants"
+                    name="document-text-outline"
+                    size={20}
+                  />
+                </View>
+                <Text
+                  style={
+                    [
+                      {
+                        "fontSize": 16,
+                        "fontWeight": "400",
+                        "lineHeight": 24,
+                      },
+                      {
+                        "color": "#14201B",
+                        "textAlign": undefined,
+                        "writingDirection": "ltr",
+                      },
+                      {
+                        "flex": 1,
+                      },
+                    ]
+                  }
+                >
+                  profile:rows.terms
+                </Text>
+                <Ionicons
+                  accessibilityElementsHidden={true}
+                  color="#D3E1F5"
+                  importantForAccessibility="no-hide-descendants"
+                  name="chevron-forward"
+                  size={16}
+                />
+              </TouchableOpacity>
+            </View>
+            <View>
+              <View
+                style={
+                  [
+                    {
+                      "height": 1,
+                      "marginHorizontal": 16,
+                    },
+                    {
+                      "backgroundColor": "#E4EDFB",
+                    },
+                  ]
+                }
+              />
+              <TouchableOpacity
+                accessibilityLabel="profile:rows.privacyPolicy"
+                accessibilityRole="button"
+                accessibilityState={
+                  {
+                    "disabled": false,
+                  }
+                }
+                activeOpacity={0.6}
+                disabled={false}
+                onPress={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "gap": 16,
+                    "paddingHorizontal": 16,
+                    "paddingVertical": 16,
+                  }
+                }
+              >
+                <View>
+                  <Ionicons
+                    accessibilityElementsHidden={true}
+                    color="#5B6572"
+                    importantForAccessibility="no-hide-descendants"
+                    name="lock-closed-outline"
+                    size={20}
+                  />
+                </View>
+                <Text
+                  style={
+                    [
+                      {
+                        "fontSize": 16,
+                        "fontWeight": "400",
+                        "lineHeight": 24,
+                      },
+                      {
+                        "color": "#14201B",
+                        "textAlign": undefined,
+                        "writingDirection": "ltr",
+                      },
+                      {
+                        "flex": 1,
+                      },
+                    ]
+                  }
+                >
+                  profile:rows.privacyPolicy
+                </Text>
+                <Ionicons
+                  accessibilityElementsHidden={true}
+                  color="#D3E1F5"
+                  importantForAccessibility="no-hide-descendants"
+                  name="chevron-forward"
+                  size={16}
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+        <View>
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "lineHeight": 18,
+                },
+                {
+                  "color": "#8B93A3",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                {
+                  "letterSpacing": 0.8,
+                  "marginBottom": 8,
+                  "marginHorizontal": 8,
+                  "textTransform": "uppercase",
+                },
+              ]
+            }
+          >
             profile:sections.preferences
           </Text>
           <View
@@ -4668,6 +7140,40 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
             profile:logout.cta
           </Text>
         </TouchableOpacity>
+        <TouchableOpacity
+          accessibilityLabel="profile:deleteAccount.accessibility"
+          accessibilityRole="button"
+          activeOpacity={0.6}
+          onPress={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "paddingVertical": 12,
+            }
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "lineHeight": 18,
+                },
+                {
+                  "color": "#8B93A3",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                {
+                  "textDecorationLine": "underline",
+                },
+              ]
+            }
+          >
+            profile:deleteAccount.cta
+          </Text>
+        </TouchableOpacity>
       </View>
     </ScrollView>
     <Modal
@@ -4847,6 +7353,556 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                   }
                 >
                   profile:logout.cta
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        </Animated.View>
+      </View>
+    </Modal>
+    <Modal
+      animationType="fade"
+      onRequestClose={[Function]}
+      transparent={true}
+      visible={false}
+    >
+      <TouchableWithoutFeedback
+        onPress={[Function]}
+      >
+        <View
+          style={
+            {
+              "backgroundColor": "rgba(38, 51, 58, 0.5)",
+            }
+          }
+        />
+      </TouchableWithoutFeedback>
+      <View
+        pointerEvents="box-none"
+        style={
+          {
+            "alignItems": "center",
+            "flex": 1,
+            "justifyContent": "center",
+            "padding": 20,
+          }
+        }
+      >
+        <Animated.View
+          style={
+            {
+              "opacity": AnimatedValue {
+                "value": 0,
+              },
+              "transform": [
+                {
+                  "scale": AnimatedValue {
+                    "value": 0.94,
+                  },
+                },
+              ],
+              "width": "100%",
+            }
+          }
+        >
+          <View
+            style={
+              [
+                {
+                  "backgroundColor": "#FFFFFF",
+                  "borderRadius": 24,
+                  "shadowColor": "#26333A",
+                },
+                {
+                  "elevation": 2,
+                },
+                {
+                  "padding": 16,
+                },
+                {
+                  "backgroundColor": "#FFFFFF",
+                  "gap": 12,
+                },
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 24,
+                    "fontWeight": "600",
+                    "lineHeight": 28.799999999999997,
+                  },
+                  {
+                    "color": "#14201B",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  {
+                    "marginBottom": 4,
+                  },
+                ]
+              }
+            >
+              profile:deleteAccount.warningTitle
+            </Text>
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  {
+                    "color": "#5B6572",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              profile:deleteAccount.warningDescription
+            </Text>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 16,
+                  "justifyContent": "flex-end",
+                  "marginTop": 8,
+                }
+              }
+            >
+              <Pressable
+                accessibilityLabel="Annuler"
+                accessibilityRole="button"
+                onPress={[Function]}
+                style={
+                  {
+                    "paddingHorizontal": 8,
+                    "paddingVertical": 8,
+                  }
+                }
+              >
+                <Text
+                  style={
+                    [
+                      {
+                        "fontSize": 14,
+                        "fontWeight": "500",
+                        "lineHeight": 21,
+                      },
+                      {
+                        "color": "#5B6572",
+                        "textAlign": undefined,
+                        "writingDirection": "ltr",
+                      },
+                      undefined,
+                    ]
+                  }
+                >
+                  Annuler
+                </Text>
+              </Pressable>
+              <Pressable
+                accessibilityLabel="profile:deleteAccount.warningCta"
+                accessibilityRole="button"
+                accessibilityState={
+                  {
+                    "busy": false,
+                    "disabled": false,
+                  }
+                }
+                disabled={false}
+                onPress={[Function]}
+                style={[Function]}
+              >
+                <Text
+                  style={
+                    [
+                      {
+                        "fontWeight": "600",
+                      },
+                      {
+                        "fontSize": 16,
+                      },
+                      {
+                        "color": "#FFFFFF",
+                      },
+                    ]
+                  }
+                >
+                  profile:deleteAccount.warningCta
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        </Animated.View>
+      </View>
+    </Modal>
+    <Modal
+      animationType="fade"
+      onRequestClose={[Function]}
+      transparent={true}
+      visible={false}
+    >
+      <TouchableWithoutFeedback
+        onPress={[Function]}
+      >
+        <View
+          style={
+            {
+              "backgroundColor": "rgba(38, 51, 58, 0.5)",
+            }
+          }
+        />
+      </TouchableWithoutFeedback>
+      <View
+        pointerEvents="box-none"
+        style={
+          {
+            "alignItems": "center",
+            "flex": 1,
+            "justifyContent": "center",
+            "padding": 20,
+          }
+        }
+      >
+        <Animated.View
+          style={
+            {
+              "opacity": AnimatedValue {
+                "value": 0,
+              },
+              "transform": [
+                {
+                  "scale": AnimatedValue {
+                    "value": 0.94,
+                  },
+                },
+              ],
+              "width": "100%",
+            }
+          }
+        >
+          <View
+            style={
+              [
+                {
+                  "backgroundColor": "#FFFFFF",
+                  "borderRadius": 24,
+                  "shadowColor": "#26333A",
+                },
+                {
+                  "elevation": 2,
+                },
+                {
+                  "padding": 16,
+                },
+                {
+                  "backgroundColor": "#FFFFFF",
+                  "gap": 12,
+                },
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 24,
+                    "fontWeight": "600",
+                    "lineHeight": 28.799999999999997,
+                  },
+                  {
+                    "color": "#14201B",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  {
+                    "marginBottom": 4,
+                  },
+                ]
+              }
+            >
+              profile:deleteAccount.confirmTitle
+            </Text>
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  {
+                    "color": "#5B6572",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              profile:deleteAccount.confirmDescription
+            </Text>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 16,
+                  "justifyContent": "flex-end",
+                  "marginTop": 8,
+                }
+              }
+            >
+              <Pressable
+                accessibilityLabel="Annuler"
+                accessibilityRole="button"
+                onPress={[Function]}
+                style={
+                  {
+                    "paddingHorizontal": 8,
+                    "paddingVertical": 8,
+                  }
+                }
+              >
+                <Text
+                  style={
+                    [
+                      {
+                        "fontSize": 14,
+                        "fontWeight": "500",
+                        "lineHeight": 21,
+                      },
+                      {
+                        "color": "#5B6572",
+                        "textAlign": undefined,
+                        "writingDirection": "ltr",
+                      },
+                      undefined,
+                    ]
+                  }
+                >
+                  Annuler
+                </Text>
+              </Pressable>
+              <Pressable
+                accessibilityLabel="profile:deleteAccount.confirmCta"
+                accessibilityRole="button"
+                accessibilityState={
+                  {
+                    "busy": false,
+                    "disabled": false,
+                  }
+                }
+                disabled={false}
+                onPress={[Function]}
+                style={[Function]}
+              >
+                <Text
+                  style={
+                    [
+                      {
+                        "fontWeight": "600",
+                      },
+                      {
+                        "fontSize": 16,
+                      },
+                      {
+                        "color": "#FFFFFF",
+                      },
+                    ]
+                  }
+                >
+                  profile:deleteAccount.confirmCta
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        </Animated.View>
+      </View>
+    </Modal>
+    <Modal
+      animationType="fade"
+      onRequestClose={[Function]}
+      transparent={true}
+      visible={false}
+    >
+      <TouchableWithoutFeedback
+        onPress={[Function]}
+      >
+        <View
+          style={
+            {
+              "backgroundColor": "rgba(38, 51, 58, 0.5)",
+            }
+          }
+        />
+      </TouchableWithoutFeedback>
+      <View
+        pointerEvents="box-none"
+        style={
+          {
+            "alignItems": "center",
+            "flex": 1,
+            "justifyContent": "center",
+            "padding": 20,
+          }
+        }
+      >
+        <Animated.View
+          style={
+            {
+              "opacity": AnimatedValue {
+                "value": 0,
+              },
+              "transform": [
+                {
+                  "scale": AnimatedValue {
+                    "value": 0.94,
+                  },
+                },
+              ],
+              "width": "100%",
+            }
+          }
+        >
+          <View
+            style={
+              [
+                {
+                  "backgroundColor": "#FFFFFF",
+                  "borderRadius": 24,
+                  "shadowColor": "#26333A",
+                },
+                {
+                  "elevation": 2,
+                },
+                {
+                  "padding": 16,
+                },
+                {
+                  "backgroundColor": "#FFFFFF",
+                  "gap": 12,
+                },
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 24,
+                    "fontWeight": "600",
+                    "lineHeight": 28.799999999999997,
+                  },
+                  {
+                    "color": "#14201B",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  {
+                    "marginBottom": 4,
+                  },
+                ]
+              }
+            >
+              profile:deleteAccount.blockedTitle
+            </Text>
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  {
+                    "color": "#5B6572",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            />
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 16,
+                  "justifyContent": "flex-end",
+                  "marginTop": 8,
+                }
+              }
+            >
+              <Pressable
+                accessibilityLabel="Annuler"
+                accessibilityRole="button"
+                onPress={[Function]}
+                style={
+                  {
+                    "paddingHorizontal": 8,
+                    "paddingVertical": 8,
+                  }
+                }
+              >
+                <Text
+                  style={
+                    [
+                      {
+                        "fontSize": 14,
+                        "fontWeight": "500",
+                        "lineHeight": 21,
+                      },
+                      {
+                        "color": "#5B6572",
+                        "textAlign": undefined,
+                        "writingDirection": "ltr",
+                      },
+                      undefined,
+                    ]
+                  }
+                >
+                  Annuler
+                </Text>
+              </Pressable>
+              <Pressable
+                accessibilityLabel="common:actions.gotIt"
+                accessibilityRole="button"
+                accessibilityState={
+                  {
+                    "busy": false,
+                    "disabled": false,
+                  }
+                }
+                disabled={false}
+                onPress={[Function]}
+                style={[Function]}
+              >
+                <Text
+                  style={
+                    [
+                      {
+                        "fontWeight": "600",
+                      },
+                      {
+                        "fontSize": 16,
+                      },
+                      {
+                        "color": "#FFFFFF",
+                      },
+                    ]
+                  }
+                >
+                  common:actions.gotIt
                 </Text>
               </Pressable>
             </View>
@@ -5573,6 +8629,186 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
               ]
             }
           >
+            profile:sections.legal
+          </Text>
+          <View
+            style={
+              [
+                {
+                  "borderRadius": 12,
+                  "borderWidth": 1,
+                  "overflow": "hidden",
+                },
+                {
+                  "backgroundColor": "#FFFFFF",
+                  "borderColor": "#E4EDFB",
+                },
+                {
+                  "elevation": 1,
+                },
+              ]
+            }
+          >
+            <View>
+              <TouchableOpacity
+                accessibilityLabel="profile:rows.terms"
+                accessibilityRole="button"
+                accessibilityState={
+                  {
+                    "disabled": false,
+                  }
+                }
+                activeOpacity={0.6}
+                disabled={false}
+                onPress={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "gap": 16,
+                    "paddingHorizontal": 16,
+                    "paddingVertical": 16,
+                  }
+                }
+              >
+                <View>
+                  <Ionicons
+                    accessibilityElementsHidden={true}
+                    color="#5B6572"
+                    importantForAccessibility="no-hide-descendants"
+                    name="document-text-outline"
+                    size={20}
+                  />
+                </View>
+                <Text
+                  style={
+                    [
+                      {
+                        "fontSize": 16,
+                        "fontWeight": "400",
+                        "lineHeight": 24,
+                      },
+                      {
+                        "color": "#14201B",
+                        "textAlign": undefined,
+                        "writingDirection": "ltr",
+                      },
+                      {
+                        "flex": 1,
+                      },
+                    ]
+                  }
+                >
+                  profile:rows.terms
+                </Text>
+                <Ionicons
+                  accessibilityElementsHidden={true}
+                  color="#D3E1F5"
+                  importantForAccessibility="no-hide-descendants"
+                  name="chevron-forward"
+                  size={16}
+                />
+              </TouchableOpacity>
+            </View>
+            <View>
+              <View
+                style={
+                  [
+                    {
+                      "height": 1,
+                      "marginHorizontal": 16,
+                    },
+                    {
+                      "backgroundColor": "#E4EDFB",
+                    },
+                  ]
+                }
+              />
+              <TouchableOpacity
+                accessibilityLabel="profile:rows.privacyPolicy"
+                accessibilityRole="button"
+                accessibilityState={
+                  {
+                    "disabled": false,
+                  }
+                }
+                activeOpacity={0.6}
+                disabled={false}
+                onPress={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "gap": 16,
+                    "paddingHorizontal": 16,
+                    "paddingVertical": 16,
+                  }
+                }
+              >
+                <View>
+                  <Ionicons
+                    accessibilityElementsHidden={true}
+                    color="#5B6572"
+                    importantForAccessibility="no-hide-descendants"
+                    name="lock-closed-outline"
+                    size={20}
+                  />
+                </View>
+                <Text
+                  style={
+                    [
+                      {
+                        "fontSize": 16,
+                        "fontWeight": "400",
+                        "lineHeight": 24,
+                      },
+                      {
+                        "color": "#14201B",
+                        "textAlign": undefined,
+                        "writingDirection": "ltr",
+                      },
+                      {
+                        "flex": 1,
+                      },
+                    ]
+                  }
+                >
+                  profile:rows.privacyPolicy
+                </Text>
+                <Ionicons
+                  accessibilityElementsHidden={true}
+                  color="#D3E1F5"
+                  importantForAccessibility="no-hide-descendants"
+                  name="chevron-forward"
+                  size={16}
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+        <View>
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "lineHeight": 18,
+                },
+                {
+                  "color": "#8B93A3",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                {
+                  "letterSpacing": 0.8,
+                  "marginBottom": 8,
+                  "marginHorizontal": 8,
+                  "textTransform": "uppercase",
+                },
+              ]
+            }
+          >
             profile:sections.preferences
           </Text>
           <View
@@ -5886,6 +9122,40 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
             profile:logout.cta
           </Text>
         </TouchableOpacity>
+        <TouchableOpacity
+          accessibilityLabel="profile:deleteAccount.accessibility"
+          accessibilityRole="button"
+          activeOpacity={0.6}
+          onPress={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "paddingVertical": 12,
+            }
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "lineHeight": 18,
+                },
+                {
+                  "color": "#8B93A3",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                {
+                  "textDecorationLine": "underline",
+                },
+              ]
+            }
+          >
+            profile:deleteAccount.cta
+          </Text>
+        </TouchableOpacity>
       </View>
     </ScrollView>
     <Modal
@@ -6065,6 +9335,556 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                   }
                 >
                   profile:logout.cta
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        </Animated.View>
+      </View>
+    </Modal>
+    <Modal
+      animationType="fade"
+      onRequestClose={[Function]}
+      transparent={true}
+      visible={false}
+    >
+      <TouchableWithoutFeedback
+        onPress={[Function]}
+      >
+        <View
+          style={
+            {
+              "backgroundColor": "rgba(38, 51, 58, 0.5)",
+            }
+          }
+        />
+      </TouchableWithoutFeedback>
+      <View
+        pointerEvents="box-none"
+        style={
+          {
+            "alignItems": "center",
+            "flex": 1,
+            "justifyContent": "center",
+            "padding": 20,
+          }
+        }
+      >
+        <Animated.View
+          style={
+            {
+              "opacity": AnimatedValue {
+                "value": 0,
+              },
+              "transform": [
+                {
+                  "scale": AnimatedValue {
+                    "value": 0.94,
+                  },
+                },
+              ],
+              "width": "100%",
+            }
+          }
+        >
+          <View
+            style={
+              [
+                {
+                  "backgroundColor": "#FFFFFF",
+                  "borderRadius": 24,
+                  "shadowColor": "#26333A",
+                },
+                {
+                  "elevation": 2,
+                },
+                {
+                  "padding": 16,
+                },
+                {
+                  "backgroundColor": "#FFFFFF",
+                  "gap": 12,
+                },
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 24,
+                    "fontWeight": "600",
+                    "lineHeight": 28.799999999999997,
+                  },
+                  {
+                    "color": "#14201B",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  {
+                    "marginBottom": 4,
+                  },
+                ]
+              }
+            >
+              profile:deleteAccount.warningTitle
+            </Text>
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  {
+                    "color": "#5B6572",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              profile:deleteAccount.warningDescription
+            </Text>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 16,
+                  "justifyContent": "flex-end",
+                  "marginTop": 8,
+                }
+              }
+            >
+              <Pressable
+                accessibilityLabel="Annuler"
+                accessibilityRole="button"
+                onPress={[Function]}
+                style={
+                  {
+                    "paddingHorizontal": 8,
+                    "paddingVertical": 8,
+                  }
+                }
+              >
+                <Text
+                  style={
+                    [
+                      {
+                        "fontSize": 14,
+                        "fontWeight": "500",
+                        "lineHeight": 21,
+                      },
+                      {
+                        "color": "#5B6572",
+                        "textAlign": undefined,
+                        "writingDirection": "ltr",
+                      },
+                      undefined,
+                    ]
+                  }
+                >
+                  Annuler
+                </Text>
+              </Pressable>
+              <Pressable
+                accessibilityLabel="profile:deleteAccount.warningCta"
+                accessibilityRole="button"
+                accessibilityState={
+                  {
+                    "busy": false,
+                    "disabled": false,
+                  }
+                }
+                disabled={false}
+                onPress={[Function]}
+                style={[Function]}
+              >
+                <Text
+                  style={
+                    [
+                      {
+                        "fontWeight": "600",
+                      },
+                      {
+                        "fontSize": 16,
+                      },
+                      {
+                        "color": "#FFFFFF",
+                      },
+                    ]
+                  }
+                >
+                  profile:deleteAccount.warningCta
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        </Animated.View>
+      </View>
+    </Modal>
+    <Modal
+      animationType="fade"
+      onRequestClose={[Function]}
+      transparent={true}
+      visible={false}
+    >
+      <TouchableWithoutFeedback
+        onPress={[Function]}
+      >
+        <View
+          style={
+            {
+              "backgroundColor": "rgba(38, 51, 58, 0.5)",
+            }
+          }
+        />
+      </TouchableWithoutFeedback>
+      <View
+        pointerEvents="box-none"
+        style={
+          {
+            "alignItems": "center",
+            "flex": 1,
+            "justifyContent": "center",
+            "padding": 20,
+          }
+        }
+      >
+        <Animated.View
+          style={
+            {
+              "opacity": AnimatedValue {
+                "value": 0,
+              },
+              "transform": [
+                {
+                  "scale": AnimatedValue {
+                    "value": 0.94,
+                  },
+                },
+              ],
+              "width": "100%",
+            }
+          }
+        >
+          <View
+            style={
+              [
+                {
+                  "backgroundColor": "#FFFFFF",
+                  "borderRadius": 24,
+                  "shadowColor": "#26333A",
+                },
+                {
+                  "elevation": 2,
+                },
+                {
+                  "padding": 16,
+                },
+                {
+                  "backgroundColor": "#FFFFFF",
+                  "gap": 12,
+                },
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 24,
+                    "fontWeight": "600",
+                    "lineHeight": 28.799999999999997,
+                  },
+                  {
+                    "color": "#14201B",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  {
+                    "marginBottom": 4,
+                  },
+                ]
+              }
+            >
+              profile:deleteAccount.confirmTitle
+            </Text>
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  {
+                    "color": "#5B6572",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              profile:deleteAccount.confirmDescription
+            </Text>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 16,
+                  "justifyContent": "flex-end",
+                  "marginTop": 8,
+                }
+              }
+            >
+              <Pressable
+                accessibilityLabel="Annuler"
+                accessibilityRole="button"
+                onPress={[Function]}
+                style={
+                  {
+                    "paddingHorizontal": 8,
+                    "paddingVertical": 8,
+                  }
+                }
+              >
+                <Text
+                  style={
+                    [
+                      {
+                        "fontSize": 14,
+                        "fontWeight": "500",
+                        "lineHeight": 21,
+                      },
+                      {
+                        "color": "#5B6572",
+                        "textAlign": undefined,
+                        "writingDirection": "ltr",
+                      },
+                      undefined,
+                    ]
+                  }
+                >
+                  Annuler
+                </Text>
+              </Pressable>
+              <Pressable
+                accessibilityLabel="profile:deleteAccount.confirmCta"
+                accessibilityRole="button"
+                accessibilityState={
+                  {
+                    "busy": false,
+                    "disabled": false,
+                  }
+                }
+                disabled={false}
+                onPress={[Function]}
+                style={[Function]}
+              >
+                <Text
+                  style={
+                    [
+                      {
+                        "fontWeight": "600",
+                      },
+                      {
+                        "fontSize": 16,
+                      },
+                      {
+                        "color": "#FFFFFF",
+                      },
+                    ]
+                  }
+                >
+                  profile:deleteAccount.confirmCta
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        </Animated.View>
+      </View>
+    </Modal>
+    <Modal
+      animationType="fade"
+      onRequestClose={[Function]}
+      transparent={true}
+      visible={false}
+    >
+      <TouchableWithoutFeedback
+        onPress={[Function]}
+      >
+        <View
+          style={
+            {
+              "backgroundColor": "rgba(38, 51, 58, 0.5)",
+            }
+          }
+        />
+      </TouchableWithoutFeedback>
+      <View
+        pointerEvents="box-none"
+        style={
+          {
+            "alignItems": "center",
+            "flex": 1,
+            "justifyContent": "center",
+            "padding": 20,
+          }
+        }
+      >
+        <Animated.View
+          style={
+            {
+              "opacity": AnimatedValue {
+                "value": 0,
+              },
+              "transform": [
+                {
+                  "scale": AnimatedValue {
+                    "value": 0.94,
+                  },
+                },
+              ],
+              "width": "100%",
+            }
+          }
+        >
+          <View
+            style={
+              [
+                {
+                  "backgroundColor": "#FFFFFF",
+                  "borderRadius": 24,
+                  "shadowColor": "#26333A",
+                },
+                {
+                  "elevation": 2,
+                },
+                {
+                  "padding": 16,
+                },
+                {
+                  "backgroundColor": "#FFFFFF",
+                  "gap": 12,
+                },
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 24,
+                    "fontWeight": "600",
+                    "lineHeight": 28.799999999999997,
+                  },
+                  {
+                    "color": "#14201B",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  {
+                    "marginBottom": 4,
+                  },
+                ]
+              }
+            >
+              profile:deleteAccount.blockedTitle
+            </Text>
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  {
+                    "color": "#5B6572",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            />
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 16,
+                  "justifyContent": "flex-end",
+                  "marginTop": 8,
+                }
+              }
+            >
+              <Pressable
+                accessibilityLabel="Annuler"
+                accessibilityRole="button"
+                onPress={[Function]}
+                style={
+                  {
+                    "paddingHorizontal": 8,
+                    "paddingVertical": 8,
+                  }
+                }
+              >
+                <Text
+                  style={
+                    [
+                      {
+                        "fontSize": 14,
+                        "fontWeight": "500",
+                        "lineHeight": 21,
+                      },
+                      {
+                        "color": "#5B6572",
+                        "textAlign": undefined,
+                        "writingDirection": "ltr",
+                      },
+                      undefined,
+                    ]
+                  }
+                >
+                  Annuler
+                </Text>
+              </Pressable>
+              <Pressable
+                accessibilityLabel="common:actions.gotIt"
+                accessibilityRole="button"
+                accessibilityState={
+                  {
+                    "busy": false,
+                    "disabled": false,
+                  }
+                }
+                disabled={false}
+                onPress={[Function]}
+                style={[Function]}
+              >
+                <Text
+                  style={
+                    [
+                      {
+                        "fontWeight": "600",
+                      },
+                      {
+                        "fontSize": 16,
+                      },
+                      {
+                        "color": "#FFFFFF",
+                      },
+                    ]
+                  }
+                >
+                  common:actions.gotIt
                 </Text>
               </Pressable>
             </View>

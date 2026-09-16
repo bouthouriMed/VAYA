@@ -22,6 +22,16 @@ export const users = pgTable('users', {
   // the `authenticate` hook (app.ts), not just hidden in the UI.
   suspendedAt: timestamp('suspended_at', { withTimezone: true }),
   suspendedReason: text('suspended_reason'),
+  // Account deletion (docs/legal/privacy-policy.md §10): set once a Member's
+  // deletion request has been carried out. Mirrors the suspendedAt/
+  // suspendedReason pattern deliberately — same "enforce in the
+  // `authenticate` hook, not just hide in the UI" discipline. Unlike a
+  // suspension, this is never cleared: deletion is final (deleteUser in
+  // users.service.ts also anonymizes phone/email/googleId/fullName/avatarUrl
+  // in the same update, so this column's presence and the anonymized PII
+  // always move together).
+  deletedAt: timestamp('deleted_at', { withTimezone: true }),
+  deletionReason: text('deletion_reason'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });

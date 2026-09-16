@@ -19,8 +19,9 @@ describe('computeSuggestedPrice', () => {
   });
 
   it('enforces the absolute floor for a very short route', () => {
-    // A 1km/3min hop: the raw formula (0.25*1 + 0.08*3 = 0.49 DT) is far
-    // below any realistic contribution — the floor must take over.
+    // A 1km/3min hop: the raw formula (config.baseRatePerKm*1 +
+    // config.timeComponentPerMin*3, well under 1 DT at current rates) is
+    // far below any realistic contribution — the floor must take over.
     const result = computeSuggestedPrice(1, 3, config);
 
     expect(result.recommended).toBe(ABSOLUTE_MIN_CONTRIBUTION_DT);

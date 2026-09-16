@@ -124,6 +124,17 @@ export async function revokeRefreshToken(db: Database, refreshTokenPlain: string
     .where(eq(refreshTokens.tokenHash, tokenHash));
 }
 
+/** Revokes every still-live refresh token for a user in one pass — used on
+ *  account deletion (users.service.ts's deleteUser), where every existing
+ *  session must stop working immediately, not just the one the deletion
+ *  request came in on. */
+export async function revokeAllRefreshTokensForUser(db: Database, userId: string): Promise<void> {
+  await db
+    .update(refreshTokens)
+    .set({ revokedAt: new Date() })
+    .where(and(eq(refreshTokens.userId, userId), isNull(refreshTokens.revokedAt)));
+}
+
 interface GoogleProfile {
   googleId: string;
   email?: string;

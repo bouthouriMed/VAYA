@@ -1728,11 +1728,26 @@ export default function PublishTabScreen(): React.JSX.Element {
             disabled={isPublishing}
             onPress={() => void finalizePublish()}
           />
-          <Text variant="bodySmall" color={theme.inkFaint} align="center" style={styles.termsHint}>
-            {hasRideData
-              ? t('driver:publish.reviewStep.termsHint')
-              : t('driver:publish.reviewStep.verifyDescription')}
-          </Text>
+          {hasRideData ? (
+            <TouchableOpacity
+              onPress={() => router.push('/legal/terms')}
+              accessibilityRole="button"
+              accessibilityLabel={t('driver:publish.reviewStep.termsHint')}
+            >
+              <Text
+                variant="bodySmall"
+                color={theme.inkFaint}
+                align="center"
+                style={[styles.termsHint, styles.termsHintLink]}
+              >
+                {t('driver:publish.reviewStep.termsHint')}
+              </Text>
+            </TouchableOpacity>
+          ) : (
+            <Text variant="bodySmall" color={theme.inkFaint} align="center" style={styles.termsHint}>
+              {t('driver:publish.reviewStep.verifyDescription')}
+            </Text>
+          )}
         </View>
 
         <BottomSheet
@@ -2832,6 +2847,9 @@ const styles = StyleSheet.create({
   },
   termsHint: {
     marginTop: spacing.sm,
+  },
+  termsHintLink: {
+    textDecorationLine: 'underline',
   },
   verificationSheet: {
     alignItems: 'center',

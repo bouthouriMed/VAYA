@@ -146,5 +146,8 @@
     "privacy": "Confidentialité",
     "language": "Langue",
     "rights": "VAYA. Tous droits réservés."
+  },
+  "legal": {
+    "backToHome": "Retour à VAYA"
   }
 }

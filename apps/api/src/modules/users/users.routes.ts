@@ -10,7 +10,13 @@ import {
 } from '@vaya/validation';
 import { getDatabase } from '../../lib/database.js';
 import { getUserId } from '../../lib/auth-context.js';
-import { getPublicProfile, getUserById, updateUser, attachPhoneToUser } from './users.service.js';
+import {
+  getPublicProfile,
+  getUserById,
+  updateUser,
+  attachPhoneToUser,
+  deleteUser,
+} from './users.service.js';
 import { requestOtp } from '../auth/auth.service.js';
 import { getEnv } from '../../config/env.js';
 // Phase 7 (docs/roadmap/phase-07-notifications.md): device-token storage is
@@ -56,6 +62,8 @@ const publicProfileResponseSchema = z.object({
     .nullable(),
 });
 
+const deleteAccountBodySchema = z.object({ reason: z.string().max(500).optional() }).optional();
+
 const pushTokenResponseSchema = z.object({
   id: z.string().uuid(),
   userId: z.string().uuid(),
@@ -87,6 +95,21 @@ export async function usersRoutes(fastify: FastifyInstance): Promise<void> {
     async (request, reply) => {
       const user = await updateUser(db, getUserId(request), request.body);
       reply.send(user);
+    },
+  );
+
+  app.delete(
+    '/users/me',
+    {
+      onRequest: [fastify.authenticate],
+      schema: {
+        body: deleteAccountBodySchema,
+        response: { 200: z.object({ success: z.literal(true) }) },
+      },
+    },
+    async (request, reply) => {
+      await deleteUser(db, getUserId(request), request.body?.reason);
+      reply.send({ success: true });
     },
   );
 
