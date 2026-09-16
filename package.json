@@ -21,7 +21,7 @@
     "docker:down": "docker compose down",
     "docker:logs": "docker compose logs -f",
     "generate:api-client": "pnpm --filter @vaya/api-client generate",
-    "prepare": "husky"
+    "prepare": "husky || true"
   },
   "devDependencies": {
     "husky": "^9.1.7",
