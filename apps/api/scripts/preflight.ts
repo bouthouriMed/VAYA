@@ -69,8 +69,20 @@ async function checkRedis(): Promise<CheckResult> {
 
 async function checkTwilio(): Promise<CheckResult> {
   const env = getEnv();
+  // Mirrors config/env.ts's assertProductionSafe: Twilio missing is only a
+  // hard failure when Google OAuth isn't a working alternative sign-in path
+  // either — otherwise the app boots fine (Google-only), so this should
+  // report that, not block the deploy.
+  const hasGoogleOAuth = Boolean(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET && env.GOOGLE_CALLBACK_URL);
   if (!env.TWILIO_ACCOUNT_SID || !env.TWILIO_AUTH_TOKEN) {
-    return { name: 'Twilio credentials', ok: false, detail: 'TWILIO_ACCOUNT_SID/AUTH_TOKEN not set — required in production, OTP sign-in will not work' };
+    if (hasGoogleOAuth) {
+      return {
+        name: 'Twilio credentials',
+        ok: true,
+        detail: 'not set — phone/OTP sign-in will not work, but Google OAuth is configured as a working alternative (non-fatal)',
+      };
+    }
+    return { name: 'Twilio credentials', ok: false, detail: 'TWILIO_ACCOUNT_SID/AUTH_TOKEN not set, and no Google OAuth configured either — no user could sign in at all' };
   }
   try {
     const response = await withTimeout(
