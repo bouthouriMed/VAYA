@@ -57,11 +57,12 @@ const envSchema = z.object({
   // SMS/OTP delivery (lib/sms) — same direct-HTTP-call pattern as Resend
   // above. All three required together to activate TwilioSmsProvider;
   // unset in dev/test by default, falling back to DevSmsProvider (logs the
-  // OTP instead of sending it). Phone/OTP is this app's *default* auth path
-  // (Google is the only alternative), so assertProductionSafe below refuses
-  // to boot in production without a real provider configured — silently
-  // logging every user's OTP instead of sending it is not a safe default to
-  // ever reach production.
+  // OTP instead of sending it). Phone/OTP is this app's *default* auth path,
+  // with Google OAuth as the other independent one — assertProductionSafe
+  // below refuses to boot only when *neither* path is configured (silently
+  // logging every OTP with no working alternative sign-in is not a safe
+  // default to ever reach production); Twilio alone missing with a real
+  // Google client configured is a deliberate degrade, not a boot-blocker.
   TWILIO_ACCOUNT_SID: z.string().optional(),
   TWILIO_AUTH_TOKEN: z.string().optional(),
   TWILIO_FROM_NUMBER: z.string().optional(),
@@ -102,7 +103,7 @@ const INSECURE_JWT_SECRET_DEFAULT = 'dev-insecure-jwt-secret-change-in-productio
 // own "no secrets in git" rule exists to prevent: a production boot silently
 // succeeding on a publicly-known-from-source-code secret or a wide-open CORS
 // default because the real env var was simply never set.
-function assertProductionSafe(env: Env): void {
+export function assertProductionSafe(env: Env): void {
   if (env.NODE_ENV !== 'production') return;
 
   const errors: string[] = [];
@@ -116,10 +117,21 @@ function assertProductionSafe(env: Env): void {
       'CORS_ORIGIN must not be "*" in production — set it to the real allowed origin(s) (admin app domain, etc).'
     );
   }
+  // Phone/OTP and Google are the app's two independent sign-in paths
+  // (schema.ts: users.phone is nullable specifically so a Google-only
+  // account can exist with no phone at all). Refusing to boot is only
+  // correct when NEITHER path actually works — that's the one state where
+  // literally no user could ever sign in. Twilio alone missing, with a
+  // real Google OAuth client configured, is a real, deliberate product
+  // choice (e.g. launching before a viable Tunisia SMS provider is lined
+  // up), not a misconfiguration — downgraded to a warning below instead.
   const hasTwilio = Boolean(env.TWILIO_ACCOUNT_SID && env.TWILIO_AUTH_TOKEN && env.TWILIO_FROM_NUMBER);
-  if (!hasTwilio) {
+  const hasGoogleOAuth = Boolean(
+    env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET && env.GOOGLE_CALLBACK_URL
+  );
+  if (!hasTwilio && !hasGoogleOAuth) {
     errors.push(
-      'TWILIO_ACCOUNT_SID/TWILIO_AUTH_TOKEN/TWILIO_FROM_NUMBER must all be set in production — refusing to boot with OTP codes only logged (DevSmsProvider), which means no user could ever complete phone/OTP sign-in.'
+      'Neither Twilio (phone/OTP) nor Google OAuth is configured — refusing to boot with no working sign-in path at all. Set TWILIO_ACCOUNT_SID/TWILIO_AUTH_TOKEN/TWILIO_FROM_NUMBER, or GOOGLE_CLIENT_ID/GOOGLE_CLIENT_SECRET/GOOGLE_CALLBACK_URL, or both.'
     );
   }
   const hasS3 = Boolean(
@@ -140,6 +152,11 @@ function assertProductionSafe(env: Env): void {
   // (nothing sent, nothing logged beyond a per-call warning) is still a real
   // operational surprise worth a loud one-time boot warning.
   const warnings: string[] = [];
+  if (!hasTwilio && hasGoogleOAuth) {
+    warnings.push(
+      'Twilio is unset — phone/OTP sign-in will not work (OTP codes are only logged, never sent). Google is the only working sign-in path until this is configured.'
+    );
+  }
   if (!env.RESEND_API_KEY) {
     warnings.push('RESEND_API_KEY is unset — transactional emails will only be logged, never sent.');
   }
