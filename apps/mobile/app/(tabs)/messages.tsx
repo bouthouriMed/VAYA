@@ -54,7 +54,7 @@ function ScreenBackground({
         colors={theme.backgroundGradient}
         start={{ x: 0.5, y: 0 }}
         end={{ x: 0.5, y: 1 }}
-        style={StyleSheet.absoluteFillObject}
+        style={StyleSheet.absoluteFill}
       />
       <View pointerEvents="none" style={[styles.ambientGlow, { backgroundColor: theme.accentGlow }]} />
       <SafeAreaView style={styles.container} edges={['top']}>

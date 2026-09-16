@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { GestureDetector, Gesture, GestureHandlerRootView } from 'react-native-gesture-handler';
 import type { PanGesture } from 'react-native-gesture-handler';
+import { ABSOLUTE_FILL_OBJECT } from '../utils/absoluteFill';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -252,7 +253,7 @@ export function BottomSheet({
              *  (`tint`/`intensity`, no experimental flag) doesn't share this
              *  failure mode, so it's kept there. */}
             {Platform.OS === 'ios' ? (
-              <BlurView intensity={30} tint="dark" style={StyleSheet.absoluteFillObject} />
+              <BlurView intensity={30} tint="dark" style={StyleSheet.absoluteFill} />
             ) : null}
           </Animated.View>
         </TouchableWithoutFeedback>
@@ -309,7 +310,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   backdrop: {
-    ...StyleSheet.absoluteFillObject,
+    ...ABSOLUTE_FILL_OBJECT,
     backgroundColor: 'rgba(38, 51, 58, 0.5)',
   },
   keyboardWrap: {

@@ -194,7 +194,7 @@ export default function HomeSearchScreen(): React.JSX.Element {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      {/* Full-bleed map background — a real `StyleSheet.absoluteFillObject`
+      {/* Full-bleed map background — a real `StyleSheet.absoluteFill`
        *  layer behind everything, not a fixed-height section stacked above
        *  a separately-sized card (that was a DIFFERENT, earlier Stitch
        *  reference this screen used to match; the current one floats the
@@ -205,7 +205,7 @@ export default function HomeSearchScreen(): React.JSX.Element {
        *  the card doesn't cover, all the way down. */}
       <MapView
         provider={isExpoGo ? undefined : PROVIDER_GOOGLE}
-        style={StyleSheet.absoluteFillObject}
+        style={StyleSheet.absoluteFill}
         region={region}
         scrollEnabled={false}
         zoomEnabled={false}
@@ -259,7 +259,7 @@ export default function HomeSearchScreen(): React.JSX.Element {
         <LinearGradient
           colors={[`${theme.background}F2`, `${theme.background}B8`, `${theme.background}00`]}
           locations={[0, 0.55, 1]}
-          style={StyleSheet.absoluteFillObject}
+          style={StyleSheet.absoluteFill}
           pointerEvents="none"
         />
         <Text variant="headlineDisplay" color={theme.ink} style={styles.wordmark}>

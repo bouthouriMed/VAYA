@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Platform, type StyleProp, type ViewStyle } from
 import MapView, { Marker, Polyline, PROVIDER_DEFAULT, type LatLng } from 'react-native-maps';
 import { colors, radii, spacing, typography, lightMapStyle, darkMapStyle } from '../tokens/index';
 import { regionForPoints, type LatLngPoint, type MapRegion } from '../utils/mapGeometry';
+import { ABSOLUTE_FILL_OBJECT } from '../utils/absoluteFill';
 import { SkeletonBlock } from './Skeleton';
 import { PickupPin, DropoffPin, PassengerStopPin } from './RideStopMarkers';
 import type { AppPalette } from '../theme/palette';
@@ -93,7 +94,7 @@ export function MapPreview({
     <View style={[styles.wrap, { height }, style]}>
       <MapView
         provider={PROVIDER_DEFAULT}
-        style={StyleSheet.absoluteFillObject}
+        style={StyleSheet.absoluteFill}
         initialRegion={region}
         scrollEnabled={false}
         zoomEnabled={false}
@@ -169,7 +170,7 @@ export function MapPreview({
           : null}
       </MapView>
       <View style={styles.tint} pointerEvents="none" />
-      {!isReady ? <SkeletonBlock radius="none" style={StyleSheet.absoluteFillObject} /> : null}
+      {!isReady ? <SkeletonBlock radius="none" style={StyleSheet.absoluteFill} /> : null}
       {badge ? (
         <View style={styles.badge}>
           <Text style={styles.badgeText}>{badge}</Text>
@@ -188,7 +189,7 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   tint: {
-    ...StyleSheet.absoluteFillObject,
+    ...ABSOLUTE_FILL_OBJECT,
     backgroundColor: colors.mapTileTint,
     opacity: 0.18,
   },

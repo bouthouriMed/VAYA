@@ -4,5 +4,6 @@ export * from './utils/mapGeometry';
 export * from './utils/haptics';
 export * from './utils/scheduling';
 export * from './utils/useReducedMotion';
+export * from './utils/absoluteFill';
 export * from './theme/palette';
 export * from './theme/AppThemeProvider';

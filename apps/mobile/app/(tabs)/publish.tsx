@@ -1286,7 +1286,7 @@ export default function PublishTabScreen(): React.JSX.Element {
 
         <View style={styles.routeMapSection}>
           <MapView
-            style={StyleSheet.absoluteFillObject}
+            style={StyleSheet.absoluteFill}
             provider={PROVIDER_DEFAULT}
             customMapStyle={scheme === 'dark' ? darkMapStyle : lightMapStyle}
             userInterfaceStyle={scheme}
@@ -1809,7 +1809,7 @@ export default function PublishTabScreen(): React.JSX.Element {
         <MapView
           ref={mapRef}
           provider={PROVIDER_DEFAULT}
-          style={StyleSheet.absoluteFillObject}
+          style={StyleSheet.absoluteFill}
           initialRegion={journeyMapRegion ?? TUNIS_REGION}
           scrollEnabled={isMapExpanded}
           zoomEnabled={isMapExpanded}

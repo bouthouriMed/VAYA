@@ -10,6 +10,7 @@ import {
 import { Card } from './Card';
 import { Text } from './Text';
 import { Button } from './Button';
+import { ABSOLUTE_FILL_OBJECT } from '../utils/absoluteFill';
 import { colors, spacing } from '../tokens/index';
 import { haptics } from '../utils/haptics';
 import type { AppPalette } from '../theme/palette';
@@ -116,7 +117,7 @@ export function Modal({
 
 const styles = StyleSheet.create({
   backdrop: {
-    ...StyleSheet.absoluteFillObject,
+    ...ABSOLUTE_FILL_OBJECT,
     backgroundColor: 'rgba(38, 51, 58, 0.5)',
   },
   centerWrap: {

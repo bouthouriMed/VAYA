@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Svg, { Circle, Path } from 'react-native-svg';
 import { useTranslation } from 'react-i18next';
-import { Text, Icon, StepProgress, useToast, useAppTheme, haptics, spacing, radii, type IconName } from '@vaya/design-system';
+import { Text, Icon, StepProgress, useToast, useAppTheme, haptics, spacing, radii, ABSOLUTE_FILL_OBJECT, type IconName } from '@vaya/design-system';
 
 export type CaptureGuideShape = 'document' | 'face';
 
@@ -277,7 +277,7 @@ export function CaptureCamera({
           >
             <CameraView
               ref={cameraRef}
-              style={StyleSheet.absoluteFillObject}
+              style={StyleSheet.absoluteFill}
               facing={facing}
               onCameraReady={() => setIsCameraReady(true)}
             />
@@ -285,7 +285,7 @@ export function CaptureCamera({
             {isFace ? (
               <Svg
                 pointerEvents="none"
-                style={StyleSheet.absoluteFillObject}
+                style={StyleSheet.absoluteFill}
                 viewBox="0 0 100 100"
               >
                 <Circle
@@ -308,7 +308,7 @@ export function CaptureCamera({
                 />
               </Svg>
             ) : (
-              <View pointerEvents="none" style={StyleSheet.absoluteFillObject}>
+              <View pointerEvents="none" style={StyleSheet.absoluteFill}>
                 <View style={[styles.docBracket, styles.docBracketTL]} />
                 <View style={[styles.docBracket, styles.docBracketTR]} />
                 <View style={[styles.docBracket, styles.docBracketBL]} />
@@ -420,7 +420,7 @@ const styles = StyleSheet.create({
     borderWidth: 5,
   },
   flashOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...ABSOLUTE_FILL_OBJECT,
     backgroundColor: '#FFFFFF',
   },
   docBracket: {
