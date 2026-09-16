@@ -1,0 +1,12 @@
+# Reverse proxy + automatic HTTPS (Let's Encrypt) for the API.
+#
+# The domain below uses sslip.io — a free public DNS service with no signup:
+# "<ip-with-dashes>.sslip.io" always resolves to that literal IP address.
+# This lets Caddy obtain a real, trusted Let's Encrypt certificate (which
+# requires a real resolvable hostname, not a bare IP) at zero cost, before a
+# real purchased domain exists. Once a real domain is bought (LAUNCH_ACTIONS.md
+# item #11), replace the line below with that domain — Caddy re-issues the
+# cert automatically on next restart, no other config changes needed.
+129-151-255-220.sslip.io {
+	reverse_proxy api:3000
+}

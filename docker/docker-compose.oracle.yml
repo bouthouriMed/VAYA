@@ -1,0 +1,60 @@
+# Deploy target: a single Oracle Cloud Always Free VM (see RUNBOOK.md /
+# LAUNCH_ACTIONS.md for the manual provisioning steps). Unlike
+# docker-compose.prod.yml (which spins up its own local Postgres/Redis for a
+# closest-to-prod *local* dry run), this compose file has NO database/cache
+# containers at all — DATABASE_URL/REDIS_URL in .env.prod point at real
+# managed services (Supabase/Upstash), matching how this app actually runs
+# once deployed anywhere else too (a real orchestrator never colocates the
+# database with the app process either).
+#
+# Adds one thing docker-compose.prod.yml doesn't need: a Caddy reverse proxy
+# in front of the API, terminating real automatic HTTPS (Let's Encrypt) so
+# the API is never served over plain HTTP in production — even before a
+# real purchased domain exists, via the free sslip.io wildcard DNS trick
+# (see Caddyfile).
+#
+# Usage: from the repo root, on the VM,
+#   cp apps/api/.env.example docker/.env.prod   # fill in real values
+#   docker compose -f docker/docker-compose.oracle.yml --env-file docker/.env.prod up -d --build
+#
+# Then, from a machine with network access to the real DATABASE_URL (this
+# VM works fine too), run migrations once — same reasoning as
+# api.Dockerfile's own comment on why migrations don't run from inside the
+# image:
+#   pnpm --filter @vaya/api db:migrate
+
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: docker/api.Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env.prod
+    expose:
+      - '3000'
+
+  worker:
+    build:
+      context: ..
+      dockerfile: docker/worker.Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env.prod
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - api
+
+volumes:
+  caddy_data:
+  caddy_config:
