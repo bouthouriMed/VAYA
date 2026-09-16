@@ -22,6 +22,7 @@ import {
   spacing,
   radii,
   regionForPoints,
+  ABSOLUTE_FILL_OBJECT,
 } from '@vaya/design-system';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -404,7 +405,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   mapWrap: {
-    ...StyleSheet.absoluteFillObject,
+    ...ABSOLUTE_FILL_OBJECT,
   },
   map: {
     borderRadius: 0,

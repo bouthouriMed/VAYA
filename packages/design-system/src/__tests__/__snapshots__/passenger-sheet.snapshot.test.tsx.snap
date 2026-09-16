@@ -22,6 +22,11 @@ exports[`PassengerSheet snapshots > renders the stepper stage with the given val
           [
             {
               "backgroundColor": "rgba(38, 51, 58, 0.5)",
+              "bottom": 0,
+              "left": 0,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
             },
             {
               "opacity": 0,

@@ -77,7 +77,7 @@ export function StatusBarBlend({
       <LinearGradient
         colors={[`${theme.background}D9`, `${theme.background}4D`, `${theme.background}00`]}
         locations={[0, 0.38, 1]}
-        style={StyleSheet.absoluteFillObject}
+        style={StyleSheet.absoluteFill}
       />
     </View>
   );

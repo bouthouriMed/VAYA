@@ -43,7 +43,7 @@ export function RoutePulseBadge({
 
   return (
     <View style={[styles.box, { width: box, height: box }]}>
-      <Svg width={box} height={box} style={StyleSheet.absoluteFillObject}>
+      <Svg width={box} height={box} style={StyleSheet.absoluteFill}>
         {ringRadii.map((r, i) => (
           <Circle
             key={r}

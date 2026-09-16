@@ -24,6 +24,7 @@ import {
   radii,
   typography,
   haptics,
+  ABSOLUTE_FILL_OBJECT,
 } from '@vaya/design-system';
 import { router, Redirect } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -178,7 +179,7 @@ export default function SignInScreen(): React.JSX.Element {
           colors={darkPalette.backgroundGradient}
           start={{ x: 0.5, y: 0 }}
           end={{ x: 0.5, y: 1 }}
-          style={StyleSheet.absoluteFillObject}
+          style={StyleSheet.absoluteFill}
         />
         <View pointerEvents="none" style={styles.glowTop} />
         <View pointerEvents="none" style={styles.glowBottom} />
@@ -466,7 +467,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   ctaSheenClip: {
-    ...StyleSheet.absoluteFillObject,
+    ...ABSOLUTE_FILL_OBJECT,
     overflow: 'hidden',
   },
   ctaSheen: {

@@ -58,9 +58,9 @@ export function GlassSurface({
   return (
     <View style={[styles.clip, { borderRadius: radii[radius] }, style]}>
       {Platform.OS === 'ios' ? (
-        <BlurView intensity={intensity} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFillObject} />
+        <BlurView intensity={intensity} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
       ) : null}
-      <View style={[StyleSheet.absoluteFillObject, { backgroundColor: tintBackground }]} />
+      <View style={[StyleSheet.absoluteFill, { backgroundColor: tintBackground }]} />
       <View style={styles.content}>{children}</View>
     </View>
   );

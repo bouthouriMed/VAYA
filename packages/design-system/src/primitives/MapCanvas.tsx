@@ -3,6 +3,7 @@ import { StyleSheet, View, Platform, type StyleProp, type ViewStyle } from 'reac
 import MapView, { PROVIDER_GOOGLE } from 'react-native-maps';
 import Constants, { ExecutionEnvironment } from 'expo-constants';
 import { colors, radii, lightMapStyle, darkMapStyle } from '../tokens/index';
+import { ABSOLUTE_FILL_OBJECT } from '../utils/absoluteFill';
 import { SkeletonBlock } from './Skeleton';
 import { useAppTheme } from '../theme/AppThemeProvider';
 import type { MapRegion } from '../utils/mapGeometry';
@@ -75,7 +76,7 @@ export function MapCanvas({ height, region, style, children, onLongPress }: MapC
         // GMSServices API key wired via the withGoogleMapsIOS config plugin
         // (apps/mobile/plugins/) — see apps/mobile/.env.example.
         provider={isExpoGo ? undefined : PROVIDER_GOOGLE}
-        style={StyleSheet.absoluteFillObject}
+        style={StyleSheet.absoluteFill}
         initialRegion={region ?? DEFAULT_REGION}
         onMapReady={() => setIsReady(true)}
         onLongPress={onLongPress ? (e) => onLongPress(e.nativeEvent.coordinate) : undefined}
@@ -93,7 +94,7 @@ export function MapCanvas({ height, region, style, children, onLongPress }: MapC
       </MapView>
       {/* Brand tile wash — sits above raw tiles, doesn't intercept gestures. */}
       <View style={styles.tint} pointerEvents="none" />
-      {!isReady ? <SkeletonBlock radius="none" style={StyleSheet.absoluteFillObject} /> : null}
+      {!isReady ? <SkeletonBlock radius="none" style={StyleSheet.absoluteFill} /> : null}
     </View>
   );
 }
@@ -109,7 +110,7 @@ const styles = StyleSheet.create({
     minHeight: 200,
   },
   tint: {
-    ...StyleSheet.absoluteFillObject,
+    ...ABSOLUTE_FILL_OBJECT,
     backgroundColor: colors.mapTileTint,
     opacity: 0.18,
   },

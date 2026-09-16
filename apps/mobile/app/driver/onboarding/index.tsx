@@ -19,6 +19,7 @@ import {
   spacing,
   radii,
   typography,
+  ABSOLUTE_FILL_OBJECT,
   type IconName,
 } from '@vaya/design-system';
 import { router } from 'expo-router';
@@ -88,7 +89,7 @@ export default function BecomeDriverScreen(): React.JSX.Element {
         colors={theme.backgroundGradient}
         start={{ x: 0.5, y: 0 }}
         end={{ x: 0.5, y: 1 }}
-        style={StyleSheet.absoluteFillObject}
+        style={StyleSheet.absoluteFill}
       />
       <View
         pointerEvents="none"
@@ -298,7 +299,7 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   ctaSheenClip: {
-    ...StyleSheet.absoluteFillObject,
+    ...ABSOLUTE_FILL_OBJECT,
     overflow: 'hidden',
   },
   ctaSheen: {
