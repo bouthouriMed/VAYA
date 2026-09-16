@@ -12,7 +12,7 @@
 # scaling policy independent, and keeps this Dockerfile's own diff minimal
 # if the two ever need different dependencies).
 
-FROM node:22-alpine AS base
+FROM node:26-alpine AS base
 RUN corepack enable
 
 FROM base AS pruner
