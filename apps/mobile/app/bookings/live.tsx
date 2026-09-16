@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { View, StyleSheet, ActivityIndicator, type LayoutChangeEvent } from 'react-native';
-import { Marker, MarkerAnimated, AnimatedRegion } from 'react-native-maps';
+import { Marker, MarkerAnimated, AnimatedRegion, type LatLng } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
@@ -101,7 +101,18 @@ function AnimatedDriverMarker({
   }, [lat, lng]);
 
   return (
-    <MarkerAnimated coordinate={animatedRegion} anchor={{ x: 0.5, y: 0.5 }} rotation={headingDeg ?? 0} flat>
+    // react-native-maps' `MarkerAnimated.coordinate` type wants
+    // `WithAnimatedObject<LatLng>` (a flat lat/lng pair), but `AnimatedRegion`
+    // is genuinely the documented way to drive it (see `.timing()`'s own
+    // `as never` cast above) — its real per-field AnimatedValues just don't
+    // structurally match that declared shape. Same stale-typings class, not
+    // a runtime API change.
+    <MarkerAnimated
+      coordinate={animatedRegion as unknown as LatLng}
+      anchor={{ x: 0.5, y: 0.5 }}
+      rotation={headingDeg ?? 0}
+      flat
+    >
       <View style={[styles.driverPuck, { backgroundColor: color }]}>
         <Ionicons name="navigate" size={16} color="#FFFFFF" />
       </View>
