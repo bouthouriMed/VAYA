@@ -135,7 +135,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
             ]
           }
         >
-          Aug 21, 9:00 PM
+          21 août, 23:00
         </Text>
       </View>
       <TouchableOpacity
@@ -268,7 +268,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
               </Text>
             </View>
             <TouchableOpacity
-              accessibilityLabel="Mehdi Gharbi, common:terms.departure 9:28 PM, 5.5 DT"
+              accessibilityLabel="Mehdi Gharbi, common:terms.departure 23:28, 5.5 DT"
               accessibilityRole="button"
               activeOpacity={0.85}
               onPress={[Function]}
@@ -320,7 +320,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                       ]
                     }
                   >
-                    9:28 PM
+                    23:28
                   </Text>
                   <Text
                     style={
@@ -837,7 +837,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
         >
           <View>
             <TouchableOpacity
-              accessibilityLabel="Youssef Trabelsi, common:terms.departure 9:58 PM, 5.5 DT"
+              accessibilityLabel="Youssef Trabelsi, common:terms.departure 23:58, 5.5 DT"
               accessibilityRole="button"
               activeOpacity={0.85}
               onPress={[Function]}
@@ -889,7 +889,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                       ]
                     }
                   >
-                    9:58 PM
+                    23:58
                   </Text>
                   <Text
                     style={
@@ -1537,7 +1537,7 @@ exports[`search/results.tsx snapshots > renders the genuine empty state with a n
             ]
           }
         >
-          Aug 21, 9:00 PM
+          21 août, 23:00
         </Text>
       </View>
       <TouchableOpacity
@@ -1824,7 +1824,7 @@ exports[`search/results.tsx snapshots > renders the loading skeleton 1`] = `
             ]
           }
         >
-          Aug 21, 9:00 PM
+          21 août, 23:00
         </Text>
       </View>
       <TouchableOpacity
@@ -2113,7 +2113,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
             ]
           }
         >
-          Aug 21, 9:00 PM
+          21 août, 23:00
         </Text>
       </View>
       <TouchableOpacity
@@ -2293,7 +2293,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
               </Text>
             </View>
             <TouchableOpacity
-              accessibilityLabel="Mehdi Gharbi, common:terms.departure 9:28 PM, 5.5 DT"
+              accessibilityLabel="Mehdi Gharbi, common:terms.departure 23:28, 5.5 DT"
               accessibilityRole="button"
               activeOpacity={0.85}
               onPress={[Function]}
@@ -2345,7 +2345,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                       ]
                     }
                   >
-                    9:28 PM
+                    23:28
                   </Text>
                   <Text
                     style={
@@ -2862,7 +2862,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
         >
           <View>
             <TouchableOpacity
-              accessibilityLabel="Youssef Trabelsi, common:terms.departure 9:58 PM, 5.5 DT"
+              accessibilityLabel="Youssef Trabelsi, common:terms.departure 23:58, 5.5 DT"
               accessibilityRole="button"
               activeOpacity={0.85}
               onPress={[Function]}
@@ -2914,7 +2914,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                       ]
                     }
                   >
-                    9:58 PM
+                    23:58
                   </Text>
                   <Text
                     style={

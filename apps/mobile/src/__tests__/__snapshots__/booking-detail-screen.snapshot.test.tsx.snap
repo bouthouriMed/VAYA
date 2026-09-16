@@ -625,7 +625,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
             ]
           }
         >
-          Tue, Aug 25 · 8:30 AM
+          mar. 25 août · 8:30
         </Text>
         <View
           style={
@@ -708,7 +708,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
                   ]
                 }
               >
-                8:30 AM
+                8:30
               </Text>
             </View>
             <TouchableOpacity

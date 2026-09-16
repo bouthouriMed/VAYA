@@ -890,7 +890,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
             }
           >
             <View
-              accessibilityLabel="rides.rideDetail.departure, 8:30 AM, Tunis"
+              accessibilityLabel="rides.rideDetail.departure, 8:30, Tunis"
               accessibilityRole="text"
               accessible={true}
               style={
@@ -1011,7 +1011,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                         ]
                       }
                     >
-                      8:30 AM
+                      8:30
                     </Text>
                   </View>
                   <Text
@@ -2740,7 +2740,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
             }
           >
             <View
-              accessibilityLabel="rides.rideDetail.departure, 8:30 AM, Tunis"
+              accessibilityLabel="rides.rideDetail.departure, 8:30, Tunis"
               accessibilityRole="text"
               accessible={true}
               style={
@@ -2861,7 +2861,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                         ]
                       }
                     >
-                      8:30 AM
+                      8:30
                     </Text>
                   </View>
                   <Text
@@ -5502,7 +5502,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
             }
           >
             <View
-              accessibilityLabel="rides.rideDetail.departure, 8:30 AM, Tunis"
+              accessibilityLabel="rides.rideDetail.departure, 8:30, Tunis"
               accessibilityRole="text"
               accessible={true}
               style={
@@ -5623,7 +5623,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                         ]
                       }
                     >
-                      8:30 AM
+                      8:30
                     </Text>
                   </View>
                   <Text
