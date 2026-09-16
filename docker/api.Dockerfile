@@ -53,6 +53,12 @@ WORKDIR /repo/apps/api
 # before rolling out a new revision of this image. See
 # PRODUCTION_READINESS.md's pre-launch checklist for the exact sequencing.
 
+# app.ts creates this directory unconditionally at boot (even when
+# S3StorageAdapter is active — see its own comment) so @fastify/static has
+# somewhere to mount; must exist and be writable by the non-root `node` user
+# below before USER switches, since everything COPYed above is root-owned.
+RUN mkdir -p /repo/apps/api/uploads && chown node:node /repo/apps/api/uploads
+
 EXPOSE 3000
 USER node
 
