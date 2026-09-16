@@ -1268,6 +1268,11 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
           style={
             {
               "backgroundColor": "rgba(38, 51, 58, 0.5)",
+              "bottom": 0,
+              "left": 0,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
             }
           }
         />
@@ -1452,6 +1457,11 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
           style={
             {
               "backgroundColor": "rgba(38, 51, 58, 0.5)",
+              "bottom": 0,
+              "left": 0,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
             }
           }
         />
@@ -1636,6 +1646,11 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
           style={
             {
               "backgroundColor": "rgba(38, 51, 58, 0.5)",
+              "bottom": 0,
+              "left": 0,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
             }
           }
         />
@@ -1820,6 +1835,11 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
           style={
             {
               "backgroundColor": "rgba(38, 51, 58, 0.5)",
+              "bottom": 0,
+              "left": 0,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
             }
           }
         />
@@ -3234,6 +3254,11 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
           style={
             {
               "backgroundColor": "rgba(38, 51, 58, 0.5)",
+              "bottom": 0,
+              "left": 0,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
             }
           }
         />
@@ -3418,6 +3443,11 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
           style={
             {
               "backgroundColor": "rgba(38, 51, 58, 0.5)",
+              "bottom": 0,
+              "left": 0,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
             }
           }
         />
@@ -3602,6 +3632,11 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
           style={
             {
               "backgroundColor": "rgba(38, 51, 58, 0.5)",
+              "bottom": 0,
+              "left": 0,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
             }
           }
         />
@@ -3786,6 +3821,11 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
           style={
             {
               "backgroundColor": "rgba(38, 51, 58, 0.5)",
+              "bottom": 0,
+              "left": 0,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
             }
           }
         />
@@ -5216,6 +5256,11 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
           style={
             {
               "backgroundColor": "rgba(38, 51, 58, 0.5)",
+              "bottom": 0,
+              "left": 0,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
             }
           }
         />
@@ -5400,6 +5445,11 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
           style={
             {
               "backgroundColor": "rgba(38, 51, 58, 0.5)",
+              "bottom": 0,
+              "left": 0,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
             }
           }
         />
@@ -5584,6 +5634,11 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
           style={
             {
               "backgroundColor": "rgba(38, 51, 58, 0.5)",
+              "bottom": 0,
+              "left": 0,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
             }
           }
         />
@@ -5768,6 +5823,11 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
           style={
             {
               "backgroundColor": "rgba(38, 51, 58, 0.5)",
+              "bottom": 0,
+              "left": 0,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
             }
           }
         />
@@ -7189,6 +7249,11 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
           style={
             {
               "backgroundColor": "rgba(38, 51, 58, 0.5)",
+              "bottom": 0,
+              "left": 0,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
             }
           }
         />
@@ -7373,6 +7438,11 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
           style={
             {
               "backgroundColor": "rgba(38, 51, 58, 0.5)",
+              "bottom": 0,
+              "left": 0,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
             }
           }
         />
@@ -7557,6 +7627,11 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
           style={
             {
               "backgroundColor": "rgba(38, 51, 58, 0.5)",
+              "bottom": 0,
+              "left": 0,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
             }
           }
         />
@@ -7741,6 +7816,11 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
           style={
             {
               "backgroundColor": "rgba(38, 51, 58, 0.5)",
+              "bottom": 0,
+              "left": 0,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
             }
           }
         />
@@ -9171,6 +9251,11 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
           style={
             {
               "backgroundColor": "rgba(38, 51, 58, 0.5)",
+              "bottom": 0,
+              "left": 0,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
             }
           }
         />
@@ -9355,6 +9440,11 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
           style={
             {
               "backgroundColor": "rgba(38, 51, 58, 0.5)",
+              "bottom": 0,
+              "left": 0,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
             }
           }
         />
@@ -9539,6 +9629,11 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
           style={
             {
               "backgroundColor": "rgba(38, 51, 58, 0.5)",
+              "bottom": 0,
+              "left": 0,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
             }
           }
         />
@@ -9723,6 +9818,11 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
           style={
             {
               "backgroundColor": "rgba(38, 51, 58, 0.5)",
+              "bottom": 0,
+              "left": 0,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
             }
           }
         />

@@ -1,7 +1,7 @@
 import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
 import { renderJSON } from './test-utils/renderJSON';
-import type { Booking, Ride, RouteStop, Trip } from '../state/api';
+import type { Booking, Ride, RouteStop, Trip, TrustSummary } from '../state/api';
 import type DriverRideHubScreenComponent from '../../app/driver/rides/[rideId]';
 import type { ToastProvider as ToastProviderComponent } from '@vaya/design-system';
 
@@ -192,6 +192,17 @@ const ACCEPTED_TRIP: Trip = {
   startedAt: null,
 };
 
+// DriverBookingDetailSheet's rider-trust lookup — rendered closed
+// (visible=false) in every fixture here except when a request row is
+// tapped, same "inert stub suffices, just has to exist" reasoning as the
+// sheet's other transitive hooks below; one fixed rider, not per-booking,
+// since no scenario here asserts on its actual values.
+const RIDER_TRUST_SUMMARY: TrustSummary = {
+  userId: 'rider-any',
+  driver: null,
+  rider: { tier: 'trusted', ratingAvg: 4.7, tripCount: 12, punctualityScore: 0.9 },
+};
+
 type QueryResult<T> = { data?: T; isLoading?: boolean };
 type MutationTuple = [() => { unwrap: () => Promise<unknown> }, { isLoading: boolean }];
 
@@ -224,6 +235,7 @@ function mockApi(requests: Booking[], tripsByBookingId: Record<string, Trip> = {
     // RequestDetailSheet's transitive hook — rendered closed (visible=false)
     // so an inert stub suffices, same as the other closed sheets above.
     useGetBookingDetourPreviewQuery: (): QueryResult<unknown> => ({}),
+    useGetUserTrustSummaryQuery: (): QueryResult<TrustSummary> => ({ data: RIDER_TRUST_SUMMARY }),
     // DriverBookingDetailSheet's Call button (useCallCounterpart) — rendered
     // closed (visible=false) so an inert stub suffices, same as the other
     // closed-sheet hooks above.
