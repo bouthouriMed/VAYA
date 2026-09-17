@@ -27,6 +27,7 @@ import { useAppDispatch, useAppSelector } from '../../../src/state/store';
 import { setSelfieUri, resetDriverOnboarding } from '../../../src/state/driverOnboardingSlice';
 import {
   useUploadSecureFileMutation,
+  usePresignSecureUploadMutation,
   useCreateDriverOnboardingMutation,
   useCreateRideMutation,
   usePublishRideMutation,
@@ -34,14 +35,7 @@ import {
 import { CaptureCamera } from '../../../src/features/driver-onboarding/CaptureCamera';
 import { describeVerificationSubmitError } from '../../../src/features/driver-onboarding/verificationErrors';
 import { trackEvent } from '../../../src/services/analytics/analytics';
-
-function fileFromUri(uri: string, name: string): FormData {
-  const formData = new FormData();
-  const match = /\.(\w+)$/.exec(uri);
-  const ext = match?.[1] ?? 'jpg';
-  formData.append('file', { uri, name: `${name}.${ext}`, type: `image/${ext}` } as unknown as Blob);
-  return formData;
-}
+import { uploadViaPresignedUrl } from '../../../src/utils/fileUpload';
 
 function ThumbCard({
   theme,
@@ -73,9 +67,18 @@ export default function SelfieCaptureScreen(): React.JSX.Element {
   const draft = useAppSelector((s) => s.driverOnboarding);
   const [phase, setPhase] = useState<'capture' | 'review'>(draft.selfieUri ? 'review' : 'capture');
   const [errorMessage, setErrorMessage] = useState<string | undefined>();
+  // createOnboarding's own `isLoading` only covers the second of submit()'s
+  // two phases — the three document uploads before it (each genuinely slow,
+  // 7-25s+ over a real mobile connection) left the button enabled and
+  // showing no busy state at all, letting a second tap fire a full duplicate
+  // submission (confirmed live: 6 upload requests and 2 createOnboarding
+  // calls from a single onboarding attempt, only caught by the server's own
+  // pre-existing conflict check). This covers submit()'s entire duration.
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [uploadSecureFile] = useUploadSecureFileMutation();
-  const [createOnboarding, { isLoading: isSubmitting }] = useCreateDriverOnboardingMutation();
+  const [presignSecureUpload] = usePresignSecureUploadMutation();
+  const [createOnboarding] = useCreateDriverOnboardingMutation();
   const [createRide] = useCreateRideMutation();
   const [publishRide] = usePublishRideMutation();
 
@@ -150,6 +153,8 @@ export default function SelfieCaptureScreen(): React.JSX.Element {
   }
 
   async function submit(): Promise<void> {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
     setErrorMessage(undefined);
     // Captured before the reset below clears them — carried in from the
     // publish flow's review screen (driver/publish.tsx's startVerification)
@@ -171,10 +176,17 @@ export default function SelfieCaptureScreen(): React.JSX.Element {
       // verification-workflow.md's "Document security" section — a real
       // gap fixed alongside this feature: these files must never be
       // reachable by anyone who merely learns the URL).
+      const uploadDoc = (uri: string, name: string) =>
+        uploadViaPresignedUrl({
+          uri,
+          name,
+          presign: (args) => presignSecureUpload(args).unwrap(),
+          relayUpload: (formData) => uploadSecureFile(formData).unwrap(),
+        });
       const [licenseUpload, insuranceUpload, selfieUpload] = await Promise.all([
-        uploadSecureFile(fileFromUri(licenseUri!, 'license')).unwrap(),
-        uploadSecureFile(fileFromUri(insuranceUri!, 'insurance')).unwrap(),
-        uploadSecureFile(fileFromUri(selfieUri!, 'selfie')).unwrap(),
+        uploadDoc(licenseUri!, 'license'),
+        uploadDoc(insuranceUri!, 'insurance'),
+        uploadDoc(selfieUri!, 'selfie'),
       ]);
       stage = 'profile';
       const onboardingProfile = await createOnboarding({
@@ -250,6 +262,8 @@ export default function SelfieCaptureScreen(): React.JSX.Element {
         return;
       }
       setErrorMessage(info.message);
+    } finally {
+      setIsSubmitting(false);
     }
   }
 

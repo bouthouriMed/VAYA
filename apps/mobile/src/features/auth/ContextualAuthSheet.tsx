@@ -119,7 +119,13 @@ export function ContextualAuthSheet({
       }
       if (result.status === 'error') {
         haptics.error();
-        setErrorMessage(t('auth:googleSignInError'));
+        // The backend returns a bounded, non-secret reason code (e.g.
+        // GOOGLE_TOKEN_REDIRECT_URI_MISMATCH) — showing it only in dev makes
+        // a misconfigured deployment diagnosable from the device itself,
+        // without needing server log access, while production users still
+        // only ever see the translated generic message.
+        const base = t('auth:googleSignInError');
+        setErrorMessage(__DEV__ && result.reason ? `${base} (${result.reason})` : base);
       }
       // 'cancelled': the guest closed the browser themselves — no error.
     } catch {

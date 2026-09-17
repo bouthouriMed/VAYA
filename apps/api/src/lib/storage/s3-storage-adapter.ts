@@ -7,7 +7,10 @@ import {
   S3Client,
   type S3ClientConfig,
 } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import type { StorageAdapter } from './storage-adapter.js';
+
+const PRESIGNED_UPLOAD_TTL_SECONDS = 5 * 60;
 
 const CONTENT_TYPE_BY_EXT: Record<string, string> = {
   '.jpg': 'image/jpeg',
@@ -138,6 +141,31 @@ export class S3StorageAdapter implements StorageAdapter {
       }),
     );
     return `/secure-uploads/${storedName}`;
+  }
+
+  async presignUpload({
+    filename,
+    contentType,
+    secure,
+  }: {
+    filename: string;
+    contentType: string;
+    secure: boolean;
+  }): Promise<{ uploadUrl: string; finalUrl: string }> {
+    const ext = path.extname(filename);
+    const storedName = `${randomUUID()}${ext}`;
+    const key = `${secure ? 'secure' : 'public'}/${storedName}`;
+    const uploadUrl = await getSignedUrl(
+      this.client,
+      new PutObjectCommand({
+        Bucket: this.bucket,
+        Key: key,
+        ContentType: contentType || contentTypeForExt(ext),
+      }),
+      { expiresIn: PRESIGNED_UPLOAD_TTL_SECONDS },
+    );
+    const finalUrl = secure ? `/secure-uploads/${storedName}` : this.publicUrlFor(key);
+    return { uploadUrl, finalUrl };
   }
 
   async readSecure(fileUrlOrPath: string): Promise<{ buffer: Buffer; contentType: string } | null> {

@@ -36,6 +36,7 @@ import {
 } from '../../src/services/settings/appearanceStorage';
 import { useLanguage } from '../../src/hooks/useLanguage';
 import { formatDate } from '../../src/utils/localeFormat';
+import { uploadViaPresignedUrl } from '../../src/utils/fileUpload';
 import {
   useDeleteMeMutation,
   useGetMeQuery,
@@ -45,6 +46,7 @@ import {
   useRequestPhoneOtpMutation,
   useUpdateMeMutation,
   useUploadFileMutation,
+  usePresignUploadMutation,
   useVerifyPhoneOtpMutation,
 } from '../../src/state/api';
 
@@ -67,17 +69,6 @@ interface ProfileRow {
   onPress?: () => void;
   /** Small dot over the row's icon — an incomplete-profile nudge, not an error. */
   alert?: boolean;
-}
-
-function fileFromUri(uri: string): FormData {
-  const formData = new FormData();
-  const ext = /\.(\w+)$/.exec(uri)?.[1] ?? 'jpg';
-  formData.append('file', {
-    uri,
-    name: `avatar.${ext}`,
-    type: `image/${ext}`,
-  } as unknown as Blob);
-  return formData;
 }
 
 /** Stitch's "Main Profile - World-Class Hub" — identity-first settings hub.
@@ -118,6 +109,7 @@ export default function ProfileScreen(): React.JSX.Element {
   const [updateMe] = useUpdateMeMutation();
   const [deleteMe, { isLoading: isDeletingAccount }] = useDeleteMeMutation();
   const [uploadFile] = useUploadFileMutation();
+  const [presignUpload] = usePresignUploadMutation();
   const [requestPhoneOtp, { isLoading: isSendingPhoneOtp }] = useRequestPhoneOtpMutation();
   const [verifyPhoneOtp, { isLoading: isVerifyingPhoneOtp }] = useVerifyPhoneOtpMutation();
   const { requireAuth, isAuthSheetVisible, authTrigger, handleAuthenticated, cancelAuth } =
@@ -265,7 +257,12 @@ export default function ProfileScreen(): React.JSX.Element {
       if (!uri) return;
 
       setIsUploadingPhoto(true);
-      const { url } = await uploadFile(fileFromUri(uri)).unwrap();
+      const { url } = await uploadViaPresignedUrl({
+        uri,
+        name: 'avatar',
+        presign: (args) => presignUpload(args).unwrap(),
+        relayUpload: (formData) => uploadFile(formData).unwrap(),
+      });
       // Server round-trip invalidates Me — the avatar below re-renders from
       // the refetched real URL, never from optimistic local state.
       await updateMe({ avatarFileUrl: url }).unwrap();

@@ -7,20 +7,14 @@ import { router } from 'expo-router';
 import {
   useGetMyDriverProfileQuery,
   useUploadSecureFileMutation,
+  usePresignSecureUploadMutation,
   useResubmitVerificationMutation,
 } from '../../../src/state/api';
 import { CaptureCamera } from '../../../src/features/driver-onboarding/CaptureCamera';
 import { verificationDeclineReasonKey } from '../../../src/features/driver-onboarding/verificationDeclineCopy';
+import { uploadViaPresignedUrl } from '../../../src/utils/fileUpload';
 
 type Phase = 'license' | 'insurance' | 'selfie' | 'review';
-
-function fileFromUri(uri: string, name: string): FormData {
-  const formData = new FormData();
-  const match = /\.(\w+)$/.exec(uri);
-  const ext = match?.[1] ?? 'jpg';
-  formData.append('file', { uri, name: `${name}.${ext}`, type: `image/${ext}` } as unknown as Blob);
-  return formData;
-}
 
 /**
  * Reachable only when `driverProfile.verificationStatus ===
@@ -44,8 +38,15 @@ export default function ResubmitVerificationScreen(): React.JSX.Element {
   const [licenseUri, setLicenseUri] = useState<string | null>(null);
   const [insuranceUri, setInsuranceUri] = useState<string | null>(null);
   const [selfieUri, setSelfieUri] = useState<string | null>(null);
+  // resubmitVerification's own `isLoading` only covers the second of
+  // submit()'s two phases, leaving the button enabled/non-busy through the
+  // three (genuinely slow, real-mobile-network) document uploads before it —
+  // see selfie.tsx's identical fix for the confirmed live duplicate-
+  // submission this caused.
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadSecureFile] = useUploadSecureFileMutation();
-  const [resubmitVerification, { isLoading: isSubmitting }] = useResubmitVerificationMutation();
+  const [presignSecureUpload] = usePresignSecureUploadMutation();
+  const [resubmitVerification] = useResubmitVerificationMutation();
   const [errorMessage, setErrorMessage] = useState<string | undefined>();
 
   if (phase === 'license') {
@@ -122,12 +123,21 @@ export default function ResubmitVerificationScreen(): React.JSX.Element {
 
   // phase === 'review'
   async function submit(): Promise<void> {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
     setErrorMessage(undefined);
     try {
+      const uploadDoc = (uri: string, name: string) =>
+        uploadViaPresignedUrl({
+          uri,
+          name,
+          presign: (args) => presignSecureUpload(args).unwrap(),
+          relayUpload: (formData) => uploadSecureFile(formData).unwrap(),
+        });
       const [licenseUpload, insuranceUpload, selfieUpload] = await Promise.all([
-        uploadSecureFile(fileFromUri(licenseUri!, 'license')).unwrap(),
-        uploadSecureFile(fileFromUri(insuranceUri!, 'insurance')).unwrap(),
-        uploadSecureFile(fileFromUri(selfieUri!, 'selfie')).unwrap(),
+        uploadDoc(licenseUri!, 'license'),
+        uploadDoc(insuranceUri!, 'insurance'),
+        uploadDoc(selfieUri!, 'selfie'),
       ]);
       await resubmitVerification({
         documents: [
@@ -139,6 +149,8 @@ export default function ResubmitVerificationScreen(): React.JSX.Element {
       router.replace('/driver/onboarding/confirmation');
     } catch {
       setErrorMessage(t('resubmit.submitError'));
+    } finally {
+      setIsSubmitting(false);
     }
   }
 

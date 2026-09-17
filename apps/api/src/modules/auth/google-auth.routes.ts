@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import { getDatabase } from '../../lib/database.js';
 import { getEnv } from '../../config/env.js';
+import { AppError } from '../../lib/errors.js';
 import { loginWithGoogleCode, issueOauthTicket } from './auth.service.js';
 
 const DEFAULT_APP_DEEP_LINK = 'vaya://auth/google';
@@ -108,16 +109,23 @@ export async function googleOAuthRoutes(fastify: FastifyInstance): Promise<void>
     }
 
     try {
-      if (!query.state) throw new Error('missing_state');
+      if (!query.state) throw new AppError('Missing OAuth state', 400, 'MISSING_STATE');
       fastify.jwt.verify(query.state);
-      if (!query.code) throw new Error('missing_code');
+      if (!query.code) throw new AppError('Missing OAuth code', 400, 'MISSING_CODE');
 
       const userId = await loginWithGoogleCode(db, query.code);
       const ticket = await issueOauthTicket(db, userId);
       reply.redirect(`${appRedirectUri}?status=success&ticket=${encodeURIComponent(ticket)}`);
     } catch (err) {
       fastify.log.warn({ err }, 'Google OAuth callback failed');
-      reply.redirect(`${appRedirectUri}?status=error`);
+      // Surface a bounded, non-secret reason code (an AppError's own `code`,
+      // e.g. GOOGLE_TOKEN_REDIRECT_URI_MISMATCH, or a generic fallback for
+      // anything else — a raw DB/driver error's message could contain
+      // internal detail, so only ever a whitelisted AppError code escapes)
+      // so a misconfigured deployment is diagnosable from the app itself,
+      // without needing direct server log access.
+      const reason = err instanceof AppError ? err.code : 'UNEXPECTED_ERROR';
+      reply.redirect(`${appRedirectUri}?status=error&reason=${encodeURIComponent(reason)}`);
     }
   });
 }

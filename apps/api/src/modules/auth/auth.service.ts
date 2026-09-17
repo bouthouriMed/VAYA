@@ -167,12 +167,26 @@ async function exchangeGoogleCode(code: string): Promise<GoogleProfile> {
   });
 
   if (!tokenResponse.ok) {
-    throw new UnauthorizedError('Google sign-in failed');
+    // Google's token endpoint error body is a short, non-secret OAuth error
+    // code (e.g. `redirect_uri_mismatch`, `invalid_client`, `invalid_grant`)
+    // — surfacing it (as the AppError `code`, never the raw body) is what
+    // actually makes a misconfigured GOOGLE_CALLBACK_URL/CLIENT_SECRET in a
+    // deployed environment diagnosable from the app itself, without needing
+    // direct server log access.
+    const errorBody = (await tokenResponse.json().catch(() => null)) as {
+      error?: string;
+    } | null;
+    const googleError = errorBody?.error ?? 'unknown';
+    throw new AppError(
+      `Google token exchange failed: ${googleError}`,
+      401,
+      `GOOGLE_TOKEN_${googleError.toUpperCase()}`,
+    );
   }
 
   const tokenJson = (await tokenResponse.json()) as { id_token?: string };
   if (!tokenJson.id_token) {
-    throw new UnauthorizedError('Google sign-in failed');
+    throw new AppError('Google token response missing id_token', 401, 'GOOGLE_NO_ID_TOKEN');
   }
 
   const client = new OAuth2Client(env.GOOGLE_CLIENT_ID);
@@ -182,7 +196,7 @@ async function exchangeGoogleCode(code: string): Promise<GoogleProfile> {
   });
   const payload = ticket.getPayload();
   if (!payload?.sub) {
-    throw new UnauthorizedError('Google sign-in failed');
+    throw new AppError('Google id_token missing sub claim', 401, 'GOOGLE_INVALID_ID_TOKEN');
   }
 
   return {

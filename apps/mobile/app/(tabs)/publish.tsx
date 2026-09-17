@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useFocusEffect } from '@react-navigation/native';
 import {
   View,
   StyleSheet,
@@ -43,7 +42,7 @@ import {
   type AppPalette,
   type MapRegion,
 } from '@vaya/design-system';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import type { SupportedLocale } from '@vaya/config';
 import { useAppDispatch, useAppSelector } from '../../src/state/store';
 import { formatTime, formatCurrency, formatDate, toIntlTag } from '../../src/utils/localeFormat';

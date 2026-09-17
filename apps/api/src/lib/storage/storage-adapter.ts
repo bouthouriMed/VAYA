@@ -42,4 +42,25 @@ export interface StorageAdapter {
    *  documents) — the real erasure `docs/legal/privacy-policy.md` §10
    *  promises on account deletion, not just a DB row soft-delete. */
   removeSecure(fileUrlOrPath: string): Promise<void>;
+
+  /**
+   * Optional: mints a short-lived URL the client can PUT bytes to directly,
+   * bypassing this API as a relay. Real, measured latency this fixes: an
+   * upload through `save`/`saveSecure` pays for the file twice — once
+   * client→API, then again API→object store, sequentially, since the route
+   * handler buffers the whole file (`file.toBuffer()`) before forwarding it
+   * — a single ~2-4MB photo over a real mobile connection took 7-26s this
+   * way. A presigned PUT collapses that to one hop.
+   *
+   * Only adapters actually backed by an object store (S3StorageAdapter)
+   * implement this — LocalDiskStorageAdapter has no meaningful concept of a
+   * client-reachable presigned URL, so it's absent there. Callers MUST
+   * treat a missing/undefined method as "fall back to the legacy
+   * save/saveSecure relay flow", never assume it exists.
+   */
+  presignUpload?(params: {
+    filename: string;
+    contentType: string;
+    secure: boolean;
+  }): Promise<{ uploadUrl: string; finalUrl: string }>;
 }

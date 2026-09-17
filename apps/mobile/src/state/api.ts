@@ -783,12 +783,27 @@ export interface FellowPassenger {
   ratingAvg: number;
 }
 
+// Multi-MB image uploads (uploadFile/uploadSecureFile below) need far more
+// runway than a lightweight JSON call over a real mobile connection —
+// uploadSecureFile's three callers even fire concurrently, splitting
+// available upload bandwidth three ways.
+const UPLOAD_TIMEOUT_MS = 60_000;
+
+export interface PresignUploadArgs {
+  filename: string;
+  contentType: string;
+}
+export type PresignUploadResult =
+  | { mode: 'presigned'; uploadUrl: string; finalUrl: string }
+  | { mode: 'relay' };
+
 const rawBaseQuery = fetchBaseQuery({
   baseUrl: getBaseUrl(),
   // No timeout previously — a hung connection (plausible on a flaky mobile
   // network, which this app's actual Tunisian target market genuinely has)
   // left a query in `isLoading: true` indefinitely instead of failing out
-  // to a real retry/error state.
+  // to a real retry/error state. Sized for ordinary JSON calls; file
+  // uploads override this per-request with UPLOAD_TIMEOUT_MS above.
   timeout: 15_000,
   prepareHeaders: (headers, { getState }) => {
     const token = (getState() as AuthPartialState).auth.accessToken;
@@ -985,7 +1000,11 @@ export const api = createApi({
     }),
 
     uploadFile: builder.mutation<{ url: string }, FormData>({
-      query: (formData) => ({ url: '/uploads', method: 'POST', body: formData }),
+      // The shared 15s baseQuery timeout (rawBaseQuery above) is sized for
+      // lightweight JSON calls, not a multi-MB image upload over a real
+      // mobile connection — overridden here per-request (fetchBaseQuery
+      // supports this directly on the returned FetchArgs).
+      query: (formData) => ({ url: '/uploads', method: 'POST', body: formData, timeout: UPLOAD_TIMEOUT_MS }),
     }),
 
     // Route-selection step: stateless (no rideId yet) — called right after
@@ -1292,7 +1311,33 @@ export const api = createApi({
     // Authorization header manually where needed, e.g. the resubmission
     // screen's "here's what you sent before" preview).
     uploadSecureFile: builder.mutation<{ url: string }, FormData>({
-      query: (formData) => ({ url: '/uploads/secure', method: 'POST', body: formData }),
+      // See uploadFile's own comment above — same reasoning, and this one's
+      // three callers (license/insurance/selfie in onboarding/selfie.tsx)
+      // fire concurrently via Promise.all, splitting upload bandwidth
+      // three ways and making the shared 15s default even easier to blow
+      // past on a real mobile connection.
+      query: (formData) => ({
+        url: '/uploads/secure',
+        method: 'POST',
+        body: formData,
+        timeout: UPLOAD_TIMEOUT_MS,
+      }),
+    }),
+
+    // Mints a short-lived URL the client PUTs bytes to directly, bypassing
+    // this API as a relay — see uploadFile's own comment on why: the relay
+    // path buffers the whole file server-side before even starting the
+    // upstream write, doubling the effective transfer time on a real mobile
+    // connection. `mode: 'relay'` (no S3 configured, e.g. local dev against
+    // LocalDiskStorageAdapter) means the caller falls back to uploadFile
+    // above unchanged — see uploadViaPresignedUrl in utils/fileUpload.ts,
+    // the one place that orchestrates presign-or-relay so every upload call
+    // site doesn't have to.
+    presignUpload: builder.mutation<PresignUploadResult, PresignUploadArgs>({
+      query: (body) => ({ url: '/uploads/presign', method: 'POST', body }),
+    }),
+    presignSecureUpload: builder.mutation<PresignUploadResult, PresignUploadArgs>({
+      query: (body) => ({ url: '/uploads/secure/presign', method: 'POST', body }),
     }),
 
     // Phase 11 (docs/roadmap/phase-11-recurring-rides.md).
@@ -1385,6 +1430,8 @@ export const {
   useIngestAnalyticsEventsMutation,
   useResubmitVerificationMutation,
   useUploadSecureFileMutation,
+  usePresignUploadMutation,
+  usePresignSecureUploadMutation,
   useListMyRecurringPatternsQuery,
   useUpdateRecurringPatternMutation,
 } = api;

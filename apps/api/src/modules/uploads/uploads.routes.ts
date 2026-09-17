@@ -30,6 +30,16 @@ function assertAllowedUpload(filename: string, mimetype: string): void {
   }
 }
 
+const presignRequestSchema = z.object({ filename: z.string(), contentType: z.string() });
+const presignResponseSchema = z.discriminatedUnion('mode', [
+  z.object({ mode: z.literal('presigned'), uploadUrl: z.string(), finalUrl: z.string() }),
+  // storage.presignUpload is undefined (LocalDiskStorageAdapter, e.g. local
+  // dev with no S3 configured) — the caller falls back to POSTing the file
+  // straight to /uploads or /uploads/secure, exactly like before this
+  // feature existed.
+  z.object({ mode: z.literal('relay') }),
+]);
+
 export async function uploadsRoutes(fastify: FastifyInstance): Promise<void> {
   const app = fastify.withTypeProvider<ZodTypeProvider>();
   const storage = getStorage();
@@ -95,6 +105,52 @@ export async function uploadsRoutes(fastify: FastifyInstance): Promise<void> {
       });
 
       reply.send({ url: relativeUrl });
+    },
+  );
+
+  // Direct-to-storage upload path: mints a short-lived presigned PUT URL so
+  // the client uploads bytes straight to R2/S3 instead of relaying the whole
+  // file through this API first (the /uploads and /uploads/secure handlers
+  // above buffer the entire file — file.toBuffer() — before even starting
+  // the upstream PUT, so a client on a real mobile connection pays for the
+  // same bytes twice, sequentially; a single photo measured 7-26s this way
+  // in production). Same content-type/extension allowlist as the relay
+  // path, checked here since presignUpload itself never sees the actual
+  // file bytes to validate. `secure` picks the same public/secure key
+  // prefix and return-URL shape as save()/saveSecure() respectively.
+  app.post(
+    '/uploads/presign',
+    {
+      onRequest: [fastify.authenticate],
+      schema: { body: presignRequestSchema, response: { 200: presignResponseSchema } },
+    },
+    async (request, reply) => {
+      const { filename, contentType } = request.body;
+      assertAllowedUpload(filename, contentType);
+      if (!storage.presignUpload) {
+        reply.send({ mode: 'relay' });
+        return;
+      }
+      const { uploadUrl, finalUrl } = await storage.presignUpload({ filename, contentType, secure: false });
+      reply.send({ mode: 'presigned', uploadUrl, finalUrl });
+    },
+  );
+
+  app.post(
+    '/uploads/secure/presign',
+    {
+      onRequest: [fastify.authenticate],
+      schema: { body: presignRequestSchema, response: { 200: presignResponseSchema } },
+    },
+    async (request, reply) => {
+      const { filename, contentType } = request.body;
+      assertAllowedUpload(filename, contentType);
+      if (!storage.presignUpload) {
+        reply.send({ mode: 'relay' });
+        return;
+      }
+      const { uploadUrl, finalUrl } = await storage.presignUpload({ filename, contentType, secure: true });
+      reply.send({ mode: 'presigned', uploadUrl, finalUrl });
     },
   );
 }
