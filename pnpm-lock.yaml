@@ -118,8 +118,8 @@ importers:
         specifier: ^9.2.0
         version: 9.8.1
       '@fastify/swagger-ui':
-        specifier: ^5.2.0
-        version: 5.2.6
+        specifier: ^6.1.1
+        version: 6.1.1
       '@fastify/websocket':
         specifier: ^11.0.2
         version: 11.3.0
@@ -2045,14 +2045,14 @@ packages:
   '@fastify/send@4.1.1':
     resolution: {integrity: sha512-BYo+EiaKwlxH+WetGk6hAs1d39iP0y1gqB8lGF/qwkJ9ZZ/cBY1vx5NvExb9Sc3yRMFjD5X4Eyh4e4+TzRkzdw==}
 
+  '@fastify/static@10.1.3':
+    resolution: {integrity: sha512-W6jqajYS974XjPjB5hQWoxPM8NKM4+p8YmQT6G5IbCa4uhdWSVadZUv75siy1wEA/3ty8RYdpBydfWeu9AqAqQ==}
+
   '@fastify/static@8.3.0':
     resolution: {integrity: sha512-yKxviR5PH1OKNnisIzZKmgZSus0r2OZb8qCSbqmw34aolT4g3UlzYfeBRym+HJ1J471CR8e2ldNub4PubD1coA==}
 
-  '@fastify/static@9.3.0':
-    resolution: {integrity: sha512-9YMYRpCOtMBrqKYWcqiw7ykOrn4D0jogHpJrFS0KGeSuOwzKMM5/mjj7B0CFLVoQ6htqKYw//Zs7APn9DBq05w==}
-
-  '@fastify/swagger-ui@5.2.6':
-    resolution: {integrity: sha512-OMnms0O5s9wb6wis/K5nlrAMLsgUbr1GA8uphM41IasWe3AFdgxz6r/3bA9HTxlDNUYc2FGGKeqMp3ntxmSiNA==}
+  '@fastify/swagger-ui@6.1.1':
+    resolution: {integrity: sha512-RKCLSHASlzS2JZvHWn14NmEpHyl0yNosGvqzhUumm/LGPG6RWQBf4oscTFt83QDvc5O5Tol3Beup8inAl/k4EA==}
 
   '@fastify/swagger@9.8.1':
     resolution: {integrity: sha512-VpHMnqZTY8iBZYJE8WWkbKPrXIYWy2rDfIf5qLr6DzZSpQYZ+KxQVcJFiq/AMlvNwI4gCBd66++iUlxXXGT0IQ==}
@@ -4336,6 +4336,10 @@ packages:
     resolution: {integrity: sha512-9mAqGPHLakhCLeNyxPkK4xVo746zQ/czLH1Ky+vkitMnWfWZps8r0qXuwhwizagCRttsL4lfG4pIOvaWLpAP0w==}
     engines: {node: '>= 0.8.0'}
 
+  compression@1.8.2:
+    resolution: {integrity: sha512-o8vI5RE5A6EVVOd9o41jKp41aJom+QTEO/Bx8MYNjexMo/Bv2WOjUfZr+aL0WnYSgymUy6zeguqLTsIhV0gMvQ==}
+    engines: {node: '>= 0.8.0'}
+
   concat-map@0.0.1:
     resolution: {integrity: sha512-/Srv4dswyQNBfohGpz9o6Yb3Gz3SrUDqBH5rTuhGR7ahtlbYKnVxw2bCFMRljaA7EXHaXZ8wsHdodFvbkhKmqg==}
 
@@ -4347,8 +4351,8 @@ packages:
     resolution: {integrity: sha512-FveZTNuGw04cxlAiWbzi6zTAL/lhehaWbTtgluJh4/E95DqMwTmha3KZN1aAWA8cFIhHzMZUvLevkw5Rqk+tSQ==}
     engines: {node: '>= 0.6'}
 
-  content-disposition@1.1.0:
-    resolution: {integrity: sha512-5jRCH9Z/+DRP7rkvY83B+yGIGX96OYdJmzngqnw2SBSxqCFPd0w2km3s5iawpGX8krnwSGmF0FW5Nhr0Hfai3g==}
+  content-disposition@2.0.1:
+    resolution: {integrity: sha512-e+H0ZXHSWYrENhQzw1LPuP4oF5MzVKmDU6d3hxlvaPEYLLg62MxtQNPRx4SYSuYJSBUgnQIG4HIN2tEtNv7Dog==}
     engines: {node: '>=18'}
 
   content-type@1.0.5:
@@ -5292,6 +5296,9 @@ packages:
   fastq@1.20.1:
     resolution: {integrity: sha512-GGToxJ/w1x32s/D2EKND7kTil4n8OVk/9mycTc4VDza13lOvpUZTGX3mFSCtV9ksdGBVzvsyAVLM6mHFThxXxw==}
 
+  fastq@1.20.3:
+    resolution: {integrity: sha512-XKv5nnLs6nLF71NgiKJLIZFLkPyIEuOselLG7ujZnGrRfQK8HpvY+WqKhAJUAdLomwVHErVS4LfxFlPq0/FTAw==}
+
   fastseries@1.7.2:
     resolution: {integrity: sha512-dTPFrPGS8SNSzAt7u/CbMKCJ3s01N04s4JFbORHcmyvVfVKmbhMD1VtRbh5enGHxkaQDqWyLefiKOGGmohGDDQ==}
 
@@ -5933,8 +5940,8 @@ packages:
     resolution: {integrity: sha512-/imKNG4EbWNrVjoNC/1H5/9GFy+tqjGBHCaSsN+P2RnPqjsLmv6UD3Ej+Kj8nBWaRAwyk7kK5ZUc+OEatnTR3A==}
     hasBin: true
 
-  joi@17.13.4:
-    resolution: {integrity: sha512-1RuuER6kmt8K8I3nIWvPZKi5RQCb568ZPyY4Pwjlua+yo+63ZTmIwxLZH0heBmiKN4uxjvCiarDrjaeH84xicQ==}
+  joi@17.13.8:
+    resolution: {integrity: sha512-iPKOGmiRw1jxf/JOPwxmCcUQAOdF359mdzYiP2DJ+TMX0YK2zjK3D+zYOaGjpumWxOFF/l2xVWjRVK5bGSLdEw==}
 
   joycon@3.1.1:
     resolution: {integrity: sha512-34wB/Y7MW7bzjKRjUKTa46I2Z7eV62Rkhva+KkopW7Qvv/OSWBqvkSY7vusOPrNuZcUG3tApvdVgNB8POj3SPw==}
@@ -5949,6 +5956,10 @@ packages:
 
   js-yaml@4.3.1:
     resolution: {integrity: sha512-CY6crGq313MX8GkwvB7tzgp99vjQxY1++5y10/BKN/GUfHqWaOGQMNZkBvqSzsZKWk/ijwHlWzzkLulsGHhjWQ==}
+    hasBin: true
+
+  js-yaml@4.3.2:
+    resolution: {integrity: sha512-SFNOvSJ+Dgf/9An904Yx+CgSlIPCkIpao4qo51lpee25TIRejdH3rhR4EZMGoNx3/TP3O+wzWuiTFl4sqbltzA==}
     hasBin: true
 
   jsc-safe-url@0.2.4:
@@ -10232,6 +10243,16 @@ snapshots:
       http-errors: 2.0.1
       mime: 3.0.0
 
+  '@fastify/static@10.1.3':
+    dependencies:
+      '@fastify/accept-negotiator': 2.1.0
+      '@fastify/error': 4.2.0
+      '@fastify/send': 4.1.1
+      content-disposition: 2.0.1
+      fastify-plugin: 6.0.0
+      fastq: 1.20.3
+      glob: 13.0.6
+
   '@fastify/static@8.3.0':
     dependencies:
       '@fastify/accept-negotiator': 2.1.0
@@ -10241,19 +10262,10 @@ snapshots:
       fastq: 1.20.1
       glob: 11.1.0
 
-  '@fastify/static@9.3.0':
+  '@fastify/swagger-ui@6.1.1':
     dependencies:
-      '@fastify/accept-negotiator': 2.1.0
-      '@fastify/send': 4.1.1
-      content-disposition: 1.1.0
+      '@fastify/static': 10.1.3
       fastify-plugin: 6.0.0
-      fastq: 1.20.1
-      glob: 13.0.6
-
-  '@fastify/swagger-ui@5.2.6':
-    dependencies:
-      '@fastify/static': 9.3.0
-      fastify-plugin: 5.1.0
       openapi-types: 12.1.3
       rfdc: 1.4.1
       yaml: 2.9.0
@@ -10567,7 +10579,7 @@ snapshots:
   '@nodelib/fs.walk@1.2.8':
     dependencies:
       '@nodelib/fs.scandir': 2.1.5
-      fastq: 1.20.1
+      fastq: 1.20.3
 
   '@nolyfill/is-core-module@1.0.39': {}
 
@@ -11049,7 +11061,7 @@ snapshots:
       cosmiconfig: 9.0.2(typescript@5.9.3)
       deepmerge: 4.3.1
       fast-glob: 3.3.3
-      joi: 17.13.4
+      joi: 17.13.8
     transitivePeerDependencies:
       - typescript
     optional: true
@@ -11112,7 +11124,7 @@ snapshots:
     dependencies:
       '@react-native-community/cli-debugger-ui': 14.1.0
       '@react-native-community/cli-tools': 14.1.0
-      compression: 1.8.1
+      compression: 1.8.2
       connect: 3.7.0
       errorhandler: 1.5.2
       nocache: 3.0.4
@@ -11141,7 +11153,7 @@ snapshots:
 
   '@react-native-community/cli-types@14.1.0':
     dependencies:
-      joi: 17.13.4
+      joi: 17.13.8
     optional: true
 
   '@react-native-community/cli@14.1.0(typescript@5.9.3)':
@@ -12880,6 +12892,20 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  compression@1.8.2:
+    dependencies:
+      bytes: 3.1.2
+      compressible: 2.0.18
+      debug: 2.6.9
+      destroy: 1.2.0
+      negotiator: 0.6.4
+      on-headers: 1.1.0
+      safe-buffer: 5.2.1
+      vary: 1.1.2
+    transitivePeerDependencies:
+      - supports-color
+    optional: true
+
   concat-map@0.0.1: {}
 
   connect@3.7.0:
@@ -12895,7 +12921,7 @@ snapshots:
     dependencies:
       safe-buffer: 5.2.1
 
-  content-disposition@1.1.0: {}
+  content-disposition@2.0.1: {}
 
   content-type@1.0.5: {}
 
@@ -12915,7 +12941,7 @@ snapshots:
     dependencies:
       env-paths: 2.2.1
       import-fresh: 3.3.1
-      js-yaml: 4.3.1
+      js-yaml: 4.3.2
       parse-json: 5.2.0
     optionalDependencies:
       typescript: 5.9.3
@@ -14253,6 +14279,10 @@ snapshots:
     dependencies:
       reusify: 1.1.0
 
+  fastq@1.20.3:
+    dependencies:
+      reusify: 1.1.0
+
   fastseries@1.7.2:
     dependencies:
       reusify: 1.1.0
@@ -14905,7 +14935,7 @@ snapshots:
 
   jiti@1.21.7: {}
 
-  joi@17.13.4:
+  joi@17.13.8:
     dependencies:
       '@hapi/hoek': 9.3.0
       '@hapi/topo': 5.1.0
@@ -14923,6 +14953,11 @@ snapshots:
   js-yaml@4.3.1:
     dependencies:
       argparse: 2.0.1
+
+  js-yaml@4.3.2:
+    dependencies:
+      argparse: 2.0.1
+    optional: true
 
   jsc-safe-url@0.2.4: {}
 
