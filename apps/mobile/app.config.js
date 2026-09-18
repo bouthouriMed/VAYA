@@ -10,6 +10,16 @@ const withGoogleMapsIOS = require('./plugins/withGoogleMapsIOS');
 const apiBaseUrl = process.env.API_BASE_URL ?? 'http://localhost:3000/api/v1';
 const apiIsInsecureHttp = apiBaseUrl.startsWith('http://');
 
+// Deliberately NOT named SENTRY_DSN: EAS Build's own container sets that
+// exact name as an ambient env var for Expo's own internal CLI telemetry
+// (visible in build logs as EAS_CLI_SENTRY_DSN, same value) — a real
+// collision that was silently activating Sentry with Expo's own DSN on
+// every build, which in turn wired up the Android Sentry Gradle upload
+// task and broke production builds (sentry-cli failing to spawn, since
+// nothing here has real Sentry credentials). A distinct name make "unset
+// by default, safe no-op" (this file's actual intent) hold for real.
+const sentryDsn = process.env.VAYA_SENTRY_DSN ?? null;
+
 module.exports = {
   expo: {
     name: 'VAYA',
@@ -124,18 +134,27 @@ module.exports = {
           backgroundColor: '#2E3B42',
         },
       ],
-      [
-        '@sentry/react-native/expo',
-        {
-          // Native-SDK linking only — deliberately never attempts a
-          // source-map upload during build (which needs a real Sentry
-          // org/project/authToken this environment has none of, and would
-          // otherwise risk failing the build on a network/auth error over
-          // something that's supposed to be optional). Set these up for
-          // real once a Sentry project exists — see LAUNCH_ACTIONS.md.
-          disableAutoUpload: true,
-        },
-      ],
+      // Only wired in when a real DSN is configured — otherwise the plugin
+      // still applies the Sentry Android Gradle plugin's upload task
+      // (disableAutoUpload only skips the upload itself, not its
+      // creation), which fails outright without real Sentry credentials.
+      ...(sentryDsn
+        ? [
+            [
+              '@sentry/react-native/expo',
+              {
+                // Native-SDK linking only — deliberately never attempts a
+                // source-map upload during build (which needs a real Sentry
+                // org/project/authToken this environment has none of, and
+                // would otherwise risk failing the build on a network/auth
+                // error over something that's supposed to be optional). Set
+                // these up for real once a Sentry project exists — see
+                // LAUNCH_ACTIONS.md.
+                disableAutoUpload: true,
+              },
+            ],
+          ]
+        : []),
       [
         'expo-notifications',
         {
@@ -181,7 +200,7 @@ module.exports = {
       // matching the exact "real provider when configured, safe fallback
       // otherwise" pattern apps/api's lib/sms, lib/storage, and
       // config/monitoring.ts already established.
-      sentryDsn: process.env.SENTRY_DSN ?? null,
+      sentryDsn,
       eas: {
         // @bouthourimohamed/vaya — https://expo.dev/accounts/bouthourimohamed/projects/vaya
         projectId: '180c4be1-2a3c-438f-899a-68371c0635e4',
