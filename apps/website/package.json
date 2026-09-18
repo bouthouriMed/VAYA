@@ -10,7 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "next": "15.1.6",
+    "next": "15.5.25",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "@vaya/legal": "workspace:*",
@@ -33,7 +33,7 @@
     "postcss": "^8.4.49",
     "autoprefixer": "^10.4.20",
     "eslint": "^9.18.0",
-    "eslint-config-next": "15.1.6",
+    "eslint-config-next": "15.5.25",
     "playwright": "^1.47.2"
   }
 }
