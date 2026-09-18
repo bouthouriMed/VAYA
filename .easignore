@@ -1,0 +1,53 @@
+# EAS Build uploads from the monorepo root (apps/mobile depends on sibling
+# workspace packages via "workspace:*"), but doesn't need everything in it.
+# Patterns work like .gitignore, rooted at this file's directory.
+#
+# Workspace member package.json files must stay in place for pnpm's
+# workspace/lockfile resolution to succeed — only their heavy internals
+# (source mobile doesn't consume, build output, caches) are excluded below.
+
+# Other apps: mobile never imports their source, only needs their manifests
+# to exist so `pnpm install` can resolve the workspace graph.
+apps/api/src
+apps/api/dist
+apps/api/coverage
+apps/api/drizzle
+apps/admin/src
+apps/admin/dist
+apps/admin/coverage
+apps/website/src
+apps/website/.next
+apps/website/.turbo
+apps/website/public
+
+# E2E test package: keep the manifest, drop test sources/artifacts.
+tests/e2e/tests
+tests/e2e/playwright-report
+tests/e2e/test-results
+
+# Docs, design-reference exports, session/runbook notes — not needed to
+# build the app.
+docs
+stitch
+LAUNCH_ACTIONS.md
+PRODUCTION_READINESS.md
+RUNBOOK.md
+claude-resume.txt
+resume-claude.ps1
+search-guide.md
+
+# Local design-reference screenshots bundled alongside real app assets —
+# not imported by any app code (confirmed via grep). Real assets
+# (icon.png, adaptive-icon-foreground.png, splash-icon.png, favicon.png)
+# are untouched by these patterns.
+apps/mobile/assets/*.jfif
+apps/mobile/assets/*.jpg
+apps/mobile/assets/screens
+apps/mobile/assets/errors
+
+# Build caches, coverage, logs, docker compose assets not needed to build
+# the mobile app.
+**/.turbo
+**/coverage
+**/*.log
+docker
