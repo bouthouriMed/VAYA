@@ -1,15 +1,21 @@
 import { randomBytes, randomInt, createHash } from 'node:crypto';
-import { and, eq, gt, isNull } from 'drizzle-orm';
+import { and, desc, eq, gt, isNull, lt, sql } from 'drizzle-orm';
 import { OAuth2Client } from 'google-auth-library';
 import type { getDatabase } from '../../lib/database.js';
 import { oauthLoginTickets, otpCodes, refreshTokens, users } from '../../db/schema/index.js';
 import { AppError, UnauthorizedError } from '../../lib/errors.js';
 import { getSmsProvider } from '../../lib/sms/index.js';
 import { getEnv } from '../../config/env.js';
+import {
+  OTP_LOCKOUT_WINDOW_MINUTES,
+  OTP_MAX_ATTEMPTS_PER_CODE,
+  OTP_TTL_MINUTES,
+  hashOtpCode,
+  isOtpLockedOut,
+  otpHashesMatch,
+} from './otp-policy.js';
 
 type Database = ReturnType<typeof getDatabase>;
-
-const OTP_TTL_MINUTES = 5;
 
 function generateOtpCode(): string {
   return randomInt(0, 1_000_000).toString().padStart(6, '0');
@@ -19,11 +25,44 @@ function hashToken(token: string): string {
   return createHash('sha256').update(token).digest('hex');
 }
 
+/** Guesses recorded against this phone (across every code it was sent) in the
+ *  lockout window. */
+async function countRecentOtpAttempts(db: Database, phone: string): Promise<number> {
+  const since = new Date(Date.now() - OTP_LOCKOUT_WINDOW_MINUTES * 60_000);
+  const [row] = await db
+    .select({ attempts: sql<number>`coalesce(sum(${otpCodes.attempts}), 0)::int` })
+    .from(otpCodes)
+    .where(and(eq(otpCodes.phone, phone), gt(otpCodes.createdAt, since)));
+  return row?.attempts ?? 0;
+}
+
+async function assertNotLockedOut(db: Database, phone: string): Promise<void> {
+  if (isOtpLockedOut(await countRecentOtpAttempts(db, phone))) {
+    throw new AppError(
+      'Too many incorrect codes for this number. Try again in a few minutes.',
+      429,
+      'OTP_TEMPORARILY_LOCKED',
+    );
+  }
+}
+
 export async function requestOtp(db: Database, phone: string): Promise<{ code: string }> {
+  // A phone that has burned its guess budget can't just ask for fresh codes
+  // (each new code would otherwise reset the per-code attempt counter).
+  await assertNotLockedOut(db, phone);
+
   const code = generateOtpCode();
   const expiresAt = new Date(Date.now() + OTP_TTL_MINUTES * 60_000);
+  const codeHash = hashOtpCode(getEnv().JWT_SECRET, phone, code);
 
-  await db.insert(otpCodes).values({ phone, code, expiresAt });
+  // Exactly one live code per phone: a new request kills every earlier
+  // still-valid code, so "resend" can never multiply the number of codes an
+  // attacker's guess could match.
+  await db
+    .update(otpCodes)
+    .set({ consumedAt: new Date() })
+    .where(and(eq(otpCodes.phone, phone), isNull(otpCodes.consumedAt)));
+  await db.insert(otpCodes).values({ phone, codeHash, expiresAt });
   await getSmsProvider().sendOtp(phone, code);
   return { code };
 }
@@ -45,20 +84,56 @@ async function findOrCreateUser(db: Database, phone: string) {
  *  the code-validity check and single-use consumption are identical in
  *  both cases; only what happens *after* a valid code differs. */
 export async function consumeValidOtp(db: Database, phone: string, code: string): Promise<void> {
+  await assertNotLockedOut(db, phone);
+
+  // The single live code for this phone (requestOtp kills all earlier ones).
   const candidate = await db.query.otpCodes.findFirst({
     where: and(
       eq(otpCodes.phone, phone),
-      eq(otpCodes.code, code),
       isNull(otpCodes.consumedAt),
       gt(otpCodes.expiresAt, new Date()),
     ),
+    orderBy: desc(otpCodes.createdAt),
   });
-
   if (!candidate) {
     throw new UnauthorizedError('Invalid or expired code');
   }
 
-  await db.update(otpCodes).set({ consumedAt: new Date() }).where(eq(otpCodes.id, candidate.id));
+  // Reserve a guess BEFORE comparing, atomically in the UPDATE's own WHERE
+  // clause: N concurrent requests can therefore never collectively make more
+  // than OTP_MAX_ATTEMPTS_PER_CODE comparisons against this code (a
+  // read-check-then-increment would let them all pass the check together).
+  const [reserved] = await db
+    .update(otpCodes)
+    .set({ attempts: sql`${otpCodes.attempts} + 1` })
+    .where(
+      and(
+        eq(otpCodes.id, candidate.id),
+        isNull(otpCodes.consumedAt),
+        lt(otpCodes.attempts, OTP_MAX_ATTEMPTS_PER_CODE),
+      ),
+    )
+    .returning({ id: otpCodes.id });
+  if (!reserved) {
+    throw new UnauthorizedError('Invalid or expired code');
+  }
+
+  const providedHash = hashOtpCode(getEnv().JWT_SECRET, phone, code);
+  if (!otpHashesMatch(candidate.codeHash, providedHash)) {
+    throw new UnauthorizedError('Invalid or expired code');
+  }
+
+  // Single-use, atomically: two concurrent verifies with the same correct
+  // code used to both find it unconsumed and both succeed (replay). Only the
+  // request whose UPDATE actually flips consumed_at wins.
+  const [consumed] = await db
+    .update(otpCodes)
+    .set({ consumedAt: new Date() })
+    .where(and(eq(otpCodes.id, candidate.id), isNull(otpCodes.consumedAt)))
+    .returning({ id: otpCodes.id });
+  if (!consumed) {
+    throw new UnauthorizedError('Invalid or expired code');
+  }
 }
 
 export async function verifyOtpAndIssueTokens(
@@ -138,8 +213,44 @@ export async function revokeAllRefreshTokensForUser(db: Database, userId: string
 interface GoogleProfile {
   googleId: string;
   email?: string;
+  /** Google's own `email_verified` claim for `email`. */
+  emailVerified?: boolean;
   name?: string;
   picture?: string;
+}
+
+/**
+ * How a verified Google identity maps onto an existing VAYA account, as a
+ * pure decision (unit-tested without a DB):
+ *
+ *  - The email is only trusted when Google says it is verified. Google can
+ *    return an id_token with `email_verified: false` (e.g. a Google account
+ *    registered against a third-party address nobody confirmed) — treating
+ *    such an email as proof of identity let anyone claim a VAYA account just
+ *    by asserting its owner's email address.
+ *  - An account that is already bound to a *different* Google identity is
+ *    never re-bound. Linking used to overwrite `google_id` unconditionally,
+ *    so the attacker's Google account silently replaced the real owner's.
+ */
+export type GoogleLinkDecision =
+  | { action: 'create'; storeEmail: boolean }
+  | { action: 'link'; existingUserId: string }
+  | { action: 'reject'; reason: 'EMAIL_BOUND_TO_OTHER_GOOGLE_ACCOUNT' };
+
+export function decideGoogleAccountLink(
+  profile: Pick<GoogleProfile, 'email' | 'emailVerified'>,
+  existingByEmail: { id: string; googleId: string | null } | undefined,
+): GoogleLinkDecision {
+  const emailTrusted = Boolean(profile.email) && profile.emailVerified === true;
+  if (!emailTrusted) {
+    // No verified email: never link, never claim the (unique) email column.
+    return { action: 'create', storeEmail: false };
+  }
+  if (!existingByEmail) return { action: 'create', storeEmail: true };
+  if (existingByEmail.googleId) {
+    return { action: 'reject', reason: 'EMAIL_BOUND_TO_OTHER_GOOGLE_ACCOUNT' };
+  }
+  return { action: 'link', existingUserId: existingByEmail.id };
 }
 
 /**
@@ -202,6 +313,7 @@ async function exchangeGoogleCode(code: string): Promise<GoogleProfile> {
   return {
     googleId: payload.sub,
     email: payload.email,
+    emailVerified: payload.email_verified === true,
     name: payload.name,
     picture: payload.picture,
   };
@@ -213,25 +325,44 @@ async function findOrCreateGoogleUser(db: Database, profile: GoogleProfile) {
   });
   if (existingByGoogleId) return existingByGoogleId;
 
-  // Link, don't duplicate: a phone/OTP account with the same verified email
-  // is the same person signing in through a second door.
-  if (profile.email) {
-    const existingByEmail = await db.query.users.findFirst({ where: eq(users.email, profile.email) });
-    if (existingByEmail) {
-      const [linked] = await db
-        .update(users)
-        .set({ googleId: profile.googleId, updatedAt: new Date() })
-        .where(eq(users.id, existingByEmail.id))
-        .returning();
-      if (!linked) throw new Error('Failed to link Google account');
-      return linked;
+  // Link, don't duplicate: a phone/OTP account with the same *verified* email
+  // is the same person signing in through a second door — but see
+  // decideGoogleAccountLink for the two cases where that must not happen.
+  const existingByEmail =
+    profile.email && profile.emailVerified
+      ? await db.query.users.findFirst({ where: eq(users.email, profile.email) })
+      : undefined;
+  const decision = decideGoogleAccountLink(profile, existingByEmail);
+  if (decision.action === 'reject') {
+    throw new AppError(
+      'This email is already linked to a different Google account',
+      409,
+      'GOOGLE_EMAIL_ALREADY_LINKED',
+    );
+  }
+  if (decision.action === 'link') {
+    // `google_id IS NULL` in the WHERE makes the link itself race-safe: if a
+    // concurrent request bound a Google identity between our read and this
+    // write, this updates zero rows instead of overwriting it.
+    const [linked] = await db
+      .update(users)
+      .set({ googleId: profile.googleId, updatedAt: new Date() })
+      .where(and(eq(users.id, decision.existingUserId), isNull(users.googleId)))
+      .returning();
+    if (!linked) {
+      throw new AppError(
+        'This email is already linked to a different Google account',
+        409,
+        'GOOGLE_EMAIL_ALREADY_LINKED',
+      );
     }
+    return linked;
   }
 
   const [created] = await db
     .insert(users)
     .values({
-      email: profile.email,
+      email: decision.storeEmail ? profile.email : undefined,
       googleId: profile.googleId,
       authProvider: 'google',
       fullName: profile.name?.trim() || 'Utilisateur VAYA',
