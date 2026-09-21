@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { expect, type APIRequestContext } from '@playwright/test';
 
 /**
@@ -73,7 +74,10 @@ export async function registerAndLogin(request: APIRequestContext, salt = 0): Pr
   const otpRes = await requestOtpWithBackoff(request, phone);
   expect(otpRes.ok(), `OTP request should succeed for ${phone}`).toBeTruthy();
   const { devCode } = (await otpRes.json()) as { devCode?: string };
-  expect(devCode).toBeTruthy();
+  expect(
+    devCode,
+    "The API returned no devCode — start it with EXPOSE_DEV_OTP=true (NODE_ENV=development, no Twilio credentials); see apps/api/.env.example",
+  ).toBeTruthy();
 
   const verifyRes = await request.post(`${API_PREFIX}/auth/otp/verify`, { data: { phone, code: devCode } });
   expect(verifyRes.ok(), 'OTP verify should succeed').toBeTruthy();
@@ -121,7 +125,7 @@ export async function onboardAndApproveDriver(
         plateNumber: `VJ-${Date.now() % 1_000_000}-${Math.floor(Math.random() * 1000)}`,
         seatCount: overrides?.seatCount ?? 4,
       },
-      documents: [{ type: 'license', fileUrl: 'https://example.com/license.jpg' }],
+      documents: [{ type: 'license', fileUrl: `/secure-uploads/${randomUUID()}.jpg` }],
     },
   });
   expect(onboardingRes.ok(), 'Driver onboarding submission should succeed').toBeTruthy();

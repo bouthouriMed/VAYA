@@ -7,6 +7,36 @@
 # real purchased domain exists. Once a real domain is bought (LAUNCH_ACTIONS.md
 # item #11), replace the line below with that domain — Caddy re-issues the
 # cert automatically on next restart, no other config changes needed.
+#
+# Security notes (docs/security/security-hardening.md):
+#  - Caddy replaces any client-supplied X-Forwarded-For with the real peer
+#    address (it only honours the header from `trusted_proxies`, none
+#    configured), which is exactly what the API's TRUST_PROXY=1 default
+#    (one hop) relies on for rate-limit identity. Do not put another proxy or
+#    CDN in front of Caddy without raising TRUST_PROXY accordingly.
+#  - /metrics is never exposed publicly: even though the API also requires
+#    METRICS_TOKEN, telemetry has no business being reachable from the
+#    internet. Prometheus should scrape api:3000/metrics over the Docker
+#    network with the bearer token.
 129-151-255-220.sslip.io {
+	encode zstd gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "no-referrer"
+		-Server
+	}
+
+	@internal path /metrics /metrics/*
+	respond @internal 404
+
+	# Largest legitimate request is an 8MB relayed upload (see
+	# apps/api uploads.routes.ts) plus multipart framing.
+	request_body {
+		max_size 10MB
+	}
+
 	reverse_proxy api:3000
 }
