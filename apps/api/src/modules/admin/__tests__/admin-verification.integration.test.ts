@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { eq } from 'drizzle-orm';
 import type { FastifyInstance } from 'fastify';
@@ -147,7 +148,9 @@ describe('Admin verification workflow (HTTP)', () => {
       method: 'POST',
       url: '/api/v1/drivers/verification/resubmit',
       headers: { authorization: `Bearer ${consumerAccessToken}` },
-      payload: { documents: [{ type: 'license', fileUrl: 'https://example.com/license2.jpg' }] },
+      // A well-formed reference to an API-minted secure upload — arbitrary
+      // URLs are rejected (docs/security VAYA-SEC-009).
+      payload: { documents: [{ type: 'license', fileUrl: `/secure-uploads/${randomUUID()}.jpg` }] },
     });
     expect(res.statusCode).toBe(200);
     expect(res.json().verificationStatus).toBe('pending');

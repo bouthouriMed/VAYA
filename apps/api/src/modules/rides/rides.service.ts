@@ -77,6 +77,24 @@ async function getDriverProfileOrThrow(db: Database, userId: string) {
   return profile;
 }
 
+/**
+ * A ride can never offer more seats than the vehicle has (VAYA-SEC-013).
+ * `seatsTotal` was validated only against a static 1-8 range, so a driver
+ * registered with a 2-seat car could publish (and sell) 8 seats — inflating
+ * capacity, price-per-seat revenue and the marketplace's seat accounting. The
+ * server, not the mobile stepper, owns this bound (CLAUDE.md: "any endpoint
+ * accepting a client-adjustable value that affects marketplace integrity...
+ * must enforce bounds server-side").
+ */
+export function assertSeatsFitVehicle(seatsTotal: number, vehicleSeatCount: number): void {
+  if (seatsTotal > vehicleSeatCount) {
+    throw new ValidationError(
+      `This vehicle has ${vehicleSeatCount} seat${vehicleSeatCount === 1 ? '' : 's'} — a ride cannot offer ${seatsTotal}.`,
+      { seatsTotal: [`Must be at most ${vehicleSeatCount} for this vehicle`] },
+    );
+  }
+}
+
 /** Builds the "value X is outside [min, max]" message the client sees on a
  *  400 — a clear, specific message rather than generic Zod validation
  *  noise, per docs/roadmap/phase-06-pricing-engine.md's API section. */
@@ -98,6 +116,7 @@ export async function createRide(
     where: and(eq(vehicles.id, input.vehicleId), eq(vehicles.driverProfileId, profile.id)),
   });
   if (!vehicle) throw new ForbiddenError('This vehicle does not belong to you');
+  assertSeatsFitVehicle(input.seatsTotal, vehicle.seatCount);
 
   // Phase 11 (docs/roadmap/phase-11-recurring-rides.md): the driver
   // auto-draft flow tags the created ride with the `enabled` driver pattern
@@ -226,6 +245,10 @@ export async function updateRide(
   }
   if (ride.status !== 'draft') {
     throw new ConflictError('Only a draft ride can be edited before publishing');
+  }
+  if (input.seatsTotal !== undefined) {
+    const vehicle = await db.query.vehicles.findFirst({ where: eq(vehicles.id, ride.vehicleId) });
+    if (vehicle) assertSeatsFitVehicle(input.seatsTotal, vehicle.seatCount);
   }
 
   const route = await getRoute(

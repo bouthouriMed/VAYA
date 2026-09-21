@@ -138,6 +138,16 @@ describe('trips + ratings — full lifecycle (Phase 9)', () => {
     await expect(completeTrip(db, trip.id, stranger.id)).rejects.toBeInstanceOf(ForbiddenError);
     await db.delete(users).where(eq(users.id, stranger.id));
 
+    // VAYA-SEC-004 regression: a trip whose ride hasn't departed and whose
+    // journey hasn't begun can NOT be completed by either party — otherwise
+    // two accounts could mint ratings/trip counts with no journey at all.
+    await expect(completeTrip(db, trip.id, riderId)).rejects.toBeInstanceOf(ConflictError);
+    await expect(completeTrip(db, trip.id, driverUserId)).rejects.toBeInstanceOf(ConflictError);
+    expect((await getTripByBookingId(db, booking.id, riderId)).status).toBe('scheduled');
+
+    // The driver confirms boarding — the journey has genuinely begun.
+    await db.update(trips).set({ status: 'active' }).where(eq(trips.id, trip.id));
+
     // The rider (not just the driver) can complete the trip — this
     // codebase has no driver-side trip-execution screen yet, so either
     // party must be able to trigger completion (trips.service.ts's doc
@@ -209,6 +219,8 @@ describe('trips + ratings — full lifecycle (Phase 9)', () => {
     });
     await acceptBooking(db, booking.id, driverUserId);
     const trip = await getTripByBookingId(db, booking.id, riderId);
+    // Journey underway (see VAYA-SEC-004: a not-yet-started trip can't be completed).
+    await db.update(trips).set({ status: 'active' }).where(eq(trips.id, trip.id));
     await completeTrip(db, trip.id, driverUserId);
 
     // Before rating, a prompt is pending for the rider.

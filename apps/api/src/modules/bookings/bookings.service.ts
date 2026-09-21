@@ -1,4 +1,4 @@
-import { and, eq, inArray, isNotNull, ne } from 'drizzle-orm';
+import { and, eq, inArray, isNotNull, ne, sql } from 'drizzle-orm';
 import type { getDatabase } from '../../lib/database.js';
 import { bookings, rides, routeStops, riderProfiles, trips, users } from '../../db/schema/index.js';
 import { AppError, ConflictError, ForbiddenError, NotFoundError, ValidationError } from '../../lib/errors.js';
@@ -919,7 +919,26 @@ export async function createBooking(
     seatsRequested: input.seatsRequested,
   });
 
-  const [booking] = await db
+  // VAYA-SEC-006: the "one active request per rider per ride" check near the
+  // top of this function is a plain read, so two concurrent requests both
+  // passed it and both inserted (no unique constraint backs it — a partial
+  // unique index would fail to migrate on any database that already holds
+  // duplicates). The final check + insert therefore run in one transaction
+  // serialised per (rider, ride) by a transaction-scoped advisory lock: the
+  // second request blocks until the first commits, then sees its row.
+  const booking = await db.transaction(async (tx) => {
+    await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${`booking-request:${riderId}:${rideId}`}))`);
+    const concurrentDuplicate = await tx.query.bookings.findFirst({
+      where: and(
+        eq(bookings.rideId, rideId),
+        eq(bookings.riderId, riderId),
+        inArray(bookings.status, ['pending', 'accepted']),
+      ),
+    });
+    if (concurrentDuplicate) {
+      throw new AppError('You already have a request for this ride', 409, 'DUPLICATE_BOOKING');
+    }
+    const [inserted] = await tx
     .insert(bookings)
     .values({
       rideId,
@@ -946,6 +965,8 @@ export async function createBooking(
       expiresAt: computeBookingExpiresAt(requestedAt, opConfig.bookingResponseWindowMinutes),
     })
     .returning();
+    return inserted;
+  });
   if (!booking) throw new Error('Failed to create booking');
 
   const riderProfileForNotif = await getRiderNotificationProfileSafe(db, riderId);

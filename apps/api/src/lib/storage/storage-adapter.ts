@@ -2,6 +2,12 @@ export interface StorageAdapter {
   /** Persists a file and returns a publicly reachable URL. */
   save(params: { buffer: Buffer; filename: string; contentType: string }): Promise<string>;
 
+  /** The canonical public URL `save` would have returned for an object with
+   *  this `<uuid>.<ext>` name — used to rebuild a stored reference from a
+   *  validated object name instead of persisting a client-supplied URL
+   *  (lib/storage/file-refs.ts). */
+  toPublicUrl(objectName: string): string;
+
   /**
    * Persists a file OUTSIDE the publicly-served static directory — for
    * driver KYC documents (license/registration/insurance/selfie), which

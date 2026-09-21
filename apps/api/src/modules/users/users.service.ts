@@ -1,4 +1,4 @@
-import { and, eq, inArray } from 'drizzle-orm';
+import { and, eq, inArray, ne } from 'drizzle-orm';
 import type { getDatabase } from '../../lib/database.js';
 import {
   users,
@@ -11,6 +11,7 @@ import {
 import { ConflictError, NotFoundError } from '../../lib/errors.js';
 import { consumeValidOtp, revokeAllRefreshTokensForUser } from '../auth/auth.service.js';
 import { getStorage } from '../../lib/storage/index.js';
+import { resolvePublicFileReference } from '../../lib/storage/file-refs.js';
 import type { UpdateMeInput } from '@vaya/validation';
 
 // Ride statuses that still represent a live commitment to at least one
@@ -36,7 +37,14 @@ export async function updateUser(db: Database, userId: string, input: UpdateMeIn
   const updates: Partial<typeof users.$inferInsert> = {};
   if (input.fullName !== undefined) updates.fullName = input.fullName;
   if (input.locale !== undefined) updates.locale = input.locale;
-  if (input.avatarFileUrl !== undefined) updates.avatarUrl = input.avatarFileUrl;
+  // Never persist a client-supplied URL as-is (VAYA-SEC-009): only a
+  // well-formed reference to a file this API's own upload endpoints minted,
+  // rebuilt from its object name.
+  if (input.avatarFileUrl !== undefined) {
+    updates.avatarUrl = resolvePublicFileReference(input.avatarFileUrl, (name) =>
+      getStorage().toPublicUrl(name),
+    );
+  }
 
   const [updated] = await db
     .update(users)
@@ -118,6 +126,21 @@ export async function getPublicProfile(db: Database, userId: string) {
   };
 }
 
+/** True if any *other* user's avatar, or any vehicle photo, references the
+ *  same public file. */
+async function isPublicFileReferencedElsewhere(
+  db: Database,
+  fileUrl: string,
+  excludingUserId: string,
+): Promise<boolean> {
+  const otherAvatar = await db.query.users.findFirst({
+    where: and(eq(users.avatarUrl, fileUrl), ne(users.id, excludingUserId)),
+  });
+  if (otherAvatar) return true;
+  const vehicleUsingIt = await db.query.vehicles.findFirst({ where: eq(vehicles.photoUrl, fileUrl) });
+  return Boolean(vehicleUsingIt);
+}
+
 /**
  * Account deletion (docs/legal/privacy-policy.md §10, docs/legal/
  * terms-and-conditions.md Article 16). A real hard `DELETE FROM users` is
@@ -179,7 +202,11 @@ export async function deleteUser(db: Database, userId: string, reason?: string) 
     });
     await Promise.all(documents.map((doc) => storage.removeSecure(doc.fileUrl)));
   }
-  if (user.avatarUrl) {
+  // Only erase the avatar file if no other account/vehicle still points at
+  // it: these columns are client-set references, so without this check one
+  // user pointing their avatar at another's public photo and then deleting
+  // their own account would destroy the other person's file.
+  if (user.avatarUrl && !(await isPublicFileReferencedElsewhere(db, user.avatarUrl, userId))) {
     await storage.remove(user.avatarUrl);
   }
 
