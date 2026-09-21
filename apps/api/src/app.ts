@@ -16,12 +16,12 @@ import {
   validatorCompiler,
 } from 'fastify-type-provider-zod';
 import { eq } from 'drizzle-orm';
-import { getEnv } from './config/env.js';
+import { getEnv, resolveTrustProxy, shouldServeApiDocs } from './config/env.js';
 import { getLogger } from './config/logger.js';
 import { ForbiddenError, UnauthorizedError } from './lib/errors.js';
 import { errorHandler } from './middleware/error-handler.js';
 import { getDatabase } from './lib/database.js';
-import { users } from './db/schema/index.js';
+import { adminUsers, users } from './db/schema/index.js';
 import { healthRoutes } from './modules/health/health.routes.js';
 import { metricsRoutes } from './modules/metrics/metrics.routes.js';
 import { httpRequestDurationSeconds, httpRequestsTotal } from './lib/metrics.js';
@@ -44,6 +44,8 @@ import { adminAuthRoutes } from './modules/admin/admin-auth.routes.js';
 import { adminRoutes } from './modules/admin/admin.routes.js';
 import { analyticsRoutes } from './modules/analytics/analytics.routes.js';
 import { reportsRoutes } from './modules/reports/reports.routes.js';
+
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 declare module 'fastify' {
   interface FastifyInstance {
@@ -71,9 +73,16 @@ export async function buildApp() {
   // pino-pretty transport; adding redaction to one silently wouldn't have
   // covered the other). Fastify decorates every request/response log line
   // through whichever instance it's given, so this one change covers both.
+  // trustProxy used to be an unconditional `true`, i.e. "believe every hop
+  // of X-Forwarded-For" — any client could then choose its own `request.ip`
+  // and with it its rate-limit identity (every IP-keyed limiter in this app,
+  // including the global 100/min default, was bypassable by rotating a
+  // forged header). Now an explicit hop count: 1 in production behind the
+  // Caddy container, none when the API is exposed directly. See
+  // config/env.ts's resolveTrustProxy and docs/security/security-hardening.md.
   const app = Fastify({
     loggerInstance: getLogger(),
-    trustProxy: true,
+    trustProxy: resolveTrustProxy(env),
   });
 
   app.setValidatorCompiler(validatorCompiler);
@@ -96,7 +105,12 @@ export async function buildApp() {
     timeWindow: '1 minute',
   });
   await app.register(jwt, { secret: env.JWT_SECRET });
-  await app.register(multipart);
+  // Explicit ceilings on every multipart request (busboy's defaults are
+  // unbounded parts/fields): one file, a handful of text fields, 8MB — the
+  // same per-file cap uploads.routes.ts applies on top.
+  await app.register(multipart, {
+    limits: { fileSize: 8 * 1024 * 1024, files: 1, fields: 5, parts: 6, headerPairs: 50 },
+  });
   await app.register(websocket);
   // @fastify/static warns (harmlessly, but on every boot) if `root` doesn't
   // exist yet — true on a fresh checkout/container before any upload has
@@ -111,6 +125,12 @@ export async function buildApp() {
     prefix: '/uploads/',
   });
 
+  // The complete endpoint/schema map (Swagger UI + openapi.json) is only
+  // served outside production unless ENABLE_API_DOCS=true — see
+  // shouldServeApiDocs. The swagger plugin itself stays registered either
+  // way: `jsonSchemaTransform` and `app.swagger()` are also what
+  // packages/api-client's generator reads in CI/dev.
+  const serveDocs = shouldServeApiDocs(env);
   await app.register(swagger, {
     openapi: {
       info: { title: 'VAYA API', version: '0.1.0' },
@@ -118,7 +138,9 @@ export async function buildApp() {
     },
     transform: jsonSchemaTransform,
   });
-  await app.register(swaggerUi, { routePrefix: `${env.API_PREFIX}/docs` });
+  if (serveDocs) {
+    await app.register(swaggerUi, { routePrefix: `${env.API_PREFIX}/docs` });
+  }
 
   const db = getDatabase();
 
@@ -131,32 +153,61 @@ export async function buildApp() {
     if (request.user.type === 'admin') {
       throw new UnauthorizedError('Admin tokens cannot access consumer endpoints');
     }
+    // Every consumer access token's `sub` is a user UUID. The same secret
+    // also signs the short-lived Google OAuth `state` JWT (sub =
+    // "google_oauth_state:<uri>", handed to anyone who calls
+    // /auth/google/start) — without this check that token verified as a
+    // bearer credential and reached the users lookup below with a non-UUID,
+    // turning into a 500 (and Sentry noise) instead of a clean 401.
+    if (!UUID_PATTERN.test(request.user.sub)) {
+      throw new UnauthorizedError('Invalid or missing access token');
+    }
     // Suspension (docs/domain/admin-platform.md) is enforced here, not only
     // surfaced in the admin UI — a suspended user's existing token must stop
     // working on the very next authenticated request, matching CLAUDE.md's
     // "backend enforces independent of client" rule.
     const user = await db.query.users.findFirst({ where: eq(users.id, request.user.sub) });
-    if (user?.suspendedAt) {
+    // A validly-signed token for a user row that no longer exists is not a
+    // session — previously it fell through with `user` undefined and every
+    // check below silently skipped.
+    if (!user) {
+      throw new UnauthorizedError('Invalid or missing access token');
+    }
+    if (user.suspendedAt) {
       throw new ForbiddenError('This account has been suspended');
     }
     // Deletion (docs/legal/privacy-policy.md §10) revokes every refresh
     // token at the time of deletion, but a still-live access token has its
     // own short TTL independent of that — this stops it working on the
     // very next request too, same discipline as the suspension check above.
-    if (user?.deletedAt) {
+    if (user.deletedAt) {
       throw new ForbiddenError('This account has been deleted');
     }
   });
 
-  app.decorate('authenticateAdmin', async (request: FastifyRequest, _reply: FastifyReply) => {
+  // Admin tokens live 4h and carry a `role` claim, but a JWT alone cannot be
+  // revoked or demoted: a removed or downgraded admin's token would keep
+  // working (at its old privilege) until it expired. So the admin row is
+  // re-read on every request and the DATABASE role — not the token's claim —
+  // decides what the caller may do. One indexed primary-key lookup.
+  async function loadCurrentAdmin(request: FastifyRequest): Promise<{ id: string; role: 'admin' | 'superadmin' }> {
     try {
       await request.jwtVerify();
     } catch {
       throw new UnauthorizedError('Invalid or missing access token');
     }
-    if (request.user.type !== 'admin') {
+    if (request.user.type !== 'admin' || !UUID_PATTERN.test(request.user.sub)) {
       throw new ForbiddenError('Admin access required');
     }
+    const admin = await db.query.adminUsers.findFirst({ where: eq(adminUsers.id, request.user.sub) });
+    if (!admin) {
+      throw new UnauthorizedError('Invalid or missing access token');
+    }
+    return { id: admin.id, role: admin.role };
+  }
+
+  app.decorate('authenticateAdmin', async (request: FastifyRequest, _reply: FastifyReply) => {
+    await loadCurrentAdmin(request);
   });
 
   // The `admin`/`superadmin` role distinction admin-auth.routes.ts already
@@ -167,12 +218,8 @@ export async function buildApp() {
   // require this stricter check; day-to-day moderation (KYC review, ride
   // cancellation, report handling) stays on authenticateAdmin.
   app.decorate('authenticateSuperAdmin', async (request: FastifyRequest, _reply: FastifyReply) => {
-    try {
-      await request.jwtVerify();
-    } catch {
-      throw new UnauthorizedError('Invalid or missing access token');
-    }
-    if (request.user.type !== 'admin' || request.user.role !== 'superadmin') {
+    const admin = await loadCurrentAdmin(request);
+    if (admin.role !== 'superadmin') {
       throw new ForbiddenError('Superadmin access required');
     }
   });
@@ -219,7 +266,9 @@ export async function buildApp() {
   await app.register(adminAuthRoutes, { prefix: `${env.API_PREFIX}/admin` });
   await app.register(adminRoutes, { prefix: `${env.API_PREFIX}/admin` });
 
-  app.get(`${env.API_PREFIX}/openapi.json`, async () => app.swagger());
+  if (serveDocs) {
+    app.get(`${env.API_PREFIX}/openapi.json`, async () => app.swagger());
+  }
 
   // Catch-all 404
   app.setNotFoundHandler((_request, reply) => {

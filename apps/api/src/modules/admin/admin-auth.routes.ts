@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { adminLoginSchema } from '@vaya/validation';
 import { getDatabase } from '../../lib/database.js';
 import { loginAdmin } from './admin-auth.service.js';
+import { RATE_LIMITS, keyedRateLimit } from '../../lib/rate-limit.js';
 
 const loginResponseSchema = z.object({
   accessToken: z.string(),
@@ -25,16 +26,23 @@ export async function adminAuthRoutes(fastify: FastifyInstance): Promise<void> {
   // email (not the default req.ip, which is spoofable via a client-supplied
   // X-Forwarded-For under app.ts's `trustProxy: true`) so a password-guessing
   // attempt against one admin account can't reset its budget by rotating IP.
+  // The per-email counter is a preHandler (body parsed by then — the old
+  // `keyGenerator` reading request.body in onRequest always saw undefined and
+  // fell back to the client IP) and keys on the LOWER-CASED, trimmed email:
+  // loginAdmin matches case-insensitively, so keying on the raw string let an
+  // attacker mint a fresh budget per capitalisation ("A@x", "a@x", "A@X"...)
+  // against the same account. A per-IP counter runs alongside it.
+  const adminLoginEmailLimit = keyedRateLimit(fastify, {
+    namespace: 'admin-login-email',
+    ...RATE_LIMITS.adminLoginPerEmail,
+    key: (request) => (request.body as { email?: string } | undefined)?.email?.trim().toLowerCase(),
+  });
+
   app.post(
     '/login',
     {
-      config: {
-        rateLimit: {
-          max: 10,
-          timeWindow: '1 minute',
-          keyGenerator: (request) => (request.body as { email?: string })?.email ?? request.ip,
-        },
-      },
+      config: { rateLimit: RATE_LIMITS.adminLoginPerIp },
+      preHandler: [adminLoginEmailLimit],
       schema: { body: adminLoginSchema, response: { 200: loginResponseSchema } },
     },
     async (request, reply) => {

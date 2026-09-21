@@ -5,6 +5,7 @@ import { createBookingSchema } from '@vaya/validation';
 import { BOOKING_STATUSES, CANCELLATION_REASONS, CANCELLATION_TIERS, RIDE_STATUSES } from '@vaya/domain';
 import { getDatabase } from '../../lib/database.js';
 import { getUserId } from '../../lib/auth-context.js';
+import { RATE_LIMITS } from '../../lib/rate-limit.js';
 import {
   acceptBooking,
   cancelBooking,
@@ -189,6 +190,7 @@ export async function bookingsRoutes(fastify: FastifyInstance): Promise<void> {
     '/rides/:rideId/requests',
     {
       onRequest: [fastify.authenticate],
+      config: { rateLimit: RATE_LIMITS.bookingCreate },
       schema: {
         params: rideIdParamSchema,
         body: createBookingSchema,
@@ -215,6 +217,7 @@ export async function bookingsRoutes(fastify: FastifyInstance): Promise<void> {
     '/rides/:rideId/pickup-override-preview',
     {
       onRequest: [fastify.authenticate],
+      config: { rateLimit: RATE_LIMITS.routingPreview },
       schema: {
         params: rideIdParamSchema,
         querystring: pickupOverridePreviewQuerySchema,
@@ -275,6 +278,7 @@ export async function bookingsRoutes(fastify: FastifyInstance): Promise<void> {
     '/bookings/:bookingId/accept',
     {
       onRequest: [fastify.authenticate],
+      config: { rateLimit: RATE_LIMITS.bookingAction },
       schema: { params: bookingIdParamSchema, response: { 200: bookingResponseSchema } },
     },
     async (request, reply) => {
@@ -287,6 +291,7 @@ export async function bookingsRoutes(fastify: FastifyInstance): Promise<void> {
     '/bookings/:bookingId/decline',
     {
       onRequest: [fastify.authenticate],
+      config: { rateLimit: RATE_LIMITS.bookingAction },
       schema: { params: bookingIdParamSchema, response: { 200: bookingResponseSchema } },
     },
     async (request, reply) => {
@@ -317,6 +322,7 @@ export async function bookingsRoutes(fastify: FastifyInstance): Promise<void> {
     '/bookings/:bookingId/cancel',
     {
       onRequest: [fastify.authenticate],
+      config: { rateLimit: RATE_LIMITS.bookingAction },
       schema: {
         params: bookingIdParamSchema,
         body: cancelBookingBodySchema,
@@ -341,6 +347,7 @@ export async function bookingsRoutes(fastify: FastifyInstance): Promise<void> {
     '/bookings/:bookingId/detour-preview',
     {
       onRequest: [fastify.authenticate],
+      config: { rateLimit: RATE_LIMITS.routingPreview },
       schema: { params: bookingIdParamSchema, response: { 200: detourPreviewResponseSchema } },
     },
     async (request, reply) => {
@@ -372,6 +379,7 @@ export async function bookingsRoutes(fastify: FastifyInstance): Promise<void> {
     '/bookings/:bookingId/report-no-show',
     {
       onRequest: [fastify.authenticate],
+      config: { rateLimit: RATE_LIMITS.bookingAction },
       schema: {
         params: bookingIdParamSchema,
         body: reportNoShowBodySchema,

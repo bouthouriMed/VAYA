@@ -11,8 +11,10 @@ const paginationSchema = z.object({
 });
 
 export const adminLoginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(1),
+  email: z.string().email().max(255),
+  // Upper bound: password hashing (scrypt) runs before any credential is
+  // known to be valid, so an unbounded password is a cheap CPU-exhaustion lever.
+  password: z.string().min(1).max(256),
 });
 export type AdminLoginInput = z.infer<typeof adminLoginSchema>;
 
@@ -89,18 +91,25 @@ export const analyticsEventsIngestSchema = z.object({
         eventName: z.string().min(1).max(64),
         searchId: z.string().uuid().nullable().optional(),
         originLabel: z.string().max(140).nullable().optional(),
-        originLat: z.number().nullable().optional(),
-        originLng: z.number().nullable().optional(),
+        originLat: z.number().min(-90).max(90).nullable().optional(),
+        originLng: z.number().min(-180).max(180).nullable().optional(),
         destinationLabel: z.string().max(140).nullable().optional(),
-        destinationLat: z.number().nullable().optional(),
-        destinationLng: z.number().nullable().optional(),
+        destinationLat: z.number().min(-90).max(90).nullable().optional(),
+        destinationLng: z.number().min(-180).max(180).nullable().optional(),
         desiredDepartureAt: z.string().datetime().nullable().optional(),
         seats: z.number().int().min(1).nullable().optional(),
         resultCount: z.number().int().min(0).nullable().optional(),
         matchTier: z.string().max(32).nullable().optional(),
         selectedRideId: z.string().uuid().nullable().optional(),
         durationMs: z.number().int().min(0).nullable().optional(),
-        metadata: z.record(z.unknown()).optional(),
+        // Free-form by design, but bounded: 50 events x unbounded JSON per
+        // request x 60 requests/min was an easy storage-exhaustion lever.
+        metadata: z
+          .record(z.unknown())
+          .refine((value) => JSON.stringify(value).length <= 2000, {
+            message: 'metadata must be at most 2000 characters when serialised',
+          })
+          .optional(),
       }),
     )
     .min(1)

@@ -90,6 +90,36 @@ const envSchema = z.object({
   // Error tracking (config/monitoring.ts) — a real Sentry DSN turns on
   // Sentry.init for real; unset in dev/test by default (safe no-op).
   SENTRY_DSN: z.string().optional(),
+  // --- Security controls (docs/security/security-hardening.md) ------------
+  // Dev-only convenience: echo the OTP in the /auth/otp/request response so a
+  // developer without Twilio credentials doesn't need to tail server logs.
+  // Deliberately an explicit opt-in, NOT derived from NODE_ENV alone: the
+  // documented deploy path (`cp apps/api/.env.example docker/.env.prod`)
+  // copies NODE_ENV=development into a production env file, which used to be
+  // enough to hand every caller a valid login code for any phone number.
+  // Ignored (and refused at boot) in production, and ignored whenever a real
+  // SMS provider is configured — see shouldExposeDevOtp().
+  EXPOSE_DEV_OTP: z
+    .string()
+    .optional()
+    .transform((v) => v === 'true'),
+  // How many reverse-proxy hops in front of the API to trust for
+  // X-Forwarded-For (Fastify's `trustProxy`): 'false'/'0' = none, an integer
+  // = that many hops, 'true' = trust every hop (unsafe — lets a client
+  // choose its own rate-limit identity). Unset: 1 hop in production (the
+  // Caddy container in docker-compose.oracle.yml), none elsewhere.
+  TRUST_PROXY: z.string().optional(),
+  // Bearer token required by GET /metrics. Unset in production disables the
+  // endpoint outright (404) rather than serving operational telemetry
+  // (route names, traffic volume, error rates) to the public internet.
+  METRICS_TOKEN: z.string().min(16).optional(),
+  // OpenAPI/Swagger UI exposure. Unset: on outside production, off in
+  // production (a public, complete map of every endpoint and schema is a
+  // free reconnaissance gift). Set 'true' to opt in explicitly.
+  ENABLE_API_DOCS: z
+    .string()
+    .optional()
+    .transform((v) => (v === undefined ? undefined : v === 'true')),
 });
 
 export type Env = z.infer<typeof envSchema>;
@@ -107,6 +137,16 @@ export function assertProductionSafe(env: Env): void {
   if (env.NODE_ENV !== 'production') return;
 
   const errors: string[] = [];
+  if (env.EXPOSE_DEV_OTP) {
+    errors.push(
+      'EXPOSE_DEV_OTP must not be enabled in production — it returns one-time login codes in the HTTP response.',
+    );
+  }
+  if (env.TRUST_PROXY?.trim().toLowerCase() === 'true') {
+    errors.push(
+      'TRUST_PROXY=true trusts every X-Forwarded-For hop, letting any client pick its own rate-limit identity — set it to the real number of proxy hops (e.g. 1).',
+    );
+  }
   if (env.JWT_SECRET === INSECURE_JWT_SECRET_DEFAULT || env.JWT_SECRET.length < 32) {
     errors.push(
       'JWT_SECRET must be set to a real secret (32+ chars) in production — refusing to boot on the insecure default.'
@@ -171,6 +211,44 @@ export function assertProductionSafe(env: Env): void {
   if (warnings.length > 0) {
     console.warn('Starting in production with degraded configuration:', warnings);
   }
+}
+
+/** Whether the API may echo an OTP back in an HTTP response. Every
+ *  condition must hold: development mode, an explicit opt-in, and no real SMS
+ *  provider configured (if Twilio is set, the code is delivered by SMS and
+ *  must never also be handed to the requester). */
+export function shouldExposeDevOtp(env: Env): boolean {
+  const hasTwilio = Boolean(env.TWILIO_ACCOUNT_SID && env.TWILIO_AUTH_TOKEN && env.TWILIO_FROM_NUMBER);
+  return env.NODE_ENV === 'development' && env.EXPOSE_DEV_OTP && !hasTwilio;
+}
+
+/** Resolves TRUST_PROXY into Fastify's `trustProxy` option. Default is one
+ *  hop in production (Caddy in front, see docker/Caddyfile) and none
+ *  elsewhere, so a directly-exposed dev/test server never believes a
+ *  client-supplied X-Forwarded-For. A hop count is expressed as a trust
+ *  function (Fastify's typings don't accept a bare number): hop 0 is the
+ *  socket peer itself, so `hops` trusts exactly that many nearest proxies. */
+export function resolveTrustProxy(
+  env: Pick<Env, 'NODE_ENV' | 'TRUST_PROXY'>,
+): boolean | ((address: string, hop: number) => boolean) {
+  const raw = env.TRUST_PROXY?.trim().toLowerCase();
+  let hops: number | boolean;
+  if (raw === undefined || raw === '') hops = env.NODE_ENV === 'production' ? 1 : false;
+  else if (raw === 'true') hops = true;
+  else if (raw === 'false') hops = false;
+  else {
+    const parsed = Number.parseInt(raw, 10);
+    hops = Number.isInteger(parsed) && parsed >= 0 ? parsed : false;
+  }
+  if (typeof hops === 'boolean') return hops;
+  if (hops === 0) return false;
+  return (_address, hop) => hop < hops;
+}
+
+/** API docs (Swagger UI + openapi.json) are on outside production and off in
+ *  production unless ENABLE_API_DOCS=true. */
+export function shouldServeApiDocs(env: Pick<Env, 'NODE_ENV' | 'ENABLE_API_DOCS'>): boolean {
+  return env.ENABLE_API_DOCS ?? env.NODE_ENV !== 'production';
 }
 
 let _env: Env | null = null;
