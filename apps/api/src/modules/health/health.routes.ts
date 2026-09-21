@@ -2,19 +2,16 @@ import type { FastifyInstance } from 'fastify';
 import { sql } from 'drizzle-orm';
 import { getDatabase } from '../../lib/database.js';
 import { getRedis } from '../../lib/redis.js';
-import { getEnv } from '../../config/env.js';
 
 export async function healthRoutes(fastify: FastifyInstance): Promise<void> {
   fastify.get('/health', async (_request, reply) => {
-    const env = getEnv();
     const checks: Record<string, { status: string; latencyMs?: number }> = {};
 
     // Database check
     try {
       const db = getDatabase();
-      const start = Date.now();
       await db.execute(sql`SELECT 1`);
-      checks.database = { status: 'healthy', latencyMs: Date.now() - start };
+      checks.database = { status: 'healthy' };
     } catch {
       checks.database = { status: 'unhealthy' };
     }
@@ -23,9 +20,8 @@ export async function healthRoutes(fastify: FastifyInstance): Promise<void> {
     const redis = getRedis();
     if (redis) {
       try {
-        const start = Date.now();
         await redis.ping();
-        checks.redis = { status: 'healthy', latencyMs: Date.now() - start };
+        checks.redis = { status: 'healthy' };
       } catch {
         checks.redis = { status: 'unhealthy' };
       }
@@ -39,8 +35,9 @@ export async function healthRoutes(fastify: FastifyInstance): Promise<void> {
 
     reply.status(allHealthy ? 200 : 503).send({
       status: allHealthy ? 'ok' : 'degraded',
-      version: '0.1.0',
-      environment: env.NODE_ENV,
+      // No version/environment/latency here (VAYA-SEC-017): this route is
+      // anonymous and proxied publicly, and those fields only help an
+      // attacker fingerprint the deployment. Liveness/readiness is the status.
       timestamp: new Date().toISOString(),
       checks,
     });
