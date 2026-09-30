@@ -9,6 +9,7 @@ import {
 } from '@vaya/domain';
 import { getDatabase } from '../../lib/database.js';
 import { getUserId } from '../../lib/auth-context.js';
+import { RATE_LIMITS } from '../../lib/rate-limit.js';
 import {
   getConversationByBookingId,
   listConversations,
@@ -125,6 +126,7 @@ export async function conversationsRoutes(fastify: FastifyInstance): Promise<voi
   app.post(
     '/conversations/:conversationId/messages',
     {
+      config: { rateLimit: RATE_LIMITS.messageSend },
       onRequest: [fastify.authenticate],
       schema: {
         params: conversationIdParamSchema,

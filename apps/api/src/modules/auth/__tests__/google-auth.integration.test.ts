@@ -12,7 +12,13 @@ import {
 // verify an id_token's signature — not something a unit/integration test
 // should depend on. Mocking it here isolates exactly what this module owns:
 // the account-linking/creation and ticket logic, not Google's own crypto.
-let mockPayload: { sub: string; email?: string; name?: string; picture?: string } | null = null;
+let mockPayload: {
+  sub: string;
+  email?: string;
+  email_verified?: boolean;
+  name?: string;
+  picture?: string;
+} | null = null;
 
 vi.mock('google-auth-library', () => ({
   OAuth2Client: vi.fn().mockImplementation(() => ({
@@ -64,6 +70,7 @@ describe('Google auth (auth.service)', () => {
     mockPayload = {
       sub: `google-sub-${base}-1`,
       email: `newgoogle${base}@example.com`,
+      email_verified: true,
       name: 'New Googler',
       picture: 'https://example.com/avatar.png',
     };
@@ -105,13 +112,58 @@ describe('Google auth (auth.service)', () => {
       .returning();
     createdUserIds.push(phoneUser!.id);
 
-    mockPayload = { sub: `google-sub-${base}-3`, email: sharedEmail, name: 'Phone First (Google)' };
+    mockPayload = {
+      sub: `google-sub-${base}-3`,
+      email: sharedEmail,
+      email_verified: true,
+      name: 'Phone First (Google)',
+    };
     const linkedUserId = await loginWithGoogleCode(db, 'auth-code-3');
 
     expect(linkedUserId).toBe(phoneUser!.id);
     const updated = await db.query.users.findFirst({ where: eq(users.id, phoneUser!.id) });
     expect(updated!.googleId).toBe(mockPayload.sub);
     expect(updated!.phone).toBe(phoneUser!.phone); // phone/OTP identity preserved, not overwritten
+  });
+
+  // VAYA-SEC-003: account takeover via an UNVERIFIED Google email.
+  it('does NOT link (or claim the email) when Google reports the email as unverified', async () => {
+    const victimEmail = `victim${base}@example.com`;
+    const [victim] = await db
+      .insert(users)
+      .values({ phone: `+216${base}8`, email: victimEmail, fullName: 'Victim' })
+      .returning();
+    createdUserIds.push(victim!.id);
+
+    mockPayload = {
+      sub: `google-sub-${base}-attacker-unverified`,
+      email: victimEmail,
+      email_verified: false,
+      name: 'Attacker',
+    };
+    const attackerUserId = await loginWithGoogleCode(db, 'auth-code-unverified');
+    createdUserIds.push(attackerUserId);
+
+    expect(attackerUserId).not.toBe(victim!.id);
+    const victimAfter = await db.query.users.findFirst({ where: eq(users.id, victim!.id) });
+    expect(victimAfter!.googleId).toBeNull();
+    const attacker = await db.query.users.findFirst({ where: eq(users.id, attackerUserId) });
+    expect(attacker!.email).toBeNull(); // never stores an unverified email
+  });
+
+  // VAYA-SEC-003: linking must never silently re-bind an account that already
+  // has a different Google identity.
+  it('does NOT overwrite the google_id of an account already bound to another Google identity', async () => {
+    const email = `bound${base}@example.com`;
+    mockPayload = { sub: `google-sub-${base}-owner`, email, email_verified: true, name: 'Owner' };
+    const ownerId = await loginWithGoogleCode(db, 'auth-code-owner');
+    createdUserIds.push(ownerId);
+
+    mockPayload = { sub: `google-sub-${base}-intruder`, email, email_verified: true, name: 'Intruder' };
+    await expect(loginWithGoogleCode(db, 'auth-code-intruder')).rejects.toThrow(/already linked/i);
+
+    const owner = await db.query.users.findFirst({ where: eq(users.id, ownerId) });
+    expect(owner!.googleId).toBe(`google-sub-${base}-owner`);
   });
 
   it('rejects sign-in when Google returns no id_token', async () => {

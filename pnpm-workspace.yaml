@@ -20,4 +20,11 @@ overrides:
   metro-symbolicate: 0.87.0
   metro-transform-plugins: 0.87.0
   metro-transform-worker: 0.87.0
+  # Security overrides (2026-09-21 security sprint, docs/security/): force
+  # patched versions of transitive dependencies with published advisories
+  # that the direct dependency has not yet bumped past.
+  'fast-uri@>=3.0.0 <3.1.6': 3.1.6
+  'fast-uri@>=4.0.0 <4.1.3': 4.1.3
+  '@fastify/static@<10.1.2': 10.1.4
+  'postcss@<8.5.23': 8.5.23
 

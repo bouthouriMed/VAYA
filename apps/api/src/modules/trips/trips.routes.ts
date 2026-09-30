@@ -3,7 +3,9 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { idParamSchema } from '@vaya/validation';
 import { TRIP_STATUSES, RATING_ROLES, TRACKING_STATUSES } from '@vaya/domain';
+import { eq } from 'drizzle-orm';
 import { getDatabase } from '../../lib/database.js';
+import { users } from '../../db/schema/index.js';
 import { getUserId } from '../../lib/auth-context.js';
 import { ForbiddenError, NotFoundError } from '../../lib/errors.js';
 import { registerTripSocket, unregisterTripSocket } from '../../lib/realtime.js';
@@ -73,9 +75,20 @@ const pendingRatingResponseSchema = z
 
 const bookingIdParamSchema = z.object({ bookingId: z.string().uuid() });
 
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const ACCOUNT_RECHECK_INTERVAL_MS = 60_000;
+
 export async function tripsRoutes(fastify: FastifyInstance): Promise<void> {
   const app = fastify.withTypeProvider<ZodTypeProvider>();
   const db = getDatabase();
+
+  /** Throws unless the user exists and is neither suspended nor deleted —
+   *  the same conditions `fastify.authenticate` enforces per HTTP request. */
+  async function assertAccountActive(userId: string): Promise<void> {
+    const user = await db.query.users.findFirst({ where: eq(users.id, userId) });
+    if (!user) throw new ForbiddenError('Invalid token');
+    if (user.suspendedAt || user.deletedAt) throw new ForbiddenError('Account no longer active');
+  }
 
   // GET /bookings/:bookingId/trip — mirrors conversations.routes.ts's
   // "look up by bookingId, not by the row's own id" convention: mobile
@@ -205,8 +218,19 @@ export async function tripsRoutes(fastify: FastifyInstance): Promise<void> {
       const tripId = request.params.id;
       let initialState;
       let isDriver = false;
+      let userId: string;
       try {
-        const decoded = fastify.jwt.verify<{ sub: string }>(request.query.token);
+        const decoded = fastify.jwt.verify<{ sub: string; type?: string }>(request.query.token);
+        // Same identity rules as `fastify.authenticate` (app.ts), which this
+        // handshake can't use (no Authorization header): admin tokens and the
+        // Google OAuth `state` JWT share this signing secret but are not
+        // consumer sessions, and a suspended/deleted account must not be able
+        // to open a live-location channel with a still-unexpired token.
+        if (decoded.type === 'admin' || !UUID_PATTERN.test(decoded.sub)) {
+          throw new ForbiddenError('Invalid token');
+        }
+        userId = decoded.sub;
+        await assertAccountActive(userId);
         initialState = await getTrackingState(db, tripId, decoded.sub); // throws Forbidden/NotFound if not a party
         isDriver = await isTripDriver(db, tripId, decoded.sub);
       } catch (err) {
@@ -222,8 +246,24 @@ export async function tripsRoutes(fastify: FastifyInstance): Promise<void> {
       registerTripSocket(tripId, socket, isDriver);
       socket.send(JSON.stringify({ type: 'snapshot', ...initialState }));
 
-      socket.on('close', () => unregisterTripSocket(tripId, socket));
-      socket.on('error', () => unregisterTripSocket(tripId, socket));
+      // A socket outlives the 15-minute access token it authenticated with
+      // (a trip can last hours; closing at token expiry would silently drop
+      // live tracking to polling), so instead of trusting the handshake
+      // forever, re-check every minute that the account is still active and
+      // hang up if it was suspended or deleted mid-trip.
+      const accountRecheck = setInterval(() => {
+        assertAccountActive(userId).catch(() => {
+          socket.close(4403, 'Account no longer active');
+        });
+      }, ACCOUNT_RECHECK_INTERVAL_MS);
+      accountRecheck.unref();
+
+      const cleanup = () => {
+        clearInterval(accountRecheck);
+        unregisterTripSocket(tripId, socket);
+      };
+      socket.on('close', cleanup);
+      socket.on('error', cleanup);
     },
   );
 }

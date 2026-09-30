@@ -9,7 +9,14 @@ export const devicePlatformSchema = z.enum(['ios', 'android']);
 export type DevicePlatform = z.infer<typeof devicePlatformSchema>;
 
 export const registerPushTokenSchema = z.object({
-  token: z.string().min(10).max(255),
+  // Expo push tokens only (`ExponentPushToken[...]` / `ExpoPushToken[...]`):
+  // the value is later sent verbatim as the `to` of Expo's push API, so an
+  // arbitrary string here was an arbitrary-recipient lever, not just data.
+  token: z
+    .string()
+    .min(10)
+    .max(255)
+    .regex(/^Expo(nent)?PushToken\[[A-Za-z0-9_-]+\]$/, 'Not a valid Expo push token'),
   platform: devicePlatformSchema,
 });
 export type RegisterPushTokenInput = z.infer<typeof registerPushTokenSchema>;

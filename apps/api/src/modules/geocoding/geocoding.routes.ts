@@ -9,6 +9,7 @@ import {
   placeDetailsQuerySchema,
 } from '@vaya/validation';
 import { autocompleteLocation, resolveLocation, reverseGeocode } from './geocoding.service.js';
+import { RATE_LIMITS } from '../../lib/rate-limit.js';
 
 export async function geocodingRoutes(fastify: FastifyInstance): Promise<void> {
   const app = fastify.withTypeProvider<ZodTypeProvider>();
@@ -28,6 +29,7 @@ export async function geocodingRoutes(fastify: FastifyInstance): Promise<void> {
   app.get(
     '/geocoding/autocomplete',
     {
+      config: { rateLimit: RATE_LIMITS.geocodingAutocomplete },
       schema: {
         querystring: autocompleteQuerySchema,
         response: { 200: z.array(locationPredictionSchema) },
@@ -49,6 +51,7 @@ export async function geocodingRoutes(fastify: FastifyInstance): Promise<void> {
   app.get(
     '/geocoding/place-details',
     {
+      config: { rateLimit: RATE_LIMITS.geocodingPlaceDetails },
       schema: {
         querystring: placeDetailsQuerySchema,
         response: { 200: locationPointSchema.nullable() },
@@ -67,6 +70,7 @@ export async function geocodingRoutes(fastify: FastifyInstance): Promise<void> {
   app.get(
     '/geocoding/reverse',
     {
+      config: { rateLimit: RATE_LIMITS.geocodingReverse },
       schema: {
         querystring: geocodeReverseSchema,
         response: { 200: z.object({ label: z.string(), lat: z.number(), lng: z.number() }) },

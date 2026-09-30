@@ -5,6 +5,7 @@ import { createReportSchema } from '@vaya/validation';
 import { getDatabase } from '../../lib/database.js';
 import { getUserId } from '../../lib/auth-context.js';
 import { createReport } from './reports.service.js';
+import { RATE_LIMITS } from '../../lib/rate-limit.js';
 
 const reportResponseSchema = z.object({
   id: z.string().uuid(),
@@ -19,6 +20,7 @@ export async function reportsRoutes(fastify: FastifyInstance): Promise<void> {
   app.post(
     '/reports',
     {
+      config: { rateLimit: RATE_LIMITS.reportCreate },
       onRequest: [fastify.authenticate],
       schema: { body: createReportSchema, response: { 200: reportResponseSchema } },
     },

@@ -3,6 +3,8 @@ import { eq } from 'drizzle-orm';
 import { getDatabase, closeDatabase } from '../../../lib/database.js';
 import { users, otpCodes } from '../../../db/schema/index.js';
 import { attachPhoneToUser } from '../users.service.js';
+import { hashOtpCode } from '../../auth/otp-policy.js';
+import { getEnv } from '../../../config/env.js';
 
 /**
  * Real Postgres — covers the actual gap this closes: a Google-signed-in user
@@ -36,9 +38,10 @@ describe('attachPhoneToUser', () => {
   }
 
   async function seedValidCode(phone: string, code: string) {
+    // Codes are stored as an HMAC, never plaintext (VAYA-SEC-002).
     await db.insert(otpCodes).values({
       phone,
-      code,
+      codeHash: hashOtpCode(getEnv().JWT_SECRET, phone, code),
       expiresAt: new Date(Date.now() + 5 * 60_000),
     });
   }

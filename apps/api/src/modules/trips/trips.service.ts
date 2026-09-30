@@ -28,6 +28,7 @@ import {
 import { notifyBestEffort } from '../notifications/notifications.service.js';
 import { applyAutoNoShowClassification } from '../bookings/bookings.service.js';
 import { publishTripUpdate } from '../../lib/realtime.js';
+import { canCompleteTripNow } from './trip-completion-guard.js';
 import { getRoute } from '../../lib/routing.js';
 import { decodePolyline, projectPointOntoRoute } from '../../lib/polyline.js';
 import { haversineDistanceMeters } from '../../lib/geo.js';
@@ -250,14 +251,28 @@ export async function completeTrip(db: Database, tripId: string, requestingUserI
   if (!canTransitionTripStatus(trip.status, 'completed')) {
     throw new ConflictError(`Cannot complete a trip in status "${trip.status}"`);
   }
-
+  // VAYA-SEC-004: not before the journey has actually begun.
   const completedAt = new Date();
+  if (
+    !canCompleteTripNow({
+      status: trip.status,
+      rideDepartureAt: trip.booking.ride.departureAt,
+      now: completedAt,
+    })
+  ) {
+    throw new ConflictError('This trip cannot be completed before it has started');
+  }
+
+  // Status re-checked in the UPDATE's own WHERE clause: two near-simultaneous
+  // completions (both parties tapping "finish") used to both pass the
+  // stale-read guard above and both run the side effects (double
+  // notifications, double aggregate recompute).
   const [updated] = await db
     .update(trips)
     .set({ status: 'completed', completedAt, updatedAt: completedAt })
-    .where(eq(trips.id, tripId))
+    .where(and(eq(trips.id, tripId), eq(trips.status, trip.status)))
     .returning();
-  if (!updated) throw new Error('Failed to complete trip');
+  if (!updated) throw new ConflictError('This trip was just updated — refresh and try again');
 
   await applyTripCompletionSideEffects(db, trip, completedAt);
 

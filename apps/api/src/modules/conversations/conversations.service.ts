@@ -13,6 +13,9 @@ import type { RideStatus, TripStatus } from '@vaya/domain';
 import { getLogger } from '../../config/logger.js';
 import { notifyBestEffort } from '../notifications/notifications.service.js';
 
+/** Upper bound on messages returned by one listMessages call. */
+const MAX_MESSAGES_PER_PAGE = 300;
+
 type Database = ReturnType<typeof getDatabase>;
 
 // The trip statuses (packages/domain/src/trip/trip-status.ts) that make a
@@ -402,12 +405,24 @@ export async function listMessages(
     requestingUserId,
   );
 
-  const rows = await db.query.messages.findMany({
-    where: since
-      ? and(eq(messages.conversationId, conversation.id), gt(messages.createdAt, since))
-      : eq(messages.conversationId, conversation.id),
-    orderBy: asc(messages.createdAt),
-  });
+  // Bounded (VAYA-SEC-012): an unbounded read let one chatty (or hostile)
+  // party make every poll of this conversation return an ever-growing
+  // payload. A full fetch returns the most recent MAX_MESSAGES_PER_PAGE
+  // messages (oldest-first, as before); an incremental `since` poll returns
+  // up to the same number of new ones.
+  const rows = since
+    ? await db.query.messages.findMany({
+        where: and(eq(messages.conversationId, conversation.id), gt(messages.createdAt, since)),
+        orderBy: asc(messages.createdAt),
+        limit: MAX_MESSAGES_PER_PAGE,
+      })
+    : (
+        await db.query.messages.findMany({
+          where: eq(messages.conversationId, conversation.id),
+          orderBy: desc(messages.createdAt),
+          limit: MAX_MESSAGES_PER_PAGE,
+        })
+      ).reverse();
 
   await markConversationReadBestEffort(db, conversation.id, requestingUserId === driverUserId);
 

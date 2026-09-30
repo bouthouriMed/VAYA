@@ -21,9 +21,12 @@ describe('Rate limiting', () => {
     await closeDatabase();
   });
 
-  it('returns 429 after exceeding the OTP-request endpoint limit (5/min)', async () => {
+  // Per-phone budget is 3 requests / 10 minutes (lib/rate-limit.ts's
+  // RATE_LIMITS.otpRequestPerPhone) — see security-rate-limits.test.ts for the
+  // DB-free coverage of *why* it is keyed by phone rather than by client IP.
+  it('returns 429 after exceeding the per-phone OTP-request limit (3 / 10 min)', async () => {
     const responses = [];
-    for (let i = 0; i < 6; i += 1) {
+    for (let i = 0; i < 4; i += 1) {
       responses.push(
         await app.inject({
           method: 'POST',
@@ -34,7 +37,7 @@ describe('Rate limiting', () => {
     }
 
     const statusCodes = responses.map((r) => r.statusCode);
-    expect(statusCodes.slice(0, 5)).toEqual([200, 200, 200, 200, 200]);
-    expect(statusCodes[5]).toBe(429);
+    expect(statusCodes.slice(0, 3)).toEqual([200, 200, 200]);
+    expect(statusCodes[3]).toBe(429);
   });
 });

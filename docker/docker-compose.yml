@@ -9,8 +9,12 @@ services:
     image: postgis/postgis:16-3.4-alpine
     container_name: vaya-postgres
     restart: unless-stopped
+    # Loopback only: this database has a well-known dev password and the
+    # container publishes to every interface by default, i.e. anyone on the
+    # same Wi-Fi/LAN could connect. Containers reach each other over the
+    # compose network regardless.
     ports:
-      - '5433:5432'
+      - '127.0.0.1:5433:5432'
     environment:
       POSTGRES_USER: vaya
       POSTGRES_PASSWORD: vaya_dev
@@ -27,8 +31,9 @@ services:
     image: redis:7-alpine
     container_name: vaya-redis
     restart: unless-stopped
+    # Loopback only: Redis here has no password and no TLS.
     ports:
-      - '6379:6379'
+      - '127.0.0.1:6379:6379'
     volumes:
       - redis_data:/data
     healthcheck:
@@ -43,7 +48,7 @@ services:
     restart: unless-stopped
     command: osrm-routed --algorithm ch /data/tunisia-latest.osrm
     ports:
-      - '5001:5000'
+      - '127.0.0.1:5001:5000'
     volumes:
       - ./osrm/data:/data
     # No healthcheck: the routing graph only exists after `docker/osrm/prepare.sh`

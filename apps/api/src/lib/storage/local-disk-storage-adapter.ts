@@ -42,6 +42,10 @@ function basenameOf(fileUrlOrPath: string): string {
 }
 
 export class LocalDiskStorageAdapter implements StorageAdapter {
+  toPublicUrl(objectName: string): string {
+    return `/uploads/${objectName}`;
+  }
+
   async save({
     buffer,
     filename,

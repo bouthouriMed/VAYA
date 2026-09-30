@@ -28,6 +28,7 @@ import {
 } from './stop-candidates.service.js';
 import { listCityDetourCandidates } from './city-detour-candidates.service.js';
 import { getRouteOptions } from './route-options.service.js';
+import { RATE_LIMITS } from '../../lib/rate-limit.js';
 
 const rideSchema = z.object({
   id: z.string().uuid(),
@@ -138,6 +139,7 @@ export async function ridesRoutes(fastify: FastifyInstance): Promise<void> {
   app.post(
     '/rides',
     {
+      config: { rateLimit: RATE_LIMITS.rideMutation },
       onRequest: [fastify.authenticate],
       schema: { body: createRideSchema, response: { 200: rideWithPricingSchema } },
     },
@@ -155,6 +157,7 @@ export async function ridesRoutes(fastify: FastifyInstance): Promise<void> {
   app.post(
     '/rides/route-options',
     {
+      config: { rateLimit: RATE_LIMITS.routeOptions },
       onRequest: [fastify.authenticate],
       schema: { body: routeOptionsRequestSchema, response: { 200: routeOptionsResponseSchema } },
     },
@@ -216,6 +219,7 @@ export async function ridesRoutes(fastify: FastifyInstance): Promise<void> {
   app.post(
     '/rides/:rideId/cancel',
     {
+      config: { rateLimit: RATE_LIMITS.rideMutation },
       onRequest: [fastify.authenticate],
       schema: { params: rideIdParamSchema, response: { 200: rideSchema } },
     },
@@ -228,6 +232,7 @@ export async function ridesRoutes(fastify: FastifyInstance): Promise<void> {
   app.post(
     '/rides/:rideId/publish',
     {
+      config: { rateLimit: RATE_LIMITS.rideMutation },
       onRequest: [fastify.authenticate],
       schema: { params: rideIdParamSchema, response: { 200: rideSchema } },
     },
@@ -243,6 +248,7 @@ export async function ridesRoutes(fastify: FastifyInstance): Promise<void> {
   app.post(
     '/rides/:rideId/candidate-stops',
     {
+      config: { rateLimit: RATE_LIMITS.routingPreview },
       onRequest: [fastify.authenticate],
       schema: { params: rideIdParamSchema, response: { 200: generateStopsResponseSchema } },
     },
@@ -266,6 +272,7 @@ export async function ridesRoutes(fastify: FastifyInstance): Promise<void> {
   app.get(
     '/rides/:rideId/city-detour-candidates',
     {
+      config: { rateLimit: RATE_LIMITS.routingPreview },
       onRequest: [fastify.authenticate],
       schema: { params: rideIdParamSchema, response: { 200: cityDetourCandidatesResponseSchema } },
     },
@@ -304,6 +311,7 @@ export async function ridesRoutes(fastify: FastifyInstance): Promise<void> {
   app.post(
     '/rides/:rideId/stops/custom',
     {
+      config: { rateLimit: RATE_LIMITS.routingPreview },
       onRequest: [fastify.authenticate],
       schema: {
         params: rideIdParamSchema,
