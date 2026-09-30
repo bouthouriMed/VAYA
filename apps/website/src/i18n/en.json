@@ -97,10 +97,22 @@
     "title": "VAYA finds rides going your way — not just your exact route",
     "body": "Underneath every search is a real routing engine, built on Tunisia's actual road network. VAYA checks whether a driver's route genuinely passes near you — even mid-trip — before ever showing you a match.",
     "tiers": [
-      { "title": "On your exact route", "body": "A driver going from your start to your end." },
-      { "title": "Close enough to walk", "body": "A driver whose route runs near enough to your trip." },
-      { "title": "Passing through", "body": "A driver whose route runs through your corridor, even if their own trip goes further." },
-      { "title": "Closest departure", "body": "Nothing at your exact time? VAYA shows the next best departure on the same corridor." }
+      {
+        "title": "On your exact route",
+        "body": "A driver going from your start to your end."
+      },
+      {
+        "title": "Close enough to walk",
+        "body": "A driver whose route runs near enough to your trip."
+      },
+      {
+        "title": "Passing through",
+        "body": "A driver whose route runs through your corridor, even if their own trip goes further."
+      },
+      {
+        "title": "Closest departure",
+        "body": "Nothing at your exact time? VAYA shows the next best departure on the same corridor."
+      }
     ]
   },
   "trust": {
@@ -149,5 +161,26 @@
   },
   "legal": {
     "backToHome": "Back to VAYA"
+  },
+  "cinema": {
+    "heroBeat1": "Real drivers, already on your road.",
+    "heroBeat2": "Verified profiles, before every trip.",
+    "pinLabel": "Verified pickup point ✓",
+    "coastAlt": "Coastal road through a white-and-blue village at sunset, on the Mediterranean",
+    "waitTitle": "An answer, before the deadline",
+    "waitBody": "Every request has a response deadline. You're notified the moment the driver replies — never left hanging.",
+    "fitTitle": "See the impact before you accept",
+    "fitBody": "Every request shows the exact detour it adds to your route. You decide with the full picture.",
+    "altResults": "VAYA screen: search results with a driver on the route",
+    "altProfile": "VAYA screen: a verified driver profile",
+    "altRide": "VAYA screen: ride detail with price and route",
+    "altWaiting": "VAYA screen: request sent, waiting for a reply",
+    "altRequest": "VAYA screen: request detail on the driver side",
+    "altTrip": "VAYA screen: the driver's itinerary and earnings",
+    "trustIntro": "Three checks. Before the first ride.",
+    "licenceTitle": "Driving documents, checked",
+    "licenceBody": "Every driver's licence is verified with a live capture before they can publish a single ride.",
+    "vehicleTitle": "A registered vehicle",
+    "vehicleBody": "Make, colour and plate are visible before you request — you know exactly which car to look for."
   }
 }

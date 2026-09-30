@@ -1,0 +1,309 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - link "VAYA" [ref=e4] [cursor=pointer]:
+        - /url: "#top"
+      - navigation [ref=e5]:
+        - link "Passagers" [ref=e6] [cursor=pointer]:
+          - /url: "#passengers"
+        - link "Conducteurs" [ref=e7] [cursor=pointer]:
+          - /url: "#drivers"
+        - link "Confiance & sécurité" [ref=e8] [cursor=pointer]:
+          - /url: "#trust"
+      - generic [ref=e9]:
+        - generic [ref=e10]:
+          - link "fr" [ref=e11] [cursor=pointer]:
+            - /url: /fr
+          - link "en" [ref=e12] [cursor=pointer]:
+            - /url: /en
+        - link "Télécharger" [ref=e13] [cursor=pointer]:
+          - /url: "#download"
+  - main [ref=e14]:
+    - generic [ref=e16]:
+      - generic:
+        - generic [ref=e41]: Le covoiturage, structuré pour la Tunisie
+        - heading "Votre trajet de confiance, au quotidien." [level=1]
+        - paragraph: Des conducteurs réels, des profils vérifiés, un prix juste pour chaque trajet.
+        - generic [ref=e52]:
+          - link "Télécharger VAYA" [ref=e53] [cursor=pointer]:
+            - /url: "#final-cta"
+          - generic [ref=e54]: Gratuit sur iOS et Android
+        - generic [ref=e55]:
+          - link "Download on the App Store Télécharger sur l'App Store" [ref=e56] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=e59]:
+              - generic [ref=e60]: Download on the
+              - generic [ref=e61]: App Store
+            - generic [ref=e62]: Télécharger sur l'App Store
+          - link "Get it on Google Play Disponible sur Google Play" [ref=e63] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=e66]:
+              - generic [ref=e67]: Get it on
+              - generic [ref=e68]: Google Play
+            - generic [ref=e69]: Disponible sur Google Play
+      - generic: Faites défiler pour suivre le trajet
+      - generic:
+        - generic:
+          - generic:
+            - generic: 01 — Où allez-vous ?
+            - heading "Dites à VAYA où vous allez" [level=3]
+            - paragraph: Recherchez votre trajet. VAYA cherche des conducteurs réels déjà en route dans votre direction — pas seulement ceux qui partent exactement d'où vous êtes.
+        - generic:
+          - generic:
+            - generic: 02 — Choisissez votre arrêt
+            - heading "Un point de prise en charge réel, vérifié sur la route" [level=3]
+            - paragraph: Jamais un point posé au hasard. VAYA propose un petit ensemble classé d'arrêts réels, sur le trajet effectif du conducteur.
+        - generic:
+          - generic:
+            - generic: 03 — Voyez le prix
+            - heading "Un prix juste, avant de vous engager" [level=3]
+            - paragraph: Chaque trajet affiche une fourchette de prix calculée sur la distance et la durée réelles — jamais une estimation, jamais une négociation.
+        - generic:
+          - generic:
+            - generic: 04 — Demandez
+            - heading "Demandez votre place" [level=3]
+            - paragraph: Un seul geste. Le conducteur est notifié instantanément.
+        - generic:
+          - generic:
+            - generic: 05 — Accepté
+            - heading "Le conducteur accepte" [level=3]
+            - paragraph: Votre place est confirmée — suivez le trajet et échangez avec votre conducteur directement dans l'application.
+        - generic:
+          - generic:
+            - generic: 06 — Place occupée
+            - heading "Le conducteur rentabilise un trajet qu'il faisait déjà" [level=3]
+            - paragraph: Aucun détour, aucun nouveau trajet — juste une place qui serait restée vide, qui couvre maintenant le coût de la route.
+    - generic [ref=e71]:
+      - generic [ref=e72]:
+        - text: Pour les passagers
+        - heading "Un trajet qui va vraiment dans votre direction" [level=2] [ref=e73]
+        - paragraph [ref=e74]: La plupart des applications de covoiturage vous associent au départ et à l'arrivée exacts d'un conducteur. VAYA regarde l'ensemble du trajet — un conducteur qui passe près de vous compte aussi.
+        - list [ref=e75]:
+          - listitem [ref=e76]:
+            - generic [ref=e77]: "1"
+            - generic [ref=e78]:
+              - heading "Une recherche, de vraies options" [level=3] [ref=e79]
+              - paragraph [ref=e80]: Des trajets classés selon leur correspondance avec votre itinéraire et votre horaire — pas seulement le point le plus proche.
+          - listitem [ref=e81]:
+            - generic [ref=e82]: "2"
+            - generic [ref=e83]:
+              - heading "Un point de prise en charge fiable" [level=3] [ref=e84]
+              - paragraph [ref=e85]: Chaque arrêt proposé est vérifié sur la route réelle — aucune prise en charge impossible, aucune approximation.
+          - listitem [ref=e86]:
+            - generic [ref=e87]: "3"
+            - generic [ref=e88]:
+              - heading "Voyez qui conduit, avant de demander" [level=3] [ref=e89]
+              - paragraph [ref=e90]: Note, historique de trajets et statut de vérification sont visibles avant même de vous engager sur une place.
+      - generic [ref=e95]:
+        - paragraph [ref=e99]: Sousse → Tunis
+        - generic [ref=e100]:
+          - generic [ref=e101]: Aujourd'hui, 14:30
+          - generic [ref=e106]: Carte
+        - generic [ref=e110]:
+          - generic [ref=e111]:
+            - generic [ref=e112]: MEILLEURE CORRESPONDANCE
+            - generic [ref=e116]:
+              - generic [ref=e117]:
+                - paragraph [ref=e118]: 14:32
+                - paragraph [ref=e119]: 12,500 DT
+              - generic [ref=e120]: Sur votre trajet
+              - generic [ref=e131]:
+                - generic [ref=e132]:
+                  - paragraph [ref=e133]: Sousse
+                  - generic [ref=e134]: 4 min
+                - paragraph [ref=e135]: Avenue Habib Bourguiba
+                - generic [ref=e136]:
+                  - paragraph [ref=e137]: Tunis
+                  - generic [ref=e138]: 6 min
+                - paragraph [ref=e139]: Bab Saadoun
+              - generic [ref=e144]:
+                - paragraph [ref=e145]: Youssef B.
+                - generic [ref=e146]: "4.9"
+          - generic [ref=e154]:
+            - generic [ref=e155]:
+              - paragraph [ref=e156]: 14:50
+              - paragraph [ref=e157]: 11,000 DT
+            - generic [ref=e163]:
+              - generic [ref=e164]:
+                - paragraph [ref=e165]: Sousse
+                - generic [ref=e166]: 4 min
+              - paragraph [ref=e167]: Sahloul
+              - generic [ref=e168]:
+                - paragraph [ref=e169]: Tunis
+                - generic [ref=e170]: 6 min
+              - paragraph [ref=e171]: Centre Ville
+            - generic [ref=e176]:
+              - paragraph [ref=e177]: Amira K.
+              - generic [ref=e178]: "4.8"
+          - generic [ref=e185]:
+            - generic [ref=e186]:
+              - paragraph [ref=e187]: 15:10
+              - paragraph [ref=e188]: 13,000 DT
+            - generic [ref=e194]:
+              - generic [ref=e195]:
+                - paragraph [ref=e196]: Sousse
+                - generic [ref=e197]: 4 min
+              - paragraph [ref=e198]: Khzema
+              - generic [ref=e199]:
+                - paragraph [ref=e200]: Tunis
+                - generic [ref=e201]: 6 min
+              - paragraph [ref=e202]: Lac 2
+            - generic [ref=e207]:
+              - paragraph [ref=e208]: Firas M.
+              - generic [ref=e209]: "5.0"
+    - generic [ref=e218]:
+      - generic [ref=e223]:
+        - paragraph [ref=e227]: Prix suggéré
+        - generic [ref=e228]:
+          - paragraph [ref=e229]: PRIX SUGGÉRÉ
+          - generic [ref=e230]:
+            - paragraph [ref=e231]: Contribution par place
+            - generic [ref=e232]:
+              - generic [ref=e233]: −
+              - paragraph [ref=e236]: 12,500 DT
+              - generic [ref=e237]: +
+            - generic [ref=e243]:
+              - generic [ref=e244]: 10,200 DT
+              - generic [ref=e245]: "Suggéré : 12,500 DT"
+              - generic [ref=e246]: 14,800 DT
+          - paragraph [ref=e247]: Ce montant est calculé pour ce trajet — vous pouvez l'ajuster dans la marge proposée.
+        - generic [ref=e248]: Continuer
+      - generic [ref=e250]:
+        - text: Pour les conducteurs
+        - heading "Rentabilisez vos places vides" [level=2] [ref=e251]
+        - paragraph [ref=e252]: Vous faites déjà le trajet. VAYA remplit les places qui resteraient vides — avec de vraies personnes qui vont dans votre direction, associées à votre itinéraire réel.
+        - list [ref=e253]:
+          - listitem [ref=e254]:
+            - generic [ref=e255]: "1"
+            - generic [ref=e256]:
+              - heading "Publiez votre trajet en quelques minutes" [level=3] [ref=e257]
+              - paragraph [ref=e258]: VAYA cartographie votre trajet sur les routes réelles et propose des arrêts vérifiés sur le chemin.
+          - listitem [ref=e259]:
+            - generic [ref=e260]: "2"
+            - generic [ref=e261]:
+              - heading "Un prix juste à fixer" [level=3] [ref=e262]
+              - paragraph [ref=e263]: Une fourchette de prix calculée sur la distance et la durée réelles — vous choisissez dans cette fourchette, jamais au hasard.
+          - listitem [ref=e264]:
+            - generic [ref=e265]: "3"
+            - generic [ref=e266]:
+              - heading "Des passagers qui connaissent les règles" [level=3] [ref=e267]
+              - paragraph [ref=e268]: Points de prise en charge clairs, prix visible, et un système de notation qui récompense la fiabilité des deux côtés.
+    - generic [ref=e270]:
+      - generic [ref=e271]:
+        - text: Le moteur de correspondance
+        - heading "VAYA trouve des trajets dans votre direction — pas seulement votre itinéraire exact" [level=2] [ref=e272]
+        - paragraph [ref=e273]: Derrière chaque recherche se trouve un vrai moteur de routage, construit sur le réseau routier réel de la Tunisie. VAYA vérifie si le trajet d'un conducteur passe réellement près de vous — même en cours de route — avant de vous montrer une correspondance.
+      - generic [ref=e276]:
+        - generic [ref=e280]:
+          - generic [ref=e281]: Tier 1
+          - heading "Sur votre itinéraire exact" [level=3] [ref=e282]
+          - paragraph [ref=e283]: Un conducteur qui va de votre départ à votre arrivée.
+        - generic [ref=e287]:
+          - generic [ref=e288]: Tier 2
+          - heading "Assez proche pour marcher" [level=3] [ref=e289]
+          - paragraph [ref=e290]: Un conducteur dont le trajet passe assez près du vôtre.
+        - generic [ref=e294]:
+          - generic [ref=e295]: Tier 3
+          - heading "Sur le passage" [level=3] [ref=e296]
+          - paragraph [ref=e297]: Un conducteur dont le trajet traverse votre corridor, même si sa destination va plus loin.
+        - generic [ref=e301]:
+          - generic [ref=e302]: Tier 4
+          - heading "Le prochain départ" [level=3] [ref=e303]
+          - paragraph [ref=e304]: Rien à l'heure exacte ? VAYA affiche le prochain meilleur départ sur le même corridor.
+    - generic [ref=e306]:
+      - generic [ref=e307]:
+        - text: Confiance & sécurité
+        - heading "Sachez avec qui vous voyagez, avant de réserver" [level=2] [ref=e308]
+        - paragraph [ref=e309]: La confiance doit être visible avant l'engagement, pas découverte après coup.
+        - generic [ref=e310]:
+          - generic [ref=e317]:
+            - generic [ref=e318]:
+              - paragraph [ref=e319]: Mehdi
+              - generic [ref=e320]: Vérifié
+            - paragraph [ref=e321]: Parle arabe, français
+          - generic [ref=e322]:
+            - generic [ref=e323]:
+              - generic [ref=e324]: "4.9"
+              - paragraph [ref=e328]: Note
+            - generic [ref=e329]:
+              - text: "214"
+              - paragraph [ref=e330]: Trajets
+          - generic [ref=e331]:
+            - generic [ref=e332]: Fiable
+            - generic [ref=e333]: Top VAYA
+          - generic [ref=e334]: Identité confirmée par selfie
+      - generic [ref=e338]:
+        - generic [ref=e344]:
+          - heading "Vérification par caméra en direct" [level=3] [ref=e345]
+          - paragraph [ref=e346]: Chaque conducteur vérifie son identité par une prise de vue en direct — jamais une photo importée depuis la galerie.
+        - generic [ref=e351]:
+          - heading "Des notes visibles en premier" [level=3] [ref=e352]
+          - paragraph [ref=e353]: Fiabilité, ponctualité et historique de trajets sont affichés avant la demande de place, pas après.
+        - generic [ref=e358]:
+          - heading "Une politique qui protège les deux parties" [level=3] [ref=e359]
+          - paragraph [ref=e360]: Des règles claires d'annulation et d'absence, appliquées de la même façon aux passagers et aux conducteurs.
+    - generic [ref=e362]:
+      - text: Dans l'application
+      - heading "Voici la véritable application VAYA" [level=2] [ref=e363]
+      - paragraph [ref=e364]: Aucune maquette en guise de produit — voici à quoi ressemble la réservation d'un vrai trajet.
+      - generic [ref=e365]:
+        - generic [ref=e382]:
+          - generic [ref=e383]: Trajet confirmé
+          - paragraph [ref=e384]: Karim est en route
+          - paragraph [ref=e385]: Arrivée dans 4 min · Avenue Habib Bourguiba, arrêt 2
+          - generic [ref=e386]:
+            - generic [ref=e387]: Message
+            - generic [ref=e388]: Appeler
+        - generic [ref=e393]:
+          - paragraph [ref=e395]: Karim T.
+          - paragraph [ref=e396]: ★ 4.95 · 412 trajets
+          - generic [ref=e397]: Conducteur Top VAYA
+    - generic [ref=e399]:
+      - heading "Votre prochain trajet est déjà sur la route." [level=2] [ref=e410]
+      - paragraph [ref=e411]: Téléchargez VAYA et découvrez qui va dans votre direction.
+      - generic [ref=e413]:
+        - link "Download on the App Store Télécharger sur l'App Store" [ref=e414] [cursor=pointer]:
+          - /url: "#"
+          - generic [ref=e417]:
+            - generic [ref=e418]: Download on the
+            - generic [ref=e419]: App Store
+          - generic [ref=e420]: Télécharger sur l'App Store
+        - link "Get it on Google Play Disponible sur Google Play" [ref=e421] [cursor=pointer]:
+          - /url: "#"
+          - generic [ref=e424]:
+            - generic [ref=e425]: Get it on
+            - generic [ref=e426]: Google Play
+          - generic [ref=e427]: Disponible sur Google Play
+  - contentinfo [ref=e428]:
+    - generic [ref=e429]:
+      - generic [ref=e430]:
+        - text: VAYA
+        - paragraph [ref=e431]: Le covoiturage structuré pour la Tunisie.
+        - generic [ref=e433]:
+          - link "fr" [ref=e434] [cursor=pointer]:
+            - /url: /fr
+          - link "en" [ref=e435] [cursor=pointer]:
+            - /url: /en
+      - generic [ref=e436]:
+        - generic [ref=e437]:
+          - heading "Produit" [level=3] [ref=e438]
+          - list [ref=e439]:
+            - listitem [ref=e440]:
+              - link "Passagers" [ref=e441] [cursor=pointer]:
+                - /url: "#passengers"
+            - listitem [ref=e442]:
+              - link "Conducteurs" [ref=e443] [cursor=pointer]:
+                - /url: "#drivers"
+            - listitem [ref=e444]:
+              - link "Confiance & sécurité" [ref=e445] [cursor=pointer]:
+                - /url: "#trust"
+        - generic [ref=e446]:
+          - heading "Mentions légales" [level=3] [ref=e447]
+          - list [ref=e448]:
+            - listitem [ref=e449]:
+              - link "Conditions" [ref=e450] [cursor=pointer]:
+                - /url: /fr/legal/terms
+            - listitem [ref=e451]:
+              - link "Confidentialité" [ref=e452] [cursor=pointer]:
+                - /url: /fr/legal/privacy
+    - generic [ref=e453]: © 2026 VAYA. Tous droits réservés.

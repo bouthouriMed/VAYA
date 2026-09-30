@@ -97,10 +97,22 @@
     "title": "VAYA trouve des trajets dans votre direction — pas seulement votre itinéraire exact",
     "body": "Derrière chaque recherche se trouve un vrai moteur de routage, construit sur le réseau routier réel de la Tunisie. VAYA vérifie si le trajet d'un conducteur passe réellement près de vous — même en cours de route — avant de vous montrer une correspondance.",
     "tiers": [
-      { "title": "Sur votre itinéraire exact", "body": "Un conducteur qui va de votre départ à votre arrivée." },
-      { "title": "Assez proche pour marcher", "body": "Un conducteur dont le trajet passe assez près du vôtre." },
-      { "title": "Sur le passage", "body": "Un conducteur dont le trajet traverse votre corridor, même si sa destination va plus loin." },
-      { "title": "Le prochain départ", "body": "Rien à l'heure exacte ? VAYA affiche le prochain meilleur départ sur le même corridor." }
+      {
+        "title": "Sur votre itinéraire exact",
+        "body": "Un conducteur qui va de votre départ à votre arrivée."
+      },
+      {
+        "title": "Assez proche pour marcher",
+        "body": "Un conducteur dont le trajet passe assez près du vôtre."
+      },
+      {
+        "title": "Sur le passage",
+        "body": "Un conducteur dont le trajet traverse votre corridor, même si sa destination va plus loin."
+      },
+      {
+        "title": "Le prochain départ",
+        "body": "Rien à l'heure exacte ? VAYA affiche le prochain meilleur départ sur le même corridor."
+      }
     ]
   },
   "trust": {
@@ -149,5 +161,26 @@
   },
   "legal": {
     "backToHome": "Retour à VAYA"
+  },
+  "cinema": {
+    "heroBeat1": "Des conducteurs réels, déjà sur votre route.",
+    "heroBeat2": "Des profils vérifiés, avant chaque trajet.",
+    "pinLabel": "Point de prise en charge ✓",
+    "coastAlt": "Route côtière d'un village blanc et bleu au coucher du soleil, au bord de la Méditerranée",
+    "waitTitle": "Une réponse, avant l'échéance",
+    "waitBody": "Chaque demande a une heure limite. Vous êtes notifié dès que le conducteur répond — jamais laissé dans l'attente.",
+    "fitTitle": "Voyez l'impact avant d'accepter",
+    "fitBody": "Chaque demande indique le détour exact qu'elle ajoute à votre trajet. Vous décidez en connaissance de cause.",
+    "altResults": "Écran VAYA : résultats de recherche avec un conducteur sur le trajet",
+    "altProfile": "Écran VAYA : profil vérifié d'un conducteur",
+    "altRide": "Écran VAYA : détail d'un trajet avec prix et itinéraire",
+    "altWaiting": "Écran VAYA : demande envoyée, en attente de réponse",
+    "altRequest": "Écran VAYA : détail d'une demande côté conducteur",
+    "altTrip": "Écran VAYA : itinéraire et gains du conducteur",
+    "trustIntro": "Trois vérifications. Avant le premier trajet.",
+    "licenceTitle": "Des documents de conduite contrôlés",
+    "licenceBody": "Le permis de chaque conducteur est vérifié par une prise de vue en direct, avant qu'il puisse publier un trajet.",
+    "vehicleTitle": "Un véhicule enregistré",
+    "vehicleBody": "Marque, couleur et plaque sont visibles avant votre demande — vous savez quelle voiture attendre."
   }
 }
