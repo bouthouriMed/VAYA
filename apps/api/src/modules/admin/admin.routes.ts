@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
@@ -33,7 +34,7 @@ import {
 } from './admin-verification.service.js';
 import { listReportsForAdmin, updateReportForAdmin } from './admin-reports.service.js';
 import { getCorridorDemand, getOverviewMetrics, getSearchFunnel } from './admin-analytics.service.js';
-import { listAuditLogs } from './audit-log.service.js';
+import { listAuditLogs, logAdminAction } from './audit-log.service.js';
 import {
   getActiveOperationalConfig,
   updateOperationalConfig,
@@ -52,6 +53,12 @@ const anyResponse = z.any();
 
 function getAdminId(request: { user: { sub: string } }): string {
   return request.user.sub;
+}
+
+/** Deterministic UUID-shaped value (8-4-4-4-12 hex) derived from a string. */
+function uuidFromString(value: string): string {
+  const hex = createHash('sha256').update(value).digest('hex');
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20, 32)}`;
 }
 
 export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
@@ -121,6 +128,15 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
   // driver profile id (unlike every other /verifications/:id route above).
   app.get('/verifications/documents/:id/file', { ...adminAuth, schema: { params: idParamSchema } }, async (request, reply) => {
     const file = await getVerificationDocumentFile(db, request.params.id);
+    // Reading a driver's ID/licence/selfie is a privileged access to
+    // sensitive personal (incl. biometric) data — recorded, per
+    // CLAUDE.md's "no important admin action should happen invisibly".
+    await logAdminAction(db, {
+      adminUserId: getAdminId(request),
+      action: 'kyc_document_viewed',
+      targetType: 'verification_document',
+      targetId: request.params.id,
+    });
     reply.type(file.contentType).send(file.buffer);
   });
 
@@ -192,6 +208,16 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
     { ...adminAuth, schema: { params: z.object({ id: z.string() }), response: { 200: anyResponse } } },
     async (request, reply) => {
       await retryFailedJob(request.params.id);
+      await logAdminAction(db, {
+        adminUserId: getAdminId(request),
+        action: 'queue_job_retried',
+        targetType: 'queue_job',
+        // audit_logs.target_id is a uuid column and BullMQ job ids are not
+        // uuids — a stable uuid derived from the job id keeps repeat retries of
+        // one job grouped, and the raw id is kept in `reason`.
+        targetId: uuidFromString(`queue_job:${request.params.id}`),
+        reason: `BullMQ job ${request.params.id}`,
+      });
       reply.send({ success: true });
     },
   );

@@ -5,6 +5,7 @@ import { matchingSearchSchema, notifyMeSchema } from '@vaya/validation';
 import { getDatabase } from '../../lib/database.js';
 import { getUserId } from '../../lib/auth-context.js';
 import { createDemandSignal, searchRides } from './matching.service.js';
+import { RATE_LIMITS } from '../../lib/rate-limit.js';
 
 const rankedStopSchema = z.object({
   stopId: z.string().uuid(),
@@ -87,6 +88,7 @@ export async function matchingRoutes(fastify: FastifyInstance): Promise<void> {
   app.get(
     '/matching/search',
     {
+      config: { rateLimit: RATE_LIMITS.matchingSearch },
       schema: {
         querystring: matchingSearchSchema,
         response: { 200: searchResultSchema },

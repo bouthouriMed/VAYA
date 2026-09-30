@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { test, expect, type APIRequestContext } from '@playwright/test';
 
 /**
@@ -35,7 +36,10 @@ async function registerAndLogin(request: APIRequestContext, fullName: string): P
   const otpRes = await request.post(`${API_PREFIX}/auth/otp/request`, { data: { phone } });
   expect(otpRes.ok()).toBeTruthy();
   const { devCode } = (await otpRes.json()) as { devCode?: string };
-  expect(devCode).toBeTruthy(); // dev-mode convenience surfaced by auth.routes.ts
+  expect(
+    devCode,
+    "The API returned no devCode — start it with EXPOSE_DEV_OTP=true (NODE_ENV=development, no Twilio credentials); see apps/api/.env.example",
+  ).toBeTruthy(); // dev-mode convenience surfaced by auth.routes.ts
 
   const verifyRes = await request.post(`${API_PREFIX}/auth/otp/verify`, {
     data: { phone, code: devCode },
@@ -86,7 +90,7 @@ test.describe('Search → match → stop-select → book (real ride engine)', ()
           plateNumber: `E2E-${Date.now() % 100000}`,
           seatCount: 4,
         },
-        documents: [{ type: 'license', fileUrl: 'https://example.com/license.jpg' }],
+        documents: [{ type: 'license', fileUrl: `/secure-uploads/${randomUUID()}.jpg` }],
       },
     });
     expect(onboardingRes.ok()).toBeTruthy();

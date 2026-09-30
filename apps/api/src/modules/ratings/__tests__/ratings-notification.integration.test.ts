@@ -8,6 +8,7 @@ import {
   rides,
   riderProfiles,
   notifications,
+  trips,
 } from '../../../db/schema/index.js';
 import { createBooking, acceptBooking } from '../../bookings/bookings.service.js';
 import { completeTrip, getTripByBookingId } from '../../trips/trips.service.js';
@@ -103,6 +104,8 @@ describe('ratings.service -> notifications dispatch (rating_received)', () => {
     });
     await acceptBooking(db, booking.id, driverUserId);
     const trip = await getTripByBookingId(db, booking.id, riderId);
+    // Journey underway (VAYA-SEC-004: a not-yet-started trip can't be completed).
+    await db.update(trips).set({ status: 'active' }).where(eq(trips.id, trip.id));
     await completeTrip(db, trip.id, riderId);
 
     await createRating(db, trip.id, riderId, {

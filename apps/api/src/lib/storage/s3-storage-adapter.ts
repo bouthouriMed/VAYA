@@ -91,6 +91,10 @@ export class S3StorageAdapter implements StorageAdapter {
     this.client = new S3Client(config);
   }
 
+  toPublicUrl(objectName: string): string {
+    return this.publicUrlFor(`public/${objectName}`);
+  }
+
   private publicUrlFor(key: string): string {
     if (this.publicUrlBase) {
       return `${this.publicUrlBase.replace(/\/$/, '')}/${key}`;

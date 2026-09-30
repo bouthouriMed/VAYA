@@ -18,7 +18,8 @@ import {
   deleteUser,
 } from './users.service.js';
 import { requestOtp } from '../auth/auth.service.js';
-import { getEnv } from '../../config/env.js';
+import { getEnv, shouldExposeDevOtp } from '../../config/env.js';
+import { RATE_LIMITS, keyedRateLimit } from '../../lib/rate-limit.js';
 // Phase 7 (docs/roadmap/phase-07-notifications.md): device-token storage is
 // notification-domain data (device_tokens table), so the write logic lives
 // in the notifications module; this endpoint is exposed under /users/me per
@@ -113,12 +114,32 @@ export async function usersRoutes(fastify: FastifyInstance): Promise<void> {
     },
   );
 
+  // Same two-layer limiting as /auth/otp/* (see auth.routes.ts for why the
+  // per-phone counter has to be a preHandler): this flow sends a real SMS to
+  // an arbitrary caller-chosen number and accepts a guessable 6-digit code,
+  // so it is the same SMS-pumping and brute-force surface.
+  const attachOtpRequestPhoneLimit = keyedRateLimit(fastify, {
+    namespace: 'attach-otp-request-phone',
+    ...RATE_LIMITS.otpRequestPerPhone,
+    key: (request) => (request.body as { phone?: string } | undefined)?.phone,
+  });
+  const attachOtpRequestIpHourlyLimit = keyedRateLimit(fastify, {
+    namespace: 'attach-otp-request-ip-hourly',
+    ...RATE_LIMITS.otpRequestPerIpHourly,
+    key: () => undefined,
+  });
+  const attachOtpVerifyPhoneLimit = keyedRateLimit(fastify, {
+    namespace: 'attach-otp-verify-phone',
+    ...RATE_LIMITS.otpVerifyPerPhone,
+    key: (request) => (request.body as { phone?: string } | undefined)?.phone,
+  });
+
   app.post(
     '/users/me/phone/request-otp',
     {
       onRequest: [fastify.authenticate],
-      // Same cost/abuse posture as /auth/otp/request (sends a real SMS).
-      config: { rateLimit: { max: 5, timeWindow: '1 minute' } },
+      config: { rateLimit: RATE_LIMITS.otpRequestPerIp },
+      preHandler: [attachOtpRequestIpHourlyLimit, attachOtpRequestPhoneLimit],
       schema: {
         body: requestOtpSchema,
         response: { 200: z.object({ sent: z.boolean(), devCode: z.string().optional() }) },
@@ -126,7 +147,7 @@ export async function usersRoutes(fastify: FastifyInstance): Promise<void> {
     },
     async (request, reply) => {
       const { code } = await requestOtp(db, request.body.phone);
-      const devCode = getEnv().NODE_ENV === 'development' ? code : undefined;
+      const devCode = shouldExposeDevOtp(getEnv()) ? code : undefined;
       reply.send({ sent: true, devCode });
     },
   );
@@ -135,6 +156,8 @@ export async function usersRoutes(fastify: FastifyInstance): Promise<void> {
     '/users/me/phone/verify',
     {
       onRequest: [fastify.authenticate],
+      config: { rateLimit: RATE_LIMITS.otpVerifyPerIp },
+      preHandler: [attachOtpVerifyPhoneLimit],
       schema: { body: verifyOtpSchema, response: { 200: meResponseSchema } },
     },
     async (request, reply) => {

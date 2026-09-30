@@ -10,8 +10,16 @@ import type {
 } from '@vaya/validation';
 import { notifyBestEffort } from '../notifications/notifications.service.js';
 import { getStorage } from '../../lib/storage/index.js';
+import { resolvePublicFileReference, resolveSecureFileReference } from '../../lib/storage/file-refs.js';
 
 type Database = ReturnType<typeof getDatabase>;
+
+/** A vehicle photo is optional; when present it must be a real reference to a
+ *  public upload (VAYA-SEC-009), never a client-supplied URL stored verbatim. */
+function canonicalVehiclePhoto(photoFileUrl: string | undefined): string | undefined {
+  if (photoFileUrl === undefined) return undefined;
+  return resolvePublicFileReference(photoFileUrl, (name) => getStorage().toPublicUrl(name));
+}
 
 /**
  * Admin verification workflow (docs/domain/verification-workflow.md):
@@ -28,6 +36,15 @@ export async function createOnboarding(
   userId: string,
   input: CreateDriverOnboardingInput,
 ) {
+  // File references are validated/canonicalised BEFORE the first insert
+  // (this function isn't transactional — a bad reference discovered after the
+  // profile row exists would leave an orphaned half-onboarded driver).
+  const vehiclePhotoUrl = canonicalVehiclePhoto(input.vehicle.photoFileUrl);
+  const documentRefs = input.documents.map((doc) => ({
+    type: doc.type,
+    fileUrl: resolveSecureFileReference(doc.fileUrl),
+  }));
+
   const existing = await db.query.driverProfiles.findFirst({
     where: eq(driverProfiles.userId, userId),
   });
@@ -53,13 +70,13 @@ export async function createOnboarding(
       color: input.vehicle.color,
       plateNumber: input.vehicle.plateNumber,
       seatCount: input.vehicle.seatCount,
-      photoUrl: input.vehicle.photoFileUrl,
+      photoUrl: vehiclePhotoUrl,
     })
     .returning();
   if (!vehicle) throw new Error('Failed to create vehicle');
 
   await db.insert(verificationDocuments).values(
-    input.documents.map((doc) => ({
+    documentRefs.map((doc) => ({
       driverProfileId: profile.id,
       type: doc.type,
       fileUrl: doc.fileUrl,
@@ -97,9 +114,16 @@ export async function resubmitVerification(
     );
   }
 
+  // Validate every reference first: the delete below is destructive, and a
+  // rejected reference must not leave the driver with no documents at all.
+  const documentRefs = input.documents.map((doc) => ({
+    type: doc.type,
+    fileUrl: resolveSecureFileReference(doc.fileUrl),
+  }));
+
   await db.delete(verificationDocuments).where(eq(verificationDocuments.driverProfileId, profile.id));
   await db.insert(verificationDocuments).values(
-    input.documents.map((doc) => ({
+    documentRefs.map((doc) => ({
       driverProfileId: profile.id,
       type: doc.type,
       fileUrl: doc.fileUrl,
@@ -176,7 +200,7 @@ export async function updateVehicle(db: Database, userId: string, input: UpdateV
       ...(input.color !== undefined ? { color: input.color } : {}),
       ...(input.plateNumber !== undefined ? { plateNumber: input.plateNumber } : {}),
       ...(input.seatCount !== undefined ? { seatCount: input.seatCount } : {}),
-      ...(input.photoFileUrl !== undefined ? { photoUrl: input.photoFileUrl } : {}),
+      ...(input.photoFileUrl !== undefined ? { photoUrl: canonicalVehiclePhoto(input.photoFileUrl) } : {}),
       updatedAt: new Date(),
     })
     .where(eq(vehicles.id, vehicle.id))

@@ -4,6 +4,8 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { getStorage } from '../../lib/storage/index.js';
 import { ValidationError } from '../../lib/errors.js';
+import { isRecognisedUploadContent } from '../../lib/storage/file-sniff.js';
+import { RATE_LIMITS } from '../../lib/rate-limit.js';
 
 const MAX_FILE_BYTES = 8 * 1024 * 1024; // 8MB — plenty for a vehicle photo or ID scan
 
@@ -30,6 +32,15 @@ function assertAllowedUpload(filename: string, mimetype: string): void {
   }
 }
 
+/** Magic-byte check on the relayed bytes (VAYA-SEC-010): the declared MIME type
+ *  and extension are client-controlled, so an HTML/SVG/script payload could
+ *  otherwise be stored under an image name and served from /uploads/. */
+function assertRecognisedContent(buffer: Buffer): void {
+  if (!isRecognisedUploadContent(buffer)) {
+    throw new ValidationError('Unsupported file content — only JPEG/PNG/WEBP/HEIC/PDF files are accepted');
+  }
+}
+
 const presignRequestSchema = z.object({ filename: z.string(), contentType: z.string() });
 const presignResponseSchema = z.discriminatedUnion('mode', [
   z.object({ mode: z.literal('presigned'), uploadUrl: z.string(), finalUrl: z.string() }),
@@ -47,6 +58,7 @@ export async function uploadsRoutes(fastify: FastifyInstance): Promise<void> {
   app.post(
     '/uploads',
     {
+      config: { rateLimit: RATE_LIMITS.uploadCreate },
       onRequest: [fastify.authenticate],
       schema: { response: { 200: z.object({ url: z.string() }) } },
     },
@@ -56,6 +68,7 @@ export async function uploadsRoutes(fastify: FastifyInstance): Promise<void> {
       assertAllowedUpload(file.filename, file.mimetype);
 
       const buffer = await file.toBuffer();
+      assertRecognisedContent(buffer);
       const relativeUrl = await storage.save({
         buffer,
         filename: file.filename,
@@ -89,6 +102,7 @@ export async function uploadsRoutes(fastify: FastifyInstance): Promise<void> {
   app.post(
     '/uploads/secure',
     {
+      config: { rateLimit: RATE_LIMITS.uploadCreate },
       onRequest: [fastify.authenticate],
       schema: { response: { 200: z.object({ url: z.string() }) } },
     },
@@ -98,6 +112,7 @@ export async function uploadsRoutes(fastify: FastifyInstance): Promise<void> {
       assertAllowedUpload(file.filename, file.mimetype);
 
       const buffer = await file.toBuffer();
+      assertRecognisedContent(buffer);
       const relativeUrl = await storage.saveSecure({
         buffer,
         filename: file.filename,
@@ -121,6 +136,7 @@ export async function uploadsRoutes(fastify: FastifyInstance): Promise<void> {
   app.post(
     '/uploads/presign',
     {
+      config: { rateLimit: RATE_LIMITS.uploadCreate },
       onRequest: [fastify.authenticate],
       schema: { body: presignRequestSchema, response: { 200: presignResponseSchema } },
     },
@@ -139,6 +155,7 @@ export async function uploadsRoutes(fastify: FastifyInstance): Promise<void> {
   app.post(
     '/uploads/secure/presign',
     {
+      config: { rateLimit: RATE_LIMITS.uploadCreate },
       onRequest: [fastify.authenticate],
       schema: { body: presignRequestSchema, response: { 200: presignResponseSchema } },
     },

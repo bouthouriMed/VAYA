@@ -1,4 +1,4 @@
-﻿import { pgEnum, pgTable, text, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
+﻿import { index, integer, pgEnum, pgTable, text, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
 
 export const localeEnum = pgEnum('locale', ['fr', 'ar', 'en']);
 export const authProviderEnum = pgEnum('auth_provider', ['phone', 'google']);
@@ -36,14 +36,26 @@ export const users = pgTable('users', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
-export const otpCodes = pgTable('otp_codes', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  phone: varchar('phone', { length: 20 }).notNull(),
-  code: varchar('code', { length: 6 }).notNull(),
-  expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
-  consumedAt: timestamp('consumed_at', { withTimezone: true }),
-  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-});
+// One-time login/phone-verification codes. Security-sprint 2026-09-21
+// (docs/security/security-audit.md VAYA-SEC-002): the code is stored only as
+// an HMAC (auth.service.ts's hashOtpCode) — a database read must not yield
+// live login codes — and `attempts` counts wrong guesses against this
+// specific code so a 6-digit space can't be brute-forced within its TTL.
+export const otpCodes = pgTable(
+  'otp_codes',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    phone: varchar('phone', { length: 20 }).notNull(),
+    codeHash: varchar('code_hash', { length: 64 }).notNull(),
+    attempts: integer('attempts').notNull().default(0),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    consumedAt: timestamp('consumed_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    phoneCreatedIdx: index('otp_codes_phone_created_idx').on(table.phone, table.createdAt),
+  }),
+);
 
 // Single-use handoff between the browser-mediated Google OAuth callback
 // (which can only respond via an HTTP redirect, not a JSON response) and the
