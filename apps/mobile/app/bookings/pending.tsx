@@ -23,7 +23,7 @@ export default function PendingScreen(): React.JSX.Element {
     destinationLat?: string;
     destinationLng?: string;
   }>();
-  const { colors: theme } = useAppTheme();
+  const { colors: theme, scheme } = useAppTheme();
   const driverName = params.driverName ?? t('common:terms.driver');
   const firstName = driverName.split(' ')[0]!;
   const [cancelling, setCancelling] = useState(false);
@@ -69,6 +69,7 @@ export default function PendingScreen(): React.JSX.Element {
             height={200}
             origin={{ latitude: Number(params.pickupLat), longitude: Number(params.pickupLng) }}
             destination={{ latitude: Number(params.destinationLat), longitude: Number(params.destinationLng) }}
+            isDark={scheme === 'dark'}
           />
         ) : (
           <View style={[styles.mapFallback, { backgroundColor: theme.surfaceMuted }]} />

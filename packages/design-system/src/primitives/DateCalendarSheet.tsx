@@ -187,7 +187,12 @@ export function DateCalendarSheet({
     <BottomSheet
       visible={visible}
       onClose={onClose}
-      heightRatio={0.68}
+      // Was 0.68 — comfortably more than header + quick-day chips + month
+      // nav + weekday row + a real (5 or 6 row) grid + footer actually
+      // need, which showed up as dead space above the footer's own
+      // auto-margin (the exact same class of gap TimeWheelSheet had, just
+      // less extreme since nothing here was ever conditionally hidden).
+      heightRatio={0.62}
       theme={theme}
       contentGesture={monthSwipeGesture}
       bottomInset={bottomInset}

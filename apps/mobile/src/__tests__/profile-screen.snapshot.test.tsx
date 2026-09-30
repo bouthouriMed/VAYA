@@ -178,6 +178,10 @@ function mockApi({
       () => ({ unwrap: async () => ({ url: 'https://example.com/f.jpg' }) }),
       { isLoading: false },
     ],
+    usePresignUploadMutation: () => [
+      () => ({ unwrap: async () => ({ mode: 'relay' }) }),
+      { isLoading: false },
+    ],
     useRequestPhoneOtpMutation: () => [vi.fn(), { isLoading: false }],
     useVerifyPhoneOtpMutation: () => [vi.fn(), { isLoading: false }],
   }));

@@ -47,3 +47,4 @@ export { DriverListCard } from './DriverListCard';
 export type { DriverListCardData } from './DriverListCard';
 export { RouteOptionCard } from './RouteOptionCard';
 export type { RouteOptionCardData, RouteOptionKind } from './RouteOptionCard';
+export { NotificationBell } from './NotificationBell';

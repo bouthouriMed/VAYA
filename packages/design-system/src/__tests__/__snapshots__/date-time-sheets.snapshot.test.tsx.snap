@@ -67,12 +67,12 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
               "shadowColor": "#14201B",
             },
             {
-              "height": 573.9200000000001,
+              "height": 523.28,
             },
             {
               "transform": [
                 {
-                  "translateY": 573.9200000000001,
+                  "translateY": 523.28,
                 },
               ],
             },
@@ -284,96 +284,6 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              accessibilityLabel="ven. 18"
-              accessibilityRole="button"
-              accessibilityState={
-                {
-                  "selected": false,
-                }
-              }
-              onPress={[Function]}
-              style={
-                [
-                  {
-                    "alignItems": "center",
-                    "alignSelf": "flex-start",
-                    "borderRadius": 9999,
-                    "flexDirection": "row",
-                    "gap": 4,
-                    "paddingHorizontal": 12,
-                    "paddingVertical": 4,
-                  },
-                  {
-                    "backgroundColor": "#FFFFFF",
-                    "borderColor": "#E4EDFB",
-                    "borderWidth": 1,
-                  },
-                  undefined,
-                ]
-              }
-            >
-              <Text
-                style={
-                  [
-                    {
-                      "fontSize": 12,
-                      "fontWeight": "600",
-                    },
-                    {
-                      "color": "#5B6572",
-                    },
-                  ]
-                }
-              >
-                ven. 18
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              accessibilityLabel="sam. 19"
-              accessibilityRole="button"
-              accessibilityState={
-                {
-                  "selected": false,
-                }
-              }
-              onPress={[Function]}
-              style={
-                [
-                  {
-                    "alignItems": "center",
-                    "alignSelf": "flex-start",
-                    "borderRadius": 9999,
-                    "flexDirection": "row",
-                    "gap": 4,
-                    "paddingHorizontal": 12,
-                    "paddingVertical": 4,
-                  },
-                  {
-                    "backgroundColor": "#FFFFFF",
-                    "borderColor": "#E4EDFB",
-                    "borderWidth": 1,
-                  },
-                  undefined,
-                ]
-              }
-            >
-              <Text
-                style={
-                  [
-                    {
-                      "fontSize": 12,
-                      "fontWeight": "600",
-                    },
-                    {
-                      "color": "#5B6572",
-                    },
-                  ]
-                }
-              >
-                sam. 19
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
               accessibilityLabel="dim. 20"
               accessibilityRole="button"
               accessibilityState={
@@ -461,6 +371,96 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                 }
               >
                 lun. 21
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              accessibilityLabel="mar. 22"
+              accessibilityRole="button"
+              accessibilityState={
+                {
+                  "selected": false,
+                }
+              }
+              onPress={[Function]}
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "alignSelf": "flex-start",
+                    "borderRadius": 9999,
+                    "flexDirection": "row",
+                    "gap": 4,
+                    "paddingHorizontal": 12,
+                    "paddingVertical": 4,
+                  },
+                  {
+                    "backgroundColor": "#FFFFFF",
+                    "borderColor": "#E4EDFB",
+                    "borderWidth": 1,
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 12,
+                      "fontWeight": "600",
+                    },
+                    {
+                      "color": "#5B6572",
+                    },
+                  ]
+                }
+              >
+                mar. 22
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              accessibilityLabel="mer. 23"
+              accessibilityRole="button"
+              accessibilityState={
+                {
+                  "selected": false,
+                }
+              }
+              onPress={[Function]}
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "alignSelf": "flex-start",
+                    "borderRadius": 9999,
+                    "flexDirection": "row",
+                    "gap": 4,
+                    "paddingHorizontal": 12,
+                    "paddingVertical": 4,
+                  },
+                  {
+                    "backgroundColor": "#FFFFFF",
+                    "borderColor": "#E4EDFB",
+                    "borderWidth": 1,
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 12,
+                      "fontWeight": "600",
+                    },
+                    {
+                      "color": "#5B6572",
+                    },
+                  ]
+                }
+              >
+                mer. 23
               </Text>
             </TouchableOpacity>
           </ScrollView>
@@ -2339,12 +2339,12 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
               "shadowColor": "#14201B",
             },
             {
-              "height": 523.28,
+              "height": 422,
             },
             {
               "transform": [
                 {
-                  "translateY": 523.28,
+                  "translateY": 422,
                 },
               ],
             },
@@ -2451,200 +2451,10 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
           <View
             style={
               {
-                "flexDirection": "row",
-                "flexWrap": "wrap",
-                "gap": 8,
-                "justifyContent": "center",
-              }
-            }
-          >
-            <TouchableOpacity
-              accessibilityLabel="Maintenant"
-              accessibilityRole="button"
-              accessibilityState={
-                {
-                  "selected": false,
-                }
-              }
-              onPress={[Function]}
-              style={
-                [
-                  {
-                    "alignItems": "center",
-                    "alignSelf": "flex-start",
-                    "borderRadius": 9999,
-                    "flexDirection": "row",
-                    "gap": 4,
-                    "paddingHorizontal": 12,
-                    "paddingVertical": 4,
-                  },
-                  {
-                    "backgroundColor": "#FFFFFF",
-                    "borderColor": "#E4EDFB",
-                    "borderWidth": 1,
-                  },
-                  undefined,
-                ]
-              }
-            >
-              <Text
-                style={
-                  [
-                    {
-                      "fontSize": 12,
-                      "fontWeight": "600",
-                    },
-                    {
-                      "color": "#5B6572",
-                    },
-                  ]
-                }
-              >
-                Maintenant
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              accessibilityLabel="+30 min"
-              accessibilityRole="button"
-              accessibilityState={
-                {
-                  "selected": false,
-                }
-              }
-              onPress={[Function]}
-              style={
-                [
-                  {
-                    "alignItems": "center",
-                    "alignSelf": "flex-start",
-                    "borderRadius": 9999,
-                    "flexDirection": "row",
-                    "gap": 4,
-                    "paddingHorizontal": 12,
-                    "paddingVertical": 4,
-                  },
-                  {
-                    "backgroundColor": "#FFFFFF",
-                    "borderColor": "#E4EDFB",
-                    "borderWidth": 1,
-                  },
-                  undefined,
-                ]
-              }
-            >
-              <Text
-                style={
-                  [
-                    {
-                      "fontSize": 12,
-                      "fontWeight": "600",
-                    },
-                    {
-                      "color": "#5B6572",
-                    },
-                  ]
-                }
-              >
-                +30 min
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              accessibilityLabel="+1 h"
-              accessibilityRole="button"
-              accessibilityState={
-                {
-                  "selected": false,
-                }
-              }
-              onPress={[Function]}
-              style={
-                [
-                  {
-                    "alignItems": "center",
-                    "alignSelf": "flex-start",
-                    "borderRadius": 9999,
-                    "flexDirection": "row",
-                    "gap": 4,
-                    "paddingHorizontal": 12,
-                    "paddingVertical": 4,
-                  },
-                  {
-                    "backgroundColor": "#FFFFFF",
-                    "borderColor": "#E4EDFB",
-                    "borderWidth": 1,
-                  },
-                  undefined,
-                ]
-              }
-            >
-              <Text
-                style={
-                  [
-                    {
-                      "fontSize": 12,
-                      "fontWeight": "600",
-                    },
-                    {
-                      "color": "#5B6572",
-                    },
-                  ]
-                }
-              >
-                +1 h
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              accessibilityLabel="Personnalisé"
-              accessibilityRole="button"
-              accessibilityState={
-                {
-                  "selected": true,
-                }
-              }
-              onPress={[Function]}
-              style={
-                [
-                  {
-                    "alignItems": "center",
-                    "alignSelf": "flex-start",
-                    "borderRadius": 9999,
-                    "flexDirection": "row",
-                    "gap": 4,
-                    "paddingHorizontal": 12,
-                    "paddingVertical": 4,
-                  },
-                  {
-                    "backgroundColor": "#2E9E6C",
-                    "borderColor": "transparent",
-                    "borderWidth": 1,
-                  },
-                  undefined,
-                ]
-              }
-            >
-              <Text
-                style={
-                  [
-                    {
-                      "fontSize": 12,
-                      "fontWeight": "600",
-                    },
-                    {
-                      "color": "#0D1512",
-                    },
-                  ]
-                }
-              >
-                Personnalisé
-              </Text>
-            </TouchableOpacity>
-          </View>
-          <View
-            style={
-              {
                 "alignItems": "center",
                 "gap": 4,
-                "paddingVertical": 12,
+                "paddingBottom": 12,
+                "paddingTop": 4,
               }
             }
           >

@@ -182,7 +182,7 @@ export function RequestDetailSheet({
 }: RequestDetailSheetProps): React.JSX.Element {
   const { t, i18n } = useTranslation();
   const locale = i18n.language as SupportedLocale;
-  const theme = useAppTheme().colors;
+  const { colors: theme, scheme } = useAppTheme();
   const insets = useSafeAreaInsets();
   const [fullscreenMapOpen, setFullscreenMapOpen] = useState(false);
   const {
@@ -389,6 +389,7 @@ export function RequestDetailSheet({
                 pickup={{ latitude: preview.pickup.lat, longitude: preview.pickup.lng }}
                 dropoff={{ latitude: preview.dropoff.lat, longitude: preview.dropoff.lng }}
                 theme={theme}
+                isDark={scheme === 'dark'}
                 routeCoordinates={segmentCoordinates}
                 style={styles.map}
               />

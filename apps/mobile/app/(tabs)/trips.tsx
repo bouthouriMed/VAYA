@@ -12,6 +12,7 @@ import {
   Badge,
   EmptyState,
   MapPreview,
+  NotificationBell,
   useAppTheme,
   haptics,
   spacing,
@@ -234,7 +235,8 @@ export default function TripsScreen(): React.JSX.Element {
     pollingInterval: 30_000,
     skip: !accessToken,
   });
-  const hasUnreadNotifications = notifications?.some((n) => !n.readAt) ?? false;
+  const unreadNotificationsCount = notifications?.filter((n) => !n.readAt).length ?? 0;
+  const hasUnreadNotifications = unreadNotificationsCount > 0;
 
   // An actually in-progress ride (the driver already tapped "Démarrer") is
   // more hero-worthy than a merely soonest-scheduled one — isUpcomingRide/
@@ -368,20 +370,15 @@ export default function TripsScreen(): React.JSX.Element {
               {t('trips:subtitle')}
             </Text>
           </View>
-          <TouchableOpacity
+          <NotificationBell
+            theme={theme}
+            unreadCount={unreadNotificationsCount}
             onPress={() => {
               haptics.selection();
               router.push('/notifications');
             }}
-            accessibilityRole="button"
             accessibilityLabel={hasUnreadNotifications ? t('trips:notificationsUnreadAria') : t('trips:notificationsAria')}
-            style={[styles.notificationButton, { backgroundColor: theme.surface }]}
-          >
-            <Icon name="notifications-outline" size="sm" color={theme.ink} />
-            {hasUnreadNotifications ? (
-              <View style={[styles.notificationDot, { backgroundColor: theme.accent, borderColor: theme.surface }]} />
-            ) : null}
-          </TouchableOpacity>
+          />
         </View>
 
         {!accessToken ? (
@@ -755,22 +752,6 @@ const styles = StyleSheet.create({
   },
   heading: {
     textAlign: 'center',
-  },
-  notificationButton: {
-    width: 40,
-    height: 40,
-    borderRadius: radii.full,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  notificationDot: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    width: 9,
-    height: 9,
-    borderRadius: 5,
-    borderWidth: 1.5,
   },
   sectionHeading: {
     textTransform: 'uppercase',

@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { router, Redirect } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
@@ -12,14 +13,15 @@ import {
   Icon,
   Avatar,
   Badge,
-  EmptyState,
   SkeletonBlock,
   useAppTheme,
   spacing,
   radii,
+  elevation,
   haptics,
 } from '@vaya/design-system';
 import { useAppSelector } from '../../src/state/store';
+import { formatDaySectionLabel } from '../../src/features/conversations/inboxHelpers';
 import {
   useListNotificationsQuery,
   useMarkNotificationReadMutation,
@@ -140,7 +142,13 @@ function DriverRequestCard({
   const pickupTime = formatPickupTime(info.departureAt, locale);
 
   return (
-    <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
+    <View
+      style={[
+        styles.card,
+        elevation?.sm,
+        { backgroundColor: theme.surface, borderColor: theme.outlineVariant, shadowColor: theme.ink },
+      ]}
+    >
       <TouchableOpacity
         onPress={openInTrips}
         activeOpacity={0.7}
@@ -307,7 +315,8 @@ function StatusCard({
     <TouchableOpacity
       style={[
         styles.card,
-        { backgroundColor: theme.surface, borderColor: theme.outlineVariant },
+        elevation?.sm,
+        { backgroundColor: theme.surface, borderColor: theme.outlineVariant, shadowColor: theme.ink },
         isUnread && { borderColor: theme.accent },
       ]}
       activeOpacity={0.7}
@@ -366,6 +375,26 @@ export default function NotificationsScreen(): React.JSX.Element {
   });
   const [markRead] = useMarkNotificationReadMutation();
 
+  // Day-grouped like the messages inbox (reuses its own date-label logic,
+  // formatDaySectionLabel, rather than a second copy of "today/yesterday/
+  // date" formatting) — previously a flat, ungrouped list regardless of how
+  // far back it went, which is exactly what read as "basic" next to every
+  // other Stitch-rebuilt inbox-shaped screen in this app. Computed above
+  // the accessToken early return below (Rules of Hooks — every hook here
+  // must run unconditionally on every render, guest included).
+  const sections = useMemo(() => {
+    if (!notifications) return [];
+    const now = new Date();
+    const groups: { label: string; items: AppNotification[] }[] = [];
+    for (const notification of notifications) {
+      const label = formatDaySectionLabel(notification.createdAt, t as TFunction, now, locale);
+      const last = groups[groups.length - 1];
+      if (last && last.label === label) last.items.push(notification);
+      else groups.push({ label, items: [notification] });
+    }
+    return groups;
+  }, [notifications, t, locale]);
+
   // Defensive: only reachable today via the explore/trips bell (both already
   // gate this behind accessToken), but a deep link or a stale push tap could
   // land here directly for a guest — identity-scoped end to end.
@@ -388,15 +417,23 @@ export default function NotificationsScreen(): React.JSX.Element {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <View style={[styles.header, { paddingTop: insets.top + spacing.sm, borderBottomColor: theme.outlineVariant }]}>
+      <LinearGradient
+        colors={theme.backgroundGradient}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
+      <View pointerEvents="none" style={[styles.ambientGlow, { backgroundColor: theme.accentGlow }]} />
+
+      <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
         <TouchableOpacity
           onPress={() => (router.canGoBack() ? router.back() : router.replace('/(tabs)/explore'))}
           hitSlop={12}
-          style={styles.backBtn}
+          style={[styles.backBtn, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }, elevation?.sm]}
           accessibilityRole="button"
           accessibilityLabel={t('common:actions.back')}
         >
-          <Ionicons name="chevron-back" size={24} color={theme.ink} />
+          <Ionicons name="chevron-back" size={20} color={theme.ink} />
         </TouchableOpacity>
         <View style={styles.headerTitleCol}>
           <Text variant="headlineDisplay" color={theme.ink}>
@@ -418,29 +455,43 @@ export default function NotificationsScreen(): React.JSX.Element {
           ))}
         </View>
       ) : !notifications || notifications.length === 0 ? (
-        <View style={styles.emptyWrap}>
-          <EmptyState
-            icon={<Icon name="notifications-outline" size="lg" color={theme.inkFaint} />}
-            title={t('notifications:inbox.empty')}
-            description={t('notifications:inbox.emptyDescription')}
-          />
+        <View style={styles.emptyHero}>
+          <View style={styles.emptyIconWrap}>
+            <View style={[styles.emptyGlow, { backgroundColor: theme.accentGlow }]} />
+            <View style={[styles.emptyIconRing, { backgroundColor: theme.surfaceMuted }]}>
+              <Icon name="notifications-outline" size="lg" color={theme.ink} />
+            </View>
+          </View>
+          <Text variant="h3" color={theme.ink} style={styles.emptyTitle}>
+            {t('notifications:inbox.empty')}
+          </Text>
+          <Text variant="body" color={theme.inkMuted} style={styles.emptyDescription}>
+            {t('notifications:inbox.emptyDescription')}
+          </Text>
         </View>
       ) : (
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.list}>
-          {notifications.map((notification) =>
-            notification.type === 'booking_requested' ? (
-              <DriverRequestCard key={notification.id} notification={notification} theme={theme} t={t} locale={locale} />
-            ) : (
-              <StatusCard
-                key={notification.id}
-                notification={notification}
-                theme={theme}
-                onOpen={handleOpen}
-                t={t}
-                locale={locale}
-              />
-            ),
-          )}
+          {sections.map((section) => (
+            <View key={section.label} style={styles.section}>
+              <Text variant="label" color={theme.inkFaint} style={styles.sectionHeader}>
+                {section.label}
+              </Text>
+              {section.items.map((notification) =>
+                notification.type === 'booking_requested' ? (
+                  <DriverRequestCard key={notification.id} notification={notification} theme={theme} t={t} locale={locale} />
+                ) : (
+                  <StatusCard
+                    key={notification.id}
+                    notification={notification}
+                    theme={theme}
+                    onOpen={handleOpen}
+                    t={t}
+                    locale={locale}
+                  />
+                ),
+              )}
+            </View>
+          ))}
         </ScrollView>
       )}
     </View>
@@ -451,17 +502,32 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  // A soft ambient wash behind the header instead of a flat background +
+  // hard border line — the same depth-through-gradient-and-light treatment
+  // messages.tsx's ScreenBackground already established for this app's
+  // other inbox-shaped screen, previously the one visible thing setting
+  // this screen apart as "the basic one."
+  ambientGlow: {
+    position: 'absolute',
+    top: -80,
+    right: -60,
+    width: 240,
+    height: 240,
+    borderRadius: 120,
+    opacity: 0.35,
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.md,
-    borderBottomWidth: StyleSheet.hairlineWidth,
   },
   backBtn: {
     width: 36,
     height: 36,
+    borderRadius: radii.full,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -473,14 +539,56 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     gap: spacing.sm,
   },
-  emptyWrap: {
+  // Mirrors messages.tsx's own "no messages yet" hero exactly (wrap sized
+  // to just the icon so the glow can't bleed into the title below it —
+  // that was a real, separately-reported overlap bug there).
+  emptyHero: {
     flex: 1,
+    alignItems: 'center',
     justifyContent: 'center',
+    paddingHorizontal: spacing.xl,
+  },
+  emptyIconWrap: {
+    width: 96,
+    height: 96,
+    marginBottom: spacing.lg,
+  },
+  emptyGlow: {
+    position: 'absolute',
+    top: -10,
+    left: -10,
+    width: 116,
+    height: 116,
+    borderRadius: 58,
+    opacity: 0.5,
+  },
+  emptyIconRing: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyTitle: {
+    textAlign: 'center',
+    marginBottom: spacing.xs,
+  },
+  emptyDescription: {
+    textAlign: 'center',
+    maxWidth: 280,
   },
   list: {
     padding: spacing.lg,
-    gap: spacing.sm,
     paddingBottom: spacing['3xl'],
+  },
+  section: {
+    gap: spacing.sm,
+    marginBottom: spacing.md,
+  },
+  sectionHeader: {
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+    marginBottom: spacing.xs,
   },
   card: {
     borderRadius: radii.xl,

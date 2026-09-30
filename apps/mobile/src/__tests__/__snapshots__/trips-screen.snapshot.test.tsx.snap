@@ -92,18 +92,26 @@ exports[`trips.tsx snapshots > driver dashboard — hero ride card over segmente
       <TouchableOpacity
         accessibilityLabel="trips:notificationsAria"
         accessibilityRole="button"
+        activeOpacity={0.75}
+        hitSlop={8}
         onPress={[Function]}
         style={
           [
             {
               "alignItems": "center",
               "borderRadius": 9999,
+              "borderWidth": 1,
               "height": 40,
               "justifyContent": "center",
               "width": 40,
             },
             {
+              "elevation": 1,
+            },
+            {
               "backgroundColor": "#FFFFFF",
+              "borderColor": "#E4EDFB",
+              "shadowColor": "#14201B",
             },
           ]
         }
@@ -2102,18 +2110,26 @@ exports[`trips.tsx snapshots > first run — no bookings, no profile, rider empt
       <TouchableOpacity
         accessibilityLabel="trips:notificationsAria"
         accessibilityRole="button"
+        activeOpacity={0.75}
+        hitSlop={8}
         onPress={[Function]}
         style={
           [
             {
               "alignItems": "center",
               "borderRadius": 9999,
+              "borderWidth": 1,
               "height": 40,
               "justifyContent": "center",
               "width": 40,
             },
             {
+              "elevation": 1,
+            },
+            {
               "backgroundColor": "#FFFFFF",
+              "borderColor": "#E4EDFB",
+              "shadowColor": "#14201B",
             },
           ]
         }
@@ -2463,18 +2479,26 @@ exports[`trips.tsx snapshots > rider view — booking card shows the real driver
       <TouchableOpacity
         accessibilityLabel="trips:notificationsAria"
         accessibilityRole="button"
+        activeOpacity={0.75}
+        hitSlop={8}
         onPress={[Function]}
         style={
           [
             {
               "alignItems": "center",
               "borderRadius": 9999,
+              "borderWidth": 1,
               "height": 40,
               "justifyContent": "center",
               "width": 40,
             },
             {
+              "elevation": 1,
+            },
+            {
               "backgroundColor": "#FFFFFF",
+              "borderColor": "#E4EDFB",
+              "shadowColor": "#14201B",
             },
           ]
         }

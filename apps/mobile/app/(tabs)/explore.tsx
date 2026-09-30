@@ -10,6 +10,7 @@ import { useTranslation } from 'react-i18next';
 import {
   Text,
   Icon,
+  NotificationBell,
   DateCalendarSheet,
   TimeWheelSheet,
   PassengerSheet,
@@ -92,7 +93,8 @@ export default function HomeSearchScreen(): React.JSX.Element {
     pollingInterval: 30_000,
     skip: !accessToken,
   });
-  const hasUnreadNotifications = notifications?.some((n) => !n.readAt) ?? false;
+  const unreadNotificationsCount = notifications?.filter((n) => !n.readAt).length ?? 0;
+  const hasUnreadNotifications = unreadNotificationsCount > 0;
 
   // Silently adopt the device's GPS fix as the default departure point the
   // moment it resolves — mirrors Uber/BlaBlaCar's "we already know where you
@@ -265,20 +267,12 @@ export default function HomeSearchScreen(): React.JSX.Element {
         <Text variant="headlineDisplay" color={theme.ink} style={styles.wordmark}>
           VAYA
         </Text>
-        <TouchableOpacity
+        <NotificationBell
+          theme={theme}
+          unreadCount={unreadNotificationsCount}
           onPress={() => router.push(accessToken ? '/notifications' : '/sign-in')}
-          accessibilityRole="button"
           accessibilityLabel={hasUnreadNotifications ? t('trips:notificationsUnreadAria') : t('trips:notificationsAria')}
-          style={[
-            styles.notificationButton,
-            { backgroundColor: theme.surface, shadowColor: theme.ink, borderColor: theme.outlineVariant },
-          ]}
-        >
-          <Ionicons name="notifications-outline" size={20} color={theme.ink} />
-          {hasUnreadNotifications ? (
-            <View style={[styles.notificationDot, { backgroundColor: theme.accent, borderColor: theme.surface }]} />
-          ) : null}
-        </TouchableOpacity>
+        />
       </View>
 
       {/* Bottom-anchored content wrapper — `flex: 1` + `justifyContent:
@@ -494,12 +488,6 @@ export default function HomeSearchScreen(): React.JSX.Element {
         subtitleLabel={t('search:timeWheelSheet.subtitle')}
         summaryLabel={(time) => t('search:timeWheelSheet.summary', { time })}
         confirmLabel={t('common:actions.confirm')}
-        quickOptionLabels={{
-          now: t('search:timeWheelSheet.quickNow'),
-          plus30: t('search:timeWheelSheet.quickPlus30'),
-          plus1h: t('search:timeWheelSheet.quickPlus1h'),
-          custom: t('search:timeWheelSheet.quickCustom'),
-        }}
         bottomInset={insets.bottom}
       />
       <PassengerSheet
@@ -543,27 +531,6 @@ const styles = StyleSheet.create({
   },
   wordmark: {
     letterSpacing: -0.5,
-  },
-  notificationButton: {
-    width: 40,
-    height: 40,
-    borderRadius: radii.full,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    elevation: 3,
-  },
-  notificationDot: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    width: 9,
-    height: 9,
-    borderRadius: 5,
-    borderWidth: 1.5,
   },
   // `flex: 1` + `justifyContent: 'flex-end'` — the fix for the dead gap
   // that used to sit between the card and the tab bar: content packs to

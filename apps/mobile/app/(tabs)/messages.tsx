@@ -490,9 +490,11 @@ export default function MessagesScreen(): React.JSX.Element {
         ListEmptyComponent={
           filter === 'all' ? (
             <View style={styles.emptyHero}>
-              <View style={[styles.emptyGlow, { backgroundColor: theme.accentGlow }]} />
-              <View style={[styles.emptyIconRing, { backgroundColor: theme.surfaceMuted }]}>
-                <Icon name="chatbubbles-outline" size="lg" color={theme.ink} />
+              <View style={styles.emptyIconWrap}>
+                <View style={[styles.emptyGlow, { backgroundColor: theme.accentGlow }]} />
+                <View style={[styles.emptyIconRing, { backgroundColor: theme.surfaceMuted }]}>
+                  <Icon name="chatbubbles-outline" size="lg" color={theme.ink} />
+                </View>
               </View>
               <Text variant="h3" color={theme.ink} style={styles.emptyTitle}>
                 {t('messages:emptyHero.title')}
@@ -704,12 +706,26 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xl,
     paddingTop: spacing['3xl'],
   },
+  // Wraps just the icon ring (not the title/description below it) so the
+  // decorative glow — sized a little larger than the ring on purpose, to
+  // bleed softly past its edges — has a bounded box to center within
+  // instead of the whole emptyHero column. Previously the glow was a
+  // sibling of the ring with only `top: 0` and no horizontal centering: at
+  // 180×180 (nearly double the 96px ring) with no `alignSelf`, it rendered
+  // pinned to the container's left edge and tall enough to bleed down over
+  // the title text below — the reported "icon overlapping text" bug.
+  emptyIconWrap: {
+    width: 96,
+    height: 96,
+    marginBottom: spacing.lg,
+  },
   emptyGlow: {
     position: 'absolute',
-    top: 0,
-    width: 180,
-    height: 180,
-    borderRadius: 90,
+    top: -10,
+    left: -10,
+    width: 116,
+    height: 116,
+    borderRadius: 58,
     opacity: 0.5,
   },
   emptyIconRing: {
@@ -718,7 +734,6 @@ const styles = StyleSheet.create({
     borderRadius: 48,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: spacing.lg,
   },
   emptyTitle: {
     textAlign: 'center',

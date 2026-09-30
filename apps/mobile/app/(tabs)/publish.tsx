@@ -537,7 +537,14 @@ export default function PublishTabScreen(): React.JSX.Element {
   // device window, or the map would overshoot past the tab bar. Falls back
   // to windowHeight only for the brief instant before the first onLayout.
   const effectiveHeight = containerHeight || windowHeight;
-  const collapsedMapHeight = effectiveHeight * MAP_HEIGHT_RATIO;
+  // The 'form' step's map now fills the whole screen behind a bottom-
+  // anchored overlay card (see the `card` style override below) instead of
+  // sharing a fixed 35% strip with a stretched, scrolling card — matching
+  // explore.tsx's full-screen-map + floating-card composer exactly, so the
+  // route section lands at the same screen position in both. 'stops'
+  // (mapMode-driven expand/shrink) is unaffected — it still starts
+  // collapsed at the original ratio and animates from there.
+  const collapsedMapHeight = step === 'form' ? effectiveHeight : effectiveHeight * MAP_HEIGHT_RATIO;
   const mapSectionAnimatedStyle = useAnimatedStyle(() => {
     const expandedMapHeight = Math.max(effectiveHeight - cardHeightSV.value, collapsedMapHeight);
     return {
@@ -1976,6 +1983,18 @@ export default function PublishTabScreen(): React.JSX.Element {
       <View
         style={[
           styles.card,
+          // The 'form' step's card floats over the now-full-screen map as a
+          // bottom-pinned, content-sized overlay (position: absolute takes
+          // it out of flex flow entirely, so the base style's `flex: 1` no
+          // longer applies) — the exact composition explore.tsx's search
+          // card uses, instead of stretching to fill whatever space the map
+          // doesn't take and scrolling inside that fixed region (which,
+          // depending on device height, either left dead space under the
+          // CTA or forced an unnecessary scroll — the reported "scrolling
+          // doesn't really work"). 'stops' keeps the original shared-space
+          // layout, where the map growing and the card shrinking together
+          // is the actual desired interaction.
+          step === 'form' && styles.cardFormOverlay,
           {
             backgroundColor: theme.surface,
             shadowColor: theme.ink,
@@ -2107,7 +2126,7 @@ export default function PublishTabScreen(): React.JSX.Element {
           />
         </View>
       ) : (
-      <ScrollView style={styles.cardScroll} contentContainerStyle={styles.content}>
+      <View style={styles.content}>
         <Animated.View style={[styles.formStack, stepMotionStyle]}>
           <Text variant="headlineDisplay" color={theme.ink} style={styles.headline}>
             {t('driver:publish.formStep.headline')}
@@ -2260,7 +2279,7 @@ export default function PublishTabScreen(): React.JSX.Element {
             onPress={() => requireAuth(() => void proceedFromForm(), 'publishing')}
           />
         </Animated.View>
-      </ScrollView>
+      </View>
       )}
       </View>
 
@@ -2296,12 +2315,6 @@ export default function PublishTabScreen(): React.JSX.Element {
         subtitleLabel={t('driver:publish.formStep.timeSheetSubtitle')}
         summaryLabel={(time) => t('driver:publish.formStep.timeSheetSummary', { time })}
         confirmLabel={t('common:actions.confirm')}
-        quickOptionLabels={{
-          now: t('driver:publish.formStep.timeQuickNow'),
-          plus30: t('driver:publish.formStep.timeQuickPlus30'),
-          plus1h: t('driver:publish.formStep.timeQuickPlus1h'),
-          custom: t('driver:publish.formStep.timeQuickCustom'),
-        }}
         bottomInset={insets.bottom}
       />
       <PassengerSheet
@@ -2386,6 +2399,17 @@ const styles = StyleSheet.create({
     shadowRadius: 24,
     elevation: 8,
   },
+  // Matches explore.tsx's `bottomWrap`-anchored card: absolute + bottom: 0
+  // removes it from flex flow (the base style's `flex: 1` becomes a no-op),
+  // so it sizes to its own content and hugs the bottom of the screen
+  // instead of stretching to fill whatever height the map above it isn't
+  // using.
+  cardFormOverlay: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
   handle: {
     alignItems: 'center',
     paddingTop: spacing.sm,
@@ -2394,9 +2418,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 4,
     borderRadius: 2,
-  },
-  cardScroll: {
-    flex: 1,
   },
   // The compact confirm bar shown in the card while pickup/dropoff
   // selection is active — deliberately small (§8: "a compact confirmation

@@ -155,45 +155,55 @@ exports[`messages.tsx snapshots > empty inbox — headline, filter-less, first-r
       >
         <View
           style={
-            [
-              {
-                "borderRadius": 90,
-                "height": 180,
-                "opacity": 0.5,
-                "position": "absolute",
-                "top": 0,
-                "width": 180,
-              },
-              {
-                "backgroundColor": "#8FD9B4",
-              },
-            ]
-          }
-        />
-        <View
-          style={
-            [
-              {
-                "alignItems": "center",
-                "borderRadius": 48,
-                "height": 96,
-                "justifyContent": "center",
-                "marginBottom": 16,
-                "width": 96,
-              },
-              {
-                "backgroundColor": "#E4EDFB",
-              },
-            ]
+            {
+              "height": 96,
+              "marginBottom": 16,
+              "width": 96,
+            }
           }
         >
-          <Ionicons
-            accessibilityElementsHidden={true}
-            color="#14201B"
-            importantForAccessibility="no-hide-descendants"
-            name="chatbubbles-outline"
-            size={32}
+          <View
+            style={
+              [
+                {
+                  "borderRadius": 58,
+                  "height": 116,
+                  "left": -10,
+                  "opacity": 0.5,
+                  "position": "absolute",
+                  "top": -10,
+                  "width": 116,
+                },
+                {
+                  "backgroundColor": "#8FD9B4",
+                },
+              ]
+            }
           />
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "borderRadius": 48,
+                  "height": 96,
+                  "justifyContent": "center",
+                  "width": 96,
+                },
+                {
+                  "backgroundColor": "#E4EDFB",
+                },
+              ]
+            }
+          >
+            <Ionicons
+              accessibilityElementsHidden={true}
+              color="#14201B"
+              importantForAccessibility="no-hide-descendants"
+              name="chatbubbles-outline"
+              size={32}
+            />
+          </View>
         </View>
         <Text
           style={
