@@ -1,9 +1,8 @@
-import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { Text, spacing, useAppTheme } from '@vaya/design-system';
+import { Text, spacing, useAppTheme, ScreenHeader } from '@vaya/design-system';
 import { TERMS_CONTENT, PRIVACY_CONTENT } from '@vaya/legal';
 import { useAppSelector } from '../../state/store';
 
@@ -28,26 +27,12 @@ export function LegalDocumentScreen({ doc }: Props): React.JSX.Element {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <View
-        style={[
-          styles.header,
-          { paddingTop: insets.top + spacing.sm, borderBottomColor: theme.outlineVariant },
-        ]}
-      >
-        <TouchableOpacity
-          onPress={() => (router.canGoBack() ? router.back() : router.replace('/(tabs)/profile'))}
-          hitSlop={12}
-          style={styles.backBtn}
-          accessibilityRole="button"
-          accessibilityLabel={t('common:actions.back')}
-        >
-          <Ionicons name="chevron-back" size={24} color={theme.ink} />
-        </TouchableOpacity>
-        <Text variant="headlineDisplay" color={theme.ink} numberOfLines={1} style={styles.headerTitle}>
-          {screenTitle}
-        </Text>
-        <View style={styles.backBtn} />
-      </View>
+      <ScreenHeader
+        topInset={insets.top}
+        onBack={() => (router.canGoBack() ? router.back() : router.replace('/(tabs)/profile'))}
+        backLabel={t('common:actions.back')}
+        title={screenTitle}
+      />
 
       <ScrollView
         contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + spacing.xl }]}
@@ -85,23 +70,6 @@ export function LegalDocumentScreen({ doc }: Props): React.JSX.Element {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.md,
-    paddingBottom: spacing.sm,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  backBtn: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitle: {
-    flex: 1,
-    textAlign: 'center',
   },
   content: {
     paddingHorizontal: spacing.lg,

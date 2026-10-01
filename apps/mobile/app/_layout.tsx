@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, View, useColorScheme } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Stack } from 'expo-router';
@@ -13,7 +13,7 @@ import {
   Fraunces_600SemiBold,
   Fraunces_500Medium_Italic,
 } from '@expo-google-fonts/fraunces';
-import { colors, ToastProvider, AppThemeProvider, useAppTheme } from '@vaya/design-system';
+import { ToastProvider, AppThemeProvider, useAppTheme, lightPalette, darkPalette } from '@vaya/design-system';
 import { store, useAppSelector, type AppDispatch } from '../src/state/store';
 import { hydrateAuth } from '../src/state/authSlice';
 import { hydrateAppearance } from '../src/state/appearanceSlice';
@@ -55,16 +55,19 @@ void SplashScreen.preventAutoHideAsync().catch(() => {});
 initMonitoring();
 
 function BrandedLoadingScreen(): React.JSX.Element {
+  // Rendered before the theme provider mounts — picks the palette from the
+  // device setting directly so a dark-mode launch never flashes light.
+  const palette = useColorScheme() === 'dark' ? darkPalette : lightPalette;
   return (
     <View
       style={{
         flex: 1,
-        backgroundColor: colors.gray50,
+        backgroundColor: palette.background,
         alignItems: 'center',
         justifyContent: 'center',
       }}
     >
-      <ActivityIndicator color={colors.primary} size="large" />
+      <ActivityIndicator color={palette.accent} size="large" />
     </View>
   );
 }

@@ -54,7 +54,8 @@
     "overrideDetourUnknown": "Impact on the driver's trip not yet computable — checked again when you confirm.",
     "overrideNotFeasible": "This point is a significant detour from the driver's planned route. You can still send your request.",
     "overrideConfirm": "Use this point",
-    "overrideLoading": "Computing the real impact…"
+    "overrideLoading": "Computing the real impact…",
+    "title": "Pickup point"
   },
   "dropoffPoint": {
     "noDropoff": "No accessible drop-off point found.",
@@ -66,7 +67,8 @@
     "pointDetails": "Details for {{label}}",
     "walkFromDestination": "{{minutes}} from your destination.",
     "walkToDestination": "{{minutes}} to your destination.",
-    "driverValidatedStop": "This point was confirmed by the driver as a stop on their route."
+    "driverValidatedStop": "This point was confirmed by the driver as a stop on their route.",
+    "title": "Drop-off point"
   },
   "details": {
     "viewRouteFullscreen": "View route on full screen",
@@ -88,7 +90,9 @@
     "selfBookingError": "You can't request a seat on your own ride.",
     "duplicateBookingError": "You already have a request for this ride.",
     "rideNotBookableError": "This ride is no longer accepting requests.",
-    "pickupNotAvailableError": "This point is too far from the driver's route, or couldn't be verified right now. Try again or pick another ride."
+    "pickupNotAvailableError": "This point is too far from the driver's route, or couldn't be verified right now. Try again or pick another ride.",
+    "screenTitle": "Ride details",
+    "loadError": "Couldn't load this ride"
   },
   "trust": {
     "title": "Profile",

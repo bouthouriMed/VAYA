@@ -18,6 +18,7 @@ import {
   haptics,
   spacing,
   radii,
+  LargeTitleHeader,
 } from '@vaya/design-system';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useAppSelector } from '../../src/state/store';
@@ -347,26 +348,22 @@ export default function TripsScreen(): React.JSX.Element {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top']}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
-        {/* Page header */}
-        <View style={styles.pageHeaderRow}>
-          <View style={styles.pageHeader}>
-            <Text variant="headlineDisplay" color={theme.ink} style={styles.heading}>
-              {t('trips:title')}
-            </Text>
-            <Text variant="body" color={theme.inkMuted}>
-              {t('trips:subtitle')}
-            </Text>
-          </View>
-          <NotificationBell
-            theme={theme}
-            unreadCount={unreadNotificationsCount}
-            onPress={() => {
-              haptics.selection();
-              router.push('/notifications');
-            }}
-            accessibilityLabel={hasUnreadNotifications ? t('trips:notificationsUnreadAria') : t('trips:notificationsAria')}
-          />
-        </View>
+        <LargeTitleHeader
+          title={t('trips:title')}
+          subtitle={t('trips:subtitle')}
+          style={styles.pageHeader}
+          right={
+            <NotificationBell
+              theme={theme}
+              unreadCount={unreadNotificationsCount}
+              onPress={() => {
+                haptics.selection();
+                router.push('/notifications');
+              }}
+              accessibilityLabel={hasUnreadNotifications ? t('trips:notificationsUnreadAria') : t('trips:notificationsAria')}
+            />
+          }
+        />
 
         {!accessToken ? (
           <View style={styles.guestEmptyWrap}>
@@ -747,19 +744,9 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     paddingBottom: spacing['4xl'],
   },
-  pageHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    gap: spacing.sm,
-    marginTop: 5
-  },
   pageHeader: {
-    flex: 1,
-    gap: 17,
-  },
-  heading: {
-    textAlign: 'center',
+    paddingHorizontal: 0,
+    paddingTop: 0,
   },
   sectionHeading: {
     textTransform: 'uppercase',

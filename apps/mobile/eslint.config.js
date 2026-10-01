@@ -22,6 +22,19 @@ export default [
     ignores: ['**/__tests__/**', 'src/utils/localeFormat.ts'],
     rules: {
       'no-restricted-syntax': ['error', ...restrictedSyntax],
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: '@vaya/design-system',
+              importNames: ['colors'],
+              message:
+                'Use useAppTheme() colors. The static `colors` tokens ignore dark mode; map-only tokens belong inside design-system map primitives.',
+            },
+          ],
+        },
+      ],
     },
   },
 ];

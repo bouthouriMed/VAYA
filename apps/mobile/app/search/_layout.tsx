@@ -1,25 +1,16 @@
 import { Stack } from 'expo-router';
 import { useAppTheme } from '@vaya/design-system';
 
+/** Every search screen draws its own header (`ScreenHeader` or a floating
+ *  map control), so the native header stays off. */
 export default function SearchLayout(): React.JSX.Element {
   const { colors: theme } = useAppTheme();
   return (
-    <Stack
-      screenOptions={{
-        headerShown: true,
-        headerStyle: { backgroundColor: theme.background },
-        headerShadowVisible: false,
-        headerTintColor: theme.ink,
-        headerTitleStyle: { fontWeight: '700' },
-        headerBackButtonDisplayMode: 'minimal',
-      }}
-    >
-      <Stack.Screen name="results" options={{ headerShown: false }} />
-      <Stack.Screen name="ride-details" options={{ headerShown: false }} />
-      <Stack.Screen name="trust" options={{ headerShown: false, presentation: 'modal' }} />
-      <Stack.Screen name="composer" options={{ headerShown: false, presentation: 'modal' }} />
-      <Stack.Screen name="pickup-point" options={{ headerShown: false, presentation: 'modal' }} />
-      <Stack.Screen name="dropoff-point" options={{ headerShown: false, presentation: 'modal' }} />
+    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: theme.background } }}>
+      <Stack.Screen name="trust" options={{ presentation: 'modal' }} />
+      <Stack.Screen name="composer" options={{ presentation: 'modal' }} />
+      <Stack.Screen name="pickup-point" options={{ presentation: 'modal' }} />
+      <Stack.Screen name="dropoff-point" options={{ presentation: 'modal' }} />
     </Stack>
   );
 }

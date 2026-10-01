@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView, Modal } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Marker, Polyline } from 'react-native-maps';
-import { Ionicons } from '@expo/vector-icons';
 import { skipToken } from '@reduxjs/toolkit/query/react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -19,6 +18,9 @@ import {
   isSameDay,
   regionForPoints,
   addDays,
+  ScreenHeader,
+  HeaderIconButton,
+  StateView,
 } from '@vaya/design-system';
 import { router, useLocalSearchParams } from 'expo-router';
 import type { SupportedLocale } from '@vaya/config';
@@ -113,8 +115,13 @@ export default function RideDetailsScreen(): React.JSX.Element {
   const [bookingError, setBookingError] = useState<string | undefined>();
   const [routeModalOpen, setRouteModalOpen] = useState(false);
 
-  const { data: ride, isLoading: isRideLoading } = useGetRideQuery(rideId);
-  const { data: profile, isLoading: isProfileLoading } = useGetUserPublicProfileQuery(driverUserId);
+  const { data: ride, isLoading: isRideLoading, isError: isRideError, refetch: refetchRide } = useGetRideQuery(rideId);
+  const {
+    data: profile,
+    isLoading: isProfileLoading,
+    isError: isProfileError,
+    refetch: refetchProfile,
+  } = useGetUserPublicProfileQuery(driverUserId);
   const { data: stops } = useGetRideStopsQuery(rideId);
   const { data: passengers } = useListFellowPassengersQuery(rideId);
   const [createBooking, { isLoading: isBooking }] = useCreateBookingMutation();
@@ -426,20 +433,38 @@ export default function RideDetailsScreen(): React.JSX.Element {
     }
   }
 
-  if (isRideLoading || isProfileLoading) {
+  if (isRideLoading || isProfileLoading || !ride || !profile) {
+    const failed = isRideError || isProfileError;
     return (
-      <View style={[styles.loadingWrap, { backgroundColor: theme.background }]}>
-        <ActivityIndicator size="large" color={theme.accent} />
-      </View>
-    );
-  }
-
-  if (!ride || !profile) {
-    return (
-      <View style={[styles.loadingWrap, { backgroundColor: theme.background }]}>
-        <Text variant="body" color={theme.inkFaint}>
-          {t('search:details.rideNotFound')}
-        </Text>
+      <View style={[styles.container, { backgroundColor: theme.background }]}>
+        <ScreenHeader
+          topInset={insets.top}
+          onBack={() => router.back()}
+          backLabel={t('common:actions.back')}
+          title={t('search:details.screenTitle')}
+        />
+        {isRideLoading || isProfileLoading ? (
+          <StateView status="loading" skeleton="detail" />
+        ) : failed ? (
+          <StateView
+            status="error"
+            title={t('search:details.loadError')}
+            description={t('trips:loadError.description')}
+            actionLabel={t('common:actions.retry')}
+            onAction={() => {
+              void refetchRide();
+              void refetchProfile();
+            }}
+          />
+        ) : (
+          <StateView
+            status="empty"
+            iconName="car-outline"
+            title={t('search:details.rideNotFound')}
+            actionLabel={t('common:actions.back')}
+            onAction={() => router.back()}
+          />
+        )}
       </View>
     );
   }
@@ -470,25 +495,12 @@ export default function RideDetailsScreen(): React.JSX.Element {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <View
-        style={[
-          styles.header,
-          { paddingTop: insets.top + spacing.sm, backgroundColor: theme.surface, borderBottomColor: theme.outlineVariant },
-        ]}
-      >
-        <TouchableOpacity
-          onPress={() => router.back()}
-          hitSlop={12}
-          accessibilityRole="button"
-          accessibilityLabel={t('common:actions.back')}
-        >
-          <Ionicons name="chevron-back" size={22} color={theme.ink} />
-        </TouchableOpacity>
-        <Text variant="h3" color={theme.ink}>
-          Vaya
-        </Text>
-        <View style={{ width: 22 }} />
-      </View>
+      <ScreenHeader
+        topInset={insets.top}
+        onBack={() => router.back()}
+        backLabel={t('common:actions.back')}
+        title={t('search:details.screenTitle')}
+      />
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.summaryRow}>
@@ -841,15 +853,13 @@ export default function RideDetailsScreen(): React.JSX.Element {
               <Polyline coordinates={segmentCoordinates} strokeColor={theme.ink} strokeWidth={4} />
             ) : null}
           </MapCanvas>
-          <TouchableOpacity
-            style={[styles.routeModalClose, { top: insets.top + spacing.sm, backgroundColor: theme.surface }]}
-            onPress={() => setRouteModalOpen(false)}
-            hitSlop={12}
-            accessibilityRole="button"
-            accessibilityLabel={t('common:actions.close')}
-          >
-            <Ionicons name="close" size={22} color={theme.ink} />
-          </TouchableOpacity>
+          <View style={[styles.routeModalClose, { top: insets.top + spacing.sm }]}>
+            <HeaderIconButton
+              icon="close"
+              onPress={() => setRouteModalOpen(false)}
+              accessibilityLabel={t('common:actions.close')}
+            />
+          </View>
         </View>
       </Modal>
 
@@ -866,19 +876,6 @@ export default function RideDetailsScreen(): React.JSX.Element {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  loadingWrap: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.sm,
-    borderBottomWidth: StyleSheet.hairlineWidth,
   },
   scrollContent: {
     padding: spacing.lg,

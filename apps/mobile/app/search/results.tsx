@@ -3,7 +3,6 @@ import { View, StyleSheet, ActivityIndicator, TouchableOpacity, ScrollView } fro
 import Reanimated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps';
-import { Ionicons } from '@expo/vector-icons';
 import { skipToken } from '@reduxjs/toolkit/query/react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -26,6 +25,7 @@ import {
   durations,
   type AppPalette,
   type DriverListCardData,
+  ScreenHeader,
 } from '@vaya/design-system';
 import { router } from 'expo-router';
 import type { SupportedLocale } from '@vaya/config';
@@ -41,6 +41,7 @@ import {
 } from '../../src/state/api';
 import { useOpenDriver } from '../../src/features/search/useOpenDriver';
 import { trackEvent } from '../../src/services/analytics/analytics';
+import { shortenPlaceLabel } from '../../src/utils/placeLabel';
 
 type TFn = (key: string, params?: Record<string, unknown>) => string;
 
@@ -310,39 +311,12 @@ export default function ResultsScreen(): React.JSX.Element {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <View
-        style={[
-          styles.header,
-          {
-            paddingTop: insets.top + spacing.sm,
-            backgroundColor: theme.surface,
-            borderBottomColor: theme.outlineVariant,
-          },
-        ]}
-      >
-        <TouchableOpacity
-          onPress={() => {
-            haptics.selection();
-            router.back();
-          }}
-          hitSlop={12}
-          style={styles.headerSide}
-          accessibilityRole="button"
-          accessibilityLabel={t('common:actions.back')}
-        >
-          <Ionicons name="chevron-back" size={22} color={theme.ink} />
-        </TouchableOpacity>
-        <Text
-          variant="h3"
-          color={theme.ink}
-          numberOfLines={1}
-          align="center"
-          style={styles.headerTitle}
-        >
-          {origin && destination ? `${origin.label} → ${destination.label}` : t('search:results.title')}
-        </Text>
-        <View style={styles.headerSide} />
-      </View>
+      <ScreenHeader
+        topInset={insets.top}
+        onBack={() => router.back()}
+        backLabel={t('common:actions.back')}
+        title={origin && destination ? `${shortenPlaceLabel(origin.label)} → ${shortenPlaceLabel(destination.label)}` : t('search:results.title')}
+      />
 
       <View
         style={[
@@ -500,21 +474,6 @@ export default function ResultsScreen(): React.JSX.Element {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    paddingHorizontal: spacing.xl,
-    paddingBottom: spacing.md,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  headerTitle: {
-    flex: 1,
-  },
-  headerSide: {
-    width: 22,
-    alignItems: 'center',
   },
   mapToggle: {
     flexDirection: 'row',

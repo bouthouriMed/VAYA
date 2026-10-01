@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Text, Button, colors, spacing, radii } from '@vaya/design-system';
+import { Text, Button, Card, Icon, useAppTheme, spacing } from '@vaya/design-system';
+import type { SupportedLocale } from '@vaya/config';
+import { formatCurrency } from '../../src/utils/localeFormat';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import {
@@ -14,7 +16,8 @@ import { submitRating } from '../../src/features/ratings/ratingHelpers';
 import { RatingPromptSheet } from '../../src/features/ratings/RatingPromptSheet';
 
 export default function SettlementScreen(): React.JSX.Element {
-  const { t } = useTranslation(['booking', 'activeTrip', 'common']);
+  const { t, i18n } = useTranslation(['booking', 'activeTrip', 'common']);
+  const { colors: theme } = useAppTheme();
   const { bookingId, driverName, price, destinationLabel } = useLocalSearchParams<{
     bookingId?: string;
     driverName?: string;
@@ -23,6 +26,7 @@ export default function SettlementScreen(): React.JSX.Element {
   }>();
   const firstName = (driverName ?? t('common:terms.driver')).split(' ')[0]!;
   const insets = useSafeAreaInsets();
+  const priceLabel = price ? formatCurrency(Number(price), i18n.language as SupportedLocale) : '\u2014';
 
   const { data: trip } = useGetTripByBookingQuery(bookingId ?? '', { skip: !bookingId });
   const [completeTrip] = useCompleteTripMutation();
@@ -68,39 +72,41 @@ export default function SettlementScreen(): React.JSX.Element {
   }, [sheetVisible, bookingId]);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       <View style={[styles.hero, { paddingTop: insets.top + spacing['3xl'] }]}>
-        <Text variant="h1" color={colors.navyText} align="center">
-          {t('booking:arrival')}{destinationLabel ? ` ${destinationLabel}` : ''}.
+        <View style={[styles.heroIcon, { backgroundColor: theme.accentGlow + '55' }]}>
+          <Icon name="flag-outline" size="lg" color={theme.accentStrong} />
+        </View>
+        <Text variant="h2" color={theme.ink} align="center">
+          {destinationLabel ? t('booking:arrivedAt', { place: destinationLabel }) : t('booking:arrived')}
         </Text>
       </View>
 
-      <View style={styles.sheet}>
-        <Text variant="h3">{t('booking:settlement_title', { name: firstName })}</Text>
-
-        <View style={styles.settleRow}>
-          <Text variant="bodySmall" color={colors.gray600}>
-            {t('booking:settlement_pay', { price: price ?? '\u2014', name: firstName })}
+      <View style={styles.body}>
+        <Card style={styles.settleCard}>
+          <Text variant="title" color={theme.ink}>
+            {t('booking:settlement_title', { name: firstName })}
           </Text>
-          <Text variant="h3">{price ?? '\u2014'} DT</Text>
-        </View>
+          <View style={styles.settleRow}>
+            <Text variant="bodySmall" color={theme.inkMuted} style={styles.settleText}>
+              {t('booking:settlement_pay', { price: priceLabel, name: firstName })}
+            </Text>
+            <Text variant="h3" color={theme.ink}>
+              {priceLabel}
+            </Text>
+          </View>
+        </Card>
 
-        {sheetDone ? (
-          <Text variant="bodySmall" color={colors.success}>
-            {t('booking:rate_prompt', { name: firstName })}
-          </Text>
-        ) : (
-          <Text variant="bodySmall" color={colors.gray600}>
-            {t('booking:rate_prompt', { name: firstName })}
-          </Text>
-        )}
+        <Text variant="bodySmall" color={sheetDone ? theme.accentStrong : theme.inkMuted} align="center">
+          {sheetDone ? t('booking:ratingThanks', { name: firstName }) : t('booking:rate_prompt', { name: firstName })}
+        </Text>
+      </View>
 
-        <Button
-          label={t('booking:finish')}
-          size="lg"
-          onPress={() => router.replace('/(tabs)/explore')}
-          style={styles.cta}
-        />
+      <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.lg }]}>
+        {!sheetDone ? (
+          <Button label={t('booking:rateCta', { name: firstName })} variant="secondary" onPress={() => setSheetVisible(true)} />
+        ) : null}
+        <Button label={t('booking:finish')} size="lg" onPress={() => router.replace('/(tabs)/explore')} />
       </View>
 
       <RatingPromptSheet
@@ -129,32 +135,39 @@ export default function SettlementScreen(): React.JSX.Element {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.gray100,
   },
   hero: {
-    backgroundColor: colors.navySurface,
-    paddingHorizontal: spacing.xl,
-    paddingBottom: spacing['4xl'],
-  },
-  sheet: {
-    flex: 1,
-    backgroundColor: colors.white,
-    borderTopLeftRadius: radii['2xl'],
-    borderTopRightRadius: radii['2xl'],
-    marginTop: -radii['2xl'],
-    padding: spacing.xl,
+    alignItems: 'center',
     gap: spacing.md,
+    paddingHorizontal: spacing.xl,
+    paddingBottom: spacing.xl,
+  },
+  heroIcon: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  body: {
+    flex: 1,
+    paddingHorizontal: spacing.lg,
+    gap: spacing.md,
+  },
+  settleCard: {
+    gap: spacing.sm,
   },
   settleRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: colors.gray100,
-    borderRadius: radii.xl,
-    padding: spacing.md,
+    gap: spacing.md,
   },
-  cta: {
-    width: '100%',
-    marginTop: 'auto',
+  settleText: {
+    flex: 1,
+  },
+  footer: {
+    paddingHorizontal: spacing.lg,
+    gap: spacing.sm,
   },
 });

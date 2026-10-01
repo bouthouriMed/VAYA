@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { Marker, Polyline } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
 import { skipToken } from '@reduxjs/toolkit/query/react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -10,15 +9,18 @@ import {
   Button,
   MapCanvas,
   BottomSheet,
-  EmptyState,
+  ScreenHeader,
+  HeaderIconButton,
+  StateView,
+  Icon,
   StopPin,
-  colors,
-  lightPalette,
+  useAppTheme,
   spacing,
   radii,
   typography,
   regionForPoints,
   haptics,
+  type AppPalette,
 } from '@vaya/design-system';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useAppDispatch, useAppSelector } from '../../src/state/store';
@@ -39,6 +41,8 @@ import { defaultStopId, rankedPosition } from '../../src/features/pickup-selecti
  * principle #1) pickup-point.tsx already holds, now extended to dropoff.
  */
 export default function DropoffPointScreen(): React.JSX.Element {
+  const { colors: theme } = useAppTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const { rideId, driverUserId } = useLocalSearchParams<{ rideId: string; driverUserId: string }>();
   const insets = useSafeAreaInsets();
   const { t } = useTranslation(['search', 'common', 'booking']);
@@ -116,35 +120,27 @@ export default function DropoffPointScreen(): React.JSX.Element {
     router.dismissTo({ pathname: '/search/ride-details', params: { rideId, driverUserId } });
   }
 
-  if (isLoading) {
+  if (isLoading || !candidate || rankedDropoffStops.length === 0) {
     return (
-      <View style={styles.loadingWrap}>
-        <ActivityIndicator size="large" color={colors.secondary} />
-      </View>
-    );
-  }
-
-  if (!candidate || rankedDropoffStops.length === 0) {
-    return (
-      <View style={[styles.container, { paddingTop: insets.top }]}>
-        <TouchableOpacity
-          onPress={() => router.back()}
-          hitSlop={12}
-          style={[styles.backBtn, styles.backBtnStandalone]}
-          accessibilityRole="button"
-          accessibilityLabel={t('common:actions.back')}
-        >
-          <Ionicons name="chevron-back" size={24} color={colors.gray900} />
-        </TouchableOpacity>
-        <View style={styles.emptyWrap}>
-          <EmptyState
-            icon={<Ionicons name="flag-outline" size={40} color={colors.gray400} />}
+      <View style={styles.container}>
+        <ScreenHeader
+          topInset={insets.top}
+          onBack={() => router.back()}
+          backLabel={t('common:actions.back')}
+          title={t('search:dropoffPoint.title')}
+        />
+        {isLoading ? (
+          <StateView status="loading" skeleton="detail" />
+        ) : (
+          <StateView
+            status="empty"
+            iconName="flag-outline"
             title={t('search:dropoffPoint.noDropoff')}
             description={t('search:dropoffPoint.noDropoffDesc')}
             actionLabel={t('search:pickupPoint.backToSearch')}
             onAction={() => router.back()}
           />
-        </View>
+        )}
       </View>
     );
   }
@@ -161,7 +157,7 @@ export default function DropoffPointScreen(): React.JSX.Element {
           </Marker>
         ) : null}
         {routeCoordinates.length > 1 ? (
-          <Polyline coordinates={routeCoordinates} strokeColor={colors.mapRouteLine} strokeWidth={4} />
+          <Polyline coordinates={routeCoordinates} strokeColor={theme.ink} strokeWidth={4} />
         ) : null}
         {rankedDropoffStops.map((stop, index) => {
           const isSelected = stop.stopId === selectedStopId;
@@ -172,27 +168,21 @@ export default function DropoffPointScreen(): React.JSX.Element {
               onPress={() => pickStop(stop)}
               accessibilityLabel={`${stop.label}, ${t('search:walk.suffix', { minutes: t('common:terms.minute', { count: Math.round(stop.walkMinutes) }) })}`}
             >
-              {/* Same numbered pin as the driver publish map (design-system
-               *  StopPin); this screen's chrome is still legacy-light, so it
-               *  pins the fixed light palette rather than useAppTheme(). */}
-              <StopPin theme={lightPalette} index={index + 1} selected={isSelected} />
+              <StopPin theme={theme} index={index + 1} selected={isSelected} />
             </Marker>
           );
         })}
       </MapCanvas>
 
       <View style={[styles.topBar, { paddingTop: insets.top + spacing.sm }]} pointerEvents="box-none">
-        <TouchableOpacity
+        <HeaderIconButton
+          icon="chevron-back"
+          directional
           onPress={() => router.back()}
-          hitSlop={12}
-          style={styles.backBtn}
-          accessibilityRole="button"
           accessibilityLabel={t('common:actions.back')}
-        >
-          <Ionicons name="chevron-back" size={24} color={colors.gray900} />
-        </TouchableOpacity>
+        />
         <View style={styles.hint}>
-          <Text variant="bodySmall" color={colors.gray700}>
+          <Text variant="bodySmall" color={theme.inkMuted}>
             {t('search:dropoffPoint.whereToDropoff')}
           </Text>
         </View>
@@ -208,17 +198,17 @@ export default function DropoffPointScreen(): React.JSX.Element {
             accessibilityLabel={t('search:dropoffPoint.pointDetails', { label: selectedStop.label })}
           >
             <View style={styles.footerIcon}>
-              <Ionicons name="flag" size={16} color={colors.white} />
+              <Icon name="flag" size="xs" color={theme.onInk} />
             </View>
             <View style={styles.footerTextCol}>
               <Text style={styles.footerLabel}>{selectedStop.label}</Text>
-              <Text variant="bodySmall" color={colors.gray500} numberOfLines={1}>
+              <Text variant="bodySmall" color={theme.inkFaint} numberOfLines={1}>
                 {t('search:dropoffPoint.walkFromDestination', {
                   minutes: t('common:terms.minute', { count: Math.round(selectedStop.walkMinutes) }),
                 })}
               </Text>
             </View>
-            <Ionicons name="information-circle-outline" size={22} color={colors.gray400} />
+            <Icon name="information-circle-outline" size="sm" color={theme.inkFaint} />
           </TouchableOpacity>
         ) : null}
         <Button
@@ -234,15 +224,16 @@ export default function DropoffPointScreen(): React.JSX.Element {
         visible={detailStop !== null}
         onClose={() => setDetailStop(null)}
         title={detailStop?.label}
+        closeLabel={t('common:actions.close')}
       >
         {detailStop ? (
           <View style={styles.sheetContent}>
-            <Text variant="body" color={colors.gray700}>
+            <Text variant="body" color={theme.inkMuted}>
               {t('search:dropoffPoint.walkToDestination', {
                 minutes: t('common:terms.minute', { count: Math.round(detailStop.walkMinutes) }),
               })}
             </Text>
-            <Text variant="bodySmall" color={colors.gray500}>
+            <Text variant="bodySmall" color={theme.inkFaint}>
               {t('search:dropoffPoint.driverValidatedStop')}
             </Text>
             <Button
@@ -263,16 +254,17 @@ export default function DropoffPointScreen(): React.JSX.Element {
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(theme: AppPalette) {
+  return StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.gray100,
+    backgroundColor: theme.background,
   },
   loadingWrap: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.gray100,
+    backgroundColor: theme.background,
   },
   emptyWrap: {
     flex: 1,
@@ -285,9 +277,9 @@ const styles = StyleSheet.create({
     width: 16,
     height: 16,
     borderRadius: 8,
-    backgroundColor: colors.primary,
+    backgroundColor: theme.ink,
     borderWidth: 2,
-    borderColor: colors.white,
+    borderColor: theme.surface,
   },
   topBar: {
     position: 'absolute',
@@ -303,10 +295,10 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: colors.white,
+    backgroundColor: theme.surface,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: colors.gray900,
+    shadowColor: theme.ink,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 6,
@@ -316,23 +308,23 @@ const styles = StyleSheet.create({
     margin: spacing.md,
   },
   hint: {
-    backgroundColor: colors.white,
+    backgroundColor: theme.surface,
     borderRadius: radii.full,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    shadowColor: colors.gray900,
+    shadowColor: theme.ink,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 6,
     elevation: 2,
   },
   footer: {
-    backgroundColor: colors.white,
+    backgroundColor: theme.surface,
     borderTopLeftRadius: radii['2xl'],
     borderTopRightRadius: radii['2xl'],
     padding: spacing.lg,
     gap: spacing.md,
-    shadowColor: colors.gray900,
+    shadowColor: theme.ink,
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.08,
     shadowRadius: 12,
@@ -347,7 +339,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: colors.primary,
+    backgroundColor: theme.ink,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -357,7 +349,7 @@ const styles = StyleSheet.create({
   footerLabel: {
     fontSize: typography.fontSize.md,
     fontWeight: typography.fontWeight.bold,
-    color: colors.gray900,
+    color: theme.ink,
   },
   cta: {
     width: '100%',
@@ -367,3 +359,4 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.lg,
   },
 });
+}

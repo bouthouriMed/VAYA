@@ -31,7 +31,6 @@ import {
   spacing,
   radii,
   typography,
-  colors,
   haptics,
   regionForPoints,
   lightMapStyle,
@@ -42,6 +41,8 @@ import {
   type AppPalette,
   type MapRegion,
   addDays,
+  ScreenHeader,
+  HeaderIconButton,
 } from '@vaya/design-system';
 import { router, useFocusEffect } from 'expo-router';
 import type { SupportedLocale } from '@vaya/config';
@@ -163,39 +164,19 @@ function formatDepartureDayLabel(
   return formatDate(date, loc, { weekday: 'short', day: 'numeric', month: 'short' });
 }
 
-// --- Local, theme-aware building blocks -----------------------------------
-// Mirrors the pattern the rider search flow's Stitch rebuild established
-// (search/composer.tsx, bookings/confirmed.tsx): hand-rolled header/CTA
-// chrome driven by `useAppTheme()`, rather than the old static-token
-// ScreenHeader/StepProgress/Button primitives, which haven't been migrated.
-// Kept local to this file (not promoted to @vaya/design-system) since
-// nothing outside this wizard needs them yet.
+// --- Local building blocks -------------------------------------------------
 
-function StepHeader({
-  theme,
-  title,
-  onBack,
-}: {
-  theme: AppPalette;
-  title: string;
-  onBack: () => void;
-}): React.JSX.Element {
+function StepHeader({ title, onBack }: { title: string; onBack: () => void }): React.JSX.Element {
   const { t } = useTranslation('common');
   return (
-    <View style={styles.headerRow}>
-      <TouchableOpacity
-        onPress={onBack}
-        hitSlop={12}
-        accessibilityRole="button"
-        accessibilityLabel={t('actions.back')}
-      >
-        <Icon name="arrow-back" size="sm" color={theme.ink} />
-      </TouchableOpacity>
-      <Text variant="h3" color={theme.ink} numberOfLines={1} style={styles.headerTitle}>
-        {title}
-      </Text>
-      <View style={styles.headerSpacer} />
-    </View>
+    <ScreenHeader
+      transparent
+      bordered={false}
+      onBack={onBack}
+      backLabel={t('actions.back')}
+      title={title}
+      style={styles.stepHeader}
+    />
   );
 }
 
@@ -1290,7 +1271,7 @@ export default function PublishTabScreen(): React.JSX.Element {
     return (
       <View style={[styles.container, { backgroundColor: theme.background }]}>
         <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
-          <StepHeader theme={theme} title={stepTitles.route} onBack={handleWizardBack} />
+          <StepHeader title={stepTitles.route} onBack={handleWizardBack} />
         </View>
 
         <View style={styles.routeMapSection}>
@@ -1367,7 +1348,7 @@ export default function PublishTabScreen(): React.JSX.Element {
     return (
       <View style={[styles.container, { backgroundColor: theme.background }]}>
         <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
-          <StepHeader theme={theme} title={stepTitles.price} onBack={handleWizardBack} />
+          <StepHeader title={stepTitles.price} onBack={handleWizardBack} />
         </View>
 
         <Animated.View style={[styles.priceBody, stepMotionStyle]}>
@@ -1454,7 +1435,7 @@ export default function PublishTabScreen(): React.JSX.Element {
     return (
       <View style={[styles.container, { backgroundColor: theme.background }]}>
         <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
-          <StepHeader theme={theme} title={stepTitles.review} onBack={handleWizardBack} />
+          <StepHeader title={stepTitles.review} onBack={handleWizardBack} />
         </View>
 
         <ScrollView contentContainerStyle={styles.reviewContent}>
@@ -1634,8 +1615,8 @@ export default function PublishTabScreen(): React.JSX.Element {
                   </View>
                 ) : (
                   <View style={styles.lockedRow}>
-                    <Icon name="lock-closed-outline" size="xs" color={colors.warningDark} />
-                    <Text variant="bodySmall" color={colors.warningDark}>
+                    <Icon name="lock-closed-outline" size="xs" color={theme.warning} />
+                    <Text variant="bodySmall" color={theme.warning}>
                       {t('driver:publish.reviewStep.afterVerification')}
                     </Text>
                   </View>
@@ -1776,8 +1757,8 @@ export default function PublishTabScreen(): React.JSX.Element {
               {verificationSheetCopy.description}
             </Text>
             <View style={styles.verificationPill}>
-              <Icon name="hourglass-outline" size="xs" color={colors.warningDark} />
-              <Text variant="bodySmall" color={colors.warningDark}>
+              <Icon name="hourglass-outline" size="xs" color={theme.warning} />
+              <Text variant="bodySmall" color={theme.warning}>
                 {verificationSheetCopy.pillLabel}
               </Text>
             </View>
@@ -1918,7 +1899,10 @@ export default function PublishTabScreen(): React.JSX.Element {
           // already looking while they drag — not buried in the card below,
           // which is reserved for the confirm action alone.
           <View style={[styles.selectionTopBar, { paddingTop: insets.top + spacing.sm }]} pointerEvents="box-none">
-            <TouchableOpacity
+            <HeaderIconButton
+              icon="chevron-back"
+              directional
+              accessibilityLabel={t('common:actions.back')}
               onPress={() => {
                 if (mapMode === 'stops') {
                   setMapMode('dropoff');
@@ -1939,13 +1923,7 @@ export default function PublishTabScreen(): React.JSX.Element {
                 if (routeOptions.length > 0) setStep('route');
                 setMapMode('none');
               }}
-              hitSlop={12}
-              style={[styles.roundBtn, { backgroundColor: theme.surface, shadowColor: theme.ink }]}
-              accessibilityRole="button"
-              accessibilityLabel={t('common:actions.back')}
-            >
-              <Icon name="arrow-back" size="sm" color={theme.ink} />
-            </TouchableOpacity>
+            />
             <GlassSurface theme={theme} scheme={scheme} radius="lg" style={styles.selectionInstructionCard}>
               <Text variant="label" color={theme.ink}>
                 {mapMode === 'stops'
@@ -2378,17 +2356,6 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     paddingHorizontal: spacing.md,
   },
-  roundBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 2,
-  },
   selectionInstructionCard: {
     flex: 1,
     padding: spacing.md,
@@ -2501,17 +2468,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.sm,
   },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  headerTitle: {
-    flex: 1,
-    textAlign: 'center',
-  },
-  headerSpacer: {
-    width: spacing.xl,
+  stepHeader: {
+    paddingHorizontal: 0,
+    paddingTop: 0,
   },
   loadingWrap: {
     flex: 1,
@@ -2892,7 +2851,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
-    backgroundColor: colors.warningLight,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
     borderRadius: radii.full,

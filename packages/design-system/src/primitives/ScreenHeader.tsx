@@ -156,7 +156,60 @@ export function ScreenHeader({
   );
 }
 
+interface LargeTitleHeaderProps {
+  title: string;
+  subtitle?: string;
+  /** Right-aligned actions (`HeaderIconButton`s, a `NotificationBell`). */
+  right?: React.ReactNode;
+  /** The device's top safe-area inset; omit inside a SafeAreaView. */
+  topInset?: number;
+  style?: StyleProp<ViewStyle>;
+}
+
+/**
+ * The one header for a tab's root screen (Trajets, Messages): a
+ * left-aligned display-serif title with an optional one-line subtitle and
+ * trailing actions. Pushed screens use `ScreenHeader` instead.
+ */
+export function LargeTitleHeader({ title, subtitle, right, topInset = 0, style }: LargeTitleHeaderProps): React.JSX.Element {
+  const { colors: theme } = useAppTheme();
+  return (
+    <View style={[styles.largeContainer, { paddingTop: topInset + spacing.md }, style]}>
+      <View style={styles.largeRow}>
+        <View style={styles.largeTitleCol} accessibilityRole="header">
+          <Text variant="headlineDisplay" color={theme.ink}>
+            {title}
+          </Text>
+          {subtitle ? (
+            <Text variant="body" color={theme.inkMuted}>
+              {subtitle}
+            </Text>
+          ) : null}
+        </View>
+        {right ? <View style={styles.largeActions}>{right}</View> : null}
+      </View>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
+  largeContainer: {
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.md,
+  },
+  largeRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.md,
+  },
+  largeTitleCol: {
+    flex: 1,
+    gap: spacing.xs,
+  },
+  largeActions: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
   container: {
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.sm,

@@ -111,7 +111,10 @@
     "insuranceProof": "إثبات التأمين",
     "identitySelfie": "صورة هوية",
     "confirmTodayRide": "تحضير رحلة اليوم",
-    "viewTodayRide": "عرض رحلة اليوم"
+    "viewTodayRide": "عرض رحلة اليوم",
+    "updateError": "تعذّر حفظ التعديل. أعد المحاولة.",
+    "loadError": "تعذّر تحميل رحلاتك المنتظمة",
+    "confirmPublish": "تأكيد ونشر"
   },
   "detail": {
     "title": "حجزي",
@@ -182,5 +185,11 @@
     "in_progress": "جارٍ",
     "completed": "منتهٍ",
     "cancelled": "ملغى"
-  }
+  },
+  "pickupTitle": "نقطة الالتقاء",
+  "pickupPointLabel": "نقطة الصعود",
+  "arrived": "لقد وصلت",
+  "arrivedAt": "وصلت إلى {{place}}",
+  "ratingThanks": "شكرًا! تم إرسال تقييمك لـ{{name}}.",
+  "rateCta": "تقييم {{name}}"
 }

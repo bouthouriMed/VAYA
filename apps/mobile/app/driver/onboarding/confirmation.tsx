@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { Animated, View, StyleSheet, Easing, AccessibilityInfo, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { Text, Icon, useAppTheme, haptics, spacing, radii, colors } from '@vaya/design-system';
+import { Text, Icon, useAppTheme, haptics, spacing, radii } from '@vaya/design-system';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useGetMyDriverProfileQuery } from '../../../src/state/api';
 import { verificationDeclineReasonKey } from '../../../src/features/driver-onboarding/verificationDeclineCopy';
@@ -96,9 +96,9 @@ export default function VerificationConfirmationScreen(): React.JSX.Element {
   // Anything else (pending | under_review) falls through to the default
   // branch in the title/subtitle derivation below.
 
-  const badgeTone = isApproved ? colors.success : isResubmission || isRejected ? colors.error : colors.warning;
-  const badgeToneLight = isApproved ? colors.successLight : isResubmission || isRejected ? colors.errorLight : colors.warningLight;
-  const badgeToneDark = isApproved ? colors.successDark : isResubmission || isRejected ? colors.errorDark : colors.warningDark;
+  const badgeTone = isApproved ? theme.accent : isResubmission || isRejected ? theme.error : theme.warning;
+  const badgeToneLight = isApproved ? theme.accentGlow + '55' : isResubmission || isRejected ? theme.errorMuted : theme.warningMuted;
+  const badgeToneDark = isApproved ? theme.accentStrong : isResubmission || isRejected ? theme.error : theme.warning;
   const iconName = isApproved ? 'shield-checkmark' : isResubmission ? 'refresh' : isRejected ? 'close-circle' : 'shield-checkmark';
 
   let title: string;

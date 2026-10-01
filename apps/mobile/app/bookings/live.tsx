@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { View, StyleSheet, ActivityIndicator, type LayoutChangeEvent } from 'react-native';
+import { View, StyleSheet, type LayoutChangeEvent } from 'react-native';
 import { Marker, MarkerAnimated, AnimatedRegion, type LatLng } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -14,6 +14,8 @@ import {
   Text,
   Icon,
   Button,
+  HeaderIconButton,
+  SkeletonText,
   MapCanvas,
   MapRoute,
   PickupPin,
@@ -53,7 +55,7 @@ function toneForTrackingStatus(status: TrackingStatus, theme: ReturnType<typeof 
     case 'live':
       return theme.accent;
     case 'stale':
-      return theme.warning ?? '#B08A4E';
+      return theme.warning;
     case 'unavailable':
       return theme.error;
     default:
@@ -277,15 +279,23 @@ export default function LiveScreen(): React.JSX.Element {
           ) : null}
         </MapCanvas>
 
+        <View style={[styles.backButton, { top: insets.top + spacing.sm }]}>
+          <HeaderIconButton
+            icon="chevron-back"
+            directional
+            onPress={() => (router.canGoBack() ? router.back() : router.replace('/(tabs)/trips'))}
+            accessibilityLabel={t('common:actions.back')}
+          />
+        </View>
+
         {trackingIssueReported && !issueBannerDismissed ? (
-          <View style={[styles.floatingBanner, { backgroundColor: theme.surface, borderColor: theme.warning ?? theme.outline }]}>
-            <Icon name="warning-outline" size="sm" color={theme.warning ?? theme.error} />
+          <View style={[styles.floatingBanner, { backgroundColor: theme.surface, borderColor: theme.warning }]}>
+            <Icon name="warning-outline" size="sm" color={theme.warning} />
             <Text variant="bodySmall" color={theme.ink} style={styles.floatingBannerText}>
               {t('activeTrip:trackingIssueBanner')}
             </Text>
             <Button
-              theme={theme}
-              label={t('common:actions.close')}
+                            label={t('common:actions.close')}
               variant="ghost"
               size="sm"
               onPress={() => {
@@ -307,51 +317,43 @@ export default function LiveScreen(): React.JSX.Element {
           ]}
         >
           <View style={[styles.dragHandle, { backgroundColor: theme.outlineVariant }]} />
-          <View style={styles.headerRow}>
-            <View style={styles.headerTextRow}>
-              <TrackingStatusDot color={dotColor} />
-              <Text variant="h1" color={theme.ink}>
-                {headerLine()}
-              </Text>
-            </View>
-          {params.bookingId ? (
-            <View style={styles.headerActions}>
-              <Button
-                theme={theme}
-                label={t('common:actions.call')}
-                variant="outline"
-                size="sm"
-                accessibilityLabel={t('common:actions.call', { name: driverName.split(' ')[0] })}
-                onPress={call}
-                disabled={isCalling}
-              />
-              <Button
-                theme={theme}
-                label={t('common:actions.message')}
-                variant="outline"
-                size="sm"
-                accessibilityLabel={t('common:actions.message', { name: driverName.split(' ')[0] })}
-                onPress={() =>
-                  router.push({
-                    pathname: '/conversations/[bookingId]',
-                    params: {
-                      bookingId: params.bookingId!,
-                      role: 'rider',
-                      otherPartyName: driverName,
-                    },
-                  })
-                }
-              />
-            </View>
-          ) : null}
-        </View>
+          <View style={styles.headerTextRow}>
+            <TrackingStatusDot color={dotColor} />
+            <Text variant="h3" color={theme.ink} style={styles.headerText}>
+              {headerLine()}
+            </Text>
+          </View>
         <Text variant="body" color={theme.inkMuted}>
           {trackingState?.destination.label ?? params.destinationLabel ?? ''}
         </Text>
-
-        {!trackingState ? (
-          <ActivityIndicator size="small" color={theme.accent} style={styles.loading} />
+        {params.bookingId ? (
+          <View style={styles.headerActions}>
+            <Button
+              label={t('common:actions.call')}
+              icon="call-outline"
+              variant="secondary"
+              accessibilityLabel={t('common:actions.call', { name: driverName.split(' ')[0] })}
+              onPress={call}
+              disabled={isCalling}
+              style={styles.headerAction}
+            />
+            <Button
+              label={t('common:actions.message')}
+              icon="chatbubble-outline"
+              variant="secondary"
+              accessibilityLabel={t('common:actions.message', { name: driverName.split(' ')[0] })}
+              onPress={() =>
+                router.push({
+                  pathname: '/conversations/[bookingId]',
+                  params: { bookingId: params.bookingId!, role: 'rider', otherPartyName: driverName },
+                })
+              }
+              style={styles.headerAction}
+            />
+          </View>
         ) : null}
+
+        {!trackingState ? <SkeletonText variant="bodySmall" width="60%" /> : null}
         {connectionState === 'unauthorized' ? (
           <Text variant="bodySmall" color={theme.error} style={styles.errorText}>
             {t('activeTrip:unauthorized')}
@@ -361,8 +363,7 @@ export default function LiveScreen(): React.JSX.Element {
         {params.bookingId ? (
           <View style={styles.tripActions}>
             <Button
-              theme={theme}
-              label={t('activeTrip:noShowReport')}
+                            label={t('activeTrip:noShowReport')}
               variant="ghost"
               size="sm"
               onPress={() => setReportingNoShow(true)}
@@ -376,8 +377,7 @@ export default function LiveScreen(): React.JSX.Element {
                 pending -> pickup -> live chain). */}
             {!trip || trip.status === 'scheduled' ? (
               <Button
-                theme={theme}
-                label={t('activeTrip:cancel')}
+                                label={t('activeTrip:cancel')}
                 variant="ghost"
                 size="sm"
                 onPress={() => setCancelling(true)}
@@ -475,29 +475,29 @@ const styles = StyleSheet.create({
     borderRadius: 2,
     marginBottom: spacing.sm,
   },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: spacing.sm,
-  },
   headerTextRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    flexShrink: 1,
+  },
+  headerText: {
+    flex: 1,
   },
   headerActions: {
     flexDirection: 'row',
-    gap: spacing.xs,
+    gap: spacing.sm,
+    marginTop: spacing.sm,
+  },
+  headerAction: {
+    flex: 1,
+  },
+  backButton: {
+    position: 'absolute',
+    left: spacing.lg,
   },
   tripActions: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginTop: spacing.sm,
-  },
-  loading: {
-    alignSelf: 'flex-start',
-    marginTop: spacing.xs,
   },
   errorText: {
     marginTop: spacing.xs,

@@ -21,6 +21,7 @@ import {
   haptics,
   spacing,
   radii,
+  ScreenHeader,
 } from '@vaya/design-system';
 import { router } from 'expo-router';
 import { useAppDispatch, useAppSelector } from '../../../src/state/store';
@@ -80,20 +81,14 @@ export default function VehicleStepScreen(): React.JSX.Element {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
-        <View style={styles.headerRow}>
-          <TouchableOpacity
-            onPress={() => router.back()}
-            hitSlop={12}
-            accessibilityRole="button"
-            accessibilityLabel={t('onboarding.index.back')}
-          >
-            <Icon name="arrow-back" size="sm" color={theme.ink} />
-          </TouchableOpacity>
-          <Text variant="caption" color={theme.inkFaint} style={styles.headerStepLabel}>
-            {t('onboarding.vehicle.stepLabel', { current: 1, total: TOTAL_STEPS })}
-          </Text>
-          <View style={styles.headerSpacer} />
-        </View>
+        <ScreenHeader
+          transparent
+          bordered={false}
+          onBack={() => router.back()}
+          backLabel={t('onboarding.index.back')}
+          title={t('onboarding.vehicle.stepLabel', { current: 1, total: TOTAL_STEPS })}
+          style={styles.headerBar}
+        />
         <StepProgress currentStep={1} totalSteps={TOTAL_STEPS} theme={theme} />
       </View>
 
@@ -210,23 +205,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  headerBar: {
+    paddingHorizontal: 0,
+  },
   header: {
     paddingHorizontal: spacing.lg,
     gap: spacing.md,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  headerStepLabel: {
-    flex: 1,
-    textAlign: 'center',
-    textTransform: 'uppercase',
-    letterSpacing: 1.5,
-  },
-  headerSpacer: {
-    width: spacing.xl,
   },
   content: {
     padding: spacing.lg,

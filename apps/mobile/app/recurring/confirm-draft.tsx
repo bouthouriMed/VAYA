@@ -1,13 +1,16 @@
 import { useEffect, useState } from 'react';
-import { View, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import {
   Button,
   FieldCard,
   FieldRow,
   PriceRangeStepper,
+  ScreenHeader,
+  StateView,
   Text,
-  colors,
+  useAppTheme,
   spacing,
   haptics,
 } from '@vaya/design-system';
@@ -27,6 +30,7 @@ import {
   formatTimeWindow,
 } from '../../src/features/recurring/recurringHelpers';
 import { useTranslation } from 'react-i18next';
+import { usePriceStepperProps } from '../../src/features/driver-publish/usePriceStepperProps';
 
 /**
  * Driver auto-draft confirmation flow
@@ -47,7 +51,10 @@ import { useTranslation } from 'react-i18next';
  * endpoint.
  */
 export default function ConfirmAutoDraftScreen(): React.JSX.Element {
-  const { t } = useTranslation('booking');
+  const { t } = useTranslation(['booking', 'common', 'driver']);
+  const insets = useSafeAreaInsets();
+  const { colors: theme } = useAppTheme();
+  const priceStepperProps = usePriceStepperProps();
   const { patternId } = useLocalSearchParams<{ patternId: string }>();
   const { data: patterns } = useListMyRecurringPatternsQuery();
   const pattern = patterns?.find((p) => p.id === patternId) ?? null;
@@ -88,7 +95,7 @@ export default function ConfirmAutoDraftScreen(): React.JSX.Element {
         setPrice(ride.pricing.recommended);
       })
       .catch(() => {
-        setErrorMessage(t('recurring.draftError'));
+        setErrorMessage(t('booking:recurring.draftError'));
       })
       .finally(() => setIsDrafting(false));
     // Deliberately runs only when the pattern/vehicle first become
@@ -110,79 +117,86 @@ export default function ConfirmAutoDraftScreen(): React.JSX.Element {
       router.replace('/(tabs)/trips');
     } catch {
       haptics.error();
-      setErrorMessage(t('recurring.publishError'));
+      setErrorMessage(t('booking:recurring.publishError'));
     }
   }
 
-  if (isProfileLoading || !pattern) {
-    return (
-      <View style={styles.loadingWrap}>
-        <ActivityIndicator size="large" color={colors.secondary} />
-      </View>
-    );
-  }
+  const header = (
+    <ScreenHeader
+      topInset={insets.top}
+      onBack={() => router.back()}
+      backLabel={t('common:actions.back')}
+      title={t('booking:recurring.confirmTitle')}
+    />
+  );
 
-  if (!vehicle) {
+  if (isProfileLoading || !pattern || !vehicle) {
     return (
-      <View style={styles.container}>
-        <Text variant="bodySmall" color={colors.error} style={styles.padded}>
-          {t('recurring.noVehicleError')}
-        </Text>
+      <View style={[styles.container, { backgroundColor: theme.background }]}>
+        {header}
+        {isProfileLoading || !pattern ? (
+          <StateView status="loading" skeleton="detail" />
+        ) : (
+          <StateView
+            status="empty"
+            iconName="car-outline"
+            title={t('booking:recurring.noVehicleError')}
+            actionLabel={t('common:actions.back')}
+            onAction={() => router.back()}
+          />
+        )}
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text variant="h3">{t('recurring.confirmTitle')}</Text>
-        <Text variant="bodySmall" color={colors.gray600}>
-          {t('recurring.confirmDescription')}
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
+      {header}
+      <View style={styles.body}>
+        <Text variant="bodySmall" color={theme.inkMuted}>
+          {t('booking:recurring.confirmDescription')}
         </Text>
-      </View>
 
-      <FieldCard>
-        <FieldRow label={t('recurring.departure')} value={pattern.originLabel} dotColor={colors.secondary} />
-        <FieldRow label={t('recurring.arrival')} value={pattern.destinationLabel} dotColor={colors.primary} dotFilled={false} />
-        <FieldRow
-          label={t('recurring.usualSchedule')}
-          value={`${formatDaysOfWeek(pattern.daysOfWeekMask, t)} · ${formatTimeWindow(pattern.timeWindowStart, pattern.timeWindowEnd)}`}
-          last
-        />
-      </FieldCard>
+        <FieldCard>
+          <FieldRow label={t('booking:recurring.departure')} value={pattern.originLabel} />
+          <FieldRow label={t('booking:recurring.arrival')} value={pattern.destinationLabel} dotColor={theme.ink} dotFilled={false} />
+          <FieldRow
+            label={t('booking:recurring.usualSchedule')}
+            value={`${formatDaysOfWeek(pattern.daysOfWeekMask, t)} · ${formatTimeWindow(pattern.timeWindowStart, pattern.timeWindowEnd)}`}
+            last
+          />
+        </FieldCard>
 
-      {isDrafting || !pricing ? (
-        <View style={styles.loadingWrap}>
-          <ActivityIndicator size="large" color={colors.secondary} />
-        </View>
-      ) : (
-        <View style={styles.priceBody}>
+        {isDrafting || !pricing ? (
+          <StateView status="loading" skeleton="cards" />
+        ) : (
           <PriceRangeStepper
             min={pricing.min}
             max={pricing.max}
             recommended={pricing.recommended}
             value={price}
             onChange={setPrice}
+            label={t('driver:publish.priceStep.contributionLabel')}
+            {...priceStepperProps}
           />
-        </View>
-      )}
+        )}
 
-      {errorMessage ? (
-        <Text variant="bodySmall" color={colors.error} align="center">
-          {errorMessage}
-        </Text>
-      ) : null}
+        {errorMessage ? (
+          <Text variant="bodySmall" color={theme.error} align="center">
+            {errorMessage}
+          </Text>
+        ) : null}
+      </View>
 
-      <View style={styles.footer}>
+      <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.lg }]}>
         <Button
-          label="Confirmer et publier"
+          label={t('booking:recurring.confirmPublish')}
           size="lg"
           loading={isUpdatingPrice || isPublishing}
           disabled={!rideId || !pricing}
           onPress={() => void handleConfirm()}
-          style={styles.cta}
         />
-        <Button label="Annuler" variant="ghost" size="lg" onPress={() => router.back()} style={styles.cta} />
+        <Button label={t('common:actions.cancel')} variant="ghost" onPress={() => router.back()} />
       </View>
     </View>
   );
@@ -191,29 +205,14 @@ export default function ConfirmAutoDraftScreen(): React.JSX.Element {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.gray100,
+  },
+  body: {
+    flex: 1,
     padding: spacing.lg,
     gap: spacing.lg,
   },
-  loadingWrap: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  header: {
-    gap: spacing.xs,
-  },
-  priceBody: {
-    gap: spacing.md,
-  },
   footer: {
-    gap: spacing.sm,
-    marginTop: 'auto',
-  },
-  cta: {
-    width: '100%',
-  },
-  padded: {
-    padding: spacing.lg,
+    gap: spacing.xs,
+    paddingHorizontal: spacing.lg,
   },
 });

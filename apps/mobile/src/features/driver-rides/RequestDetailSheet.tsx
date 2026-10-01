@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, ActivityIndicator, Modal } from 'react-native';
 import { Marker, Polyline } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
 import {
   BottomSheet,
   Badge,
@@ -19,6 +18,7 @@ import {
   radii,
   haptics,
   regionForPoints,
+  HeaderIconButton,
 } from '@vaya/design-system';
 import { useTranslation } from 'react-i18next';
 import { router } from 'expo-router';
@@ -536,15 +536,13 @@ export function RequestDetailSheet({
           </View>
         </View>
 
-        <TouchableOpacity
-          style={[styles.routeModalClose, { top: insets.top + spacing.sm, backgroundColor: theme.surface }]}
-          onPress={() => setFullscreenMapOpen(false)}
-          hitSlop={12}
-          accessibilityRole="button"
-          accessibilityLabel={t('driver:rides.rideDetail.close')}
-        >
-          <Ionicons name="close" size={22} color={theme.ink} />
-        </TouchableOpacity>
+        <View style={[styles.routeModalClose, { top: insets.top + spacing.sm }]}>
+          <HeaderIconButton
+            icon="close"
+            onPress={() => setFullscreenMapOpen(false)}
+            accessibilityLabel={t('driver:rides.rideDetail.close')}
+          />
+        </View>
       </View>
     </Modal>
     </>

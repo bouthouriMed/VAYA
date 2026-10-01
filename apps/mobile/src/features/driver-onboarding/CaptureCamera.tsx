@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Svg, { Circle, Path } from 'react-native-svg';
 import { useTranslation } from 'react-i18next';
-import { Text, Icon, StepProgress, useToast, useAppTheme, haptics, spacing, radii, ABSOLUTE_FILL_OBJECT, type IconName } from '@vaya/design-system';
+import { Text, Icon, StepProgress, useToast, useAppTheme, haptics, spacing, radii, ABSOLUTE_FILL_OBJECT, type IconName, ScreenHeader } from '@vaya/design-system';
 
 export type CaptureGuideShape = 'document' | 'face';
 
@@ -174,13 +174,14 @@ export function CaptureCamera({
     return (
       <View style={[styles.container, { backgroundColor: theme.background }]}>
         <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
-          <View style={styles.headerRow}>
-            <View style={styles.headerSpacer} />
-            <Text variant="h3" color={theme.ink} numberOfLines={1} style={styles.headerTitle}>
-              {title}
-            </Text>
-            <View style={styles.headerSpacer} />
-          </View>
+        <ScreenHeader
+          transparent
+          bordered={false}
+          onBack={onBack}
+          backLabel={t('onboarding.capture.back')}
+          title={title}
+          style={styles.headerBar}
+        />
         </View>
 
         <View style={styles.body}>
@@ -360,6 +361,9 @@ export function CaptureCamera({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  headerBar: {
+    paddingHorizontal: 0,
   },
   header: {
     paddingHorizontal: spacing.lg,

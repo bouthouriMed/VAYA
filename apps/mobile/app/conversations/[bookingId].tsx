@@ -23,6 +23,7 @@ import {
   haptics,
   spacing,
   radii,
+  HeaderIconButton,
 } from '@vaya/design-system';
 import {
   useGetMeQuery,
@@ -152,14 +153,12 @@ export default function ConversationScreen(): React.JSX.Element {
     >
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
-        <TouchableOpacity
+        <HeaderIconButton
+          icon="chevron-back"
+          directional
           onPress={() => router.back()}
-          hitSlop={12}
-          accessibilityRole="button"
           accessibilityLabel={t('common:actions.back')}
-        >
-          <Icon name="chevron-back" size="md" color={theme.ink} />
-        </TouchableOpacity>
+        />
 
         <TouchableOpacity
           style={styles.headerIdentity}

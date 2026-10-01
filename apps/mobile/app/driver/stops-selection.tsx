@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { View, StyleSheet, TextInput, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { Text, Icon, Button, useAppTheme, haptics, spacing, radii } from '@vaya/design-system';
+import { Text, Icon, Button, useAppTheme, haptics, spacing, radii, ScreenHeader } from '@vaya/design-system';
 import { router, useLocalSearchParams } from 'expo-router';
 import {
   useGetCityDetourCandidatesQuery,
@@ -190,21 +189,13 @@ export default function StopsSelectionScreen(): React.JSX.Element {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
-        <TouchableOpacity
-          onPress={() => router.back()}
-          hitSlop={12}
-          style={[styles.roundBtn, { backgroundColor: theme.surface, shadowColor: theme.ink }]}
-          accessibilityRole="button"
-          accessibilityLabel={t('common:actions.back')}
-        >
-          <Ionicons name="arrow-back" size={20} color={theme.ink} />
-        </TouchableOpacity>
-        <Text variant="h3" color={theme.ink} numberOfLines={1} style={styles.headerTitle}>
-          {t('driver:publish.stopsStep.chooseCityTitle')}
-        </Text>
-        <View style={styles.headerSpacer} />
-      </View>
+      <ScreenHeader
+        topInset={insets.top}
+        onBack={() => router.back()}
+        backLabel={t('common:actions.back')}
+        title={t('driver:publish.stopsStep.chooseCityTitle')}
+        bordered={false}
+      />
 
       <View style={styles.content}>
         <View style={[styles.searchWrap, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
@@ -378,31 +369,6 @@ function SelectableRow({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.md,
-  },
-  roundBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 2,
-  },
-  headerTitle: {
-    flex: 1,
-    textAlign: 'center',
-  },
-  headerSpacer: {
-    width: 40,
   },
   content: {
     flex: 1,

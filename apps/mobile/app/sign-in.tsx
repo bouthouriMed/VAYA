@@ -25,6 +25,7 @@ import {
   typography,
   haptics,
   ABSOLUTE_FILL_OBJECT,
+  HeaderIconButton,
 } from '@vaya/design-system';
 import { router, Redirect } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -185,17 +186,12 @@ export default function SignInScreen(): React.JSX.Element {
         <View pointerEvents="none" style={styles.glowBottom} />
 
         <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
-          <TouchableOpacity
-            onPress={() =>
-              router.canGoBack() ? router.back() : router.replace('/(tabs)/explore')
-            }
-            hitSlop={12}
-            style={styles.closeBtn}
-            accessibilityRole="button"
+          <HeaderIconButton
+            icon="close"
+            tone="overlay"
+            onPress={() => (router.canGoBack() ? router.back() : router.replace('/(tabs)/explore'))}
             accessibilityLabel={t('common:actions.close')}
-          >
-            <Ionicons name="close" size={24} color={darkPalette.ink} />
-          </TouchableOpacity>
+          />
         </View>
 
         <View style={styles.spacer} />
@@ -385,12 +381,6 @@ const styles = StyleSheet.create({
   header: {
     alignItems: 'flex-start',
     paddingHorizontal: spacing.lg,
-  },
-  closeBtn: {
-    width: 36,
-    height: 36,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   spacer: {
     flex: 1,

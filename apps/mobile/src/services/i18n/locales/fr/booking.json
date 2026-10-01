@@ -111,7 +111,10 @@
     "insuranceProof": "Attestation d'assurance",
     "identitySelfie": "Selfie d'identité",
     "confirmTodayRide": "Préparer le trajet du jour",
-    "viewTodayRide": "Voir le trajet du jour"
+    "viewTodayRide": "Voir le trajet du jour",
+    "updateError": "La modification n'a pas pu être enregistrée. Réessayez.",
+    "loadError": "Impossible de charger vos trajets réguliers",
+    "confirmPublish": "Confirmer et publier"
   },
   "detail": {
     "title": "Ma réservation",
@@ -178,5 +181,11 @@
     "in_progress": "En cours",
     "completed": "Terminé",
     "cancelled": "Annulé"
-  }
+  },
+  "pickupTitle": "Rendez-vous",
+  "pickupPointLabel": "Point de prise en charge",
+  "arrived": "Vous êtes arrivé·e",
+  "arrivedAt": "Arrivé·e à {{place}}",
+  "ratingThanks": "Merci ! Votre avis sur {{name}} a été envoyé.",
+  "rateCta": "Noter {{name}}"
 }

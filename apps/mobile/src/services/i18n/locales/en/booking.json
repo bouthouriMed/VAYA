@@ -111,7 +111,10 @@
     "insuranceProof": "Insurance proof",
     "identitySelfie": "Identity selfie",
     "confirmTodayRide": "Prepare today's ride",
-    "viewTodayRide": "View today's ride"
+    "viewTodayRide": "View today's ride",
+    "updateError": "Your change couldn't be saved. Try again.",
+    "loadError": "Couldn't load your recurring rides",
+    "confirmPublish": "Confirm and publish"
   },
   "detail": {
     "title": "My booking",
@@ -178,5 +181,11 @@
     "in_progress": "In progress",
     "completed": "Completed",
     "cancelled": "Cancelled"
-  }
+  },
+  "pickupTitle": "Meeting point",
+  "pickupPointLabel": "Pickup point",
+  "arrived": "You've arrived",
+  "arrivedAt": "Arrived in {{place}}",
+  "ratingThanks": "Thanks! Your review of {{name}} was sent.",
+  "rateCta": "Rate {{name}}"
 }

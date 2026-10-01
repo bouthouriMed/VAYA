@@ -76,14 +76,15 @@ export function MapPreview({
   pickup,
   dropoff,
   theme: themeOverride,
-  isDark = false,
+  isDark: isDarkOverride,
   routeCoordinates,
   occupancySegments,
   passengerStops,
   style,
   children,
 }: MapPreviewProps): React.JSX.Element {
-  const { colors: contextTheme } = useAppTheme();
+  const { colors: contextTheme, scheme } = useAppTheme();
+  const isDark = isDarkOverride ?? scheme === 'dark';
   const theme = themeOverride ?? contextTheme;
   const [isReady, setIsReady] = useState(false);
   const points: LatLngPoint[] = [pickup ?? origin, dropoff ?? destination]

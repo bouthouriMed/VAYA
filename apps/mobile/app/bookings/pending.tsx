@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, ScrollView, Share } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Reanimated, { FadeInDown, ZoomIn } from 'react-native-reanimated';
-import { Ionicons } from '@expo/vector-icons';
-import { Text, Icon, MapPreview, useAppTheme, haptics, spacing, radii, staggerDelay, durations } from '@vaya/design-system';
+import { Text, Icon, Button, MapPreview, ScreenHeader, useAppTheme, haptics, spacing, radii, staggerDelay, durations } from '@vaya/design-system';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { CancellationSheet } from '../../src/features/bookings/CancellationSheet';
@@ -23,7 +23,8 @@ export default function PendingScreen(): React.JSX.Element {
     destinationLat?: string;
     destinationLng?: string;
   }>();
-  const { colors: theme, scheme } = useAppTheme();
+  const { colors: theme } = useAppTheme();
+  const insets = useSafeAreaInsets();
   const driverName = params.driverName ?? t('common:terms.driver');
   const firstName = driverName.split(' ')[0]!;
   const [cancelling, setCancelling] = useState(false);
@@ -45,37 +46,23 @@ export default function PendingScreen(): React.JSX.Element {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.outlineVariant }]}>
-        <TouchableOpacity
-          onPress={() => {
-            haptics.selection();
-            router.back();
-          }}
-          hitSlop={12}
-          accessibilityRole="button"
-          accessibilityLabel={t('common:actions.back')}
-        >
-          <Ionicons name="chevron-back" size={22} color={theme.ink} />
-        </TouchableOpacity>
-        <Text variant="h3" color={theme.ink}>
-          Vaya
-        </Text>
-        <View style={{ width: 22 }} />
-      </View>
+      <ScreenHeader
+        topInset={insets.top}
+        onBack={() => router.back()}
+        backLabel={t('common:actions.back')}
+        title={t('booking:detail.title')}
+      />
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        {hasMapPoints ? (
-          <MapPreview
-            height={200}
-            origin={{ latitude: Number(params.pickupLat), longitude: Number(params.pickupLng) }}
-            destination={{ latitude: Number(params.destinationLat), longitude: Number(params.destinationLng) }}
-            isDark={scheme === 'dark'}
-          />
-        ) : (
-          <View style={[styles.mapFallback, { backgroundColor: theme.surfaceMuted }]} />
-        )}
-
         <View style={styles.content}>
+          {hasMapPoints ? (
+            <MapPreview
+              height={180}
+              origin={{ latitude: Number(params.pickupLat), longitude: Number(params.pickupLng) }}
+              destination={{ latitude: Number(params.destinationLat), longitude: Number(params.destinationLng) }}
+            />
+          ) : null}
+
           <Reanimated.View
             entering={FadeInDown.duration(durations.moderate)}
             style={[styles.statusCard, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}
@@ -231,57 +218,34 @@ export default function PendingScreen(): React.JSX.Element {
         </View>
       </ScrollView>
 
-      <View style={[styles.footer, { backgroundColor: theme.surface, borderTopColor: theme.outlineVariant }]}>
-        {/* Not in the Stitch reference (its footer is just Cancel/Share) —
-         *  kept as the primary action because it's the only entry point
-         *  into the app's real pickup → live → settlement trip-progress
-         *  flow (bookings/pickup.tsx onward); dropping it would silently
-         *  orphan working functionality, not just diverge visually. */}
-        <TouchableOpacity
-          style={[styles.footerBtn, styles.footerBtnPrimary, { backgroundColor: theme.ink }]}
-          onPress={() => {
-            haptics.selection();
-            router.push({ pathname: '/bookings/pickup', params });
-          }}
-          activeOpacity={0.85}
-          accessibilityRole="button"
-          accessibilityLabel={t('booking:driver_join', { name: firstName })}
-        >
-          <Text variant="label" color={theme.onInk}>
-            {t('booking:driver_join', { name: firstName })}
-          </Text>
-        </TouchableOpacity>
+      <View
+        style={[
+          styles.footer,
+          { backgroundColor: theme.surface, borderTopColor: theme.outlineVariant, paddingBottom: insets.bottom + spacing.lg },
+        ]}
+      >
+        <Button
+          size="lg"
+          label={t('booking:driver_join', { name: firstName })}
+          onPress={() => router.push({ pathname: '/bookings/pickup', params })}
+        />
         <View style={styles.footerRow}>
           {params.bookingId ? (
-            <TouchableOpacity
-              style={[styles.footerBtn, styles.footerBtnOutline, { borderColor: theme.outline }]}
-              onPress={() => {
-                haptics.selection();
-                setCancelling(true);
-              }}
-              activeOpacity={0.7}
-              accessibilityRole="button"
+            <Button
+              variant="outline"
+              label={t('common:actions.cancel')}
               accessibilityLabel={t('booking:cancelBooking')}
-            >
-              <Text variant="label" color={theme.ink}>
-                {t('common:actions.cancel')}
-              </Text>
-            </TouchableOpacity>
+              onPress={() => setCancelling(true)}
+              style={styles.footerBtn}
+            />
           ) : null}
-          <TouchableOpacity
-            style={[styles.footerBtn, styles.footerBtnOutline, { borderColor: theme.outline }]}
-            onPress={() => {
-              haptics.selection();
-              void handleShare();
-            }}
-            activeOpacity={0.7}
-            accessibilityRole="button"
-            accessibilityLabel={t('booking:shareDetails', { driver: driverName, pickup: params.pickupLabel ?? '', destination: params.destinationLabel ?? '', price: params.price ?? '' })}
-          >
-            <Text variant="label" color={theme.ink}>
-              {t('common:actions.share')}
-            </Text>
-          </TouchableOpacity>
+          <Button
+            variant="outline"
+            icon="share-outline"
+            label={t('common:actions.share')}
+            onPress={() => void handleShare()}
+            style={styles.footerBtn}
+          />
         </View>
       </View>
 
@@ -302,26 +266,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg,
-    paddingTop: 44,
-    paddingBottom: spacing.sm,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
   scrollContent: {
     paddingBottom: spacing['3xl'],
-  },
-  mapFallback: {
-    height: 200,
-    width: '100%',
   },
   content: {
     padding: spacing.lg,
     gap: spacing.md,
-    marginTop: -spacing['2xl'],
   },
   statusCard: {
     borderRadius: radii.xl,
@@ -460,15 +410,5 @@ const styles = StyleSheet.create({
   },
   footerBtn: {
     flex: 1,
-    height: 48,
-    borderRadius: radii.lg,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  footerBtnPrimary: {
-    height: 52,
-  },
-  footerBtnOutline: {
-    borderWidth: 1,
   },
 });
