@@ -346,7 +346,7 @@ exports[`DriverListCard snapshots > renders a regular (non-best-match) card in t
                   "justifyContent": "center",
                 },
                 {
-                  "backgroundColor": "#5B7D8A",
+                  "backgroundColor": "#E4EDFB",
                   "borderRadius": 16,
                   "height": 32,
                   "width": 32,
@@ -358,11 +358,10 @@ exports[`DriverListCard snapshots > renders a regular (non-best-match) card in t
               style={
                 [
                   {
-                    "color": "#FFFFFF",
                     "fontWeight": "600",
                   },
                   {
-                    "color": undefined,
+                    "color": "#14201B",
                     "fontSize": 14,
                   },
                 ]
@@ -845,7 +844,7 @@ exports[`DriverListCard snapshots > renders in the dark theme 1`] = `
                   "justifyContent": "center",
                 },
                 {
-                  "backgroundColor": "#5B7D8A",
+                  "backgroundColor": "#E4EDFB",
                   "borderRadius": 16,
                   "height": 32,
                   "width": 32,
@@ -857,11 +856,10 @@ exports[`DriverListCard snapshots > renders in the dark theme 1`] = `
               style={
                 [
                   {
-                    "color": "#FFFFFF",
                     "fontWeight": "600",
                   },
                   {
-                    "color": undefined,
+                    "color": "#14201B",
                     "fontSize": 14,
                   },
                 ]
@@ -1344,7 +1342,7 @@ exports[`DriverListCard snapshots > renders the "MEILLEURE CORRESPONDANCE" best-
                   "justifyContent": "center",
                 },
                 {
-                  "backgroundColor": "#5B7D8A",
+                  "backgroundColor": "#E4EDFB",
                   "borderRadius": 16,
                   "height": 32,
                   "width": 32,
@@ -1356,11 +1354,10 @@ exports[`DriverListCard snapshots > renders the "MEILLEURE CORRESPONDANCE" best-
               style={
                 [
                   {
-                    "color": "#FFFFFF",
                     "fontWeight": "600",
                   },
                   {
-                    "color": undefined,
+                    "color": "#14201B",
                     "fontSize": 14,
                   },
                 ]
@@ -1889,7 +1886,7 @@ exports[`DriverListCard snapshots > renders with a real dropoff place/walk label
                   "justifyContent": "center",
                 },
                 {
-                  "backgroundColor": "#5B7D8A",
+                  "backgroundColor": "#E4EDFB",
                   "borderRadius": 16,
                   "height": 32,
                   "width": 32,
@@ -1901,11 +1898,10 @@ exports[`DriverListCard snapshots > renders with a real dropoff place/walk label
               style={
                 [
                   {
-                    "color": "#FFFFFF",
                     "fontWeight": "600",
                   },
                   {
-                    "color": undefined,
+                    "color": "#14201B",
                     "fontSize": 14,
                   },
                 ]
@@ -2347,7 +2343,7 @@ exports[`DriverListCard snapshots > renders with fellow-passenger avatars instea
                   "justifyContent": "center",
                 },
                 {
-                  "backgroundColor": "#5B7D8A",
+                  "backgroundColor": "#E4EDFB",
                   "borderRadius": 16,
                   "height": 32,
                   "width": 32,
@@ -2359,11 +2355,10 @@ exports[`DriverListCard snapshots > renders with fellow-passenger avatars instea
               style={
                 [
                   {
-                    "color": "#FFFFFF",
                     "fontWeight": "600",
                   },
                   {
-                    "color": undefined,
+                    "color": "#14201B",
                     "fontSize": 14,
                   },
                 ]
@@ -2451,7 +2446,7 @@ exports[`DriverListCard snapshots > renders with fellow-passenger avatars instea
                   "justifyContent": "center",
                 },
                 {
-                  "backgroundColor": "#2E3B42",
+                  "backgroundColor": "#E4EDFB",
                   "borderRadius": 12,
                   "height": 24,
                   "width": 24,
@@ -2463,11 +2458,10 @@ exports[`DriverListCard snapshots > renders with fellow-passenger avatars instea
               style={
                 [
                   {
-                    "color": "#FFFFFF",
                     "fontWeight": "600",
                   },
                   {
-                    "color": undefined,
+                    "color": "#14201B",
                     "fontSize": 10,
                   },
                 ]
@@ -2487,7 +2481,7 @@ exports[`DriverListCard snapshots > renders with fellow-passenger avatars instea
                   "justifyContent": "center",
                 },
                 {
-                  "backgroundColor": "#2E3B42",
+                  "backgroundColor": "#E4EDFB",
                   "borderRadius": 12,
                   "height": 24,
                   "width": 24,
@@ -2499,11 +2493,10 @@ exports[`DriverListCard snapshots > renders with fellow-passenger avatars instea
               style={
                 [
                   {
-                    "color": "#FFFFFF",
                     "fontWeight": "600",
                   },
                   {
-                    "color": undefined,
+                    "color": "#14201B",
                     "fontSize": 10,
                   },
                 ]
@@ -2527,7 +2520,8 @@ exports[`EmptyState snapshots > renders the genuine no-results state with a noti
     {
       "alignItems": "center",
       "gap": 8,
-      "padding": 20,
+      "paddingHorizontal": 20,
+      "paddingVertical": 32,
     }
   }
 >
@@ -2535,18 +2529,16 @@ exports[`EmptyState snapshots > renders the genuine no-results state with a noti
     style={
       [
         {
-          "fontSize": 24,
+          "fontSize": 18,
           "fontWeight": "600",
-          "lineHeight": 28.799999999999997,
+          "lineHeight": 23.400000000000002,
         },
         {
-          "color": "#26333A",
+          "color": "#14201B",
           "textAlign": "center",
           "writingDirection": "ltr",
         },
-        {
-          "marginTop": 4,
-        },
+        undefined,
       ]
     }
   >
@@ -2565,23 +2557,34 @@ exports[`EmptyState snapshots > renders the genuine no-results state with a noti
     onPress={[Function]}
     style={[Function]}
   >
-    <Text
+    <View
       style={
-        [
-          {
-            "fontWeight": "600",
-          },
-          {
-            "fontSize": 16,
-          },
-          {
-            "color": "#2E3B42",
-          },
-        ]
+        {
+          "alignItems": "center",
+          "flexDirection": "row",
+          "gap": 8,
+        }
       }
     >
-      Me notifier si un trajet apparaît
-    </Text>
+      <Text
+        numberOfLines={1}
+        style={
+          [
+            {
+              "fontWeight": "600",
+            },
+            {
+              "fontSize": 16,
+            },
+            {
+              "color": "#14201B",
+            },
+          ]
+        }
+      >
+        Me notifier si un trajet apparaît
+      </Text>
+    </View>
   </Pressable>
 </View>
 `;
@@ -2594,7 +2597,8 @@ exports[`EmptyState snapshots > renders with the action disabled once notified 1
     {
       "alignItems": "center",
       "gap": 8,
-      "padding": 20,
+      "paddingHorizontal": 20,
+      "paddingVertical": 32,
     }
   }
 >
@@ -2602,18 +2606,16 @@ exports[`EmptyState snapshots > renders with the action disabled once notified 1
     style={
       [
         {
-          "fontSize": 24,
+          "fontSize": 18,
           "fontWeight": "600",
-          "lineHeight": 28.799999999999997,
+          "lineHeight": 23.400000000000002,
         },
         {
-          "color": "#26333A",
+          "color": "#14201B",
           "textAlign": "center",
           "writingDirection": "ltr",
         },
-        {
-          "marginTop": 4,
-        },
+        undefined,
       ]
     }
   >
@@ -2632,23 +2634,34 @@ exports[`EmptyState snapshots > renders with the action disabled once notified 1
     onPress={[Function]}
     style={[Function]}
   >
-    <Text
+    <View
       style={
-        [
-          {
-            "fontWeight": "600",
-          },
-          {
-            "fontSize": 16,
-          },
-          {
-            "color": "#2E3B42",
-          },
-        ]
+        {
+          "alignItems": "center",
+          "flexDirection": "row",
+          "gap": 8,
+        }
       }
     >
-      Nous vous préviendrons ✓
-    </Text>
+      <Text
+        numberOfLines={1}
+        style={
+          [
+            {
+              "fontWeight": "600",
+            },
+            {
+              "fontSize": 16,
+            },
+            {
+              "color": "#8B93A3",
+            },
+          ]
+        }
+      >
+        Nous vous préviendrons ✓
+      </Text>
+    </View>
   </Pressable>
 </View>
 `;
@@ -2663,13 +2676,9 @@ exports[`ReviewCard snapshots > renders a partial (non-5-star) rating themed 1`]
         "borderRadius": 16,
         "gap": 4,
         "padding": 12,
-        "shadowColor": "#26333A",
       },
-      false,
       {
         "backgroundColor": "#FFFFFF",
-      },
-      {
         "borderColor": "#E4EDFB",
         "borderWidth": 1,
       },
@@ -2696,7 +2705,7 @@ exports[`ReviewCard snapshots > renders a partial (non-5-star) rating themed 1`]
             "justifyContent": "center",
           },
           {
-            "backgroundColor": "#5B7D8A",
+            "backgroundColor": "#E4EDFB",
             "borderRadius": 16,
             "height": 32,
             "width": 32,
@@ -2708,11 +2717,10 @@ exports[`ReviewCard snapshots > renders a partial (non-5-star) rating themed 1`]
         style={
           [
             {
-              "color": "#FFFFFF",
               "fontWeight": "600",
             },
             {
-              "color": undefined,
+              "color": "#14201B",
               "fontSize": 14,
             },
           ]
@@ -2816,7 +2824,7 @@ exports[`ReviewCard snapshots > renders a partial (non-5-star) rating themed 1`]
               "fontSize": 12,
             },
             {
-              "color": "#D3E1F5",
+              "color": "#8B93A3",
             },
           ]
         }
@@ -2830,7 +2838,206 @@ exports[`ReviewCard snapshots > renders a partial (non-5-star) rating themed 1`]
               "fontSize": 12,
             },
             {
-              "color": "#D3E1F5",
+              "color": "#8B93A3",
+            },
+          ]
+        }
+      >
+        ★
+      </Text>
+    </View>
+  </View>
+  <Text
+    style={
+      [
+        {
+          "fontSize": 14,
+          "lineHeight": 19,
+        },
+        {
+          "color": "#5B6572",
+        },
+      ]
+    }
+  >
+    Trajet impeccable, très ponctuel.
+  </Text>
+</View>
+`;
+
+exports[`ReviewCard snapshots > renders from the context theme when no theme prop is given 1`] = `
+<View
+  accessibilityLabel="Emma L., 5 sur 5 étoiles, il y a 2 jours. Trajet impeccable, très ponctuel."
+  accessible={true}
+  style={
+    [
+      {
+        "borderRadius": 16,
+        "gap": 4,
+        "padding": 12,
+      },
+      {
+        "backgroundColor": "#FFFFFF",
+        "borderColor": "#E4EDFB",
+        "borderWidth": 1,
+      },
+    ]
+  }
+>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "flexDirection": "row",
+        "gap": 8,
+      }
+    }
+  >
+    <View
+      accessibilityLabel="Photo de Emma L."
+      accessibilityRole="image"
+      accessible={true}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
+          {
+            "backgroundColor": "#E4EDFB",
+            "borderRadius": 16,
+            "height": 32,
+            "width": 32,
+          },
+        ]
+      }
+    >
+      <Text
+        style={
+          [
+            {
+              "fontWeight": "600",
+            },
+            {
+              "color": "#14201B",
+              "fontSize": 14,
+            },
+          ]
+        }
+      >
+        EL
+      </Text>
+    </View>
+    <View
+      style={
+        {
+          "flex": 1,
+        }
+      }
+    >
+      <Text
+        style={
+          [
+            {
+              "fontSize": 14,
+              "fontWeight": "600",
+            },
+            {
+              "color": "#14201B",
+            },
+          ]
+        }
+      >
+        Emma L.
+      </Text>
+      <Text
+        style={
+          [
+            {
+              "fontSize": 12,
+            },
+            {
+              "color": "#8B93A3",
+            },
+          ]
+        }
+      >
+        il y a 2 jours
+      </Text>
+    </View>
+    <View
+      accessibilityElementsHidden={true}
+      importantForAccessibility="no-hide-descendants"
+      style={
+        {
+          "flexDirection": "row",
+        }
+      }
+    >
+      <Text
+        style={
+          [
+            {
+              "fontSize": 12,
+            },
+            {
+              "color": "#2E9E6C",
+            },
+          ]
+        }
+      >
+        ★
+      </Text>
+      <Text
+        style={
+          [
+            {
+              "fontSize": 12,
+            },
+            {
+              "color": "#2E9E6C",
+            },
+          ]
+        }
+      >
+        ★
+      </Text>
+      <Text
+        style={
+          [
+            {
+              "fontSize": 12,
+            },
+            {
+              "color": "#2E9E6C",
+            },
+          ]
+        }
+      >
+        ★
+      </Text>
+      <Text
+        style={
+          [
+            {
+              "fontSize": 12,
+            },
+            {
+              "color": "#2E9E6C",
+            },
+          ]
+        }
+      >
+        ★
+      </Text>
+      <Text
+        style={
+          [
+            {
+              "fontSize": 12,
+            },
+            {
+              "color": "#2E9E6C",
             },
           ]
         }
@@ -2867,13 +3074,9 @@ exports[`ReviewCard snapshots > renders themed (light palette) once a screen pas
         "borderRadius": 16,
         "gap": 4,
         "padding": 12,
-        "shadowColor": "#26333A",
       },
-      false,
       {
         "backgroundColor": "#FFFFFF",
-      },
-      {
         "borderColor": "#E4EDFB",
         "borderWidth": 1,
       },
@@ -2900,7 +3103,7 @@ exports[`ReviewCard snapshots > renders themed (light palette) once a screen pas
             "justifyContent": "center",
           },
           {
-            "backgroundColor": "#5B7D8A",
+            "backgroundColor": "#E4EDFB",
             "borderRadius": 16,
             "height": 32,
             "width": 32,
@@ -2912,11 +3115,10 @@ exports[`ReviewCard snapshots > renders themed (light palette) once a screen pas
         style={
           [
             {
-              "color": "#FFFFFF",
               "fontWeight": "600",
             },
             {
-              "color": undefined,
+              "color": "#14201B",
               "fontSize": 14,
             },
           ]
@@ -3052,209 +3254,6 @@ exports[`ReviewCard snapshots > renders themed (light palette) once a screen pas
         },
         {
           "color": "#5B6572",
-        },
-      ]
-    }
-  >
-    Trajet impeccable, très ponctuel.
-  </Text>
-</View>
-`;
-
-exports[`ReviewCard snapshots > renders with the legacy static palette when no theme prop is given 1`] = `
-<View
-  accessibilityLabel="Emma L., 5 sur 5 étoiles, il y a 2 jours. Trajet impeccable, très ponctuel."
-  accessible={true}
-  style={
-    [
-      {
-        "borderRadius": 16,
-        "gap": 4,
-        "padding": 12,
-        "shadowColor": "#26333A",
-      },
-      {
-        "elevation": 1,
-      },
-      {
-        "backgroundColor": "#FFFFFF",
-      },
-      null,
-    ]
-  }
->
-  <View
-    style={
-      {
-        "alignItems": "center",
-        "flexDirection": "row",
-        "gap": 8,
-      }
-    }
-  >
-    <View
-      accessibilityLabel="Photo de Emma L."
-      accessibilityRole="image"
-      accessible={true}
-      style={
-        [
-          {
-            "alignItems": "center",
-            "justifyContent": "center",
-          },
-          {
-            "backgroundColor": "#5B7D8A",
-            "borderRadius": 16,
-            "height": 32,
-            "width": 32,
-          },
-        ]
-      }
-    >
-      <Text
-        style={
-          [
-            {
-              "color": "#FFFFFF",
-              "fontWeight": "600",
-            },
-            {
-              "color": undefined,
-              "fontSize": 14,
-            },
-          ]
-        }
-      >
-        EL
-      </Text>
-    </View>
-    <View
-      style={
-        {
-          "flex": 1,
-        }
-      }
-    >
-      <Text
-        style={
-          [
-            {
-              "fontSize": 14,
-              "fontWeight": "600",
-            },
-            {
-              "color": "#26333A",
-            },
-          ]
-        }
-      >
-        Emma L.
-      </Text>
-      <Text
-        style={
-          [
-            {
-              "fontSize": 12,
-            },
-            {
-              "color": "#9B9788",
-            },
-          ]
-        }
-      >
-        il y a 2 jours
-      </Text>
-    </View>
-    <View
-      accessibilityElementsHidden={true}
-      importantForAccessibility="no-hide-descendants"
-      style={
-        {
-          "flexDirection": "row",
-        }
-      }
-    >
-      <Text
-        style={
-          [
-            {
-              "fontSize": 12,
-            },
-            {
-              "color": "#7FA491",
-            },
-          ]
-        }
-      >
-        ★
-      </Text>
-      <Text
-        style={
-          [
-            {
-              "fontSize": 12,
-            },
-            {
-              "color": "#7FA491",
-            },
-          ]
-        }
-      >
-        ★
-      </Text>
-      <Text
-        style={
-          [
-            {
-              "fontSize": 12,
-            },
-            {
-              "color": "#7FA491",
-            },
-          ]
-        }
-      >
-        ★
-      </Text>
-      <Text
-        style={
-          [
-            {
-              "fontSize": 12,
-            },
-            {
-              "color": "#7FA491",
-            },
-          ]
-        }
-      >
-        ★
-      </Text>
-      <Text
-        style={
-          [
-            {
-              "fontSize": 12,
-            },
-            {
-              "color": "#7FA491",
-            },
-          ]
-        }
-      >
-        ★
-      </Text>
-    </View>
-  </View>
-  <Text
-    style={
-      [
-        {
-          "fontSize": 14,
-          "lineHeight": 19,
-        },
-        {
-          "color": "#57616A",
         },
       ]
     }

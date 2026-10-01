@@ -135,7 +135,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
             ]
           }
         >
-          21 août, 23:00
+          21 août · 23:00
         </Text>
       </View>
       <TouchableOpacity
@@ -268,7 +268,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
               </Text>
             </View>
             <TouchableOpacity
-              accessibilityLabel="Mehdi Gharbi, common:terms.departure 23:28, 5.5 DT"
+              accessibilityLabel="Mehdi Gharbi, common:terms.departure 23:28, 5,50 DT"
               accessibilityRole="button"
               activeOpacity={0.85}
               onPress={[Function]}
@@ -339,7 +339,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                       ]
                     }
                   >
-                    5.5 DT
+                    5,50 DT
                   </Text>
                 </View>
                 <View
@@ -501,7 +501,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                               ]
                             }
                           >
-                            common:terms.minute
+                            search:walk.suffix
                           </Text>
                         </View>
                       </View>
@@ -705,7 +705,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                               "justifyContent": "center",
                             },
                             {
-                              "backgroundColor": "#5B7D8A",
+                              "backgroundColor": "#E4EDFB",
                               "borderRadius": 16,
                               "height": 32,
                               "width": 32,
@@ -717,11 +717,10 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                           style={
                             [
                               {
-                                "color": "#FFFFFF",
                                 "fontWeight": "600",
                               },
                               {
-                                "color": undefined,
+                                "color": "#14201B",
                                 "fontSize": 14,
                               },
                             ]
@@ -837,7 +836,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
         >
           <View>
             <TouchableOpacity
-              accessibilityLabel="Youssef Trabelsi, common:terms.departure 23:58, 5.5 DT"
+              accessibilityLabel="Youssef Trabelsi, common:terms.departure 23:58, 5,50 DT"
               accessibilityRole="button"
               activeOpacity={0.85}
               onPress={[Function]}
@@ -908,7 +907,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                       ]
                     }
                   >
-                    5.5 DT
+                    5,50 DT
                   </Text>
                 </View>
                 <View
@@ -1070,7 +1069,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                               ]
                             }
                           >
-                            common:terms.minute
+                            search:walk.suffix
                           </Text>
                         </View>
                       </View>
@@ -1274,7 +1273,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                               "justifyContent": "center",
                             },
                             {
-                              "backgroundColor": "#7FA491",
+                              "backgroundColor": "#E4EDFB",
                               "borderRadius": 16,
                               "height": 32,
                               "width": 32,
@@ -1286,11 +1285,10 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                           style={
                             [
                               {
-                                "color": "#FFFFFF",
                                 "fontWeight": "600",
                               },
                               {
-                                "color": undefined,
+                                "color": "#14201B",
                                 "fontSize": 14,
                               },
                             ]
@@ -1537,7 +1535,7 @@ exports[`search/results.tsx snapshots > renders the genuine empty state with a n
             ]
           }
         >
-          21 août, 23:00
+          21 août · 23:00
         </Text>
       </View>
       <TouchableOpacity
@@ -1614,7 +1612,8 @@ exports[`search/results.tsx snapshots > renders the genuine empty state with a n
             {
               "alignItems": "center",
               "gap": 8,
-              "padding": 20,
+              "paddingHorizontal": 20,
+              "paddingVertical": 32,
             }
           }
         >
@@ -1622,18 +1621,16 @@ exports[`search/results.tsx snapshots > renders the genuine empty state with a n
             style={
               [
                 {
-                  "fontSize": 24,
+                  "fontSize": 18,
                   "fontWeight": "600",
-                  "lineHeight": 28.799999999999997,
+                  "lineHeight": 23.400000000000002,
                 },
                 {
-                  "color": "#26333A",
+                  "color": "#14201B",
                   "textAlign": "center",
                   "writingDirection": "ltr",
                 },
-                {
-                  "marginTop": 4,
-                },
+                undefined,
               ]
             }
           >
@@ -1652,23 +1649,34 @@ exports[`search/results.tsx snapshots > renders the genuine empty state with a n
             onPress={[Function]}
             style={[Function]}
           >
-            <Text
+            <View
               style={
-                [
-                  {
-                    "fontWeight": "600",
-                  },
-                  {
-                    "fontSize": 16,
-                  },
-                  {
-                    "color": "#2E3B42",
-                  },
-                ]
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 8,
+                }
               }
             >
-              search:results.notifyMe
-            </Text>
+              <Text
+                numberOfLines={1}
+                style={
+                  [
+                    {
+                      "fontWeight": "600",
+                    },
+                    {
+                      "fontSize": 16,
+                    },
+                    {
+                      "color": "#14201B",
+                    },
+                  ]
+                }
+              >
+                search:results.notifyMe
+              </Text>
+            </View>
           </Pressable>
         </View>
       </View>
@@ -1824,7 +1832,7 @@ exports[`search/results.tsx snapshots > renders the loading skeleton 1`] = `
             ]
           }
         >
-          21 août, 23:00
+          21 août · 23:00
         </Text>
       </View>
       <TouchableOpacity
@@ -1900,9 +1908,7 @@ exports[`search/results.tsx snapshots > renders the loading skeleton 1`] = `
           style={
             [
               {
-                "backgroundColor": "#EAE7DC",
-              },
-              {
+                "backgroundColor": "#E4EDFB",
                 "borderRadius": 4,
                 "height": 140,
                 "opacity": AnimatedValue {
@@ -1922,9 +1928,7 @@ exports[`search/results.tsx snapshots > renders the loading skeleton 1`] = `
           style={
             [
               {
-                "backgroundColor": "#EAE7DC",
-              },
-              {
+                "backgroundColor": "#E4EDFB",
                 "borderRadius": 4,
                 "height": 140,
                 "opacity": AnimatedValue {
@@ -1944,9 +1948,7 @@ exports[`search/results.tsx snapshots > renders the loading skeleton 1`] = `
           style={
             [
               {
-                "backgroundColor": "#EAE7DC",
-              },
-              {
+                "backgroundColor": "#E4EDFB",
                 "borderRadius": 4,
                 "height": 140,
                 "opacity": AnimatedValue {
@@ -2113,7 +2115,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
             ]
           }
         >
-          21 août, 23:00
+          21 août · 23:00
         </Text>
       </View>
       <TouchableOpacity
@@ -2293,7 +2295,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
               </Text>
             </View>
             <TouchableOpacity
-              accessibilityLabel="Mehdi Gharbi, common:terms.departure 23:28, 5.5 DT"
+              accessibilityLabel="Mehdi Gharbi, common:terms.departure 23:28, 5,50 DT"
               accessibilityRole="button"
               activeOpacity={0.85}
               onPress={[Function]}
@@ -2364,7 +2366,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                       ]
                     }
                   >
-                    5.5 DT
+                    5,50 DT
                   </Text>
                 </View>
                 <View
@@ -2526,7 +2528,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                               ]
                             }
                           >
-                            common:terms.minute
+                            search:walk.suffix
                           </Text>
                         </View>
                       </View>
@@ -2730,7 +2732,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                               "justifyContent": "center",
                             },
                             {
-                              "backgroundColor": "#5B7D8A",
+                              "backgroundColor": "#E4EDFB",
                               "borderRadius": 16,
                               "height": 32,
                               "width": 32,
@@ -2742,11 +2744,10 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                           style={
                             [
                               {
-                                "color": "#FFFFFF",
                                 "fontWeight": "600",
                               },
                               {
-                                "color": undefined,
+                                "color": "#14201B",
                                 "fontSize": 14,
                               },
                             ]
@@ -2862,7 +2863,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
         >
           <View>
             <TouchableOpacity
-              accessibilityLabel="Youssef Trabelsi, common:terms.departure 23:58, 5.5 DT"
+              accessibilityLabel="Youssef Trabelsi, common:terms.departure 23:58, 5,50 DT"
               accessibilityRole="button"
               activeOpacity={0.85}
               onPress={[Function]}
@@ -2933,7 +2934,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                       ]
                     }
                   >
-                    5.5 DT
+                    5,50 DT
                   </Text>
                 </View>
                 <View
@@ -3095,7 +3096,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                               ]
                             }
                           >
-                            common:terms.minute
+                            search:walk.suffix
                           </Text>
                         </View>
                       </View>
@@ -3299,7 +3300,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                               "justifyContent": "center",
                             },
                             {
-                              "backgroundColor": "#7FA491",
+                              "backgroundColor": "#E4EDFB",
                               "borderRadius": 16,
                               "height": 32,
                               "width": 32,
@@ -3311,11 +3312,10 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                           style={
                             [
                               {
-                                "color": "#FFFFFF",
                                 "fontWeight": "600",
                               },
                               {
-                                "color": undefined,
+                                "color": "#14201B",
                                 "fontSize": 14,
                               },
                             ]

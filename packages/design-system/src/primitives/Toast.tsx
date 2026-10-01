@@ -18,7 +18,9 @@ import Animated, {
 import { Text } from './Text';
 import { Icon, type IconName } from './Icon';
 import { haptics } from '../utils/haptics';
-import { colors, radii, spacing, elevation } from '../tokens/index';
+import { radii, spacing, elevation } from '../tokens/index';
+import { useAppTheme } from '../theme/AppThemeProvider';
+import type { AppPalette } from '../theme/palette';
 
 type ToastTone = 'success' | 'info' | 'warning' | 'error';
 
@@ -45,22 +47,21 @@ const SWIPE_DISMISS_PX = 80;
 const SWIPE_DISMISS_VELOCITY = 700;
 const ENTER_SPRING = { damping: 16, stiffness: 220, overshootClamping: false };
 
-const TONE_COLORS: Record<ToastTone, string> = {
-  success: colors.success,
-  info: colors.info,
-  warning: colors.warning,
-  error: colors.error,
-};
-
-// Translucent tints of TONE_COLORS for the leading icon badge — same
-// hand-tinted-rgba convention colors.ts already uses for mapCorridorFill /
-// mapRouteLineFaint, not a new pattern.
-const TONE_TINTS: Record<ToastTone, string> = {
-  success: 'rgba(88, 117, 102, 0.18)',
-  info: 'rgba(91, 125, 138, 0.18)',
-  warning: 'rgba(176, 138, 78, 0.18)',
-  error: 'rgba(166, 92, 78, 0.18)',
-};
+/** Toasts are an inverse surface (`ink` fill, `onInk` text) in both
+ *  themes, so they read as a transient overlay above any screen. Tone
+ *  colors come from the active palette. */
+function toneColor(theme: AppPalette, tone: ToastTone): string {
+  switch (tone) {
+    case 'success':
+      return theme.accent;
+    case 'info':
+      return theme.info;
+    case 'warning':
+      return theme.warning;
+    case 'error':
+      return theme.error;
+  }
+}
 
 const TONE_ICONS: Record<ToastTone, IconName> = {
   success: 'checkmark-circle',
@@ -138,8 +139,9 @@ function ToastCard({ toast, isTop, onRequestClose, onRemove }: ToastCardProps): 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [toast.closing, restingOpacity]);
 
+  const { colors: theme } = useAppTheme();
   const tone = toast.tone ?? 'info';
-  const toneColor = TONE_COLORS[tone];
+  const color = toneColor(theme, tone);
 
   // Swipe away in any direction to dismiss — the mobile-native gesture for
   // clearing a notification, instead of requiring a precise tap. Small
@@ -180,12 +182,12 @@ function ToastCard({ toast, isTop, onRequestClose, onRemove }: ToastCardProps): 
           accessibilityRole="alert"
           accessibilityLiveRegion="polite"
           accessibilityLabel={toast.message}
-          style={[styles.card, elevation?.lg]}
+          style={[styles.card, elevation?.lg, { backgroundColor: theme.ink, shadowColor: theme.ink }]}
         >
-          <View style={[styles.iconBadge, { backgroundColor: TONE_TINTS[tone] }]}>
-            <Icon name={TONE_ICONS[tone]} size="sm" color={toneColor} />
+          <View style={[styles.iconBadge, { backgroundColor: color + '2E' }]}>
+            <Icon name={TONE_ICONS[tone]} size="sm" color={color} />
           </View>
-          <Text variant="bodySmall" color={colors.white} style={styles.message}>
+          <Text variant="bodySmall" color={theme.onInk} style={styles.message}>
             {toast.message}
           </Text>
           <Pressable
@@ -195,7 +197,7 @@ function ToastCard({ toast, isTop, onRequestClose, onRemove }: ToastCardProps): 
             accessibilityLabel="Fermer"
             style={styles.closeTarget}
           >
-            <Icon name="close" size="xs" color={colors.gray400} />
+            <Icon name="close" size="xs" color={theme.onInk} />
           </Pressable>
         </Pressable>
       </Animated.View>
@@ -319,12 +321,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     minHeight: 48,
-    backgroundColor: colors.primaryDark,
     borderRadius: radii.xl,
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
     gap: spacing.sm,
-    shadowColor: colors.black,
   },
   iconBadge: {
     width: spacing['3xl'],

@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { colors, spacing, radii, typography, elevation } from '../tokens/index';
+import { spacing, radii, typography } from '../tokens/index';
+import { useAppTheme } from '../theme/AppThemeProvider';
 
 interface StatTileProps {
   /** Consumer-supplied icon element — keeps the design system decoupled from any one icon library. */
@@ -10,15 +11,16 @@ interface StatTileProps {
 }
 
 export function StatTile({ icon, label, value }: StatTileProps): React.JSX.Element {
+  const { colors: theme } = useAppTheme();
   return (
     <View
-      style={[styles.tile, elevation?.sm]}
+      style={[styles.tile, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}
       accessible
       accessibilityLabel={`${value} ${label}`}
     >
       {icon}
-      <Text style={styles.value}>{value}</Text>
-      <Text style={styles.label} numberOfLines={1}>
+      <Text style={[styles.value, { color: theme.ink }]}>{value}</Text>
+      <Text style={[styles.label, { color: theme.inkMuted }]} numberOfLines={1}>
         {label}
       </Text>
     </View>
@@ -28,21 +30,18 @@ export function StatTile({ icon, label, value }: StatTileProps): React.JSX.Eleme
 const styles = StyleSheet.create({
   tile: {
     flex: 1,
-    backgroundColor: colors.white,
     borderRadius: radii.xl,
-    paddingVertical: spacing.sm,
+    borderWidth: 1,
+    paddingVertical: spacing.md,
     paddingHorizontal: spacing.xs,
     alignItems: 'center',
     gap: 2,
-    shadowColor: colors.gray900,
   },
   value: {
-    fontSize: typography.fontSize.md,
+    fontSize: typography.fontSize.lg,
     fontWeight: typography.fontWeight.bold,
-    color: colors.gray900,
   },
   label: {
-    fontSize: 10,
-    color: colors.gray600,
+    fontSize: typography.fontSize.xs,
   },
 });

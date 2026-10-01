@@ -48,10 +48,8 @@ exports[`PassengerSheet snapshots > renders the stepper stage with the given val
         style={
           [
             {
-              "backgroundColor": "#FFFFFF",
               "borderTopLeftRadius": 24,
               "borderTopRightRadius": 24,
-              "shadowColor": "#26333A",
             },
             {
               "elevation": 8,
@@ -93,7 +91,6 @@ exports[`PassengerSheet snapshots > renders the stepper stage with the given val
             style={
               [
                 {
-                  "backgroundColor": "#DDD9CA",
                   "borderRadius": 9999,
                   "height": 4,
                   "width": 40,
@@ -108,66 +105,70 @@ exports[`PassengerSheet snapshots > renders the stepper stage with the given val
             style={
               {
                 "alignItems": "center",
+                "alignSelf": "stretch",
                 "flexDirection": "row",
-                "paddingHorizontal": 20,
+                "gap": 8,
+                "paddingHorizontal": 16,
               }
             }
           >
             <View
               style={
                 {
-                  "width": 32,
+                  "width": 40,
                 }
               }
             />
             <Text
+              numberOfLines={2}
               style={
                 [
                   {
-                    "fontSize": 24,
+                    "fontSize": 18,
                     "fontWeight": "600",
-                    "lineHeight": 28.799999999999997,
+                    "lineHeight": 23.400000000000002,
                   },
                   {
-                    "color": "#26333A",
-                    "textAlign": undefined,
+                    "color": "#14201B",
+                    "textAlign": "center",
                     "writingDirection": "ltr",
                   },
-                  [
-                    {
-                      "flex": 1,
-                      "textAlign": "center",
-                    },
-                    {
-                      "color": "#14201B",
-                    },
-                  ],
+                  {
+                    "flex": 1,
+                  },
                 ]
               }
             >
               Passagers
             </Text>
-            <TouchableOpacity
-              accessibilityLabel="Fermer"
-              accessibilityRole="button"
-              hitSlop={
-                {
-                  "bottom": 8,
-                  "left": 8,
-                  "right": 8,
-                  "top": 8,
-                }
+            <View
+              style={
+                [
+                  {
+                    "width": 40,
+                  },
+                  {
+                    "alignItems": "flex-end",
+                  },
+                ]
               }
-              onPress={[Function]}
             >
-              <Ionicons
-                accessibilityElementsHidden={true}
-                color="#14201B"
-                importantForAccessibility="no-hide-descendants"
-                name="close"
-                size={20}
-              />
-            </TouchableOpacity>
+              <Pressable
+                accessibilityLabel="Fermer"
+                accessibilityRole="button"
+                hitSlop={8}
+                onPress={[Function]}
+                style={[Function]}
+              >
+                <Ionicons
+                  accessibilityElementsHidden={true}
+                  color="#14201B"
+                  importantForAccessibility="no-hide-descendants"
+                  name="close"
+                  size={20}
+                />
+              </Pressable>
+            </View>
           </View>
         </View>
         <View
@@ -269,7 +270,7 @@ exports[`PassengerSheet snapshots > renders the stepper stage with the given val
                       "lineHeight": 31.049999999999997,
                     },
                     {
-                      "color": "#26333A",
+                      "color": "#14201B",
                       "textAlign": undefined,
                       "writingDirection": "ltr",
                     },
@@ -343,7 +344,7 @@ exports[`PassengerSheet snapshots > renders the stepper stage with the given val
                     "lineHeight": 21,
                   },
                   {
-                    "color": "#26333A",
+                    "color": "#14201B",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -369,7 +370,7 @@ exports[`PassengerSheet snapshots > renders the stepper stage with the given val
                     "lineHeight": 18,
                   },
                   {
-                    "color": "#26333A",
+                    "color": "#14201B",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -418,7 +419,7 @@ exports[`PassengerSheet snapshots > renders the stepper stage with the given val
                     "lineHeight": 21,
                   },
                   {
-                    "color": "#26333A",
+                    "color": "#14201B",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },

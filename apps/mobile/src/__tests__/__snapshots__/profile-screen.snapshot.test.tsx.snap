@@ -65,7 +65,6 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
               style={
                 [
                   {
-                    "color": "#FFFFFF",
                     "fontWeight": "600",
                   },
                   {
@@ -1309,20 +1308,22 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
             style={
               [
                 {
+                  "borderRadius": 16,
+                  "borderWidth": 1,
+                },
+                {
                   "backgroundColor": "#FFFFFF",
-                  "borderRadius": 24,
-                  "shadowColor": "#26333A",
-                },
-                {
-                  "elevation": 2,
-                },
-                {
+                  "borderColor": "#E4EDFB",
                   "padding": 16,
                 },
-                {
-                  "backgroundColor": "#FFFFFF",
-                  "gap": 12,
-                },
+                [
+                  {
+                    "gap": 12,
+                  },
+                  {
+                    "backgroundColor": "#FFFFFF",
+                  },
+                ],
               ]
             }
           >
@@ -1330,9 +1331,9 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
               style={
                 [
                   {
-                    "fontSize": 24,
+                    "fontSize": 18,
                     "fontWeight": "600",
-                    "lineHeight": 28.799999999999997,
+                    "lineHeight": 23.400000000000002,
                   },
                   {
                     "color": "#14201B",
@@ -1371,7 +1372,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                 {
                   "alignItems": "center",
                   "flexDirection": "row",
-                  "gap": 16,
+                  "gap": 8,
                   "justifyContent": "flex-end",
                   "marginTop": 8,
                 }
@@ -1380,33 +1381,44 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
               <Pressable
                 accessibilityLabel="Annuler"
                 accessibilityRole="button"
-                onPress={[Function]}
-                style={
+                accessibilityState={
                   {
-                    "paddingHorizontal": 8,
-                    "paddingVertical": 8,
+                    "busy": false,
+                    "disabled": false,
                   }
                 }
+                disabled={false}
+                onPress={[Function]}
+                style={[Function]}
               >
-                <Text
+                <View
                   style={
-                    [
-                      {
-                        "fontSize": 14,
-                        "fontWeight": "500",
-                        "lineHeight": 21,
-                      },
-                      {
-                        "color": "#5B6572",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      undefined,
-                    ]
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 8,
+                    }
                   }
                 >
-                  Annuler
-                </Text>
+                  <Text
+                    numberOfLines={1}
+                    style={
+                      [
+                        {
+                          "fontWeight": "600",
+                        },
+                        {
+                          "fontSize": 16,
+                        },
+                        {
+                          "color": "#14201B",
+                        },
+                      ]
+                    }
+                  >
+                    Annuler
+                  </Text>
+                </View>
               </Pressable>
               <Pressable
                 accessibilityLabel="profile:logout.cta"
@@ -1421,23 +1433,34 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                 onPress={[Function]}
                 style={[Function]}
               >
-                <Text
+                <View
                   style={
-                    [
-                      {
-                        "fontWeight": "600",
-                      },
-                      {
-                        "fontSize": 16,
-                      },
-                      {
-                        "color": "#FFFFFF",
-                      },
-                    ]
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 8,
+                    }
                   }
                 >
-                  profile:logout.cta
-                </Text>
+                  <Text
+                    numberOfLines={1}
+                    style={
+                      [
+                        {
+                          "fontWeight": "600",
+                        },
+                        {
+                          "fontSize": 16,
+                        },
+                        {
+                          "color": "#B5503C",
+                        },
+                      ]
+                    }
+                  >
+                    profile:logout.cta
+                  </Text>
+                </View>
               </Pressable>
             </View>
           </View>
@@ -1498,20 +1521,22 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
             style={
               [
                 {
+                  "borderRadius": 16,
+                  "borderWidth": 1,
+                },
+                {
                   "backgroundColor": "#FFFFFF",
-                  "borderRadius": 24,
-                  "shadowColor": "#26333A",
-                },
-                {
-                  "elevation": 2,
-                },
-                {
+                  "borderColor": "#E4EDFB",
                   "padding": 16,
                 },
-                {
-                  "backgroundColor": "#FFFFFF",
-                  "gap": 12,
-                },
+                [
+                  {
+                    "gap": 12,
+                  },
+                  {
+                    "backgroundColor": "#FFFFFF",
+                  },
+                ],
               ]
             }
           >
@@ -1519,9 +1544,9 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
               style={
                 [
                   {
-                    "fontSize": 24,
+                    "fontSize": 18,
                     "fontWeight": "600",
-                    "lineHeight": 28.799999999999997,
+                    "lineHeight": 23.400000000000002,
                   },
                   {
                     "color": "#14201B",
@@ -1560,7 +1585,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                 {
                   "alignItems": "center",
                   "flexDirection": "row",
-                  "gap": 16,
+                  "gap": 8,
                   "justifyContent": "flex-end",
                   "marginTop": 8,
                 }
@@ -1569,33 +1594,44 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
               <Pressable
                 accessibilityLabel="Annuler"
                 accessibilityRole="button"
-                onPress={[Function]}
-                style={
+                accessibilityState={
                   {
-                    "paddingHorizontal": 8,
-                    "paddingVertical": 8,
+                    "busy": false,
+                    "disabled": false,
                   }
                 }
+                disabled={false}
+                onPress={[Function]}
+                style={[Function]}
               >
-                <Text
+                <View
                   style={
-                    [
-                      {
-                        "fontSize": 14,
-                        "fontWeight": "500",
-                        "lineHeight": 21,
-                      },
-                      {
-                        "color": "#5B6572",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      undefined,
-                    ]
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 8,
+                    }
                   }
                 >
-                  Annuler
-                </Text>
+                  <Text
+                    numberOfLines={1}
+                    style={
+                      [
+                        {
+                          "fontWeight": "600",
+                        },
+                        {
+                          "fontSize": 16,
+                        },
+                        {
+                          "color": "#14201B",
+                        },
+                      ]
+                    }
+                  >
+                    Annuler
+                  </Text>
+                </View>
               </Pressable>
               <Pressable
                 accessibilityLabel="profile:deleteAccount.warningCta"
@@ -1610,23 +1646,34 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                 onPress={[Function]}
                 style={[Function]}
               >
-                <Text
+                <View
                   style={
-                    [
-                      {
-                        "fontWeight": "600",
-                      },
-                      {
-                        "fontSize": 16,
-                      },
-                      {
-                        "color": "#FFFFFF",
-                      },
-                    ]
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 8,
+                    }
                   }
                 >
-                  profile:deleteAccount.warningCta
-                </Text>
+                  <Text
+                    numberOfLines={1}
+                    style={
+                      [
+                        {
+                          "fontWeight": "600",
+                        },
+                        {
+                          "fontSize": 16,
+                        },
+                        {
+                          "color": "#B5503C",
+                        },
+                      ]
+                    }
+                  >
+                    profile:deleteAccount.warningCta
+                  </Text>
+                </View>
               </Pressable>
             </View>
           </View>
@@ -1687,20 +1734,22 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
             style={
               [
                 {
+                  "borderRadius": 16,
+                  "borderWidth": 1,
+                },
+                {
                   "backgroundColor": "#FFFFFF",
-                  "borderRadius": 24,
-                  "shadowColor": "#26333A",
-                },
-                {
-                  "elevation": 2,
-                },
-                {
+                  "borderColor": "#E4EDFB",
                   "padding": 16,
                 },
-                {
-                  "backgroundColor": "#FFFFFF",
-                  "gap": 12,
-                },
+                [
+                  {
+                    "gap": 12,
+                  },
+                  {
+                    "backgroundColor": "#FFFFFF",
+                  },
+                ],
               ]
             }
           >
@@ -1708,9 +1757,9 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
               style={
                 [
                   {
-                    "fontSize": 24,
+                    "fontSize": 18,
                     "fontWeight": "600",
-                    "lineHeight": 28.799999999999997,
+                    "lineHeight": 23.400000000000002,
                   },
                   {
                     "color": "#14201B",
@@ -1749,7 +1798,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                 {
                   "alignItems": "center",
                   "flexDirection": "row",
-                  "gap": 16,
+                  "gap": 8,
                   "justifyContent": "flex-end",
                   "marginTop": 8,
                 }
@@ -1758,33 +1807,44 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
               <Pressable
                 accessibilityLabel="Annuler"
                 accessibilityRole="button"
-                onPress={[Function]}
-                style={
+                accessibilityState={
                   {
-                    "paddingHorizontal": 8,
-                    "paddingVertical": 8,
+                    "busy": false,
+                    "disabled": false,
                   }
                 }
+                disabled={false}
+                onPress={[Function]}
+                style={[Function]}
               >
-                <Text
+                <View
                   style={
-                    [
-                      {
-                        "fontSize": 14,
-                        "fontWeight": "500",
-                        "lineHeight": 21,
-                      },
-                      {
-                        "color": "#5B6572",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      undefined,
-                    ]
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 8,
+                    }
                   }
                 >
-                  Annuler
-                </Text>
+                  <Text
+                    numberOfLines={1}
+                    style={
+                      [
+                        {
+                          "fontWeight": "600",
+                        },
+                        {
+                          "fontSize": 16,
+                        },
+                        {
+                          "color": "#14201B",
+                        },
+                      ]
+                    }
+                  >
+                    Annuler
+                  </Text>
+                </View>
               </Pressable>
               <Pressable
                 accessibilityLabel="profile:deleteAccount.confirmCta"
@@ -1799,23 +1859,34 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                 onPress={[Function]}
                 style={[Function]}
               >
-                <Text
+                <View
                   style={
-                    [
-                      {
-                        "fontWeight": "600",
-                      },
-                      {
-                        "fontSize": 16,
-                      },
-                      {
-                        "color": "#FFFFFF",
-                      },
-                    ]
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 8,
+                    }
                   }
                 >
-                  profile:deleteAccount.confirmCta
-                </Text>
+                  <Text
+                    numberOfLines={1}
+                    style={
+                      [
+                        {
+                          "fontWeight": "600",
+                        },
+                        {
+                          "fontSize": 16,
+                        },
+                        {
+                          "color": "#B5503C",
+                        },
+                      ]
+                    }
+                  >
+                    profile:deleteAccount.confirmCta
+                  </Text>
+                </View>
               </Pressable>
             </View>
           </View>
@@ -1876,20 +1947,22 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
             style={
               [
                 {
+                  "borderRadius": 16,
+                  "borderWidth": 1,
+                },
+                {
                   "backgroundColor": "#FFFFFF",
-                  "borderRadius": 24,
-                  "shadowColor": "#26333A",
-                },
-                {
-                  "elevation": 2,
-                },
-                {
+                  "borderColor": "#E4EDFB",
                   "padding": 16,
                 },
-                {
-                  "backgroundColor": "#FFFFFF",
-                  "gap": 12,
-                },
+                [
+                  {
+                    "gap": 12,
+                  },
+                  {
+                    "backgroundColor": "#FFFFFF",
+                  },
+                ],
               ]
             }
           >
@@ -1897,9 +1970,9 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
               style={
                 [
                   {
-                    "fontSize": 24,
+                    "fontSize": 18,
                     "fontWeight": "600",
-                    "lineHeight": 28.799999999999997,
+                    "lineHeight": 23.400000000000002,
                   },
                   {
                     "color": "#14201B",
@@ -1936,7 +2009,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                 {
                   "alignItems": "center",
                   "flexDirection": "row",
-                  "gap": 16,
+                  "gap": 8,
                   "justifyContent": "flex-end",
                   "marginTop": 8,
                 }
@@ -1945,33 +2018,44 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
               <Pressable
                 accessibilityLabel="Annuler"
                 accessibilityRole="button"
-                onPress={[Function]}
-                style={
+                accessibilityState={
                   {
-                    "paddingHorizontal": 8,
-                    "paddingVertical": 8,
+                    "busy": false,
+                    "disabled": false,
                   }
                 }
+                disabled={false}
+                onPress={[Function]}
+                style={[Function]}
               >
-                <Text
+                <View
                   style={
-                    [
-                      {
-                        "fontSize": 14,
-                        "fontWeight": "500",
-                        "lineHeight": 21,
-                      },
-                      {
-                        "color": "#5B6572",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      undefined,
-                    ]
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 8,
+                    }
                   }
                 >
-                  Annuler
-                </Text>
+                  <Text
+                    numberOfLines={1}
+                    style={
+                      [
+                        {
+                          "fontWeight": "600",
+                        },
+                        {
+                          "fontSize": 16,
+                        },
+                        {
+                          "color": "#14201B",
+                        },
+                      ]
+                    }
+                  >
+                    Annuler
+                  </Text>
+                </View>
               </Pressable>
               <Pressable
                 accessibilityLabel="common:actions.gotIt"
@@ -1986,23 +2070,34 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                 onPress={[Function]}
                 style={[Function]}
               >
-                <Text
+                <View
                   style={
-                    [
-                      {
-                        "fontWeight": "600",
-                      },
-                      {
-                        "fontSize": 16,
-                      },
-                      {
-                        "color": "#FFFFFF",
-                      },
-                    ]
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 8,
+                    }
                   }
                 >
-                  common:actions.gotIt
-                </Text>
+                  <Text
+                    numberOfLines={1}
+                    style={
+                      [
+                        {
+                          "fontWeight": "600",
+                        },
+                        {
+                          "fontSize": 16,
+                        },
+                        {
+                          "color": "#FFFFFF",
+                        },
+                      ]
+                    }
+                  >
+                    common:actions.gotIt
+                  </Text>
+                </View>
               </Pressable>
             </View>
           </View>
@@ -2090,7 +2185,6 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
               style={
                 [
                   {
-                    "color": "#FFFFFF",
                     "fontWeight": "600",
                   },
                   {
@@ -2246,9 +2340,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
           style={
             [
               {
-                "backgroundColor": "#EAE7DC",
-              },
-              {
+                "backgroundColor": "#E4EDFB",
                 "borderRadius": 9999,
                 "height": 40,
                 "opacity": AnimatedValue {
@@ -2273,9 +2365,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
             style={
               [
                 {
-                  "backgroundColor": "#EAE7DC",
-                },
-                {
+                  "backgroundColor": "#E4EDFB",
                   "borderRadius": 4,
                   "height": 9.6,
                   "opacity": AnimatedValue {
@@ -2293,9 +2383,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
             style={
               [
                 {
-                  "backgroundColor": "#EAE7DC",
-                },
-                {
+                  "backgroundColor": "#E4EDFB",
                   "borderRadius": 4,
                   "height": 8.4,
                   "opacity": AnimatedValue {
@@ -3295,20 +3383,22 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
             style={
               [
                 {
+                  "borderRadius": 16,
+                  "borderWidth": 1,
+                },
+                {
                   "backgroundColor": "#FFFFFF",
-                  "borderRadius": 24,
-                  "shadowColor": "#26333A",
-                },
-                {
-                  "elevation": 2,
-                },
-                {
+                  "borderColor": "#E4EDFB",
                   "padding": 16,
                 },
-                {
-                  "backgroundColor": "#FFFFFF",
-                  "gap": 12,
-                },
+                [
+                  {
+                    "gap": 12,
+                  },
+                  {
+                    "backgroundColor": "#FFFFFF",
+                  },
+                ],
               ]
             }
           >
@@ -3316,9 +3406,9 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
               style={
                 [
                   {
-                    "fontSize": 24,
+                    "fontSize": 18,
                     "fontWeight": "600",
-                    "lineHeight": 28.799999999999997,
+                    "lineHeight": 23.400000000000002,
                   },
                   {
                     "color": "#14201B",
@@ -3357,7 +3447,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                 {
                   "alignItems": "center",
                   "flexDirection": "row",
-                  "gap": 16,
+                  "gap": 8,
                   "justifyContent": "flex-end",
                   "marginTop": 8,
                 }
@@ -3366,33 +3456,44 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
               <Pressable
                 accessibilityLabel="Annuler"
                 accessibilityRole="button"
-                onPress={[Function]}
-                style={
+                accessibilityState={
                   {
-                    "paddingHorizontal": 8,
-                    "paddingVertical": 8,
+                    "busy": false,
+                    "disabled": false,
                   }
                 }
+                disabled={false}
+                onPress={[Function]}
+                style={[Function]}
               >
-                <Text
+                <View
                   style={
-                    [
-                      {
-                        "fontSize": 14,
-                        "fontWeight": "500",
-                        "lineHeight": 21,
-                      },
-                      {
-                        "color": "#5B6572",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      undefined,
-                    ]
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 8,
+                    }
                   }
                 >
-                  Annuler
-                </Text>
+                  <Text
+                    numberOfLines={1}
+                    style={
+                      [
+                        {
+                          "fontWeight": "600",
+                        },
+                        {
+                          "fontSize": 16,
+                        },
+                        {
+                          "color": "#14201B",
+                        },
+                      ]
+                    }
+                  >
+                    Annuler
+                  </Text>
+                </View>
               </Pressable>
               <Pressable
                 accessibilityLabel="profile:logout.cta"
@@ -3407,23 +3508,34 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                 onPress={[Function]}
                 style={[Function]}
               >
-                <Text
+                <View
                   style={
-                    [
-                      {
-                        "fontWeight": "600",
-                      },
-                      {
-                        "fontSize": 16,
-                      },
-                      {
-                        "color": "#FFFFFF",
-                      },
-                    ]
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 8,
+                    }
                   }
                 >
-                  profile:logout.cta
-                </Text>
+                  <Text
+                    numberOfLines={1}
+                    style={
+                      [
+                        {
+                          "fontWeight": "600",
+                        },
+                        {
+                          "fontSize": 16,
+                        },
+                        {
+                          "color": "#B5503C",
+                        },
+                      ]
+                    }
+                  >
+                    profile:logout.cta
+                  </Text>
+                </View>
               </Pressable>
             </View>
           </View>
@@ -3484,20 +3596,22 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
             style={
               [
                 {
+                  "borderRadius": 16,
+                  "borderWidth": 1,
+                },
+                {
                   "backgroundColor": "#FFFFFF",
-                  "borderRadius": 24,
-                  "shadowColor": "#26333A",
-                },
-                {
-                  "elevation": 2,
-                },
-                {
+                  "borderColor": "#E4EDFB",
                   "padding": 16,
                 },
-                {
-                  "backgroundColor": "#FFFFFF",
-                  "gap": 12,
-                },
+                [
+                  {
+                    "gap": 12,
+                  },
+                  {
+                    "backgroundColor": "#FFFFFF",
+                  },
+                ],
               ]
             }
           >
@@ -3505,9 +3619,9 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
               style={
                 [
                   {
-                    "fontSize": 24,
+                    "fontSize": 18,
                     "fontWeight": "600",
-                    "lineHeight": 28.799999999999997,
+                    "lineHeight": 23.400000000000002,
                   },
                   {
                     "color": "#14201B",
@@ -3546,7 +3660,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                 {
                   "alignItems": "center",
                   "flexDirection": "row",
-                  "gap": 16,
+                  "gap": 8,
                   "justifyContent": "flex-end",
                   "marginTop": 8,
                 }
@@ -3555,33 +3669,44 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
               <Pressable
                 accessibilityLabel="Annuler"
                 accessibilityRole="button"
-                onPress={[Function]}
-                style={
+                accessibilityState={
                   {
-                    "paddingHorizontal": 8,
-                    "paddingVertical": 8,
+                    "busy": false,
+                    "disabled": false,
                   }
                 }
+                disabled={false}
+                onPress={[Function]}
+                style={[Function]}
               >
-                <Text
+                <View
                   style={
-                    [
-                      {
-                        "fontSize": 14,
-                        "fontWeight": "500",
-                        "lineHeight": 21,
-                      },
-                      {
-                        "color": "#5B6572",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      undefined,
-                    ]
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 8,
+                    }
                   }
                 >
-                  Annuler
-                </Text>
+                  <Text
+                    numberOfLines={1}
+                    style={
+                      [
+                        {
+                          "fontWeight": "600",
+                        },
+                        {
+                          "fontSize": 16,
+                        },
+                        {
+                          "color": "#14201B",
+                        },
+                      ]
+                    }
+                  >
+                    Annuler
+                  </Text>
+                </View>
               </Pressable>
               <Pressable
                 accessibilityLabel="profile:deleteAccount.warningCta"
@@ -3596,23 +3721,34 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                 onPress={[Function]}
                 style={[Function]}
               >
-                <Text
+                <View
                   style={
-                    [
-                      {
-                        "fontWeight": "600",
-                      },
-                      {
-                        "fontSize": 16,
-                      },
-                      {
-                        "color": "#FFFFFF",
-                      },
-                    ]
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 8,
+                    }
                   }
                 >
-                  profile:deleteAccount.warningCta
-                </Text>
+                  <Text
+                    numberOfLines={1}
+                    style={
+                      [
+                        {
+                          "fontWeight": "600",
+                        },
+                        {
+                          "fontSize": 16,
+                        },
+                        {
+                          "color": "#B5503C",
+                        },
+                      ]
+                    }
+                  >
+                    profile:deleteAccount.warningCta
+                  </Text>
+                </View>
               </Pressable>
             </View>
           </View>
@@ -3673,20 +3809,22 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
             style={
               [
                 {
+                  "borderRadius": 16,
+                  "borderWidth": 1,
+                },
+                {
                   "backgroundColor": "#FFFFFF",
-                  "borderRadius": 24,
-                  "shadowColor": "#26333A",
-                },
-                {
-                  "elevation": 2,
-                },
-                {
+                  "borderColor": "#E4EDFB",
                   "padding": 16,
                 },
-                {
-                  "backgroundColor": "#FFFFFF",
-                  "gap": 12,
-                },
+                [
+                  {
+                    "gap": 12,
+                  },
+                  {
+                    "backgroundColor": "#FFFFFF",
+                  },
+                ],
               ]
             }
           >
@@ -3694,9 +3832,9 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
               style={
                 [
                   {
-                    "fontSize": 24,
+                    "fontSize": 18,
                     "fontWeight": "600",
-                    "lineHeight": 28.799999999999997,
+                    "lineHeight": 23.400000000000002,
                   },
                   {
                     "color": "#14201B",
@@ -3735,7 +3873,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                 {
                   "alignItems": "center",
                   "flexDirection": "row",
-                  "gap": 16,
+                  "gap": 8,
                   "justifyContent": "flex-end",
                   "marginTop": 8,
                 }
@@ -3744,33 +3882,44 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
               <Pressable
                 accessibilityLabel="Annuler"
                 accessibilityRole="button"
-                onPress={[Function]}
-                style={
+                accessibilityState={
                   {
-                    "paddingHorizontal": 8,
-                    "paddingVertical": 8,
+                    "busy": false,
+                    "disabled": false,
                   }
                 }
+                disabled={false}
+                onPress={[Function]}
+                style={[Function]}
               >
-                <Text
+                <View
                   style={
-                    [
-                      {
-                        "fontSize": 14,
-                        "fontWeight": "500",
-                        "lineHeight": 21,
-                      },
-                      {
-                        "color": "#5B6572",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      undefined,
-                    ]
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 8,
+                    }
                   }
                 >
-                  Annuler
-                </Text>
+                  <Text
+                    numberOfLines={1}
+                    style={
+                      [
+                        {
+                          "fontWeight": "600",
+                        },
+                        {
+                          "fontSize": 16,
+                        },
+                        {
+                          "color": "#14201B",
+                        },
+                      ]
+                    }
+                  >
+                    Annuler
+                  </Text>
+                </View>
               </Pressable>
               <Pressable
                 accessibilityLabel="profile:deleteAccount.confirmCta"
@@ -3785,23 +3934,34 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                 onPress={[Function]}
                 style={[Function]}
               >
-                <Text
+                <View
                   style={
-                    [
-                      {
-                        "fontWeight": "600",
-                      },
-                      {
-                        "fontSize": 16,
-                      },
-                      {
-                        "color": "#FFFFFF",
-                      },
-                    ]
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 8,
+                    }
                   }
                 >
-                  profile:deleteAccount.confirmCta
-                </Text>
+                  <Text
+                    numberOfLines={1}
+                    style={
+                      [
+                        {
+                          "fontWeight": "600",
+                        },
+                        {
+                          "fontSize": 16,
+                        },
+                        {
+                          "color": "#B5503C",
+                        },
+                      ]
+                    }
+                  >
+                    profile:deleteAccount.confirmCta
+                  </Text>
+                </View>
               </Pressable>
             </View>
           </View>
@@ -3862,20 +4022,22 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
             style={
               [
                 {
+                  "borderRadius": 16,
+                  "borderWidth": 1,
+                },
+                {
                   "backgroundColor": "#FFFFFF",
-                  "borderRadius": 24,
-                  "shadowColor": "#26333A",
-                },
-                {
-                  "elevation": 2,
-                },
-                {
+                  "borderColor": "#E4EDFB",
                   "padding": 16,
                 },
-                {
-                  "backgroundColor": "#FFFFFF",
-                  "gap": 12,
-                },
+                [
+                  {
+                    "gap": 12,
+                  },
+                  {
+                    "backgroundColor": "#FFFFFF",
+                  },
+                ],
               ]
             }
           >
@@ -3883,9 +4045,9 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
               style={
                 [
                   {
-                    "fontSize": 24,
+                    "fontSize": 18,
                     "fontWeight": "600",
-                    "lineHeight": 28.799999999999997,
+                    "lineHeight": 23.400000000000002,
                   },
                   {
                     "color": "#14201B",
@@ -3922,7 +4084,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                 {
                   "alignItems": "center",
                   "flexDirection": "row",
-                  "gap": 16,
+                  "gap": 8,
                   "justifyContent": "flex-end",
                   "marginTop": 8,
                 }
@@ -3931,33 +4093,44 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
               <Pressable
                 accessibilityLabel="Annuler"
                 accessibilityRole="button"
-                onPress={[Function]}
-                style={
+                accessibilityState={
                   {
-                    "paddingHorizontal": 8,
-                    "paddingVertical": 8,
+                    "busy": false,
+                    "disabled": false,
                   }
                 }
+                disabled={false}
+                onPress={[Function]}
+                style={[Function]}
               >
-                <Text
+                <View
                   style={
-                    [
-                      {
-                        "fontSize": 14,
-                        "fontWeight": "500",
-                        "lineHeight": 21,
-                      },
-                      {
-                        "color": "#5B6572",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      undefined,
-                    ]
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 8,
+                    }
                   }
                 >
-                  Annuler
-                </Text>
+                  <Text
+                    numberOfLines={1}
+                    style={
+                      [
+                        {
+                          "fontWeight": "600",
+                        },
+                        {
+                          "fontSize": 16,
+                        },
+                        {
+                          "color": "#14201B",
+                        },
+                      ]
+                    }
+                  >
+                    Annuler
+                  </Text>
+                </View>
               </Pressable>
               <Pressable
                 accessibilityLabel="common:actions.gotIt"
@@ -3972,23 +4145,34 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                 onPress={[Function]}
                 style={[Function]}
               >
-                <Text
+                <View
                   style={
-                    [
-                      {
-                        "fontWeight": "600",
-                      },
-                      {
-                        "fontSize": 16,
-                      },
-                      {
-                        "color": "#FFFFFF",
-                      },
-                    ]
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 8,
+                    }
                   }
                 >
-                  common:actions.gotIt
-                </Text>
+                  <Text
+                    numberOfLines={1}
+                    style={
+                      [
+                        {
+                          "fontWeight": "600",
+                        },
+                        {
+                          "fontSize": 16,
+                        },
+                        {
+                          "color": "#FFFFFF",
+                        },
+                      ]
+                    }
+                  >
+                    common:actions.gotIt
+                  </Text>
+                </View>
               </Pressable>
             </View>
           </View>
@@ -4076,7 +4260,6 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
               style={
                 [
                   {
-                    "color": "#FFFFFF",
                     "fontWeight": "600",
                   },
                   {
@@ -5297,20 +5480,22 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
             style={
               [
                 {
+                  "borderRadius": 16,
+                  "borderWidth": 1,
+                },
+                {
                   "backgroundColor": "#FFFFFF",
-                  "borderRadius": 24,
-                  "shadowColor": "#26333A",
-                },
-                {
-                  "elevation": 2,
-                },
-                {
+                  "borderColor": "#E4EDFB",
                   "padding": 16,
                 },
-                {
-                  "backgroundColor": "#FFFFFF",
-                  "gap": 12,
-                },
+                [
+                  {
+                    "gap": 12,
+                  },
+                  {
+                    "backgroundColor": "#FFFFFF",
+                  },
+                ],
               ]
             }
           >
@@ -5318,9 +5503,9 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
               style={
                 [
                   {
-                    "fontSize": 24,
+                    "fontSize": 18,
                     "fontWeight": "600",
-                    "lineHeight": 28.799999999999997,
+                    "lineHeight": 23.400000000000002,
                   },
                   {
                     "color": "#14201B",
@@ -5359,7 +5544,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                 {
                   "alignItems": "center",
                   "flexDirection": "row",
-                  "gap": 16,
+                  "gap": 8,
                   "justifyContent": "flex-end",
                   "marginTop": 8,
                 }
@@ -5368,33 +5553,44 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
               <Pressable
                 accessibilityLabel="Annuler"
                 accessibilityRole="button"
-                onPress={[Function]}
-                style={
+                accessibilityState={
                   {
-                    "paddingHorizontal": 8,
-                    "paddingVertical": 8,
+                    "busy": false,
+                    "disabled": false,
                   }
                 }
+                disabled={false}
+                onPress={[Function]}
+                style={[Function]}
               >
-                <Text
+                <View
                   style={
-                    [
-                      {
-                        "fontSize": 14,
-                        "fontWeight": "500",
-                        "lineHeight": 21,
-                      },
-                      {
-                        "color": "#5B6572",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      undefined,
-                    ]
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 8,
+                    }
                   }
                 >
-                  Annuler
-                </Text>
+                  <Text
+                    numberOfLines={1}
+                    style={
+                      [
+                        {
+                          "fontWeight": "600",
+                        },
+                        {
+                          "fontSize": 16,
+                        },
+                        {
+                          "color": "#14201B",
+                        },
+                      ]
+                    }
+                  >
+                    Annuler
+                  </Text>
+                </View>
               </Pressable>
               <Pressable
                 accessibilityLabel="profile:logout.cta"
@@ -5409,23 +5605,34 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                 onPress={[Function]}
                 style={[Function]}
               >
-                <Text
+                <View
                   style={
-                    [
-                      {
-                        "fontWeight": "600",
-                      },
-                      {
-                        "fontSize": 16,
-                      },
-                      {
-                        "color": "#FFFFFF",
-                      },
-                    ]
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 8,
+                    }
                   }
                 >
-                  profile:logout.cta
-                </Text>
+                  <Text
+                    numberOfLines={1}
+                    style={
+                      [
+                        {
+                          "fontWeight": "600",
+                        },
+                        {
+                          "fontSize": 16,
+                        },
+                        {
+                          "color": "#B5503C",
+                        },
+                      ]
+                    }
+                  >
+                    profile:logout.cta
+                  </Text>
+                </View>
               </Pressable>
             </View>
           </View>
@@ -5486,20 +5693,22 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
             style={
               [
                 {
+                  "borderRadius": 16,
+                  "borderWidth": 1,
+                },
+                {
                   "backgroundColor": "#FFFFFF",
-                  "borderRadius": 24,
-                  "shadowColor": "#26333A",
-                },
-                {
-                  "elevation": 2,
-                },
-                {
+                  "borderColor": "#E4EDFB",
                   "padding": 16,
                 },
-                {
-                  "backgroundColor": "#FFFFFF",
-                  "gap": 12,
-                },
+                [
+                  {
+                    "gap": 12,
+                  },
+                  {
+                    "backgroundColor": "#FFFFFF",
+                  },
+                ],
               ]
             }
           >
@@ -5507,9 +5716,9 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
               style={
                 [
                   {
-                    "fontSize": 24,
+                    "fontSize": 18,
                     "fontWeight": "600",
-                    "lineHeight": 28.799999999999997,
+                    "lineHeight": 23.400000000000002,
                   },
                   {
                     "color": "#14201B",
@@ -5548,7 +5757,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                 {
                   "alignItems": "center",
                   "flexDirection": "row",
-                  "gap": 16,
+                  "gap": 8,
                   "justifyContent": "flex-end",
                   "marginTop": 8,
                 }
@@ -5557,33 +5766,44 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
               <Pressable
                 accessibilityLabel="Annuler"
                 accessibilityRole="button"
-                onPress={[Function]}
-                style={
+                accessibilityState={
                   {
-                    "paddingHorizontal": 8,
-                    "paddingVertical": 8,
+                    "busy": false,
+                    "disabled": false,
                   }
                 }
+                disabled={false}
+                onPress={[Function]}
+                style={[Function]}
               >
-                <Text
+                <View
                   style={
-                    [
-                      {
-                        "fontSize": 14,
-                        "fontWeight": "500",
-                        "lineHeight": 21,
-                      },
-                      {
-                        "color": "#5B6572",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      undefined,
-                    ]
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 8,
+                    }
                   }
                 >
-                  Annuler
-                </Text>
+                  <Text
+                    numberOfLines={1}
+                    style={
+                      [
+                        {
+                          "fontWeight": "600",
+                        },
+                        {
+                          "fontSize": 16,
+                        },
+                        {
+                          "color": "#14201B",
+                        },
+                      ]
+                    }
+                  >
+                    Annuler
+                  </Text>
+                </View>
               </Pressable>
               <Pressable
                 accessibilityLabel="profile:deleteAccount.warningCta"
@@ -5598,23 +5818,34 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                 onPress={[Function]}
                 style={[Function]}
               >
-                <Text
+                <View
                   style={
-                    [
-                      {
-                        "fontWeight": "600",
-                      },
-                      {
-                        "fontSize": 16,
-                      },
-                      {
-                        "color": "#FFFFFF",
-                      },
-                    ]
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 8,
+                    }
                   }
                 >
-                  profile:deleteAccount.warningCta
-                </Text>
+                  <Text
+                    numberOfLines={1}
+                    style={
+                      [
+                        {
+                          "fontWeight": "600",
+                        },
+                        {
+                          "fontSize": 16,
+                        },
+                        {
+                          "color": "#B5503C",
+                        },
+                      ]
+                    }
+                  >
+                    profile:deleteAccount.warningCta
+                  </Text>
+                </View>
               </Pressable>
             </View>
           </View>
@@ -5675,20 +5906,22 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
             style={
               [
                 {
+                  "borderRadius": 16,
+                  "borderWidth": 1,
+                },
+                {
                   "backgroundColor": "#FFFFFF",
-                  "borderRadius": 24,
-                  "shadowColor": "#26333A",
-                },
-                {
-                  "elevation": 2,
-                },
-                {
+                  "borderColor": "#E4EDFB",
                   "padding": 16,
                 },
-                {
-                  "backgroundColor": "#FFFFFF",
-                  "gap": 12,
-                },
+                [
+                  {
+                    "gap": 12,
+                  },
+                  {
+                    "backgroundColor": "#FFFFFF",
+                  },
+                ],
               ]
             }
           >
@@ -5696,9 +5929,9 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
               style={
                 [
                   {
-                    "fontSize": 24,
+                    "fontSize": 18,
                     "fontWeight": "600",
-                    "lineHeight": 28.799999999999997,
+                    "lineHeight": 23.400000000000002,
                   },
                   {
                     "color": "#14201B",
@@ -5737,7 +5970,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                 {
                   "alignItems": "center",
                   "flexDirection": "row",
-                  "gap": 16,
+                  "gap": 8,
                   "justifyContent": "flex-end",
                   "marginTop": 8,
                 }
@@ -5746,33 +5979,44 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
               <Pressable
                 accessibilityLabel="Annuler"
                 accessibilityRole="button"
-                onPress={[Function]}
-                style={
+                accessibilityState={
                   {
-                    "paddingHorizontal": 8,
-                    "paddingVertical": 8,
+                    "busy": false,
+                    "disabled": false,
                   }
                 }
+                disabled={false}
+                onPress={[Function]}
+                style={[Function]}
               >
-                <Text
+                <View
                   style={
-                    [
-                      {
-                        "fontSize": 14,
-                        "fontWeight": "500",
-                        "lineHeight": 21,
-                      },
-                      {
-                        "color": "#5B6572",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      undefined,
-                    ]
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 8,
+                    }
                   }
                 >
-                  Annuler
-                </Text>
+                  <Text
+                    numberOfLines={1}
+                    style={
+                      [
+                        {
+                          "fontWeight": "600",
+                        },
+                        {
+                          "fontSize": 16,
+                        },
+                        {
+                          "color": "#14201B",
+                        },
+                      ]
+                    }
+                  >
+                    Annuler
+                  </Text>
+                </View>
               </Pressable>
               <Pressable
                 accessibilityLabel="profile:deleteAccount.confirmCta"
@@ -5787,23 +6031,34 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                 onPress={[Function]}
                 style={[Function]}
               >
-                <Text
+                <View
                   style={
-                    [
-                      {
-                        "fontWeight": "600",
-                      },
-                      {
-                        "fontSize": 16,
-                      },
-                      {
-                        "color": "#FFFFFF",
-                      },
-                    ]
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 8,
+                    }
                   }
                 >
-                  profile:deleteAccount.confirmCta
-                </Text>
+                  <Text
+                    numberOfLines={1}
+                    style={
+                      [
+                        {
+                          "fontWeight": "600",
+                        },
+                        {
+                          "fontSize": 16,
+                        },
+                        {
+                          "color": "#B5503C",
+                        },
+                      ]
+                    }
+                  >
+                    profile:deleteAccount.confirmCta
+                  </Text>
+                </View>
               </Pressable>
             </View>
           </View>
@@ -5864,20 +6119,22 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
             style={
               [
                 {
+                  "borderRadius": 16,
+                  "borderWidth": 1,
+                },
+                {
                   "backgroundColor": "#FFFFFF",
-                  "borderRadius": 24,
-                  "shadowColor": "#26333A",
-                },
-                {
-                  "elevation": 2,
-                },
-                {
+                  "borderColor": "#E4EDFB",
                   "padding": 16,
                 },
-                {
-                  "backgroundColor": "#FFFFFF",
-                  "gap": 12,
-                },
+                [
+                  {
+                    "gap": 12,
+                  },
+                  {
+                    "backgroundColor": "#FFFFFF",
+                  },
+                ],
               ]
             }
           >
@@ -5885,9 +6142,9 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
               style={
                 [
                   {
-                    "fontSize": 24,
+                    "fontSize": 18,
                     "fontWeight": "600",
-                    "lineHeight": 28.799999999999997,
+                    "lineHeight": 23.400000000000002,
                   },
                   {
                     "color": "#14201B",
@@ -5924,7 +6181,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                 {
                   "alignItems": "center",
                   "flexDirection": "row",
-                  "gap": 16,
+                  "gap": 8,
                   "justifyContent": "flex-end",
                   "marginTop": 8,
                 }
@@ -5933,33 +6190,44 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
               <Pressable
                 accessibilityLabel="Annuler"
                 accessibilityRole="button"
-                onPress={[Function]}
-                style={
+                accessibilityState={
                   {
-                    "paddingHorizontal": 8,
-                    "paddingVertical": 8,
+                    "busy": false,
+                    "disabled": false,
                   }
                 }
+                disabled={false}
+                onPress={[Function]}
+                style={[Function]}
               >
-                <Text
+                <View
                   style={
-                    [
-                      {
-                        "fontSize": 14,
-                        "fontWeight": "500",
-                        "lineHeight": 21,
-                      },
-                      {
-                        "color": "#5B6572",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      undefined,
-                    ]
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 8,
+                    }
                   }
                 >
-                  Annuler
-                </Text>
+                  <Text
+                    numberOfLines={1}
+                    style={
+                      [
+                        {
+                          "fontWeight": "600",
+                        },
+                        {
+                          "fontSize": 16,
+                        },
+                        {
+                          "color": "#14201B",
+                        },
+                      ]
+                    }
+                  >
+                    Annuler
+                  </Text>
+                </View>
               </Pressable>
               <Pressable
                 accessibilityLabel="common:actions.gotIt"
@@ -5974,23 +6242,34 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                 onPress={[Function]}
                 style={[Function]}
               >
-                <Text
+                <View
                   style={
-                    [
-                      {
-                        "fontWeight": "600",
-                      },
-                      {
-                        "fontSize": 16,
-                      },
-                      {
-                        "color": "#FFFFFF",
-                      },
-                    ]
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 8,
+                    }
                   }
                 >
-                  common:actions.gotIt
-                </Text>
+                  <Text
+                    numberOfLines={1}
+                    style={
+                      [
+                        {
+                          "fontWeight": "600",
+                        },
+                        {
+                          "fontSize": 16,
+                        },
+                        {
+                          "color": "#FFFFFF",
+                        },
+                      ]
+                    }
+                  >
+                    common:actions.gotIt
+                  </Text>
+                </View>
               </Pressable>
             </View>
           </View>
@@ -6078,7 +6357,6 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
               style={
                 [
                   {
-                    "color": "#FFFFFF",
                     "fontWeight": "600",
                   },
                   {
@@ -7290,20 +7568,22 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
             style={
               [
                 {
+                  "borderRadius": 16,
+                  "borderWidth": 1,
+                },
+                {
                   "backgroundColor": "#FFFFFF",
-                  "borderRadius": 24,
-                  "shadowColor": "#26333A",
-                },
-                {
-                  "elevation": 2,
-                },
-                {
+                  "borderColor": "#E4EDFB",
                   "padding": 16,
                 },
-                {
-                  "backgroundColor": "#FFFFFF",
-                  "gap": 12,
-                },
+                [
+                  {
+                    "gap": 12,
+                  },
+                  {
+                    "backgroundColor": "#FFFFFF",
+                  },
+                ],
               ]
             }
           >
@@ -7311,9 +7591,9 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
               style={
                 [
                   {
-                    "fontSize": 24,
+                    "fontSize": 18,
                     "fontWeight": "600",
-                    "lineHeight": 28.799999999999997,
+                    "lineHeight": 23.400000000000002,
                   },
                   {
                     "color": "#14201B",
@@ -7352,7 +7632,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                 {
                   "alignItems": "center",
                   "flexDirection": "row",
-                  "gap": 16,
+                  "gap": 8,
                   "justifyContent": "flex-end",
                   "marginTop": 8,
                 }
@@ -7361,33 +7641,44 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
               <Pressable
                 accessibilityLabel="Annuler"
                 accessibilityRole="button"
-                onPress={[Function]}
-                style={
+                accessibilityState={
                   {
-                    "paddingHorizontal": 8,
-                    "paddingVertical": 8,
+                    "busy": false,
+                    "disabled": false,
                   }
                 }
+                disabled={false}
+                onPress={[Function]}
+                style={[Function]}
               >
-                <Text
+                <View
                   style={
-                    [
-                      {
-                        "fontSize": 14,
-                        "fontWeight": "500",
-                        "lineHeight": 21,
-                      },
-                      {
-                        "color": "#5B6572",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      undefined,
-                    ]
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 8,
+                    }
                   }
                 >
-                  Annuler
-                </Text>
+                  <Text
+                    numberOfLines={1}
+                    style={
+                      [
+                        {
+                          "fontWeight": "600",
+                        },
+                        {
+                          "fontSize": 16,
+                        },
+                        {
+                          "color": "#14201B",
+                        },
+                      ]
+                    }
+                  >
+                    Annuler
+                  </Text>
+                </View>
               </Pressable>
               <Pressable
                 accessibilityLabel="profile:logout.cta"
@@ -7402,23 +7693,34 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                 onPress={[Function]}
                 style={[Function]}
               >
-                <Text
+                <View
                   style={
-                    [
-                      {
-                        "fontWeight": "600",
-                      },
-                      {
-                        "fontSize": 16,
-                      },
-                      {
-                        "color": "#FFFFFF",
-                      },
-                    ]
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 8,
+                    }
                   }
                 >
-                  profile:logout.cta
-                </Text>
+                  <Text
+                    numberOfLines={1}
+                    style={
+                      [
+                        {
+                          "fontWeight": "600",
+                        },
+                        {
+                          "fontSize": 16,
+                        },
+                        {
+                          "color": "#B5503C",
+                        },
+                      ]
+                    }
+                  >
+                    profile:logout.cta
+                  </Text>
+                </View>
               </Pressable>
             </View>
           </View>
@@ -7479,20 +7781,22 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
             style={
               [
                 {
+                  "borderRadius": 16,
+                  "borderWidth": 1,
+                },
+                {
                   "backgroundColor": "#FFFFFF",
-                  "borderRadius": 24,
-                  "shadowColor": "#26333A",
-                },
-                {
-                  "elevation": 2,
-                },
-                {
+                  "borderColor": "#E4EDFB",
                   "padding": 16,
                 },
-                {
-                  "backgroundColor": "#FFFFFF",
-                  "gap": 12,
-                },
+                [
+                  {
+                    "gap": 12,
+                  },
+                  {
+                    "backgroundColor": "#FFFFFF",
+                  },
+                ],
               ]
             }
           >
@@ -7500,9 +7804,9 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
               style={
                 [
                   {
-                    "fontSize": 24,
+                    "fontSize": 18,
                     "fontWeight": "600",
-                    "lineHeight": 28.799999999999997,
+                    "lineHeight": 23.400000000000002,
                   },
                   {
                     "color": "#14201B",
@@ -7541,7 +7845,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                 {
                   "alignItems": "center",
                   "flexDirection": "row",
-                  "gap": 16,
+                  "gap": 8,
                   "justifyContent": "flex-end",
                   "marginTop": 8,
                 }
@@ -7550,33 +7854,44 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
               <Pressable
                 accessibilityLabel="Annuler"
                 accessibilityRole="button"
-                onPress={[Function]}
-                style={
+                accessibilityState={
                   {
-                    "paddingHorizontal": 8,
-                    "paddingVertical": 8,
+                    "busy": false,
+                    "disabled": false,
                   }
                 }
+                disabled={false}
+                onPress={[Function]}
+                style={[Function]}
               >
-                <Text
+                <View
                   style={
-                    [
-                      {
-                        "fontSize": 14,
-                        "fontWeight": "500",
-                        "lineHeight": 21,
-                      },
-                      {
-                        "color": "#5B6572",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      undefined,
-                    ]
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 8,
+                    }
                   }
                 >
-                  Annuler
-                </Text>
+                  <Text
+                    numberOfLines={1}
+                    style={
+                      [
+                        {
+                          "fontWeight": "600",
+                        },
+                        {
+                          "fontSize": 16,
+                        },
+                        {
+                          "color": "#14201B",
+                        },
+                      ]
+                    }
+                  >
+                    Annuler
+                  </Text>
+                </View>
               </Pressable>
               <Pressable
                 accessibilityLabel="profile:deleteAccount.warningCta"
@@ -7591,23 +7906,34 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                 onPress={[Function]}
                 style={[Function]}
               >
-                <Text
+                <View
                   style={
-                    [
-                      {
-                        "fontWeight": "600",
-                      },
-                      {
-                        "fontSize": 16,
-                      },
-                      {
-                        "color": "#FFFFFF",
-                      },
-                    ]
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 8,
+                    }
                   }
                 >
-                  profile:deleteAccount.warningCta
-                </Text>
+                  <Text
+                    numberOfLines={1}
+                    style={
+                      [
+                        {
+                          "fontWeight": "600",
+                        },
+                        {
+                          "fontSize": 16,
+                        },
+                        {
+                          "color": "#B5503C",
+                        },
+                      ]
+                    }
+                  >
+                    profile:deleteAccount.warningCta
+                  </Text>
+                </View>
               </Pressable>
             </View>
           </View>
@@ -7668,20 +7994,22 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
             style={
               [
                 {
+                  "borderRadius": 16,
+                  "borderWidth": 1,
+                },
+                {
                   "backgroundColor": "#FFFFFF",
-                  "borderRadius": 24,
-                  "shadowColor": "#26333A",
-                },
-                {
-                  "elevation": 2,
-                },
-                {
+                  "borderColor": "#E4EDFB",
                   "padding": 16,
                 },
-                {
-                  "backgroundColor": "#FFFFFF",
-                  "gap": 12,
-                },
+                [
+                  {
+                    "gap": 12,
+                  },
+                  {
+                    "backgroundColor": "#FFFFFF",
+                  },
+                ],
               ]
             }
           >
@@ -7689,9 +8017,9 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
               style={
                 [
                   {
-                    "fontSize": 24,
+                    "fontSize": 18,
                     "fontWeight": "600",
-                    "lineHeight": 28.799999999999997,
+                    "lineHeight": 23.400000000000002,
                   },
                   {
                     "color": "#14201B",
@@ -7730,7 +8058,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                 {
                   "alignItems": "center",
                   "flexDirection": "row",
-                  "gap": 16,
+                  "gap": 8,
                   "justifyContent": "flex-end",
                   "marginTop": 8,
                 }
@@ -7739,33 +8067,44 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
               <Pressable
                 accessibilityLabel="Annuler"
                 accessibilityRole="button"
-                onPress={[Function]}
-                style={
+                accessibilityState={
                   {
-                    "paddingHorizontal": 8,
-                    "paddingVertical": 8,
+                    "busy": false,
+                    "disabled": false,
                   }
                 }
+                disabled={false}
+                onPress={[Function]}
+                style={[Function]}
               >
-                <Text
+                <View
                   style={
-                    [
-                      {
-                        "fontSize": 14,
-                        "fontWeight": "500",
-                        "lineHeight": 21,
-                      },
-                      {
-                        "color": "#5B6572",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      undefined,
-                    ]
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 8,
+                    }
                   }
                 >
-                  Annuler
-                </Text>
+                  <Text
+                    numberOfLines={1}
+                    style={
+                      [
+                        {
+                          "fontWeight": "600",
+                        },
+                        {
+                          "fontSize": 16,
+                        },
+                        {
+                          "color": "#14201B",
+                        },
+                      ]
+                    }
+                  >
+                    Annuler
+                  </Text>
+                </View>
               </Pressable>
               <Pressable
                 accessibilityLabel="profile:deleteAccount.confirmCta"
@@ -7780,23 +8119,34 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                 onPress={[Function]}
                 style={[Function]}
               >
-                <Text
+                <View
                   style={
-                    [
-                      {
-                        "fontWeight": "600",
-                      },
-                      {
-                        "fontSize": 16,
-                      },
-                      {
-                        "color": "#FFFFFF",
-                      },
-                    ]
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 8,
+                    }
                   }
                 >
-                  profile:deleteAccount.confirmCta
-                </Text>
+                  <Text
+                    numberOfLines={1}
+                    style={
+                      [
+                        {
+                          "fontWeight": "600",
+                        },
+                        {
+                          "fontSize": 16,
+                        },
+                        {
+                          "color": "#B5503C",
+                        },
+                      ]
+                    }
+                  >
+                    profile:deleteAccount.confirmCta
+                  </Text>
+                </View>
               </Pressable>
             </View>
           </View>
@@ -7857,20 +8207,22 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
             style={
               [
                 {
+                  "borderRadius": 16,
+                  "borderWidth": 1,
+                },
+                {
                   "backgroundColor": "#FFFFFF",
-                  "borderRadius": 24,
-                  "shadowColor": "#26333A",
-                },
-                {
-                  "elevation": 2,
-                },
-                {
+                  "borderColor": "#E4EDFB",
                   "padding": 16,
                 },
-                {
-                  "backgroundColor": "#FFFFFF",
-                  "gap": 12,
-                },
+                [
+                  {
+                    "gap": 12,
+                  },
+                  {
+                    "backgroundColor": "#FFFFFF",
+                  },
+                ],
               ]
             }
           >
@@ -7878,9 +8230,9 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
               style={
                 [
                   {
-                    "fontSize": 24,
+                    "fontSize": 18,
                     "fontWeight": "600",
-                    "lineHeight": 28.799999999999997,
+                    "lineHeight": 23.400000000000002,
                   },
                   {
                     "color": "#14201B",
@@ -7917,7 +8269,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                 {
                   "alignItems": "center",
                   "flexDirection": "row",
-                  "gap": 16,
+                  "gap": 8,
                   "justifyContent": "flex-end",
                   "marginTop": 8,
                 }
@@ -7926,33 +8278,44 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
               <Pressable
                 accessibilityLabel="Annuler"
                 accessibilityRole="button"
-                onPress={[Function]}
-                style={
+                accessibilityState={
                   {
-                    "paddingHorizontal": 8,
-                    "paddingVertical": 8,
+                    "busy": false,
+                    "disabled": false,
                   }
                 }
+                disabled={false}
+                onPress={[Function]}
+                style={[Function]}
               >
-                <Text
+                <View
                   style={
-                    [
-                      {
-                        "fontSize": 14,
-                        "fontWeight": "500",
-                        "lineHeight": 21,
-                      },
-                      {
-                        "color": "#5B6572",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      undefined,
-                    ]
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 8,
+                    }
                   }
                 >
-                  Annuler
-                </Text>
+                  <Text
+                    numberOfLines={1}
+                    style={
+                      [
+                        {
+                          "fontWeight": "600",
+                        },
+                        {
+                          "fontSize": 16,
+                        },
+                        {
+                          "color": "#14201B",
+                        },
+                      ]
+                    }
+                  >
+                    Annuler
+                  </Text>
+                </View>
               </Pressable>
               <Pressable
                 accessibilityLabel="common:actions.gotIt"
@@ -7967,23 +8330,34 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                 onPress={[Function]}
                 style={[Function]}
               >
-                <Text
+                <View
                   style={
-                    [
-                      {
-                        "fontWeight": "600",
-                      },
-                      {
-                        "fontSize": 16,
-                      },
-                      {
-                        "color": "#FFFFFF",
-                      },
-                    ]
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 8,
+                    }
                   }
                 >
-                  common:actions.gotIt
-                </Text>
+                  <Text
+                    numberOfLines={1}
+                    style={
+                      [
+                        {
+                          "fontWeight": "600",
+                        },
+                        {
+                          "fontSize": 16,
+                        },
+                        {
+                          "color": "#FFFFFF",
+                        },
+                      ]
+                    }
+                  >
+                    common:actions.gotIt
+                  </Text>
+                </View>
               </Pressable>
             </View>
           </View>
@@ -8071,7 +8445,6 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
               style={
                 [
                   {
-                    "color": "#FFFFFF",
                     "fontWeight": "600",
                   },
                   {
@@ -9292,20 +9665,22 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
             style={
               [
                 {
+                  "borderRadius": 16,
+                  "borderWidth": 1,
+                },
+                {
                   "backgroundColor": "#FFFFFF",
-                  "borderRadius": 24,
-                  "shadowColor": "#26333A",
-                },
-                {
-                  "elevation": 2,
-                },
-                {
+                  "borderColor": "#E4EDFB",
                   "padding": 16,
                 },
-                {
-                  "backgroundColor": "#FFFFFF",
-                  "gap": 12,
-                },
+                [
+                  {
+                    "gap": 12,
+                  },
+                  {
+                    "backgroundColor": "#FFFFFF",
+                  },
+                ],
               ]
             }
           >
@@ -9313,9 +9688,9 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
               style={
                 [
                   {
-                    "fontSize": 24,
+                    "fontSize": 18,
                     "fontWeight": "600",
-                    "lineHeight": 28.799999999999997,
+                    "lineHeight": 23.400000000000002,
                   },
                   {
                     "color": "#14201B",
@@ -9354,7 +9729,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                 {
                   "alignItems": "center",
                   "flexDirection": "row",
-                  "gap": 16,
+                  "gap": 8,
                   "justifyContent": "flex-end",
                   "marginTop": 8,
                 }
@@ -9363,33 +9738,44 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
               <Pressable
                 accessibilityLabel="Annuler"
                 accessibilityRole="button"
-                onPress={[Function]}
-                style={
+                accessibilityState={
                   {
-                    "paddingHorizontal": 8,
-                    "paddingVertical": 8,
+                    "busy": false,
+                    "disabled": false,
                   }
                 }
+                disabled={false}
+                onPress={[Function]}
+                style={[Function]}
               >
-                <Text
+                <View
                   style={
-                    [
-                      {
-                        "fontSize": 14,
-                        "fontWeight": "500",
-                        "lineHeight": 21,
-                      },
-                      {
-                        "color": "#5B6572",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      undefined,
-                    ]
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 8,
+                    }
                   }
                 >
-                  Annuler
-                </Text>
+                  <Text
+                    numberOfLines={1}
+                    style={
+                      [
+                        {
+                          "fontWeight": "600",
+                        },
+                        {
+                          "fontSize": 16,
+                        },
+                        {
+                          "color": "#14201B",
+                        },
+                      ]
+                    }
+                  >
+                    Annuler
+                  </Text>
+                </View>
               </Pressable>
               <Pressable
                 accessibilityLabel="profile:logout.cta"
@@ -9404,23 +9790,34 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                 onPress={[Function]}
                 style={[Function]}
               >
-                <Text
+                <View
                   style={
-                    [
-                      {
-                        "fontWeight": "600",
-                      },
-                      {
-                        "fontSize": 16,
-                      },
-                      {
-                        "color": "#FFFFFF",
-                      },
-                    ]
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 8,
+                    }
                   }
                 >
-                  profile:logout.cta
-                </Text>
+                  <Text
+                    numberOfLines={1}
+                    style={
+                      [
+                        {
+                          "fontWeight": "600",
+                        },
+                        {
+                          "fontSize": 16,
+                        },
+                        {
+                          "color": "#B5503C",
+                        },
+                      ]
+                    }
+                  >
+                    profile:logout.cta
+                  </Text>
+                </View>
               </Pressable>
             </View>
           </View>
@@ -9481,20 +9878,22 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
             style={
               [
                 {
+                  "borderRadius": 16,
+                  "borderWidth": 1,
+                },
+                {
                   "backgroundColor": "#FFFFFF",
-                  "borderRadius": 24,
-                  "shadowColor": "#26333A",
-                },
-                {
-                  "elevation": 2,
-                },
-                {
+                  "borderColor": "#E4EDFB",
                   "padding": 16,
                 },
-                {
-                  "backgroundColor": "#FFFFFF",
-                  "gap": 12,
-                },
+                [
+                  {
+                    "gap": 12,
+                  },
+                  {
+                    "backgroundColor": "#FFFFFF",
+                  },
+                ],
               ]
             }
           >
@@ -9502,9 +9901,9 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
               style={
                 [
                   {
-                    "fontSize": 24,
+                    "fontSize": 18,
                     "fontWeight": "600",
-                    "lineHeight": 28.799999999999997,
+                    "lineHeight": 23.400000000000002,
                   },
                   {
                     "color": "#14201B",
@@ -9543,7 +9942,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                 {
                   "alignItems": "center",
                   "flexDirection": "row",
-                  "gap": 16,
+                  "gap": 8,
                   "justifyContent": "flex-end",
                   "marginTop": 8,
                 }
@@ -9552,33 +9951,44 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
               <Pressable
                 accessibilityLabel="Annuler"
                 accessibilityRole="button"
-                onPress={[Function]}
-                style={
+                accessibilityState={
                   {
-                    "paddingHorizontal": 8,
-                    "paddingVertical": 8,
+                    "busy": false,
+                    "disabled": false,
                   }
                 }
+                disabled={false}
+                onPress={[Function]}
+                style={[Function]}
               >
-                <Text
+                <View
                   style={
-                    [
-                      {
-                        "fontSize": 14,
-                        "fontWeight": "500",
-                        "lineHeight": 21,
-                      },
-                      {
-                        "color": "#5B6572",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      undefined,
-                    ]
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 8,
+                    }
                   }
                 >
-                  Annuler
-                </Text>
+                  <Text
+                    numberOfLines={1}
+                    style={
+                      [
+                        {
+                          "fontWeight": "600",
+                        },
+                        {
+                          "fontSize": 16,
+                        },
+                        {
+                          "color": "#14201B",
+                        },
+                      ]
+                    }
+                  >
+                    Annuler
+                  </Text>
+                </View>
               </Pressable>
               <Pressable
                 accessibilityLabel="profile:deleteAccount.warningCta"
@@ -9593,23 +10003,34 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                 onPress={[Function]}
                 style={[Function]}
               >
-                <Text
+                <View
                   style={
-                    [
-                      {
-                        "fontWeight": "600",
-                      },
-                      {
-                        "fontSize": 16,
-                      },
-                      {
-                        "color": "#FFFFFF",
-                      },
-                    ]
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 8,
+                    }
                   }
                 >
-                  profile:deleteAccount.warningCta
-                </Text>
+                  <Text
+                    numberOfLines={1}
+                    style={
+                      [
+                        {
+                          "fontWeight": "600",
+                        },
+                        {
+                          "fontSize": 16,
+                        },
+                        {
+                          "color": "#B5503C",
+                        },
+                      ]
+                    }
+                  >
+                    profile:deleteAccount.warningCta
+                  </Text>
+                </View>
               </Pressable>
             </View>
           </View>
@@ -9670,20 +10091,22 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
             style={
               [
                 {
+                  "borderRadius": 16,
+                  "borderWidth": 1,
+                },
+                {
                   "backgroundColor": "#FFFFFF",
-                  "borderRadius": 24,
-                  "shadowColor": "#26333A",
-                },
-                {
-                  "elevation": 2,
-                },
-                {
+                  "borderColor": "#E4EDFB",
                   "padding": 16,
                 },
-                {
-                  "backgroundColor": "#FFFFFF",
-                  "gap": 12,
-                },
+                [
+                  {
+                    "gap": 12,
+                  },
+                  {
+                    "backgroundColor": "#FFFFFF",
+                  },
+                ],
               ]
             }
           >
@@ -9691,9 +10114,9 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
               style={
                 [
                   {
-                    "fontSize": 24,
+                    "fontSize": 18,
                     "fontWeight": "600",
-                    "lineHeight": 28.799999999999997,
+                    "lineHeight": 23.400000000000002,
                   },
                   {
                     "color": "#14201B",
@@ -9732,7 +10155,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                 {
                   "alignItems": "center",
                   "flexDirection": "row",
-                  "gap": 16,
+                  "gap": 8,
                   "justifyContent": "flex-end",
                   "marginTop": 8,
                 }
@@ -9741,33 +10164,44 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
               <Pressable
                 accessibilityLabel="Annuler"
                 accessibilityRole="button"
-                onPress={[Function]}
-                style={
+                accessibilityState={
                   {
-                    "paddingHorizontal": 8,
-                    "paddingVertical": 8,
+                    "busy": false,
+                    "disabled": false,
                   }
                 }
+                disabled={false}
+                onPress={[Function]}
+                style={[Function]}
               >
-                <Text
+                <View
                   style={
-                    [
-                      {
-                        "fontSize": 14,
-                        "fontWeight": "500",
-                        "lineHeight": 21,
-                      },
-                      {
-                        "color": "#5B6572",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      undefined,
-                    ]
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 8,
+                    }
                   }
                 >
-                  Annuler
-                </Text>
+                  <Text
+                    numberOfLines={1}
+                    style={
+                      [
+                        {
+                          "fontWeight": "600",
+                        },
+                        {
+                          "fontSize": 16,
+                        },
+                        {
+                          "color": "#14201B",
+                        },
+                      ]
+                    }
+                  >
+                    Annuler
+                  </Text>
+                </View>
               </Pressable>
               <Pressable
                 accessibilityLabel="profile:deleteAccount.confirmCta"
@@ -9782,23 +10216,34 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                 onPress={[Function]}
                 style={[Function]}
               >
-                <Text
+                <View
                   style={
-                    [
-                      {
-                        "fontWeight": "600",
-                      },
-                      {
-                        "fontSize": 16,
-                      },
-                      {
-                        "color": "#FFFFFF",
-                      },
-                    ]
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 8,
+                    }
                   }
                 >
-                  profile:deleteAccount.confirmCta
-                </Text>
+                  <Text
+                    numberOfLines={1}
+                    style={
+                      [
+                        {
+                          "fontWeight": "600",
+                        },
+                        {
+                          "fontSize": 16,
+                        },
+                        {
+                          "color": "#B5503C",
+                        },
+                      ]
+                    }
+                  >
+                    profile:deleteAccount.confirmCta
+                  </Text>
+                </View>
               </Pressable>
             </View>
           </View>
@@ -9859,20 +10304,22 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
             style={
               [
                 {
+                  "borderRadius": 16,
+                  "borderWidth": 1,
+                },
+                {
                   "backgroundColor": "#FFFFFF",
-                  "borderRadius": 24,
-                  "shadowColor": "#26333A",
-                },
-                {
-                  "elevation": 2,
-                },
-                {
+                  "borderColor": "#E4EDFB",
                   "padding": 16,
                 },
-                {
-                  "backgroundColor": "#FFFFFF",
-                  "gap": 12,
-                },
+                [
+                  {
+                    "gap": 12,
+                  },
+                  {
+                    "backgroundColor": "#FFFFFF",
+                  },
+                ],
               ]
             }
           >
@@ -9880,9 +10327,9 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
               style={
                 [
                   {
-                    "fontSize": 24,
+                    "fontSize": 18,
                     "fontWeight": "600",
-                    "lineHeight": 28.799999999999997,
+                    "lineHeight": 23.400000000000002,
                   },
                   {
                     "color": "#14201B",
@@ -9919,7 +10366,7 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                 {
                   "alignItems": "center",
                   "flexDirection": "row",
-                  "gap": 16,
+                  "gap": 8,
                   "justifyContent": "flex-end",
                   "marginTop": 8,
                 }
@@ -9928,33 +10375,44 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
               <Pressable
                 accessibilityLabel="Annuler"
                 accessibilityRole="button"
-                onPress={[Function]}
-                style={
+                accessibilityState={
                   {
-                    "paddingHorizontal": 8,
-                    "paddingVertical": 8,
+                    "busy": false,
+                    "disabled": false,
                   }
                 }
+                disabled={false}
+                onPress={[Function]}
+                style={[Function]}
               >
-                <Text
+                <View
                   style={
-                    [
-                      {
-                        "fontSize": 14,
-                        "fontWeight": "500",
-                        "lineHeight": 21,
-                      },
-                      {
-                        "color": "#5B6572",
-                        "textAlign": undefined,
-                        "writingDirection": "ltr",
-                      },
-                      undefined,
-                    ]
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 8,
+                    }
                   }
                 >
-                  Annuler
-                </Text>
+                  <Text
+                    numberOfLines={1}
+                    style={
+                      [
+                        {
+                          "fontWeight": "600",
+                        },
+                        {
+                          "fontSize": 16,
+                        },
+                        {
+                          "color": "#14201B",
+                        },
+                      ]
+                    }
+                  >
+                    Annuler
+                  </Text>
+                </View>
               </Pressable>
               <Pressable
                 accessibilityLabel="common:actions.gotIt"
@@ -9969,23 +10427,34 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                 onPress={[Function]}
                 style={[Function]}
               >
-                <Text
+                <View
                   style={
-                    [
-                      {
-                        "fontWeight": "600",
-                      },
-                      {
-                        "fontSize": 16,
-                      },
-                      {
-                        "color": "#FFFFFF",
-                      },
-                    ]
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 8,
+                    }
                   }
                 >
-                  common:actions.gotIt
-                </Text>
+                  <Text
+                    numberOfLines={1}
+                    style={
+                      [
+                        {
+                          "fontWeight": "600",
+                        },
+                        {
+                          "fontSize": 16,
+                        },
+                        {
+                          "color": "#FFFFFF",
+                        },
+                      ]
+                    }
+                  >
+                    common:actions.gotIt
+                  </Text>
+                </View>
               </Pressable>
             </View>
           </View>

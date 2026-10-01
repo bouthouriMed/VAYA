@@ -48,10 +48,8 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
         style={
           [
             {
-              "backgroundColor": "#FFFFFF",
               "borderTopLeftRadius": 24,
               "borderTopRightRadius": 24,
-              "shadowColor": "#26333A",
             },
             {
               "elevation": 8,
@@ -93,7 +91,6 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
             style={
               [
                 {
-                  "backgroundColor": "#DDD9CA",
                   "borderRadius": 9999,
                   "height": 4,
                   "width": 40,
@@ -108,65 +105,70 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
             style={
               {
                 "alignItems": "center",
+                "alignSelf": "stretch",
                 "flexDirection": "row",
-                "justifyContent": "space-between",
-                "paddingBottom": 12,
+                "gap": 8,
                 "paddingHorizontal": 16,
-                "width": "100%",
               }
             }
           >
             <View
               style={
                 {
-                  "width": 32,
+                  "width": 40,
                 }
               }
             />
             <Text
+              numberOfLines={2}
               style={
                 [
                   {
-                    "fontSize": 24,
+                    "fontSize": 18,
                     "fontWeight": "600",
-                    "lineHeight": 28.799999999999997,
+                    "lineHeight": 23.400000000000002,
                   },
                   {
                     "color": "#14201B",
-                    "textAlign": undefined,
+                    "textAlign": "center",
                     "writingDirection": "ltr",
                   },
                   {
                     "flex": 1,
-                    "textAlign": "center",
                   },
                 ]
               }
             >
               Date de départ
             </Text>
-            <TouchableOpacity
-              accessibilityLabel="Fermer"
-              accessibilityRole="button"
-              hitSlop={12}
-              onPress={[Function]}
+            <View
               style={
-                {
-                  "alignItems": "center",
-                  "height": 32,
-                  "justifyContent": "center",
-                  "width": 32,
-                }
+                [
+                  {
+                    "width": 40,
+                  },
+                  {
+                    "alignItems": "flex-end",
+                  },
+                ]
               }
             >
-              <Ionicons
-                accessibilityElementsHidden={true}
-                color="#14201B"
-                importantForAccessibility="no-hide-descendants"
-                name="close"
-                size={20}
-              />
-            </TouchableOpacity>
+              <Pressable
+                accessibilityLabel="Fermer"
+                accessibilityRole="button"
+                hitSlop={8}
+                onPress={[Function]}
+                style={[Function]}
+              >
+                <Ionicons
+                  accessibilityElementsHidden={true}
+                  color="#14201B"
+                  importantForAccessibility="no-hide-descendants"
+                  name="close"
+                  size={20}
+                />
+              </Pressable>
+            </View>
           </View>
         </View>
         <View
@@ -211,7 +213,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                     "flexDirection": "row",
                     "gap": 4,
                     "paddingHorizontal": 12,
-                    "paddingVertical": 4,
+                    "paddingVertical": 6,
                   },
                   {
                     "backgroundColor": "#FFFFFF",
@@ -226,7 +228,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                 style={
                   [
                     {
-                      "fontSize": 12,
+                      "fontSize": 14,
                       "fontWeight": "600",
                     },
                     {
@@ -256,7 +258,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                     "flexDirection": "row",
                     "gap": 4,
                     "paddingHorizontal": 12,
-                    "paddingVertical": 4,
+                    "paddingVertical": 6,
                   },
                   {
                     "backgroundColor": "#FFFFFF",
@@ -271,7 +273,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                 style={
                   [
                     {
-                      "fontSize": 12,
+                      "fontSize": 14,
                       "fontWeight": "600",
                     },
                     {
@@ -284,7 +286,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              accessibilityLabel="dim. 20"
+              accessibilityLabel="sam. 3"
               accessibilityRole="button"
               accessibilityState={
                 {
@@ -301,7 +303,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                     "flexDirection": "row",
                     "gap": 4,
                     "paddingHorizontal": 12,
-                    "paddingVertical": 4,
+                    "paddingVertical": 6,
                   },
                   {
                     "backgroundColor": "#FFFFFF",
@@ -316,7 +318,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                 style={
                   [
                     {
-                      "fontSize": 12,
+                      "fontSize": 14,
                       "fontWeight": "600",
                     },
                     {
@@ -325,11 +327,11 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                   ]
                 }
               >
-                dim. 20
+                sam. 3
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              accessibilityLabel="lun. 21"
+              accessibilityLabel="dim. 4"
               accessibilityRole="button"
               accessibilityState={
                 {
@@ -346,7 +348,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                     "flexDirection": "row",
                     "gap": 4,
                     "paddingHorizontal": 12,
-                    "paddingVertical": 4,
+                    "paddingVertical": 6,
                   },
                   {
                     "backgroundColor": "#FFFFFF",
@@ -361,7 +363,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                 style={
                   [
                     {
-                      "fontSize": 12,
+                      "fontSize": 14,
                       "fontWeight": "600",
                     },
                     {
@@ -370,11 +372,11 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                   ]
                 }
               >
-                lun. 21
+                dim. 4
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              accessibilityLabel="mar. 22"
+              accessibilityLabel="lun. 5"
               accessibilityRole="button"
               accessibilityState={
                 {
@@ -391,7 +393,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                     "flexDirection": "row",
                     "gap": 4,
                     "paddingHorizontal": 12,
-                    "paddingVertical": 4,
+                    "paddingVertical": 6,
                   },
                   {
                     "backgroundColor": "#FFFFFF",
@@ -406,7 +408,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                 style={
                   [
                     {
-                      "fontSize": 12,
+                      "fontSize": 14,
                       "fontWeight": "600",
                     },
                     {
@@ -415,11 +417,11 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                   ]
                 }
               >
-                mar. 22
+                lun. 5
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              accessibilityLabel="mer. 23"
+              accessibilityLabel="mar. 6"
               accessibilityRole="button"
               accessibilityState={
                 {
@@ -436,7 +438,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                     "flexDirection": "row",
                     "gap": 4,
                     "paddingHorizontal": 12,
-                    "paddingVertical": 4,
+                    "paddingVertical": 6,
                   },
                   {
                     "backgroundColor": "#FFFFFF",
@@ -451,7 +453,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                 style={
                   [
                     {
-                      "fontSize": 12,
+                      "fontSize": 14,
                       "fontWeight": "600",
                     },
                     {
@@ -460,7 +462,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                   ]
                 }
               >
-                mer. 23
+                mar. 6
               </Text>
             </TouchableOpacity>
           </ScrollView>
@@ -2320,10 +2322,8 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
         style={
           [
             {
-              "backgroundColor": "#FFFFFF",
               "borderTopLeftRadius": 24,
               "borderTopRightRadius": 24,
-              "shadowColor": "#26333A",
             },
             {
               "elevation": 8,
@@ -2339,12 +2339,12 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
               "shadowColor": "#14201B",
             },
             {
-              "height": 422,
+              "height": 523.28,
             },
             {
               "transform": [
                 {
-                  "translateY": 422,
+                  "translateY": 523.28,
                 },
               ],
             },
@@ -2365,7 +2365,6 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
             style={
               [
                 {
-                  "backgroundColor": "#DDD9CA",
                   "borderRadius": 9999,
                   "height": 4,
                   "width": 40,
@@ -2380,64 +2379,70 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
             style={
               {
                 "alignItems": "center",
+                "alignSelf": "stretch",
                 "flexDirection": "row",
-                "justifyContent": "space-between",
+                "gap": 8,
                 "paddingHorizontal": 16,
-                "width": "100%",
               }
             }
           >
             <View
               style={
                 {
-                  "width": 32,
+                  "width": 40,
                 }
               }
             />
             <Text
+              numberOfLines={2}
               style={
                 [
                   {
-                    "fontSize": 24,
+                    "fontSize": 18,
                     "fontWeight": "600",
-                    "lineHeight": 28.799999999999997,
+                    "lineHeight": 23.400000000000002,
                   },
                   {
                     "color": "#14201B",
-                    "textAlign": undefined,
+                    "textAlign": "center",
                     "writingDirection": "ltr",
                   },
                   {
                     "flex": 1,
-                    "textAlign": "center",
                   },
                 ]
               }
             >
               Heure
             </Text>
-            <TouchableOpacity
-              accessibilityLabel="Fermer"
-              accessibilityRole="button"
-              hitSlop={12}
-              onPress={[Function]}
+            <View
               style={
-                {
-                  "alignItems": "center",
-                  "height": 32,
-                  "justifyContent": "center",
-                  "width": 32,
-                }
+                [
+                  {
+                    "width": 40,
+                  },
+                  {
+                    "alignItems": "flex-end",
+                  },
+                ]
               }
             >
-              <Ionicons
-                accessibilityElementsHidden={true}
-                color="#14201B"
-                importantForAccessibility="no-hide-descendants"
-                name="close"
-                size={20}
-              />
-            </TouchableOpacity>
+              <Pressable
+                accessibilityLabel="Fermer"
+                accessibilityRole="button"
+                hitSlop={8}
+                onPress={[Function]}
+                style={[Function]}
+              >
+                <Ionicons
+                  accessibilityElementsHidden={true}
+                  color="#14201B"
+                  importantForAccessibility="no-hide-descendants"
+                  name="close"
+                  size={20}
+                />
+              </Pressable>
+            </View>
           </View>
         </View>
         <View

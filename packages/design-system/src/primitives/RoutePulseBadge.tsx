@@ -2,9 +2,11 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../tokens/index';
+import { useAppTheme } from '../theme/AppThemeProvider';
 
 export type RoutePulseBadgeSize = 'md' | 'hero';
+/** 'onCream' = on a light/neutral surface (ink core); 'onNavy' = on a dark
+ *  hero surface (accent core). Names kept for existing callers. */
 export type RoutePulseBadgeTone = 'onCream' | 'onNavy';
 
 interface RoutePulseBadgeProps {
@@ -25,8 +27,7 @@ const DIMENSIONS: Record<RoutePulseBadgeSize, { box: number; core: number; icon:
  * hero and every subsequent step header) so the flow reads as one
  * deliberately-designed sequence rather than a series of unrelated forms.
  * Purely static/no animation — screens that want a live pulse wrap this in
- * their own Animated.View (keeps this primitive hook-free and safely
- * callable in the direct-invocation test pattern this package uses).
+ * their own Animated.View. Colors come from the active theme.
  */
 export function RoutePulseBadge({
   icon,
@@ -35,9 +36,11 @@ export function RoutePulseBadge({
 }: RoutePulseBadgeProps): React.JSX.Element {
   const { box, core, icon: iconSize } = DIMENSIONS[size];
   const center = box / 2;
-  const ringColor = tone === 'onNavy' ? colors.secondaryLight : colors.primary;
-  const coreColor = tone === 'onNavy' ? colors.secondary : colors.primary;
-  const iconColor = colors.white;
+  const { colors: theme } = useAppTheme();
+  const onDark = tone === 'onNavy';
+  const ringColor = onDark ? theme.accent : theme.ink;
+  const coreColor = onDark ? theme.accent : theme.ink;
+  const iconColor = onDark ? theme.onAccent : theme.onInk;
 
   const ringRadii = [center - 2, center * 0.78, center * 0.62];
 

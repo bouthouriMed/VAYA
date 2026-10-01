@@ -20,7 +20,6 @@ import Animated, {
 import { LinearGradient } from 'expo-linear-gradient';
 import { BottomSheet } from './BottomSheet';
 import { Text } from './Text';
-import { Icon } from './Icon';
 import { spacing, radii } from '../tokens/index';
 import { useAppTheme } from '../theme/AppThemeProvider';
 import { haptics } from '../utils/haptics';
@@ -281,26 +280,11 @@ export function TimeWheelSheet({
       // ratio than before, sized for header + summary + wheel + confirm
       // alone, so the sheet doesn't carry a dead gap those chips used to
       // occupy.
-      heightRatio={0.5}
+      heightRatio={0.62}
       theme={theme}
       bottomInset={bottomInset}
-      headerContent={
-        <View style={styles.header}>
-          <View style={styles.headerSpacer} />
-          <Text variant="h3" color={theme.ink} style={styles.headerTitle}>
-            {title}
-          </Text>
-          <TouchableOpacity
-            onPress={onClose}
-            hitSlop={12}
-            style={styles.closeBtn}
-            accessibilityRole="button"
-            accessibilityLabel={closeLabel}
-          >
-            <Icon name="close" size="sm" color={theme.ink} />
-          </TouchableOpacity>
-        </View>
-      }
+      title={title}
+      closeLabel={closeLabel}
     >
       <View style={styles.summary}>
         <Text variant="bodySmall" color={theme.inkMuted}>
@@ -371,26 +355,6 @@ export function TimeWheelSheet({
 }
 
 const styles = StyleSheet.create({
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    width: '100%',
-    paddingHorizontal: spacing.lg,
-  },
-  headerSpacer: {
-    width: 32,
-  },
-  headerTitle: {
-    flex: 1,
-    textAlign: 'center',
-  },
-  closeBtn: {
-    width: 32,
-    height: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   summary: {
     alignItems: 'center',
     gap: spacing.xs,

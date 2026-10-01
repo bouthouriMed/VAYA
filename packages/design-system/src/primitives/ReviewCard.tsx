@@ -1,8 +1,9 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { colors, spacing, radii, typography, elevation } from '../tokens/index';
+import { spacing, radii, typography } from '../tokens/index';
 import { Avatar } from './Avatar';
 import type { AppPalette } from '../theme/palette';
+import { useAppTheme } from '../theme/AppThemeProvider';
 
 export interface ReviewCardData {
   raterName: string;
@@ -18,22 +19,22 @@ interface ReviewCardProps {
   theme?: AppPalette;
 }
 
-export function ReviewCard({ review, theme }: ReviewCardProps): React.JSX.Element {
-  const cardBg = theme?.surface ?? colors.white;
-  const nameColor = theme?.ink ?? colors.gray900;
-  const whenColor = theme?.inkFaint ?? colors.gray500;
-  const starEmpty = theme?.outline ?? colors.gray300;
-  const starFilled = theme?.accent ?? colors.secondary;
-  const commentColor = theme?.inkMuted ?? colors.gray700;
-  const borderColor = theme?.outlineVariant;
+export function ReviewCard({ review, theme: themeOverride }: ReviewCardProps): React.JSX.Element {
+  const { colors: contextTheme } = useAppTheme();
+  const theme = themeOverride ?? contextTheme;
+  const cardBg = theme.surface;
+  const nameColor = theme.ink;
+  const whenColor = theme.inkFaint;
+  const starEmpty = theme.inkFaint;
+  const starFilled = theme.accent;
+  const commentColor = theme.inkMuted;
+  const borderColor = theme.outlineVariant;
 
   return (
     <View
       style={[
         styles.card,
-        !theme && elevation?.sm,
-        { backgroundColor: cardBg },
-        borderColor ? { borderWidth: 1, borderColor } : null,
+        { backgroundColor: cardBg, borderWidth: 1, borderColor },
       ]}
       accessible
       accessibilityLabel={`${review.raterName}, ${review.stars} sur 5 étoiles, ${review.when}. ${review.comment}`}
@@ -66,7 +67,6 @@ const styles = StyleSheet.create({
     borderRadius: radii.xl,
     padding: spacing.md,
     gap: spacing.xs,
-    shadowColor: colors.gray900,
   },
   header: {
     flexDirection: 'row',

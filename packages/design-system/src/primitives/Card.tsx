@@ -1,16 +1,25 @@
-﻿import React from 'react';
-import { View, StyleSheet, type ViewStyle } from 'react-native';
-import { colors, spacing, radii, elevation } from '../tokens/index';
+import React from 'react';
+import { View, StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
+import { spacing, radii } from '../tokens/index';
+import { useAppTheme } from '../theme/AppThemeProvider';
 
 interface CardProps {
   children: React.ReactNode;
   padding?: keyof typeof spacing;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
 }
 
+/** The one content card: theme surface, hairline outline, radius `xl`. */
 export function Card({ children, padding = 'lg', style }: CardProps): React.JSX.Element {
+  const { colors: theme } = useAppTheme();
   return (
-    <View style={[styles.card, elevation?.md, { padding: spacing[padding] }, style]}>
+    <View
+      style={[
+        styles.card,
+        { backgroundColor: theme.surface, borderColor: theme.outlineVariant, padding: spacing[padding] },
+        style,
+      ]}
+    >
       {children}
     </View>
   );
@@ -18,8 +27,7 @@ export function Card({ children, padding = 'lg', style }: CardProps): React.JSX.
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.white,
-    borderRadius: radii['2xl'],
-    shadowColor: colors.gray900,
+    borderRadius: radii.xl,
+    borderWidth: 1,
   },
 });

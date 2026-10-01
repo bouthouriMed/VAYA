@@ -1,8 +1,9 @@
 import React from 'react';
 import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
-import { colors, spacing } from '../tokens/index';
+import { spacing } from '../tokens/index';
 import { haptics } from '../utils/haptics';
 import type { AppPalette } from '../theme/palette';
+import { useAppTheme } from '../theme/AppThemeProvider';
 
 interface StarRatingInputProps {
   /** Current rating, 1-5. 0 renders all stars unfilled (no selection yet). */
@@ -38,10 +39,14 @@ export function StarRatingInput({
   onChange,
   accessibilityLabel = 'Note',
   disabled = false,
-  theme,
+  theme: themeOverride,
 }: StarRatingInputProps): React.JSX.Element {
-  const starColor = theme ? theme.outlineVariant : colors.gray300;
-  const starFilledColor = theme ? theme.accent : colors.secondary;
+  const { colors: contextTheme } = useAppTheme();
+  const theme = themeOverride ?? contextTheme;
+  // Empty stars use inkFaint, not a border tone — they must be visible
+  // before the first tap, in both themes.
+  const starColor = theme.inkFaint;
+  const starFilledColor = theme.accent;
   return (
     <View
       style={styles.row}
@@ -80,6 +85,5 @@ const styles = StyleSheet.create({
   },
   star: {
     fontSize: 32,
-    color: colors.gray300,
   },
 });

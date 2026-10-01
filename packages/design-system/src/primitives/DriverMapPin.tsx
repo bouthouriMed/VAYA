@@ -7,7 +7,8 @@ import {
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
-import { colors, spacing, radii, typography } from '../tokens/index';
+import { spacing, radii, typography } from '../tokens/index';
+import { useAppTheme } from '../theme/AppThemeProvider';
 import { haptics } from '../utils/haptics';
 import { Avatar } from './Avatar';
 
@@ -47,10 +48,13 @@ export function DriverMapPin({
   scale = 1,
   recommended = false,
   labelSide = 'end',
-  accentColor = colors.secondary,
+  accentColor,
   onPress,
   style,
 }: DriverMapPinProps): React.JSX.Element {
+  const { colors: theme } = useAppTheme();
+  const accent = accentColor ?? theme.accent;
+  const surface = { backgroundColor: theme.surface, shadowColor: theme.ink };
   const handlePress = onPress
     ? () => {
         haptics.selection();
@@ -70,7 +74,8 @@ export function DriverMapPin({
         style={[
           styles.compactWrap,
           { width: size + 6, height: size + 6, borderRadius: (size + 6) / 2 },
-          recommended && { borderColor: accentColor, borderWidth: 2 },
+          surface,
+          recommended && { borderColor: accent, borderWidth: 2 },
           style,
         ]}
       >
@@ -93,18 +98,19 @@ export function DriverMapPin({
       style={[
         styles.pill,
         labelSide === 'start' && styles.pillReversed,
-        recommended && { borderWidth: 1.5, borderColor: accentColor },
+        surface,
+        recommended && { borderWidth: 1.5, borderColor: accent },
         style,
       ]}
     >
       <Avatar uri={data.avatarUri} name={data.name} sizePx={avatarPx} />
       <View>
-        <Text style={[styles.name, { fontSize: 12 * scale }]} numberOfLines={1}>
+        <Text style={[styles.name, { fontSize: 12 * scale, color: theme.ink }]} numberOfLines={1}>
           {data.name}
           {data.priceLabel ? ` · ${data.priceLabel}` : ''}
         </Text>
         {metaLine ? (
-          <Text style={[styles.meta, { fontSize: 10 * scale }]} numberOfLines={1}>
+          <Text style={[styles.meta, { fontSize: 10 * scale, color: theme.inkMuted }]} numberOfLines={1}>
             {metaLine}
           </Text>
         ) : null}
@@ -115,10 +121,8 @@ export function DriverMapPin({
 
 const styles = StyleSheet.create({
   compactWrap: {
-    backgroundColor: colors.white,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: colors.gray900,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.12,
     shadowRadius: 4,
@@ -128,12 +132,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
-    backgroundColor: colors.white,
     borderRadius: radii.full,
     paddingVertical: 4,
     paddingHorizontal: spacing.sm,
     paddingRight: spacing.md,
-    shadowColor: colors.gray900,
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.12,
     shadowRadius: 6,
@@ -146,9 +148,7 @@ const styles = StyleSheet.create({
   },
   name: {
     fontWeight: typography.fontWeight.bold,
-    color: colors.gray900,
   },
   meta: {
-    color: colors.gray600,
   },
 });

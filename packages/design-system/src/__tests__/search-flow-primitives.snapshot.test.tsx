@@ -84,7 +84,7 @@ const baseReview: ReviewCardData = {
 };
 
 describe('ReviewCard snapshots', () => {
-  it('renders with the legacy static palette when no theme prop is given', () => {
+  it('renders from the context theme when no theme prop is given', () => {
     const tree = renderJSON(<ReviewCard review={baseReview} />);
     expect(tree).toMatchSnapshot();
   });

@@ -262,23 +262,34 @@ exports[`messages.tsx snapshots > empty inbox — headline, filter-less, first-r
           onPress={[Function]}
           style={[Function]}
         >
-          <Text
+          <View
             style={
-              [
-                {
-                  "fontWeight": "600",
-                },
-                {
-                  "fontSize": 16,
-                },
-                {
-                  "color": "#0D1512",
-                },
-              ]
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+                "gap": 8,
+              }
             }
           >
-            messages:emptyHero.cta
-          </Text>
+            <Text
+              numberOfLines={1}
+              style={
+                [
+                  {
+                    "fontWeight": "600",
+                  },
+                  {
+                    "fontSize": 16,
+                  },
+                  {
+                    "color": "#FFFFFF",
+                  },
+                ]
+              }
+            >
+              messages:emptyHero.cta
+            </Text>
+          </View>
         </Pressable>
       </View>
     </SectionList>
@@ -409,13 +420,29 @@ exports[`messages.tsx snapshots > error — full-screen retry EmptyState 1`] = `
         {
           "alignItems": "center",
           "gap": 8,
-          "padding": 20,
+          "paddingHorizontal": 20,
+          "paddingVertical": 32,
         }
       }
     >
       <View
         accessibilityElementsHidden={true}
         importantForAccessibility="no-hide-descendants"
+        style={
+          [
+            {
+              "alignItems": "center",
+              "borderRadius": 9999,
+              "height": 64,
+              "justifyContent": "center",
+              "marginBottom": 4,
+              "width": 64,
+            },
+            {
+              "backgroundColor": "#E4EDFB",
+            },
+          ]
+        }
       >
         <Ionicons
           accessibilityElementsHidden={true}
@@ -429,18 +456,16 @@ exports[`messages.tsx snapshots > error — full-screen retry EmptyState 1`] = `
         style={
           [
             {
-              "fontSize": 24,
+              "fontSize": 18,
               "fontWeight": "600",
-              "lineHeight": 28.799999999999997,
+              "lineHeight": 23.400000000000002,
             },
             {
-              "color": "#26333A",
+              "color": "#14201B",
               "textAlign": "center",
               "writingDirection": "ltr",
             },
-            {
-              "marginTop": 4,
-            },
+            undefined,
           ]
         }
       >
@@ -455,12 +480,12 @@ exports[`messages.tsx snapshots > error — full-screen retry EmptyState 1`] = `
               "lineHeight": 24,
             },
             {
-              "color": "#7A8288",
+              "color": "#5B6572",
               "textAlign": "center",
               "writingDirection": "ltr",
             },
             {
-              "marginBottom": 4,
+              "maxWidth": 320,
             },
           ]
         }
@@ -480,23 +505,34 @@ exports[`messages.tsx snapshots > error — full-screen retry EmptyState 1`] = `
         onPress={[Function]}
         style={[Function]}
       >
-        <Text
+        <View
           style={
-            [
-              {
-                "fontWeight": "600",
-              },
-              {
-                "fontSize": 16,
-              },
-              {
-                "color": "#2E3B42",
-              },
-            ]
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "gap": 8,
+            }
           }
         >
-          common:actions.retry
-        </Text>
+          <Text
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "fontWeight": "600",
+                },
+                {
+                  "fontSize": 16,
+                },
+                {
+                  "color": "#14201B",
+                },
+              ]
+            }
+          >
+            common:actions.retry
+          </Text>
+        </View>
       </Pressable>
     </View>
   </SafeAreaView>
@@ -633,9 +669,7 @@ exports[`messages.tsx snapshots > loading — headline over conversation-row ske
         style={
           [
             {
-              "backgroundColor": "#EAE7DC",
-            },
-            {
+              "backgroundColor": "#E4EDFB",
               "borderRadius": 16,
               "height": 92,
               "opacity": AnimatedValue {
@@ -653,9 +687,7 @@ exports[`messages.tsx snapshots > loading — headline over conversation-row ske
         style={
           [
             {
-              "backgroundColor": "#EAE7DC",
-            },
-            {
+              "backgroundColor": "#E4EDFB",
               "borderRadius": 16,
               "height": 92,
               "opacity": AnimatedValue {
@@ -673,9 +705,7 @@ exports[`messages.tsx snapshots > loading — headline over conversation-row ske
         style={
           [
             {
-              "backgroundColor": "#EAE7DC",
-            },
-            {
+              "backgroundColor": "#E4EDFB",
               "borderRadius": 16,
               "height": 92,
               "opacity": AnimatedValue {
@@ -693,9 +723,7 @@ exports[`messages.tsx snapshots > loading — headline over conversation-row ske
         style={
           [
             {
-              "backgroundColor": "#EAE7DC",
-            },
-            {
+              "backgroundColor": "#E4EDFB",
               "borderRadius": 16,
               "height": 92,
               "opacity": AnimatedValue {
@@ -1222,7 +1250,6 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
               style={
                 [
                   {
-                    "color": "#FFFFFF",
                     "fontWeight": "600",
                   },
                   {
@@ -1521,7 +1548,6 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
               style={
                 [
                   {
-                    "color": "#FFFFFF",
                     "fontWeight": "600",
                   },
                   {

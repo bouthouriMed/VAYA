@@ -14,6 +14,112 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
       ]
     }
   >
+    <View
+      style={
+        [
+          {
+            "paddingBottom": 8,
+            "paddingHorizontal": 16,
+          },
+          {
+            "paddingTop": 8,
+          },
+          {
+            "backgroundColor": "#FFFFFF",
+          },
+          {
+            "borderBottomColor": "#E4EDFB",
+            "borderBottomWidth": 1,
+          },
+          undefined,
+        ]
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "gap": 8,
+            "minHeight": 44,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flex": 1,
+              "flexDirection": "row",
+              "gap": 8,
+              "minWidth": 40,
+            }
+          }
+        >
+          <Pressable
+            accessibilityLabel="common:actions.back"
+            accessibilityRole="button"
+            hitSlop={8}
+            onPress={[Function]}
+            style={[Function]}
+          >
+            <Ionicons
+              accessibilityElementsHidden={true}
+              color="#14201B"
+              importantForAccessibility="no-hide-descendants"
+              name="chevron-back"
+              size={20}
+            />
+          </Pressable>
+        </View>
+        <View
+          accessibilityRole="header"
+          style={
+            {
+              "alignItems": "center",
+              "flex": 3,
+            }
+          }
+        >
+          <Text
+            numberOfLines={2}
+            style={
+              [
+                {
+                  "fontSize": 18,
+                  "fontWeight": "600",
+                  "lineHeight": 23.400000000000002,
+                },
+                {
+                  "color": "#14201B",
+                  "textAlign": "center",
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            booking:detail.title
+          </Text>
+        </View>
+        <View
+          style={
+            [
+              {
+                "alignItems": "center",
+                "flex": 1,
+                "flexDirection": "row",
+                "gap": 8,
+                "minWidth": 40,
+              },
+              {
+                "justifyContent": "flex-end",
+              },
+            ]
+          }
+        />
+      </View>
+    </View>
     <ScrollView
       contentContainerStyle={
         {
@@ -23,63 +129,6 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
       }
       showsVerticalScrollIndicator={false}
     >
-      <View
-        style={
-          [
-            {
-              "alignItems": "center",
-              "flexDirection": "row",
-              "paddingBottom": 8,
-              "paddingHorizontal": 16,
-            },
-            {
-              "paddingTop": 8,
-            },
-          ]
-        }
-      >
-        <TouchableOpacity
-          accessibilityLabel="common:actions.back"
-          accessibilityRole="button"
-          hitSlop={12}
-          onPress={[Function]}
-        >
-          <Ionicons
-            color="#14201B"
-            name="chevron-back"
-            size={24}
-          />
-        </TouchableOpacity>
-        <Text
-          style={
-            [
-              {
-                "fontSize": 24,
-                "fontWeight": "600",
-                "lineHeight": 28.799999999999997,
-              },
-              {
-                "color": "#14201B",
-                "textAlign": undefined,
-                "writingDirection": "ltr",
-              },
-              {
-                "flex": 1,
-                "textAlign": "center",
-              },
-            ]
-          }
-        >
-          booking:detail.title
-        </Text>
-        <View
-          style={
-            {
-              "width": 24,
-            }
-          }
-        />
-      </View>
       <View
         style={
           {
@@ -458,9 +507,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
             style={
               [
                 {
-                  "backgroundColor": "#EAE7DC",
-                },
-                {
+                  "backgroundColor": "#E4EDFB",
                   "borderRadius": 0,
                   "height": 16,
                   "opacity": AnimatedValue {
@@ -474,27 +521,35 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
           />
           <View
             style={
-              {
-                "backgroundColor": "#2E3B42",
-                "borderRadius": 9999,
-                "left": 8,
-                "paddingHorizontal": 8,
-                "paddingVertical": 4,
-                "position": "absolute",
-                "top": 8,
-              }
+              [
+                {
+                  "borderRadius": 9999,
+                  "left": 8,
+                  "paddingHorizontal": 8,
+                  "paddingVertical": 4,
+                  "position": "absolute",
+                  "top": 8,
+                },
+                {
+                  "backgroundColor": "#14201B",
+                },
+              ]
             }
           >
             <Text
               style={
-                {
-                  "color": "#F3F1E9",
-                  "fontSize": 12,
-                  "fontWeight": "600",
-                }
+                [
+                  {
+                    "fontSize": 12,
+                    "fontWeight": "600",
+                  },
+                  {
+                    "color": "#FFFFFF",
+                  },
+                ]
               }
             >
-              booking:detail.statusInProgress
+              booking:phase.confirmed
             </Text>
           </View>
         </View>
@@ -625,7 +680,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
             ]
           }
         >
-          mar. 25 août · 8:30
+          mar. 25 août · 08:30
         </Text>
         <View
           style={
@@ -708,7 +763,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
                   ]
                 }
               >
-                8:30
+                08:30
               </Text>
             </View>
             <TouchableOpacity
@@ -931,7 +986,6 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
               style={
                 [
                   {
-                    "color": "#FFFFFF",
                     "fontWeight": "600",
                   },
                   {
@@ -1052,7 +1106,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
                 [
                   {
                     "fontSize": 12,
-                    "fontWeight": "500",
+                    "fontWeight": "600",
                   },
                   {
                     "color": "#4A7C8C",
@@ -1323,23 +1377,34 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
         onPress={[Function]}
         style={[Function]}
       >
-        <Text
+        <View
           style={
-            [
-              {
-                "fontWeight": "600",
-              },
-              {
-                "fontSize": 16,
-              },
-              {
-                "color": "#14201B",
-              },
-            ]
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "gap": 8,
+            }
           }
         >
-          booking:cancelBooking
-        </Text>
+          <Text
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "fontWeight": "600",
+                },
+                {
+                  "fontSize": 16,
+                },
+                {
+                  "color": "#14201B",
+                },
+              ]
+            }
+          >
+            booking:cancelBooking
+          </Text>
+        </View>
       </Pressable>
     </View>
     <Modal
@@ -1689,9 +1754,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
             style={
               [
                 {
-                  "backgroundColor": "#EAE7DC",
-                },
-                {
+                  "backgroundColor": "#E4EDFB",
                   "borderRadius": 0,
                   "height": 16,
                   "opacity": AnimatedValue {
@@ -1704,11 +1767,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
             }
           />
         </View>
-        <TouchableOpacity
-          accessibilityLabel="common:actions.close"
-          accessibilityRole="button"
-          hitSlop={12}
-          onPress={[Function]}
+        <View
           style={
             [
               {
@@ -1729,18 +1788,27 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
                 "width": 40,
               },
               {
-                "backgroundColor": "#FFFFFF",
                 "top": 8,
               },
             ]
           }
         >
-          <Ionicons
-            color="#14201B"
-            name="close"
-            size={22}
-          />
-        </TouchableOpacity>
+          <Pressable
+            accessibilityLabel="common:actions.close"
+            accessibilityRole="button"
+            hitSlop={8}
+            onPress={[Function]}
+            style={[Function]}
+          >
+            <Ionicons
+              accessibilityElementsHidden={true}
+              color="#14201B"
+              importantForAccessibility="no-hide-descendants"
+              name="close"
+              size={20}
+            />
+          </Pressable>
+        </View>
       </View>
     </Modal>
   </View>,

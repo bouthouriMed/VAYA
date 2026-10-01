@@ -50,12 +50,16 @@
       "recommendedLabel": "Recommandé"
     },
     "priceStep": {
-      "title": "PRIX SUGGÉRÉ",
+      "title": "Prix suggéré",
       "description": "Ce montant est calculé pour ce trajet — vous pouvez l'ajuster dans la marge proposée.",
       "contributionLabel": "Contribution par place",
       "suggested": "Suggéré",
       "min": "Minimum",
-      "max": "Maximum"
+      "max": "Maximum",
+      "decrease": "Diminuer la contribution",
+      "increase": "Augmenter la contribution",
+      "suggestedValue": "Suggéré : {{price}}",
+      "estimateNote": "Estimation basée sur la distance à vol d'oiseau : la marge reste plus large tant que l'itinéraire réel n'est pas confirmé."
     },
     "stopsStep": {
       "pickupTitle": "Point de rendez-vous",

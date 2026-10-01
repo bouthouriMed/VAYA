@@ -196,23 +196,8 @@ export function DateCalendarSheet({
       theme={theme}
       contentGesture={monthSwipeGesture}
       bottomInset={bottomInset}
-      headerContent={
-        <View style={styles.header}>
-          <View style={styles.headerSpacer} />
-          <Text variant="h3" color={theme.ink} style={styles.headerTitle}>
-            {title}
-          </Text>
-          <TouchableOpacity
-            onPress={onClose}
-            hitSlop={12}
-            style={styles.closeBtn}
-            accessibilityRole="button"
-            accessibilityLabel={closeLabel}
-          >
-            <Icon name="close" size="sm" color={theme.ink} />
-          </TouchableOpacity>
-        </View>
-      }
+      title={title}
+      closeLabel={closeLabel}
     >
       {/* `style` here is load-bearing, not decorative: a horizontal
        *  ScrollView's own outer box defaults to `flexGrow: 1` regardless
@@ -361,27 +346,6 @@ export function DateCalendarSheet({
 }
 
 const styles = StyleSheet.create({
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    width: '100%',
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.md
-  },
-  headerSpacer: {
-    width: 32,
-  },
-  headerTitle: {
-    flex: 1,
-    textAlign: 'center',
-  },
-  closeBtn: {
-    width: 32,
-    height: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   quickDayScroll: {
     flexGrow: 0,
     flexShrink: 0,

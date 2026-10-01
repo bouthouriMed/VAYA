@@ -7,7 +7,8 @@ import {
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
-import { colors, spacing, typography } from '../tokens/index';
+import { spacing, typography } from '../tokens/index';
+import { useAppTheme } from '../theme/AppThemeProvider';
 
 interface ClusterMarkerProps {
   label: string;
@@ -30,6 +31,7 @@ export function ClusterMarker({
   onPress,
   style,
 }: ClusterMarkerProps): React.JSX.Element {
+  const { colors: theme } = useAppTheme();
   return (
     <TouchableOpacity
       style={[styles.wrap, style]}
@@ -39,12 +41,12 @@ export function ClusterMarker({
       accessibilityRole={onPress ? 'button' : undefined}
       accessibilityLabel={label}
     >
-      <View style={[styles.halo, emphasized && styles.haloEmphasized]}>
-        <View style={[styles.ring, emphasized && styles.ringEmphasized]}>
-          <View style={styles.core} />
+      <View style={[styles.halo, { backgroundColor: theme.accentGlow + (emphasized ? '66' : '3A') }]}>
+        <View style={[styles.ring, { backgroundColor: emphasized ? theme.accent : theme.accent + 'B0' }]}>
+          <View style={[styles.core, { backgroundColor: theme.ink }]} />
         </View>
       </View>
-      <Text style={[styles.label, emphasized && styles.labelEmphasized]} numberOfLines={1}>
+      <Text style={[styles.label, { color: emphasized ? theme.ink : theme.inkMuted }]} numberOfLines={1}>
         {label}
       </Text>
     </TouchableOpacity>
@@ -60,37 +62,24 @@ const styles = StyleSheet.create({
     width: HALO_SIZE,
     height: HALO_SIZE,
     borderRadius: HALO_SIZE / 2,
-    backgroundColor: colors.secondaryLight + '3A',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  haloEmphasized: {
-    backgroundColor: colors.secondaryLight + '55',
   },
   ring: {
     width: RING_SIZE,
     height: RING_SIZE,
     borderRadius: RING_SIZE / 2,
-    backgroundColor: colors.secondary + 'B0',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  ringEmphasized: {
-    backgroundColor: colors.secondary,
   },
   core: {
     width: CORE_SIZE,
     height: CORE_SIZE,
     borderRadius: CORE_SIZE / 2,
-    backgroundColor: colors.primary,
   },
   label: {
     fontSize: typography.fontSize.xs,
     fontWeight: typography.fontWeight.semibold,
-    color: colors.gray800,
     textAlign: 'center',
-  },
-  labelEmphasized: {
-    color: colors.gray900,
   },
 });

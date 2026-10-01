@@ -14,6 +14,112 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
       ]
     }
   >
+    <View
+      style={
+        [
+          {
+            "paddingBottom": 8,
+            "paddingHorizontal": 16,
+          },
+          {
+            "paddingTop": 8,
+          },
+          {
+            "backgroundColor": "#FFFFFF",
+          },
+          {
+            "borderBottomColor": "#E4EDFB",
+            "borderBottomWidth": 1,
+          },
+          undefined,
+        ]
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "gap": 8,
+            "minHeight": 44,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flex": 1,
+              "flexDirection": "row",
+              "gap": 8,
+              "minWidth": 40,
+            }
+          }
+        >
+          <Pressable
+            accessibilityLabel="rides.rideDetail.back"
+            accessibilityRole="button"
+            hitSlop={8}
+            onPress={[Function]}
+            style={[Function]}
+          >
+            <Ionicons
+              accessibilityElementsHidden={true}
+              color="#14201B"
+              importantForAccessibility="no-hide-descendants"
+              name="chevron-back"
+              size={20}
+            />
+          </Pressable>
+        </View>
+        <View
+          accessibilityRole="header"
+          style={
+            {
+              "alignItems": "center",
+              "flex": 3,
+            }
+          }
+        >
+          <Text
+            numberOfLines={2}
+            style={
+              [
+                {
+                  "fontSize": 18,
+                  "fontWeight": "600",
+                  "lineHeight": 23.400000000000002,
+                },
+                {
+                  "color": "#14201B",
+                  "textAlign": "center",
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            rides.rideDetail.myRide
+          </Text>
+        </View>
+        <View
+          style={
+            [
+              {
+                "alignItems": "center",
+                "flex": 1,
+                "flexDirection": "row",
+                "gap": 8,
+                "minWidth": 40,
+              },
+              {
+                "justifyContent": "flex-end",
+              },
+            ]
+          }
+        />
+      </View>
+    </View>
     <ScrollView
       contentContainerStyle={
         {
@@ -22,63 +128,6 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
       }
       showsVerticalScrollIndicator={false}
     >
-      <View
-        style={
-          [
-            {
-              "alignItems": "center",
-              "flexDirection": "row",
-              "paddingBottom": 8,
-              "paddingHorizontal": 16,
-            },
-            {
-              "paddingTop": 8,
-            },
-          ]
-        }
-      >
-        <TouchableOpacity
-          accessibilityLabel="rides.rideDetail.back"
-          accessibilityRole="button"
-          hitSlop={12}
-          onPress={[Function]}
-        >
-          <Ionicons
-            color="#14201B"
-            name="chevron-back"
-            size={24}
-          />
-        </TouchableOpacity>
-        <Text
-          style={
-            [
-              {
-                "fontSize": 24,
-                "fontWeight": "600",
-                "lineHeight": 28.799999999999997,
-              },
-              {
-                "color": "#14201B",
-                "textAlign": undefined,
-                "writingDirection": "ltr",
-              },
-              {
-                "flex": 1,
-                "textAlign": "center",
-              },
-            ]
-          }
-        >
-          rides.rideDetail.myRide
-        </Text>
-        <View
-          style={
-            {
-              "width": 24,
-            }
-          }
-        />
-      </View>
       <View
         style={
           {
@@ -457,9 +506,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
             style={
               [
                 {
-                  "backgroundColor": "#EAE7DC",
-                },
-                {
+                  "backgroundColor": "#E4EDFB",
                   "borderRadius": 0,
                   "height": 16,
                   "opacity": AnimatedValue {
@@ -854,7 +901,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                 [
                   {
                     "fontSize": 12,
-                    "fontWeight": "500",
+                    "fontWeight": "600",
                   },
                   {
                     "color": "#B58A2E",
@@ -890,7 +937,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
             }
           >
             <View
-              accessibilityLabel="rides.rideDetail.departure, 8:30, Tunis"
+              accessibilityLabel="rides.rideDetail.departure, 08:30, Tunis"
               accessibilityRole="text"
               accessible={true}
               style={
@@ -1011,7 +1058,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                         ]
                       }
                     >
-                      8:30
+                      08:30
                     </Text>
                   </View>
                   <Text
@@ -1328,23 +1375,34 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
         onPress={[Function]}
         style={[Function]}
       >
-        <Text
+        <View
           style={
-            [
-              {
-                "fontWeight": "600",
-              },
-              {
-                "fontSize": 16,
-              },
-              {
-                "color": "#14201B",
-              },
-            ]
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "gap": 8,
+            }
           }
         >
-          rides.rideDetail.cancelRide
-        </Text>
+          <Text
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "fontWeight": "600",
+                },
+                {
+                  "fontSize": 16,
+                },
+                {
+                  "color": "#14201B",
+                },
+              ]
+            }
+          >
+            rides.rideDetail.cancelRide
+          </Text>
+        </View>
       </Pressable>
     </View>
     <Modal
@@ -1730,9 +1788,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
             style={
               [
                 {
-                  "backgroundColor": "#EAE7DC",
-                },
-                {
+                  "backgroundColor": "#E4EDFB",
                   "borderRadius": 0,
                   "height": 16,
                   "opacity": AnimatedValue {
@@ -1745,11 +1801,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
             }
           />
         </View>
-        <TouchableOpacity
-          accessibilityLabel="rides.rideDetail.close"
-          accessibilityRole="button"
-          hitSlop={12}
-          onPress={[Function]}
+        <View
           style={
             [
               {
@@ -1770,18 +1822,27 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                 "width": 40,
               },
               {
-                "backgroundColor": "#FFFFFF",
                 "top": 8,
               },
             ]
           }
         >
-          <Ionicons
-            color="#14201B"
-            name="close"
-            size={22}
-          />
-        </TouchableOpacity>
+          <Pressable
+            accessibilityLabel="rides.rideDetail.close"
+            accessibilityRole="button"
+            hitSlop={8}
+            onPress={[Function]}
+            style={[Function]}
+          >
+            <Ionicons
+              accessibilityElementsHidden={true}
+              color="#14201B"
+              importantForAccessibility="no-hide-descendants"
+              name="close"
+              size={20}
+            />
+          </Pressable>
+        </View>
       </View>
     </Modal>
   </View>,
@@ -1814,6 +1875,112 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
       ]
     }
   >
+    <View
+      style={
+        [
+          {
+            "paddingBottom": 8,
+            "paddingHorizontal": 16,
+          },
+          {
+            "paddingTop": 8,
+          },
+          {
+            "backgroundColor": "#FFFFFF",
+          },
+          {
+            "borderBottomColor": "#E4EDFB",
+            "borderBottomWidth": 1,
+          },
+          undefined,
+        ]
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "gap": 8,
+            "minHeight": 44,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flex": 1,
+              "flexDirection": "row",
+              "gap": 8,
+              "minWidth": 40,
+            }
+          }
+        >
+          <Pressable
+            accessibilityLabel="rides.rideDetail.back"
+            accessibilityRole="button"
+            hitSlop={8}
+            onPress={[Function]}
+            style={[Function]}
+          >
+            <Ionicons
+              accessibilityElementsHidden={true}
+              color="#14201B"
+              importantForAccessibility="no-hide-descendants"
+              name="chevron-back"
+              size={20}
+            />
+          </Pressable>
+        </View>
+        <View
+          accessibilityRole="header"
+          style={
+            {
+              "alignItems": "center",
+              "flex": 3,
+            }
+          }
+        >
+          <Text
+            numberOfLines={2}
+            style={
+              [
+                {
+                  "fontSize": 18,
+                  "fontWeight": "600",
+                  "lineHeight": 23.400000000000002,
+                },
+                {
+                  "color": "#14201B",
+                  "textAlign": "center",
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            rides.rideDetail.myRide
+          </Text>
+        </View>
+        <View
+          style={
+            [
+              {
+                "alignItems": "center",
+                "flex": 1,
+                "flexDirection": "row",
+                "gap": 8,
+                "minWidth": 40,
+              },
+              {
+                "justifyContent": "flex-end",
+              },
+            ]
+          }
+        />
+      </View>
+    </View>
     <ScrollView
       contentContainerStyle={
         {
@@ -1822,63 +1989,6 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
       }
       showsVerticalScrollIndicator={false}
     >
-      <View
-        style={
-          [
-            {
-              "alignItems": "center",
-              "flexDirection": "row",
-              "paddingBottom": 8,
-              "paddingHorizontal": 16,
-            },
-            {
-              "paddingTop": 8,
-            },
-          ]
-        }
-      >
-        <TouchableOpacity
-          accessibilityLabel="rides.rideDetail.back"
-          accessibilityRole="button"
-          hitSlop={12}
-          onPress={[Function]}
-        >
-          <Ionicons
-            color="#14201B"
-            name="chevron-back"
-            size={24}
-          />
-        </TouchableOpacity>
-        <Text
-          style={
-            [
-              {
-                "fontSize": 24,
-                "fontWeight": "600",
-                "lineHeight": 28.799999999999997,
-              },
-              {
-                "color": "#14201B",
-                "textAlign": undefined,
-                "writingDirection": "ltr",
-              },
-              {
-                "flex": 1,
-                "textAlign": "center",
-              },
-            ]
-          }
-        >
-          rides.rideDetail.myRide
-        </Text>
-        <View
-          style={
-            {
-              "width": 24,
-            }
-          }
-        />
-      </View>
       <View
         style={
           {
@@ -2307,9 +2417,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
             style={
               [
                 {
-                  "backgroundColor": "#EAE7DC",
-                },
-                {
+                  "backgroundColor": "#E4EDFB",
                   "borderRadius": 0,
                   "height": 16,
                   "opacity": AnimatedValue {
@@ -2704,7 +2812,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                 [
                   {
                     "fontSize": 12,
-                    "fontWeight": "500",
+                    "fontWeight": "600",
                   },
                   {
                     "color": "#B58A2E",
@@ -2740,7 +2848,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
             }
           >
             <View
-              accessibilityLabel="rides.rideDetail.departure, 8:30, Tunis"
+              accessibilityLabel="rides.rideDetail.departure, 08:30, Tunis"
               accessibilityRole="text"
               accessible={true}
               style={
@@ -2861,7 +2969,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                         ]
                       }
                     >
-                      8:30
+                      08:30
                     </Text>
                   </View>
                   <Text
@@ -3050,7 +3158,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                               "justifyContent": "center",
                             },
                             {
-                              "backgroundColor": "#2E3B42",
+                              "backgroundColor": "#E4EDFB",
                               "borderRadius": 14,
                               "height": 28,
                               "width": 28,
@@ -3062,11 +3170,10 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                           style={
                             [
                               {
-                                "color": "#FFFFFF",
                                 "fontWeight": "600",
                               },
                               {
-                                "color": undefined,
+                                "color": "#14201B",
                                 "fontSize": 11,
                               },
                             ]
@@ -3422,7 +3529,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                       "justifyContent": "center",
                     },
                     {
-                      "backgroundColor": "#FFFFFF",
+                      "backgroundColor": "#E4EDFB",
                       "borderRadius": 20,
                       "height": 40,
                       "width": 40,
@@ -3434,7 +3541,6 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                   style={
                     [
                       {
-                        "color": "#FFFFFF",
                         "fontWeight": "600",
                       },
                       {
@@ -3702,7 +3808,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                       "justifyContent": "center",
                     },
                     {
-                      "backgroundColor": "#FFFFFF",
+                      "backgroundColor": "#E4EDFB",
                       "borderRadius": 18,
                       "height": 36,
                       "width": 36,
@@ -3714,7 +3820,6 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                   style={
                     [
                       {
-                        "color": "#FFFFFF",
                         "fontWeight": "600",
                       },
                       {
@@ -3777,7 +3882,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
               </Text>
             </View>
             <View
-              accessibilityLabel="rides.rideDetail.confirmedBadge"
+              accessibilityLabel="booking:phase.confirmed"
               accessibilityRole="text"
               accessible={true}
               style={
@@ -3800,7 +3905,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                   [
                     {
                       "fontSize": 12,
-                      "fontWeight": "500",
+                      "fontWeight": "600",
                     },
                     {
                       "color": "#22794F",
@@ -3808,7 +3913,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                   ]
                 }
               >
-                rides.rideDetail.confirmedBadge
+                booking:phase.confirmed
               </Text>
             </View>
             <Ionicons
@@ -3859,23 +3964,34 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
         onPress={[Function]}
         style={[Function]}
       >
-        <Text
+        <View
           style={
-            [
-              {
-                "fontWeight": "600",
-              },
-              {
-                "fontSize": 16,
-              },
-              {
-                "color": "#0D1512",
-              },
-            ]
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "gap": 8,
+            }
           }
         >
-          rides.rideDetail.journeyStartCta
-        </Text>
+          <Text
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "fontWeight": "600",
+                },
+                {
+                  "fontSize": 16,
+                },
+                {
+                  "color": "#FFFFFF",
+                },
+              ]
+            }
+          >
+            rides.rideDetail.journeyStartCta
+          </Text>
+        </View>
       </Pressable>
       <Pressable
         accessibilityLabel="rides.rideDetail.cancelRide"
@@ -3890,23 +4006,34 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
         onPress={[Function]}
         style={[Function]}
       >
-        <Text
+        <View
           style={
-            [
-              {
-                "fontWeight": "600",
-              },
-              {
-                "fontSize": 16,
-              },
-              {
-                "color": "#14201B",
-              },
-            ]
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "gap": 8,
+            }
           }
         >
-          rides.rideDetail.cancelRide
-        </Text>
+          <Text
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "fontWeight": "600",
+                },
+                {
+                  "fontSize": 16,
+                },
+                {
+                  "color": "#14201B",
+                },
+              ]
+            }
+          >
+            rides.rideDetail.cancelRide
+          </Text>
+        </View>
       </Pressable>
     </View>
     <Modal
@@ -4342,9 +4469,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
             style={
               [
                 {
-                  "backgroundColor": "#EAE7DC",
-                },
-                {
+                  "backgroundColor": "#E4EDFB",
                   "borderRadius": 0,
                   "height": 16,
                   "opacity": AnimatedValue {
@@ -4357,11 +4482,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
             }
           />
         </View>
-        <TouchableOpacity
-          accessibilityLabel="rides.rideDetail.close"
-          accessibilityRole="button"
-          hitSlop={12}
-          onPress={[Function]}
+        <View
           style={
             [
               {
@@ -4382,18 +4503,27 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                 "width": 40,
               },
               {
-                "backgroundColor": "#FFFFFF",
                 "top": 8,
               },
             ]
           }
         >
-          <Ionicons
-            color="#14201B"
-            name="close"
-            size={22}
-          />
-        </TouchableOpacity>
+          <Pressable
+            accessibilityLabel="rides.rideDetail.close"
+            accessibilityRole="button"
+            hitSlop={8}
+            onPress={[Function]}
+            style={[Function]}
+          >
+            <Ionicons
+              accessibilityElementsHidden={true}
+              color="#14201B"
+              importantForAccessibility="no-hide-descendants"
+              name="close"
+              size={20}
+            />
+          </Pressable>
+        </View>
       </View>
     </Modal>
   </View>,
@@ -4426,6 +4556,112 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
       ]
     }
   >
+    <View
+      style={
+        [
+          {
+            "paddingBottom": 8,
+            "paddingHorizontal": 16,
+          },
+          {
+            "paddingTop": 8,
+          },
+          {
+            "backgroundColor": "#FFFFFF",
+          },
+          {
+            "borderBottomColor": "#E4EDFB",
+            "borderBottomWidth": 1,
+          },
+          undefined,
+        ]
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "gap": 8,
+            "minHeight": 44,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flex": 1,
+              "flexDirection": "row",
+              "gap": 8,
+              "minWidth": 40,
+            }
+          }
+        >
+          <Pressable
+            accessibilityLabel="rides.rideDetail.back"
+            accessibilityRole="button"
+            hitSlop={8}
+            onPress={[Function]}
+            style={[Function]}
+          >
+            <Ionicons
+              accessibilityElementsHidden={true}
+              color="#14201B"
+              importantForAccessibility="no-hide-descendants"
+              name="chevron-back"
+              size={20}
+            />
+          </Pressable>
+        </View>
+        <View
+          accessibilityRole="header"
+          style={
+            {
+              "alignItems": "center",
+              "flex": 3,
+            }
+          }
+        >
+          <Text
+            numberOfLines={2}
+            style={
+              [
+                {
+                  "fontSize": 18,
+                  "fontWeight": "600",
+                  "lineHeight": 23.400000000000002,
+                },
+                {
+                  "color": "#14201B",
+                  "textAlign": "center",
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            rides.rideDetail.myRide
+          </Text>
+        </View>
+        <View
+          style={
+            [
+              {
+                "alignItems": "center",
+                "flex": 1,
+                "flexDirection": "row",
+                "gap": 8,
+                "minWidth": 40,
+              },
+              {
+                "justifyContent": "flex-end",
+              },
+            ]
+          }
+        />
+      </View>
+    </View>
     <ScrollView
       contentContainerStyle={
         {
@@ -4434,63 +4670,6 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
       }
       showsVerticalScrollIndicator={false}
     >
-      <View
-        style={
-          [
-            {
-              "alignItems": "center",
-              "flexDirection": "row",
-              "paddingBottom": 8,
-              "paddingHorizontal": 16,
-            },
-            {
-              "paddingTop": 8,
-            },
-          ]
-        }
-      >
-        <TouchableOpacity
-          accessibilityLabel="rides.rideDetail.back"
-          accessibilityRole="button"
-          hitSlop={12}
-          onPress={[Function]}
-        >
-          <Ionicons
-            color="#14201B"
-            name="chevron-back"
-            size={24}
-          />
-        </TouchableOpacity>
-        <Text
-          style={
-            [
-              {
-                "fontSize": 24,
-                "fontWeight": "600",
-                "lineHeight": 28.799999999999997,
-              },
-              {
-                "color": "#14201B",
-                "textAlign": undefined,
-                "writingDirection": "ltr",
-              },
-              {
-                "flex": 1,
-                "textAlign": "center",
-              },
-            ]
-          }
-        >
-          rides.rideDetail.myRide
-        </Text>
-        <View
-          style={
-            {
-              "width": 24,
-            }
-          }
-        />
-      </View>
       <View
         style={
           {
@@ -5069,9 +5248,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
             style={
               [
                 {
-                  "backgroundColor": "#EAE7DC",
-                },
-                {
+                  "backgroundColor": "#E4EDFB",
                   "borderRadius": 0,
                   "height": 16,
                   "opacity": AnimatedValue {
@@ -5466,7 +5643,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                 [
                   {
                     "fontSize": 12,
-                    "fontWeight": "500",
+                    "fontWeight": "600",
                   },
                   {
                     "color": "#B58A2E",
@@ -5502,7 +5679,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
             }
           >
             <View
-              accessibilityLabel="rides.rideDetail.departure, 8:30, Tunis"
+              accessibilityLabel="rides.rideDetail.departure, 08:30, Tunis"
               accessibilityRole="text"
               accessible={true}
               style={
@@ -5623,7 +5800,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                         ]
                       }
                     >
-                      8:30
+                      08:30
                     </Text>
                   </View>
                   <Text
@@ -5812,7 +5989,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                               "justifyContent": "center",
                             },
                             {
-                              "backgroundColor": "#587566",
+                              "backgroundColor": "#E4EDFB",
                               "borderRadius": 14,
                               "height": 28,
                               "width": 28,
@@ -5824,11 +6001,10 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                           style={
                             [
                               {
-                                "color": "#FFFFFF",
                                 "fontWeight": "600",
                               },
                               {
-                                "color": undefined,
+                                "color": "#14201B",
                                 "fontSize": 11,
                               },
                             ]
@@ -6070,7 +6246,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                               "justifyContent": "center",
                             },
                             {
-                              "backgroundColor": "#B08A4E",
+                              "backgroundColor": "#E4EDFB",
                               "borderRadius": 14,
                               "height": 28,
                               "width": 28,
@@ -6082,11 +6258,10 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                           style={
                             [
                               {
-                                "color": "#FFFFFF",
                                 "fontWeight": "600",
                               },
                               {
-                                "color": undefined,
+                                "color": "#14201B",
                                 "fontSize": 11,
                               },
                             ]
@@ -6383,7 +6558,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                               "justifyContent": "center",
                             },
                             {
-                              "backgroundColor": "#587566",
+                              "backgroundColor": "#E4EDFB",
                               "borderRadius": 14,
                               "height": 28,
                               "width": 28,
@@ -6395,11 +6570,10 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                           style={
                             [
                               {
-                                "color": "#FFFFFF",
                                 "fontWeight": "600",
                               },
                               {
-                                "color": undefined,
+                                "color": "#14201B",
                                 "fontSize": 11,
                               },
                             ]
@@ -6620,7 +6794,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                               "justifyContent": "center",
                             },
                             {
-                              "backgroundColor": "#B08A4E",
+                              "backgroundColor": "#E4EDFB",
                               "borderRadius": 14,
                               "height": 28,
                               "width": 28,
@@ -6632,11 +6806,10 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                           style={
                             [
                               {
-                                "color": "#FFFFFF",
                                 "fontWeight": "600",
                               },
                               {
-                                "color": undefined,
+                                "color": "#14201B",
                                 "fontSize": 11,
                               },
                             ]
@@ -7028,7 +7201,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                       "justifyContent": "center",
                     },
                     {
-                      "backgroundColor": "#FFFFFF",
+                      "backgroundColor": "#E4EDFB",
                       "borderRadius": 18,
                       "height": 36,
                       "width": 36,
@@ -7040,7 +7213,6 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                   style={
                     [
                       {
-                        "color": "#FFFFFF",
                         "fontWeight": "600",
                       },
                       {
@@ -7103,7 +7275,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
               </Text>
             </View>
             <View
-              accessibilityLabel="rides.rideDetail.confirmedBadge"
+              accessibilityLabel="booking:phase.confirmed"
               accessibilityRole="text"
               accessible={true}
               style={
@@ -7126,7 +7298,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                   [
                     {
                       "fontSize": 12,
-                      "fontWeight": "500",
+                      "fontWeight": "600",
                     },
                     {
                       "color": "#22794F",
@@ -7134,7 +7306,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                   ]
                 }
               >
-                rides.rideDetail.confirmedBadge
+                booking:phase.confirmed
               </Text>
             </View>
             <Ionicons
@@ -7196,7 +7368,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                       "justifyContent": "center",
                     },
                     {
-                      "backgroundColor": "#FFFFFF",
+                      "backgroundColor": "#E4EDFB",
                       "borderRadius": 18,
                       "height": 36,
                       "width": 36,
@@ -7208,7 +7380,6 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                   style={
                     [
                       {
-                        "color": "#FFFFFF",
                         "fontWeight": "600",
                       },
                       {
@@ -7271,7 +7442,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
               </Text>
             </View>
             <View
-              accessibilityLabel="rides.rideDetail.confirmedBadge"
+              accessibilityLabel="booking:phase.confirmed"
               accessibilityRole="text"
               accessible={true}
               style={
@@ -7294,7 +7465,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                   [
                     {
                       "fontSize": 12,
-                      "fontWeight": "500",
+                      "fontWeight": "600",
                     },
                     {
                       "color": "#22794F",
@@ -7302,7 +7473,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                   ]
                 }
               >
-                rides.rideDetail.confirmedBadge
+                booking:phase.confirmed
               </Text>
             </View>
             <Ionicons
@@ -7353,23 +7524,34 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
         onPress={[Function]}
         style={[Function]}
       >
-        <Text
+        <View
           style={
-            [
-              {
-                "fontWeight": "600",
-              },
-              {
-                "fontSize": 16,
-              },
-              {
-                "color": "#14201B",
-              },
-            ]
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "gap": 8,
+            }
           }
         >
-          rides.rideDetail.cancelRide
-        </Text>
+          <Text
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "fontWeight": "600",
+                },
+                {
+                  "fontSize": 16,
+                },
+                {
+                  "color": "#14201B",
+                },
+              ]
+            }
+          >
+            rides.rideDetail.cancelRide
+          </Text>
+        </View>
       </Pressable>
     </View>
     <Modal
@@ -7955,9 +8137,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
             style={
               [
                 {
-                  "backgroundColor": "#EAE7DC",
-                },
-                {
+                  "backgroundColor": "#E4EDFB",
                   "borderRadius": 0,
                   "height": 16,
                   "opacity": AnimatedValue {
@@ -7970,11 +8150,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
             }
           />
         </View>
-        <TouchableOpacity
-          accessibilityLabel="rides.rideDetail.close"
-          accessibilityRole="button"
-          hitSlop={12}
-          onPress={[Function]}
+        <View
           style={
             [
               {
@@ -7995,18 +8171,27 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                 "width": 40,
               },
               {
-                "backgroundColor": "#FFFFFF",
                 "top": 8,
               },
             ]
           }
         >
-          <Ionicons
-            color="#14201B"
-            name="close"
-            size={22}
-          />
-        </TouchableOpacity>
+          <Pressable
+            accessibilityLabel="rides.rideDetail.close"
+            accessibilityRole="button"
+            hitSlop={8}
+            onPress={[Function]}
+            style={[Function]}
+          >
+            <Ionicons
+              accessibilityElementsHidden={true}
+              color="#14201B"
+              importantForAccessibility="no-hide-descendants"
+              name="close"
+              size={20}
+            />
+          </Pressable>
+        </View>
       </View>
     </Modal>
   </View>,

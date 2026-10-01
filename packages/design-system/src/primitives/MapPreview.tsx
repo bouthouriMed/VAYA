@@ -7,6 +7,7 @@ import { ABSOLUTE_FILL_OBJECT } from '../utils/absoluteFill';
 import { SkeletonBlock } from './Skeleton';
 import { PickupPin, DropoffPin, PassengerStopPin } from './RideStopMarkers';
 import type { AppPalette } from '../theme/palette';
+import { useAppTheme } from '../theme/AppThemeProvider';
 
 const DEFAULT_REGION: MapRegion = {
   latitude: 36.8,
@@ -74,7 +75,7 @@ export function MapPreview({
   destination,
   pickup,
   dropoff,
-  theme,
+  theme: themeOverride,
   isDark = false,
   routeCoordinates,
   occupancySegments,
@@ -82,13 +83,15 @@ export function MapPreview({
   style,
   children,
 }: MapPreviewProps): React.JSX.Element {
+  const { colors: contextTheme } = useAppTheme();
+  const theme = themeOverride ?? contextTheme;
   const [isReady, setIsReady] = useState(false);
   const points: LatLngPoint[] = [pickup ?? origin, dropoff ?? destination]
     .filter((p): p is LatLng => Boolean(p))
     .map((p) => ({ lat: p.latitude, lng: p.longitude }));
   const region = regionForPoints(points) ?? DEFAULT_REGION;
-  const showPremiumPins = Boolean(pickup && dropoff && theme);
-  const showOccupancySegments = Boolean(occupancySegments && occupancySegments.length > 0 && theme);
+  const showPremiumPins = Boolean(pickup && dropoff);
+  const showOccupancySegments = Boolean(occupancySegments && occupancySegments.length > 0);
 
   return (
     <View style={[styles.wrap, { height }, style]}>
@@ -121,19 +124,19 @@ export function MapPreview({
                 coordinates={segment.coordinates}
                 strokeColor={
                   segment.onboardSeats === 0
-                    ? theme!.outline
+                    ? theme.outline
                     : segment.onboardSeats === 1
-                      ? theme!.accent
-                      : theme!.accentStrong
+                      ? theme.accent
+                      : theme.accentStrong
                 }
                 strokeWidth={segment.onboardSeats >= 2 ? 5 : segment.onboardSeats === 1 ? 4 : 3}
                 lineDashPattern={segment.onboardSeats === 0 ? [6, 6] : undefined}
               />
             ))
           : routeCoordinates && routeCoordinates.length > 1
-            ? <Polyline coordinates={routeCoordinates} strokeColor={colors.mapRouteLine} strokeWidth={3} />
+            ? <Polyline coordinates={routeCoordinates} strokeColor={theme.ink} strokeWidth={3} />
             : null}
-        {showPremiumPins && pickup && dropoff && theme ? (
+        {showPremiumPins && pickup && dropoff ? (
           <>
             <Marker coordinate={pickup} anchor={{ x: 0.5, y: 0.5 }}>
               <PickupPin theme={theme} />
@@ -146,18 +149,17 @@ export function MapPreview({
           <>
             {origin ? (
               <Marker coordinate={origin} anchor={{ x: 0.5, y: 0.5 }}>
-                <View style={[styles.markerDot, { backgroundColor: colors.mapUserMarker }]} />
+                <View style={[styles.markerDot, { backgroundColor: theme.surface, borderColor: theme.ink }]} />
               </Marker>
             ) : null}
             {destination ? (
               <Marker coordinate={destination} anchor={{ x: 0.5, y: 0.5 }}>
-                <View style={[styles.markerDot, { backgroundColor: colors.mapDriverMarker }]} />
+                <View style={[styles.markerDot, { backgroundColor: theme.accent, borderColor: theme.surface }]} />
               </Marker>
             ) : null}
           </>
         )}
-        {theme
-          ? passengerStops?.map((stop, i) => (
+        {passengerStops?.map((stop, i) => (
               <Marker
                 key={`${stop.kind}-${i}-${stop.lat}-${stop.lng}`}
                 coordinate={{ latitude: stop.lat, longitude: stop.lng }}
@@ -166,14 +168,13 @@ export function MapPreview({
               >
                 <PassengerStopPin theme={theme} kind={stop.kind} />
               </Marker>
-            ))
-          : null}
+            ))}
       </MapView>
       <View style={styles.tint} pointerEvents="none" />
       {!isReady ? <SkeletonBlock radius="none" style={StyleSheet.absoluteFill} /> : null}
       {badge ? (
-        <View style={styles.badge}>
-          <Text style={styles.badgeText}>{badge}</Text>
+        <View style={[styles.badge, { backgroundColor: theme.ink }]}>
+          <Text style={[styles.badgeText, { color: theme.onInk }]}>{badge}</Text>
         </View>
       ) : null}
       {children}
@@ -198,19 +199,16 @@ const styles = StyleSheet.create({
     height: 12,
     borderRadius: 6,
     borderWidth: 2,
-    borderColor: colors.white,
   },
   badge: {
     position: 'absolute',
     top: spacing.sm,
     left: spacing.sm,
-    backgroundColor: colors.navySurface,
     paddingHorizontal: spacing.sm,
     paddingVertical: 4,
     borderRadius: radii.full,
   },
   badgeText: {
-    color: colors.navyText,
     fontSize: typography.fontSize.xs,
     fontWeight: typography.fontWeight.semibold,
   },

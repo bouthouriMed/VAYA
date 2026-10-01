@@ -77,6 +77,7 @@ import { resolveInitialPrice } from '../../src/features/driver-publish/priceSele
 import { isVerifiedDriver } from '../../src/features/driver-publish/verificationGate';
 import { buildRecommendedPoints, type RecommendedPoint } from '../../src/features/driver-publish/nearestStops';
 import { CenterPin, RecommendedPointMarker } from '../../src/features/driver-publish/MapSelectionMode';
+import { usePriceStepperProps } from '../../src/features/driver-publish/usePriceStepperProps';
 
 // Mirrors (tabs)/explore.tsx's map section exactly (same ratio, same
 // fallback region) — the Publish Explorer's normal state must read as the
@@ -276,6 +277,7 @@ function GhostButton({
 // entry into onboarding for someone who wants to verify without publishing
 // a ride first.
 export default function PublishTabScreen(): React.JSX.Element {
+  const priceStepperProps = usePriceStepperProps();
   const insets = useSafeAreaInsets();
   const { height: windowHeight } = useWindowDimensions();
   const { colors: theme, scheme } = useAppTheme();
@@ -1382,6 +1384,7 @@ export default function PublishTabScreen(): React.JSX.Element {
                 onChange={setPrice}
                 isEstimate={routeIsEstimate}
                 label={t('driver:publish.priceStep.contributionLabel')}
+                {...priceStepperProps}
               />
             ) : null}
           </GlassSurface>

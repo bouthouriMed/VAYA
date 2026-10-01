@@ -1,7 +1,8 @@
-﻿import React from 'react';
+import React from 'react';
 import { View, Text, StyleSheet, type ViewStyle } from 'react-native';
-import { colors, spacing, radii, typography } from '../tokens/index';
+import { spacing, radii, typography } from '../tokens/index';
 import type { AppPalette } from '../theme/palette';
+import { useAppTheme } from '../theme/AppThemeProvider';
 
 type BadgeVariant = 'default' | 'success' | 'warning' | 'error' | 'info';
 
@@ -9,24 +10,11 @@ interface BadgeProps {
   label: string;
   variant?: BadgeVariant;
   style?: ViewStyle;
-  /** Optional theme override (`useAppTheme()`'s colors) — defaults to the
-   *  legacy static `colors` look when omitted, same precedent as
-   *  GlassSurface/BottomSheet/Chip/DriverListCard. A themed badge on a dark
-   *  surface needs its own token-backed variant map (the legacy
-   *  successLight/errorLight etc. are light-mode-only hexes, not real
-   *  dark-mode colors), not the same object recolored. */
+  /** Overrides the theme from context — only for a screen pinned to one palette. */
   theme?: AppPalette;
 }
 
-const variantColors: Record<BadgeVariant, { bg: string; text: string }> = {
-  default: { bg: colors.gray200, text: colors.gray700 },
-  success: { bg: colors.successLight, text: colors.successDark },
-  warning: { bg: colors.warningLight, text: colors.warningDark },
-  error: { bg: colors.errorLight, text: colors.errorDark },
-  info: { bg: colors.infoLight, text: colors.infoDark },
-};
-
-function themedVariantColors(theme: AppPalette): Record<BadgeVariant, { bg: string; text: string }> {
+function variantColors(theme: AppPalette): Record<BadgeVariant, { bg: string; text: string }> {
   return {
     default: { bg: theme.surfaceMuted, text: theme.inkMuted },
     success: { bg: theme.accentGlow, text: theme.accentStrong },
@@ -36,8 +24,10 @@ function themedVariantColors(theme: AppPalette): Record<BadgeVariant, { bg: stri
   };
 }
 
-export function Badge({ label, variant = 'default', style, theme }: BadgeProps): React.JSX.Element {
-  const palette = theme ? themedVariantColors(theme)[variant] : variantColors[variant];
+/** The one status pill — every booking/ride/trip status renders through this. */
+export function Badge({ label, variant = 'default', style, theme: themeOverride }: BadgeProps): React.JSX.Element {
+  const { colors: contextTheme } = useAppTheme();
+  const palette = variantColors(themeOverride ?? contextTheme)[variant];
 
   return (
     <View
@@ -60,6 +50,6 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: typography.fontSize.xs,
-    fontWeight: typography.fontWeight.medium,
+    fontWeight: typography.fontWeight.semibold,
   },
 });

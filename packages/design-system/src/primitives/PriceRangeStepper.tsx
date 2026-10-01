@@ -1,6 +1,8 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { colors, spacing, radii, typography } from '../tokens/index';
+import { spacing, radii, typography } from '../tokens/index';
+import { useAppTheme } from '../theme/AppThemeProvider';
+import { Icon } from './Icon';
 import { haptics } from '../utils/haptics';
 
 const DEFAULT_STEP_DT = 0.5;
@@ -15,6 +17,22 @@ export function clampPrice(value: number, min: number, max: number): number {
   if (max < min) return min; // defensive: a malformed bound never crashes the UI
   return Math.min(max, Math.max(min, value));
 }
+
+export interface PriceRangeStepperLabels {
+  decrease: string;
+  increase: string;
+  /** Receives the formatted recommended price, e.g. "Suggéré : 14 DT". */
+  suggested: (formattedPrice: string) => string;
+  estimateNote: string;
+}
+
+const DEFAULT_LABELS: PriceRangeStepperLabels = {
+  decrease: 'Diminuer la contribution',
+  increase: 'Augmenter la contribution',
+  suggested: (price) => `Suggéré : ${price}`,
+  estimateNote:
+    "Estimation basée sur la distance à vol d'oiseau — la marge est plus large tant que l'itinéraire réel n'est pas confirmé.",
+};
 
 interface PriceRangeStepperProps {
   /** Lower bound of the server-computed suggestion — the control can never
@@ -38,15 +56,17 @@ interface PriceRangeStepperProps {
    *  as an honest caption, never hidden. */
   isEstimate?: boolean;
   label?: string;
+  /** Localized copy — pass the app's translations. */
+  labels?: Partial<PriceRangeStepperLabels>;
+  /** Formats a price for display — pass the app's currency formatter. */
+  formatValue?: (value: number) => string;
 }
 
 /** Bounded price control (capped stepper + visual range indicator) —
- *  Phase 6's replacement for driver/publish.tsx's old unbounded ±1
- *  stepper. Deliberately not a drag-gesture slider: a clamped stepper with
- *  a position-indicating track meets the same "can't produce an
- *  out-of-bounds value" requirement (docs/roadmap/phase-06-pricing-engine.md)
- *  without a new gesture-handling dependency, and reuses Input's bordered,
- *  numeric-entry visual language (see Input.tsx) for the value display. */
+ *  Phase 6's replacement for the old unbounded ±1 stepper. Deliberately
+ *  not a drag-gesture slider: a clamped stepper with a position-indicating
+ *  track meets the same "can't produce an out-of-bounds value" requirement
+ *  without a gesture dependency. */
 export function PriceRangeStepper({
   min,
   max,
@@ -56,7 +76,11 @@ export function PriceRangeStepper({
   step = DEFAULT_STEP_DT,
   isEstimate = false,
   label = 'Contribution par place',
+  labels: labelOverrides,
+  formatValue = (n) => `${n} DT`,
 }: PriceRangeStepperProps): React.JSX.Element {
+  const { colors: theme } = useAppTheme();
+  const labels = { ...DEFAULT_LABELS, ...labelOverrides };
   const clamped = clampPrice(value, min, max);
   const span = max - min;
   const ratio = span > 0 ? (clamped - min) / span : 0.5;
@@ -74,70 +98,64 @@ export function PriceRangeStepper({
     onChange(clampPrice(Math.round((clamped + step) * 100) / 100, min, max));
   }
 
+  const stepperBtn = [styles.stepperBtn, { backgroundColor: theme.surface, borderColor: theme.outline }];
+
   return (
     <View style={styles.container}>
-      {label ? <Text style={styles.label}>{label}</Text> : null}
+      {label ? <Text style={[styles.label, { color: theme.inkMuted }]}>{label}</Text> : null}
 
       <View style={styles.stepperRow}>
         <TouchableOpacity
-          style={[styles.stepperBtn, atMin && styles.stepperBtnDisabled]}
+          style={[stepperBtn, atMin && styles.stepperBtnDisabled]}
           onPress={decrement}
           disabled={atMin}
           hitSlop={8}
           accessibilityRole="button"
-          accessibilityLabel="Diminuer la contribution"
+          accessibilityLabel={labels.decrease}
           accessibilityState={{ disabled: atMin }}
         >
-          <Text style={styles.stepperGlyph}>−</Text>
+          <Icon name="remove" size="sm" color={theme.ink} />
         </TouchableOpacity>
 
-        <View style={styles.valueBox}>
-          <Text style={styles.valueText}>{clamped} DT</Text>
+        <View style={[styles.valueBox, { backgroundColor: theme.surface, borderColor: theme.outline }]}>
+          <Text style={[styles.valueText, { color: theme.ink }]}>{formatValue(clamped)}</Text>
         </View>
 
         <TouchableOpacity
-          style={[styles.stepperBtn, atMax && styles.stepperBtnDisabled]}
+          style={[stepperBtn, atMax && styles.stepperBtnDisabled]}
           onPress={increment}
           disabled={atMax}
           hitSlop={8}
           accessibilityRole="button"
-          accessibilityLabel="Augmenter la contribution"
+          accessibilityLabel={labels.increase}
           accessibilityState={{ disabled: atMax }}
         >
-          <Text style={styles.stepperGlyph}>+</Text>
+          <Icon name="add" size="sm" color={theme.ink} />
         </TouchableOpacity>
       </View>
 
       <View
-        style={styles.track}
+        style={[styles.track, { backgroundColor: theme.outlineVariant }]}
         accessible
         accessibilityRole="adjustable"
         accessibilityLabel={label}
         // React Native's accessibilityValue bridges min/max/now to a native
-        // integer type — a fractional DT amount here (e.g. a recommended
-        // price of 176.5) crashes Fabric's prop conversion with "Loss of
-        // precision during arithmetic conversion". Rounding is accessibility
-        // metadata only; the real (possibly fractional) price is still what
-        // renders and what's submitted.
+        // integer type — a fractional DT amount here crashes Fabric's prop
+        // conversion. Rounding is accessibility metadata only.
         accessibilityValue={{ min: Math.round(min), max: Math.round(max), now: Math.round(clamped) }}
       >
-        <View style={[styles.recommendedMarker, { left: `${recommendedRatio * 100}%` }]} />
-        <View style={[styles.fill, { width: `${ratio * 100}%` }]} />
-        <View style={[styles.thumb, { left: `${ratio * 100}%` }]} />
+        <View style={[styles.recommendedMarker, { left: `${recommendedRatio * 100}%`, backgroundColor: theme.inkFaint }]} />
+        <View style={[styles.fill, { width: `${ratio * 100}%`, backgroundColor: theme.accent }]} />
+        <View style={[styles.thumb, { left: `${ratio * 100}%`, backgroundColor: theme.accent, borderColor: theme.surface }]} />
       </View>
 
       <View style={styles.captionRow}>
-        <Text style={styles.caption}>{min} DT</Text>
-        <Text style={styles.captionRecommended}>Suggéré : {recommended} DT</Text>
-        <Text style={styles.caption}>{max} DT</Text>
+        <Text style={[styles.caption, { color: theme.inkFaint }]}>{formatValue(min)}</Text>
+        <Text style={[styles.captionRecommended, { color: theme.inkMuted }]}>{labels.suggested(formatValue(recommended))}</Text>
+        <Text style={[styles.caption, { color: theme.inkFaint }]}>{formatValue(max)}</Text>
       </View>
 
-      {isEstimate ? (
-        <Text style={styles.estimateNote}>
-          Estimation basée sur la distance à vol d&apos;oiseau — la marge est plus large tant que
-          l&apos;itinéraire réel n&apos;est pas confirmé.
-        </Text>
-      ) : null}
+      {isEstimate ? <Text style={[styles.estimateNote, { color: theme.inkFaint }]}>{labels.estimateNote}</Text> : null}
     </View>
   );
 }
@@ -151,7 +169,6 @@ const styles = StyleSheet.create({
   label: {
     fontSize: typography.fontSize.sm,
     fontWeight: typography.fontWeight.medium,
-    color: colors.gray700,
   },
   stepperRow: {
     flexDirection: 'row',
@@ -160,41 +177,31 @@ const styles = StyleSheet.create({
     gap: spacing.lg,
   },
   stepperBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: colors.white,
+    width: 44,
+    height: 44,
+    borderRadius: radii.full,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: colors.gray300,
   },
   stepperBtnDisabled: {
     opacity: 0.4,
   },
-  stepperGlyph: {
-    fontSize: typography.fontSize.xl,
-    color: colors.gray800,
-  },
   valueBox: {
-    minWidth: 96,
+    minWidth: 112,
     borderWidth: 1,
-    borderColor: colors.gray300,
-    borderRadius: radii.md,
+    borderRadius: radii.lg,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    backgroundColor: colors.white,
     alignItems: 'center',
   },
   valueText: {
-    fontSize: typography.fontSize.lg,
+    fontSize: typography.fontSize.xl,
     fontWeight: typography.fontWeight.semibold,
-    color: colors.gray900,
   },
   track: {
     height: 8,
     borderRadius: radii.full,
-    backgroundColor: colors.trustBarTrack,
     marginTop: spacing.xs,
     justifyContent: 'center',
   },
@@ -203,14 +210,12 @@ const styles = StyleSheet.create({
     left: 0,
     height: '100%',
     borderRadius: radii.full,
-    backgroundColor: colors.trustBarFill,
   },
   recommendedMarker: {
     position: 'absolute',
     top: -3,
     width: 2,
     height: 14,
-    backgroundColor: colors.gray500,
   },
   thumb: {
     position: 'absolute',
@@ -218,9 +223,7 @@ const styles = StyleSheet.create({
     height: THUMB_SIZE,
     borderRadius: THUMB_SIZE / 2,
     marginLeft: -THUMB_SIZE / 2,
-    backgroundColor: colors.secondary,
     borderWidth: 2,
-    borderColor: colors.white,
   },
   captionRow: {
     flexDirection: 'row',
@@ -229,16 +232,13 @@ const styles = StyleSheet.create({
   },
   caption: {
     fontSize: typography.fontSize.xs,
-    color: colors.gray500,
   },
   captionRecommended: {
     fontSize: typography.fontSize.xs,
-    color: colors.gray600,
     fontWeight: typography.fontWeight.medium,
   },
   estimateNote: {
     fontSize: typography.fontSize.xs,
-    color: colors.gray500,
     marginTop: spacing.xs,
   },
 });

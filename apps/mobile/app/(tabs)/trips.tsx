@@ -27,7 +27,6 @@ import {
   useGetRideQuery,
   useGetMyDriverProfileQuery,
   useListNotificationsQuery,
-  type Booking,
   type Ride,
 } from '../../src/state/api';
 import {
@@ -48,9 +47,9 @@ function formatWhen(iso: string, t: (key: string) => string, locale: string): st
   const date = new Date(iso);
   const now = new Date();
   const isToday = date.toDateString() === now.toDateString();
-  const time = formatTime(date, locale as any);
+  const time = formatTime(date, locale as SupportedLocale);
   if (isToday) return `${t('common:time.today')}, ${time}`;
-  return `${formatDate(date, locale as any, { weekday: 'short', day: 'numeric', month: 'short' })} · ${time}`;
+  return `${formatDate(date, locale as SupportedLocale, { weekday: 'short', day: 'numeric', month: 'short' })} · ${time}`;
 }
 
 type CardCounterpart =
@@ -441,7 +440,7 @@ export default function TripsScreen(): React.JSX.Element {
                   <View style={styles.timelineEntries}>
                     <View style={styles.timelineEntry}>
                       <Text variant="caption" color={theme.inkMuted}>
-                        {formatTime(new Date(heroRide.departureAt), locale as any)}
+                        {formatTime(new Date(heroRide.departureAt), locale as SupportedLocale)}
                       </Text>
                       <Text variant="body" color={theme.ink} numberOfLines={1}>
                         {heroRide.originLabel}
@@ -528,7 +527,7 @@ export default function TripsScreen(): React.JSX.Element {
                   <View style={styles.timelineEntries}>
                     <View style={styles.timelineEntry}>
                       <Text variant="caption" color={theme.inkMuted}>
-                        {formatTime(new Date(riderHeroBooking.ride.departureAt), locale as any)}
+                        {formatTime(new Date(riderHeroBooking.ride.departureAt), locale as SupportedLocale)}
                       </Text>
                       <Text variant="body" color={theme.ink} numberOfLines={1}>
                         {riderHeroBooking.pickupLabel}

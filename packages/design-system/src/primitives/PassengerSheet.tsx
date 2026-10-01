@@ -88,24 +88,8 @@ export function PassengerSheet({
       onClose={onClose}
       heightRatio={0.42}
       theme={theme}
-      headerContent={
-        <View style={styles.headerRow}>
-          <View style={styles.headerSpacer} />
-          {/* Same h3 header grammar as DateCalendarSheet/TimeWheelSheet —
-           *  every sheet title in the system is h3, never a smaller label. */}
-          <Text variant="h3" style={[styles.headerTitle, { color: theme.ink }]}>
-            {title}
-          </Text>
-          <TouchableOpacity
-            onPress={onClose}
-            accessibilityRole="button"
-            accessibilityLabel={closeLabel}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          >
-            <Icon name="close" size="sm" color={theme.ink} />
-          </TouchableOpacity>
-        </View>
-      }
+      title={title}
+      closeLabel={closeLabel}
     >
       <View style={styles.body}>
         <View
@@ -206,18 +190,6 @@ export function PassengerSheet({
 }
 
 const styles = StyleSheet.create({
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.xl,
-  },
-  headerSpacer: {
-    width: spacing['3xl'],
-  },
-  headerTitle: {
-    flex: 1,
-    textAlign: 'center',
-  },
   body: {
     alignItems: 'center',
     paddingTop: spacing.lg,

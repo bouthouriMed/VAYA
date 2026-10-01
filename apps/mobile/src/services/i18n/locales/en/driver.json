@@ -55,7 +55,11 @@
       "contributionLabel": "Contribution per seat",
       "suggested": "Suggested",
       "min": "Minimum",
-      "max": "Maximum"
+      "max": "Maximum",
+      "decrease": "Lower the contribution",
+      "increase": "Raise the contribution",
+      "suggestedValue": "Suggested: {{price}}",
+      "estimateNote": "Estimated from straight-line distance: the range stays wider until the real route is confirmed."
     },
     "stopsStep": {
       "pickupTitle": "Pickup point",

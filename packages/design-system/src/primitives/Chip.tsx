@@ -1,60 +1,41 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, type ViewStyle } from 'react-native';
-import { colors, spacing, radii, typography } from '../tokens/index';
+import { spacing, radii, typography } from '../tokens/index';
 import { haptics } from '../utils/haptics';
 import type { AppPalette } from '../theme/palette';
+import { useAppTheme } from '../theme/AppThemeProvider';
 
 interface ChipProps {
   label: string;
+  /** Static (non-pressable) chips: 'default' is an accent-tinted tag,
+   *  'dim' a neutral one. */
   tone?: 'default' | 'dim';
   icon?: React.ReactNode;
   style?: ViewStyle;
-  /**
-   * Phase 9 (docs/roadmap/phase-09-ratings-trust.md): makes the chip
-   * tappable (e.g. a toggle-able tag on the rating-submission sheet)
-   * without every screen that needs a tappable chip having to wrap it in
-   * its own raw TouchableOpacity — the exact pattern the old
-   * bookings/settlement.tsx improvised locally, which this generalizes
-   * into the primitive instead (CLAUDE.md's design-system rule).
-   */
+  /** Makes the chip a toggle/filter control. */
   onPress?: () => void;
-  /** Only meaningful together with `onPress` — announced as a toggle state,
-   *  and — on themed chips — actually rendered: selected = one solid-accent
-   *  pill, unselected = quiet outlined sibling. Before this, `selected`
-   *  was visually inert (it only ever reached accessibilityState), so a
-   *  themed filter row like messages.tsx's Tous/À venir/En cours/Passés
-   *  rendered every option solid green at once. */
+  /** Toggle state for a pressable chip — exactly one chip in a filter row
+   *  is selected. */
   selected?: boolean;
-  /** Optional `useAppTheme()` override (Stitch migration) — when given,
-   *  tones follow the live theme instead of the legacy static colors.
-   *  Unused (and defaulting to the legacy look) anywhere this primitive
-   *  hasn't been migrated yet. */
+  /** Overrides the theme from context — only for a screen pinned to one palette. */
   theme?: AppPalette;
 }
 
-/** A themed pressable chip is a real toggle/filter control: exactly one
- *  option in the row should carry weight. Selected = solid jewel accent
- *  (the brand's single loudest fill); unselected = the app's established
- *  "quiet button" idiom — surface fill + hairline outlineVariant border +
- *  muted ink, matching explore.tsx's paramBtn grid. Both states carry a
- *  1px border (transparent when filled) so switching never shifts metrics. */
-function themedSelectableChip(
-  theme: AppPalette,
-  isSelected: boolean,
-): { chip: ViewStyle; color: string } {
-  return isSelected
-    ? {
-        chip: { backgroundColor: theme.accent, borderWidth: 1, borderColor: 'transparent' },
-        color: theme.onAccent,
-      }
-    : {
-        chip: {
-          backgroundColor: theme.surface,
-          borderWidth: 1,
-          borderColor: theme.outlineVariant,
-        },
-        color: theme.inkMuted,
-      };
+/**
+ * Pressable chip = filter/toggle: selected is the palette's deliberate
+ * "black moment" (`ink`, per palette.ts), unselected a quiet outlined
+ * sibling. Both states carry a 1px border (transparent when filled) so
+ * switching never shifts metrics. Static chips are small tinted tags.
+ */
+function chipColors(theme: AppPalette, pressable: boolean, selected: boolean, tone: 'default' | 'dim'): { chip: ViewStyle; text: string } {
+  if (pressable) {
+    return selected
+      ? { chip: { backgroundColor: theme.ink, borderWidth: 1, borderColor: 'transparent' }, text: theme.onInk }
+      : { chip: { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.outlineVariant }, text: theme.inkMuted };
+  }
+  return tone === 'default'
+    ? { chip: { backgroundColor: theme.accentGlow + '55' }, text: theme.accentStrong }
+    : { chip: { backgroundColor: theme.surfaceMuted }, text: theme.inkMuted };
 }
 
 export function Chip({
@@ -64,47 +45,22 @@ export function Chip({
   style,
   onPress,
   selected,
-  theme,
+  theme: themeOverride,
 }: ChipProps): React.JSX.Element {
-  const isDefault = tone === 'default';
-  // Themed + pressable → selection-driven rendering; `selected ?? isDefault`
-  // keeps callers that predate the prop (tone-flipping instead) working.
-  const selectable =
-    theme && onPress ? themedSelectableChip(theme, selected ?? isDefault) : null;
-
-  const textColor = selectable
-    ? selectable.color
-    : theme
-      ? isDefault
-        ? theme.onAccent
-        : theme.inkMuted
-      : undefined;
+  const { colors: contextTheme } = useAppTheme();
+  const theme = themeOverride ?? contextTheme;
+  // `selected ?? tone === 'default'` keeps callers that toggle via `tone` working.
+  const isSelected = selected ?? tone === 'default';
+  const colors = chipColors(theme, Boolean(onPress), isSelected, tone);
 
   const content = (
     <>
       {icon}
-      <Text
-        style={[
-          styles.text,
-          selectable || theme ? { color: textColor } : isDefault ? styles.textDefault : styles.textDim,
-        ]}
-      >
-        {label}
-      </Text>
+      <Text style={[styles.text, { color: colors.text }]}>{label}</Text>
     </>
   );
 
-  const chipStyle = [
-    styles.chip,
-    selectable
-      ? selectable.chip
-      : theme
-        ? { backgroundColor: isDefault ? theme.accent : theme.surfaceMuted }
-        : isDefault
-          ? styles.chipDefault
-          : styles.chipDim,
-    style,
-  ];
+  const chipStyle = [styles.chip, colors.chip, style];
 
   if (onPress) {
     function handlePress(): void {
@@ -118,7 +74,7 @@ export function Chip({
         style={chipStyle}
         accessibilityRole="button"
         accessibilityLabel={label}
-        accessibilityState={{ selected: selected ?? isDefault }}
+        accessibilityState={{ selected: isSelected }}
       >
         {content}
       </TouchableOpacity>
@@ -138,24 +94,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.xs,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
+    paddingVertical: spacing.xs + 2,
     borderRadius: radii.full,
     alignSelf: 'flex-start',
   },
-  chipDefault: {
-    backgroundColor: colors.secondaryLight + '3D',
-  },
-  chipDim: {
-    backgroundColor: colors.gray200,
-  },
   text: {
-    fontSize: typography.fontSize.xs,
+    fontSize: typography.fontSize.sm,
     fontWeight: typography.fontWeight.semibold,
-  },
-  textDefault: {
-    color: colors.secondaryDark,
-  },
-  textDim: {
-    color: colors.gray600,
   },
 });

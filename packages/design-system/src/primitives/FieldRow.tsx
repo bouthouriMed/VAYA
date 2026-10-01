@@ -1,11 +1,13 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, type ViewStyle } from 'react-native';
-import { colors, spacing, radii, typography, elevation } from '../tokens/index';
+import { spacing, radii, typography } from '../tokens/index';
 import { haptics } from '../utils/haptics';
+import { useAppTheme } from '../theme/AppThemeProvider';
 
 interface FieldRowProps {
   label: string;
   value: string;
+  /** Defaults to the theme accent. */
   dotColor?: string;
   dotFilled?: boolean;
   last?: boolean;
@@ -20,31 +22,39 @@ interface FieldCardProps {
 
 /** Groups FieldRow entries into the pill-card input pattern (dot + label/value stack). */
 export function FieldCard({ children, style }: FieldCardProps): React.JSX.Element {
-  return <View style={[styles.card, elevation?.sm, style]}>{children}</View>;
+  const { colors: theme } = useAppTheme();
+  return (
+    <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }, style]}>
+      {children}
+    </View>
+  );
 }
 
 export function FieldRow({
   label,
   value,
-  dotColor = colors.secondary,
+  dotColor,
   dotFilled = true,
   last = false,
   placeholder = false,
   onPress,
 }: FieldRowProps): React.JSX.Element {
+  const { colors: theme } = useAppTheme();
+  const dot = dotColor ?? theme.accent;
   const content = (
-    <View style={[styles.row, !last && styles.rowDivider]}>
+    <View style={[styles.row, !last && { borderBottomWidth: 1, borderBottomColor: theme.outlineVariant }]}>
       <View
         style={[
           styles.dot,
-          dotFilled
-            ? { backgroundColor: dotColor }
-            : { backgroundColor: 'transparent', borderWidth: 2, borderColor: dotColor },
+          dotFilled ? { backgroundColor: dot } : { backgroundColor: 'transparent', borderWidth: 2, borderColor: dot },
         ]}
       />
       <View style={styles.textCol}>
-        <Text style={styles.label}>{label}</Text>
-        <Text style={[styles.value, placeholder && styles.valuePlaceholder]} numberOfLines={1}>
+        <Text style={[styles.label, { color: theme.inkMuted }]}>{label}</Text>
+        <Text
+          style={[styles.value, { color: theme.ink }, placeholder && [styles.valuePlaceholder, { color: theme.inkFaint }]]}
+          numberOfLines={1}
+        >
           {value}
         </Text>
       </View>
@@ -70,20 +80,15 @@ export function FieldRow({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.white,
     borderRadius: radii.xl,
+    borderWidth: 1,
     paddingHorizontal: spacing.md,
-    shadowColor: colors.gray900,
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
     paddingVertical: spacing.md,
-  },
-  rowDivider: {
-    borderBottomWidth: 1,
-    borderBottomColor: colors.gray200,
   },
   dot: {
     width: 9,
@@ -95,16 +100,13 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: typography.fontSize.xs,
-    color: colors.gray600,
     marginBottom: 1,
   },
   value: {
     fontSize: typography.fontSize.md,
     fontWeight: typography.fontWeight.semibold,
-    color: colors.gray900,
   },
   valuePlaceholder: {
-    color: colors.gray500,
     fontWeight: typography.fontWeight.regular,
   },
 });
