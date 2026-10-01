@@ -50,17 +50,35 @@ export function formatDate(
   return new Intl.DateTimeFormat(tag(locale), options).format(date);
 }
 
+/** Clock times are always 24-hour ("08:15", "20:26") in every locale —
+ *  that's how Tunisia writes them. `hourCycle` is pinned explicitly because
+ *  CLDR's `fr-TN` pattern is 12-hour ("8:15 PM"), which made the same
+ *  departure render as "8:26 PM" on one screen and "20:26" on another.
+ *  Takes a raw BCP-47 tag so helpers that only carry an Intl tag can use it;
+ *  this is the ONLY place in the app allowed to format a time of day. */
+const CLOCK_OPTIONS: Intl.DateTimeFormatOptions = { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' };
+
+export function formatClock(date: Date, intlTag: string): string {
+  return new Intl.DateTimeFormat(intlTag, CLOCK_OPTIONS).format(date);
+}
+
 export function formatTime(date: Date, locale: SupportedLocale): string {
-  return new Intl.DateTimeFormat(tag(locale), { hour: 'numeric', minute: '2-digit' }).format(date);
+  return formatClock(date, tag(locale));
+}
+
+/** A calendar date (no time of day) in a raw BCP-47 tag, for helpers that
+ *  need specific fields (weekday headers, year-qualified dates). */
+export function formatCalendarDate(date: Date, intlTag: string, options: Intl.DateTimeFormatOptions): string {
+  return new Intl.DateTimeFormat(intlTag, options).format(date);
+}
+
+/** "2 oct." / "2 Oct" / "2 أكتوبر" — the short day+month used next to a clock time. */
+export function formatShortDate(date: Date, intlTag: string): string {
+  return new Intl.DateTimeFormat(intlTag, { day: 'numeric', month: 'short' }).format(date);
 }
 
 export function formatDateTime(date: Date, locale: SupportedLocale): string {
-  return new Intl.DateTimeFormat(tag(locale), {
-    day: 'numeric',
-    month: 'short',
-    hour: 'numeric',
-    minute: '2-digit',
-  }).format(date);
+  return `${formatShortDate(date, tag(locale))} · ${formatTime(date, locale)}`;
 }
 
 const RELATIVE_DIVISIONS: { amount: number; unit: Intl.RelativeTimeFormatUnit }[] = [

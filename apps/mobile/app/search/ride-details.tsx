@@ -18,6 +18,7 @@ import {
   haptics,
   isSameDay,
   regionForPoints,
+  addDays,
 } from '@vaya/design-system';
 import { router, useLocalSearchParams } from 'expo-router';
 import type { SupportedLocale } from '@vaya/config';
@@ -38,7 +39,9 @@ import { requestPushPermissionAndRegister } from '../../src/services/notificatio
 import { decodePolyline, polylineDistanceKm, sliceRouteBetween } from '../../src/utils/polyline';
 import { useContextualAuth } from '../../src/features/auth/useContextualAuth';
 import { ContextualAuthSheet } from '../../src/features/auth/ContextualAuthSheet';
-import { formatDate, formatTime, splitDurationMinutes } from '../../src/utils/localeFormat';
+import { formatDate, formatTime } from '../../src/utils/localeFormat';
+import { formatDurationLabel } from '../../src/utils/durationLabel';
+import type { TFunction } from 'i18next';
 
 type TFn = (key: string, params?: Record<string, unknown>) => string;
 
@@ -48,10 +51,7 @@ function fullDateLabel(date: Date, locale: SupportedLocale): string {
 }
 
 function durationLabel(seconds: number, t: TFn): string {
-  const { hours, minutes } = splitDurationMinutes(seconds / 60);
-  if (hours === 0) return t('search:details.durationMinutesOnly', { minutes });
-  if (minutes === 0) return t('search:details.durationHoursOnly', { hours });
-  return t('search:details.durationHoursMinutes', { hours, minutes });
+  return formatDurationLabel(t as unknown as TFunction, seconds / 60);
 }
 
 /** Maps createBooking's real rejection reason to an honest i18n key —
@@ -496,7 +496,7 @@ export default function RideDetailsScreen(): React.JSX.Element {
             <Text variant="h2" color={theme.ink}>
               {isSameDay(departureDate, now)
                 ? t('common:time.today')
-                : isSameDay(departureDate, new Date(now.getTime() + 24 * 60 * 60_000))
+                : isSameDay(departureDate, addDays(now, 1))
                   ? t('common:time.tomorrow')
                   : (() => {
                       const l = formatDate(departureDate, locale, { weekday: 'long' });
@@ -674,8 +674,6 @@ export default function RideDetailsScreen(): React.JSX.Element {
             uri={profile.avatarUrl}
             name={profile.fullName}
             size="md"
-            fallbackBackgroundColor={theme.surfaceMuted}
-            fallbackTextColor={theme.ink}
           />
           <View style={styles.driverTextCol}>
             <View style={styles.driverNameRow}>
@@ -688,7 +686,7 @@ export default function RideDetailsScreen(): React.JSX.Element {
               <View style={styles.driverStatsRow}>
                 <Icon name="star" size="xs" color={theme.accent} />
                 <Text variant="caption" color={theme.inkMuted}>
-                  {driverStats.ratingAvg.toFixed(1)} · {t('common:terms.trip', { count: driverStats.tripCount })}
+                  {driverStats.ratingAvg.toFixed(1)} · {t('common:terms.tripCount', { count: driverStats.tripCount })}
                 </Text>
               </View>
             ) : null}
@@ -736,8 +734,6 @@ export default function RideDetailsScreen(): React.JSX.Element {
                     uri={passenger.avatarUrl}
                     name={passenger.firstName}
                     size="sm"
-                    fallbackBackgroundColor={theme.surfaceMuted}
-                    fallbackTextColor={theme.ink}
                   />
                   <Text variant="body" color={theme.ink} style={styles.passengerName}>
                     {passenger.firstName}

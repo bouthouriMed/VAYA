@@ -1,14 +1,14 @@
 {
   "title": "Mes trajets",
   "subtitle": "Gérez vos trajets à venir et passés.",
-  "nextRide": "Prochain trajet",
-  "nextBooking": "Votre prochain trajet",
+  "nextRide": "Je conduis",
+  "nextBooking": "Ma prochaine réservation",
   "recentRides": "Trajets récents",
   "seatsAvailable_one": "{{count}} place disponible",
   "seatsAvailable_other": "{{count}} places disponibles",
   "perSeat": "par place",
   "total": "total",
-  "estimated": "(est.)",
+  "estimated": "(estimée)",
   "manageRide": "Gérer ce trajet",
   "viewBooking": "Voir mon trajet",
   "placesReserved_one": "{{count}} place réservée",
@@ -34,5 +34,9 @@
   "notificationsAria": "Notifications",
   "notificationsUnreadAria": "Notifications (non lues)",
   "segmentDriver": "Conducteur",
-  "segmentRider": "Passager"
+  "segmentRider": "Passager",
+  "loadError": {
+    "title": "Impossible de charger vos trajets",
+    "description": "Vérifiez votre connexion, puis réessayez."
+  }
 }

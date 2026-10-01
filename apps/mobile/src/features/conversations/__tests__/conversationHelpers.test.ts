@@ -139,39 +139,35 @@ describe('submitMessage', () => {
 });
 
 describe('getTripContext', () => {
-  it('labels an upcoming trip before departure with no live trip yet', () => {
-    expect(getTripContext(makeConversation({ tripStatus: null }), mockT)).toEqual({
-      label: 'Trajet à venir',
-      isLive: false,
-    });
-  });
-
-  it('labels a scheduled trip as upcoming too', () => {
-    expect(getTripContext(makeConversation({ tripStatus: 'scheduled' }), mockT)).toEqual({
-      label: 'Trajet à venir',
-      isLive: false,
-    });
-  });
-
-  it('marks active trip statuses as live', () => {
-    for (const status of ['driver_approaching', 'pickup', 'active', 'arriving']) {
-      expect(getTripContext(makeConversation({ tripStatus: status }), mockT).isLive).toBe(true);
-    }
-    expect(getTripContext(makeConversation({ tripStatus: 'pickup' }), mockT).label).toBe(
-      'Trajet en cours',
-    );
-  });
-
-  it('labels terminal trips and closed conversations as finished, never live', () => {
-    for (const status of ['completed', 'no_show', 'cancelled']) {
-      expect(getTripContext(makeConversation({ tripStatus: status }), mockT)).toEqual({
-        label: 'Trajet terminé',
+  // Same booking-phase labels the trips list and booking screen use.
+  it('labels an accepted booking whose trip has not started as confirmed', () => {
+    for (const tripStatus of [null, 'scheduled']) {
+      expect(getTripContext(makeConversation({ tripStatus }), mockT)).toEqual({
+        label: 'booking:phase.confirmed',
         isLive: false,
       });
     }
-    expect(
-      getTripContext(makeConversation({ status: 'closed', tripStatus: 'completed' }), mockT),
-    ).toEqual({ label: 'Trajet terminé', isLive: false });
+  });
+
+  it('marks active trip statuses as live and in progress', () => {
+    for (const status of ['driver_approaching', 'pickup', 'active', 'arriving']) {
+      expect(getTripContext(makeConversation({ tripStatus: status }), mockT)).toEqual({
+        label: 'booking:phase.in_progress',
+        isLive: true,
+      });
+    }
+  });
+
+  it('labels finished trips by what actually happened, never live', () => {
+    expect(getTripContext(makeConversation({ tripStatus: 'completed' }), mockT).label).toBe('booking:phase.completed');
+    expect(getTripContext(makeConversation({ tripStatus: 'no_show' }), mockT).label).toBe('booking:phase.no_show');
+    expect(getTripContext(makeConversation({ tripStatus: 'cancelled' }), mockT).label).toBe(
+      'booking:phase.cancelled_by_driver',
+    );
+    expect(getTripContext(makeConversation({ status: 'closed', tripStatus: null }), mockT)).toEqual({
+      label: 'booking:phase.completed',
+      isLive: false,
+    });
   });
 });
 

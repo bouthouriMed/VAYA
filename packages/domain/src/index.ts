@@ -23,6 +23,7 @@ export * from './ride/ride-status';
 
 export * from './booking/booking.types';
 export * from './booking/booking-status';
+export * from './booking/booking-phase';
 export * from './booking/cancellation-policy';
 export * from './booking/segment-capacity';
 export * from './booking/request-deadline';

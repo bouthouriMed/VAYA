@@ -1,11 +1,13 @@
 ﻿import React from 'react';
 import { I18nManager, Text as RNText, type TextProps, type TextStyle } from 'react-native';
-import { typography, colors } from '../tokens/index';
+import { typography } from '../tokens/index';
+import { useAppTheme } from '../theme/AppThemeProvider';
 
 type TextVariant =
   | 'h1'
   | 'h2'
   | 'h3'
+  | 'title'
   | 'body'
   | 'bodySmall'
   | 'caption'
@@ -37,6 +39,13 @@ const variantStyles: Record<TextVariant, TextStyle> = {
     fontSize: typography.fontSize['2xl'],
     fontWeight: typography.fontWeight.semibold,
     lineHeight: typography.fontSize['2xl'] * 1.2,
+  },
+  // The one screen-bar title style (ScreenHeader) — every pushed screen's
+  // title renders at this size so headers never drift between screens.
+  title: {
+    fontSize: typography.fontSize.lg,
+    fontWeight: typography.fontWeight.semibold,
+    lineHeight: typography.fontSize.lg * 1.3,
   },
   body: {
     fontSize: typography.fontSize.md,
@@ -91,17 +100,20 @@ const variantStyles: Record<TextVariant, TextStyle> = {
 
 export function Text({
   variant = 'body',
-  color = colors.gray900,
+  color,
   align,
   style,
   children,
   ...props
 }: TextComponentProps): React.JSX.Element {
+  // Unspecified color follows the active theme's ink, so text that never
+  // passed a color still reads correctly in dark mode.
+  const { colors: theme } = useAppTheme();
   return (
     <RNText
       style={[
         variantStyles[variant],
-        { color, textAlign: align, writingDirection: I18nManager.isRTL ? 'rtl' : 'ltr' },
+        { color: color ?? theme.ink, textAlign: align, writingDirection: I18nManager.isRTL ? 'rtl' : 'ltr' },
         style,
       ]}
       {...props}

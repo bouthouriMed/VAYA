@@ -17,7 +17,7 @@
     "candidateCount_other": "{{count}} رحلات متاحة اليوم على هذا المسار",
     "meetingPoint": "نقطة الالتقاء",
     "bestMatch": "الأنسب لك",
-    "timeOffsetNote": "تنطلق بعد {{offsetMin}} من الوقت الذي طلبته — ونقطة الانطلاق تبعد {{walkMinutes}} سيرًا على الأقدام."
+    "timeOffsetNote": "تنطلق بعد {{offset}} من الوقت المطلوب · {{walkMinutes}} سيرًا إلى نقطة الالتقاء."
   },
   "composer": {
     "myLocation": "موقعي الحالي",
@@ -120,20 +120,13 @@
     "verificationVehicle": "مركبة مسجّلة — رقم اللوحة معروض أدناه",
     "aboutTitle": "نبذة عن {{name}}",
     "reviewsTitle": "التقييمات",
-    "reviewsSubtitle": "عرض جميع التقييمات حول {{name}}",
     "reviewsEmpty": "لم يتلقَّ {{name}} أي تقييمات بعد.",
     "reviewsFirstLine": "شارك تقييمك بعد رحلتك — التقييم الأول هو الأهم.",
     "messageDriver": "مراسلة السائق",
     "messageAvailability": "متاح بمجرد قبول طلب مقعدك.",
-    "messageAvailabilityDriver": "متاح بمجرد قبولك لهذا الطلب."
-  },
-  "reviews": {
-    "fallbackDriverName": "هذا السائق",
-    "mockReviews": [
-      { "when": "قبل يومين", "comment": "رحلة ممتازة والسائق كان دقيقًا في المواعيد. السيارة كانت نظيفة جدًا وساعدني في حمل أمتعتي." },
-      { "when": "قبل 5 أيام", "comment": "سيارة نظيفة وقيادة حذرة. تعامل جيدًا مع الازدحام. سأحجز هذا المسار مجددًا بكل سرور." },
-      { "when": "قبل أسبوع", "comment": "تجربة جيدة بشكل عام. السائق هادئ قليلاً، لكن الرحلة كانت سلسة وفي الموعد." }
-    ]
+    "messageAvailabilityDriver": "متاح بمجرد قبولك لهذا الطلب.",
+    "punctualityLabel": "الالتزام بالمواعيد",
+    "reviewsPrivate": "تبقى التعليقات المتروكة بعد الرحلة خاصة بين السائق والراكب. يعكس التقييم أعلاه جميع التقييمات المستلمة."
   },
   "timePicker": {
     "when": "متى؟",
@@ -145,7 +138,15 @@
   },
   "datePickerSheet": {
     "title": "تاريخ المغادرة",
-    "weekdayLabels": ["ن", "ث", "ر", "خ", "ج", "س", "ح"],
+    "weekdayLabels": [
+      "ن",
+      "ث",
+      "ر",
+      "خ",
+      "ج",
+      "س",
+      "ح"
+    ],
     "previousMonth": "الشهر السابق",
     "nextMonth": "الشهر التالي",
     "confirm": "تأكيد التاريخ",

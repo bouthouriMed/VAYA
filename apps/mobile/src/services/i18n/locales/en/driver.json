@@ -22,7 +22,15 @@
       "timeQuickPlus30": "+30 min",
       "timeQuickPlus1h": "+1 hr",
       "timeQuickCustom": "Custom",
-      "weekdayLabels": ["M", "T", "W", "T", "F", "S", "S"],
+      "weekdayLabels": [
+        "M",
+        "T",
+        "W",
+        "T",
+        "F",
+        "S",
+        "S"
+      ],
       "previousMonth": "Previous month",
       "nextMonth": "Next month",
       "confirmDate": "Confirm date",
@@ -306,7 +314,8 @@
         "active": "Onboard",
         "arriving": "Almost there",
         "completed": "Finished"
-      }
+      },
+      "loadError": "Couldn't load this ride"
     },
     "manageSheet": {
       "title": "Manage this ride",

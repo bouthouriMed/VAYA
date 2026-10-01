@@ -17,7 +17,7 @@
     "candidateCount_other": "{{count}} trajets disponibles aujourd'hui sur cet itinéraire",
     "meetingPoint": "Point de rendez-vous",
     "bestMatch": "MEILLEURE CORRESPONDANCE",
-    "timeOffsetNote": "Part {{offsetMin}} après l'heure demandée, vous prend à {{walkMinutes}} à pied."
+    "timeOffsetNote": "Part {{offset}} après l'heure demandée · {{walkMinutes}} à pied jusqu'au point de rendez-vous."
   },
   "composer": {
     "myLocation": "Ma position actuelle",
@@ -112,20 +112,13 @@
     "verificationVehicle": "Véhicule enregistré — plaque visible ci-dessous",
     "aboutTitle": "À propos de {{name}}",
     "reviewsTitle": "Avis",
-    "reviewsSubtitle": "Voir tous les avis sur {{name}}",
     "reviewsEmpty": "{{name}} n'a pas encore reçu d'avis.",
     "reviewsFirstLine": "Après votre trajet, partagez le vôtre — le premier avis est celui qui compte le plus.",
     "messageDriver": "Message conducteur",
     "messageAvailability": "Disponible une fois votre demande de place acceptée.",
-    "messageAvailabilityDriver": "Disponible une fois cette demande acceptée."
-  },
-  "reviews": {
-    "fallbackDriverName": "ce conducteur",
-    "mockReviews": [
-      { "when": "il y a 2 jours", "comment": "Trajet impeccable, très ponctuel. La voiture était impeccable et il m'a aidée avec mes bagages." },
-      { "when": "il y a 5 jours", "comment": "Voiture propre et conduite prudente. A bien géré le trafic. Je reprendrais volontiers ce trajet." },
-      { "when": "il y a 1 semaine", "comment": "Bonne expérience dans l'ensemble. Conducteur un peu silencieux, mais trajet fluide et à l'heure." }
-    ]
+    "messageAvailabilityDriver": "Disponible une fois cette demande acceptée.",
+    "punctualityLabel": "Ponctualité",
+    "reviewsPrivate": "Les commentaires laissés après un trajet restent privés entre le conducteur et le passager. La note ci-dessus reflète tous les avis reçus."
   },
   "timePicker": {
     "when": "Quand ?",
@@ -137,7 +130,15 @@
   },
   "datePickerSheet": {
     "title": "Date de départ",
-    "weekdayLabels": ["L", "M", "M", "J", "V", "S", "D"],
+    "weekdayLabels": [
+      "L",
+      "M",
+      "M",
+      "J",
+      "V",
+      "S",
+      "D"
+    ],
     "previousMonth": "Mois précédent",
     "nextMonth": "Mois suivant",
     "confirm": "Confirmer la date",

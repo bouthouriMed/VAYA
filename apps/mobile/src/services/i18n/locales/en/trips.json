@@ -1,8 +1,8 @@
 {
   "title": "My trips",
   "subtitle": "Manage your upcoming and past trips.",
-  "nextRide": "Next ride",
-  "nextBooking": "Your next ride",
+  "nextRide": "Your next drive",
+  "nextBooking": "Your next booking",
   "recentRides": "Recent rides",
   "seatsAvailable_one": "{{count}} seat available",
   "seatsAvailable_other": "{{count}} seats available",
@@ -34,5 +34,9 @@
   "notificationsAria": "Notifications",
   "notificationsUnreadAria": "Notifications (unread)",
   "segmentDriver": "Driver",
-  "segmentRider": "Passenger"
+  "segmentRider": "Passenger",
+  "loadError": {
+    "title": "Couldn't load your trips",
+    "description": "Check your connection, then try again."
+  }
 }

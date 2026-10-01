@@ -447,8 +447,6 @@ export default function ProfileScreen(): React.JSX.Element {
                   uri={me.avatarUrl}
                   name={me.fullName}
                   sizePx={96}
-                  fallbackBackgroundColor={theme.surfaceMuted}
-                  fallbackTextColor={theme.ink}
                   style={{ borderWidth: 2, borderColor: theme.outlineVariant }}
                 />
                 {/* Small, subtle edit affordance instead of a text link below

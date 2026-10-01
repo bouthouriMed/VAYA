@@ -727,7 +727,8 @@ export interface Booking {
     | 'cancelled_by_driver'
     | 'expired'
     | 'completed'
-    | 'no_show';
+    | 'no_show'
+    | 'superseded';
   pickupStopId: string | null;
   pickupLabel: string;
   pickupLat: number;

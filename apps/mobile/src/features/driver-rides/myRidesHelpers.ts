@@ -1,4 +1,5 @@
 import type { Ride } from '../../state/api';
+import { formatClock } from '../../utils/localeFormat';
 
 /**
  * Pure presentation logic behind the trips tab's driver dashboard
@@ -61,7 +62,7 @@ export function estimateArrivalLabel(
   const departure = new Date(departureAt);
   if (Number.isNaN(departure.getTime())) return null;
   const arrival = new Date(departure.getTime() + estimatedDurationSec * 1000);
-  return arrival.toLocaleTimeString(intlTag, { hour: '2-digit', minute: '2-digit' });
+  return formatClock(arrival, intlTag);
 }
 
 export type TripPhase = 'upcoming' | 'in_progress' | 'completed' | 'cancelled';

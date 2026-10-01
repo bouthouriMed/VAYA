@@ -5,7 +5,9 @@
     "emptyDescription": "Vos notifications apparaîtront ici.",
     "unread_one": "{{count}} non lue",
     "unread_other": "{{count}} non lues",
-    "viewDetails": "Voir les détails"
+    "viewDetails": "Voir les détails",
+    "markAllRead": "Tout marquer comme lu",
+    "loadError": "Impossible de charger vos notifications"
   },
   "events": {
     "booking_requested": "Nouvelle demande de réservation",

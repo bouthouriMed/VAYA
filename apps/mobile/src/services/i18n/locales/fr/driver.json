@@ -22,7 +22,15 @@
       "timeQuickPlus30": "+30 min",
       "timeQuickPlus1h": "+1 h",
       "timeQuickCustom": "Personnalisé",
-      "weekdayLabels": ["L", "M", "M", "J", "V", "S", "D"],
+      "weekdayLabels": [
+        "L",
+        "M",
+        "M",
+        "J",
+        "V",
+        "S",
+        "D"
+      ],
       "previousMonth": "Mois précédent",
       "nextMonth": "Mois suivant",
       "confirmDate": "Confirmer la date",
@@ -306,7 +314,8 @@
         "active": "À bord",
         "arriving": "Arrivée proche",
         "completed": "Terminé"
-      }
+      },
+      "loadError": "Impossible de charger ce trajet"
     },
     "manageSheet": {
       "title": "Gérer ce trajet",

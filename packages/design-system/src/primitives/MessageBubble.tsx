@@ -82,8 +82,6 @@ export function MessageBubble({
           name={avatarName ?? ''}
           sizePx={28}
           style={styles.avatar}
-          fallbackBackgroundColor={theme ? theme.surfaceMuted : undefined}
-          fallbackTextColor={theme ? theme.ink : undefined}
         />
       ) : null}
       <View style={themed.bubble}>

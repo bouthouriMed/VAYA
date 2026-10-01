@@ -70,7 +70,7 @@ export default function RecurringPatternsScreen(): React.JSX.Element {
       <View style={styles.container}>
         <EmptyState
           icon={<Icon name="repeat-outline" size="lg" color={colors.gray400} />}
-          title={t('booking:recurring.emptyTitle')}
+          title={t('booking:recurring.empty')}
           description={t('booking:recurring.emptyDescription')}
         />
       </View>

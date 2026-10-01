@@ -47,15 +47,6 @@ import { shortenPlaceLabel } from '../../src/utils/placeLabel';
 // conversation feeling responsive without hammering the API.
 const POLL_INTERVAL_MS = 4000;
 
-function formatDeparture(iso: string, locale: string = 'en'): string {
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return '';
-  const now = new Date();
-  const time = date.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
-  if (date.toDateString() === now.toDateString()) return time;
-  return `${date.toLocaleDateString(locale, { day: 'numeric', month: 'short' })} · ${time}`;
-}
-
 /** Stitch's "Conversation / active trip coordination" — the other party's
  *  identity, verification, and the trip context are all read straight off
  *  GET /conversations/:bookingId's enriched summary (same shape the inbox
@@ -186,8 +177,6 @@ export default function ConversationScreen(): React.JSX.Element {
               uri={conversation.otherParty.avatarUrl}
               name={conversation.otherParty.fullName}
               sizePx={40}
-              fallbackBackgroundColor={theme.surfaceMuted}
-              fallbackTextColor={theme.ink}
             />
             {conversation.isOtherPartyVerified ? (
               <View
@@ -281,7 +270,7 @@ export default function ConversationScreen(): React.JSX.Element {
             </Text>
           </View>
           <Text variant="caption" color={theme.inkMuted}>
-            {formatDeparture(conversation.departureAt, locale)}
+            {formatMessageTimestamp(conversation.departureAt, locale)}
           </Text>
         </View>
       ) : null}

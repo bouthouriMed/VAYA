@@ -1,8 +1,8 @@
 {
   "title": "رحلاتي",
   "subtitle": "أدر رحلاتك القادمة والسابقة.",
-  "nextRide": "الرحلة القادمة",
-  "nextBooking": "رحلتك القادمة",
+  "nextRide": "رحلتك القادمة كسائق",
+  "nextBooking": "حجزك القادم",
   "recentRides": "الرحلات الأخيرة",
   "seatsAvailable_zero": "لا مقاعد متاحة",
   "seatsAvailable_one": "مقعد واحد متاح",
@@ -42,5 +42,9 @@
   "notificationsAria": "الإشعارات",
   "notificationsUnreadAria": "الإشعارات (غير مقروءة)",
   "segmentDriver": "السائق",
-  "segmentRider": "الراكب"
+  "segmentRider": "الراكب",
+  "loadError": {
+    "title": "تعذّر تحميل رحلاتك",
+    "description": "تحقّق من اتصالك ثم أعد المحاولة."
+  }
 }

@@ -9,7 +9,9 @@
     "unread_few": "{{count}} إشعارات غير مقروءة",
     "unread_many": "{{count}} إشعارًا غير مقروء",
     "unread_other": "{{count}} إشعار غير مقروء",
-    "viewDetails": "عرض التفاصيل"
+    "viewDetails": "عرض التفاصيل",
+    "markAllRead": "تعليم الكل كمقروء",
+    "loadError": "تعذّر تحميل إشعاراتك"
   },
   "events": {
     "booking_requested": "طلب حجز جديد",

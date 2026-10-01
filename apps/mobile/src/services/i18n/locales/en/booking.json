@@ -109,7 +109,9 @@
     "detected": "Detected",
     "driversLicense": "Driver's license",
     "insuranceProof": "Insurance proof",
-    "identitySelfie": "Identity selfie"
+    "identitySelfie": "Identity selfie",
+    "confirmTodayRide": "Prepare today's ride",
+    "viewTodayRide": "View today's ride"
   },
   "detail": {
     "title": "My booking",
@@ -133,7 +135,8 @@
       "pickup": "Your driver has arrived",
       "active": "Trip in progress",
       "arriving": "Almost at your destination"
-    }
+    },
+    "loadError": "Couldn't load this booking"
   },
   "days": {
     "mon": "Mon",
@@ -144,5 +147,36 @@
     "sat": "Sat",
     "sun": "Sun",
     "everyDay": "Every day"
+  },
+  "destination": "Destination",
+  "driver_join": "Head to the pickup point",
+  "section_payment": "Payment",
+  "section_trip": "Trip",
+  "status_confirmed": "Confirmed",
+  "status_confirmed_title": "Your seat is confirmed",
+  "status_confirmed_hint": "{{name}} accepted your request. Your trip details are below.",
+  "waiting_confirmation": "Pickup point to be confirmed",
+  "requestSentTitle": "Request sent",
+  "responseDeadline": "Expect a reply before {{time}}",
+  "responseDeadlineDay": "Expect a reply before {{date}} at {{time}}",
+  "phase": {
+    "awaiting_response": "Awaiting reply",
+    "confirmed": "Confirmed",
+    "in_progress": "In progress",
+    "completed": "Completed",
+    "declined": "Declined",
+    "cancelled_by_rider": "Cancelled by you",
+    "cancelled_by_driver": "Cancelled by the driver",
+    "expired": "Expired",
+    "superseded": "Replaced",
+    "no_show": "No-show reported"
+  },
+  "ridePhase": {
+    "draft": "Draft",
+    "published": "Published",
+    "full": "Full",
+    "in_progress": "In progress",
+    "completed": "Completed",
+    "cancelled": "Cancelled"
   }
 }

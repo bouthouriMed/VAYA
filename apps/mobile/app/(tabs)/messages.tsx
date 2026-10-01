@@ -421,8 +421,6 @@ export default function MessagesScreen(): React.JSX.Element {
                   uri={item.otherParty.avatarUrl}
                   name={item.otherParty.fullName}
                   sizePx={48}
-                  fallbackBackgroundColor={theme.surfaceMuted}
-                  fallbackTextColor={theme.ink}
                 />
               </TouchableOpacity>
 

@@ -19,6 +19,7 @@ import {
   spacing,
   radii,
   isSameDay,
+  addDays,
   regionForPoints,
   haptics,
   staggerDelay,
@@ -29,7 +30,9 @@ import {
 import { router } from 'expo-router';
 import type { SupportedLocale } from '@vaya/config';
 import { useAppSelector } from '../../src/state/store';
-import { formatTime, formatDateTime } from '../../src/utils/localeFormat';
+import { formatTime, formatDateTime, formatCurrency } from '../../src/utils/localeFormat';
+import { formatDurationLabel } from '../../src/utils/durationLabel';
+import type { TFunction } from 'i18next';
 import {
   useMatchingSearchQuery,
   useNotifyMeMutation,
@@ -58,7 +61,7 @@ function walkSuffixLabel(t: TFn, minutes: number): string {
 function departureBadgeLabel(date: Date, locale: SupportedLocale, t: TFn): string {
   const now = new Date();
   if (isSameDay(date, now)) return `${t('common:time.today')}, ${formatTime(date, locale)}`;
-  const tomorrow = new Date(now.getTime() + 24 * 60 * 60_000);
+  const tomorrow = addDays(now, 1);
   if (isSameDay(date, tomorrow)) return `${t('common:time.tomorrow')}, ${formatTime(date, locale)}`;
   return formatDateTime(date, locale);
 }
@@ -66,6 +69,7 @@ function departureBadgeLabel(date: Date, locale: SupportedLocale, t: TFn): strin
 function toPinData(
   candidate: MatchCandidate,
   t: TFn,
+  locale: SupportedLocale,
 ): {
   id: string;
   name: string;
@@ -75,7 +79,7 @@ function toPinData(
   return {
     id: candidate.rideId,
     name: (candidate.driverFullName ?? t('search:results.driverFallback')).split(' ')[0]!,
-    priceLabel: `${candidate.contributionPerSeat} DT`,
+    priceLabel: formatCurrency(candidate.contributionPerSeat, locale),
     etaLabel: walkSuffixLabel(t, candidate.pickupWalkMinutes),
   };
 }
@@ -136,8 +140,8 @@ function RideResultCard({
     const offsetMin = Math.round((pickupTime.getTime() - new Date(searchAt).getTime()) / 60_000);
     if (offsetMin > 2) {
       timeOffsetNote = t('search:results.timeOffsetNote', {
-        offsetMin: t('common:terms.minute', { count: offsetMin }),
-        walkMinutes: t('common:terms.minute', { count: Math.round(candidate.pickupWalkMinutes) }),
+        offset: formatDurationLabel(t as unknown as TFunction, offsetMin),
+        walkMinutes: t('common:terms.minute', { count: Math.max(1, Math.round(candidate.pickupWalkMinutes)) }),
       });
     }
   }
@@ -149,17 +153,17 @@ function RideResultCard({
     driverAvatarUrl: candidate.driverAvatarUrl,
     ratingAvg: candidate.ratingAvg,
     timeLabel: time,
-    priceLabel: `${candidate.contributionPerSeat} DT`,
+    priceLabel: formatCurrency(candidate.contributionPerSeat, locale),
     pickupCityLabel: origin?.label ? splitLocationLabel(origin.label).city : t('search:results.departure'),
     pickupPlaceLabel: closestStop?.label ?? t('search:results.meetingPoint'),
-    pickupWalkLabel: t('common:terms.minute', { count: Math.round(candidate.pickupWalkMinutes) }),
+    pickupWalkLabel: walkSuffixLabel(t, Math.max(1, candidate.pickupWalkMinutes)),
     dropoffCityLabel: dropoffSplit.city,
     dropoffPlaceLabel: dropoffSplit.place,
     dropoffWalkLabel: walkSuffixLabel(t, Math.max(1, candidate.dropoffWalkMinutes)),
     seatsAvailable: candidate.seatsAvailable,
     seatsLabel: t('common:terms.seat', { count: candidate.seatsAvailable }),
     bestMatchLabel: t('search:results.bestMatch'),
-    accessibilityLabel: `${candidate.driverFullName ?? t('search:results.driverFallback')}, ${t('common:terms.departure')} ${time}, ${candidate.contributionPerSeat} DT`,
+    accessibilityLabel: `${candidate.driverFullName ?? t('search:results.driverFallback')}, ${t('common:terms.departure')} ${time}, ${formatCurrency(candidate.contributionPerSeat, locale)}`,
     timeOffsetNote,
     passengers: passengers?.map((p) => ({ userId: p.userId, name: p.firstName, avatarUrl: p.avatarUrl })),
     // 'detour' deliberately shows no per-card detour badge — the driver
@@ -385,7 +389,7 @@ export default function ResultsScreen(): React.JSX.Element {
                   onPress={() => selectCandidate(candidate)}
                   zIndex={candidate.rideId === bestMatchId ? 10 : 1}
                 >
-                  <DriverMapPin data={toPinData(candidate, t)} recommended={candidate.rideId === bestMatchId} />
+                  <DriverMapPin data={toPinData(candidate, t, locale)} recommended={candidate.rideId === bestMatchId} />
                 </Marker>
               ))}
             </MapView>

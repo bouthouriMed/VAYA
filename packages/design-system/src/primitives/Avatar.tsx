@@ -1,6 +1,7 @@
 ﻿import React, { useState } from 'react';
 import { View, Text, Image, StyleSheet, type ImageStyle, type StyleProp } from 'react-native';
-import { colors, typography } from '../tokens/index';
+import { typography } from '../tokens/index';
+import { useAppTheme } from '../theme/AppThemeProvider';
 
 type AvatarSize = 'sm' | 'md' | 'lg';
 
@@ -11,13 +12,6 @@ interface AvatarProps {
   /** Overrides the size preset with an exact pixel diameter (e.g. for map-zoom scaling). */
   sizePx?: number;
   style?: StyleProp<ImageStyle>;
-  /**
-   * Themed fallback override (Stitch migration). When given, the initials
-   * fallback uses these instead of the legacy hashed warm-token palette —
-   * for screens already on `useAppTheme()`. Omit to keep prior behavior.
-   */
-  fallbackBackgroundColor?: string;
-  fallbackTextColor?: string;
 }
 
 const sizeMap: Record<AvatarSize, number> = {
@@ -42,30 +36,16 @@ function getInitials(name: string): string {
     .toUpperCase();
 }
 
-function stringToColor(str: string): string {
-  const colorOptions = [
-    colors.primary,
-    colors.secondary,
-    colors.success,
-    colors.info,
-    colors.warning,
-  ];
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    hash = str.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  return colorOptions[Math.abs(hash) % colorOptions.length]!;
-}
-
 export function Avatar({
   uri,
   name = '',
   size = 'md',
   sizePx,
   style,
-  fallbackBackgroundColor,
-  fallbackTextColor,
 }: AvatarProps): React.JSX.Element {
+  // One initials treatment everywhere, from the theme — the same person must
+  // never render in one color on one screen and another color elsewhere.
+  const { colors: theme } = useAppTheme();
   const dimension = sizePx ?? sizeMap[size];
   const fontSize = sizePx ? Math.round(sizePx * 0.4) : fontSizeMap[size];
   // A broken/unreachable avatarUrl (dead link, offline device) must not
@@ -104,11 +84,11 @@ export function Avatar({
           width: dimension,
           height: dimension,
           borderRadius: dimension / 2,
-          backgroundColor: fallbackBackgroundColor ?? stringToColor(name),
+          backgroundColor: theme.surfaceMuted,
         },
       ]}
     >
-      <Text style={[styles.initials, { fontSize, color: fallbackTextColor }]}>
+      <Text style={[styles.initials, { fontSize, color: theme.ink }]}>
         {getInitials(name)}
       </Text>
     </View>
@@ -121,7 +101,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   initials: {
-    color: colors.white,
     fontWeight: typography.fontWeight.semibold,
   },
 });

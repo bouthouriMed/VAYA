@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { View, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
-import { BottomSheet, Badge, Text, Icon, useAppTheme, spacing, radii, haptics } from '@vaya/design-system';
+import { BottomSheet, Badge, Text, Icon, useAppTheme, spacing, radii, haptics, addDays } from '@vaya/design-system';
 import { useTranslation } from 'react-i18next';
 import type { SupportedLocale } from '@vaya/config';
 import type { Ride } from '../../state/api';
@@ -57,7 +57,7 @@ export function ManageRideSheet({ visible, ride, onClose }: ManageRideSheetProps
     const time = formatTime(date, locale);
     const now = new Date();
     if (date.toDateString() === now.toDateString()) return `${t('common:time.today')}, ${time}`;
-    const yesterday = new Date(now.getTime() - 24 * 60 * 60_000);
+    const yesterday = addDays(now, -1);
     if (date.toDateString() === yesterday.toDateString()) return `${t('common:time.yesterday')}, ${time}`;
     return `${formatDate(date, locale, { weekday: 'short', day: 'numeric', month: 'short' })} · ${time}`;
   }

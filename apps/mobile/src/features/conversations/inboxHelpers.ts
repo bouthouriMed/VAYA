@@ -6,6 +6,7 @@
  */
 
 import type { TFunction } from 'i18next';
+import { formatCalendarDate, formatClock, formatShortDate } from '../../utils/localeFormat';
 
 export interface InboxConversation {
   id: string;
@@ -113,12 +114,12 @@ export function formatInboxTimestamp(
   yesterday.setDate(now.getDate() - 1);
 
   if (isSameCalendarDay(date, now)) {
-    return date.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
+    return formatClock(date, locale);
   }
   if (isSameCalendarDay(date, yesterday)) return t('common:time.yesterday');
 
   const sameYear = date.getFullYear() === now.getFullYear();
-  return date.toLocaleDateString(locale, {
+  return formatCalendarDate(date, locale, {
     day: 'numeric',
     month: 'short',
     ...(sameYear ? {} : { year: 'numeric' }),
@@ -133,7 +134,7 @@ export function formatDaySectionLabel(iso: string, t: TFunction, now: Date = new
 
   if (isSameCalendarDay(date, now)) return t('common:time.today');
   if (isSameCalendarDay(date, yesterday)) return t('common:time.yesterday');
-  return date.toLocaleDateString(locale, {
+  return formatCalendarDate(date, locale, {
     weekday: 'short',
     day: 'numeric',
     month: 'long',
@@ -183,13 +184,13 @@ export function formatDepartureLabel(iso: string, t: TFunction, now: Date = new 
   if (Number.isNaN(date.getTime())) return '';
 
   if (isSameCalendarDay(date, now)) {
-    return date.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
+    return formatClock(date, locale);
   }
   const tomorrow = new Date(now);
   tomorrow.setDate(now.getDate() + 1);
   if (isSameCalendarDay(date, tomorrow)) return t('common:time.tomorrow');
 
-  return date.toLocaleDateString(locale, { day: 'numeric', month: 'short' });
+  return formatShortDate(date, locale);
 }
 
 /** Client-side text filter over the already-fetched inbox — matches the

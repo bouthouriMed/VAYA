@@ -41,6 +41,7 @@ import {
   useReducedMotion,
   type AppPalette,
   type MapRegion,
+  addDays,
 } from '@vaya/design-system';
 import { router, useFocusEffect } from 'expo-router';
 import type { SupportedLocale } from '@vaya/config';
@@ -156,7 +157,7 @@ function formatDepartureDayLabel(
   now: Date = new Date(),
 ): string {
   if (isSameCalendarDay(date, now)) return todayLabel;
-  const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+  const tomorrow = addDays(now, 1);
   if (isSameCalendarDay(date, tomorrow)) return tomorrowLabel;
   return formatDate(date, loc, { weekday: 'short', day: 'numeric', month: 'short' });
 }

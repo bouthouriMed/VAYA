@@ -17,7 +17,7 @@
     "candidateCount_other": "{{count}} rides available today on this route",
     "meetingPoint": "Meeting point",
     "bestMatch": "BEST MATCH",
-    "timeOffsetNote": "Departs {{offsetMin}} after your requested time — pickup is a {{walkMinutes}} walk away."
+    "timeOffsetNote": "Leaves {{offset}} after your requested time · {{walkMinutes}} walk to the meeting point."
   },
   "composer": {
     "myLocation": "My current location",
@@ -112,20 +112,13 @@
     "verificationVehicle": "Registered vehicle — plate shown below",
     "aboutTitle": "About {{name}}",
     "reviewsTitle": "Reviews",
-    "reviewsSubtitle": "See all reviews about {{name}}",
     "reviewsEmpty": "{{name}} hasn't received any reviews yet.",
     "reviewsFirstLine": "Share yours after your ride — the first review counts the most.",
     "messageDriver": "Message driver",
     "messageAvailability": "Available once your seat request is accepted.",
-    "messageAvailabilityDriver": "Available once you accept this request."
-  },
-  "reviews": {
-    "fallbackDriverName": "this driver",
-    "mockReviews": [
-      { "when": "2 days ago", "comment": "Great ride, very punctual. The car was spotless and he helped me with my bags." },
-      { "when": "5 days ago", "comment": "Clean car and careful driving. Handled traffic well. I'd happily book this route again." },
-      { "when": "1 week ago", "comment": "Good experience overall. A bit quiet, but the ride was smooth and on time." }
-    ]
+    "messageAvailabilityDriver": "Available once you accept this request.",
+    "punctualityLabel": "Punctuality",
+    "reviewsPrivate": "Comments left after a trip stay private between the driver and the passenger. The rating above reflects every review received."
   },
   "timePicker": {
     "when": "When?",
@@ -137,7 +130,15 @@
   },
   "datePickerSheet": {
     "title": "Departure date",
-    "weekdayLabels": ["M", "T", "W", "T", "F", "S", "S"],
+    "weekdayLabels": [
+      "M",
+      "T",
+      "W",
+      "T",
+      "F",
+      "S",
+      "S"
+    ],
     "previousMonth": "Previous month",
     "nextMonth": "Next month",
     "confirm": "Confirm date",

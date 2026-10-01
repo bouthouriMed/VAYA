@@ -9,7 +9,28 @@ export interface DayOption {
   label: string;
 }
 
-const DAY_MS = 24 * 60 * 60 * 1000;
+/** `date` moved by `days` calendar days, keeping its local wall-clock time.
+ *  Never `date + n * 24h`: on a daylight-saving change a day is 23 or 25
+ *  hours long, and millisecond arithmetic then lands on the wrong day (the
+ *  October grid used to show the 25th twice). */
+export function addDays(date: Date, days: number): Date {
+  return new Date(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate() + days,
+    date.getHours(),
+    date.getMinutes(),
+    date.getSeconds(),
+    date.getMilliseconds(),
+  );
+}
+
+/** Local wall-clock time on `day` — e.g. 06:00 or 23:30 — DST-safe. */
+function atLocalTime(day: Date, hours: number): Date {
+  const whole = Math.floor(hours);
+  const minutes = Math.round((hours - whole) * 60);
+  return new Date(day.getFullYear(), day.getMonth(), day.getDate(), whole, minutes, 0, 0);
+}
 
 export function startOfDay(date: Date): Date {
   const copy = new Date(date);
@@ -31,7 +52,8 @@ export function isSameDay(a: Date, b: Date): boolean {
  *  `apps/mobile/src/utils/localeFormat.ts`'s `INTL_TAGS`) so this never
  *  silently renders French for an English/Arabic session. */
 export function formatTime(date: Date, locale = 'fr-FR'): string {
-  return date.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
+  // Always 24-hour — mirrors apps/mobile's localeFormat.formatClock.
+  return new Intl.DateTimeFormat(locale, { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(date);
 }
 
 export interface DepartureLabelWords {
@@ -54,7 +76,7 @@ export function formatDepartureLabel(
 ): string {
   const time = formatTime(date, locale);
   if (isSameDay(date, now)) return `${words.today}, ${time}`;
-  const tomorrow = new Date(now.getTime() + DAY_MS);
+  const tomorrow = addDays(now, 1);
   if (isSameDay(date, tomorrow)) return `${words.tomorrow}, ${time}`;
   const day = date.toLocaleDateString(locale, {
     weekday: 'short',
@@ -75,7 +97,7 @@ export function buildDayOptions(
 ): DayOption[] {
   const today = startOfDay(now);
   return Array.from({ length: count }, (_, i) => {
-    const date = new Date(today.getTime() + i * DAY_MS);
+    const date = addDays(today, i);
     if (i === 0) return { date, label: words.today };
     if (i === 1) return { date, label: words.tomorrow };
     return {
@@ -109,8 +131,8 @@ export function buildTimeOptions(
   dayEndHour = 23.5,
 ): Date[] {
   const base = startOfDay(day);
-  const dayStart = new Date(base.getTime() + dayStartHour * 60 * 60_000);
-  const dayEnd = new Date(base.getTime() + dayEndHour * 60 * 60_000);
+  const dayStart = atLocalTime(base, dayStartHour);
+  const dayEnd = atLocalTime(base, dayEndHour);
   const earliest = isSameDay(day, now)
     ? new Date(Math.max(roundUpToSlot(now, slotMinutes).getTime(), dayStart.getTime()))
     : dayStart;
@@ -144,10 +166,10 @@ export function buildMonthGrid(anchor: Date, now: Date = new Date()): MonthGridC
   const firstOfMonth = new Date(anchor.getFullYear(), anchor.getMonth(), 1);
   // getDay(): 0=Sun..6=Sat. Convert to a Monday-first offset (0=Mon..6=Sun).
   const mondayOffset = (firstOfMonth.getDay() + 6) % 7;
-  const gridStart = new Date(firstOfMonth.getTime() - mondayOffset * DAY_MS);
+  const gridStart = addDays(firstOfMonth, -mondayOffset);
 
   return Array.from({ length: 42 }, (_, i) => {
-    const date = new Date(gridStart.getTime() + i * DAY_MS);
+    const date = addDays(gridStart, i);
     return {
       date,
       isCurrentMonth: date.getMonth() === anchor.getMonth(),
