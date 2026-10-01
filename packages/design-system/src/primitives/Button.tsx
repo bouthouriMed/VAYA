@@ -43,6 +43,7 @@ interface ButtonProps {
   style?: StyleProp<ViewStyle>;
   /** Overrides the announced label — defaults to `label`. */
   accessibilityLabel?: string;
+  testID?: string;
   /** Overrides the theme from context — only needed for a screen that pins
    *  one palette regardless of the device setting (e.g. the always-dark
    *  sign-in hero). */
@@ -99,6 +100,7 @@ export function Button({
   trailingIcon,
   style,
   accessibilityLabel,
+  testID,
   theme: themeOverride,
 }: ButtonProps): React.JSX.Element {
   const { colors: contextTheme } = useAppTheme();
@@ -125,6 +127,7 @@ export function Button({
         pressed && !disabled && styles.pressed,
         style,
       ]}
+      testID={testID}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel ?? label}
       accessibilityState={{ disabled: disabled || loading, busy: loading }}

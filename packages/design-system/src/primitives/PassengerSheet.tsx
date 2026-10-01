@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { radii, spacing } from '../tokens/index';
 import { Text } from './Text';
+import { Button } from './Button';
 import { Icon } from './Icon';
 import { BottomSheet } from './BottomSheet';
 import { useAppTheme } from '../theme/AppThemeProvider';
@@ -170,21 +171,18 @@ export function PassengerSheet({
         </Text>
       </View>
 
-      <TouchableOpacity
+      <Button
+        size="lg"
+        theme={theme}
         testID="passenger-confirm"
+        label={confirmLabel}
+        accessibilityLabel={confirmAriaLabel(formatCount(draft))}
         onPress={() => {
           onChange(clampPassengerCount(draft, min, max));
           onClose();
         }}
-        style={[styles.confirmButton, { backgroundColor: theme.ink }]}
-        accessibilityRole="button"
-        accessibilityLabel={confirmAriaLabel(formatCount(draft))}
-        activeOpacity={0.85}
-      >
-        <Text variant="bodySmall" style={[styles.confirmLabel, { color: theme.background }]}>
-          {confirmLabel}
-        </Text>
-      </TouchableOpacity>
+        style={styles.confirmButton}
+      />
     </BottomSheet>
   );
 }
@@ -222,14 +220,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs,
   },
   confirmButton: {
-    marginTop: spacing.sm,
     marginHorizontal: spacing.lg,
-    marginBottom: spacing.lg,
-    paddingVertical: spacing.lg - 2,
-    borderRadius: radii.full,
-    alignItems: 'center',
-  },
-  confirmLabel: {
-    fontWeight: '600',
+    marginTop: spacing.lg,
   },
 });

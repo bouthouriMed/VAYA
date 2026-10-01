@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, ScrollView, Share } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Reanimated, { FadeInDown, ZoomIn } from 'react-native-reanimated';
-import { Text, Icon, Button, MapPreview, ScreenHeader, useAppTheme, haptics, spacing, radii, staggerDelay, durations } from '@vaya/design-system';
+import { Text, Icon, Button, MapPreview, ScreenHeader, useAppTheme, haptics, spacing, radii, staggerDelay, durations, Avatar } from '@vaya/design-system';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import type { SupportedLocale } from '@vaya/config';
@@ -83,7 +83,7 @@ export default function PendingScreen(): React.JSX.Element {
                 {t('booking:phase.confirmed')}
               </Text>
             </Reanimated.View>
-            <Text variant="h1" color={theme.ink}>
+            <Text variant="h2" color={theme.ink}>
               {t('booking:status_confirmed_title')}
             </Text>
             <Text variant="body" color={theme.inkMuted}>
@@ -97,9 +97,7 @@ export default function PendingScreen(): React.JSX.Element {
           >
             <View style={styles.driverHeaderRow}>
               <View style={styles.driverIdentity}>
-                <View style={[styles.avatarPlaceholder, { backgroundColor: theme.surfaceMuted }]}>
-                  <Icon name="person" size="lg" color={theme.inkFaint} />
-                </View>
+                <Avatar name={driverName} sizePx={56} />
                 <View>
                   <Text variant="h3" color={theme.ink}>
                     {firstName}
@@ -310,13 +308,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
-  },
-  avatarPlaceholder: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   ratingRow: {
     flexDirection: 'row',

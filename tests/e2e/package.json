@@ -8,7 +8,8 @@
     "test:all": "playwright test",
     "smoke": "playwright test smoke.api.test.ts --project=api",
     "test:ui": "playwright test --ui",
-    "report": "playwright show-report"
+    "report": "playwright show-report",
+    "visual:capture": "node visual/capture.cjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.47.2"

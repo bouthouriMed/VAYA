@@ -8,7 +8,7 @@ exports[`search/trust.tsx snapshots > enables a real Message button once a conve
         "flex": 1,
       },
       {
-        "backgroundColor": "#FFFFFF",
+        "backgroundColor": "#EEF1EC",
       },
     ]
   }
@@ -24,10 +24,10 @@ exports[`search/trust.tsx snapshots > enables a real Message button once a conve
           "paddingTop": 8,
         },
         {
-          "backgroundColor": "#FFFFFF",
+          "backgroundColor": "#EEF1EC",
         },
         {
-          "borderBottomColor": "#E4EDFB",
+          "borderBottomColor": "#DEE5DE",
           "borderBottomWidth": 1,
         },
         undefined,
@@ -89,6 +89,7 @@ exports[`search/trust.tsx snapshots > enables a real Message button once a conve
                 "fontWeight": "600",
                 "lineHeight": 23.400000000000002,
               },
+              null,
               {
                 "color": "#14201B",
                 "textAlign": "center",
@@ -154,7 +155,7 @@ exports[`search/trust.tsx snapshots > enables a real Message button once a conve
                 "justifyContent": "center",
               },
               {
-                "backgroundColor": "#E4EDFB",
+                "backgroundColor": "#E2E8E1",
                 "borderRadius": 52,
                 "height": 104,
                 "width": 104,
@@ -196,6 +197,7 @@ exports[`search/trust.tsx snapshots > enables a real Message button once a conve
                 "fontWeight": "700",
                 "lineHeight": 36,
               },
+              null,
               {
                 "color": "#14201B",
                 "textAlign": undefined,
@@ -227,8 +229,8 @@ exports[`search/trust.tsx snapshots > enables a real Message button once a conve
           "paddingTop": 12,
         },
         {
-          "backgroundColor": "#FFFFFF",
-          "borderTopColor": "#E4EDFB",
+          "backgroundColor": "#F7F9F5",
+          "borderTopColor": "#DEE5DE",
           "paddingBottom": 8,
         },
       ]
@@ -258,7 +260,7 @@ exports[`search/trust.tsx snapshots > enables a real Message button once a conve
       >
         <Ionicons
           accessibilityElementsHidden={true}
-          color="#FFFFFF"
+          color="#F4F6F2"
           importantForAccessibility="no-hide-descendants"
           name="chatbubble-outline"
           size={16}
@@ -274,7 +276,7 @@ exports[`search/trust.tsx snapshots > enables a real Message button once a conve
                 "fontSize": 16,
               },
               {
-                "color": "#FFFFFF",
+                "color": "#F4F6F2",
               },
             ]
           }
@@ -295,7 +297,7 @@ exports[`search/trust.tsx snapshots > renders a brand-new passenger profile (no 
         "flex": 1,
       },
       {
-        "backgroundColor": "#FFFFFF",
+        "backgroundColor": "#EEF1EC",
       },
     ]
   }
@@ -311,10 +313,10 @@ exports[`search/trust.tsx snapshots > renders a brand-new passenger profile (no 
           "paddingTop": 8,
         },
         {
-          "backgroundColor": "#FFFFFF",
+          "backgroundColor": "#EEF1EC",
         },
         {
-          "borderBottomColor": "#E4EDFB",
+          "borderBottomColor": "#DEE5DE",
           "borderBottomWidth": 1,
         },
         undefined,
@@ -376,6 +378,7 @@ exports[`search/trust.tsx snapshots > renders a brand-new passenger profile (no 
                 "fontWeight": "600",
                 "lineHeight": 23.400000000000002,
               },
+              null,
               {
                 "color": "#14201B",
                 "textAlign": "center",
@@ -441,7 +444,7 @@ exports[`search/trust.tsx snapshots > renders a brand-new passenger profile (no 
                 "justifyContent": "center",
               },
               {
-                "backgroundColor": "#E4EDFB",
+                "backgroundColor": "#E2E8E1",
                 "borderRadius": 52,
                 "height": 104,
                 "width": 104,
@@ -483,6 +486,7 @@ exports[`search/trust.tsx snapshots > renders a brand-new passenger profile (no 
                 "fontWeight": "700",
                 "lineHeight": 36,
               },
+              null,
               {
                 "color": "#14201B",
                 "textAlign": undefined,
@@ -514,8 +518,8 @@ exports[`search/trust.tsx snapshots > renders a brand-new passenger profile (no 
           "paddingTop": 12,
         },
         {
-          "backgroundColor": "#FFFFFF",
-          "borderTopColor": "#E4EDFB",
+          "backgroundColor": "#F7F9F5",
+          "borderTopColor": "#DEE5DE",
           "paddingBottom": 8,
         },
       ]
@@ -545,7 +549,7 @@ exports[`search/trust.tsx snapshots > renders a brand-new passenger profile (no 
       >
         <Ionicons
           accessibilityElementsHidden={true}
-          color="#8B93A3"
+          color="#7D8981"
           importantForAccessibility="no-hide-descendants"
           name="chatbubble-outline"
           size={16}
@@ -561,7 +565,7 @@ exports[`search/trust.tsx snapshots > renders a brand-new passenger profile (no 
                 "fontSize": 16,
               },
               {
-                "color": "#8B93A3",
+                "color": "#7D8981",
               },
             ]
           }
@@ -578,8 +582,9 @@ exports[`search/trust.tsx snapshots > renders a brand-new passenger profile (no 
             "fontWeight": "400",
             "lineHeight": 18,
           },
+          null,
           {
-            "color": "#8B93A3",
+            "color": "#7D8981",
             "textAlign": "center",
             "writingDirection": "ltr",
           },
@@ -601,7 +606,7 @@ exports[`search/trust.tsx snapshots > renders a passenger profile with real ride
         "flex": 1,
       },
       {
-        "backgroundColor": "#FFFFFF",
+        "backgroundColor": "#EEF1EC",
       },
     ]
   }
@@ -617,10 +622,10 @@ exports[`search/trust.tsx snapshots > renders a passenger profile with real ride
           "paddingTop": 8,
         },
         {
-          "backgroundColor": "#FFFFFF",
+          "backgroundColor": "#EEF1EC",
         },
         {
-          "borderBottomColor": "#E4EDFB",
+          "borderBottomColor": "#DEE5DE",
           "borderBottomWidth": 1,
         },
         undefined,
@@ -682,6 +687,7 @@ exports[`search/trust.tsx snapshots > renders a passenger profile with real ride
                 "fontWeight": "600",
                 "lineHeight": 23.400000000000002,
               },
+              null,
               {
                 "color": "#14201B",
                 "textAlign": "center",
@@ -747,7 +753,7 @@ exports[`search/trust.tsx snapshots > renders a passenger profile with real ride
                 "justifyContent": "center",
               },
               {
-                "backgroundColor": "#E4EDFB",
+                "backgroundColor": "#E2E8E1",
                 "borderRadius": 52,
                 "height": 104,
                 "width": 104,
@@ -789,6 +795,7 @@ exports[`search/trust.tsx snapshots > renders a passenger profile with real ride
                 "fontWeight": "700",
                 "lineHeight": 36,
               },
+              null,
               {
                 "color": "#14201B",
                 "textAlign": undefined,
@@ -822,8 +829,8 @@ exports[`search/trust.tsx snapshots > renders a passenger profile with real ride
               "paddingVertical": 12,
             },
             {
-              "backgroundColor": "#FFFFFF",
-              "borderColor": "#E4EDFB",
+              "backgroundColor": "#F7F9F5",
+              "borderColor": "#DEE5DE",
             },
           ]
         }
@@ -845,6 +852,7 @@ exports[`search/trust.tsx snapshots > renders a passenger profile with real ride
                   "fontWeight": "600",
                   "lineHeight": 28.799999999999997,
                 },
+                null,
                 {
                   "color": "#14201B",
                   "textAlign": undefined,
@@ -872,8 +880,9 @@ exports[`search/trust.tsx snapshots > renders a passenger profile with real ride
                 "fontWeight": "400",
                 "lineHeight": 18,
               },
+              null,
               {
-                "color": "#8B93A3",
+                "color": "#7D8981",
                 "textAlign": undefined,
                 "writingDirection": "ltr",
               },
@@ -896,8 +905,8 @@ exports[`search/trust.tsx snapshots > renders a passenger profile with real ride
               "paddingVertical": 12,
             },
             {
-              "backgroundColor": "#FFFFFF",
-              "borderColor": "#E4EDFB",
+              "backgroundColor": "#F7F9F5",
+              "borderColor": "#DEE5DE",
             },
           ]
         }
@@ -910,6 +919,7 @@ exports[`search/trust.tsx snapshots > renders a passenger profile with real ride
                 "fontWeight": "600",
                 "lineHeight": 28.799999999999997,
               },
+              null,
               {
                 "color": "#14201B",
                 "textAlign": undefined,
@@ -929,8 +939,9 @@ exports[`search/trust.tsx snapshots > renders a passenger profile with real ride
                 "fontWeight": "400",
                 "lineHeight": 18,
               },
+              null,
               {
-                "color": "#8B93A3",
+                "color": "#7D8981",
                 "textAlign": undefined,
                 "writingDirection": "ltr",
               },
@@ -969,8 +980,8 @@ exports[`search/trust.tsx snapshots > renders a passenger profile with real ride
           "paddingTop": 12,
         },
         {
-          "backgroundColor": "#FFFFFF",
-          "borderTopColor": "#E4EDFB",
+          "backgroundColor": "#F7F9F5",
+          "borderTopColor": "#DEE5DE",
           "paddingBottom": 8,
         },
       ]
@@ -1000,7 +1011,7 @@ exports[`search/trust.tsx snapshots > renders a passenger profile with real ride
       >
         <Ionicons
           accessibilityElementsHidden={true}
-          color="#8B93A3"
+          color="#7D8981"
           importantForAccessibility="no-hide-descendants"
           name="chatbubble-outline"
           size={16}
@@ -1016,7 +1027,7 @@ exports[`search/trust.tsx snapshots > renders a passenger profile with real ride
                 "fontSize": 16,
               },
               {
-                "color": "#8B93A3",
+                "color": "#7D8981",
               },
             ]
           }
@@ -1033,8 +1044,9 @@ exports[`search/trust.tsx snapshots > renders a passenger profile with real ride
             "fontWeight": "400",
             "lineHeight": 18,
           },
+          null,
           {
-            "color": "#8B93A3",
+            "color": "#7D8981",
             "textAlign": "center",
             "writingDirection": "ltr",
           },
@@ -1056,7 +1068,7 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
         "flex": 1,
       },
       {
-        "backgroundColor": "#FFFFFF",
+        "backgroundColor": "#EEF1EC",
       },
     ]
   }
@@ -1072,10 +1084,10 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
           "paddingTop": 8,
         },
         {
-          "backgroundColor": "#FFFFFF",
+          "backgroundColor": "#EEF1EC",
         },
         {
-          "borderBottomColor": "#E4EDFB",
+          "borderBottomColor": "#DEE5DE",
           "borderBottomWidth": 1,
         },
         undefined,
@@ -1137,6 +1149,7 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
                 "fontWeight": "600",
                 "lineHeight": 23.400000000000002,
               },
+              null,
               {
                 "color": "#14201B",
                 "textAlign": "center",
@@ -1202,7 +1215,7 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
                 "justifyContent": "center",
               },
               {
-                "backgroundColor": "#E4EDFB",
+                "backgroundColor": "#E2E8E1",
                 "borderRadius": 52,
                 "height": 104,
                 "width": 104,
@@ -1242,7 +1255,7 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
               },
               {
                 "backgroundColor": "#2E9E6C",
-                "borderColor": "#FFFFFF",
+                "borderColor": "#F7F9F5",
               },
             ]
           }
@@ -1273,6 +1286,7 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
                 "fontWeight": "700",
                 "lineHeight": 36,
               },
+              null,
               {
                 "color": "#14201B",
                 "textAlign": undefined,
@@ -1296,14 +1310,14 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
                 "paddingVertical": 2,
               },
               {
-                "backgroundColor": "#E4EDFB",
+                "backgroundColor": "#E2E8E1",
               },
             ]
           }
         >
           <Ionicons
             accessibilityElementsHidden={true}
-            color="#5B6572"
+            color="#4F5C55"
             importantForAccessibility="no-hide-descendants"
             name="shield-checkmark"
             size={16}
@@ -1316,8 +1330,9 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
                   "fontWeight": "400",
                   "lineHeight": 18,
                 },
+                null,
                 {
-                  "color": "#5B6572",
+                  "color": "#4F5C55",
                   "textAlign": undefined,
                   "writingDirection": "ltr",
                 },
@@ -1337,8 +1352,9 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
               "fontWeight": "400",
               "lineHeight": 21,
             },
+            null,
             {
-              "color": "#8B93A3",
+              "color": "#7D8981",
               "textAlign": undefined,
               "writingDirection": "ltr",
             },
@@ -1369,8 +1385,8 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
               "paddingVertical": 12,
             },
             {
-              "backgroundColor": "#FFFFFF",
-              "borderColor": "#E4EDFB",
+              "backgroundColor": "#F7F9F5",
+              "borderColor": "#DEE5DE",
             },
           ]
         }
@@ -1392,6 +1408,7 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
                   "fontWeight": "600",
                   "lineHeight": 28.799999999999997,
                 },
+                null,
                 {
                   "color": "#14201B",
                   "textAlign": undefined,
@@ -1419,8 +1436,9 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
                 "fontWeight": "400",
                 "lineHeight": 18,
               },
+              null,
               {
-                "color": "#8B93A3",
+                "color": "#7D8981",
                 "textAlign": undefined,
                 "writingDirection": "ltr",
               },
@@ -1443,8 +1461,8 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
               "paddingVertical": 12,
             },
             {
-              "backgroundColor": "#FFFFFF",
-              "borderColor": "#E4EDFB",
+              "backgroundColor": "#F7F9F5",
+              "borderColor": "#DEE5DE",
             },
           ]
         }
@@ -1457,6 +1475,7 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
                 "fontWeight": "600",
                 "lineHeight": 28.799999999999997,
               },
+              null,
               {
                 "color": "#14201B",
                 "textAlign": undefined,
@@ -1476,8 +1495,9 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
                 "fontWeight": "400",
                 "lineHeight": 18,
               },
+              null,
               {
-                "color": "#8B93A3",
+                "color": "#7D8981",
                 "textAlign": undefined,
                 "writingDirection": "ltr",
               },
@@ -1510,7 +1530,7 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
               "paddingVertical": 8,
             },
             {
-              "backgroundColor": "#E4EDFB",
+              "backgroundColor": "#E2E8E1",
             },
           ]
         }
@@ -1530,6 +1550,7 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
                 "fontWeight": "400",
                 "lineHeight": 21,
               },
+              null,
               {
                 "color": "#14201B",
                 "textAlign": undefined,
@@ -1554,7 +1575,7 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
               "paddingVertical": 8,
             },
             {
-              "backgroundColor": "#E4EDFB",
+              "backgroundColor": "#E2E8E1",
             },
           ]
         }
@@ -1574,6 +1595,7 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
                 "fontWeight": "400",
                 "lineHeight": 21,
               },
+              null,
               {
                 "color": "#14201B",
                 "textAlign": undefined,
@@ -1597,8 +1619,8 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
             "padding": 12,
           },
           {
-            "backgroundColor": "#FFFFFF",
-            "borderColor": "#E4EDFB",
+            "backgroundColor": "#F7F9F5",
+            "borderColor": "#DEE5DE",
           },
         ]
       }
@@ -1627,6 +1649,7 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
                 "fontWeight": "500",
                 "lineHeight": 21,
               },
+              null,
               {
                 "color": "#14201B",
                 "textAlign": undefined,
@@ -1663,8 +1686,9 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
                 "fontWeight": "400",
                 "lineHeight": 21,
               },
+              null,
               {
-                "color": "#5B6572",
+                "color": "#4F5C55",
                 "textAlign": undefined,
                 "writingDirection": "ltr",
               },
@@ -1699,8 +1723,9 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
                 "fontWeight": "400",
                 "lineHeight": 21,
               },
+              null,
               {
-                "color": "#5B6572",
+                "color": "#4F5C55",
                 "textAlign": undefined,
                 "writingDirection": "ltr",
               },
@@ -1735,8 +1760,9 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
                 "fontWeight": "400",
                 "lineHeight": 21,
               },
+              null,
               {
-                "color": "#5B6572",
+                "color": "#4F5C55",
                 "textAlign": undefined,
                 "writingDirection": "ltr",
               },
@@ -1758,8 +1784,8 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
             "padding": 12,
           },
           {
-            "backgroundColor": "#FFFFFF",
-            "borderColor": "#E4EDFB",
+            "backgroundColor": "#F7F9F5",
+            "borderColor": "#DEE5DE",
           },
         ]
       }
@@ -1775,7 +1801,7 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
       >
         <Ionicons
           accessibilityElementsHidden={true}
-          color="#8B93A3"
+          color="#7D8981"
           importantForAccessibility="no-hide-descendants"
           name="information-circle-outline"
           size={20}
@@ -1788,6 +1814,7 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
                 "fontWeight": "500",
                 "lineHeight": 21,
               },
+              null,
               {
                 "color": "#14201B",
                 "textAlign": undefined,
@@ -1808,8 +1835,9 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
               "fontWeight": "400",
               "lineHeight": 21,
             },
+            null,
             {
-              "color": "#5B6572",
+              "color": "#4F5C55",
               "textAlign": undefined,
               "writingDirection": "ltr",
             },
@@ -1830,8 +1858,8 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
             "padding": 12,
           },
           {
-            "backgroundColor": "#FFFFFF",
-            "borderColor": "#E4EDFB",
+            "backgroundColor": "#F7F9F5",
+            "borderColor": "#DEE5DE",
           },
         ]
       }
@@ -1847,7 +1875,7 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
       >
         <Ionicons
           accessibilityElementsHidden={true}
-          color="#8B93A3"
+          color="#7D8981"
           importantForAccessibility="no-hide-descendants"
           name="car-sport-outline"
           size={20}
@@ -1860,6 +1888,7 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
                 "fontWeight": "500",
                 "lineHeight": 21,
               },
+              null,
               {
                 "color": "#14201B",
                 "textAlign": undefined,
@@ -1890,6 +1919,7 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
                   "fontWeight": "400",
                   "lineHeight": 24,
                 },
+                null,
                 {
                   "color": "#14201B",
                   "textAlign": undefined,
@@ -1919,8 +1949,8 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
                   "paddingVertical": 2,
                 },
                 {
-                  "backgroundColor": "#FFFFFF",
-                  "borderColor": "#E4EDFB",
+                  "backgroundColor": "#EEF1EC",
+                  "borderColor": "#DEE5DE",
                 },
               ]
             }
@@ -1933,8 +1963,9 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
                     "fontWeight": "400",
                     "lineHeight": 18,
                   },
+                  null,
                   {
-                    "color": "#5B6572",
+                    "color": "#4F5C55",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -1960,15 +1991,15 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
                 "width": 56,
               },
               {
-                "backgroundColor": "#FFFFFF",
-                "borderColor": "#E4EDFB",
+                "backgroundColor": "#EEF1EC",
+                "borderColor": "#DEE5DE",
               },
             ]
           }
         >
           <Ionicons
             accessibilityElementsHidden={true}
-            color="#8B93A3"
+            color="#7D8981"
             importantForAccessibility="no-hide-descendants"
             name="car-sport"
             size={32}
@@ -1986,8 +2017,8 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
             "padding": 12,
           },
           {
-            "backgroundColor": "#FFFFFF",
-            "borderColor": "#E4EDFB",
+            "backgroundColor": "#F7F9F5",
+            "borderColor": "#DEE5DE",
           },
         ]
       }
@@ -2003,7 +2034,7 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
       >
         <Ionicons
           accessibilityElementsHidden={true}
-          color="#8B93A3"
+          color="#7D8981"
           importantForAccessibility="no-hide-descendants"
           name="chatbubble-ellipses-outline"
           size={20}
@@ -2016,6 +2047,7 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
                 "fontWeight": "500",
                 "lineHeight": 21,
               },
+              null,
               {
                 "color": "#14201B",
                 "textAlign": undefined,
@@ -2063,6 +2095,7 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
                   "fontWeight": "500",
                   "lineHeight": 21,
                 },
+                null,
                 {
                   "color": "#14201B",
                   "textAlign": undefined,
@@ -2082,8 +2115,9 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
                   "fontWeight": "400",
                   "lineHeight": 21,
                 },
+                null,
                 {
-                  "color": "#5B6572",
+                  "color": "#4F5C55",
                   "textAlign": undefined,
                   "writingDirection": "ltr",
                 },
@@ -2118,6 +2152,7 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
                   "fontWeight": "500",
                   "lineHeight": 21,
                 },
+                null,
                 {
                   "color": "#14201B",
                   "textAlign": undefined,
@@ -2137,8 +2172,9 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
                   "fontWeight": "400",
                   "lineHeight": 21,
                 },
+                null,
                 {
-                  "color": "#5B6572",
+                  "color": "#4F5C55",
                   "textAlign": undefined,
                   "writingDirection": "ltr",
                 },
@@ -2158,8 +2194,9 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
               "fontWeight": "400",
               "lineHeight": 21,
             },
+            null,
             {
-              "color": "#8B93A3",
+              "color": "#7D8981",
               "textAlign": undefined,
               "writingDirection": "ltr",
             },
@@ -2188,8 +2225,8 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
           "paddingTop": 12,
         },
         {
-          "backgroundColor": "#FFFFFF",
-          "borderTopColor": "#E4EDFB",
+          "backgroundColor": "#F7F9F5",
+          "borderTopColor": "#DEE5DE",
           "paddingBottom": 8,
         },
       ]
@@ -2219,7 +2256,7 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
       >
         <Ionicons
           accessibilityElementsHidden={true}
-          color="#8B93A3"
+          color="#7D8981"
           importantForAccessibility="no-hide-descendants"
           name="chatbubble-outline"
           size={16}
@@ -2235,7 +2272,7 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
                 "fontSize": 16,
               },
               {
-                "color": "#8B93A3",
+                "color": "#7D8981",
               },
             ]
           }
@@ -2252,8 +2289,9 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
             "fontWeight": "400",
             "lineHeight": 18,
           },
+          null,
           {
-            "color": "#8B93A3",
+            "color": "#7D8981",
             "textAlign": "center",
             "writingDirection": "ltr",
           },
@@ -2275,7 +2313,7 @@ exports[`search/trust.tsx snapshots > renders the "profile not found" state 1`] 
         "flex": 1,
       },
       {
-        "backgroundColor": "#FFFFFF",
+        "backgroundColor": "#EEF1EC",
       },
     ]
   }
@@ -2291,10 +2329,10 @@ exports[`search/trust.tsx snapshots > renders the "profile not found" state 1`] 
           "paddingTop": 8,
         },
         {
-          "backgroundColor": "#FFFFFF",
+          "backgroundColor": "#EEF1EC",
         },
         {
-          "borderBottomColor": "#E4EDFB",
+          "borderBottomColor": "#DEE5DE",
           "borderBottomWidth": 1,
         },
         undefined,
@@ -2356,6 +2394,7 @@ exports[`search/trust.tsx snapshots > renders the "profile not found" state 1`] 
                 "fontWeight": "600",
                 "lineHeight": 23.400000000000002,
               },
+              null,
               {
                 "color": "#14201B",
                 "textAlign": "center",
@@ -2412,7 +2451,7 @@ exports[`search/trust.tsx snapshots > renders the "profile not found" state 1`] 
             "width": 64,
           },
           {
-            "backgroundColor": "#F3D9CE",
+            "backgroundColor": "#F0D8CD",
           },
         ]
       }
@@ -2433,6 +2472,7 @@ exports[`search/trust.tsx snapshots > renders the "profile not found" state 1`] 
             "fontWeight": "600",
             "lineHeight": 23.400000000000002,
           },
+          null,
           {
             "color": "#14201B",
             "textAlign": "center",
@@ -2498,7 +2538,7 @@ exports[`search/trust.tsx snapshots > renders the loading state 1`] = `
         "flex": 1,
       },
       {
-        "backgroundColor": "#FFFFFF",
+        "backgroundColor": "#EEF1EC",
       },
     ]
   }
@@ -2514,10 +2554,10 @@ exports[`search/trust.tsx snapshots > renders the loading state 1`] = `
           "paddingTop": 8,
         },
         {
-          "backgroundColor": "#FFFFFF",
+          "backgroundColor": "#EEF1EC",
         },
         {
-          "borderBottomColor": "#E4EDFB",
+          "borderBottomColor": "#DEE5DE",
           "borderBottomWidth": 1,
         },
         undefined,
@@ -2579,6 +2619,7 @@ exports[`search/trust.tsx snapshots > renders the loading state 1`] = `
                 "fontWeight": "600",
                 "lineHeight": 23.400000000000002,
               },
+              null,
               {
                 "color": "#14201B",
                 "textAlign": "center",
@@ -2630,7 +2671,7 @@ exports[`search/trust.tsx snapshots > renders the loading state 1`] = `
         style={
           [
             {
-              "backgroundColor": "#E4EDFB",
+              "backgroundColor": "#E2E8E1",
               "borderRadius": 16,
               "height": 180,
               "opacity": AnimatedValue {
@@ -2652,8 +2693,8 @@ exports[`search/trust.tsx snapshots > renders the loading state 1`] = `
               "padding": 16,
             },
             {
-              "backgroundColor": "#FFFFFF",
-              "borderColor": "#E4EDFB",
+              "backgroundColor": "#F7F9F5",
+              "borderColor": "#DEE5DE",
             },
           ]
         }
@@ -2664,7 +2705,7 @@ exports[`search/trust.tsx snapshots > renders the loading state 1`] = `
           style={
             [
               {
-                "backgroundColor": "#E4EDFB",
+                "backgroundColor": "#E2E8E1",
                 "borderRadius": 4,
                 "height": 14.399999999999999,
                 "opacity": AnimatedValue {
@@ -2682,7 +2723,7 @@ exports[`search/trust.tsx snapshots > renders the loading state 1`] = `
           style={
             [
               {
-                "backgroundColor": "#E4EDFB",
+                "backgroundColor": "#E2E8E1",
                 "borderRadius": 4,
                 "height": 8.4,
                 "opacity": AnimatedValue {
@@ -2700,7 +2741,7 @@ exports[`search/trust.tsx snapshots > renders the loading state 1`] = `
           style={
             [
               {
-                "backgroundColor": "#E4EDFB",
+                "backgroundColor": "#E2E8E1",
                 "borderRadius": 4,
                 "height": 9.6,
                 "opacity": AnimatedValue {
@@ -2718,7 +2759,7 @@ exports[`search/trust.tsx snapshots > renders the loading state 1`] = `
           style={
             [
               {
-                "backgroundColor": "#E4EDFB",
+                "backgroundColor": "#E2E8E1",
                 "borderRadius": 4,
                 "height": 9.6,
                 "opacity": AnimatedValue {
@@ -2743,8 +2784,8 @@ exports[`search/trust.tsx snapshots > renders the loading state 1`] = `
               "padding": 16,
             },
             {
-              "backgroundColor": "#FFFFFF",
-              "borderColor": "#E4EDFB",
+              "backgroundColor": "#F7F9F5",
+              "borderColor": "#DEE5DE",
             },
           ]
         }
@@ -2755,7 +2796,7 @@ exports[`search/trust.tsx snapshots > renders the loading state 1`] = `
           style={
             [
               {
-                "backgroundColor": "#E4EDFB",
+                "backgroundColor": "#E2E8E1",
                 "borderRadius": 9999,
                 "height": 48,
                 "opacity": AnimatedValue {
@@ -2781,7 +2822,7 @@ exports[`search/trust.tsx snapshots > renders the loading state 1`] = `
             style={
               [
                 {
-                  "backgroundColor": "#E4EDFB",
+                  "backgroundColor": "#E2E8E1",
                   "borderRadius": 4,
                   "height": 8.4,
                   "opacity": AnimatedValue {
@@ -2799,7 +2840,7 @@ exports[`search/trust.tsx snapshots > renders the loading state 1`] = `
             style={
               [
                 {
-                  "backgroundColor": "#E4EDFB",
+                  "backgroundColor": "#E2E8E1",
                   "borderRadius": 4,
                   "height": 8.4,
                   "opacity": AnimatedValue {

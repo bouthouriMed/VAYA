@@ -61,7 +61,7 @@ exports[`PassengerSheet snapshots > renders the stepper stage with the given val
               },
             },
             {
-              "backgroundColor": "#FFFFFF",
+              "backgroundColor": "#F7F9F5",
               "shadowColor": "#14201B",
             },
             {
@@ -96,7 +96,7 @@ exports[`PassengerSheet snapshots > renders the stepper stage with the given val
                   "width": 40,
                 },
                 {
-                  "backgroundColor": "#E4EDFB",
+                  "backgroundColor": "#DEE5DE",
                 },
               ]
             }
@@ -128,6 +128,7 @@ exports[`PassengerSheet snapshots > renders the stepper stage with the given val
                     "fontWeight": "600",
                     "lineHeight": 23.400000000000002,
                   },
+                  null,
                   {
                     "color": "#14201B",
                     "textAlign": "center",
@@ -241,8 +242,8 @@ exports[`PassengerSheet snapshots > renders the stepper stage with the given val
                       "width": 56,
                     },
                     {
-                      "backgroundColor": "#E4EDFB",
-                      "borderColor": "#E4EDFB",
+                      "backgroundColor": "#E2E8E1",
+                      "borderColor": "#DEE5DE",
                     },
                     false,
                   ]
@@ -269,6 +270,7 @@ exports[`PassengerSheet snapshots > renders the stepper stage with the given val
                       "letterSpacing": -0.3,
                       "lineHeight": 31.049999999999997,
                     },
+                    null,
                     {
                       "color": "#14201B",
                       "textAlign": undefined,
@@ -317,8 +319,8 @@ exports[`PassengerSheet snapshots > renders the stepper stage with the given val
                       "width": 56,
                     },
                     {
-                      "backgroundColor": "#E4EDFB",
-                      "borderColor": "#E4EDFB",
+                      "backgroundColor": "#E2E8E1",
+                      "borderColor": "#DEE5DE",
                     },
                     false,
                   ]
@@ -343,6 +345,7 @@ exports[`PassengerSheet snapshots > renders the stepper stage with the given val
                     "fontWeight": "400",
                     "lineHeight": 21,
                   },
+                  null,
                   {
                     "color": "#14201B",
                     "textAlign": undefined,
@@ -353,7 +356,7 @@ exports[`PassengerSheet snapshots > renders the stepper stage with the given val
                       "marginTop": 16,
                     },
                     {
-                      "color": "#5B6572",
+                      "color": "#4F5C55",
                     },
                   ],
                 ]
@@ -369,6 +372,7 @@ exports[`PassengerSheet snapshots > renders the stepper stage with the given val
                     "fontWeight": "400",
                     "lineHeight": 18,
                   },
+                  null,
                   {
                     "color": "#14201B",
                     "textAlign": undefined,
@@ -379,7 +383,7 @@ exports[`PassengerSheet snapshots > renders the stepper stage with the given val
                       "marginTop": 4,
                     },
                     {
-                      "color": "#8B93A3",
+                      "color": "#7D8981",
                     },
                   ],
                 ]
@@ -388,55 +392,49 @@ exports[`PassengerSheet snapshots > renders the stepper stage with the given val
               Jusqu'à 8 passagers par trajet
             </Text>
           </View>
-          <TouchableOpacity
+          <Pressable
             accessibilityLabel="Confirmer 2 passagers"
             accessibilityRole="button"
-            activeOpacity={0.85}
-            onPress={[Function]}
-            style={
-              [
-                {
-                  "alignItems": "center",
-                  "borderRadius": 9999,
-                  "marginBottom": 16,
-                  "marginHorizontal": 16,
-                  "marginTop": 8,
-                  "paddingVertical": 14,
-                },
-                {
-                  "backgroundColor": "#14201B",
-                },
-              ]
+            accessibilityState={
+              {
+                "busy": false,
+                "disabled": false,
+              }
             }
+            disabled={false}
+            onPress={[Function]}
+            style={[Function]}
             testID="passenger-confirm"
           >
-            <Text
+            <View
               style={
-                [
-                  {
-                    "fontSize": 14,
-                    "fontWeight": "400",
-                    "lineHeight": 21,
-                  },
-                  {
-                    "color": "#14201B",
-                    "textAlign": undefined,
-                    "writingDirection": "ltr",
-                  },
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 8,
+                }
+              }
+            >
+              <Text
+                numberOfLines={1}
+                style={
                   [
                     {
                       "fontWeight": "600",
                     },
                     {
-                      "color": "#FFFFFF",
+                      "fontSize": 16,
                     },
-                  ],
-                ]
-              }
-            >
-              Confirmer
-            </Text>
-          </TouchableOpacity>
+                    {
+                      "color": "#F4F6F2",
+                    },
+                  ]
+                }
+              >
+                Confirmer
+              </Text>
+            </View>
+          </Pressable>
         </View>
       </Animated.View>
     </KeyboardAvoidingView>

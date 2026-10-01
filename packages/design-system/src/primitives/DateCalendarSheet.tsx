@@ -9,9 +9,10 @@ import Animated, {
 } from 'react-native-reanimated';
 import { BottomSheet } from './BottomSheet';
 import { Text } from './Text';
+import { Button } from './Button';
 import { Icon } from './Icon';
 import { Chip } from './Chip';
-import { spacing, radii } from '../tokens/index';
+import { spacing } from '../tokens/index';
 import { useAppTheme } from '../theme/AppThemeProvider';
 import {
   buildDayOptions,
@@ -330,16 +331,7 @@ export function DateCalendarSheet({
       </GestureDetector>
 
       <View style={styles.footer}>
-        <TouchableOpacity
-          onPress={confirm}
-          style={[styles.confirmBtn, { backgroundColor: theme.ink }]}
-          accessibilityRole="button"
-          accessibilityLabel={confirmLabel}
-        >
-          <Text variant="label" color={theme.onInk}>
-            {confirmLabel}
-          </Text>
-        </TouchableOpacity>
+        <Button size="lg" label={confirmLabel} onPress={confirm} theme={theme} />
       </View>
     </BottomSheet>
   );
@@ -419,11 +411,5 @@ const styles = StyleSheet.create({
     // above happens to render on a given device.
     marginTop: 'auto',
     paddingTop: spacing.lg,
-  },
-  confirmBtn: {
-    height: 48,
-    borderRadius: radii.lg,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
 });

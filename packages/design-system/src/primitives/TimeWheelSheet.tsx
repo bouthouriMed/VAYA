@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { View, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import { View, StyleSheet, Platform } from 'react-native';
 // gesture-handler's ScrollView (not RN core's) — it wraps a
 // NativeViewGestureHandler that properly participates in the same gesture
 // arena as BottomSheet's outer Gesture.Pan() drag-to-dismiss. A plain RN
@@ -20,6 +20,7 @@ import Animated, {
 import { LinearGradient } from 'expo-linear-gradient';
 import { BottomSheet } from './BottomSheet';
 import { Text } from './Text';
+import { Button } from './Button';
 import { spacing, radii } from '../tokens/index';
 import { useAppTheme } from '../theme/AppThemeProvider';
 import { haptics } from '../utils/haptics';
@@ -339,16 +340,7 @@ export function TimeWheelSheet({
       </View>
 
       <View style={styles.footer}>
-        <TouchableOpacity
-          onPress={confirm}
-          style={[styles.confirmBtn, { backgroundColor: theme.ink }]}
-          accessibilityRole="button"
-          accessibilityLabel={confirmLabel}
-        >
-          <Text variant="label" color={theme.onInk}>
-            {confirmLabel}
-          </Text>
-        </TouchableOpacity>
+        <Button size="lg" label={confirmLabel} onPress={confirm} theme={theme} />
       </View>
     </BottomSheet>
   );
@@ -435,11 +427,5 @@ const styles = StyleSheet.create({
     // dead gap in between whether the wheel is showing or not.
     marginTop: 'auto',
     paddingTop: spacing.lg,
-  },
-  confirmBtn: {
-    height: 52,
-    borderRadius: radii.lg,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
 });

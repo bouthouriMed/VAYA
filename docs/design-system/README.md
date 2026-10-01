@@ -6,6 +6,23 @@ This is the formal specification of `@vaya/design-system`. It documents what exi
 
 VAYA's visual identity (product name in-app currently reads "arc." — see Open Decisions in root `CLAUDE.md`) is a warm, muted, soft-edged aesthetic: navy ink, sage-green accents, cream neutrals, generous radii, restrained shadows. It reads as calm and trustworthy rather than energetic or corporate — closer to a considered travel/hospitality brand than a generic ride-hailing app. This character is the strongest asset in the current codebase and must not be diluted by default Material/iOS styling, saturated "alert" colors, or sharp-cornered dashboard aesthetics.
 
+## Source of truth (UI audit, 2026-10)
+
+Every screen draws from one place per decision. Lint and tests enforce most of it.
+
+| Decision | Single home | Enforced by |
+|---|---|---|
+| Colors, light + dark | `theme/palette.ts` via `useAppTheme()`. Every primitive reads the theme from context; the `theme` prop is only an override for a screen pinned to one palette (sign-in/OTP). | ESLint `no-restricted-imports` bans the static `colors` export in `apps/mobile/app` + `src` |
+| Screen header | `ScreenHeader` (pushed screens: round back/close, centered `title` variant, 2 lines max, never the app name) and `LargeTitleHeader` (tab roots). Round header actions use `HeaderIconButton`. | Code review |
+| Buttons | `Button`: `primary` is always `ink` (one primary look), plus `secondary`, `outline`, `ghost`, and a soft `destructive`. One disabled style (muted surface, faint text). Pill shape. | Code review |
+| Loading / empty / error | `StateView` (skeleton shaped like the content; error always says so and offers retry). An error is never rendered as an empty state. | Code review; `src/state/queryErrors.ts` separates 404 ("not yet") from real failures |
+| Status labels | `deriveBookingPhase()` in `@vaya/domain` + `src/features/status/statusDisplay.ts` (one label + tone per booking/ride status). | `statusDisplay.test.ts` checks every phase has a label in fr/en/ar |
+| Times and dates | `src/utils/localeFormat.ts` — clock times are always 24-hour (`formatClock`), durations via `src/utils/durationLabel.ts`, day arithmetic via design-system `addDays` (DST-safe). | ESLint bans `toLocaleTimeString`/`toLocaleDateString`; DST tests in `scheduling-dst.test.ts` |
+| Copy | Locale JSON (fr canonical). Store sentence case; capitals come from `textTransform` on eyebrow/section styles, never typed in caps or `.toUpperCase()`. | `i18n/__tests__/key-coverage.test.ts`: every `t()` key exists in fr/en/ar and the three locales share one key set |
+| Avatars | `Avatar` — one initials treatment from the theme; no per-call color overrides. | Code review |
+
+Review UI changes with `tests/e2e/visual` (`pnpm visual:capture`): every screen in light and dark with the API mocked.
+
 ## Tokens
 
 ### Colors (`tokens/colors.ts`)
@@ -32,13 +49,13 @@ Map-specific tokens (already exist, use these instead of inventing map colors): 
 
 Trust tokens: `trustBarFill`/`ratingStar` (sage), `trustBarTrack` (`#E2E8E4`).
 
-**Dark mode — resolved.** `theme/palette.ts` + `theme/AppThemeProvider.tsx` (`useAppTheme()`) is a second, separate light/dark token pair, mounted once at `apps/mobile/app/_layout.tsx`'s root and following the device's `useColorScheme()` by default. It's a *different* palette from the one above — a cool lavender-white/near-black/emerald-mint scheme pulled directly from the "Vaya Passenger Journey UX" Stitch reference, a deliberate product decision (not a dilution) for the rider search + booking-request flow (`explore.tsx`, `search/composer.tsx`, `search/results.tsx`, `search/cluster.tsx`, `search/trust.tsx`, `search/reviews.tsx`, `bookings/confirmed.tsx`, `bookings/pending.tsx`). `darkPalette` is derived, not from a second Stitch mockup set (which was light-only), but from the *other* already-dark-toned roles a real Material-3 export always carries (inverse/fixed surfaces). Screens not yet migrated keep reading the original `colors` token unchanged — this is additive, not a replacement of the table above, and the two token systems are not meant to be mixed within one screen.
+**App theme (`theme/palette.ts`, `useAppTheme()`) — the palette every screen uses.** Mounted once at `apps/mobile/app/_layout.tsx` and following the device setting (or the user's Apparence choice). Light mode is a soft off-white with a faint sage tint (`background #EEF1EC`, cards `#F7F9F5`, green-grey neutrals) — **never pure `#FFFFFF`**, on direct feedback that a hard white hurts the eyes. Dark mode is deep charcoal-emerald. Both share one jewel-emerald accent, and `ink` is the deliberate "black" (primary buttons, selected chips, own message bubbles). The static `colors` table above remains for map styling tokens and legacy reference only; screens must not import it (lint-enforced).
 
-**Profile hub migrated (2026-08).** `(tabs)/profile.tsx` is rebuilt from the "Main Profile - World-Class Hub" mockup (same Stitch project; reference saved at `stitch/main-profile-world-class-hub.{html,png}`) on `useAppTheme()` tokens. Real data replaces the screen's old mock seed: identity/initials from `GET /users/me`, trust-tier pill from Phase 9's trust summary (`TRUST_TIER_LABELS`), photo upload via `/uploads` → `PATCH /users/me` (new `updateMe` mutation), locale picker now persists through the same endpoint instead of local-only state. Mockup deviations, each documented in the screen header: no hamburger (no drawer exists to open); a Notifications row added under Compte so Phase 7's inbox keeps an entry point; unbuilt rows (Paiement, mot de passe…) render disabled with a trailing "Bientôt" rather than a chevron promising dead navigation; Apparence shows its real value ("Automatique") since theming follows the system setting.
+**Profile hub migrated (2026-08).** `(tabs)/profile.tsx` is rebuilt from the "Main Profile - World-Class Hub" mockup (same Stitch project; reference saved at `stitch/main-profile-world-class-hub.{html,png}`) on `useAppTheme()` tokens. Real data replaces the screen's old mock seed: identity/initials from `GET /users/me`, trust-tier pill from Phase 9's trust summary (`TRUST_TIER_LABELS`), photo upload via `/uploads` → `PATCH /users/me` (new `updateMe` mutation), locale picker now persists through the same endpoint instead of local-only state. Mockup deviations, each documented in the screen header: no hamburger (no drawer exists to open); a Notifications row added under Compte so Phase 7's inbox keeps an entry point; rows for features that don't exist yet are hidden entirely (no dead "Bientôt disponible" entries); Apparence shows its real value ("Automatique") since theming follows the system setting.
 
 ### Typography (`tokens/typography.ts`)
 
-System font via `Platform.select` (iOS System / Android Roboto) — **no custom brand typeface is loaded today.** Scale: `xs 12 → 4xl 36`. Weights: regular 400 / medium 500 / semibold 600 / bold 700. Line-heights: tight 1.2 / normal 1.5 / relaxed 1.75. `textStyles` (h1–caption/label) compose fontSize×lineHeight directly — **use these, don't hardcode `fontSize`/`fontWeight` in screens.**
+Body text uses the system font (iOS System / Android Roboto). Display moments use **Fraunces** (`display*`/`headlineDisplay` variants), and **Noto Kufi Arabic** in right-to-left layouts since Fraunces has no Arabic glyphs; both are loaded in `apps/mobile/app/_layout.tsx`. Screen-bar titles use the `title` variant (18/semibold). Scale: `xs 12 → 4xl 36`. Weights: regular 400 / medium 500 / semibold 600 / bold 700. Line-heights: tight 1.2 / normal 1.5 / relaxed 1.75. `textStyles` (h1–caption/label) compose fontSize×lineHeight directly — **use these, don't hardcode `fontSize`/`fontWeight` in screens.**
 
 ### Spacing (`tokens/spacing.ts`)
 
@@ -109,3 +126,5 @@ Not deeply audited this pass — no explicit breakpoint tokens exist. Mobile-onl
 3. **Consume tokens, don't hand-roll equivalents.** Especially elevation/shadows today.
 4. **Every new primitive needs at minimum a smoke test** (existing `tokens.test.ts`/`primitives.test.ts` pattern) and accessibility props from day one, not retrofitted later.
 5. **No Storybook exists yet.** Until one does, this document is the enforcement mechanism — any PR introducing new visual patterns should update this file in the same change.
+6. **Never show placeholders as product.** No fabricated content (reviews, times), no raw translation keys, no "coming soon" rows; a failed request shows an error with retry.
+7. **Check UI changes visually** with `tests/e2e/visual` in both themes before merging.

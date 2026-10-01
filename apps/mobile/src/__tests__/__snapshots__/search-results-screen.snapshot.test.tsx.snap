@@ -9,7 +9,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
           "flex": 1,
         },
         {
-          "backgroundColor": "#FFFFFF",
+          "backgroundColor": "#EEF1EC",
         },
       ]
     }
@@ -18,69 +18,108 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
       style={
         [
           {
-            "alignItems": "center",
-            "borderBottomWidth": 1,
-            "flexDirection": "row",
-            "gap": 8,
-            "paddingBottom": 12,
-            "paddingHorizontal": 20,
+            "paddingBottom": 8,
+            "paddingHorizontal": 16,
           },
           {
-            "backgroundColor": "#FFFFFF",
-            "borderBottomColor": "#E4EDFB",
             "paddingTop": 8,
           },
+          {
+            "backgroundColor": "#EEF1EC",
+          },
+          {
+            "borderBottomColor": "#DEE5DE",
+            "borderBottomWidth": 1,
+          },
+          undefined,
         ]
       }
     >
-      <TouchableOpacity
-        accessibilityLabel="common:actions.back"
-        accessibilityRole="button"
-        hitSlop={12}
-        onPress={[Function]}
-        style={
-          {
-            "alignItems": "center",
-            "width": 22,
-          }
-        }
-      >
-        <Ionicons
-          color="#14201B"
-          name="chevron-back"
-          size={22}
-        />
-      </TouchableOpacity>
-      <Text
-        numberOfLines={1}
-        style={
-          [
-            {
-              "fontSize": 24,
-              "fontWeight": "600",
-              "lineHeight": 28.799999999999997,
-            },
-            {
-              "color": "#14201B",
-              "textAlign": "center",
-              "writingDirection": "ltr",
-            },
-            {
-              "flex": 1,
-            },
-          ]
-        }
-      >
-        La Marsa, Tunis → Avenue Habib Bourguiba, Tunis
-      </Text>
       <View
         style={
           {
             "alignItems": "center",
-            "width": 22,
+            "flexDirection": "row",
+            "gap": 8,
+            "minHeight": 44,
           }
         }
-      />
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flex": 1,
+              "flexDirection": "row",
+              "gap": 8,
+              "minWidth": 40,
+            }
+          }
+        >
+          <Pressable
+            accessibilityLabel="common:actions.back"
+            accessibilityRole="button"
+            hitSlop={8}
+            onPress={[Function]}
+            style={[Function]}
+          >
+            <Ionicons
+              accessibilityElementsHidden={true}
+              color="#14201B"
+              importantForAccessibility="no-hide-descendants"
+              name="chevron-back"
+              size={20}
+            />
+          </Pressable>
+        </View>
+        <View
+          accessibilityRole="header"
+          style={
+            {
+              "alignItems": "center",
+              "flex": 3,
+            }
+          }
+        >
+          <Text
+            numberOfLines={2}
+            style={
+              [
+                {
+                  "fontSize": 18,
+                  "fontWeight": "600",
+                  "lineHeight": 23.400000000000002,
+                },
+                null,
+                {
+                  "color": "#14201B",
+                  "textAlign": "center",
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            La Marsa → Avenue Habib Bourguiba
+          </Text>
+        </View>
+        <View
+          style={
+            [
+              {
+                "alignItems": "center",
+                "flex": 1,
+                "flexDirection": "row",
+                "gap": 8,
+                "minWidth": 40,
+              },
+              {
+                "justifyContent": "flex-end",
+              },
+            ]
+          }
+        />
+      </View>
     </View>
     <View
       style={
@@ -94,8 +133,8 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
             "paddingVertical": 12,
           },
           {
-            "backgroundColor": "#FFFFFF",
-            "borderBottomColor": "#E4EDFB",
+            "backgroundColor": "#F7F9F5",
+            "borderBottomColor": "#DEE5DE",
           },
         ]
       }
@@ -111,7 +150,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
       >
         <Ionicons
           accessibilityElementsHidden={true}
-          color="#8B93A3"
+          color="#7D8981"
           importantForAccessibility="no-hide-descendants"
           name="calendar-outline"
           size={16}
@@ -124,8 +163,9 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                 "fontWeight": "400",
                 "lineHeight": 21,
               },
+              null,
               {
-                "color": "#8B93A3",
+                "color": "#7D8981",
                 "textAlign": undefined,
                 "writingDirection": "ltr",
               },
@@ -153,7 +193,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
               "paddingVertical": 8,
             },
             {
-              "backgroundColor": "#E4EDFB",
+              "backgroundColor": "#E2E8E1",
             },
           ]
         }
@@ -173,6 +213,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                 "fontWeight": "400",
                 "lineHeight": 18,
               },
+              null,
               {
                 "color": "#14201B",
                 "textAlign": undefined,
@@ -252,6 +293,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                       "fontWeight": "400",
                       "lineHeight": 18,
                     },
+                    null,
                     {
                       "color": "#4A7C8C",
                       "textAlign": undefined,
@@ -260,6 +302,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                     {
                       "fontWeight": "700",
                       "letterSpacing": 0.8,
+                      "textTransform": "uppercase",
                     },
                   ]
                 }
@@ -280,8 +323,8 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                     "overflow": "hidden",
                   },
                   {
-                    "backgroundColor": "#FFFFFF",
-                    "borderColor": "#E4EDFB",
+                    "backgroundColor": "#F7F9F5",
+                    "borderColor": "#DEE5DE",
                   },
                 ]
               }
@@ -311,6 +354,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                           "fontWeight": "700",
                           "lineHeight": 36,
                         },
+                        null,
                         {
                           "color": "#14201B",
                           "textAlign": undefined,
@@ -330,6 +374,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                           "fontWeight": "600",
                           "lineHeight": 28.799999999999997,
                         },
+                        null,
                         {
                           "color": "#2E9E6C",
                           "textAlign": undefined,
@@ -350,7 +395,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                         "padding": 8,
                       },
                       {
-                        "backgroundColor": "#FFFFFF",
+                        "backgroundColor": "#EEF1EC",
                       },
                     ]
                   }
@@ -363,8 +408,9 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                           "fontWeight": "400",
                           "lineHeight": 18,
                         },
+                        null,
                         {
-                          "color": "#5B6572",
+                          "color": "#4F5C55",
                           "textAlign": undefined,
                           "writingDirection": "ltr",
                         },
@@ -423,7 +469,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                               "width": 2,
                             },
                             {
-                              "backgroundColor": "#E4EDFB",
+                              "backgroundColor": "#DEE5DE",
                             },
                           ]
                         }
@@ -456,6 +502,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                                 "fontWeight": "400",
                                 "lineHeight": 24,
                               },
+                              null,
                               {
                                 "color": "#14201B",
                                 "textAlign": undefined,
@@ -492,6 +539,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                                   "fontWeight": "400",
                                   "lineHeight": 18,
                                 },
+                                null,
                                 {
                                   "color": "#22794F",
                                   "textAlign": undefined,
@@ -514,8 +562,9 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                               "fontWeight": "400",
                               "lineHeight": 18,
                             },
+                            null,
                             {
-                              "color": "#5B6572",
+                              "color": "#4F5C55",
                               "textAlign": undefined,
                               "writingDirection": "ltr",
                             },
@@ -586,6 +635,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                                 "fontWeight": "400",
                                 "lineHeight": 24,
                               },
+                              null,
                               {
                                 "color": "#14201B",
                                 "textAlign": undefined,
@@ -622,6 +672,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                                   "fontWeight": "400",
                                   "lineHeight": 18,
                                 },
+                                null,
                                 {
                                   "color": "#22794F",
                                   "textAlign": undefined,
@@ -644,8 +695,9 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                               "fontWeight": "400",
                               "lineHeight": 18,
                             },
+                            null,
                             {
-                              "color": "#5B6572",
+                              "color": "#4F5C55",
                               "textAlign": undefined,
                               "writingDirection": "ltr",
                             },
@@ -665,7 +717,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                         "height": 1,
                       },
                       {
-                        "backgroundColor": "#E4EDFB",
+                        "backgroundColor": "#DEE5DE",
                       },
                     ]
                   }
@@ -705,7 +757,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                               "justifyContent": "center",
                             },
                             {
-                              "backgroundColor": "#E4EDFB",
+                              "backgroundColor": "#E2E8E1",
                               "borderRadius": 16,
                               "height": 32,
                               "width": 32,
@@ -739,6 +791,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                               "fontWeight": "400",
                               "lineHeight": 21,
                             },
+                            null,
                             {
                               "color": "#14201B",
                               "textAlign": undefined,
@@ -776,8 +829,9 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                                 "fontWeight": "400",
                                 "lineHeight": 18,
                               },
+                              null,
                               {
-                                "color": "#5B6572",
+                                "color": "#4F5C55",
                                 "textAlign": undefined,
                                 "writingDirection": "ltr",
                               },
@@ -798,8 +852,9 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                           "fontWeight": "400",
                           "lineHeight": 18,
                         },
+                        null,
                         {
-                          "color": "#8B93A3",
+                          "color": "#7D8981",
                           "textAlign": undefined,
                           "writingDirection": "ltr",
                         },
@@ -848,8 +903,8 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                     "overflow": "hidden",
                   },
                   {
-                    "backgroundColor": "#FFFFFF",
-                    "borderColor": "#E4EDFB",
+                    "backgroundColor": "#F7F9F5",
+                    "borderColor": "#DEE5DE",
                   },
                 ]
               }
@@ -879,6 +934,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                           "fontWeight": "600",
                           "lineHeight": 28.799999999999997,
                         },
+                        null,
                         {
                           "color": "#14201B",
                           "textAlign": undefined,
@@ -898,6 +954,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                           "fontWeight": "400",
                           "lineHeight": 24,
                         },
+                        null,
                         {
                           "color": "#2E9E6C",
                           "textAlign": undefined,
@@ -918,7 +975,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                         "padding": 8,
                       },
                       {
-                        "backgroundColor": "#FFFFFF",
+                        "backgroundColor": "#EEF1EC",
                       },
                     ]
                   }
@@ -931,8 +988,9 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                           "fontWeight": "400",
                           "lineHeight": 18,
                         },
+                        null,
                         {
-                          "color": "#5B6572",
+                          "color": "#4F5C55",
                           "textAlign": undefined,
                           "writingDirection": "ltr",
                         },
@@ -991,7 +1049,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                               "width": 2,
                             },
                             {
-                              "backgroundColor": "#E4EDFB",
+                              "backgroundColor": "#DEE5DE",
                             },
                           ]
                         }
@@ -1024,6 +1082,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                                 "fontWeight": "400",
                                 "lineHeight": 24,
                               },
+                              null,
                               {
                                 "color": "#14201B",
                                 "textAlign": undefined,
@@ -1060,6 +1119,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                                   "fontWeight": "400",
                                   "lineHeight": 18,
                                 },
+                                null,
                                 {
                                   "color": "#22794F",
                                   "textAlign": undefined,
@@ -1082,8 +1142,9 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                               "fontWeight": "400",
                               "lineHeight": 18,
                             },
+                            null,
                             {
-                              "color": "#5B6572",
+                              "color": "#4F5C55",
                               "textAlign": undefined,
                               "writingDirection": "ltr",
                             },
@@ -1154,6 +1215,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                                 "fontWeight": "400",
                                 "lineHeight": 24,
                               },
+                              null,
                               {
                                 "color": "#14201B",
                                 "textAlign": undefined,
@@ -1190,6 +1252,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                                   "fontWeight": "400",
                                   "lineHeight": 18,
                                 },
+                                null,
                                 {
                                   "color": "#22794F",
                                   "textAlign": undefined,
@@ -1212,8 +1275,9 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                               "fontWeight": "400",
                               "lineHeight": 18,
                             },
+                            null,
                             {
-                              "color": "#5B6572",
+                              "color": "#4F5C55",
                               "textAlign": undefined,
                               "writingDirection": "ltr",
                             },
@@ -1233,7 +1297,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                         "height": 1,
                       },
                       {
-                        "backgroundColor": "#E4EDFB",
+                        "backgroundColor": "#DEE5DE",
                       },
                     ]
                   }
@@ -1273,7 +1337,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                               "justifyContent": "center",
                             },
                             {
-                              "backgroundColor": "#E4EDFB",
+                              "backgroundColor": "#E2E8E1",
                               "borderRadius": 16,
                               "height": 32,
                               "width": 32,
@@ -1307,6 +1371,7 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                               "fontWeight": "400",
                               "lineHeight": 21,
                             },
+                            null,
                             {
                               "color": "#14201B",
                               "textAlign": undefined,
@@ -1344,8 +1409,9 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                                 "fontWeight": "400",
                                 "lineHeight": 18,
                               },
+                              null,
                               {
-                                "color": "#5B6572",
+                                "color": "#4F5C55",
                                 "textAlign": undefined,
                                 "writingDirection": "ltr",
                               },
@@ -1366,8 +1432,9 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                           "fontWeight": "400",
                           "lineHeight": 18,
                         },
+                        null,
                         {
-                          "color": "#8B93A3",
+                          "color": "#7D8981",
                           "textAlign": undefined,
                           "writingDirection": "ltr",
                         },
@@ -1409,7 +1476,7 @@ exports[`search/results.tsx snapshots > renders the genuine empty state with a n
           "flex": 1,
         },
         {
-          "backgroundColor": "#FFFFFF",
+          "backgroundColor": "#EEF1EC",
         },
       ]
     }
@@ -1418,69 +1485,108 @@ exports[`search/results.tsx snapshots > renders the genuine empty state with a n
       style={
         [
           {
-            "alignItems": "center",
-            "borderBottomWidth": 1,
-            "flexDirection": "row",
-            "gap": 8,
-            "paddingBottom": 12,
-            "paddingHorizontal": 20,
+            "paddingBottom": 8,
+            "paddingHorizontal": 16,
           },
           {
-            "backgroundColor": "#FFFFFF",
-            "borderBottomColor": "#E4EDFB",
             "paddingTop": 8,
           },
+          {
+            "backgroundColor": "#EEF1EC",
+          },
+          {
+            "borderBottomColor": "#DEE5DE",
+            "borderBottomWidth": 1,
+          },
+          undefined,
         ]
       }
     >
-      <TouchableOpacity
-        accessibilityLabel="common:actions.back"
-        accessibilityRole="button"
-        hitSlop={12}
-        onPress={[Function]}
-        style={
-          {
-            "alignItems": "center",
-            "width": 22,
-          }
-        }
-      >
-        <Ionicons
-          color="#14201B"
-          name="chevron-back"
-          size={22}
-        />
-      </TouchableOpacity>
-      <Text
-        numberOfLines={1}
-        style={
-          [
-            {
-              "fontSize": 24,
-              "fontWeight": "600",
-              "lineHeight": 28.799999999999997,
-            },
-            {
-              "color": "#14201B",
-              "textAlign": "center",
-              "writingDirection": "ltr",
-            },
-            {
-              "flex": 1,
-            },
-          ]
-        }
-      >
-        La Marsa, Tunis → Avenue Habib Bourguiba, Tunis
-      </Text>
       <View
         style={
           {
             "alignItems": "center",
-            "width": 22,
+            "flexDirection": "row",
+            "gap": 8,
+            "minHeight": 44,
           }
         }
-      />
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flex": 1,
+              "flexDirection": "row",
+              "gap": 8,
+              "minWidth": 40,
+            }
+          }
+        >
+          <Pressable
+            accessibilityLabel="common:actions.back"
+            accessibilityRole="button"
+            hitSlop={8}
+            onPress={[Function]}
+            style={[Function]}
+          >
+            <Ionicons
+              accessibilityElementsHidden={true}
+              color="#14201B"
+              importantForAccessibility="no-hide-descendants"
+              name="chevron-back"
+              size={20}
+            />
+          </Pressable>
+        </View>
+        <View
+          accessibilityRole="header"
+          style={
+            {
+              "alignItems": "center",
+              "flex": 3,
+            }
+          }
+        >
+          <Text
+            numberOfLines={2}
+            style={
+              [
+                {
+                  "fontSize": 18,
+                  "fontWeight": "600",
+                  "lineHeight": 23.400000000000002,
+                },
+                null,
+                {
+                  "color": "#14201B",
+                  "textAlign": "center",
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            La Marsa → Avenue Habib Bourguiba
+          </Text>
+        </View>
+        <View
+          style={
+            [
+              {
+                "alignItems": "center",
+                "flex": 1,
+                "flexDirection": "row",
+                "gap": 8,
+                "minWidth": 40,
+              },
+              {
+                "justifyContent": "flex-end",
+              },
+            ]
+          }
+        />
+      </View>
     </View>
     <View
       style={
@@ -1494,8 +1600,8 @@ exports[`search/results.tsx snapshots > renders the genuine empty state with a n
             "paddingVertical": 12,
           },
           {
-            "backgroundColor": "#FFFFFF",
-            "borderBottomColor": "#E4EDFB",
+            "backgroundColor": "#F7F9F5",
+            "borderBottomColor": "#DEE5DE",
           },
         ]
       }
@@ -1511,7 +1617,7 @@ exports[`search/results.tsx snapshots > renders the genuine empty state with a n
       >
         <Ionicons
           accessibilityElementsHidden={true}
-          color="#8B93A3"
+          color="#7D8981"
           importantForAccessibility="no-hide-descendants"
           name="calendar-outline"
           size={16}
@@ -1524,8 +1630,9 @@ exports[`search/results.tsx snapshots > renders the genuine empty state with a n
                 "fontWeight": "400",
                 "lineHeight": 21,
               },
+              null,
               {
-                "color": "#8B93A3",
+                "color": "#7D8981",
                 "textAlign": undefined,
                 "writingDirection": "ltr",
               },
@@ -1553,7 +1660,7 @@ exports[`search/results.tsx snapshots > renders the genuine empty state with a n
               "paddingVertical": 8,
             },
             {
-              "backgroundColor": "#E4EDFB",
+              "backgroundColor": "#E2E8E1",
             },
           ]
         }
@@ -1573,6 +1680,7 @@ exports[`search/results.tsx snapshots > renders the genuine empty state with a n
                 "fontWeight": "400",
                 "lineHeight": 18,
               },
+              null,
               {
                 "color": "#14201B",
                 "textAlign": undefined,
@@ -1625,6 +1733,7 @@ exports[`search/results.tsx snapshots > renders the genuine empty state with a n
                   "fontWeight": "600",
                   "lineHeight": 23.400000000000002,
                 },
+                null,
                 {
                   "color": "#14201B",
                   "textAlign": "center",
@@ -1706,7 +1815,7 @@ exports[`search/results.tsx snapshots > renders the loading skeleton 1`] = `
           "flex": 1,
         },
         {
-          "backgroundColor": "#FFFFFF",
+          "backgroundColor": "#EEF1EC",
         },
       ]
     }
@@ -1715,69 +1824,108 @@ exports[`search/results.tsx snapshots > renders the loading skeleton 1`] = `
       style={
         [
           {
-            "alignItems": "center",
-            "borderBottomWidth": 1,
-            "flexDirection": "row",
-            "gap": 8,
-            "paddingBottom": 12,
-            "paddingHorizontal": 20,
+            "paddingBottom": 8,
+            "paddingHorizontal": 16,
           },
           {
-            "backgroundColor": "#FFFFFF",
-            "borderBottomColor": "#E4EDFB",
             "paddingTop": 8,
           },
+          {
+            "backgroundColor": "#EEF1EC",
+          },
+          {
+            "borderBottomColor": "#DEE5DE",
+            "borderBottomWidth": 1,
+          },
+          undefined,
         ]
       }
     >
-      <TouchableOpacity
-        accessibilityLabel="common:actions.back"
-        accessibilityRole="button"
-        hitSlop={12}
-        onPress={[Function]}
-        style={
-          {
-            "alignItems": "center",
-            "width": 22,
-          }
-        }
-      >
-        <Ionicons
-          color="#14201B"
-          name="chevron-back"
-          size={22}
-        />
-      </TouchableOpacity>
-      <Text
-        numberOfLines={1}
-        style={
-          [
-            {
-              "fontSize": 24,
-              "fontWeight": "600",
-              "lineHeight": 28.799999999999997,
-            },
-            {
-              "color": "#14201B",
-              "textAlign": "center",
-              "writingDirection": "ltr",
-            },
-            {
-              "flex": 1,
-            },
-          ]
-        }
-      >
-        La Marsa, Tunis → Avenue Habib Bourguiba, Tunis
-      </Text>
       <View
         style={
           {
             "alignItems": "center",
-            "width": 22,
+            "flexDirection": "row",
+            "gap": 8,
+            "minHeight": 44,
           }
         }
-      />
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flex": 1,
+              "flexDirection": "row",
+              "gap": 8,
+              "minWidth": 40,
+            }
+          }
+        >
+          <Pressable
+            accessibilityLabel="common:actions.back"
+            accessibilityRole="button"
+            hitSlop={8}
+            onPress={[Function]}
+            style={[Function]}
+          >
+            <Ionicons
+              accessibilityElementsHidden={true}
+              color="#14201B"
+              importantForAccessibility="no-hide-descendants"
+              name="chevron-back"
+              size={20}
+            />
+          </Pressable>
+        </View>
+        <View
+          accessibilityRole="header"
+          style={
+            {
+              "alignItems": "center",
+              "flex": 3,
+            }
+          }
+        >
+          <Text
+            numberOfLines={2}
+            style={
+              [
+                {
+                  "fontSize": 18,
+                  "fontWeight": "600",
+                  "lineHeight": 23.400000000000002,
+                },
+                null,
+                {
+                  "color": "#14201B",
+                  "textAlign": "center",
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            La Marsa → Avenue Habib Bourguiba
+          </Text>
+        </View>
+        <View
+          style={
+            [
+              {
+                "alignItems": "center",
+                "flex": 1,
+                "flexDirection": "row",
+                "gap": 8,
+                "minWidth": 40,
+              },
+              {
+                "justifyContent": "flex-end",
+              },
+            ]
+          }
+        />
+      </View>
     </View>
     <View
       style={
@@ -1791,8 +1939,8 @@ exports[`search/results.tsx snapshots > renders the loading skeleton 1`] = `
             "paddingVertical": 12,
           },
           {
-            "backgroundColor": "#FFFFFF",
-            "borderBottomColor": "#E4EDFB",
+            "backgroundColor": "#F7F9F5",
+            "borderBottomColor": "#DEE5DE",
           },
         ]
       }
@@ -1808,7 +1956,7 @@ exports[`search/results.tsx snapshots > renders the loading skeleton 1`] = `
       >
         <Ionicons
           accessibilityElementsHidden={true}
-          color="#8B93A3"
+          color="#7D8981"
           importantForAccessibility="no-hide-descendants"
           name="calendar-outline"
           size={16}
@@ -1821,8 +1969,9 @@ exports[`search/results.tsx snapshots > renders the loading skeleton 1`] = `
                 "fontWeight": "400",
                 "lineHeight": 21,
               },
+              null,
               {
-                "color": "#8B93A3",
+                "color": "#7D8981",
                 "textAlign": undefined,
                 "writingDirection": "ltr",
               },
@@ -1850,7 +1999,7 @@ exports[`search/results.tsx snapshots > renders the loading skeleton 1`] = `
               "paddingVertical": 8,
             },
             {
-              "backgroundColor": "#E4EDFB",
+              "backgroundColor": "#E2E8E1",
             },
           ]
         }
@@ -1870,6 +2019,7 @@ exports[`search/results.tsx snapshots > renders the loading skeleton 1`] = `
                 "fontWeight": "400",
                 "lineHeight": 18,
               },
+              null,
               {
                 "color": "#14201B",
                 "textAlign": undefined,
@@ -1908,7 +2058,7 @@ exports[`search/results.tsx snapshots > renders the loading skeleton 1`] = `
           style={
             [
               {
-                "backgroundColor": "#E4EDFB",
+                "backgroundColor": "#E2E8E1",
                 "borderRadius": 4,
                 "height": 140,
                 "opacity": AnimatedValue {
@@ -1928,7 +2078,7 @@ exports[`search/results.tsx snapshots > renders the loading skeleton 1`] = `
           style={
             [
               {
-                "backgroundColor": "#E4EDFB",
+                "backgroundColor": "#E2E8E1",
                 "borderRadius": 4,
                 "height": 140,
                 "opacity": AnimatedValue {
@@ -1948,7 +2098,7 @@ exports[`search/results.tsx snapshots > renders the loading skeleton 1`] = `
           style={
             [
               {
-                "backgroundColor": "#E4EDFB",
+                "backgroundColor": "#E2E8E1",
                 "borderRadius": 4,
                 "height": 140,
                 "opacity": AnimatedValue {
@@ -1989,7 +2139,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
           "flex": 1,
         },
         {
-          "backgroundColor": "#FFFFFF",
+          "backgroundColor": "#EEF1EC",
         },
       ]
     }
@@ -1998,69 +2148,108 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
       style={
         [
           {
-            "alignItems": "center",
-            "borderBottomWidth": 1,
-            "flexDirection": "row",
-            "gap": 8,
-            "paddingBottom": 12,
-            "paddingHorizontal": 20,
+            "paddingBottom": 8,
+            "paddingHorizontal": 16,
           },
           {
-            "backgroundColor": "#FFFFFF",
-            "borderBottomColor": "#E4EDFB",
             "paddingTop": 8,
           },
+          {
+            "backgroundColor": "#EEF1EC",
+          },
+          {
+            "borderBottomColor": "#DEE5DE",
+            "borderBottomWidth": 1,
+          },
+          undefined,
         ]
       }
     >
-      <TouchableOpacity
-        accessibilityLabel="common:actions.back"
-        accessibilityRole="button"
-        hitSlop={12}
-        onPress={[Function]}
-        style={
-          {
-            "alignItems": "center",
-            "width": 22,
-          }
-        }
-      >
-        <Ionicons
-          color="#14201B"
-          name="chevron-back"
-          size={22}
-        />
-      </TouchableOpacity>
-      <Text
-        numberOfLines={1}
-        style={
-          [
-            {
-              "fontSize": 24,
-              "fontWeight": "600",
-              "lineHeight": 28.799999999999997,
-            },
-            {
-              "color": "#14201B",
-              "textAlign": "center",
-              "writingDirection": "ltr",
-            },
-            {
-              "flex": 1,
-            },
-          ]
-        }
-      >
-        La Marsa, Tunis → Avenue Habib Bourguiba, Tunis
-      </Text>
       <View
         style={
           {
             "alignItems": "center",
-            "width": 22,
+            "flexDirection": "row",
+            "gap": 8,
+            "minHeight": 44,
           }
         }
-      />
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flex": 1,
+              "flexDirection": "row",
+              "gap": 8,
+              "minWidth": 40,
+            }
+          }
+        >
+          <Pressable
+            accessibilityLabel="common:actions.back"
+            accessibilityRole="button"
+            hitSlop={8}
+            onPress={[Function]}
+            style={[Function]}
+          >
+            <Ionicons
+              accessibilityElementsHidden={true}
+              color="#14201B"
+              importantForAccessibility="no-hide-descendants"
+              name="chevron-back"
+              size={20}
+            />
+          </Pressable>
+        </View>
+        <View
+          accessibilityRole="header"
+          style={
+            {
+              "alignItems": "center",
+              "flex": 3,
+            }
+          }
+        >
+          <Text
+            numberOfLines={2}
+            style={
+              [
+                {
+                  "fontSize": 18,
+                  "fontWeight": "600",
+                  "lineHeight": 23.400000000000002,
+                },
+                null,
+                {
+                  "color": "#14201B",
+                  "textAlign": "center",
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            La Marsa → Avenue Habib Bourguiba
+          </Text>
+        </View>
+        <View
+          style={
+            [
+              {
+                "alignItems": "center",
+                "flex": 1,
+                "flexDirection": "row",
+                "gap": 8,
+                "minWidth": 40,
+              },
+              {
+                "justifyContent": "flex-end",
+              },
+            ]
+          }
+        />
+      </View>
     </View>
     <View
       style={
@@ -2074,8 +2263,8 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
             "paddingVertical": 12,
           },
           {
-            "backgroundColor": "#FFFFFF",
-            "borderBottomColor": "#E4EDFB",
+            "backgroundColor": "#F7F9F5",
+            "borderBottomColor": "#DEE5DE",
           },
         ]
       }
@@ -2091,7 +2280,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
       >
         <Ionicons
           accessibilityElementsHidden={true}
-          color="#8B93A3"
+          color="#7D8981"
           importantForAccessibility="no-hide-descendants"
           name="calendar-outline"
           size={16}
@@ -2104,8 +2293,9 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                 "fontWeight": "400",
                 "lineHeight": 21,
               },
+              null,
               {
-                "color": "#8B93A3",
+                "color": "#7D8981",
                 "textAlign": undefined,
                 "writingDirection": "ltr",
               },
@@ -2133,7 +2323,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
               "paddingVertical": 8,
             },
             {
-              "backgroundColor": "#E4EDFB",
+              "backgroundColor": "#E2E8E1",
             },
           ]
         }
@@ -2153,6 +2343,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                 "fontWeight": "400",
                 "lineHeight": 18,
               },
+              null,
               {
                 "color": "#14201B",
                 "textAlign": undefined,
@@ -2190,15 +2381,15 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
               "padding": 12,
             },
             {
-              "backgroundColor": "#FFFFFF",
-              "borderColor": "#E4EDFB",
+              "backgroundColor": "#EEF1EC",
+              "borderColor": "#DEE5DE",
             },
           ]
         }
       >
         <Ionicons
           accessibilityElementsHidden={true}
-          color="#8B93A3"
+          color="#7D8981"
           importantForAccessibility="no-hide-descendants"
           name="information-circle-outline"
           size={20}
@@ -2211,8 +2402,9 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                 "fontWeight": "400",
                 "lineHeight": 21,
               },
+              null,
               {
-                "color": "#5B6572",
+                "color": "#4F5C55",
                 "textAlign": undefined,
                 "writingDirection": "ltr",
               },
@@ -2279,6 +2471,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                       "fontWeight": "400",
                       "lineHeight": 18,
                     },
+                    null,
                     {
                       "color": "#4A7C8C",
                       "textAlign": undefined,
@@ -2287,6 +2480,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                     {
                       "fontWeight": "700",
                       "letterSpacing": 0.8,
+                      "textTransform": "uppercase",
                     },
                   ]
                 }
@@ -2307,8 +2501,8 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                     "overflow": "hidden",
                   },
                   {
-                    "backgroundColor": "#FFFFFF",
-                    "borderColor": "#E4EDFB",
+                    "backgroundColor": "#F7F9F5",
+                    "borderColor": "#DEE5DE",
                   },
                 ]
               }
@@ -2338,6 +2532,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                           "fontWeight": "700",
                           "lineHeight": 36,
                         },
+                        null,
                         {
                           "color": "#14201B",
                           "textAlign": undefined,
@@ -2357,6 +2552,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                           "fontWeight": "600",
                           "lineHeight": 28.799999999999997,
                         },
+                        null,
                         {
                           "color": "#2E9E6C",
                           "textAlign": undefined,
@@ -2377,7 +2573,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                         "padding": 8,
                       },
                       {
-                        "backgroundColor": "#FFFFFF",
+                        "backgroundColor": "#EEF1EC",
                       },
                     ]
                   }
@@ -2390,8 +2586,9 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                           "fontWeight": "400",
                           "lineHeight": 18,
                         },
+                        null,
                         {
-                          "color": "#5B6572",
+                          "color": "#4F5C55",
                           "textAlign": undefined,
                           "writingDirection": "ltr",
                         },
@@ -2450,7 +2647,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                               "width": 2,
                             },
                             {
-                              "backgroundColor": "#E4EDFB",
+                              "backgroundColor": "#DEE5DE",
                             },
                           ]
                         }
@@ -2483,6 +2680,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                                 "fontWeight": "400",
                                 "lineHeight": 24,
                               },
+                              null,
                               {
                                 "color": "#14201B",
                                 "textAlign": undefined,
@@ -2519,6 +2717,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                                   "fontWeight": "400",
                                   "lineHeight": 18,
                                 },
+                                null,
                                 {
                                   "color": "#22794F",
                                   "textAlign": undefined,
@@ -2541,8 +2740,9 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                               "fontWeight": "400",
                               "lineHeight": 18,
                             },
+                            null,
                             {
-                              "color": "#5B6572",
+                              "color": "#4F5C55",
                               "textAlign": undefined,
                               "writingDirection": "ltr",
                             },
@@ -2613,6 +2813,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                                 "fontWeight": "400",
                                 "lineHeight": 24,
                               },
+                              null,
                               {
                                 "color": "#14201B",
                                 "textAlign": undefined,
@@ -2649,6 +2850,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                                   "fontWeight": "400",
                                   "lineHeight": 18,
                                 },
+                                null,
                                 {
                                   "color": "#22794F",
                                   "textAlign": undefined,
@@ -2671,8 +2873,9 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                               "fontWeight": "400",
                               "lineHeight": 18,
                             },
+                            null,
                             {
-                              "color": "#5B6572",
+                              "color": "#4F5C55",
                               "textAlign": undefined,
                               "writingDirection": "ltr",
                             },
@@ -2692,7 +2895,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                         "height": 1,
                       },
                       {
-                        "backgroundColor": "#E4EDFB",
+                        "backgroundColor": "#DEE5DE",
                       },
                     ]
                   }
@@ -2732,7 +2935,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                               "justifyContent": "center",
                             },
                             {
-                              "backgroundColor": "#E4EDFB",
+                              "backgroundColor": "#E2E8E1",
                               "borderRadius": 16,
                               "height": 32,
                               "width": 32,
@@ -2766,6 +2969,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                               "fontWeight": "400",
                               "lineHeight": 21,
                             },
+                            null,
                             {
                               "color": "#14201B",
                               "textAlign": undefined,
@@ -2803,8 +3007,9 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                                 "fontWeight": "400",
                                 "lineHeight": 18,
                               },
+                              null,
                               {
-                                "color": "#5B6572",
+                                "color": "#4F5C55",
                                 "textAlign": undefined,
                                 "writingDirection": "ltr",
                               },
@@ -2825,8 +3030,9 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                           "fontWeight": "400",
                           "lineHeight": 18,
                         },
+                        null,
                         {
-                          "color": "#8B93A3",
+                          "color": "#7D8981",
                           "textAlign": undefined,
                           "writingDirection": "ltr",
                         },
@@ -2875,8 +3081,8 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                     "overflow": "hidden",
                   },
                   {
-                    "backgroundColor": "#FFFFFF",
-                    "borderColor": "#E4EDFB",
+                    "backgroundColor": "#F7F9F5",
+                    "borderColor": "#DEE5DE",
                   },
                 ]
               }
@@ -2906,6 +3112,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                           "fontWeight": "600",
                           "lineHeight": 28.799999999999997,
                         },
+                        null,
                         {
                           "color": "#14201B",
                           "textAlign": undefined,
@@ -2925,6 +3132,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                           "fontWeight": "400",
                           "lineHeight": 24,
                         },
+                        null,
                         {
                           "color": "#2E9E6C",
                           "textAlign": undefined,
@@ -2945,7 +3153,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                         "padding": 8,
                       },
                       {
-                        "backgroundColor": "#FFFFFF",
+                        "backgroundColor": "#EEF1EC",
                       },
                     ]
                   }
@@ -2958,8 +3166,9 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                           "fontWeight": "400",
                           "lineHeight": 18,
                         },
+                        null,
                         {
-                          "color": "#5B6572",
+                          "color": "#4F5C55",
                           "textAlign": undefined,
                           "writingDirection": "ltr",
                         },
@@ -3018,7 +3227,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                               "width": 2,
                             },
                             {
-                              "backgroundColor": "#E4EDFB",
+                              "backgroundColor": "#DEE5DE",
                             },
                           ]
                         }
@@ -3051,6 +3260,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                                 "fontWeight": "400",
                                 "lineHeight": 24,
                               },
+                              null,
                               {
                                 "color": "#14201B",
                                 "textAlign": undefined,
@@ -3087,6 +3297,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                                   "fontWeight": "400",
                                   "lineHeight": 18,
                                 },
+                                null,
                                 {
                                   "color": "#22794F",
                                   "textAlign": undefined,
@@ -3109,8 +3320,9 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                               "fontWeight": "400",
                               "lineHeight": 18,
                             },
+                            null,
                             {
-                              "color": "#5B6572",
+                              "color": "#4F5C55",
                               "textAlign": undefined,
                               "writingDirection": "ltr",
                             },
@@ -3181,6 +3393,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                                 "fontWeight": "400",
                                 "lineHeight": 24,
                               },
+                              null,
                               {
                                 "color": "#14201B",
                                 "textAlign": undefined,
@@ -3217,6 +3430,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                                   "fontWeight": "400",
                                   "lineHeight": 18,
                                 },
+                                null,
                                 {
                                   "color": "#22794F",
                                   "textAlign": undefined,
@@ -3239,8 +3453,9 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                               "fontWeight": "400",
                               "lineHeight": 18,
                             },
+                            null,
                             {
-                              "color": "#5B6572",
+                              "color": "#4F5C55",
                               "textAlign": undefined,
                               "writingDirection": "ltr",
                             },
@@ -3260,7 +3475,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                         "height": 1,
                       },
                       {
-                        "backgroundColor": "#E4EDFB",
+                        "backgroundColor": "#DEE5DE",
                       },
                     ]
                   }
@@ -3300,7 +3515,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                               "justifyContent": "center",
                             },
                             {
-                              "backgroundColor": "#E4EDFB",
+                              "backgroundColor": "#E2E8E1",
                               "borderRadius": 16,
                               "height": 32,
                               "width": 32,
@@ -3334,6 +3549,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                               "fontWeight": "400",
                               "lineHeight": 21,
                             },
+                            null,
                             {
                               "color": "#14201B",
                               "textAlign": undefined,
@@ -3371,8 +3587,9 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                                 "fontWeight": "400",
                                 "lineHeight": 18,
                               },
+                              null,
                               {
-                                "color": "#5B6572",
+                                "color": "#4F5C55",
                                 "textAlign": undefined,
                                 "writingDirection": "ltr",
                               },
@@ -3393,8 +3610,9 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                           "fontWeight": "400",
                           "lineHeight": 18,
                         },
+                        null,
                         {
-                          "color": "#8B93A3",
+                          "color": "#7D8981",
                           "textAlign": undefined,
                           "writingDirection": "ltr",
                         },
@@ -3425,7 +3643,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
               "paddingVertical": 12,
             },
             {
-              "borderColor": "#D3E1F5",
+              "borderColor": "#CCD5CD",
               "opacity": 1,
             },
           ]
@@ -3439,6 +3657,7 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                 "fontWeight": "500",
                 "lineHeight": 21,
               },
+              null,
               {
                 "color": "#14201B",
                 "textAlign": "center",
