@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Svg, { Circle, Path } from 'react-native-svg';
 import { useTranslation } from 'react-i18next';
-import { Text, Icon, StepProgress, useToast, useAppTheme, haptics, spacing, radii, ABSOLUTE_FILL_OBJECT, type IconName, ScreenHeader } from '@vaya/design-system';
+import { Text, Icon, StepProgress, useToast, useAppTheme, haptics, spacing, radii, ABSOLUTE_FILL_OBJECT, type IconName, ScreenHeader, Button } from '@vaya/design-system';
 
 export type CaptureGuideShape = 'document' | 'face';
 
@@ -144,17 +144,12 @@ export function CaptureCamera({
         <Text variant="body" color={theme.inkMuted} align="center" style={styles.permissionBody}>
           {t('onboarding.capture.permissionBody')}
         </Text>
-        <TouchableOpacity
-          style={[styles.cta, { backgroundColor: theme.ink }]}
+        <Button
+          size="lg"
+          label={t('onboarding.capture.allowCamera')}
           onPress={() => void requestPermission()}
-          activeOpacity={0.85}
-          accessibilityRole="button"
-          accessibilityLabel={t('onboarding.capture.allowCamera')}
-        >
-          <Text variant="label" color={theme.onInk}>
-            {t('onboarding.capture.allowCamera')}
-          </Text>
-        </TouchableOpacity>
+          style={styles.cta}
+        />
         <TouchableOpacity
           onPress={onBack}
           hitSlop={12}
@@ -199,20 +194,15 @@ export function CaptureCamera({
         </View>
 
         <View style={[styles.reviewActions, { paddingBottom: insets.bottom + spacing.lg }]}>
-          <TouchableOpacity
-            style={[styles.cta, { backgroundColor: theme.ink }]}
+          <Button
+            size="lg"
+            label={t('onboarding.capture.usePhoto')}
             onPress={() => {
               haptics.success();
               onCapture(capturedUri);
             }}
-            activeOpacity={0.85}
-            accessibilityRole="button"
-            accessibilityLabel={t('onboarding.capture.usePhoto')}
-          >
-            <Text variant="label" color={theme.onInk}>
-              {t('onboarding.capture.usePhoto')}
-            </Text>
-          </TouchableOpacity>
+            style={styles.cta}
+          />
           <TouchableOpacity
             style={styles.retakeBtn}
             onPress={() => {
@@ -496,10 +486,6 @@ const styles = StyleSheet.create({
   },
   cta: {
     width: '100%',
-    minHeight: 52,
-    borderRadius: radii.lg,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   permissionWrap: {
     alignItems: 'center',

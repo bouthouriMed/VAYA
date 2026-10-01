@@ -104,7 +104,7 @@
       "modify": "Edit",
       "meetingPoint": "Meeting point",
       "estimatedArrival": "~{{time}}",
-      "stops": "ADDITIONAL STOPS",
+      "stops": "Additional stops",
       "editStops": "Edit stops",
       "stopsCount_one": "{{count}} stop along your route",
       "stopsCount_other": "{{count}} stops along your route",
@@ -179,7 +179,7 @@
     "vehicle": {
       "stepTitle": "Your vehicle",
       "stepLabel": "Step {{current}} of {{total}}",
-      "vehicleDetails": "VEHICLE DETAILS",
+      "vehicleDetails": "Vehicle details",
       "seatCount": "Number of passenger seats",
       "fields": {
         "make": "Make",
@@ -188,10 +188,10 @@
         "plate": "License plate"
       },
       "placeholders": {
-        "make": "Peugeot",
-        "model": "208",
-        "color": "Grey",
-        "plate": "208TU1234"
+        "make": "e.g. Peugeot",
+        "model": "e.g. 208",
+        "color": "e.g. Grey",
+        "plate": "e.g. 208 TU 1234"
       },
       "removeSeat": "Remove a seat",
       "addSeat": "Add a seat",
@@ -201,11 +201,11 @@
       "captureTitle": "Identity verification",
       "captureInstruction": "Take a selfie to confirm your identity.",
       "reviewTitle": "Review and confirm",
-      "reviewEyebrow": "FINAL STEP",
+      "reviewEyebrow": "Final step",
       "reviewHeadline": "All set!",
       "reviewSubtitle": "Check your information before activating your driver profile.",
-      "vehicleSection": "VEHICLE",
-      "documentsSection": "LIVE-VERIFIED DOCUMENTS",
+      "vehicleSection": "Vehicle",
+      "documentsSection": "Live-verified documents",
       "tipLight": "Good lighting",
       "tipFace": "Face the camera",
       "tipGlasses": "Remove glasses",

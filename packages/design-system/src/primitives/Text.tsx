@@ -98,6 +98,14 @@ const variantStyles: Record<TextVariant, TextStyle> = {
   },
 };
 
+// Display variants swap to the Arabic display face in right-to-left layouts.
+const ARABIC_DISPLAY: Partial<Record<TextVariant, string>> = {
+  display: typography.fontFamilyDisplayArabic.medium,
+  displaySmall: typography.fontFamilyDisplayArabic.medium,
+  displayItalic: typography.fontFamilyDisplayArabic.medium,
+  headlineDisplay: typography.fontFamilyDisplayArabic.semibold,
+};
+
 export function Text({
   variant = 'body',
   color,
@@ -113,6 +121,7 @@ export function Text({
     <RNText
       style={[
         variantStyles[variant],
+        I18nManager.isRTL && ARABIC_DISPLAY[variant] ? { fontFamily: ARABIC_DISPLAY[variant], letterSpacing: 0 } : null,
         { color: color ?? theme.ink, textAlign: align, writingDirection: I18nManager.isRTL ? 'rtl' : 'ltr' },
         style,
       ]}

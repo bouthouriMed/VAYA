@@ -20,8 +20,8 @@ import {
   useAppTheme,
   haptics,
   spacing,
-  radii,
   ScreenHeader,
+  Button,
 } from '@vaya/design-system';
 import { router } from 'expo-router';
 import { useAppDispatch, useAppSelector } from '../../../src/state/store';
@@ -176,26 +176,16 @@ export default function VehicleStepScreen(): React.JSX.Element {
       </ScrollView>
 
       <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.lg }]}>
-        <TouchableOpacity
-          style={[
-            styles.cta,
-            { backgroundColor: theme.ink },
-            !canContinue && styles.ctaDisabled,
-          ]}
+        <Button
+          size="lg"
+          label={t('onboarding.vehicle.continue')}
+          disabled={!canContinue}
           onPress={() => {
             haptics.selection();
             next();
           }}
-          disabled={!canContinue}
-          activeOpacity={0.85}
-          accessibilityRole="button"
-          accessibilityLabel={t('onboarding.vehicle.continue')}
-          accessibilityState={{ disabled: !canContinue }}
-        >
-            <Text variant="label" color={theme.onInk}>
-              {t('onboarding.vehicle.continue')}
-            </Text>
-        </TouchableOpacity>
+          style={styles.cta}
+        />
       </View>
     </KeyboardAvoidingView>
   );
@@ -227,6 +217,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.lg,
     fontWeight: '600',
     letterSpacing: 1.5,
+    textTransform: 'uppercase',
   },
   title: {
     marginTop: spacing.xs,
@@ -243,9 +234,11 @@ const styles = StyleSheet.create({
   cardEyebrow: {
     letterSpacing: 1,
     marginBottom: 2,
+    textTransform: 'uppercase',
   },
   fieldRow: {
     flexDirection: 'row',
+    alignItems: 'flex-end',
     gap: spacing.sm,
   },
   fieldHalf: {
@@ -277,14 +270,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.sm,
   },
+  // Layout only — shape, size and colors come from the design-system Button.
   cta: {
     width: '100%',
-    minHeight: 52,
-    borderRadius: radii.lg,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  ctaDisabled: {
-    opacity: 0.5,
   },
 });

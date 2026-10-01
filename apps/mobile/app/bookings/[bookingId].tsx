@@ -104,7 +104,7 @@ function DriverCard({
   // "Confiance"/"Top VAYA" (the tiers a driver with real trip/rating
   // history can actually earn) stay shown — those genuinely add
   // information the caption doesn't.
-  const tierMeta = trustTier && trustTier !== 'new' ? trustTierBadge(trustTier) : null;
+  const tierMeta = trustTier && trustTier !== 'new' ? trustTierBadge(trustTier, t) : null;
   const { call, isLoading: isCalling } = useCallCounterpart(bookingId);
   return (
     <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>

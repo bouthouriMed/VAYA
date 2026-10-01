@@ -4,20 +4,21 @@
  * A deliberate, from-scratch design pass — not a remap of an existing
  * token set. The brief: make VAYA read as genuinely premium in both light
  * and dark, not "basic black and white with a green accent." The concept:
- * deep charcoal-emerald darkness meets a clean white/cool-blue light mode
- * (revised on direct feedback — the original warm-ivory light mode read
- * as flat/grey rather than premium; the Stitch reference screens this
- * whole flow is built against use a near-white canvas with a light-blue
- * secondary surface, not a warm cream), unified by one saturated
+ * deep charcoal-emerald darkness meets a soft, low-glare light mode,
+ * unified by one saturated
  * jewel-tone emerald accent (not a muted "eco-app sage" — a confident
  * gem-green with real presence). `ink` stays the palette's "real black"
  * role in both modes — the thing an active filter pill, an own-message
  * bubble, or any other deliberately-black moment should key off, per
  * this same direct feedback ("leave the black").
  *
- * Dark mode is unchanged by this revision — only `lightPalette` moved off
- * the warm-cream family; `ink`/`background` are still never flat
- * `#000000` in dark mode.
+ * Light mode never uses pure `#FFFFFF` (direct feedback: a hard white
+ * hurts the eyes). The canvas is a soft off-white with a faint sage tint
+ * that sits in the same green family as the accent and the dark theme;
+ * cards are only a step lighter than the canvas, so surfaces separate by
+ * a hairline outline rather than by glare. Neutrals are green-grey, not
+ * the earlier cool lavender-blue, so light and dark read as one palette.
+ * `ink`/`background` are never flat `#000000` in dark mode either.
  *
  * A flat set of solid hex fills reads as premium-adjacent at best — every
  * genuinely premium app (Linear, Arc, Stripe's own dashboard) builds depth
@@ -101,34 +102,34 @@ export interface AppPalette {
 }
 
 export const lightPalette: AppPalette = {
-  background: '#FFFFFF',
-  backgroundGradient: ['#FFFFFF', '#EEF4FC'],
-  surface: '#FFFFFF',
-  surfaceGradient: ['#FFFFFF', '#EAF1FC'],
-  // The palette's "secondary" surface — filter pills, tinted fields, badge
-  // fills, avatar-fallback circles — is now a clean light blue (matching
-  // the Stitch reference's own surface-container token) instead of the
-  // old warm tan, on direct feedback.
-  surfaceMuted: '#E4EDFB',
+  // Soft off-white canvas (never #FFFFFF) with a faint sage tint.
+  background: '#EEF1EC',
+  backgroundGradient: ['#F2F4F0', '#E6EBE5'],
+  // Cards sit one gentle step above the canvas, still well short of white.
+  surface: '#F7F9F5',
+  surfaceGradient: ['#FAFBF8', '#F0F3EE'],
+  // Secondary surface — filter pills, tinted fields, badge fills, avatar
+  // fallbacks, skeletons.
+  surfaceMuted: '#E2E8E1',
   ink: '#14201B',
   inkGradient: ['#1E2F27', '#0A100D'],
-  onInk: '#FFFFFF',
-  inkMuted: '#5B6572',
-  inkFaint: '#8B93A3',
-  outline: '#D3E1F5',
-  outlineVariant: '#E4EDFB',
+  onInk: '#F4F6F2',
+  inkMuted: '#4F5C55',
+  inkFaint: '#7D8981',
+  outline: '#CCD5CD',
+  outlineVariant: '#DEE5DE',
   accent: '#2E9E6C',
   accentStrong: '#22794F',
   accentGradient: ['#3FBE85', '#1F6B49'],
   accentGlow: '#8FD9B4',
   onAccent: '#0D1512',
-  glimmer: 'rgba(255,255,255,0.55)',
+  glimmer: 'rgba(255,255,255,0.45)',
   error: '#B5503C',
-  errorMuted: '#F3D9CE',
-  onError: '#FFFFFF',
+  errorMuted: '#F0D8CD',
+  onError: '#F7F9F5',
   info: '#4A7C8C',
-  warning: '#B58A2E',
-  warningMuted: '#F3E8CE',
+  warning: '#9C7420',
+  warningMuted: '#F1E6CB',
 };
 
 export const darkPalette: AppPalette = {

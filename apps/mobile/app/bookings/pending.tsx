@@ -5,10 +5,12 @@ import Reanimated, { FadeInDown, ZoomIn } from 'react-native-reanimated';
 import { Text, Icon, Button, MapPreview, ScreenHeader, useAppTheme, haptics, spacing, radii, staggerDelay, durations } from '@vaya/design-system';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
+import type { SupportedLocale } from '@vaya/config';
 import { CancellationSheet } from '../../src/features/bookings/CancellationSheet';
+import { formatCurrency } from '../../src/utils/localeFormat';
 
 export default function PendingScreen(): React.JSX.Element {
-  const { t } = useTranslation(['booking', 'activeTrip', 'common']);
+  const { t, i18n } = useTranslation(['booking', 'activeTrip', 'common']);
   const params = useLocalSearchParams<{
     bookingId?: string;
     driverName?: string;
@@ -27,6 +29,7 @@ export default function PendingScreen(): React.JSX.Element {
   const insets = useSafeAreaInsets();
   const driverName = params.driverName ?? t('common:terms.driver');
   const firstName = driverName.split(' ')[0]!;
+  const priceLabel = params.price ? formatCurrency(Number(params.price), i18n.language as SupportedLocale) : '';
   const [cancelling, setCancelling] = useState(false);
 
   const hasMapPoints = params.pickupLat && params.pickupLng && params.destinationLat && params.destinationLng;
@@ -37,7 +40,7 @@ export default function PendingScreen(): React.JSX.Element {
     // requestSeat() → confirmed.tsx → here).
     try {
       await Share.share({
-        message: t('booking:shareDetails', { driver: driverName, pickup: params.pickupLabel ?? '', destination: params.destinationLabel ?? '', price: params.price ?? '' }),
+        message: t('booking:shareMessage', { driver: driverName, pickup: params.pickupLabel ?? '', destination: params.destinationLabel ?? '', price: priceLabel }),
       });
     } catch {
       // User dismissed the share sheet — not an error worth surfacing.
@@ -77,7 +80,7 @@ export default function PendingScreen(): React.JSX.Element {
             >
               <Icon name="checkmark-circle" size="xs" color={theme.accentStrong} />
               <Text variant="caption" color={theme.accentStrong}>
-                {t('booking:status_confirmed')}
+                {t('booking:phase.confirmed')}
               </Text>
             </Reanimated.View>
             <Text variant="h1" color={theme.ink}>
@@ -204,13 +207,13 @@ export default function PendingScreen(): React.JSX.Element {
                   {t('booking:section_payment')}
                 </Text>
                 <Text variant="h3" color={theme.accent}>
-                  {params.price} DT
+                  {priceLabel}
                 </Text>
               </View>
               <View style={[styles.paymentNote, { backgroundColor: theme.background }]}>
                 <Icon name="cash-outline" size="sm" color={theme.ink} />
                 <Text variant="bodySmall" color={theme.ink}>
-                  {t('booking:settlement_pay', { price: params.price, name: firstName })}
+                  {t('booking:settlement_pay', { price: priceLabel, name: firstName })}
                 </Text>
               </View>
             </Reanimated.View>
@@ -360,6 +363,7 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     letterSpacing: 0.8,
+    textTransform: 'uppercase',
   },
   journeyRow: {
     flexDirection: 'row',

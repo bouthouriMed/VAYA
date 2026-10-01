@@ -68,15 +68,16 @@ describe('submitRating', () => {
 });
 
 describe('trustTierBadge', () => {
+  const tKey = (key: string): string => key;
   it('maps "new" to a neutral default badge', () => {
-    expect(trustTierBadge('new')).toEqual({ label: 'Nouveau', variant: 'default' });
+    expect(trustTierBadge('new', tKey)).toEqual({ label: 'common:tier.new', variant: 'default' });
   });
 
   it('maps "trusted" to an info badge', () => {
-    expect(trustTierBadge('trusted')).toEqual({ label: 'Confiance', variant: 'info' });
+    expect(trustTierBadge('trusted', tKey)).toEqual({ label: 'common:tier.trusted', variant: 'info' });
   });
 
   it('maps "top_rated" to a success badge', () => {
-    expect(trustTierBadge('top_rated')).toEqual({ label: 'Top VAYA', variant: 'success' });
+    expect(trustTierBadge('top_rated', tKey)).toEqual({ label: 'common:tier.top_rated', variant: 'success' });
   });
 });

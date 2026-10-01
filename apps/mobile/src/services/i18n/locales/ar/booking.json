@@ -21,7 +21,7 @@
   "status_full": "ممتلئ",
   "status_in_progress": "قيد التنفيذ",
   "settlement_title": "اكتملت الرحلة",
-  "settlement_pay": "ادفع {{price}} DT مباشرة لـ {{name}}",
+  "settlement_pay": "ادفع {{price}} مباشرة لـ{{name}}",
   "rate_prompt": "كيف كان {{name}}؟",
   "finish": "إنهاء",
   "filters": {
@@ -191,5 +191,6 @@
   "arrived": "لقد وصلت",
   "arrivedAt": "وصلت إلى {{place}}",
   "ratingThanks": "شكرًا! تم إرسال تقييمك لـ{{name}}.",
-  "rateCta": "تقييم {{name}}"
+  "rateCta": "تقييم {{name}}",
+  "shareMessage": "رحلتي على VAYA مع {{driver}}: {{pickup}} ← {{destination}}، {{price}}."
 }

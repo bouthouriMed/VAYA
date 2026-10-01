@@ -39,17 +39,20 @@ export async function submitRating(input: SubmitRatingInput, deps: SubmitRatingD
  *  (packages/domain/src/rating/trust-tier.ts) — kept here (not in the
  *  design system) since it's product copy/mapping, not a new visual
  *  pattern (Badge itself is unchanged, Phase 2). */
-export function trustTierBadge(tier: TrustTier): {
+export function trustTierBadge(
+  tier: TrustTier,
+  t: (key: string) => string,
+): {
   label: string;
   variant: 'default' | 'success' | 'warning' | 'error' | 'info';
 } {
   switch (tier) {
     case 'top_rated':
-      return { label: 'Top VAYA', variant: 'success' };
+      return { label: t('common:tier.top_rated'), variant: 'success' };
     case 'trusted':
-      return { label: 'Confiance', variant: 'info' };
+      return { label: t('common:tier.trusted'), variant: 'info' };
     case 'new':
     default:
-      return { label: 'Nouveau', variant: 'default' };
+      return { label: t('common:tier.new'), variant: 'default' };
   }
 }

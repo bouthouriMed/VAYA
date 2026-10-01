@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { View, StyleSheet, type LayoutChangeEvent } from 'react-native';
 import { Marker, MarkerAnimated, AnimatedRegion, type LatLng } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Reanimated, {
   useSharedValue,
@@ -78,6 +77,7 @@ function AnimatedDriverMarker({
   headingDeg: number | null;
   color: string;
 }): React.JSX.Element {
+  const { colors: theme } = useAppTheme();
   const animatedRegion = useRef(
     new AnimatedRegion({ latitude: lat, longitude: lng, latitudeDelta: 0, longitudeDelta: 0 }),
   ).current;
@@ -115,8 +115,8 @@ function AnimatedDriverMarker({
       rotation={headingDeg ?? 0}
       flat
     >
-      <View style={[styles.driverPuck, { backgroundColor: color }]}>
-        <Ionicons name="navigate" size={16} color="#FFFFFF" />
+      <View style={[styles.driverPuck, { backgroundColor: color, borderColor: theme.surface }]}>
+        <Icon name="navigate" size="xs" color={theme.surface} />
       </View>
     </MarkerAnimated>
   );
@@ -454,7 +454,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: '#FFFFFF',
+    
   },
   card: {
     position: 'absolute',

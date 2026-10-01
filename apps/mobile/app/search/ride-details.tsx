@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView, Modal } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, ScrollView, Modal } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Marker, Polyline } from 'react-native-maps';
 import { skipToken } from '@reduxjs/toolkit/query/react';
@@ -21,6 +21,7 @@ import {
   ScreenHeader,
   HeaderIconButton,
   StateView,
+  Button,
 } from '@vaya/design-system';
 import { router, useLocalSearchParams } from 'expo-router';
 import type { SupportedLocale } from '@vaya/config';
@@ -725,7 +726,7 @@ export default function RideDetailsScreen(): React.JSX.Element {
         {passengers && passengers.length > 0 ? (
           <View style={styles.passengersSection}>
             <Text variant="caption" color={theme.inkFaint} style={styles.passengersTitle}>
-              {t('search:details.passengersHeader', { booked: bookedSeats, total: ride.seatsTotal }).toUpperCase()}
+              {t('search:details.passengersHeader', { booked: bookedSeats, total: ride.seatsTotal })}
             </Text>
             <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
               {passengers.map((passenger, i) => (
@@ -770,42 +771,23 @@ export default function RideDetailsScreen(): React.JSX.Element {
               {bookingError}
             </Text>
           ) : null}
-          <TouchableOpacity
-            style={[
-              styles.cta,
-              { backgroundColor: theme.ink },
-              Boolean(existingBooking) ||
-              (!needsPickupSelection &&
-                !needsDropoffSelection &&
-                !selectedStop &&
-                !origin) ||
-              ride.seatsAvailable < 1
-                ? styles.ctaDisabled
-                : null,
-            ]}
+          <Button
+            size="lg"
+            label={existingBooking ? t('search:details.alreadyRequested') : t('search:details.requestSeat')}
+            loading={isBooking}
             disabled={
-              isBooking ||
               Boolean(existingBooking) ||
               ride.seatsAvailable < 1 ||
               (!needsPickupSelection && !needsDropoffSelection && !selectedStop && !origin)
             }
-            activeOpacity={0.85}
-            onPress={() => requireAuth(handleRequestPress, 'booking')}
-            accessibilityRole="button"
             accessibilityLabel={
               existingBooking
                 ? t('search:details.alreadyRequested')
                 : t('search:details.requestSeatWithPrice', { price: ride.contributionPerSeat })
             }
-          >
-            {isBooking ? (
-              <ActivityIndicator color={theme.onInk} size="small" />
-            ) : (
-              <Text variant="label" color={theme.onInk}>
-                {existingBooking ? t('search:details.alreadyRequested') : t('search:details.requestSeat')}
-              </Text>
-            )}
-          </TouchableOpacity>
+            onPress={() => requireAuth(handleRequestPress, 'booking')}
+            style={styles.cta}
+          />
         </View>
       )}
 
@@ -1016,6 +998,7 @@ const styles = StyleSheet.create({
   passengersTitle: {
     letterSpacing: 0.6,
     fontWeight: '700',
+    textTransform: 'uppercase',
   },
   card: {
     borderRadius: radii.xl,
@@ -1040,14 +1023,9 @@ const styles = StyleSheet.create({
     paddingTop: spacing.md,
     gap: spacing.sm,
   },
+  // Layout only — shape, size and colors come from the design-system Button.
   cta: {
     width: '100%',
-    borderRadius: radii.full,
-    paddingVertical: spacing.md,
-    alignItems: 'center',
-  },
-  ctaDisabled: {
-    opacity: 0.4,
   },
   routeModal: {
     flex: 1,

@@ -16,7 +16,7 @@
     "candidateCount_one": "{{count}} ride available today on this route",
     "candidateCount_other": "{{count}} rides available today on this route",
     "meetingPoint": "Meeting point",
-    "bestMatch": "BEST MATCH",
+    "bestMatch": "Best match",
     "timeOffsetNote": "Leaves {{offset}} after your requested time · {{walkMinutes}} walk to the meeting point."
   },
   "composer": {

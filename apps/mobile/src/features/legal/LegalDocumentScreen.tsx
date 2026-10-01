@@ -87,6 +87,7 @@ const styles = StyleSheet.create({
   },
   sectionHeading: {
     marginBottom: spacing.xs,
+    textTransform: 'uppercase',
   },
   paragraph: {
     marginBottom: spacing.sm,

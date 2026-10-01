@@ -51,6 +51,8 @@ describe('search screens are fully on useAppTheme(), not the legacy static color
     'search/results.tsx',
     'search/trust.tsx',
     'search/ride-details.tsx',
+    'search/pickup-point.tsx',
+    'search/dropoff-point.tsx',
   ];
 
   for (const screen of migratedScreens) {
@@ -62,17 +64,6 @@ describe('search screens are fully on useAppTheme(), not the legacy static color
     });
   }
 
-  // Known, documented gap (not a regression): pickup-point.tsx predates the
-  // Stitch dark-mode pass and was never in its migrated-screens list — see
-  // CLAUDE.md's Post-Phase-11 fixes note. Asserted explicitly so a future
-  // migration of this screen updates this test instead of it silently
-  // staying stale.
-  it('search/pickup-point.tsx is a documented, not-yet-migrated exception', () => {
-    const source = readScreen('search/pickup-point.tsx');
-    const imports = designSystemImports(source);
-    expect(imports).toContain('colors');
-    expect(imports).not.toContain('useAppTheme');
-  });
 });
 
 // Phase 13 (docs/roadmap/phase-13-search-engine.md) replaced the old

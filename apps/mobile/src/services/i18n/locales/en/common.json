@@ -110,5 +110,10 @@
     "hoursMinutes": "{{hours}} h {{minutes}}",
     "days_one": "{{count}} day",
     "days_other": "{{count}} days"
+  },
+  "tier": {
+    "new": "New",
+    "trusted": "Trusted",
+    "top_rated": "Top VAYA"
   }
 }

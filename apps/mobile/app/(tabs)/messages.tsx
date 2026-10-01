@@ -459,6 +459,7 @@ const styles = StyleSheet.create({
   },
   sectionHeaderWrap: {
     paddingTop: spacing.md,
+    textTransform: 'uppercase',
   },
   sectionHeader: {
     textTransform: 'uppercase',

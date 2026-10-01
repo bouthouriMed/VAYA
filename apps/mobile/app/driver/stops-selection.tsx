@@ -241,7 +241,7 @@ export default function StopsSelectionScreen(): React.JSX.Element {
           {(isSearchMode
             ? t('search:composer.resultsSectionLabel')
             : t('driver:publish.stopsStep.chooseCityTitle')
-          ).toUpperCase()}
+          )}
         </Text>
 
         {!isSearchMode && isLoadingCandidates ? (
@@ -398,6 +398,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.lg,
     marginBottom: spacing.sm,
     letterSpacing: 0.6,
+    textTransform: 'uppercase',
   },
   loadingRow: {
     flexDirection: 'row',

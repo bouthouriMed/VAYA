@@ -179,8 +179,6 @@ export default function OtpScreen(): React.JSX.Element {
           end={{ x: 0.5, y: 1 }}
           style={StyleSheet.absoluteFill}
         />
-        <View pointerEvents="none" style={styles.glowTop} />
-        <View pointerEvents="none" style={styles.glowBottom} />
 
         <View style={[styles.header, { paddingTop: insets.top + spacing.md }]}>
           <HeaderIconButton
@@ -312,26 +310,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: darkPalette.background,
     overflow: 'hidden',
-  },
-  glowTop: {
-    position: 'absolute',
-    top: -140,
-    left: -80,
-    width: 320,
-    height: 320,
-    borderRadius: 160,
-    backgroundColor: darkPalette.accentGlow,
-    opacity: 0.3,
-  },
-  glowBottom: {
-    position: 'absolute',
-    bottom: -160,
-    right: -100,
-    width: 360,
-    height: 360,
-    borderRadius: 180,
-    backgroundColor: darkPalette.accent,
-    opacity: 0.18,
   },
   header: {
     paddingHorizontal: spacing['2xl'],

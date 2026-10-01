@@ -20,9 +20,19 @@ export const fontFamilyDisplay = {
   italic: 'Fraunces_500Medium_Italic',
 } as const;
 
+// Fraunces has no Arabic glyphs, so an Arabic display heading would fall
+// back to the system font and lose the brand voice. Noto Kufi Arabic is the
+// display face for right-to-left layouts (loaded alongside Fraunces in
+// apps/mobile/app/_layout.tsx).
+export const fontFamilyDisplayArabic = {
+  medium: 'NotoKufiArabic_500Medium',
+  semibold: 'NotoKufiArabic_600SemiBold',
+} as const;
+
 export const typography = {
   fontFamily,
   fontFamilyDisplay,
+  fontFamilyDisplayArabic,
   fontSize: {
     xs: 12,
     sm: 14,

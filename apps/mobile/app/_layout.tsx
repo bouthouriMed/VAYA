@@ -13,6 +13,7 @@ import {
   Fraunces_600SemiBold,
   Fraunces_500Medium_Italic,
 } from '@expo-google-fonts/fraunces';
+import { NotoKufiArabic_500Medium, NotoKufiArabic_600SemiBold } from '@expo-google-fonts/noto-kufi-arabic';
 import { ToastProvider, AppThemeProvider, useAppTheme, lightPalette, darkPalette } from '@vaya/design-system';
 import { store, useAppSelector, type AppDispatch } from '../src/state/store';
 import { hydrateAuth } from '../src/state/authSlice';
@@ -196,6 +197,8 @@ export default function RootLayout(): React.JSX.Element {
     Fraunces_500Medium,
     Fraunces_600SemiBold,
     Fraunces_500Medium_Italic,
+    NotoKufiArabic_500Medium,
+    NotoKufiArabic_600SemiBold,
   });
 
   // Pairs with preventAutoHideAsync() above — hides the native splash only

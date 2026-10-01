@@ -182,8 +182,6 @@ export default function SignInScreen(): React.JSX.Element {
           end={{ x: 0.5, y: 1 }}
           style={StyleSheet.absoluteFill}
         />
-        <View pointerEvents="none" style={styles.glowTop} />
-        <View pointerEvents="none" style={styles.glowBottom} />
 
         <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
           <HeaderIconButton
@@ -282,7 +280,7 @@ export default function SignInScreen(): React.JSX.Element {
               <View style={styles.dividerRow}>
                 <View style={[styles.dividerLine, { backgroundColor: darkPalette.outlineVariant }]} />
                 <Text variant="caption" color={darkPalette.inkFaint}>
-                  {t('common:actions.continue')}
+                  {t('auth:dividerOr')}
                 </Text>
                 <View style={[styles.dividerLine, { backgroundColor: darkPalette.outlineVariant }]} />
               </View>
@@ -292,7 +290,7 @@ export default function SignInScreen(): React.JSX.Element {
                 disabled={isGoogleLoading}
                 activeOpacity={0.85}
                 accessibilityRole="button"
-                accessibilityLabel={t('auth:guest.signInCta')}
+                accessibilityLabel={t('auth:continueWithGoogle')}
                 accessibilityState={{ disabled: isGoogleLoading, busy: isGoogleLoading }}
                 style={[
                   styles.googleCta,
@@ -309,7 +307,7 @@ export default function SignInScreen(): React.JSX.Element {
                   <>
                     <Ionicons name="logo-google" size={18} color={darkPalette.ink} />
                     <Text variant="label" color={darkPalette.ink}>
-                      {t('auth:guest.signInCta')}
+                      {t('auth:continueWithGoogle')}
                     </Text>
                   </>
                 )}
@@ -357,26 +355,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: darkPalette.background,
     overflow: 'hidden',
-  },
-  glowTop: {
-    position: 'absolute',
-    top: -140,
-    left: -80,
-    width: 320,
-    height: 320,
-    borderRadius: 160,
-    backgroundColor: darkPalette.accentGlow,
-    opacity: 0.3,
-  },
-  glowBottom: {
-    position: 'absolute',
-    bottom: -160,
-    right: -100,
-    width: 360,
-    height: 360,
-    borderRadius: 180,
-    backgroundColor: darkPalette.accent,
-    opacity: 0.18,
   },
   header: {
     alignItems: 'flex-start',

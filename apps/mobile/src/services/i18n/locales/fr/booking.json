@@ -21,7 +21,7 @@
   "status_full": "Complet",
   "status_in_progress": "En cours",
   "settlement_title": "Trajet terminé",
-  "settlement_pay": "Réglez {{price}} DT directement avec {{name}}",
+  "settlement_pay": "Réglez {{price}} directement avec {{name}}",
   "rate_prompt": "Comment était {{name}} ?",
   "finish": "Terminer",
   "filters": {
@@ -187,5 +187,6 @@
   "arrived": "Vous êtes arrivé·e",
   "arrivedAt": "Arrivé·e à {{place}}",
   "ratingThanks": "Merci ! Votre avis sur {{name}} a été envoyé.",
-  "rateCta": "Noter {{name}}"
+  "rateCta": "Noter {{name}}",
+  "shareMessage": "Mon trajet VAYA avec {{driver}} : {{pickup}} → {{destination}}, {{price}}."
 }

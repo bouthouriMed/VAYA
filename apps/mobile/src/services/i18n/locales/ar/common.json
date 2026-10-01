@@ -142,5 +142,10 @@
     "days_few": "{{count}} أيام",
     "days_many": "{{count}} يومًا",
     "days_other": "{{count}} يوم"
+  },
+  "tier": {
+    "new": "جديد",
+    "trusted": "موثوق",
+    "top_rated": "الأفضل في VAYA"
   }
 }

@@ -21,7 +21,7 @@
   "status_full": "Full",
   "status_in_progress": "In progress",
   "settlement_title": "Trip completed",
-  "settlement_pay": "Pay {{price}} DT directly to {{name}}",
+  "settlement_pay": "Pay {{price}} directly to {{name}}",
   "rate_prompt": "How was {{name}}?",
   "finish": "Finish",
   "filters": {
@@ -187,5 +187,6 @@
   "arrived": "You've arrived",
   "arrivedAt": "Arrived in {{place}}",
   "ratingThanks": "Thanks! Your review of {{name}} was sent.",
-  "rateCta": "Rate {{name}}"
+  "rateCta": "Rate {{name}}",
+  "shareMessage": "My VAYA ride with {{driver}}: {{pickup}} → {{destination}}, {{price}}."
 }

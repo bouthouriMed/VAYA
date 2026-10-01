@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { BottomSheet, Text, useAppTheme, spacing, radii, haptics } from '@vaya/design-system';
+import { BottomSheet, Text, useAppTheme, spacing, radii, haptics, Button } from '@vaya/design-system';
 import { useTranslation } from 'react-i18next';
 import {
   useRequestOtpMutation,
@@ -213,23 +213,14 @@ export function ContextualAuthSheet({
             </Text>
           ) : null}
 
-          <TouchableOpacity
+          <Button
+            size="lg"
+            label={t('common:actions.continue')}
             onPress={() => void sendCode()}
             disabled={!canSendPhone}
-            activeOpacity={0.85}
-            accessibilityRole="button"
-            accessibilityLabel={t('common:actions.continue')}
-            accessibilityState={{ disabled: !canSendPhone, busy: isSendingOtp }}
-            style={[styles.cta, { backgroundColor: theme.ink }, !canSendPhone && styles.disabled]}
-          >
-            {isSendingOtp ? (
-              <ActivityIndicator color={theme.onInk} size="small" />
-            ) : (
-              <Text variant="label" color={theme.onInk}>
-                {t('common:actions.continue')}
-              </Text>
-            )}
-          </TouchableOpacity>
+            loading={isSendingOtp}
+            style={styles.cta}
+          />
 
           <Text variant="caption" color={theme.inkFaint} align="center" style={styles.legal}>
             {t('auth:landing.legal')}
@@ -266,23 +257,14 @@ export function ContextualAuthSheet({
               {errorMessage}
             </Text>
           ) : null}
-          <TouchableOpacity
+          <Button
+            size="lg"
+            label={t('auth:otp.cta')}
             onPress={() => void verifyCode()}
             disabled={!canVerifyCode}
-            activeOpacity={0.85}
-            accessibilityRole="button"
-            accessibilityLabel={t('auth:otp.cta')}
-            accessibilityState={{ disabled: !canVerifyCode, busy: isVerifyingOtp }}
-            style={[styles.cta, { backgroundColor: theme.ink }, !canVerifyCode && styles.disabled]}
-          >
-            {isVerifyingOtp ? (
-              <ActivityIndicator color={theme.onInk} size="small" />
-            ) : (
-              <Text variant="label" color={theme.onInk}>
-                {t('auth:otp.cta')}
-              </Text>
-            )}
-          </TouchableOpacity>
+            loading={isVerifyingOtp}
+            style={styles.cta}
+          />
           <TouchableOpacity onPress={() => setPhoneStep('phone')} accessibilityRole="button">
             <Text variant="bodySmall" color={theme.accent} align="center">
               {t('auth:otp.changeNumber')}
@@ -349,10 +331,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   cta: {
-    minHeight: 52,
-    borderRadius: radii.lg,
-    alignItems: 'center',
-    justifyContent: 'center',
+    width: '100%',
   },
   disabled: {
     opacity: 0.5,

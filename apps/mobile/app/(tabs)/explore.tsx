@@ -24,6 +24,7 @@ import {
   lightMapStyle,
   darkMapStyle,
   type MapRegion,
+  Button,
 } from '@vaya/design-system';
 import { router } from 'expo-router';
 import type { SupportedLocale } from '@vaya/config';
@@ -413,14 +414,12 @@ export default function HomeSearchScreen(): React.JSX.Element {
             </TouchableOpacity>
           </View>
 
-          <TouchableOpacity
-            style={[
-              styles.cta,
-              { backgroundColor: theme.ink, shadowColor: theme.ink },
-              !canSearch && styles.ctaDisabled,
-            ]}
+          <Button
+            size="lg"
+            label={t('common:actions.search')}
+            trailingIcon="arrow-forward"
             disabled={!canSearch}
-            activeOpacity={0.85}
+            accessibilityLabel={t('search:composer.findRide')}
             onPress={() => {
               dispatch(startSearch());
               if (origin && destination) {
@@ -438,18 +437,8 @@ export default function HomeSearchScreen(): React.JSX.Element {
               }
               router.push('/search/results');
             }}
-            accessibilityRole="button"
-            accessibilityLabel={t('search:composer.findRide')}
-          >
-            <Text variant="label" color={canSearch ? theme.onInk : theme.inkFaint}>
-              {t('common:actions.search')}
-            </Text>
-            <Ionicons
-              name="arrow-forward"
-              size={16}
-              color={canSearch ? theme.onInk : theme.inkFaint}
-            />
-          </TouchableOpacity>
+            style={styles.cta}
+          />
 
           {/* Real data or nothing — never a hardcoded placeholder count. */}
           {canSearch && candidates ? (
@@ -621,33 +610,21 @@ const styles = StyleSheet.create({
   // own single whole-card TouchableOpacity — compact single-line label,
   // not the old two-line stacked layout, since there's no secondary
   // value to show underneath each one anymore.
+  // Icon stacked over the label: a three-up row at phone width truncated
+  // "Aujourd'hui"/"Maintenant" when icon and label shared one line.
   paramBtnThird: {
     flex: 1,
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: spacing.xs,
+    gap: 2,
     borderRadius: radii.xl,
     borderWidth: 1,
-    paddingVertical: spacing.md,
+    paddingVertical: spacing.sm,
     paddingHorizontal: spacing.xs,
   },
+  // Layout only — shape, size and colors come from the design-system Button.
   cta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.xs,
-    borderRadius: radii.lg,
-    paddingVertical: spacing.md,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 6,
-  },
-  ctaDisabled: {
-    opacity: 0.4,
-    shadowOpacity: 0,
-    elevation: 0,
+    width: '100%',
   },
   quickNote: {
     textAlign: 'center',

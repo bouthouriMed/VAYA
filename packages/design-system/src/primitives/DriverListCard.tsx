@@ -285,6 +285,7 @@ const styles = StyleSheet.create({
   bestMatchLabel: {
     letterSpacing: 0.8,
     fontWeight: '700',
+    textTransform: 'uppercase',
   },
   card: {
     borderRadius: radii.xl,

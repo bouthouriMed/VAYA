@@ -20,6 +20,7 @@ import {
   elevation,
   haptics,
   addDays,
+  Button,
 } from '@vaya/design-system';
 import { useAppSelector } from '../../src/state/store';
 import { formatDaySectionLabel } from '../../src/features/conversations/inboxHelpers';
@@ -245,30 +246,24 @@ function DriverRequestCard({
       ) : (
         <>
           <View style={[styles.actionBar, { borderTopColor: theme.outlineVariant }]}>
-            <TouchableOpacity
-              style={[styles.actionButton, styles.declineButton, { borderColor: theme.outline }]}
+            <Button
+              variant="outline"
+              size="md"
+              label={t('common:actions.decline')}
               onPress={() => void respond('decline')}
               disabled={isBusy}
-              activeOpacity={0.7}
-              accessibilityRole="button"
               accessibilityLabel={t('common:actions.decline')}
-            >
-              <Text variant="label" color={theme.error}>
-                {t('common:actions.decline')}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.actionButton, { backgroundColor: theme.accent }]}
+              style={styles.actionFlex}
+            />
+            <Button
+              variant="primary"
+              size="md"
+              label={t('common:actions.accept')}
               onPress={() => void respond('accept')}
               disabled={isBusy}
-              activeOpacity={0.85}
-              accessibilityRole="button"
               accessibilityLabel={t('common:actions.accept')}
-            >
-              <Text variant="label" color={theme.onAccent}>
-                {t('common:actions.accept')}
-              </Text>
-            </TouchableOpacity>
+              style={styles.actionFlex}
+            />
           </View>
           {actionError ? (
             <Text variant="caption" color={theme.error} style={styles.actionErrorText}>
@@ -602,15 +597,8 @@ const styles = StyleSheet.create({
     paddingTop: spacing.sm,
     borderTopWidth: StyleSheet.hairlineWidth,
   },
-  actionButton: {
+  actionFlex: {
     flex: 1,
-    borderRadius: radii.full,
-    paddingVertical: spacing.sm,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  declineButton: {
-    borderWidth: 1,
   },
   actionErrorText: {
     textAlign: 'center',

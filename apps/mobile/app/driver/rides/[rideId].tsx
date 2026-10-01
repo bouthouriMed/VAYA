@@ -173,30 +173,24 @@ function PendingRequestRow({
         <Icon name="chevron-forward" size="sm" color={theme.inkFaint} />
       </View>
       <View style={styles.requestActions}>
-        <TouchableOpacity
-          style={[styles.pillButton, styles.pillButtonOutline, { borderColor: theme.outline }]}
+        <Button
+          variant="outline"
+          size="sm"
+          label={t('rides.requestsSheet.decline')}
           onPress={() => void respond('decline')}
           disabled={isBusy}
-          activeOpacity={0.7}
-          accessibilityRole="button"
           accessibilityLabel={`${t('rides.requestsSheet.decline')} ${booking.rider?.fullName ?? ''}`}
-        >
-          <Text variant="label" color={theme.error}>
-            {t('rides.requestsSheet.decline')}
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.pillButton, { backgroundColor: theme.accent }]}
+          style={styles.pillFlex}
+        />
+        <Button
+          variant="primary"
+          size="sm"
+          label={t('rides.requestsSheet.accept')}
           onPress={() => void respond('accept')}
           disabled={isBusy}
-          activeOpacity={0.85}
-          accessibilityRole="button"
           accessibilityLabel={`${t('rides.requestsSheet.accept')} ${booking.rider?.fullName ?? ''}`}
-        >
-          <Text variant="label" color={theme.onAccent}>
-            {t('rides.requestsSheet.accept')}
-          </Text>
-        </TouchableOpacity>
+          style={styles.pillFlex}
+        />
       </View>
       {error ? (
         <Text variant="caption" color={theme.error} style={styles.requestError}>
@@ -795,17 +789,13 @@ export default function DriverRideHubScreen(): React.JSX.Element {
                     {manageable ? <Icon name="chevron-forward" size="xs" color={theme.outline} /> : null}
                   </TouchableOpacity>
                   {showBoardButton ? (
-                    <TouchableOpacity
-                      style={[styles.boardButton, { backgroundColor: theme.accent }]}
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      label={t('rides.rideDetail.passengerAboard')}
                       onPress={() => void handlePassengerAboard(trip!.id)}
-                      activeOpacity={0.85}
-                      accessibilityRole="button"
                       accessibilityLabel={`${t('rides.rideDetail.passengerAboard')} ${booking.rider?.fullName ?? ''}`}
-                    >
-                      <Text variant="label" color={theme.onAccent}>
-                        {t('rides.rideDetail.passengerAboard')}
-                      </Text>
-                    </TouchableOpacity>
+                    />
                   ) : null}
                 </View>
               );
@@ -1129,15 +1119,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: spacing.sm,
   },
-  pillButton: {
+  pillFlex: {
     flex: 1,
-    borderRadius: radii.full,
-    paddingVertical: spacing.sm,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  pillButtonOutline: {
-    borderWidth: 1,
   },
   requestError: {
     textAlign: 'center',
@@ -1149,12 +1132,6 @@ const styles = StyleSheet.create({
   },
   answeredGroup: {
     gap: spacing.xs,
-  },
-  boardButton: {
-    borderRadius: radii.lg,
-    paddingVertical: spacing.sm,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   scrollSpacer: {
     height: spacing['3xl'],

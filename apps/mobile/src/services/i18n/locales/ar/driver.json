@@ -212,10 +212,10 @@
         "plate": "رقم اللوحة"
       },
       "placeholders": {
-        "make": "Peugeot",
-        "model": "208",
-        "color": "رمادي",
-        "plate": "208TU1234"
+        "make": "مثال: Peugeot",
+        "model": "مثال: 208",
+        "color": "مثال: رمادي",
+        "plate": "مثال: 208 TU 1234"
       },
       "removeSeat": "إزالة مقعد",
       "addSeat": "إضافة مقعد",

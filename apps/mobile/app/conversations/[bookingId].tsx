@@ -231,7 +231,7 @@ export default function ConversationScreen(): React.JSX.Element {
                 color={tripContext.isLive ? theme.accent : theme.inkMuted}
                 style={styles.tripBarLabel}
               >
-                {tripContext.label.toUpperCase()}
+                {tripContext.label}
               </Text>
             </View>
             <TouchableOpacity

@@ -326,45 +326,12 @@ export default function SearchComposerScreen(): React.JSX.Element {
           </>
         ) : null}
 
-        {!isSearching ? (
-          <View style={styles.savedSection}>
-            <Text variant="caption" color={theme.inkFaint} style={styles.sectionLabel}>
-              {t('search:composer.savedPlaces').toUpperCase()}
-            </Text>
-            <View style={styles.savedGrid}>
-              {(['work', 'home'] as const).map((key) => (
-                <TouchableOpacity
-                  key={key}
-                  disabled
-                  style={[styles.savedCard, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}
-                  accessibilityState={{ disabled: true }}
-                >
-                  <View style={[styles.savedIconWrap, { backgroundColor: theme.surfaceMuted }]}>
-                    <Icon
-                      name={key === 'work' ? 'briefcase-outline' : 'home-outline'}
-                      size="sm"
-                      color={theme.outline}
-                    />
-                  </View>
-                  <View style={styles.savedTextCol}>
-                    <Text variant="bodySmall" color={theme.inkFaint} numberOfLines={1}>
-                      {key === 'work' ? t('search:composer.work') : t('search:composer.home')}
-                    </Text>
-                    <Text variant="caption" color={theme.inkFaint}>
-                      {t('common:status.comingSoon')}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-        ) : null}
 
         <Text variant="caption" color={theme.inkFaint} style={styles.sectionLabel}>
           {(isSearching
             ? t('search:composer.resultsSectionLabel')
             : t('search:composer.recentSectionLabel')
-          ).toUpperCase()}
+          )}
         </Text>
 
         {/* One continuous white panel instead of a per-row bordered/grey
@@ -458,37 +425,11 @@ const styles = StyleSheet.create({
   currentPositionDisabled: {
     opacity: 0.5,
   },
-  savedSection: {
-    marginTop: spacing.sm,
-  },
-  savedGrid: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-  },
-  savedCard: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    padding: spacing.sm,
-    borderRadius: radii.lg,
-    borderWidth: 1,
-  },
-  savedIconWrap: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  savedTextCol: {
-    flex: 1,
-    gap: 1,
-  },
   sectionLabel: {
     marginTop: spacing.lg,
     marginBottom: spacing.sm,
     letterSpacing: 0.6,
+    textTransform: 'uppercase',
   },
   listCard: {
     flex: 1,

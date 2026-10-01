@@ -1,6 +1,6 @@
 import type { Conversation, ConversationMessage } from '../../state/api';
 import type { TFunction } from 'i18next';
-import { formatDaySectionLabel } from './inboxHelpers';
+import { currentLocale, formatDaySectionLabel } from './inboxHelpers';
 import type { RideStatus, TripStatus } from '@vaya/domain';
 import { bookingStatusDisplay } from '../status/statusDisplay';
 import { formatClock, formatShortDate } from '../../utils/localeFormat';
@@ -38,7 +38,7 @@ export function mergeAndSortMessages(
 
 /** Locale-aware timestamp for a message bubble — same
  *  today-vs-older split notifications/index.tsx's formatWhen already uses. */
-export function formatMessageTimestamp(iso: string, locale: string = 'en'): string {
+export function formatMessageTimestamp(iso: string, locale: string = currentLocale()): string {
   const date = new Date(iso);
   const now = new Date();
   const isToday = date.toDateString() === now.toDateString();
@@ -91,10 +91,11 @@ export function groupMessagesByDay(
   messages: ConversationMessage[],
   t: TFunction,
   now: Date = new Date(),
+  locale: string = currentLocale(),
 ): MessageDayGroup[] {
   const groups: MessageDayGroup[] = [];
   for (const message of messages) {
-    const label = formatDaySectionLabel(message.createdAt, t, now);
+    const label = formatDaySectionLabel(message.createdAt, t, now, locale);
     const last = groups[groups.length - 1];
     if (last && last.label === label) {
       last.messages.push(message);
