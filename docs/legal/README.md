@@ -1,5 +1,16 @@
 # Legal documentation
 
+> **v2 drafts (2 October 2026) — read first.** A product-grounded rewrite lives in
+> [`v2/`](./v2/): [`terms-and-conditions.en.md`](./v2/terms-and-conditions.en.md),
+> [`privacy-policy.en.md`](./v2/privacy-policy.en.md), and the audit behind them,
+> [`legal-product-audit.md`](./v2/legal-product-audit.md) (data inventory, sub-processors,
+> admin audit, decisions required, launch checklist). The audit found that the **live v1
+> texts below contain statements the product contradicts** (e.g. "phone numbers are never
+> shared" — they are, after acceptance; "explicit KYC consent is collected" — no consent
+> screen exists). v2 is not yet in force: it carries `[ACTION REQUIRED — CONFIRM]`
+> placeholders (legal entity, contacts, jurisdiction, regions, retention) and needs counsel
+> review and a governing-language translation before it replaces v1 in `packages/legal`.
+
 - [`terms-and-conditions.md`](./terms-and-conditions.md) — VAYA's Terms & Conditions
   ("CGU"), canonical French text.
 - [`privacy-policy.md`](./privacy-policy.md) — VAYA's Privacy Policy ("Politique de
