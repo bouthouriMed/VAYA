@@ -1,18 +1,24 @@
 # Legal documentation
 
-> **v2 drafts (2 October 2026) — read first.** A product-grounded rewrite lives in
-> [`v2/`](./v2/): [`terms-and-conditions.en.md`](./v2/terms-and-conditions.en.md),
-> [`privacy-policy.en.md`](./v2/privacy-policy.en.md), and the audit behind them,
-> [`legal-product-audit.md`](./v2/legal-product-audit.md) (data inventory, sub-processors,
-> admin audit, decisions required, launch checklist). The audit found that the **live v1
-> texts below contain statements the product contradicts** (e.g. "phone numbers are never
-> shared" — they are, after acceptance; "explicit KYC consent is collected" — no consent
-> screen exists). v2 is not yet in force: it carries `[ACTION REQUIRED — CONFIRM]`
-> placeholders (legal entity, contacts, jurisdiction, regions, retention) and needs counsel
-> review and a governing-language translation before it replaces v1 in `packages/legal`.
+> **Version 2.0 is live (3 October 2026) — read first.** The text the app and website now
+> render is `packages/legal/src/{terms,privacy}.ts` (fr/en/ar), built from the v2 drafts in
+> [`v2/`](./v2/) with every clause that still needs an owner decision **left out** rather
+> than shown as a placeholder. Those omitted items (legal entity identity, real contact
+> addresses — the published text points users to "VAYA Support", the contact listed on the
+> App Store / Google Play pages — governing law and courts, DPO, hosting regions, fixed
+> retention periods) are listed in [`v2/legal-product-audit.md`](./v2/legal-product-audit.md)
+> §8 and must be added back once decided. The English `.md` drafts in `v2/` keep the full
+> `[ACTION REQUIRED — CONFIRM]` markers as the working master for counsel. The v1 files
+> below are **superseded** and kept only as history; the French in `packages/legal` is now
+> the governing text. Translations (fr/ar) have not been reviewed by counsel or a
+> professional legal translator.
+>
+> Two promises in v2 are operational and must be honoured manually until tooling exists:
+> telling Members the reason for a suspension/restriction and handling a review request
+> (Terms art. 17), and erasing residual data on request after account deletion (Privacy §15).
 
 - [`terms-and-conditions.md`](./terms-and-conditions.md) — VAYA's Terms & Conditions
-  ("CGU"), canonical French text.
+  ("CGU"), version 1.0 — superseded by version 2.0.
 - [`privacy-policy.md`](./privacy-policy.md) — VAYA's Privacy Policy ("Politique de
   confidentialité"), canonical French text.
 
