@@ -53,6 +53,14 @@ export function Footer({ dict, locale }: { dict: Dictionary; locale: string }): 
                   {dict.footer.privacy}
                 </Link>
               </li>
+              <li>
+                <Link
+                  href={`/${locale}/legal/delete-account`}
+                  className="transition-colors hover:text-ink"
+                >
+                  {dict.footer.deleteAccount}
+                </Link>
+              </li>
             </ul>
           </div>
         </div>
