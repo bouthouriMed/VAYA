@@ -45,6 +45,24 @@ apps/mobile/assets/*.jpg
 apps/mobile/assets/screens
 apps/mobile/assets/errors
 
+# A .easignore fully replaces .gitignore for EAS uploads, so everything
+# .gitignore would normally drop must be repeated here. Dependencies are
+# reinstalled on the build server; local worktrees/tooling output are never
+# needed (these pushed the archive past 500 MB).
+**/node_modules
+.claude
+graphify-out
+**/.expo
+**/dist
+**/.next
+
+# Secrets: never upload. Firebase admin service-account keys are server-side
+# credentials; env values come from EAS environment variables, not local .env.
+**/*firebase-adminsdk*.json
+**/.env
+**/.env.*
+!**/.env.example
+
 # Build caches, coverage, logs, docker compose assets not needed to build
 # the mobile app.
 **/.turbo
