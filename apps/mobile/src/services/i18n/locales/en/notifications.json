@@ -5,7 +5,9 @@
     "emptyDescription": "You'll see your notifications here.",
     "unread_one": "{{count}} unread",
     "unread_other": "{{count}} unread",
-    "viewDetails": "View details"
+    "viewDetails": "View details",
+    "markAllRead": "Mark all as read",
+    "loadError": "Couldn't load your notifications"
   },
   "events": {
     "booking_requested": "New booking request",

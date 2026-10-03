@@ -3,7 +3,6 @@ import { View, StyleSheet, ActivityIndicator, TouchableOpacity, ScrollView } fro
 import Reanimated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps';
-import { Ionicons } from '@expo/vector-icons';
 import { skipToken } from '@reduxjs/toolkit/query/react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -19,17 +18,21 @@ import {
   spacing,
   radii,
   isSameDay,
+  addDays,
   regionForPoints,
   haptics,
   staggerDelay,
   durations,
   type AppPalette,
   type DriverListCardData,
+  ScreenHeader,
 } from '@vaya/design-system';
 import { router } from 'expo-router';
 import type { SupportedLocale } from '@vaya/config';
 import { useAppSelector } from '../../src/state/store';
-import { formatTime, formatDateTime } from '../../src/utils/localeFormat';
+import { formatTime, formatDateTime, formatCurrency } from '../../src/utils/localeFormat';
+import { formatDurationLabel } from '../../src/utils/durationLabel';
+import type { TFunction } from 'i18next';
 import {
   useMatchingSearchQuery,
   useNotifyMeMutation,
@@ -38,6 +41,7 @@ import {
 } from '../../src/state/api';
 import { useOpenDriver } from '../../src/features/search/useOpenDriver';
 import { trackEvent } from '../../src/services/analytics/analytics';
+import { shortenPlaceLabel } from '../../src/utils/placeLabel';
 
 type TFn = (key: string, params?: Record<string, unknown>) => string;
 
@@ -58,7 +62,7 @@ function walkSuffixLabel(t: TFn, minutes: number): string {
 function departureBadgeLabel(date: Date, locale: SupportedLocale, t: TFn): string {
   const now = new Date();
   if (isSameDay(date, now)) return `${t('common:time.today')}, ${formatTime(date, locale)}`;
-  const tomorrow = new Date(now.getTime() + 24 * 60 * 60_000);
+  const tomorrow = addDays(now, 1);
   if (isSameDay(date, tomorrow)) return `${t('common:time.tomorrow')}, ${formatTime(date, locale)}`;
   return formatDateTime(date, locale);
 }
@@ -66,6 +70,7 @@ function departureBadgeLabel(date: Date, locale: SupportedLocale, t: TFn): strin
 function toPinData(
   candidate: MatchCandidate,
   t: TFn,
+  locale: SupportedLocale,
 ): {
   id: string;
   name: string;
@@ -75,7 +80,7 @@ function toPinData(
   return {
     id: candidate.rideId,
     name: (candidate.driverFullName ?? t('search:results.driverFallback')).split(' ')[0]!,
-    priceLabel: `${candidate.contributionPerSeat} DT`,
+    priceLabel: formatCurrency(candidate.contributionPerSeat, locale),
     etaLabel: walkSuffixLabel(t, candidate.pickupWalkMinutes),
   };
 }
@@ -136,8 +141,8 @@ function RideResultCard({
     const offsetMin = Math.round((pickupTime.getTime() - new Date(searchAt).getTime()) / 60_000);
     if (offsetMin > 2) {
       timeOffsetNote = t('search:results.timeOffsetNote', {
-        offsetMin: t('common:terms.minute', { count: offsetMin }),
-        walkMinutes: t('common:terms.minute', { count: Math.round(candidate.pickupWalkMinutes) }),
+        offset: formatDurationLabel(t as unknown as TFunction, offsetMin),
+        walkMinutes: t('common:terms.minute', { count: Math.max(1, Math.round(candidate.pickupWalkMinutes)) }),
       });
     }
   }
@@ -149,17 +154,17 @@ function RideResultCard({
     driverAvatarUrl: candidate.driverAvatarUrl,
     ratingAvg: candidate.ratingAvg,
     timeLabel: time,
-    priceLabel: `${candidate.contributionPerSeat} DT`,
+    priceLabel: formatCurrency(candidate.contributionPerSeat, locale),
     pickupCityLabel: origin?.label ? splitLocationLabel(origin.label).city : t('search:results.departure'),
     pickupPlaceLabel: closestStop?.label ?? t('search:results.meetingPoint'),
-    pickupWalkLabel: t('common:terms.minute', { count: Math.round(candidate.pickupWalkMinutes) }),
+    pickupWalkLabel: walkSuffixLabel(t, Math.max(1, candidate.pickupWalkMinutes)),
     dropoffCityLabel: dropoffSplit.city,
     dropoffPlaceLabel: dropoffSplit.place,
     dropoffWalkLabel: walkSuffixLabel(t, Math.max(1, candidate.dropoffWalkMinutes)),
     seatsAvailable: candidate.seatsAvailable,
     seatsLabel: t('common:terms.seat', { count: candidate.seatsAvailable }),
     bestMatchLabel: t('search:results.bestMatch'),
-    accessibilityLabel: `${candidate.driverFullName ?? t('search:results.driverFallback')}, ${t('common:terms.departure')} ${time}, ${candidate.contributionPerSeat} DT`,
+    accessibilityLabel: `${candidate.driverFullName ?? t('search:results.driverFallback')}, ${t('common:terms.departure')} ${time}, ${formatCurrency(candidate.contributionPerSeat, locale)}`,
     timeOffsetNote,
     passengers: passengers?.map((p) => ({ userId: p.userId, name: p.firstName, avatarUrl: p.avatarUrl })),
     // 'detour' deliberately shows no per-card detour badge — the driver
@@ -306,39 +311,12 @@ export default function ResultsScreen(): React.JSX.Element {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <View
-        style={[
-          styles.header,
-          {
-            paddingTop: insets.top + spacing.sm,
-            backgroundColor: theme.surface,
-            borderBottomColor: theme.outlineVariant,
-          },
-        ]}
-      >
-        <TouchableOpacity
-          onPress={() => {
-            haptics.selection();
-            router.back();
-          }}
-          hitSlop={12}
-          style={styles.headerSide}
-          accessibilityRole="button"
-          accessibilityLabel={t('common:actions.back')}
-        >
-          <Ionicons name="chevron-back" size={22} color={theme.ink} />
-        </TouchableOpacity>
-        <Text
-          variant="h3"
-          color={theme.ink}
-          numberOfLines={1}
-          align="center"
-          style={styles.headerTitle}
-        >
-          {origin && destination ? `${origin.label} → ${destination.label}` : t('search:results.title')}
-        </Text>
-        <View style={styles.headerSide} />
-      </View>
+      <ScreenHeader
+        topInset={insets.top}
+        onBack={() => router.back()}
+        backLabel={t('common:actions.back')}
+        title={origin && destination ? `${shortenPlaceLabel(origin.label)} → ${shortenPlaceLabel(destination.label)}` : t('search:results.title')}
+      />
 
       <View
         style={[
@@ -385,7 +363,7 @@ export default function ResultsScreen(): React.JSX.Element {
                   onPress={() => selectCandidate(candidate)}
                   zIndex={candidate.rideId === bestMatchId ? 10 : 1}
                 >
-                  <DriverMapPin data={toPinData(candidate, t)} recommended={candidate.rideId === bestMatchId} />
+                  <DriverMapPin data={toPinData(candidate, t, locale)} recommended={candidate.rideId === bestMatchId} />
                 </Marker>
               ))}
             </MapView>
@@ -496,21 +474,6 @@ export default function ResultsScreen(): React.JSX.Element {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    paddingHorizontal: spacing.xl,
-    paddingBottom: spacing.md,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  headerTitle: {
-    flex: 1,
-  },
-  headerSide: {
-    width: 22,
-    alignItems: 'center',
   },
   mapToggle: {
     flexDirection: 'row',

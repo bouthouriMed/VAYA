@@ -20,7 +20,8 @@ import {
   useAppTheme,
   haptics,
   spacing,
-  radii,
+  ScreenHeader,
+  Button,
 } from '@vaya/design-system';
 import { router } from 'expo-router';
 import { useAppDispatch, useAppSelector } from '../../../src/state/store';
@@ -80,20 +81,14 @@ export default function VehicleStepScreen(): React.JSX.Element {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
-        <View style={styles.headerRow}>
-          <TouchableOpacity
-            onPress={() => router.back()}
-            hitSlop={12}
-            accessibilityRole="button"
-            accessibilityLabel={t('onboarding.index.back')}
-          >
-            <Icon name="arrow-back" size="sm" color={theme.ink} />
-          </TouchableOpacity>
-          <Text variant="caption" color={theme.inkFaint} style={styles.headerStepLabel}>
-            {t('onboarding.vehicle.stepLabel', { current: 1, total: TOTAL_STEPS })}
-          </Text>
-          <View style={styles.headerSpacer} />
-        </View>
+        <ScreenHeader
+          transparent
+          bordered={false}
+          onBack={() => router.back()}
+          backLabel={t('onboarding.index.back')}
+          title={t('onboarding.vehicle.stepLabel', { current: 1, total: TOTAL_STEPS })}
+          style={styles.headerBar}
+        />
         <StepProgress currentStep={1} totalSteps={TOTAL_STEPS} theme={theme} />
       </View>
 
@@ -181,26 +176,16 @@ export default function VehicleStepScreen(): React.JSX.Element {
       </ScrollView>
 
       <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.lg }]}>
-        <TouchableOpacity
-          style={[
-            styles.cta,
-            { backgroundColor: theme.ink },
-            !canContinue && styles.ctaDisabled,
-          ]}
+        <Button
+          size="lg"
+          label={t('onboarding.vehicle.continue')}
+          disabled={!canContinue}
           onPress={() => {
             haptics.selection();
             next();
           }}
-          disabled={!canContinue}
-          activeOpacity={0.85}
-          accessibilityRole="button"
-          accessibilityLabel={t('onboarding.vehicle.continue')}
-          accessibilityState={{ disabled: !canContinue }}
-        >
-            <Text variant="label" color={theme.onInk}>
-              {t('onboarding.vehicle.continue')}
-            </Text>
-        </TouchableOpacity>
+          style={styles.cta}
+        />
       </View>
     </KeyboardAvoidingView>
   );
@@ -210,23 +195,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  headerBar: {
+    paddingHorizontal: 0,
+  },
   header: {
     paddingHorizontal: spacing.lg,
     gap: spacing.md,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  headerStepLabel: {
-    flex: 1,
-    textAlign: 'center',
-    textTransform: 'uppercase',
-    letterSpacing: 1.5,
-  },
-  headerSpacer: {
-    width: spacing.xl,
   },
   content: {
     padding: spacing.lg,
@@ -243,6 +217,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.lg,
     fontWeight: '600',
     letterSpacing: 1.5,
+    textTransform: 'uppercase',
   },
   title: {
     marginTop: spacing.xs,
@@ -259,9 +234,11 @@ const styles = StyleSheet.create({
   cardEyebrow: {
     letterSpacing: 1,
     marginBottom: 2,
+    textTransform: 'uppercase',
   },
   fieldRow: {
     flexDirection: 'row',
+    alignItems: 'flex-end',
     gap: spacing.sm,
   },
   fieldHalf: {
@@ -293,14 +270,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.sm,
   },
+  // Layout only — shape, size and colors come from the design-system Button.
   cta: {
     width: '100%',
-    minHeight: 52,
-    borderRadius: radii.lg,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  ctaDisabled: {
-    opacity: 0.5,
   },
 });

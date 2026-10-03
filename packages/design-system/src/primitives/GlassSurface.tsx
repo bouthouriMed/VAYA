@@ -1,24 +1,19 @@
 import React from 'react';
 import { Platform, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import { BlurView } from 'expo-blur';
-import { colors, radii } from '../tokens/index';
+import { radii } from '../tokens/index';
 import type { AppPalette, ColorScheme } from '../theme/palette';
-
-type GlassTone = 'cream' | 'navy';
+import { useAppTheme } from '../theme/AppThemeProvider';
 
 interface GlassSurfaceProps {
   children: React.ReactNode;
-  tone?: GlassTone;
   radius?: keyof typeof radii;
   /** iOS blur intensity (0-100); Android has no real backdrop blur, so it
-   *  falls back to a solid tinted surface at a matching opacity instead of
-   *  a flat/transparent one — see the `tone` background below. */
+   *  falls back to a solid tinted surface at a matching opacity. */
   intensity?: number;
   style?: StyleProp<ViewStyle>;
-  /** Optional `useAppTheme()` override (Stitch migration) — when given
-   *  (with `scheme`), the tint/blur follow the live theme instead of the
-   *  legacy static `tone` prop. Unused (and defaulting to `tone`) anywhere
-   *  this primitive hasn't been migrated yet. */
+  /** Overrides the theme from context — only for a screen pinned to one
+   *  palette (e.g. the always-dark sign-in hero). Pass `scheme` with it. */
   theme?: AppPalette;
   scheme?: ColorScheme;
 }
@@ -32,35 +27,28 @@ interface GlassSurfaceProps {
  * has no equivalent compositor effect; `experimentalBlurMethod="dimezisBlurView"`
  * (a screenshot-based fake blur, the only Android option expo-blur offers)
  * was tried there but dropped — its native surface can survive a card's
- * unmount/remount across a screen transition (e.g. publishing a ride, or
- * navigating back, which is exactly when this wizard's cards unmount) and
- * paint a stale blurred frame on top of whatever renders next, sometimes
- * obscuring real content underneath it. Android always falls back to the
- * tinted-translucent `View` below instead — a flat frosted tint rather than
- * a true blur, but one that can't get stuck.
+ * unmount/remount across a screen transition and paint a stale blurred
+ * frame on top of whatever renders next. Android always falls back to the
+ * tinted-translucent `View` below instead.
  */
 export function GlassSurface({
   children,
-  tone = 'cream',
   radius = '2xl',
   intensity = 50,
   style,
-  theme,
-  scheme,
+  theme: themeOverride,
+  scheme: schemeOverride,
 }: GlassSurfaceProps): React.JSX.Element {
-  const isDark = theme ? scheme === 'dark' : tone === 'navy';
-  const tintBackground = theme
-    ? theme.surface + '8C'
-    : tone === 'navy'
-      ? colors.primary + '99'
-      : colors.gray50 + '8C';
+  const context = useAppTheme();
+  const theme = themeOverride ?? context.colors;
+  const isDark = (schemeOverride ?? context.scheme) === 'dark';
 
   return (
     <View style={[styles.clip, { borderRadius: radii[radius] }, style]}>
       {Platform.OS === 'ios' ? (
         <BlurView intensity={intensity} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
       ) : null}
-      <View style={[StyleSheet.absoluteFill, { backgroundColor: tintBackground }]} />
+      <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.surface + '8C' }]} />
       <View style={styles.content}>{children}</View>
     </View>
   );

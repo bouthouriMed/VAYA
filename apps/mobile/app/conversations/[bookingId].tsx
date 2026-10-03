@@ -23,6 +23,7 @@ import {
   haptics,
   spacing,
   radii,
+  HeaderIconButton,
 } from '@vaya/design-system';
 import {
   useGetMeQuery,
@@ -46,15 +47,6 @@ import { shortenPlaceLabel } from '../../src/utils/placeLabel';
 // WebSockets/real-time infra for v1). 4s keeps a trip-coordination
 // conversation feeling responsive without hammering the API.
 const POLL_INTERVAL_MS = 4000;
-
-function formatDeparture(iso: string, locale: string = 'en'): string {
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return '';
-  const now = new Date();
-  const time = date.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
-  if (date.toDateString() === now.toDateString()) return time;
-  return `${date.toLocaleDateString(locale, { day: 'numeric', month: 'short' })} · ${time}`;
-}
 
 /** Stitch's "Conversation / active trip coordination" — the other party's
  *  identity, verification, and the trip context are all read straight off
@@ -161,14 +153,12 @@ export default function ConversationScreen(): React.JSX.Element {
     >
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
-        <TouchableOpacity
+        <HeaderIconButton
+          icon="chevron-back"
+          directional
           onPress={() => router.back()}
-          hitSlop={12}
-          accessibilityRole="button"
           accessibilityLabel={t('common:actions.back')}
-        >
-          <Icon name="chevron-back" size="md" color={theme.ink} />
-        </TouchableOpacity>
+        />
 
         <TouchableOpacity
           style={styles.headerIdentity}
@@ -186,8 +176,6 @@ export default function ConversationScreen(): React.JSX.Element {
               uri={conversation.otherParty.avatarUrl}
               name={conversation.otherParty.fullName}
               sizePx={40}
-              fallbackBackgroundColor={theme.surfaceMuted}
-              fallbackTextColor={theme.ink}
             />
             {conversation.isOtherPartyVerified ? (
               <View
@@ -243,7 +231,7 @@ export default function ConversationScreen(): React.JSX.Element {
                 color={tripContext.isLive ? theme.accent : theme.inkMuted}
                 style={styles.tripBarLabel}
               >
-                {tripContext.label.toUpperCase()}
+                {tripContext.label}
               </Text>
             </View>
             <TouchableOpacity
@@ -281,7 +269,7 @@ export default function ConversationScreen(): React.JSX.Element {
             </Text>
           </View>
           <Text variant="caption" color={theme.inkMuted}>
-            {formatDeparture(conversation.departureAt, locale)}
+            {formatMessageTimestamp(conversation.departureAt, locale)}
           </Text>
         </View>
       ) : null}

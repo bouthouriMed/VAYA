@@ -1,15 +1,16 @@
-import { StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import {
   Badge,
   Button,
   Card,
-  EmptyState,
-  Icon,
-  SkeletonBlock,
+  ScreenHeader,
+  StateView,
   Text,
-  colors,
+  useAppTheme,
+  useToast,
   spacing,
 } from '@vaya/design-system';
 import {
@@ -20,94 +21,87 @@ import {
 import { trackEvent } from '../../src/services/analytics/analytics';
 import { formatDaysOfWeek, formatTimeWindow } from '../../src/features/recurring/recurringHelpers';
 
+const STATUS_TONE: Record<RecurringPattern['status'], 'success' | 'default'> = {
+  enabled: 'success',
+  suggested: 'default',
+  detected: 'default',
+  dismissed: 'default',
+};
+
 /**
  * Pattern-management screen (docs/roadmap/phase-11-recurring-rides.md's
- * Screens section) — view/dismiss/disable. Reuses Card/Badge/EmptyState,
- * no new design-system primitive, mirroring notifications/index.tsx's
- * "small composition, no bespoke primitive" discipline for a minimal list
- * screen.
+ * Screens section) — view/enable/dismiss/disable detected recurring rides.
  */
 export default function RecurringPatternsScreen(): React.JSX.Element {
-  const { t } = useTranslation();
-  const { data: patterns, isLoading } = useListMyRecurringPatternsQuery();
+  const { t } = useTranslation(['booking', 'common']);
+  const insets = useSafeAreaInsets();
+  const { colors: theme } = useAppTheme();
+  const showToast = useToast();
+  const { data: patterns, isLoading, isError, refetch } = useListMyRecurringPatternsQuery();
   const [updatePattern, { isLoading: isUpdating }] = useUpdateRecurringPatternMutation();
 
-  async function handleDismiss(pattern: RecurringPattern): Promise<void> {
+  async function update(pattern: RecurringPattern, action: 'enable' | 'dismiss'): Promise<void> {
     try {
-      await updatePattern({ patternId: pattern.id, input: { action: 'dismiss' } }).unwrap();
-      trackEvent('recurring_pattern_dismissed', { patternId: pattern.id, role: pattern.role });
+      await updatePattern({ patternId: pattern.id, input: { action } }).unwrap();
+      trackEvent(action === 'enable' ? 'recurring_pattern_enabled' : 'recurring_pattern_dismissed', {
+        patternId: pattern.id,
+        role: pattern.role,
+      });
     } catch {
-      // Best-effort UI action — the list simply won't reflect the change;
-      // no destructive/irreversible consequence if it silently fails.
+      showToast({ message: t('booking:recurring.updateError'), tone: 'error' });
     }
   }
 
-  async function handleEnable(pattern: RecurringPattern): Promise<void> {
-    try {
-      await updatePattern({ patternId: pattern.id, input: { action: 'enable' } }).unwrap();
-      trackEvent('recurring_pattern_enabled', { patternId: pattern.id, role: pattern.role });
-    } catch {
-      // Same best-effort posture as handleDismiss above.
-    }
-  }
-
-  if (isLoading) {
-    return (
-      <View style={styles.container}>
-        <View style={styles.list}>
-          {[0, 1].map((i) => (
-            <SkeletonBlock key={i} height={96} radius="xl" />
-          ))}
-        </View>
-      </View>
-    );
-  }
+  const header = (
+    <ScreenHeader
+      topInset={insets.top}
+      onBack={() => (router.canGoBack() ? router.back() : router.replace('/(tabs)/profile'))}
+      backLabel={t('common:actions.back')}
+      title={t('booking:recurring.title')}
+    />
+  );
 
   const visible = (patterns ?? []).filter((p) => p.status !== 'dismissed');
 
-  if (visible.length === 0) {
-    return (
-      <View style={styles.container}>
-        <EmptyState
-          icon={<Icon name="repeat-outline" size="lg" color={colors.gray400} />}
-          title={t('booking:recurring.emptyTitle')}
+  return (
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
+      {header}
+      {isLoading ? (
+        <StateView status="loading" skeleton="list" />
+      ) : isError ? (
+        <StateView
+          status="error"
+          title={t('booking:recurring.loadError')}
+          description={t('trips:loadError.description')}
+          actionLabel={t('common:actions.retry')}
+          onAction={() => void refetch()}
+        />
+      ) : visible.length === 0 ? (
+        <StateView
+          status="empty"
+          iconName="repeat-outline"
+          title={t('booking:recurring.empty')}
           description={t('booking:recurring.emptyDescription')}
         />
-      </View>
-    );
-  }
-
-  const STATUS_BADGE: Record<string, { variant: 'success' | 'default' }> = {
-    enabled: { variant: 'success' },
-    suggested: { variant: 'default' },
-    detected: { variant: 'default' },
-    dismissed: { variant: 'default' },
-  };
-
-  return (
-    <View style={styles.container}>
-      <View style={styles.list}>
-        {visible.map((pattern) => {
-          const badge = STATUS_BADGE[pattern.status] ?? { variant: 'default' as const };
-          return (
+      ) : (
+        <ScrollView contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + spacing.xl }]}>
+          {visible.map((pattern) => (
             <Card key={pattern.id} style={styles.card}>
               <View style={styles.cardHeader}>
-                <Text variant="label">{pattern.originLabel}</Text>
-                <Badge label={t(`common:status.${pattern.status}`)} variant={badge.variant} />
+                <Text variant="label" color={theme.ink} style={styles.route} numberOfLines={2}>
+                  {`${pattern.originLabel} → ${pattern.destinationLabel}`}
+                </Text>
+                <Badge label={t(`booking:recurring.${pattern.status}`)} variant={STATUS_TONE[pattern.status]} />
               </View>
-              <Text variant="bodySmall" color={colors.gray600}>
-                → {pattern.destinationLabel}
-              </Text>
-              <Text variant="bodySmall" color={colors.gray600}>
-                {formatDaysOfWeek(pattern.daysOfWeekMask, t)} ·{' '}
-                {formatTimeWindow(pattern.timeWindowStart, pattern.timeWindowEnd)} ·{' '}
-                {pattern.role === 'driver' ? t('booking:driver') : t('booking:passenger')}
+              <Text variant="bodySmall" color={theme.inkMuted}>
+                {`${formatDaysOfWeek(pattern.daysOfWeekMask, t)} · ${formatTimeWindow(pattern.timeWindowStart, pattern.timeWindowEnd)} · ${
+                  pattern.role === 'driver' ? t('booking:driver') : t('booking:passenger')
+                }`}
               </Text>
 
               {pattern.status === 'enabled' && pattern.role === 'driver' && pattern.matchesToday ? (
                 <Button
                   label={pattern.todayRideId ? t('booking:recurring.viewTodayRide') : t('booking:recurring.confirmTodayRide')}
-                  size="md"
                   style={styles.actionBtn}
                   onPress={() =>
                     router.push(
@@ -126,7 +120,7 @@ export default function RecurringPatternsScreen(): React.JSX.Element {
                     variant="outline"
                     size="sm"
                     loading={isUpdating}
-                    onPress={() => void handleEnable(pattern)}
+                    onPress={() => void update(pattern, 'enable')}
                   />
                 ) : null}
                 <Button
@@ -134,13 +128,13 @@ export default function RecurringPatternsScreen(): React.JSX.Element {
                   variant="ghost"
                   size="sm"
                   loading={isUpdating}
-                  onPress={() => void handleDismiss(pattern)}
+                  onPress={() => void update(pattern, 'dismiss')}
                 />
               </View>
             </Card>
-          );
-        })}
-      </View>
+          ))}
+        </ScrollView>
+      )}
     </View>
   );
 }
@@ -148,7 +142,6 @@ export default function RecurringPatternsScreen(): React.JSX.Element {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.gray100,
   },
   list: {
     padding: spacing.lg,
@@ -159,8 +152,12 @@ const styles = StyleSheet.create({
   },
   cardHeader: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
+    gap: spacing.sm,
+  },
+  route: {
+    flex: 1,
   },
   actions: {
     flexDirection: 'row',

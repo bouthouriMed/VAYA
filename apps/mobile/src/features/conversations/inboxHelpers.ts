@@ -5,7 +5,16 @@
  * recurringHelpers/rankStopsByWalkDistance).
  */
 
-import type { TFunction } from 'i18next';
+import i18next, { type TFunction } from 'i18next';
+import { formatCalendarDate, formatClock, formatShortDate } from '../../utils/localeFormat';
+
+/** The app's active UI language — every date in the inbox follows it, so a
+ *  caller that forgets to pass a locale can never render English dates in
+ *  a French or Arabic session. Falls back to 'en' only when i18n hasn't
+ *  been initialized (unit tests). */
+export function currentLocale(): string {
+  return i18next.language || 'en';
+}
 
 export interface InboxConversation {
   id: string;
@@ -104,7 +113,7 @@ export function formatInboxTimestamp(
   iso: string,
   t: TFunction,
   now: Date = new Date(),
-  locale: string = 'en',
+  locale: string = currentLocale(),
 ): string {
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return '';
@@ -113,12 +122,12 @@ export function formatInboxTimestamp(
   yesterday.setDate(now.getDate() - 1);
 
   if (isSameCalendarDay(date, now)) {
-    return date.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
+    return formatClock(date, locale);
   }
   if (isSameCalendarDay(date, yesterday)) return t('common:time.yesterday');
 
   const sameYear = date.getFullYear() === now.getFullYear();
-  return date.toLocaleDateString(locale, {
+  return formatCalendarDate(date, locale, {
     day: 'numeric',
     month: 'short',
     ...(sameYear ? {} : { year: 'numeric' }),
@@ -126,14 +135,14 @@ export function formatInboxTimestamp(
 }
 
 /** Section header above each day bucket ("Aujourd'hui", "Hier", dates). */
-export function formatDaySectionLabel(iso: string, t: TFunction, now: Date = new Date(), locale: string = 'en'): string {
+export function formatDaySectionLabel(iso: string, t: TFunction, now: Date = new Date(), locale: string = currentLocale()): string {
   const date = new Date(iso);
   const yesterday = new Date(now);
   yesterday.setDate(now.getDate() - 1);
 
   if (isSameCalendarDay(date, now)) return t('common:time.today');
   if (isSameCalendarDay(date, yesterday)) return t('common:time.yesterday');
-  return date.toLocaleDateString(locale, {
+  return formatCalendarDate(date, locale, {
     weekday: 'short',
     day: 'numeric',
     month: 'long',
@@ -154,11 +163,12 @@ export function groupConversationsByDay(
   conversations: InboxConversation[],
   t: TFunction,
   now: Date = new Date(),
+  locale: string = currentLocale(),
 ): InboxSection[] {
   const sections: InboxSection[] = [];
   for (const conversation of conversations) {
     const activityIso = conversation.lastMessage?.createdAt ?? conversation.updatedAt;
-    const label = formatDaySectionLabel(activityIso, t, now);
+    const label = formatDaySectionLabel(activityIso, t, now, locale);
     const last = sections[sections.length - 1];
     if (last && last.label === label) {
       last.conversations.push(conversation);
@@ -178,18 +188,18 @@ export function roleLabel(role: 'driver' | 'rider', t: TFunction): string {
  *  today, "Demain" tomorrow, a short date beyond that. Mirrors
  *  formatInboxTimestamp's day logic but is forward-looking (a departure
  *  is usually in the future, not the past a message timestamp implies). */
-export function formatDepartureLabel(iso: string, t: TFunction, now: Date = new Date(), locale: string = 'en'): string {
+export function formatDepartureLabel(iso: string, t: TFunction, now: Date = new Date(), locale: string = currentLocale()): string {
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return '';
 
   if (isSameCalendarDay(date, now)) {
-    return date.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
+    return formatClock(date, locale);
   }
   const tomorrow = new Date(now);
   tomorrow.setDate(now.getDate() + 1);
   if (isSameCalendarDay(date, tomorrow)) return t('common:time.tomorrow');
 
-  return date.toLocaleDateString(locale, { day: 'numeric', month: 'short' });
+  return formatShortDate(date, locale);
 }
 
 /** Client-side text filter over the already-fetched inbox — matches the

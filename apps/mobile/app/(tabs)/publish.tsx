@@ -24,14 +24,9 @@ import {
   TimeWheelSheet,
   PassengerSheet,
   GlassSurface,
-  PriceRangeStepper,
-  RouteOptionCard,
   Icon,
   useAppTheme,
   spacing,
-  radii,
-  typography,
-  colors,
   haptics,
   regionForPoints,
   lightMapStyle,
@@ -39,8 +34,9 @@ import {
   StatusBarBlend,
   useToast,
   useReducedMotion,
-  type AppPalette,
   type MapRegion,
+  addDays,
+  HeaderIconButton,
 } from '@vaya/design-system';
 import { router, useFocusEffect } from 'expo-router';
 import type { SupportedLocale } from '@vaya/config';
@@ -75,6 +71,10 @@ import { buildStopSelectionPayload } from '../../src/features/driver-publish/sto
 import { resolveInitialPrice } from '../../src/features/driver-publish/priceSelection';
 import { isVerifiedDriver } from '../../src/features/driver-publish/verificationGate';
 import { buildRecommendedPoints, type RecommendedPoint } from '../../src/features/driver-publish/nearestStops';
+import { publishStyles as styles } from '../../src/features/driver-publish/publishStyles';
+import { GhostButton, PrimaryButton, StepHeader } from '../../src/features/driver-publish/PublishChrome';
+import { RouteStep } from '../../src/features/driver-publish/RouteStep';
+import { PriceStep } from '../../src/features/driver-publish/PriceStep';
 import { CenterPin, RecommendedPointMarker } from '../../src/features/driver-publish/MapSelectionMode';
 
 // Mirrors (tabs)/explore.tsx's map section exactly (same ratio, same
@@ -156,112 +156,9 @@ function formatDepartureDayLabel(
   now: Date = new Date(),
 ): string {
   if (isSameCalendarDay(date, now)) return todayLabel;
-  const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+  const tomorrow = addDays(now, 1);
   if (isSameCalendarDay(date, tomorrow)) return tomorrowLabel;
   return formatDate(date, loc, { weekday: 'short', day: 'numeric', month: 'short' });
-}
-
-// --- Local, theme-aware building blocks -----------------------------------
-// Mirrors the pattern the rider search flow's Stitch rebuild established
-// (search/composer.tsx, bookings/confirmed.tsx): hand-rolled header/CTA
-// chrome driven by `useAppTheme()`, rather than the old static-token
-// ScreenHeader/StepProgress/Button primitives, which haven't been migrated.
-// Kept local to this file (not promoted to @vaya/design-system) since
-// nothing outside this wizard needs them yet.
-
-function StepHeader({
-  theme,
-  title,
-  onBack,
-}: {
-  theme: AppPalette;
-  title: string;
-  onBack: () => void;
-}): React.JSX.Element {
-  const { t } = useTranslation('common');
-  return (
-    <View style={styles.headerRow}>
-      <TouchableOpacity
-        onPress={onBack}
-        hitSlop={12}
-        accessibilityRole="button"
-        accessibilityLabel={t('actions.back')}
-      >
-        <Icon name="arrow-back" size="sm" color={theme.ink} />
-      </TouchableOpacity>
-      <Text variant="h3" color={theme.ink} numberOfLines={1} style={styles.headerTitle}>
-        {title}
-      </Text>
-      <View style={styles.headerSpacer} />
-    </View>
-  );
-}
-
-function PrimaryButton({
-  theme,
-  label,
-  onPress,
-  disabled,
-  loading,
-  icon,
-}: {
-  theme: AppPalette;
-  label: string;
-  onPress: () => void;
-  disabled?: boolean;
-  loading?: boolean;
-  icon?: React.ComponentProps<typeof Icon>['name'];
-}): React.JSX.Element {
-  return (
-    <TouchableOpacity
-      style={[
-        styles.primaryBtn,
-        { backgroundColor: theme.ink },
-        (disabled || loading) && styles.btnDisabled,
-      ]}
-      onPress={onPress}
-      disabled={disabled || loading}
-      activeOpacity={0.85}
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      accessibilityState={{ disabled: disabled || loading, busy: loading }}
-    >
-      {loading ? (
-        <ActivityIndicator color={theme.onInk} />
-      ) : (
-        <>
-          <Text variant="label" color={theme.onInk}>
-            {label}
-          </Text>
-          {icon ? <Icon name={icon} size="sm" color={theme.onInk} /> : null}
-        </>
-      )}
-    </TouchableOpacity>
-  );
-}
-
-function GhostButton({
-  theme,
-  label,
-  onPress,
-}: {
-  theme: AppPalette;
-  label: string;
-  onPress: () => void;
-}): React.JSX.Element {
-  return (
-    <TouchableOpacity
-      style={styles.ghostBtn}
-      onPress={onPress}
-      activeOpacity={0.7}
-      accessibilityRole="button"
-      accessibilityLabel={label}
-    >
-      <Text variant="label" color={theme.ink}>
-        {label}
-      </Text>
-    </TouchableOpacity>
-  );
 }
 
 // This tab renders its own content directly (no redirect to a route outside
@@ -1276,135 +1173,34 @@ export default function PublishTabScreen(): React.JSX.Element {
   }
 
   if (step === 'route') {
-    const decodedByToken = new Map(
-      routeOptions.map((o) => [o.token, decodePolyline(o.polyline)] as const),
-    );
-    const allPoints = routeOptions.flatMap(
-      (o) => decodedByToken.get(o.token)?.map((c) => ({ lat: c.latitude, lng: c.longitude })) ?? [],
-    );
-    const routeOptionsRegion = regionForPoints(allPoints) ?? TUNIS_REGION;
-
     return (
-      <View style={[styles.container, { backgroundColor: theme.background }]}>
-        <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
-          <StepHeader theme={theme} title={stepTitles.route} onBack={handleWizardBack} />
-        </View>
-
-        <View style={styles.routeMapSection}>
-          <MapView
-            style={StyleSheet.absoluteFill}
-            provider={PROVIDER_DEFAULT}
-            customMapStyle={scheme === 'dark' ? darkMapStyle : lightMapStyle}
-            userInterfaceStyle={scheme}
-            initialRegion={routeOptionsRegion}
-          >
-            {/* A single stable-order pass, never two filtered/reordered
-                lists — on iOS, react-native-maps crashes when a MapView's
-                overlay children change POSITION between renders (not just
-                count), which is exactly what splitting into "unselected"/
-                "selected" arrays did every time selectedRouteToken changed.
-                Selection is now expressed purely via color/width/corridor
-                props on an unmoving set of nodes. */}
-            {routeOptions.map((option) => {
-              const isSelected = option.token === selectedRouteToken;
-              return (
-                <MapRoute
-                  key={option.token}
-                  coordinates={decodedByToken.get(option.token) ?? []}
-                  color={isSelected ? theme.accent : theme.inkFaint}
-                  width={isSelected ? 5 : 3}
-                  showCorridor={isSelected}
-                />
-              );
-            })}
-          </MapView>
-        </View>
-
-        <GlassSurface theme={theme} scheme={scheme} radius="2xl" style={styles.routeSheet}>
-          <ScrollView contentContainerStyle={styles.routeList} showsVerticalScrollIndicator={false}>
-            <Text variant="label" color={theme.inkFaint} style={styles.eyebrow}>
-              {t('driver:publish.routeStep.availableCount', { count: routeOptions.length })}
-            </Text>
-            {routeOptions.map((option) => (
-              <RouteOptionCard
-                key={option.token}
-                option={option}
-                selected={option.token === selectedRouteToken}
-                onPress={() => setSelectedRouteToken(option.token)}
-                theme={theme}
-                tollsLabel={t('driver:publish.routeStep.tollsLabel')}
-                noTollsLabel={t('driver:publish.routeStep.noTollsLabel')}
-                estimateLabel={t('driver:publish.routeStep.estimateLabel')}
-                recommendedLabel={t('driver:publish.routeStep.recommendedLabel')}
-              />
-            ))}
-          </ScrollView>
-        </GlassSurface>
-
-        {errorMessage ? (
-          <Text variant="bodySmall" color={theme.error} align="center">
-            {errorMessage}
-          </Text>
-        ) : null}
-
-        <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.md }]}>
-          <PrimaryButton
-            theme={theme}
-            label={t('common:actions.continue')}
-            loading={isCreating}
-            disabled={!selectedRouteToken}
-            onPress={() => void continueFromRoute()}
-          />
-        </View>
-      </View>
+      <RouteStep
+        title={stepTitles.route}
+        onBack={handleWizardBack}
+        routeOptions={routeOptions}
+        selectedRouteToken={selectedRouteToken}
+        onSelectRoute={setSelectedRouteToken}
+        errorMessage={errorMessage}
+        isCreating={isCreating}
+        onContinue={() => void continueFromRoute()}
+      />
     );
   }
 
   if (step === 'price') {
     return (
-      <View style={[styles.container, { backgroundColor: theme.background }]}>
-        <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
-          <StepHeader theme={theme} title={stepTitles.price} onBack={handleWizardBack} />
-        </View>
-
-        <Animated.View style={[styles.priceBody, stepMotionStyle]}>
-          <Text variant="label" color={theme.inkFaint} style={styles.eyebrow}>
-            {t('driver:publish.priceStep.title')}
-          </Text>
-          <GlassSurface theme={theme} scheme={scheme} radius="2xl" style={styles.priceCard}>
-            {pricing ? (
-              <PriceRangeStepper
-                min={pricing.min}
-                max={pricing.max}
-                recommended={pricing.recommended}
-                value={price}
-                onChange={setPrice}
-                isEstimate={routeIsEstimate}
-                label={t('driver:publish.priceStep.contributionLabel')}
-              />
-            ) : null}
-          </GlassSurface>
-          <Text variant="bodySmall" color={theme.inkFaint} align="center" style={styles.hint}>
-            {t('driver:publish.priceStep.description')}
-          </Text>
-        </Animated.View>
-
-        {errorMessage ? (
-          <Text variant="bodySmall" color={theme.error} align="center">
-            {errorMessage}
-          </Text>
-        ) : null}
-
-        <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.md }]}>
-          <PrimaryButton
-            theme={theme}
-            label={t('common:actions.continue')}
-            loading={isUpdatingPrice}
-            disabled={!pricing}
-            onPress={() => void continueFromPriceToReview()}
-          />
-        </View>
-      </View>
+      <PriceStep
+        title={stepTitles.price}
+        onBack={handleWizardBack}
+        pricing={pricing}
+        price={price}
+        onChangePrice={setPrice}
+        routeIsEstimate={routeIsEstimate}
+        errorMessage={errorMessage}
+        isUpdatingPrice={isUpdatingPrice}
+        onContinue={() => void continueFromPriceToReview()}
+        motionStyle={stepMotionStyle}
+      />
     );
   }
 
@@ -1450,7 +1246,7 @@ export default function PublishTabScreen(): React.JSX.Element {
     return (
       <View style={[styles.container, { backgroundColor: theme.background }]}>
         <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
-          <StepHeader theme={theme} title={stepTitles.review} onBack={handleWizardBack} />
+          <StepHeader title={stepTitles.review} onBack={handleWizardBack} />
         </View>
 
         <ScrollView contentContainerStyle={styles.reviewContent}>
@@ -1630,8 +1426,8 @@ export default function PublishTabScreen(): React.JSX.Element {
                   </View>
                 ) : (
                   <View style={styles.lockedRow}>
-                    <Icon name="lock-closed-outline" size="xs" color={colors.warningDark} />
-                    <Text variant="bodySmall" color={colors.warningDark}>
+                    <Icon name="lock-closed-outline" size="xs" color={theme.warning} />
+                    <Text variant="bodySmall" color={theme.warning}>
                       {t('driver:publish.reviewStep.afterVerification')}
                     </Text>
                   </View>
@@ -1723,7 +1519,6 @@ export default function PublishTabScreen(): React.JSX.Element {
 
         <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.md }]}>
           <PrimaryButton
-            theme={theme}
             label={
               hasRideData
                 ? t('driver:publish.reviewStep.publishCta')
@@ -1772,18 +1567,16 @@ export default function PublishTabScreen(): React.JSX.Element {
               {verificationSheetCopy.description}
             </Text>
             <View style={styles.verificationPill}>
-              <Icon name="hourglass-outline" size="xs" color={colors.warningDark} />
-              <Text variant="bodySmall" color={colors.warningDark}>
+              <Icon name="hourglass-outline" size="xs" color={theme.warning} />
+              <Text variant="bodySmall" color={theme.warning}>
                 {verificationSheetCopy.pillLabel}
               </Text>
             </View>
             <PrimaryButton
-              theme={theme}
               label={verificationSheetCopy.cta}
               onPress={startVerification}
             />
             <GhostButton
-              theme={theme}
               label={t('common:actions.later')}
               onPress={() => setIsVerificationPromptVisible(false)}
             />
@@ -1914,7 +1707,10 @@ export default function PublishTabScreen(): React.JSX.Element {
           // already looking while they drag — not buried in the card below,
           // which is reserved for the confirm action alone.
           <View style={[styles.selectionTopBar, { paddingTop: insets.top + spacing.sm }]} pointerEvents="box-none">
-            <TouchableOpacity
+            <HeaderIconButton
+              icon="chevron-back"
+              directional
+              accessibilityLabel={t('common:actions.back')}
               onPress={() => {
                 if (mapMode === 'stops') {
                   setMapMode('dropoff');
@@ -1935,13 +1731,7 @@ export default function PublishTabScreen(): React.JSX.Element {
                 if (routeOptions.length > 0) setStep('route');
                 setMapMode('none');
               }}
-              hitSlop={12}
-              style={[styles.roundBtn, { backgroundColor: theme.surface, shadowColor: theme.ink }]}
-              accessibilityRole="button"
-              accessibilityLabel={t('common:actions.back')}
-            >
-              <Icon name="arrow-back" size="sm" color={theme.ink} />
-            </TouchableOpacity>
+            />
             <GlassSurface theme={theme} scheme={scheme} radius="lg" style={styles.selectionInstructionCard}>
               <Text variant="label" color={theme.ink}>
                 {mapMode === 'stops'
@@ -2085,7 +1875,6 @@ export default function PublishTabScreen(): React.JSX.Element {
           </TouchableOpacity>
 
           <PrimaryButton
-            theme={theme}
             label={t('common:actions.continue')}
             loading={isSavingStops}
             disabled={isSavingStops}
@@ -2115,7 +1904,6 @@ export default function PublishTabScreen(): React.JSX.Element {
           </View>
 
           <PrimaryButton
-            theme={theme}
             label={
               mapMode === 'pickup'
                 ? t('driver:publish.stopsStep.confirmPickup')
@@ -2271,7 +2059,6 @@ export default function PublishTabScreen(): React.JSX.Element {
             ) : null}
 
           <PrimaryButton
-            theme={theme}
             label={readyForPrice ? t('driver:publish.formStep.choosePriceCta') : t('common:actions.next')}
             icon={readyForPrice ? 'pricetag-outline' : undefined}
             loading={isCreating || isLoadingRouteOptions}
@@ -2343,554 +2130,3 @@ export default function PublishTabScreen(): React.JSX.Element {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  // Mirrors (tabs)/explore.tsx's mapSection/card/handle styles exactly —
-  // same structural pattern, not a second visual language for Publish.
-  mapSection: {
-    position: 'relative',
-    overflow: 'hidden',
-  },
-  mapFade: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: 32,
-  },
-  // The pickup/dropoff phase's own top overlay — back button + a short
-  // instruction pill, both riding on the map itself (§7: guidance belongs
-  // near where the user is already looking, not buried in the card).
-  selectionTopBar: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: spacing.sm,
-    paddingHorizontal: spacing.md,
-  },
-  roundBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 2,
-  },
-  selectionInstructionCard: {
-    flex: 1,
-    padding: spacing.md,
-    gap: 2,
-  },
-  card: {
-    borderTopLeftRadius: radii['2xl'],
-    borderTopRightRadius: radii['2xl'],
-    flex: 1,
-    shadowOffset: { width: 0, height: -8 },
-    shadowOpacity: 0.08,
-    shadowRadius: 24,
-    elevation: 8,
-  },
-  // Matches explore.tsx's `bottomWrap`-anchored card: absolute + bottom: 0
-  // removes it from flex flow (the base style's `flex: 1` becomes a no-op),
-  // so it sizes to its own content and hugs the bottom of the screen
-  // instead of stretching to fill whatever height the map above it isn't
-  // using.
-  cardFormOverlay: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
-  handle: {
-    alignItems: 'center',
-    paddingTop: spacing.sm,
-  },
-  handleBar: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-  },
-  // The compact confirm bar shown in the card while pickup/dropoff
-  // selection is active — deliberately small (§8: "a compact confirmation
-  // control that does not unnecessarily obstruct the map"), since the map
-  // above it has just grown to fill nearly the whole screen.
-  selectionCardContent: {
-    flex: 1,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.sm,
-    gap: spacing.sm,
-  },
-  selectionConfirmRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    borderWidth: 1,
-    borderRadius: radii.lg,
-    padding: spacing.sm,
-  },
-  confirmIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  confirmTextCol: {
-    flex: 1,
-  },
-  // The "add stops" phase's own card content — a horizontally-scrolling
-  // row of suggested/added stop chips plus a trailing "add your own" chip,
-  // sized to fit within STOPS_CARD_HEIGHT (taller than the single-confirm
-  // pickup/dropoff card, see that constant's own doc comment).
-  stopsPhaseContent: {
-    flex: 1,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.sm,
-    gap: spacing.md,
-    justifyContent: 'space-between',
-  },
-  stopsLoadingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    paddingVertical: spacing.md,
-  },
-  stopsChipRowContent: {
-    gap: spacing.sm,
-    paddingRight: spacing.md,
-  },
-  stopChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-    borderWidth: 1.5,
-    borderRadius: radii.lg,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    maxWidth: 180,
-  },
-  addStopsButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.sm,
-    paddingVertical: spacing.sm,
-    borderRadius: radii.lg,
-    borderWidth: 1,
-  },
-  stopChipTextCol: {
-    flexShrink: 1,
-  },
-  stopChipLabel: {
-    maxWidth: 130,
-  },
-  header: {
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.sm,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  headerTitle: {
-    flex: 1,
-    textAlign: 'center',
-  },
-  headerSpacer: {
-    width: spacing.xl,
-  },
-  loadingWrap: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  content: {
-    padding: spacing.lg,
-    paddingBottom: spacing['4xl'],
-  },
-  formStack: {
-    gap: spacing.sm,
-  },
-  // Matches (tabs)/explore.tsx's headline style exactly — centered, no
-  // extra top margin (the formStack's own gap already spaces it from the
-  // handle above).
-  headline: {
-    marginTop: 0,
-    textAlign: 'center',
-  },
-  eyebrow: {
-    fontWeight: typography.fontWeight.semibold,
-    letterSpacing: 1.5,
-    marginBottom: spacing.xs,
-    marginTop: spacing.sm,
-  },
-  // Exact copy of explore.tsx's locationBlock/connectorCol/connectorLine/
-  // locationRow/locationIconWrap/locationTextCol/swapBtn — same values,
-  // same names, so a future Search style change is easy to notice should
-  // stay in sync here too.
-  locationBlock: {
-    position: 'relative',
-    borderRadius: radii.xl,
-    borderWidth: 1,
-    padding: spacing.md,
-    gap: spacing.md,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.08,
-    shadowRadius: 18,
-    elevation: 3,
-  },
-  connectorCol: {
-    position: 'absolute',
-    left: spacing.md + 15,
-    top: spacing.md + 40,
-    bottom: spacing.md + 8,
-    width: 2,
-  },
-  connectorLine: {
-    flex: 1,
-    width: 0,
-    borderLeftWidth: 2,
-    borderStyle: 'dashed',
-  },
-  locationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-  },
-  locationIconWrap: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  locationTextCol: {
-    flex: 1,
-    gap: 1,
-  },
-  swapBtn: {
-    position: 'absolute',
-    right: spacing.md,
-    top: '50%',
-    marginTop: -19,
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  formError: {
-    marginBottom: spacing.xs,
-  },
-  // Matches explore.tsx's paramsGrid/paramBtn/paramBtnWide exactly (§14.1
-  // guidance above) — Date/Heure sit side by side, Places disponibles is a
-  // full-width row beneath, none of them wrapped in a second card.
-  paramsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
-  },
-  paramBtn: {
-    flexBasis: '47%',
-    flexGrow: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    borderRadius: radii.xl,
-    borderWidth: 1,
-    padding: spacing.md,
-  },
-  paramBtnWide: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    borderRadius: radii.xl,
-    borderWidth: 1,
-    padding: spacing.md,
-  },
-  seatsIconWrap: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  primaryBtn: {
-    width: '100%',
-    minHeight: 52,
-    borderRadius: radii.lg,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.sm,
-  },
-  btnDisabled: {
-    opacity: 0.5,
-  },
-  ghostBtn: {
-    width: '100%',
-    minHeight: 48,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  outlineBtn: {
-    width: '100%',
-    minHeight: 52,
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  priceBody: {
-    flex: 1,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.xl,
-    gap: spacing.md,
-  },
-  priceCard: {
-    padding: spacing.lg,
-  },
-  // Route-selection step: a persistent map (all alternatives drawn at
-  // once, Google/Waze-picker style) filling the space between the header
-  // and the option-list sheet below it.
-  routeMapSection: {
-    flex: 1,
-    position: 'relative',
-  },
-  routeSheet: {
-    maxHeight: '48%',
-    marginHorizontal: spacing.lg,
-    marginTop: spacing.sm,
-  },
-  routeList: {
-    padding: spacing.md,
-    gap: spacing.sm,
-  },
-  stopsBody: {
-    flex: 1,
-    paddingHorizontal: spacing.lg,
-    gap: spacing.sm,
-  },
-  stopsLoading: {
-    flex: 1,
-    gap: spacing.md,
-    justifyContent: 'center',
-  },
-  mapShadowWrap: {
-    flex: 1,
-    minHeight: 280,
-    borderRadius: radii.xl,
-  },
-  mapWrap: {
-    flex: 1,
-    borderRadius: radii.xl,
-    overflow: 'hidden',
-  },
-  map: {
-    flex: 1,
-  },
-  originDot: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    borderWidth: 2,
-  },
-  destinationDot: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    borderWidth: 2,
-  },
-  hint: {
-    marginTop: spacing.xs,
-  },
-  footer: {
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.sm,
-  },
-  sheetContent: {
-    gap: spacing.lg,
-  },
-  sheetRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: spacing.sm,
-    borderBottomWidth: 1,
-  },
-  reviewContent: {
-    padding: spacing.lg,
-    paddingBottom: spacing['4xl'],
-  },
-  reviewStack: {
-    gap: spacing.md,
-  },
-  reviewTitle: {
-    fontWeight: typography.fontWeight.bold,
-  },
-  reviewSubtitle: {
-    marginBottom: spacing.sm,
-  },
-  reviewCard: {
-    padding: spacing.lg,
-  },
-  reviewCardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: spacing.md,
-  },
-  reviewCardEyebrow: {
-    fontWeight: typography.fontWeight.semibold,
-    letterSpacing: 1,
-  },
-  reviewEditBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-  },
-  reviewRow: {
-    flexDirection: 'row',
-    gap: spacing.md,
-  },
-  reviewHalfCard: {
-    flex: 1,
-  },
-  reviewStatRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: spacing.xs,
-  },
-  reviewUnit: {
-    paddingBottom: 2,
-  },
-  lockedRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-  },
-  vehiclePendingText: {
-    flex: 1,
-  },
-  seatIcons: {
-    flexDirection: 'row',
-    gap: 2,
-    marginLeft: spacing.xs,
-  },
-  timeline: {
-    position: 'relative',
-    paddingLeft: spacing.xl,
-  },
-  timelineLine: {
-    position: 'absolute',
-    left: 7,
-    top: 8,
-    bottom: 8,
-    width: 2,
-  },
-  timelineRow: {
-    marginBottom: spacing.md,
-  },
-  timelineRowContent: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    gap: spacing.sm,
-  },
-  timelineText: {
-    flex: 1,
-  },
-  timelineTime: {
-    fontWeight: typography.fontWeight.semibold,
-  },
-  timelineDot: {
-    position: 'absolute',
-    left: -spacing.xl,
-    top: 2,
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    borderWidth: 3,
-  },
-  timelineDotDestination: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-  },
-  timelineDotDestinationInner: {
-    width: 5,
-    height: 5,
-    borderRadius: 2.5,
-  },
-  stopsSummaryRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-    marginTop: spacing.sm,
-    paddingTop: spacing.sm,
-    borderTopWidth: 1,
-  },
-  stopsSummaryText: {
-    flex: 1,
-  },
-  timelineDotStop: {
-    position: 'absolute',
-    left: -spacing.xl + 3,
-    top: 5,
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    borderWidth: 2,
-  },
-  vehicleSummaryRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  vehicleSummaryIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: radii.lg,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  termsHint: {
-    marginTop: spacing.sm,
-  },
-  termsHintLink: {
-    textDecorationLine: 'underline',
-  },
-  verificationSheet: {
-    alignItems: 'center',
-    gap: spacing.md,
-    paddingBottom: spacing.lg,
-  },
-  verificationIconWrap: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: spacing.sm,
-  },
-  verificationPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-    backgroundColor: colors.warningLight,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    borderRadius: radii.full,
-  },
-});

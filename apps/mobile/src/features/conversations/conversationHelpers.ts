@@ -1,6 +1,9 @@
 import type { Conversation, ConversationMessage } from '../../state/api';
 import type { TFunction } from 'i18next';
-import { formatDaySectionLabel } from './inboxHelpers';
+import { currentLocale, formatDaySectionLabel } from './inboxHelpers';
+import type { RideStatus, TripStatus } from '@vaya/domain';
+import { bookingStatusDisplay } from '../status/statusDisplay';
+import { formatClock, formatShortDate } from '../../utils/localeFormat';
 
 /** A message renders right-aligned (own) vs left-aligned (other party) —
  *  the one piece of chat-bubble logic that has to be correct regardless of
@@ -35,13 +38,13 @@ export function mergeAndSortMessages(
 
 /** Locale-aware timestamp for a message bubble — same
  *  today-vs-older split notifications/index.tsx's formatWhen already uses. */
-export function formatMessageTimestamp(iso: string, locale: string = 'en'): string {
+export function formatMessageTimestamp(iso: string, locale: string = currentLocale()): string {
   const date = new Date(iso);
   const now = new Date();
   const isToday = date.toDateString() === now.toDateString();
-  const time = date.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
+  const time = formatClock(date, locale);
   if (isToday) return time;
-  return `${date.toLocaleDateString(locale, { day: 'numeric', month: 'short' })} · ${time}`;
+  return `${formatShortDate(date, locale)} · ${time}`;
 }
 
 export interface SubmitMessageDeps {
@@ -51,12 +54,6 @@ export interface SubmitMessageDeps {
 }
 
 /** Trip statuses that mean the shared ride is happening right now. */
-const LIVE_TRIP_STATUSES = new Set(['driver_approaching', 'pickup', 'active', 'arriving']);
-/** Trip statuses that permanently end the trip — same set the server's
- *  conversation-closing rule derives from (trips.status is re-derived live,
- *  so this mirrors what GET /conversations already returned). */
-const TERMINAL_TRIP_STATUSES = new Set(['completed', 'no_show', 'cancelled']);
-
 export interface TripContext {
   label: string;
   /** True only while the trip is actively happening — drives the pulsing
@@ -65,24 +62,19 @@ export interface TripContext {
 }
 
 /**
- * The chat header's persistent trip-context label, derived ONLY from real
- * state the server returned — never a fabricated "confirmed" when the
- * underlying booking/trip says otherwise. Was hardcoded French regardless
- * of the app's own en/fr/ar locale (a real bug — every other label on this
- * screen goes through `t()`); now takes `t` like formatInboxTimestamp/
- * roleLabel already do elsewhere in this same feature.
+ * The chat header's trip-context label. A conversation only exists for an
+ * accepted booking, so this is that booking's phase — the exact same label
+ * the trips list and the booking screen show for it (statusDisplay.ts),
+ * derived from the real ride/trip state the server returned. A closed
+ * conversation whose trip state is unknown is treated as finished.
  */
 export function getTripContext(conversation: Conversation, t: TFunction): TripContext {
-  if (
-    conversation.status === 'closed' ||
-    (conversation.tripStatus !== null && TERMINAL_TRIP_STATUSES.has(conversation.tripStatus))
-  ) {
-    return { label: t('booking:conversation.tripCompleted'), isLive: false };
-  }
-  if (conversation.tripStatus !== null && LIVE_TRIP_STATUSES.has(conversation.tripStatus)) {
-    return { label: t('booking:conversation.tripActive'), isLive: true };
-  }
-  return { label: t('booking:conversation.tripUpcoming'), isLive: false };
+  const tripStatus = (conversation.tripStatus ?? (conversation.status === 'closed' ? 'completed' : null)) as TripStatus | null;
+  const display = bookingStatusDisplay(t, 'accepted', {
+    rideStatus: conversation.rideStatus as RideStatus,
+    tripStatus,
+  });
+  return { label: display.label, isLive: display.phase === 'in_progress' };
 }
 
 export interface MessageDayGroup {
@@ -99,10 +91,11 @@ export function groupMessagesByDay(
   messages: ConversationMessage[],
   t: TFunction,
   now: Date = new Date(),
+  locale: string = currentLocale(),
 ): MessageDayGroup[] {
   const groups: MessageDayGroup[] = [];
   for (const message of messages) {
-    const label = formatDaySectionLabel(message.createdAt, t, now);
+    const label = formatDaySectionLabel(message.createdAt, t, now, locale);
     const last = groups[groups.length - 1];
     if (last && last.label === label) {
       last.messages.push(message);

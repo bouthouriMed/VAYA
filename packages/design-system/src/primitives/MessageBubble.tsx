@@ -2,23 +2,20 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Text } from './Text';
 import { Avatar } from './Avatar';
-import { colors, spacing, radii, typography } from '../tokens/index';
+import { spacing, radii, typography } from '../tokens/index';
 import type { AppPalette } from '../theme/palette';
+import { useAppTheme } from '../theme/AppThemeProvider';
 
 interface MessageBubbleProps {
   body: string;
-  /** Own messages render right-aligned in the brand navy; the other
+  /** Own messages render right-aligned in solid ink; the other
    *  party's render left-aligned on a neutral surface — standard chat
    *  convention (docs/roadmap/phase-08-messaging.md's UX behavior). */
   isOwn: boolean;
   /** Pre-formatted, locale-aware timestamp string — formatting stays at
    *  the screen layer (same discipline as notifications/index.tsx). */
   timestamp: string;
-  /** Optional `useAppTheme()` override (Stitch migration) — own bubbles
-   *  render solid-ink/onInk (the app's "real black" fill, matching the
-   *  active filter pill's own theme.ink treatment elsewhere in this
-   *  screen family), others on surfaceMuted with an outlineVariant
-   *  hairline. Omit for the legacy static palette. */
+  /** Overrides the theme from context — only for a screen pinned to one palette. */
   theme?: AppPalette;
   /** The other party's real avatar (Stitch's "Conversation / active trip
    *  coordination" shows a small avatar beside each of their bubbles) —
@@ -27,6 +24,9 @@ interface MessageBubbleProps {
    *  behavior for any caller not passing it). */
   avatarUrl?: string | null;
   avatarName?: string;
+  /** True when the previous message is from the same sender — the avatar
+   *  is shown once per run of messages, not beside every bubble. */
+  grouped?: boolean;
 }
 
 /**
@@ -40,34 +40,30 @@ export function MessageBubble({
   body,
   isOwn,
   timestamp,
-  theme,
+  theme: themeOverride,
   avatarUrl,
   avatarName,
+  grouped = false,
 }: MessageBubbleProps): React.JSX.Element {
+  const { colors: contextTheme } = useAppTheme();
+  const theme = themeOverride ?? contextTheme;
   const showAvatar = !isOwn && Boolean(avatarName);
-  const themed = theme
-    ? {
-        row: [styles.row, isOwn ? styles.rowOwn : styles.rowOther],
-        bubble: [
-          styles.bubble,
-          isOwn
-            ? { backgroundColor: theme.ink, borderBottomRightRadius: radii.sm }
-            : {
-                backgroundColor: theme.surfaceMuted,
-                borderBottomLeftRadius: radii.sm,
-                borderWidth: 1,
-                borderColor: theme.outlineVariant,
-              },
-        ],
-        bodyColor: isOwn ? theme.onInk : theme.ink,
-        timestampColor: isOwn ? theme.onInk : theme.inkMuted,
-      }
-    : {
-        row: [styles.row, isOwn ? styles.rowOwn : styles.rowOther],
-        bubble: [styles.bubble, isOwn ? styles.bubbleOwn : styles.bubbleOther],
-        bodyColor: isOwn ? colors.white : colors.gray900,
-        timestampColor: isOwn ? colors.navyTextMuted : colors.gray500,
-      };
+  const themed = {
+    row: [styles.row, isOwn ? styles.rowOwn : styles.rowOther],
+    bubble: [
+      styles.bubble,
+      isOwn
+        ? { backgroundColor: theme.ink, borderBottomRightRadius: radii.sm }
+        : {
+            backgroundColor: theme.surface,
+            borderBottomLeftRadius: radii.sm,
+            borderWidth: 1,
+            borderColor: theme.outlineVariant,
+          },
+    ],
+    bodyColor: isOwn ? theme.onInk : theme.ink,
+    timestampColor: isOwn ? theme.onInk : theme.inkMuted,
+  };
 
   return (
     <View
@@ -77,20 +73,17 @@ export function MessageBubble({
       accessibilityLabel={`${isOwn ? 'Vous' : 'Autre participant'}, ${timestamp}: ${body}`}
     >
       {showAvatar ? (
-        <Avatar
-          uri={avatarUrl ?? null}
-          name={avatarName ?? ''}
-          sizePx={28}
-          style={styles.avatar}
-          fallbackBackgroundColor={theme ? theme.surfaceMuted : undefined}
-          fallbackTextColor={theme ? theme.ink : undefined}
-        />
+        grouped ? (
+          <View style={styles.avatarSpacer} />
+        ) : (
+          <Avatar uri={avatarUrl ?? null} name={avatarName ?? ''} sizePx={28} style={styles.avatar} />
+        )
       ) : null}
       <View style={themed.bubble}>
         <Text variant="body" color={themed.bodyColor}>
           {body}
         </Text>
-        <Text variant="caption" color={themed.timestampColor} style={styles.timestamp}>
+        <Text variant="caption" color={themed.timestampColor} style={[styles.timestamp, isOwn && styles.timestampOwn]}>
           {timestamp}
         </Text>
       </View>
@@ -110,6 +103,13 @@ const styles = StyleSheet.create({
   rowOther: {
     justifyContent: 'flex-start',
   },
+  avatarSpacer: {
+    width: 28,
+    marginRight: spacing.xs,
+  },
+  timestampOwn: {
+    opacity: 0.7,
+  },
   avatar: {
     marginRight: spacing.xs,
     marginBottom: 2,
@@ -120,16 +120,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     gap: 2,
-  },
-  bubbleOwn: {
-    backgroundColor: colors.primary,
-    borderBottomRightRadius: radii.sm,
-  },
-  bubbleOther: {
-    backgroundColor: colors.white,
-    borderBottomLeftRadius: radii.sm,
-    borderWidth: 1,
-    borderColor: colors.gray200,
   },
   timestamp: {
     fontSize: typography.fontSize.xs,

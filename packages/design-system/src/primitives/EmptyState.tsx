@@ -2,12 +2,17 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Text } from './Text';
 import { Button } from './Button';
-import { colors, spacing } from '../tokens/index';
+import { Icon, type IconName } from './Icon';
+import { spacing, radii } from '../tokens/index';
+import { useAppTheme } from '../theme/AppThemeProvider';
 
 interface EmptyStateProps {
-  /** Usually an <Icon/> or a small illustration — decorative, so it's
-   *  hidden from screen readers; the title/description carry the meaning. */
+  /** A standard icon, rendered in the system's round icon well. Prefer this. */
+  iconName?: IconName;
+  /** Custom decorative node (an illustration) — hidden from screen readers. */
   icon?: React.ReactNode;
+  /** 'error' tints the icon well so a failure never reads as "nothing here". */
+  tone?: 'neutral' | 'error';
   title: string;
   description?: string;
   actionLabel?: string;
@@ -20,13 +25,14 @@ interface EmptyStateProps {
 }
 
 /**
- * A dead end should turn into a next action, not a shrug. Generalizes the
- * pattern first proven in search/results.tsx (fallback corridor search +
- * "notify me" CTA) so every future empty state gets the same discipline
- * instead of improvising a plain text string.
+ * A dead end should turn into a next action, not a shrug. Every empty and
+ * error state in the app renders through this one layout (icon well,
+ * title, description, outline action), top-aligned in its container.
  */
 export function EmptyState({
+  iconName,
   icon,
+  tone = 'neutral',
   title,
   description,
   actionLabel,
@@ -34,18 +40,24 @@ export function EmptyState({
   actionDisabled,
   children,
 }: EmptyStateProps): React.JSX.Element {
+  const { colors: theme } = useAppTheme();
+  const isError = tone === 'error';
   return (
-    <View style={styles.container} accessible accessibilityRole="text">
-      {icon ? (
-        <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-          {icon}
+    <View style={styles.container} accessible accessibilityRole={isError ? 'alert' : 'text'}>
+      {iconName || icon ? (
+        <View
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+          style={[styles.iconWell, { backgroundColor: isError ? theme.errorMuted : theme.surfaceMuted }]}
+        >
+          {iconName ? <Icon name={iconName} size="md" color={isError ? theme.error : theme.inkMuted} /> : icon}
         </View>
       ) : null}
-      <Text variant="h3" align="center" style={styles.title}>
+      <Text variant="title" align="center" color={theme.ink}>
         {title}
       </Text>
       {description ? (
-        <Text variant="body" color={colors.gray600} align="center" style={styles.description}>
+        <Text variant="body" color={theme.inkMuted} align="center" style={styles.description}>
           {description}
         </Text>
       ) : null}
@@ -67,16 +79,22 @@ const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
     gap: spacing.sm,
-    padding: spacing.xl,
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing['3xl'],
   },
-  title: {
-    marginTop: spacing.xs,
+  iconWell: {
+    width: 64,
+    height: 64,
+    borderRadius: radii.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.xs,
   },
   description: {
-    marginBottom: spacing.xs,
+    maxWidth: 320,
   },
   action: {
     marginTop: spacing.md,
-    width: '100%',
+    alignSelf: 'stretch',
   },
 });

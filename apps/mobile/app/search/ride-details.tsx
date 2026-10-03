@@ -1,8 +1,7 @@
 import { useMemo, useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView, Modal } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, ScrollView, Modal } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Marker, Polyline } from 'react-native-maps';
-import { Ionicons } from '@expo/vector-icons';
 import { skipToken } from '@reduxjs/toolkit/query/react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -18,6 +17,11 @@ import {
   haptics,
   isSameDay,
   regionForPoints,
+  addDays,
+  ScreenHeader,
+  HeaderIconButton,
+  StateView,
+  Button,
 } from '@vaya/design-system';
 import { router, useLocalSearchParams } from 'expo-router';
 import type { SupportedLocale } from '@vaya/config';
@@ -38,7 +42,9 @@ import { requestPushPermissionAndRegister } from '../../src/services/notificatio
 import { decodePolyline, polylineDistanceKm, sliceRouteBetween } from '../../src/utils/polyline';
 import { useContextualAuth } from '../../src/features/auth/useContextualAuth';
 import { ContextualAuthSheet } from '../../src/features/auth/ContextualAuthSheet';
-import { formatDate, formatTime, splitDurationMinutes } from '../../src/utils/localeFormat';
+import { formatDate, formatTime } from '../../src/utils/localeFormat';
+import { formatDurationLabel } from '../../src/utils/durationLabel';
+import type { TFunction } from 'i18next';
 
 type TFn = (key: string, params?: Record<string, unknown>) => string;
 
@@ -48,10 +54,7 @@ function fullDateLabel(date: Date, locale: SupportedLocale): string {
 }
 
 function durationLabel(seconds: number, t: TFn): string {
-  const { hours, minutes } = splitDurationMinutes(seconds / 60);
-  if (hours === 0) return t('search:details.durationMinutesOnly', { minutes });
-  if (minutes === 0) return t('search:details.durationHoursOnly', { hours });
-  return t('search:details.durationHoursMinutes', { hours, minutes });
+  return formatDurationLabel(t as unknown as TFunction, seconds / 60);
 }
 
 /** Maps createBooking's real rejection reason to an honest i18n key —
@@ -113,8 +116,13 @@ export default function RideDetailsScreen(): React.JSX.Element {
   const [bookingError, setBookingError] = useState<string | undefined>();
   const [routeModalOpen, setRouteModalOpen] = useState(false);
 
-  const { data: ride, isLoading: isRideLoading } = useGetRideQuery(rideId);
-  const { data: profile, isLoading: isProfileLoading } = useGetUserPublicProfileQuery(driverUserId);
+  const { data: ride, isLoading: isRideLoading, isError: isRideError, refetch: refetchRide } = useGetRideQuery(rideId);
+  const {
+    data: profile,
+    isLoading: isProfileLoading,
+    isError: isProfileError,
+    refetch: refetchProfile,
+  } = useGetUserPublicProfileQuery(driverUserId);
   const { data: stops } = useGetRideStopsQuery(rideId);
   const { data: passengers } = useListFellowPassengersQuery(rideId);
   const [createBooking, { isLoading: isBooking }] = useCreateBookingMutation();
@@ -426,20 +434,38 @@ export default function RideDetailsScreen(): React.JSX.Element {
     }
   }
 
-  if (isRideLoading || isProfileLoading) {
+  if (isRideLoading || isProfileLoading || !ride || !profile) {
+    const failed = isRideError || isProfileError;
     return (
-      <View style={[styles.loadingWrap, { backgroundColor: theme.background }]}>
-        <ActivityIndicator size="large" color={theme.accent} />
-      </View>
-    );
-  }
-
-  if (!ride || !profile) {
-    return (
-      <View style={[styles.loadingWrap, { backgroundColor: theme.background }]}>
-        <Text variant="body" color={theme.inkFaint}>
-          {t('search:details.rideNotFound')}
-        </Text>
+      <View style={[styles.container, { backgroundColor: theme.background }]}>
+        <ScreenHeader
+          topInset={insets.top}
+          onBack={() => router.back()}
+          backLabel={t('common:actions.back')}
+          title={t('search:details.screenTitle')}
+        />
+        {isRideLoading || isProfileLoading ? (
+          <StateView status="loading" skeleton="detail" />
+        ) : failed ? (
+          <StateView
+            status="error"
+            title={t('search:details.loadError')}
+            description={t('trips:loadError.description')}
+            actionLabel={t('common:actions.retry')}
+            onAction={() => {
+              void refetchRide();
+              void refetchProfile();
+            }}
+          />
+        ) : (
+          <StateView
+            status="empty"
+            iconName="car-outline"
+            title={t('search:details.rideNotFound')}
+            actionLabel={t('common:actions.back')}
+            onAction={() => router.back()}
+          />
+        )}
       </View>
     );
   }
@@ -470,25 +496,12 @@ export default function RideDetailsScreen(): React.JSX.Element {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <View
-        style={[
-          styles.header,
-          { paddingTop: insets.top + spacing.sm, backgroundColor: theme.surface, borderBottomColor: theme.outlineVariant },
-        ]}
-      >
-        <TouchableOpacity
-          onPress={() => router.back()}
-          hitSlop={12}
-          accessibilityRole="button"
-          accessibilityLabel={t('common:actions.back')}
-        >
-          <Ionicons name="chevron-back" size={22} color={theme.ink} />
-        </TouchableOpacity>
-        <Text variant="h3" color={theme.ink}>
-          Vaya
-        </Text>
-        <View style={{ width: 22 }} />
-      </View>
+      <ScreenHeader
+        topInset={insets.top}
+        onBack={() => router.back()}
+        backLabel={t('common:actions.back')}
+        title={t('search:details.screenTitle')}
+      />
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.summaryRow}>
@@ -496,7 +509,7 @@ export default function RideDetailsScreen(): React.JSX.Element {
             <Text variant="h2" color={theme.ink}>
               {isSameDay(departureDate, now)
                 ? t('common:time.today')
-                : isSameDay(departureDate, new Date(now.getTime() + 24 * 60 * 60_000))
+                : isSameDay(departureDate, addDays(now, 1))
                   ? t('common:time.tomorrow')
                   : (() => {
                       const l = formatDate(departureDate, locale, { weekday: 'long' });
@@ -674,8 +687,6 @@ export default function RideDetailsScreen(): React.JSX.Element {
             uri={profile.avatarUrl}
             name={profile.fullName}
             size="md"
-            fallbackBackgroundColor={theme.surfaceMuted}
-            fallbackTextColor={theme.ink}
           />
           <View style={styles.driverTextCol}>
             <View style={styles.driverNameRow}>
@@ -688,7 +699,7 @@ export default function RideDetailsScreen(): React.JSX.Element {
               <View style={styles.driverStatsRow}>
                 <Icon name="star" size="xs" color={theme.accent} />
                 <Text variant="caption" color={theme.inkMuted}>
-                  {driverStats.ratingAvg.toFixed(1)} · {t('common:terms.trip', { count: driverStats.tripCount })}
+                  {driverStats.ratingAvg.toFixed(1)} · {t('common:terms.tripCount', { count: driverStats.tripCount })}
                 </Text>
               </View>
             ) : null}
@@ -715,7 +726,7 @@ export default function RideDetailsScreen(): React.JSX.Element {
         {passengers && passengers.length > 0 ? (
           <View style={styles.passengersSection}>
             <Text variant="caption" color={theme.inkFaint} style={styles.passengersTitle}>
-              {t('search:details.passengersHeader', { booked: bookedSeats, total: ride.seatsTotal }).toUpperCase()}
+              {t('search:details.passengersHeader', { booked: bookedSeats, total: ride.seatsTotal })}
             </Text>
             <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
               {passengers.map((passenger, i) => (
@@ -736,8 +747,6 @@ export default function RideDetailsScreen(): React.JSX.Element {
                     uri={passenger.avatarUrl}
                     name={passenger.firstName}
                     size="sm"
-                    fallbackBackgroundColor={theme.surfaceMuted}
-                    fallbackTextColor={theme.ink}
                   />
                   <Text variant="body" color={theme.ink} style={styles.passengerName}>
                     {passenger.firstName}
@@ -762,42 +771,23 @@ export default function RideDetailsScreen(): React.JSX.Element {
               {bookingError}
             </Text>
           ) : null}
-          <TouchableOpacity
-            style={[
-              styles.cta,
-              { backgroundColor: theme.ink },
-              Boolean(existingBooking) ||
-              (!needsPickupSelection &&
-                !needsDropoffSelection &&
-                !selectedStop &&
-                !origin) ||
-              ride.seatsAvailable < 1
-                ? styles.ctaDisabled
-                : null,
-            ]}
+          <Button
+            size="lg"
+            label={existingBooking ? t('search:details.alreadyRequested') : t('search:details.requestSeat')}
+            loading={isBooking}
             disabled={
-              isBooking ||
               Boolean(existingBooking) ||
               ride.seatsAvailable < 1 ||
               (!needsPickupSelection && !needsDropoffSelection && !selectedStop && !origin)
             }
-            activeOpacity={0.85}
-            onPress={() => requireAuth(handleRequestPress, 'booking')}
-            accessibilityRole="button"
             accessibilityLabel={
               existingBooking
                 ? t('search:details.alreadyRequested')
                 : t('search:details.requestSeatWithPrice', { price: ride.contributionPerSeat })
             }
-          >
-            {isBooking ? (
-              <ActivityIndicator color={theme.onInk} size="small" />
-            ) : (
-              <Text variant="label" color={theme.onInk}>
-                {existingBooking ? t('search:details.alreadyRequested') : t('search:details.requestSeat')}
-              </Text>
-            )}
-          </TouchableOpacity>
+            onPress={() => requireAuth(handleRequestPress, 'booking')}
+            style={styles.cta}
+          />
         </View>
       )}
 
@@ -845,15 +835,13 @@ export default function RideDetailsScreen(): React.JSX.Element {
               <Polyline coordinates={segmentCoordinates} strokeColor={theme.ink} strokeWidth={4} />
             ) : null}
           </MapCanvas>
-          <TouchableOpacity
-            style={[styles.routeModalClose, { top: insets.top + spacing.sm, backgroundColor: theme.surface }]}
-            onPress={() => setRouteModalOpen(false)}
-            hitSlop={12}
-            accessibilityRole="button"
-            accessibilityLabel={t('common:actions.close')}
-          >
-            <Ionicons name="close" size={22} color={theme.ink} />
-          </TouchableOpacity>
+          <View style={[styles.routeModalClose, { top: insets.top + spacing.sm }]}>
+            <HeaderIconButton
+              icon="close"
+              onPress={() => setRouteModalOpen(false)}
+              accessibilityLabel={t('common:actions.close')}
+            />
+          </View>
         </View>
       </Modal>
 
@@ -870,19 +858,6 @@ export default function RideDetailsScreen(): React.JSX.Element {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  loadingWrap: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.sm,
-    borderBottomWidth: StyleSheet.hairlineWidth,
   },
   scrollContent: {
     padding: spacing.lg,
@@ -1023,6 +998,7 @@ const styles = StyleSheet.create({
   passengersTitle: {
     letterSpacing: 0.6,
     fontWeight: '700',
+    textTransform: 'uppercase',
   },
   card: {
     borderRadius: radii.xl,
@@ -1047,14 +1023,9 @@ const styles = StyleSheet.create({
     paddingTop: spacing.md,
     gap: spacing.sm,
   },
+  // Layout only — shape, size and colors come from the design-system Button.
   cta: {
     width: '100%',
-    borderRadius: radii.full,
-    paddingVertical: spacing.md,
-    alignItems: 'center',
-  },
-  ctaDisabled: {
-    opacity: 0.4,
   },
   routeModal: {
     flex: 1,

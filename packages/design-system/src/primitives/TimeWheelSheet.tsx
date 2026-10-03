@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { View, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import { View, StyleSheet, Platform } from 'react-native';
 // gesture-handler's ScrollView (not RN core's) — it wraps a
 // NativeViewGestureHandler that properly participates in the same gesture
 // arena as BottomSheet's outer Gesture.Pan() drag-to-dismiss. A plain RN
@@ -20,7 +20,7 @@ import Animated, {
 import { LinearGradient } from 'expo-linear-gradient';
 import { BottomSheet } from './BottomSheet';
 import { Text } from './Text';
-import { Icon } from './Icon';
+import { Button } from './Button';
 import { spacing, radii } from '../tokens/index';
 import { useAppTheme } from '../theme/AppThemeProvider';
 import { haptics } from '../utils/haptics';
@@ -281,26 +281,11 @@ export function TimeWheelSheet({
       // ratio than before, sized for header + summary + wheel + confirm
       // alone, so the sheet doesn't carry a dead gap those chips used to
       // occupy.
-      heightRatio={0.5}
+      heightRatio={0.62}
       theme={theme}
       bottomInset={bottomInset}
-      headerContent={
-        <View style={styles.header}>
-          <View style={styles.headerSpacer} />
-          <Text variant="h3" color={theme.ink} style={styles.headerTitle}>
-            {title}
-          </Text>
-          <TouchableOpacity
-            onPress={onClose}
-            hitSlop={12}
-            style={styles.closeBtn}
-            accessibilityRole="button"
-            accessibilityLabel={closeLabel}
-          >
-            <Icon name="close" size="sm" color={theme.ink} />
-          </TouchableOpacity>
-        </View>
-      }
+      title={title}
+      closeLabel={closeLabel}
     >
       <View style={styles.summary}>
         <Text variant="bodySmall" color={theme.inkMuted}>
@@ -355,42 +340,13 @@ export function TimeWheelSheet({
       </View>
 
       <View style={styles.footer}>
-        <TouchableOpacity
-          onPress={confirm}
-          style={[styles.confirmBtn, { backgroundColor: theme.ink }]}
-          accessibilityRole="button"
-          accessibilityLabel={confirmLabel}
-        >
-          <Text variant="label" color={theme.onInk}>
-            {confirmLabel}
-          </Text>
-        </TouchableOpacity>
+        <Button size="lg" label={confirmLabel} onPress={confirm} theme={theme} />
       </View>
     </BottomSheet>
   );
 }
 
 const styles = StyleSheet.create({
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    width: '100%',
-    paddingHorizontal: spacing.lg,
-  },
-  headerSpacer: {
-    width: 32,
-  },
-  headerTitle: {
-    flex: 1,
-    textAlign: 'center',
-  },
-  closeBtn: {
-    width: 32,
-    height: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   summary: {
     alignItems: 'center',
     gap: spacing.xs,
@@ -471,11 +427,5 @@ const styles = StyleSheet.create({
     // dead gap in between whether the wheel is showing or not.
     marginTop: 'auto',
     paddingTop: spacing.lg,
-  },
-  confirmBtn: {
-    height: 52,
-    borderRadius: radii.lg,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
 });

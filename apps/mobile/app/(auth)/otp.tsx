@@ -13,7 +13,6 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
 import {
   Text,
   GlassSurface,
@@ -23,6 +22,7 @@ import {
   typography,
   haptics,
   ABSOLUTE_FILL_OBJECT,
+  HeaderIconButton,
 } from '@vaya/design-system';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -179,13 +179,15 @@ export default function OtpScreen(): React.JSX.Element {
           end={{ x: 0.5, y: 1 }}
           style={StyleSheet.absoluteFill}
         />
-        <View pointerEvents="none" style={styles.glowTop} />
-        <View pointerEvents="none" style={styles.glowBottom} />
 
         <View style={[styles.header, { paddingTop: insets.top + spacing.md }]}>
-          <TouchableOpacity onPress={() => router.back()} hitSlop={12} style={styles.backBtn}>
-            <Ionicons name="chevron-back" size={26} color={darkPalette.ink} />
-          </TouchableOpacity>
+          <HeaderIconButton
+            icon="chevron-back"
+            directional
+            tone="overlay"
+            onPress={() => router.back()}
+            accessibilityLabel={t('common:actions.back')}
+          />
         </View>
 
         <Animated.View style={[styles.lowerSection, { paddingBottom: keyboardPad }]}>
@@ -309,34 +311,8 @@ const styles = StyleSheet.create({
     backgroundColor: darkPalette.background,
     overflow: 'hidden',
   },
-  glowTop: {
-    position: 'absolute',
-    top: -140,
-    left: -80,
-    width: 320,
-    height: 320,
-    borderRadius: 160,
-    backgroundColor: darkPalette.accentGlow,
-    opacity: 0.3,
-  },
-  glowBottom: {
-    position: 'absolute',
-    bottom: -160,
-    right: -100,
-    width: 360,
-    height: 360,
-    borderRadius: 180,
-    backgroundColor: darkPalette.accent,
-    opacity: 0.18,
-  },
   header: {
     paddingHorizontal: spacing['2xl'],
-  },
-  backBtn: {
-    width: 36,
-    height: 36,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   // Fills the space below the header; centers the OTP block within it
   // instead of top-anchoring it with a dead gap above the CTA. `paddingBottom`

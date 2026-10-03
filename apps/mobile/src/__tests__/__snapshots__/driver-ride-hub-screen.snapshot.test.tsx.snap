@@ -9,11 +9,118 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
           "flex": 1,
         },
         {
-          "backgroundColor": "#FFFFFF",
+          "backgroundColor": "#EEF1EC",
         },
       ]
     }
   >
+    <View
+      style={
+        [
+          {
+            "paddingBottom": 8,
+            "paddingHorizontal": 16,
+          },
+          {
+            "paddingTop": 8,
+          },
+          {
+            "backgroundColor": "#EEF1EC",
+          },
+          {
+            "borderBottomColor": "#DEE5DE",
+            "borderBottomWidth": 1,
+          },
+          undefined,
+        ]
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "gap": 8,
+            "minHeight": 44,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flex": 1,
+              "flexDirection": "row",
+              "gap": 8,
+              "minWidth": 40,
+            }
+          }
+        >
+          <Pressable
+            accessibilityLabel="rides.rideDetail.back"
+            accessibilityRole="button"
+            hitSlop={8}
+            onPress={[Function]}
+            style={[Function]}
+          >
+            <Ionicons
+              accessibilityElementsHidden={true}
+              color="#14201B"
+              importantForAccessibility="no-hide-descendants"
+              name="chevron-back"
+              size={20}
+            />
+          </Pressable>
+        </View>
+        <View
+          accessibilityRole="header"
+          style={
+            {
+              "alignItems": "center",
+              "flex": 3,
+            }
+          }
+        >
+          <Text
+            numberOfLines={2}
+            style={
+              [
+                {
+                  "fontSize": 18,
+                  "fontWeight": "600",
+                  "lineHeight": 23.400000000000002,
+                },
+                null,
+                {
+                  "color": "#14201B",
+                  "textAlign": "center",
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            rides.rideDetail.myRide
+          </Text>
+        </View>
+        <View
+          style={
+            [
+              {
+                "alignItems": "center",
+                "flex": 1,
+                "flexDirection": "row",
+                "gap": 8,
+                "minWidth": 40,
+              },
+              {
+                "justifyContent": "flex-end",
+              },
+            ]
+          }
+        />
+      </View>
+    </View>
     <ScrollView
       contentContainerStyle={
         {
@@ -22,63 +129,6 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
       }
       showsVerticalScrollIndicator={false}
     >
-      <View
-        style={
-          [
-            {
-              "alignItems": "center",
-              "flexDirection": "row",
-              "paddingBottom": 8,
-              "paddingHorizontal": 16,
-            },
-            {
-              "paddingTop": 8,
-            },
-          ]
-        }
-      >
-        <TouchableOpacity
-          accessibilityLabel="rides.rideDetail.back"
-          accessibilityRole="button"
-          hitSlop={12}
-          onPress={[Function]}
-        >
-          <Ionicons
-            color="#14201B"
-            name="chevron-back"
-            size={24}
-          />
-        </TouchableOpacity>
-        <Text
-          style={
-            [
-              {
-                "fontSize": 24,
-                "fontWeight": "600",
-                "lineHeight": 28.799999999999997,
-              },
-              {
-                "color": "#14201B",
-                "textAlign": undefined,
-                "writingDirection": "ltr",
-              },
-              {
-                "flex": 1,
-                "textAlign": "center",
-              },
-            ]
-          }
-        >
-          rides.rideDetail.myRide
-        </Text>
-        <View
-          style={
-            {
-              "width": 24,
-            }
-          }
-        />
-      </View>
       <View
         style={
           {
@@ -343,7 +393,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                     },
                     {
                       "backgroundColor": "#2E9E6C",
-                      "borderColor": "#FFFFFF",
+                      "borderColor": "#F7F9F5",
                     },
                   ]
                 }
@@ -410,7 +460,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                     },
                     {
                       "backgroundColor": "#14201B",
-                      "borderColor": "#FFFFFF",
+                      "borderColor": "#F7F9F5",
                     },
                   ]
                 }
@@ -429,7 +479,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                         "width": 7,
                       },
                       {
-                        "backgroundColor": "#FFFFFF",
+                        "backgroundColor": "#F4F6F2",
                       },
                     ]
                   }
@@ -457,9 +507,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
             style={
               [
                 {
-                  "backgroundColor": "#EAE7DC",
-                },
-                {
+                  "backgroundColor": "#E2E8E1",
                   "borderRadius": 0,
                   "height": 16,
                   "opacity": AnimatedValue {
@@ -508,7 +556,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                   "shadowRadius": 6,
                 },
                 {
-                  "backgroundColor": "#FFFFFF",
+                  "backgroundColor": "#F7F9F5",
                 },
               ]
             }
@@ -528,6 +576,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                     "fontWeight": "400",
                     "lineHeight": 18,
                   },
+                  null,
                   {
                     "color": "#14201B",
                     "textAlign": undefined,
@@ -553,7 +602,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
               "overflow": "hidden",
             },
             {
-              "backgroundColor": "#E4EDFB",
+              "backgroundColor": "#E2E8E1",
             },
           ]
         }
@@ -575,8 +624,9 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                   "fontWeight": "500",
                   "lineHeight": 21,
                 },
+                null,
                 {
-                  "color": "#5B6572",
+                  "color": "#4F5C55",
                   "textAlign": undefined,
                   "writingDirection": "ltr",
                 },
@@ -634,7 +684,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                     "width": 16,
                   },
                   {
-                    "backgroundColor": "#E4EDFB",
+                    "backgroundColor": "#DEE5DE",
                   },
                 ]
               }
@@ -648,7 +698,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                     "width": 16,
                   },
                   {
-                    "backgroundColor": "#E4EDFB",
+                    "backgroundColor": "#DEE5DE",
                   },
                 ]
               }
@@ -663,6 +713,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                   "fontWeight": "400",
                   "lineHeight": 21,
                 },
+                null,
                 {
                   "color": "#14201B",
                   "textAlign": undefined,
@@ -682,7 +733,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                 "width": 1,
               },
               {
-                "backgroundColor": "#E4EDFB",
+                "backgroundColor": "#DEE5DE",
               },
             ]
           }
@@ -704,8 +755,9 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                   "fontWeight": "500",
                   "lineHeight": 21,
                 },
+                null,
                 {
-                  "color": "#5B6572",
+                  "color": "#4F5C55",
                   "textAlign": undefined,
                   "writingDirection": "ltr",
                 },
@@ -727,6 +779,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                   "fontWeight": "400",
                   "lineHeight": 21,
                 },
+                null,
                 {
                   "color": "#14201B",
                   "textAlign": undefined,
@@ -751,8 +804,8 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                   "paddingVertical": 2,
                 },
                 {
-                  "backgroundColor": "#FFFFFF",
-                  "borderColor": "#E4EDFB",
+                  "backgroundColor": "#F7F9F5",
+                  "borderColor": "#DEE5DE",
                 },
               ]
             }
@@ -766,8 +819,9 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                     "fontWeight": "400",
                     "lineHeight": 18,
                   },
+                  null,
                   {
-                    "color": "#8B93A3",
+                    "color": "#7D8981",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -792,8 +846,8 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
               "padding": 12,
             },
             {
-              "backgroundColor": "#FFFFFF",
-              "borderColor": "#E4EDFB",
+              "backgroundColor": "#F7F9F5",
+              "borderColor": "#DEE5DE",
             },
           ]
         }
@@ -816,8 +870,9 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                   "fontWeight": "500",
                   "lineHeight": 21,
                 },
+                null,
                 {
-                  "color": "#5B6572",
+                  "color": "#4F5C55",
                   "textAlign": undefined,
                   "writingDirection": "ltr",
                 },
@@ -843,7 +898,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                   "paddingVertical": 4,
                 },
                 {
-                  "backgroundColor": "#F3E8CE",
+                  "backgroundColor": "#F1E6CB",
                 },
                 undefined,
               ]
@@ -854,10 +909,10 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                 [
                   {
                     "fontSize": 12,
-                    "fontWeight": "500",
+                    "fontWeight": "600",
                   },
                   {
-                    "color": "#B58A2E",
+                    "color": "#9C7420",
                   },
                 ]
               }
@@ -890,7 +945,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
             }
           >
             <View
-              accessibilityLabel="rides.rideDetail.departure, 8:30, Tunis"
+              accessibilityLabel="rides.rideDetail.departure, 08:30, Tunis"
               accessibilityRole="text"
               accessible={true}
               style={
@@ -921,14 +976,14 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                       },
                       {
                         "backgroundColor": "#14201B",
-                        "borderColor": "#FFFFFF",
+                        "borderColor": "#F7F9F5",
                       },
                     ]
                   }
                 >
                   <Ionicons
                     accessibilityElementsHidden={true}
-                    color="#FFFFFF"
+                    color="#F4F6F2"
                     importantForAccessibility="no-hide-descendants"
                     name="car"
                     size={16}
@@ -943,7 +998,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                         "minHeight": 16,
                       },
                       {
-                        "borderLeftColor": "#D3E1F5",
+                        "borderLeftColor": "#CCD5CD",
                         "borderLeftWidth": 2,
                         "borderStyle": "dashed",
                       },
@@ -983,8 +1038,9 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                             "fontWeight": "400",
                             "lineHeight": 21,
                           },
+                          null,
                           {
-                            "color": "#5B6572",
+                            "color": "#4F5C55",
                             "textAlign": undefined,
                             "writingDirection": "ltr",
                           },
@@ -1002,8 +1058,9 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                             "fontWeight": "400",
                             "lineHeight": 21,
                           },
+                          null,
                           {
-                            "color": "#5B6572",
+                            "color": "#4F5C55",
                             "textAlign": undefined,
                             "writingDirection": "ltr",
                           },
@@ -1011,7 +1068,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                         ]
                       }
                     >
-                      8:30
+                      08:30
                     </Text>
                   </View>
                   <Text
@@ -1023,6 +1080,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                           "fontWeight": "400",
                           "lineHeight": 24,
                         },
+                        null,
                         {
                           "color": "#14201B",
                           "textAlign": undefined,
@@ -1045,8 +1103,9 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                           "fontWeight": "400",
                           "lineHeight": 18,
                         },
+                        null,
                         {
-                          "color": "#8B93A3",
+                          "color": "#7D8981",
                           "textAlign": undefined,
                           "writingDirection": "ltr",
                         },
@@ -1112,14 +1171,14 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                       },
                       {
                         "backgroundColor": "#14201B",
-                        "borderColor": "#FFFFFF",
+                        "borderColor": "#F7F9F5",
                       },
                     ]
                   }
                 >
                   <Ionicons
                     accessibilityElementsHidden={true}
-                    color="#FFFFFF"
+                    color="#F4F6F2"
                     importantForAccessibility="no-hide-descendants"
                     name="flag"
                     size={16}
@@ -1158,8 +1217,9 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                             "fontWeight": "400",
                             "lineHeight": 21,
                           },
+                          null,
                           {
-                            "color": "#5B6572",
+                            "color": "#4F5C55",
                             "textAlign": undefined,
                             "writingDirection": "ltr",
                           },
@@ -1177,8 +1237,9 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                             "fontWeight": "400",
                             "lineHeight": 21,
                           },
+                          null,
                           {
-                            "color": "#5B6572",
+                            "color": "#4F5C55",
                             "textAlign": undefined,
                             "writingDirection": "ltr",
                           },
@@ -1198,6 +1259,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                           "fontWeight": "400",
                           "lineHeight": 24,
                         },
+                        null,
                         {
                           "color": "#14201B",
                           "textAlign": undefined,
@@ -1220,8 +1282,9 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                           "fontWeight": "400",
                           "lineHeight": 18,
                         },
+                        null,
                         {
-                          "color": "#8B93A3",
+                          "color": "#7D8981",
                           "textAlign": undefined,
                           "writingDirection": "ltr",
                         },
@@ -1254,8 +1317,9 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                 "fontWeight": "500",
                 "lineHeight": 21,
               },
+              null,
               {
-                "color": "#5B6572",
+                "color": "#4F5C55",
                 "textAlign": undefined,
                 "writingDirection": "ltr",
               },
@@ -1276,8 +1340,9 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                 "fontWeight": "400",
                 "lineHeight": 21,
               },
+              null,
               {
-                "color": "#8B93A3",
+                "color": "#7D8981",
                 "textAlign": undefined,
                 "writingDirection": "ltr",
               },
@@ -1308,8 +1373,8 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
             "paddingTop": 8,
           },
           {
-            "backgroundColor": "#FFFFFF",
-            "borderTopColor": "#E4EDFB",
+            "backgroundColor": "#EEF1EC",
+            "borderTopColor": "#DEE5DE",
             "paddingBottom": 12,
           },
         ]
@@ -1328,23 +1393,34 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
         onPress={[Function]}
         style={[Function]}
       >
-        <Text
+        <View
           style={
-            [
-              {
-                "fontWeight": "600",
-              },
-              {
-                "fontSize": 16,
-              },
-              {
-                "color": "#14201B",
-              },
-            ]
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "gap": 8,
+            }
           }
         >
-          rides.rideDetail.cancelRide
-        </Text>
+          <Text
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "fontWeight": "600",
+                },
+                {
+                  "fontSize": 16,
+                },
+                {
+                  "color": "#14201B",
+                },
+              ]
+            }
+          >
+            rides.rideDetail.cancelRide
+          </Text>
+        </View>
       </Pressable>
     </View>
     <Modal
@@ -1359,7 +1435,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
               "flex": 1,
             },
             {
-              "backgroundColor": "#FFFFFF",
+              "backgroundColor": "#EEF1EC",
             },
           ]
         }
@@ -1616,7 +1692,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                     },
                     {
                       "backgroundColor": "#2E9E6C",
-                      "borderColor": "#FFFFFF",
+                      "borderColor": "#F7F9F5",
                     },
                   ]
                 }
@@ -1683,7 +1759,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                     },
                     {
                       "backgroundColor": "#14201B",
-                      "borderColor": "#FFFFFF",
+                      "borderColor": "#F7F9F5",
                     },
                   ]
                 }
@@ -1702,7 +1778,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                         "width": 7,
                       },
                       {
-                        "backgroundColor": "#FFFFFF",
+                        "backgroundColor": "#F4F6F2",
                       },
                     ]
                   }
@@ -1730,9 +1806,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
             style={
               [
                 {
-                  "backgroundColor": "#EAE7DC",
-                },
-                {
+                  "backgroundColor": "#E2E8E1",
                   "borderRadius": 0,
                   "height": 16,
                   "opacity": AnimatedValue {
@@ -1745,11 +1819,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
             }
           />
         </View>
-        <TouchableOpacity
-          accessibilityLabel="rides.rideDetail.close"
-          accessibilityRole="button"
-          hitSlop={12}
-          onPress={[Function]}
+        <View
           style={
             [
               {
@@ -1770,18 +1840,27 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                 "width": 40,
               },
               {
-                "backgroundColor": "#FFFFFF",
                 "top": 8,
               },
             ]
           }
         >
-          <Ionicons
-            color="#14201B"
-            name="close"
-            size={22}
-          />
-        </TouchableOpacity>
+          <Pressable
+            accessibilityLabel="rides.rideDetail.close"
+            accessibilityRole="button"
+            hitSlop={8}
+            onPress={[Function]}
+            style={[Function]}
+          >
+            <Ionicons
+              accessibilityElementsHidden={true}
+              color="#14201B"
+              importantForAccessibility="no-hide-descendants"
+              name="close"
+              size={20}
+            />
+          </Pressable>
+        </View>
       </View>
     </Modal>
   </View>,
@@ -1809,11 +1888,118 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
           "flex": 1,
         },
         {
-          "backgroundColor": "#FFFFFF",
+          "backgroundColor": "#EEF1EC",
         },
       ]
     }
   >
+    <View
+      style={
+        [
+          {
+            "paddingBottom": 8,
+            "paddingHorizontal": 16,
+          },
+          {
+            "paddingTop": 8,
+          },
+          {
+            "backgroundColor": "#EEF1EC",
+          },
+          {
+            "borderBottomColor": "#DEE5DE",
+            "borderBottomWidth": 1,
+          },
+          undefined,
+        ]
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "gap": 8,
+            "minHeight": 44,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flex": 1,
+              "flexDirection": "row",
+              "gap": 8,
+              "minWidth": 40,
+            }
+          }
+        >
+          <Pressable
+            accessibilityLabel="rides.rideDetail.back"
+            accessibilityRole="button"
+            hitSlop={8}
+            onPress={[Function]}
+            style={[Function]}
+          >
+            <Ionicons
+              accessibilityElementsHidden={true}
+              color="#14201B"
+              importantForAccessibility="no-hide-descendants"
+              name="chevron-back"
+              size={20}
+            />
+          </Pressable>
+        </View>
+        <View
+          accessibilityRole="header"
+          style={
+            {
+              "alignItems": "center",
+              "flex": 3,
+            }
+          }
+        >
+          <Text
+            numberOfLines={2}
+            style={
+              [
+                {
+                  "fontSize": 18,
+                  "fontWeight": "600",
+                  "lineHeight": 23.400000000000002,
+                },
+                null,
+                {
+                  "color": "#14201B",
+                  "textAlign": "center",
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            rides.rideDetail.myRide
+          </Text>
+        </View>
+        <View
+          style={
+            [
+              {
+                "alignItems": "center",
+                "flex": 1,
+                "flexDirection": "row",
+                "gap": 8,
+                "minWidth": 40,
+              },
+              {
+                "justifyContent": "flex-end",
+              },
+            ]
+          }
+        />
+      </View>
+    </View>
     <ScrollView
       contentContainerStyle={
         {
@@ -1822,63 +2008,6 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
       }
       showsVerticalScrollIndicator={false}
     >
-      <View
-        style={
-          [
-            {
-              "alignItems": "center",
-              "flexDirection": "row",
-              "paddingBottom": 8,
-              "paddingHorizontal": 16,
-            },
-            {
-              "paddingTop": 8,
-            },
-          ]
-        }
-      >
-        <TouchableOpacity
-          accessibilityLabel="rides.rideDetail.back"
-          accessibilityRole="button"
-          hitSlop={12}
-          onPress={[Function]}
-        >
-          <Ionicons
-            color="#14201B"
-            name="chevron-back"
-            size={24}
-          />
-        </TouchableOpacity>
-        <Text
-          style={
-            [
-              {
-                "fontSize": 24,
-                "fontWeight": "600",
-                "lineHeight": 28.799999999999997,
-              },
-              {
-                "color": "#14201B",
-                "textAlign": undefined,
-                "writingDirection": "ltr",
-              },
-              {
-                "flex": 1,
-                "textAlign": "center",
-              },
-            ]
-          }
-        >
-          rides.rideDetail.myRide
-        </Text>
-        <View
-          style={
-            {
-              "width": 24,
-            }
-          }
-        />
-      </View>
       <View
         style={
           {
@@ -2143,7 +2272,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                     },
                     {
                       "backgroundColor": "#2E9E6C",
-                      "borderColor": "#FFFFFF",
+                      "borderColor": "#F7F9F5",
                     },
                   ]
                 }
@@ -2210,7 +2339,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                     },
                     {
                       "backgroundColor": "#14201B",
-                      "borderColor": "#FFFFFF",
+                      "borderColor": "#F7F9F5",
                     },
                   ]
                 }
@@ -2229,7 +2358,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                         "width": 7,
                       },
                       {
-                        "backgroundColor": "#FFFFFF",
+                        "backgroundColor": "#F4F6F2",
                       },
                     ]
                   }
@@ -2272,7 +2401,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                     },
                     {
                       "backgroundColor": "#2E9E6C",
-                      "borderColor": "#FFFFFF",
+                      "borderColor": "#F7F9F5",
                     },
                   ]
                 }
@@ -2307,9 +2436,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
             style={
               [
                 {
-                  "backgroundColor": "#EAE7DC",
-                },
-                {
+                  "backgroundColor": "#E2E8E1",
                   "borderRadius": 0,
                   "height": 16,
                   "opacity": AnimatedValue {
@@ -2358,7 +2485,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                   "shadowRadius": 6,
                 },
                 {
-                  "backgroundColor": "#FFFFFF",
+                  "backgroundColor": "#F7F9F5",
                 },
               ]
             }
@@ -2378,6 +2505,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                     "fontWeight": "400",
                     "lineHeight": 18,
                   },
+                  null,
                   {
                     "color": "#14201B",
                     "textAlign": undefined,
@@ -2403,7 +2531,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
               "overflow": "hidden",
             },
             {
-              "backgroundColor": "#E4EDFB",
+              "backgroundColor": "#E2E8E1",
             },
           ]
         }
@@ -2425,8 +2553,9 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                   "fontWeight": "500",
                   "lineHeight": 21,
                 },
+                null,
                 {
-                  "color": "#5B6572",
+                  "color": "#4F5C55",
                   "textAlign": undefined,
                   "writingDirection": "ltr",
                 },
@@ -2484,7 +2613,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                     "width": 16,
                   },
                   {
-                    "backgroundColor": "#E4EDFB",
+                    "backgroundColor": "#DEE5DE",
                   },
                 ]
               }
@@ -2498,7 +2627,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                     "width": 16,
                   },
                   {
-                    "backgroundColor": "#E4EDFB",
+                    "backgroundColor": "#DEE5DE",
                   },
                 ]
               }
@@ -2513,6 +2642,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                   "fontWeight": "400",
                   "lineHeight": 21,
                 },
+                null,
                 {
                   "color": "#14201B",
                   "textAlign": undefined,
@@ -2532,7 +2662,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                 "width": 1,
               },
               {
-                "backgroundColor": "#E4EDFB",
+                "backgroundColor": "#DEE5DE",
               },
             ]
           }
@@ -2554,8 +2684,9 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                   "fontWeight": "500",
                   "lineHeight": 21,
                 },
+                null,
                 {
-                  "color": "#5B6572",
+                  "color": "#4F5C55",
                   "textAlign": undefined,
                   "writingDirection": "ltr",
                 },
@@ -2577,6 +2708,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                   "fontWeight": "400",
                   "lineHeight": 21,
                 },
+                null,
                 {
                   "color": "#14201B",
                   "textAlign": undefined,
@@ -2601,8 +2733,8 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                   "paddingVertical": 2,
                 },
                 {
-                  "backgroundColor": "#FFFFFF",
-                  "borderColor": "#E4EDFB",
+                  "backgroundColor": "#F7F9F5",
+                  "borderColor": "#DEE5DE",
                 },
               ]
             }
@@ -2616,8 +2748,9 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                     "fontWeight": "400",
                     "lineHeight": 18,
                   },
+                  null,
                   {
-                    "color": "#8B93A3",
+                    "color": "#7D8981",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -2642,8 +2775,8 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
               "padding": 12,
             },
             {
-              "backgroundColor": "#FFFFFF",
-              "borderColor": "#E4EDFB",
+              "backgroundColor": "#F7F9F5",
+              "borderColor": "#DEE5DE",
             },
           ]
         }
@@ -2666,8 +2799,9 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                   "fontWeight": "500",
                   "lineHeight": 21,
                 },
+                null,
                 {
-                  "color": "#5B6572",
+                  "color": "#4F5C55",
                   "textAlign": undefined,
                   "writingDirection": "ltr",
                 },
@@ -2693,7 +2827,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                   "paddingVertical": 4,
                 },
                 {
-                  "backgroundColor": "#F3E8CE",
+                  "backgroundColor": "#F1E6CB",
                 },
                 undefined,
               ]
@@ -2704,10 +2838,10 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                 [
                   {
                     "fontSize": 12,
-                    "fontWeight": "500",
+                    "fontWeight": "600",
                   },
                   {
-                    "color": "#B58A2E",
+                    "color": "#9C7420",
                   },
                 ]
               }
@@ -2740,7 +2874,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
             }
           >
             <View
-              accessibilityLabel="rides.rideDetail.departure, 8:30, Tunis"
+              accessibilityLabel="rides.rideDetail.departure, 08:30, Tunis"
               accessibilityRole="text"
               accessible={true}
               style={
@@ -2771,14 +2905,14 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                       },
                       {
                         "backgroundColor": "#14201B",
-                        "borderColor": "#FFFFFF",
+                        "borderColor": "#F7F9F5",
                       },
                     ]
                   }
                 >
                   <Ionicons
                     accessibilityElementsHidden={true}
-                    color="#FFFFFF"
+                    color="#F4F6F2"
                     importantForAccessibility="no-hide-descendants"
                     name="car"
                     size={16}
@@ -2793,7 +2927,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                         "minHeight": 16,
                       },
                       {
-                        "borderLeftColor": "#D3E1F5",
+                        "borderLeftColor": "#CCD5CD",
                         "borderLeftWidth": 2,
                         "borderStyle": "dashed",
                       },
@@ -2833,8 +2967,9 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                             "fontWeight": "400",
                             "lineHeight": 21,
                           },
+                          null,
                           {
-                            "color": "#5B6572",
+                            "color": "#4F5C55",
                             "textAlign": undefined,
                             "writingDirection": "ltr",
                           },
@@ -2852,8 +2987,9 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                             "fontWeight": "400",
                             "lineHeight": 21,
                           },
+                          null,
                           {
-                            "color": "#5B6572",
+                            "color": "#4F5C55",
                             "textAlign": undefined,
                             "writingDirection": "ltr",
                           },
@@ -2861,7 +2997,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                         ]
                       }
                     >
-                      8:30
+                      08:30
                     </Text>
                   </View>
                   <Text
@@ -2873,6 +3009,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                           "fontWeight": "400",
                           "lineHeight": 24,
                         },
+                        null,
                         {
                           "color": "#14201B",
                           "textAlign": undefined,
@@ -2895,8 +3032,9 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                           "fontWeight": "400",
                           "lineHeight": 18,
                         },
+                        null,
                         {
-                          "color": "#8B93A3",
+                          "color": "#7D8981",
                           "textAlign": undefined,
                           "writingDirection": "ltr",
                         },
@@ -2970,7 +3108,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                       },
                       {
                         "backgroundColor": "#2E9E6C",
-                        "borderColor": "#FFFFFF",
+                        "borderColor": "#F7F9F5",
                       },
                     ]
                   }
@@ -3018,8 +3156,8 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                         "padding": 8,
                       },
                       {
-                        "backgroundColor": "#E4EDFB",
-                        "borderColor": "#E4EDFB",
+                        "backgroundColor": "#E2E8E1",
+                        "borderColor": "#DEE5DE",
                       },
                     ]
                   }
@@ -3050,7 +3188,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                               "justifyContent": "center",
                             },
                             {
-                              "backgroundColor": "#2E3B42",
+                              "backgroundColor": "#E2E8E1",
                               "borderRadius": 14,
                               "height": 28,
                               "width": 28,
@@ -3062,11 +3200,10 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                           style={
                             [
                               {
-                                "color": "#FFFFFF",
                                 "fontWeight": "600",
                               },
                               {
-                                "color": undefined,
+                                "color": "#14201B",
                                 "fontSize": 11,
                               },
                             ]
@@ -3085,6 +3222,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                             "fontWeight": "400",
                             "lineHeight": 21,
                           },
+                          null,
                           {
                             "color": "#14201B",
                             "textAlign": undefined,
@@ -3107,8 +3245,9 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                             "fontWeight": "400",
                             "lineHeight": 21,
                           },
+                          null,
                           {
-                            "color": "#5B6572",
+                            "color": "#4F5C55",
                             "textAlign": undefined,
                             "writingDirection": "ltr",
                           },
@@ -3128,8 +3267,9 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                           "fontWeight": "400",
                           "lineHeight": 18,
                         },
+                        null,
                         {
-                          "color": "#8B93A3",
+                          "color": "#7D8981",
                           "textAlign": undefined,
                           "writingDirection": "ltr",
                         },
@@ -3151,8 +3291,9 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                           "fontWeight": "400",
                           "lineHeight": 18,
                         },
+                        null,
                         {
-                          "color": "#8B93A3",
+                          "color": "#7D8981",
                           "textAlign": undefined,
                           "writingDirection": "ltr",
                         },
@@ -3220,14 +3361,14 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                       },
                       {
                         "backgroundColor": "#14201B",
-                        "borderColor": "#FFFFFF",
+                        "borderColor": "#F7F9F5",
                       },
                     ]
                   }
                 >
                   <Ionicons
                     accessibilityElementsHidden={true}
-                    color="#FFFFFF"
+                    color="#F4F6F2"
                     importantForAccessibility="no-hide-descendants"
                     name="flag"
                     size={16}
@@ -3266,8 +3407,9 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                             "fontWeight": "400",
                             "lineHeight": 21,
                           },
+                          null,
                           {
-                            "color": "#5B6572",
+                            "color": "#4F5C55",
                             "textAlign": undefined,
                             "writingDirection": "ltr",
                           },
@@ -3285,8 +3427,9 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                             "fontWeight": "400",
                             "lineHeight": 21,
                           },
+                          null,
                           {
-                            "color": "#5B6572",
+                            "color": "#4F5C55",
                             "textAlign": undefined,
                             "writingDirection": "ltr",
                           },
@@ -3306,6 +3449,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                           "fontWeight": "400",
                           "lineHeight": 24,
                         },
+                        null,
                         {
                           "color": "#14201B",
                           "textAlign": undefined,
@@ -3328,8 +3472,9 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                           "fontWeight": "400",
                           "lineHeight": 18,
                         },
+                        null,
                         {
-                          "color": "#8B93A3",
+                          "color": "#7D8981",
                           "textAlign": undefined,
                           "writingDirection": "ltr",
                         },
@@ -3362,8 +3507,9 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                 "fontWeight": "500",
                 "lineHeight": 21,
               },
+              null,
               {
-                "color": "#5B6572",
+                "color": "#4F5C55",
                 "textAlign": undefined,
                 "writingDirection": "ltr",
               },
@@ -3390,8 +3536,8 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                 "padding": 12,
               },
               {
-                "backgroundColor": "#E4EDFB",
-                "borderColor": "#E4EDFB",
+                "backgroundColor": "#E2E8E1",
+                "borderColor": "#DEE5DE",
               },
             ]
           }
@@ -3422,7 +3568,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                       "justifyContent": "center",
                     },
                     {
-                      "backgroundColor": "#FFFFFF",
+                      "backgroundColor": "#E2E8E1",
                       "borderRadius": 20,
                       "height": 40,
                       "width": 40,
@@ -3434,7 +3580,6 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                   style={
                     [
                       {
-                        "color": "#FFFFFF",
                         "fontWeight": "600",
                       },
                       {
@@ -3465,6 +3610,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                       "fontWeight": "400",
                       "lineHeight": 24,
                     },
+                    null,
                     {
                       "color": "#14201B",
                       "textAlign": undefined,
@@ -3485,8 +3631,9 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                       "fontWeight": "400",
                       "lineHeight": 18,
                     },
+                    null,
                     {
-                      "color": "#5B6572",
+                      "color": "#4F5C55",
                       "textAlign": undefined,
                       "writingDirection": "ltr",
                     },
@@ -3505,8 +3652,9 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                       "fontWeight": "400",
                       "lineHeight": 18,
                     },
+                    null,
                     {
-                      "color": "#8B93A3",
+                      "color": "#7D8981",
                       "textAlign": undefined,
                       "writingDirection": "ltr",
                     },
@@ -3519,7 +3667,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
             </View>
             <Ionicons
               accessibilityElementsHidden={true}
-              color="#8B93A3"
+              color="#7D8981"
               importantForAccessibility="no-hide-descendants"
               name="chevron-forward"
               size={20}
@@ -3533,91 +3681,90 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
               }
             }
           >
-            <TouchableOpacity
+            <Pressable
               accessibilityLabel="rides.requestsSheet.decline Dinara Kochakajeva"
               accessibilityRole="button"
-              activeOpacity={0.7}
+              accessibilityState={
+                {
+                  "busy": false,
+                  "disabled": false,
+                }
+              }
               disabled={false}
               onPress={[Function]}
-              style={
-                [
+              style={[Function]}
+            >
+              <View
+                style={
                   {
                     "alignItems": "center",
-                    "borderRadius": 9999,
-                    "flex": 1,
-                    "justifyContent": "center",
-                    "paddingVertical": 8,
-                  },
-                  {
-                    "borderWidth": 1,
-                  },
-                  {
-                    "borderColor": "#D3E1F5",
-                  },
-                ]
-              }
-            >
-              <Text
-                style={
-                  [
-                    {
-                      "fontSize": 14,
-                      "fontWeight": "500",
-                      "lineHeight": 21,
-                    },
-                    {
-                      "color": "#B5503C",
-                      "textAlign": undefined,
-                      "writingDirection": "ltr",
-                    },
-                    undefined,
-                  ]
+                    "flexDirection": "row",
+                    "gap": 8,
+                  }
                 }
               >
-                rides.requestsSheet.decline
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
+                <Text
+                  numberOfLines={1}
+                  style={
+                    [
+                      {
+                        "fontWeight": "600",
+                      },
+                      {
+                        "fontSize": 14,
+                      },
+                      {
+                        "color": "#14201B",
+                      },
+                    ]
+                  }
+                >
+                  rides.requestsSheet.decline
+                </Text>
+              </View>
+            </Pressable>
+            <Pressable
               accessibilityLabel="rides.requestsSheet.accept Dinara Kochakajeva"
               accessibilityRole="button"
-              activeOpacity={0.85}
+              accessibilityState={
+                {
+                  "busy": false,
+                  "disabled": false,
+                }
+              }
               disabled={false}
               onPress={[Function]}
-              style={
-                [
+              style={[Function]}
+            >
+              <View
+                style={
                   {
                     "alignItems": "center",
-                    "borderRadius": 9999,
-                    "flex": 1,
-                    "justifyContent": "center",
-                    "paddingVertical": 8,
-                  },
-                  {
-                    "backgroundColor": "#2E9E6C",
-                  },
-                ]
-              }
-            >
-              <Text
-                style={
-                  [
-                    {
-                      "fontSize": 14,
-                      "fontWeight": "500",
-                      "lineHeight": 21,
-                    },
-                    {
-                      "color": "#0D1512",
-                      "textAlign": undefined,
-                      "writingDirection": "ltr",
-                    },
-                    undefined,
-                  ]
+                    "flexDirection": "row",
+                    "gap": 8,
+                  }
                 }
               >
-                rides.requestsSheet.accept
-              </Text>
-            </TouchableOpacity>
+                <Text
+                  numberOfLines={1}
+                  style={
+                    [
+                      {
+                        "fontWeight": "600",
+                      },
+                      {
+                        "fontSize": 14,
+                      },
+                      {
+                        "color": "#F4F6F2",
+                      },
+                    ]
+                  }
+                >
+                  rides.requestsSheet.accept
+                </Text>
+              </View>
+            </Pressable>
           </View>
         </TouchableOpacity>
       </View>
@@ -3638,8 +3785,9 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                 "fontWeight": "500",
                 "lineHeight": 21,
               },
+              null,
               {
-                "color": "#5B6572",
+                "color": "#4F5C55",
                 "textAlign": undefined,
                 "writingDirection": "ltr",
               },
@@ -3679,8 +3827,8 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                   "gap": 8,
                 },
                 {
-                  "backgroundColor": "#E4EDFB",
-                  "borderColor": "#E4EDFB",
+                  "backgroundColor": "#E2E8E1",
+                  "borderColor": "#DEE5DE",
                 },
               ]
             }
@@ -3702,7 +3850,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                       "justifyContent": "center",
                     },
                     {
-                      "backgroundColor": "#FFFFFF",
+                      "backgroundColor": "#E2E8E1",
                       "borderRadius": 18,
                       "height": 36,
                       "width": 36,
@@ -3714,7 +3862,6 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                   style={
                     [
                       {
-                        "color": "#FFFFFF",
                         "fontWeight": "600",
                       },
                       {
@@ -3745,6 +3892,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                       "fontWeight": "400",
                       "lineHeight": 21,
                     },
+                    null,
                     {
                       "color": "#14201B",
                       "textAlign": undefined,
@@ -3764,8 +3912,9 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                       "fontWeight": "400",
                       "lineHeight": 18,
                     },
+                    null,
                     {
-                      "color": "#5B6572",
+                      "color": "#4F5C55",
                       "textAlign": undefined,
                       "writingDirection": "ltr",
                     },
@@ -3777,7 +3926,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
               </Text>
             </View>
             <View
-              accessibilityLabel="rides.rideDetail.confirmedBadge"
+              accessibilityLabel="booking:phase.confirmed"
               accessibilityRole="text"
               accessible={true}
               style={
@@ -3800,7 +3949,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                   [
                     {
                       "fontSize": 12,
-                      "fontWeight": "500",
+                      "fontWeight": "600",
                     },
                     {
                       "color": "#22794F",
@@ -3808,12 +3957,12 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                   ]
                 }
               >
-                rides.rideDetail.confirmedBadge
+                booking:phase.confirmed
               </Text>
             </View>
             <Ionicons
               accessibilityElementsHidden={true}
-              color="#D3E1F5"
+              color="#CCD5CD"
               importantForAccessibility="no-hide-descendants"
               name="chevron-forward"
               size={16}
@@ -3839,8 +3988,8 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
             "paddingTop": 8,
           },
           {
-            "backgroundColor": "#FFFFFF",
-            "borderTopColor": "#E4EDFB",
+            "backgroundColor": "#EEF1EC",
+            "borderTopColor": "#DEE5DE",
             "paddingBottom": 12,
           },
         ]
@@ -3859,23 +4008,34 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
         onPress={[Function]}
         style={[Function]}
       >
-        <Text
+        <View
           style={
-            [
-              {
-                "fontWeight": "600",
-              },
-              {
-                "fontSize": 16,
-              },
-              {
-                "color": "#0D1512",
-              },
-            ]
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "gap": 8,
+            }
           }
         >
-          rides.rideDetail.journeyStartCta
-        </Text>
+          <Text
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "fontWeight": "600",
+                },
+                {
+                  "fontSize": 16,
+                },
+                {
+                  "color": "#F4F6F2",
+                },
+              ]
+            }
+          >
+            rides.rideDetail.journeyStartCta
+          </Text>
+        </View>
       </Pressable>
       <Pressable
         accessibilityLabel="rides.rideDetail.cancelRide"
@@ -3890,23 +4050,34 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
         onPress={[Function]}
         style={[Function]}
       >
-        <Text
+        <View
           style={
-            [
-              {
-                "fontWeight": "600",
-              },
-              {
-                "fontSize": 16,
-              },
-              {
-                "color": "#14201B",
-              },
-            ]
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "gap": 8,
+            }
           }
         >
-          rides.rideDetail.cancelRide
-        </Text>
+          <Text
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "fontWeight": "600",
+                },
+                {
+                  "fontSize": 16,
+                },
+                {
+                  "color": "#14201B",
+                },
+              ]
+            }
+          >
+            rides.rideDetail.cancelRide
+          </Text>
+        </View>
       </Pressable>
     </View>
     <Modal
@@ -3921,7 +4092,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
               "flex": 1,
             },
             {
-              "backgroundColor": "#FFFFFF",
+              "backgroundColor": "#EEF1EC",
             },
           ]
         }
@@ -4178,7 +4349,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                     },
                     {
                       "backgroundColor": "#2E9E6C",
-                      "borderColor": "#FFFFFF",
+                      "borderColor": "#F7F9F5",
                     },
                   ]
                 }
@@ -4240,7 +4411,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                     },
                     {
                       "backgroundColor": "#2E9E6C",
-                      "borderColor": "#FFFFFF",
+                      "borderColor": "#F7F9F5",
                     },
                   ]
                 }
@@ -4295,7 +4466,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                     },
                     {
                       "backgroundColor": "#14201B",
-                      "borderColor": "#FFFFFF",
+                      "borderColor": "#F7F9F5",
                     },
                   ]
                 }
@@ -4314,7 +4485,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                         "width": 7,
                       },
                       {
-                        "backgroundColor": "#FFFFFF",
+                        "backgroundColor": "#F4F6F2",
                       },
                     ]
                   }
@@ -4342,9 +4513,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
             style={
               [
                 {
-                  "backgroundColor": "#EAE7DC",
-                },
-                {
+                  "backgroundColor": "#E2E8E1",
                   "borderRadius": 0,
                   "height": 16,
                   "opacity": AnimatedValue {
@@ -4357,11 +4526,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
             }
           />
         </View>
-        <TouchableOpacity
-          accessibilityLabel="rides.rideDetail.close"
-          accessibilityRole="button"
-          hitSlop={12}
-          onPress={[Function]}
+        <View
           style={
             [
               {
@@ -4382,18 +4547,27 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                 "width": 40,
               },
               {
-                "backgroundColor": "#FFFFFF",
                 "top": 8,
               },
             ]
           }
         >
-          <Ionicons
-            color="#14201B"
-            name="close"
-            size={22}
-          />
-        </TouchableOpacity>
+          <Pressable
+            accessibilityLabel="rides.rideDetail.close"
+            accessibilityRole="button"
+            hitSlop={8}
+            onPress={[Function]}
+            style={[Function]}
+          >
+            <Ionicons
+              accessibilityElementsHidden={true}
+              color="#14201B"
+              importantForAccessibility="no-hide-descendants"
+              name="close"
+              size={20}
+            />
+          </Pressable>
+        </View>
       </View>
     </Modal>
   </View>,
@@ -4421,11 +4595,118 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
           "flex": 1,
         },
         {
-          "backgroundColor": "#FFFFFF",
+          "backgroundColor": "#EEF1EC",
         },
       ]
     }
   >
+    <View
+      style={
+        [
+          {
+            "paddingBottom": 8,
+            "paddingHorizontal": 16,
+          },
+          {
+            "paddingTop": 8,
+          },
+          {
+            "backgroundColor": "#EEF1EC",
+          },
+          {
+            "borderBottomColor": "#DEE5DE",
+            "borderBottomWidth": 1,
+          },
+          undefined,
+        ]
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "gap": 8,
+            "minHeight": 44,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flex": 1,
+              "flexDirection": "row",
+              "gap": 8,
+              "minWidth": 40,
+            }
+          }
+        >
+          <Pressable
+            accessibilityLabel="rides.rideDetail.back"
+            accessibilityRole="button"
+            hitSlop={8}
+            onPress={[Function]}
+            style={[Function]}
+          >
+            <Ionicons
+              accessibilityElementsHidden={true}
+              color="#14201B"
+              importantForAccessibility="no-hide-descendants"
+              name="chevron-back"
+              size={20}
+            />
+          </Pressable>
+        </View>
+        <View
+          accessibilityRole="header"
+          style={
+            {
+              "alignItems": "center",
+              "flex": 3,
+            }
+          }
+        >
+          <Text
+            numberOfLines={2}
+            style={
+              [
+                {
+                  "fontSize": 18,
+                  "fontWeight": "600",
+                  "lineHeight": 23.400000000000002,
+                },
+                null,
+                {
+                  "color": "#14201B",
+                  "textAlign": "center",
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            rides.rideDetail.myRide
+          </Text>
+        </View>
+        <View
+          style={
+            [
+              {
+                "alignItems": "center",
+                "flex": 1,
+                "flexDirection": "row",
+                "gap": 8,
+                "minWidth": 40,
+              },
+              {
+                "justifyContent": "flex-end",
+              },
+            ]
+          }
+        />
+      </View>
+    </View>
     <ScrollView
       contentContainerStyle={
         {
@@ -4434,63 +4715,6 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
       }
       showsVerticalScrollIndicator={false}
     >
-      <View
-        style={
-          [
-            {
-              "alignItems": "center",
-              "flexDirection": "row",
-              "paddingBottom": 8,
-              "paddingHorizontal": 16,
-            },
-            {
-              "paddingTop": 8,
-            },
-          ]
-        }
-      >
-        <TouchableOpacity
-          accessibilityLabel="rides.rideDetail.back"
-          accessibilityRole="button"
-          hitSlop={12}
-          onPress={[Function]}
-        >
-          <Ionicons
-            color="#14201B"
-            name="chevron-back"
-            size={24}
-          />
-        </TouchableOpacity>
-        <Text
-          style={
-            [
-              {
-                "fontSize": 24,
-                "fontWeight": "600",
-                "lineHeight": 28.799999999999997,
-              },
-              {
-                "color": "#14201B",
-                "textAlign": undefined,
-                "writingDirection": "ltr",
-              },
-              {
-                "flex": 1,
-                "textAlign": "center",
-              },
-            ]
-          }
-        >
-          rides.rideDetail.myRide
-        </Text>
-        <View
-          style={
-            {
-              "width": 24,
-            }
-          }
-        />
-      </View>
       <View
         style={
           {
@@ -4755,7 +4979,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                     },
                     {
                       "backgroundColor": "#2E9E6C",
-                      "borderColor": "#FFFFFF",
+                      "borderColor": "#F7F9F5",
                     },
                   ]
                 }
@@ -4822,7 +5046,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                     },
                     {
                       "backgroundColor": "#14201B",
-                      "borderColor": "#FFFFFF",
+                      "borderColor": "#F7F9F5",
                     },
                   ]
                 }
@@ -4841,7 +5065,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                         "width": 7,
                       },
                       {
-                        "backgroundColor": "#FFFFFF",
+                        "backgroundColor": "#F4F6F2",
                       },
                     ]
                   }
@@ -4884,7 +5108,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                     },
                     {
                       "backgroundColor": "#2E9E6C",
-                      "borderColor": "#FFFFFF",
+                      "borderColor": "#F7F9F5",
                     },
                   ]
                 }
@@ -4934,7 +5158,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                     },
                     {
                       "backgroundColor": "#2E9E6C",
-                      "borderColor": "#FFFFFF",
+                      "borderColor": "#F7F9F5",
                     },
                   ]
                 }
@@ -4984,14 +5208,14 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                     },
                     {
                       "backgroundColor": "#B5503C",
-                      "borderColor": "#FFFFFF",
+                      "borderColor": "#F7F9F5",
                     },
                   ]
                 }
               >
                 <Ionicons
                   accessibilityElementsHidden={true}
-                  color="#FFFFFF"
+                  color="#F7F9F5"
                   importantForAccessibility="no-hide-descendants"
                   name="remove"
                   size={16}
@@ -5034,14 +5258,14 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                     },
                     {
                       "backgroundColor": "#B5503C",
-                      "borderColor": "#FFFFFF",
+                      "borderColor": "#F7F9F5",
                     },
                   ]
                 }
               >
                 <Ionicons
                   accessibilityElementsHidden={true}
-                  color="#FFFFFF"
+                  color="#F7F9F5"
                   importantForAccessibility="no-hide-descendants"
                   name="remove"
                   size={16}
@@ -5069,9 +5293,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
             style={
               [
                 {
-                  "backgroundColor": "#EAE7DC",
-                },
-                {
+                  "backgroundColor": "#E2E8E1",
                   "borderRadius": 0,
                   "height": 16,
                   "opacity": AnimatedValue {
@@ -5120,7 +5342,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                   "shadowRadius": 6,
                 },
                 {
-                  "backgroundColor": "#FFFFFF",
+                  "backgroundColor": "#F7F9F5",
                 },
               ]
             }
@@ -5140,6 +5362,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                     "fontWeight": "400",
                     "lineHeight": 18,
                   },
+                  null,
                   {
                     "color": "#14201B",
                     "textAlign": undefined,
@@ -5165,7 +5388,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
               "overflow": "hidden",
             },
             {
-              "backgroundColor": "#E4EDFB",
+              "backgroundColor": "#E2E8E1",
             },
           ]
         }
@@ -5187,8 +5410,9 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                   "fontWeight": "500",
                   "lineHeight": 21,
                 },
+                null,
                 {
-                  "color": "#5B6572",
+                  "color": "#4F5C55",
                   "textAlign": undefined,
                   "writingDirection": "ltr",
                 },
@@ -5246,7 +5470,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                     "width": 16,
                   },
                   {
-                    "backgroundColor": "#E4EDFB",
+                    "backgroundColor": "#DEE5DE",
                   },
                 ]
               }
@@ -5260,7 +5484,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                     "width": 16,
                   },
                   {
-                    "backgroundColor": "#E4EDFB",
+                    "backgroundColor": "#DEE5DE",
                   },
                 ]
               }
@@ -5275,6 +5499,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                   "fontWeight": "400",
                   "lineHeight": 21,
                 },
+                null,
                 {
                   "color": "#14201B",
                   "textAlign": undefined,
@@ -5294,7 +5519,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                 "width": 1,
               },
               {
-                "backgroundColor": "#E4EDFB",
+                "backgroundColor": "#DEE5DE",
               },
             ]
           }
@@ -5316,8 +5541,9 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                   "fontWeight": "500",
                   "lineHeight": 21,
                 },
+                null,
                 {
-                  "color": "#5B6572",
+                  "color": "#4F5C55",
                   "textAlign": undefined,
                   "writingDirection": "ltr",
                 },
@@ -5339,6 +5565,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                   "fontWeight": "400",
                   "lineHeight": 21,
                 },
+                null,
                 {
                   "color": "#14201B",
                   "textAlign": undefined,
@@ -5363,8 +5590,8 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                   "paddingVertical": 2,
                 },
                 {
-                  "backgroundColor": "#FFFFFF",
-                  "borderColor": "#E4EDFB",
+                  "backgroundColor": "#F7F9F5",
+                  "borderColor": "#DEE5DE",
                 },
               ]
             }
@@ -5378,8 +5605,9 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                     "fontWeight": "400",
                     "lineHeight": 18,
                   },
+                  null,
                   {
-                    "color": "#8B93A3",
+                    "color": "#7D8981",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -5404,8 +5632,8 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
               "padding": 12,
             },
             {
-              "backgroundColor": "#FFFFFF",
-              "borderColor": "#E4EDFB",
+              "backgroundColor": "#F7F9F5",
+              "borderColor": "#DEE5DE",
             },
           ]
         }
@@ -5428,8 +5656,9 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                   "fontWeight": "500",
                   "lineHeight": 21,
                 },
+                null,
                 {
-                  "color": "#5B6572",
+                  "color": "#4F5C55",
                   "textAlign": undefined,
                   "writingDirection": "ltr",
                 },
@@ -5455,7 +5684,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                   "paddingVertical": 4,
                 },
                 {
-                  "backgroundColor": "#F3E8CE",
+                  "backgroundColor": "#F1E6CB",
                 },
                 undefined,
               ]
@@ -5466,10 +5695,10 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                 [
                   {
                     "fontSize": 12,
-                    "fontWeight": "500",
+                    "fontWeight": "600",
                   },
                   {
-                    "color": "#B58A2E",
+                    "color": "#9C7420",
                   },
                 ]
               }
@@ -5502,7 +5731,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
             }
           >
             <View
-              accessibilityLabel="rides.rideDetail.departure, 8:30, Tunis"
+              accessibilityLabel="rides.rideDetail.departure, 08:30, Tunis"
               accessibilityRole="text"
               accessible={true}
               style={
@@ -5533,14 +5762,14 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                       },
                       {
                         "backgroundColor": "#14201B",
-                        "borderColor": "#FFFFFF",
+                        "borderColor": "#F7F9F5",
                       },
                     ]
                   }
                 >
                   <Ionicons
                     accessibilityElementsHidden={true}
-                    color="#FFFFFF"
+                    color="#F4F6F2"
                     importantForAccessibility="no-hide-descendants"
                     name="car"
                     size={16}
@@ -5555,7 +5784,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                         "minHeight": 16,
                       },
                       {
-                        "borderLeftColor": "#D3E1F5",
+                        "borderLeftColor": "#CCD5CD",
                         "borderLeftWidth": 2,
                         "borderStyle": "dashed",
                       },
@@ -5595,8 +5824,9 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                             "fontWeight": "400",
                             "lineHeight": 21,
                           },
+                          null,
                           {
-                            "color": "#5B6572",
+                            "color": "#4F5C55",
                             "textAlign": undefined,
                             "writingDirection": "ltr",
                           },
@@ -5614,8 +5844,9 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                             "fontWeight": "400",
                             "lineHeight": 21,
                           },
+                          null,
                           {
-                            "color": "#5B6572",
+                            "color": "#4F5C55",
                             "textAlign": undefined,
                             "writingDirection": "ltr",
                           },
@@ -5623,7 +5854,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                         ]
                       }
                     >
-                      8:30
+                      08:30
                     </Text>
                   </View>
                   <Text
@@ -5635,6 +5866,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                           "fontWeight": "400",
                           "lineHeight": 24,
                         },
+                        null,
                         {
                           "color": "#14201B",
                           "textAlign": undefined,
@@ -5657,8 +5889,9 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                           "fontWeight": "400",
                           "lineHeight": 18,
                         },
+                        null,
                         {
-                          "color": "#8B93A3",
+                          "color": "#7D8981",
                           "textAlign": undefined,
                           "writingDirection": "ltr",
                         },
@@ -5732,7 +5965,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                       },
                       {
                         "backgroundColor": "#2E9E6C",
-                        "borderColor": "#FFFFFF",
+                        "borderColor": "#F7F9F5",
                       },
                     ]
                   }
@@ -5780,8 +6013,8 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                         "padding": 8,
                       },
                       {
-                        "backgroundColor": "#E4EDFB",
-                        "borderColor": "#E4EDFB",
+                        "backgroundColor": "#E2E8E1",
+                        "borderColor": "#DEE5DE",
                       },
                     ]
                   }
@@ -5812,7 +6045,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                               "justifyContent": "center",
                             },
                             {
-                              "backgroundColor": "#587566",
+                              "backgroundColor": "#E2E8E1",
                               "borderRadius": 14,
                               "height": 28,
                               "width": 28,
@@ -5824,11 +6057,10 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                           style={
                             [
                               {
-                                "color": "#FFFFFF",
                                 "fontWeight": "600",
                               },
                               {
-                                "color": undefined,
+                                "color": "#14201B",
                                 "fontSize": 11,
                               },
                             ]
@@ -5847,6 +6079,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                             "fontWeight": "400",
                             "lineHeight": 21,
                           },
+                          null,
                           {
                             "color": "#14201B",
                             "textAlign": undefined,
@@ -5869,8 +6102,9 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                             "fontWeight": "400",
                             "lineHeight": 21,
                           },
+                          null,
                           {
-                            "color": "#5B6572",
+                            "color": "#4F5C55",
                             "textAlign": undefined,
                             "writingDirection": "ltr",
                           },
@@ -5890,8 +6124,9 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                           "fontWeight": "400",
                           "lineHeight": 18,
                         },
+                        null,
                         {
-                          "color": "#8B93A3",
+                          "color": "#7D8981",
                           "textAlign": undefined,
                           "writingDirection": "ltr",
                         },
@@ -5913,8 +6148,9 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                           "fontWeight": "400",
                           "lineHeight": 18,
                         },
+                        null,
                         {
-                          "color": "#8B93A3",
+                          "color": "#7D8981",
                           "textAlign": undefined,
                           "writingDirection": "ltr",
                         },
@@ -5990,7 +6226,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                       },
                       {
                         "backgroundColor": "#2E9E6C",
-                        "borderColor": "#FFFFFF",
+                        "borderColor": "#F7F9F5",
                       },
                     ]
                   }
@@ -6038,8 +6274,8 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                         "padding": 8,
                       },
                       {
-                        "backgroundColor": "#E4EDFB",
-                        "borderColor": "#E4EDFB",
+                        "backgroundColor": "#E2E8E1",
+                        "borderColor": "#DEE5DE",
                       },
                     ]
                   }
@@ -6070,7 +6306,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                               "justifyContent": "center",
                             },
                             {
-                              "backgroundColor": "#B08A4E",
+                              "backgroundColor": "#E2E8E1",
                               "borderRadius": 14,
                               "height": 28,
                               "width": 28,
@@ -6082,11 +6318,10 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                           style={
                             [
                               {
-                                "color": "#FFFFFF",
                                 "fontWeight": "600",
                               },
                               {
-                                "color": undefined,
+                                "color": "#14201B",
                                 "fontSize": 11,
                               },
                             ]
@@ -6105,6 +6340,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                             "fontWeight": "400",
                             "lineHeight": 21,
                           },
+                          null,
                           {
                             "color": "#14201B",
                             "textAlign": undefined,
@@ -6127,8 +6363,9 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                             "fontWeight": "400",
                             "lineHeight": 21,
                           },
+                          null,
                           {
-                            "color": "#5B6572",
+                            "color": "#4F5C55",
                             "textAlign": undefined,
                             "writingDirection": "ltr",
                           },
@@ -6148,8 +6385,9 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                           "fontWeight": "400",
                           "lineHeight": 18,
                         },
+                        null,
                         {
-                          "color": "#8B93A3",
+                          "color": "#7D8981",
                           "textAlign": undefined,
                           "writingDirection": "ltr",
                         },
@@ -6171,8 +6409,9 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                           "fontWeight": "400",
                           "lineHeight": 18,
                         },
+                        null,
                         {
-                          "color": "#8B93A3",
+                          "color": "#7D8981",
                           "textAlign": undefined,
                           "writingDirection": "ltr",
                         },
@@ -6198,7 +6437,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                           "paddingVertical": 3,
                         },
                         {
-                          "backgroundColor": "#F3E8CE",
+                          "backgroundColor": "#F1E6CB",
                         },
                       ]
                     }
@@ -6212,7 +6451,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                             "width": 6,
                           },
                           {
-                            "backgroundColor": "#B58A2E",
+                            "backgroundColor": "#9C7420",
                           },
                         ]
                       }
@@ -6225,8 +6464,9 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                             "fontWeight": "400",
                             "lineHeight": 18,
                           },
+                          null,
                           {
-                            "color": "#B58A2E",
+                            "color": "#9C7420",
                             "textAlign": undefined,
                             "writingDirection": "ltr",
                           },
@@ -6303,14 +6543,14 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                       },
                       {
                         "backgroundColor": "#B5503C",
-                        "borderColor": "#FFFFFF",
+                        "borderColor": "#F7F9F5",
                       },
                     ]
                   }
                 >
                   <Ionicons
                     accessibilityElementsHidden={true}
-                    color="#FFFFFF"
+                    color="#F7F9F5"
                     importantForAccessibility="no-hide-descendants"
                     name="remove"
                     size={16}
@@ -6351,8 +6591,8 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                         "padding": 8,
                       },
                       {
-                        "backgroundColor": "#E4EDFB",
-                        "borderColor": "#E4EDFB",
+                        "backgroundColor": "#E2E8E1",
+                        "borderColor": "#DEE5DE",
                       },
                     ]
                   }
@@ -6383,7 +6623,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                               "justifyContent": "center",
                             },
                             {
-                              "backgroundColor": "#587566",
+                              "backgroundColor": "#E2E8E1",
                               "borderRadius": 14,
                               "height": 28,
                               "width": 28,
@@ -6395,11 +6635,10 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                           style={
                             [
                               {
-                                "color": "#FFFFFF",
                                 "fontWeight": "600",
                               },
                               {
-                                "color": undefined,
+                                "color": "#14201B",
                                 "fontSize": 11,
                               },
                             ]
@@ -6418,6 +6657,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                             "fontWeight": "400",
                             "lineHeight": 21,
                           },
+                          null,
                           {
                             "color": "#14201B",
                             "textAlign": undefined,
@@ -6440,8 +6680,9 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                             "fontWeight": "400",
                             "lineHeight": 21,
                           },
+                          null,
                           {
-                            "color": "#5B6572",
+                            "color": "#4F5C55",
                             "textAlign": undefined,
                             "writingDirection": "ltr",
                           },
@@ -6461,8 +6702,9 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                           "fontWeight": "400",
                           "lineHeight": 18,
                         },
+                        null,
                         {
-                          "color": "#8B93A3",
+                          "color": "#7D8981",
                           "textAlign": undefined,
                           "writingDirection": "ltr",
                         },
@@ -6540,14 +6782,14 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                       },
                       {
                         "backgroundColor": "#B5503C",
-                        "borderColor": "#FFFFFF",
+                        "borderColor": "#F7F9F5",
                       },
                     ]
                   }
                 >
                   <Ionicons
                     accessibilityElementsHidden={true}
-                    color="#FFFFFF"
+                    color="#F7F9F5"
                     importantForAccessibility="no-hide-descendants"
                     name="remove"
                     size={16}
@@ -6562,7 +6804,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                         "minHeight": 16,
                       },
                       {
-                        "borderLeftColor": "#D3E1F5",
+                        "borderLeftColor": "#CCD5CD",
                         "borderLeftWidth": 2,
                         "borderStyle": "dashed",
                       },
@@ -6588,8 +6830,8 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                         "padding": 8,
                       },
                       {
-                        "backgroundColor": "#E4EDFB",
-                        "borderColor": "#E4EDFB",
+                        "backgroundColor": "#E2E8E1",
+                        "borderColor": "#DEE5DE",
                       },
                     ]
                   }
@@ -6620,7 +6862,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                               "justifyContent": "center",
                             },
                             {
-                              "backgroundColor": "#B08A4E",
+                              "backgroundColor": "#E2E8E1",
                               "borderRadius": 14,
                               "height": 28,
                               "width": 28,
@@ -6632,11 +6874,10 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                           style={
                             [
                               {
-                                "color": "#FFFFFF",
                                 "fontWeight": "600",
                               },
                               {
-                                "color": undefined,
+                                "color": "#14201B",
                                 "fontSize": 11,
                               },
                             ]
@@ -6655,6 +6896,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                             "fontWeight": "400",
                             "lineHeight": 21,
                           },
+                          null,
                           {
                             "color": "#14201B",
                             "textAlign": undefined,
@@ -6677,8 +6919,9 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                             "fontWeight": "400",
                             "lineHeight": 21,
                           },
+                          null,
                           {
-                            "color": "#5B6572",
+                            "color": "#4F5C55",
                             "textAlign": undefined,
                             "writingDirection": "ltr",
                           },
@@ -6698,8 +6941,9 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                           "fontWeight": "400",
                           "lineHeight": 18,
                         },
+                        null,
                         {
-                          "color": "#8B93A3",
+                          "color": "#7D8981",
                           "textAlign": undefined,
                           "writingDirection": "ltr",
                         },
@@ -6769,14 +7013,14 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                       },
                       {
                         "backgroundColor": "#14201B",
-                        "borderColor": "#FFFFFF",
+                        "borderColor": "#F7F9F5",
                       },
                     ]
                   }
                 >
                   <Ionicons
                     accessibilityElementsHidden={true}
-                    color="#FFFFFF"
+                    color="#F4F6F2"
                     importantForAccessibility="no-hide-descendants"
                     name="flag"
                     size={16}
@@ -6815,8 +7059,9 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                             "fontWeight": "400",
                             "lineHeight": 21,
                           },
+                          null,
                           {
-                            "color": "#5B6572",
+                            "color": "#4F5C55",
                             "textAlign": undefined,
                             "writingDirection": "ltr",
                           },
@@ -6834,8 +7079,9 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                             "fontWeight": "400",
                             "lineHeight": 21,
                           },
+                          null,
                           {
-                            "color": "#5B6572",
+                            "color": "#4F5C55",
                             "textAlign": undefined,
                             "writingDirection": "ltr",
                           },
@@ -6855,6 +7101,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                           "fontWeight": "400",
                           "lineHeight": 24,
                         },
+                        null,
                         {
                           "color": "#14201B",
                           "textAlign": undefined,
@@ -6877,8 +7124,9 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                           "fontWeight": "400",
                           "lineHeight": 18,
                         },
+                        null,
                         {
-                          "color": "#8B93A3",
+                          "color": "#7D8981",
                           "textAlign": undefined,
                           "writingDirection": "ltr",
                         },
@@ -6911,8 +7159,9 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                 "fontWeight": "500",
                 "lineHeight": 21,
               },
+              null,
               {
-                "color": "#5B6572",
+                "color": "#4F5C55",
                 "textAlign": undefined,
                 "writingDirection": "ltr",
               },
@@ -6933,8 +7182,9 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                 "fontWeight": "400",
                 "lineHeight": 21,
               },
+              null,
               {
-                "color": "#8B93A3",
+                "color": "#7D8981",
                 "textAlign": undefined,
                 "writingDirection": "ltr",
               },
@@ -6964,8 +7214,9 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                 "fontWeight": "500",
                 "lineHeight": 21,
               },
+              null,
               {
-                "color": "#5B6572",
+                "color": "#4F5C55",
                 "textAlign": undefined,
                 "writingDirection": "ltr",
               },
@@ -7005,8 +7256,8 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                   "gap": 8,
                 },
                 {
-                  "backgroundColor": "#E4EDFB",
-                  "borderColor": "#E4EDFB",
+                  "backgroundColor": "#E2E8E1",
+                  "borderColor": "#DEE5DE",
                 },
               ]
             }
@@ -7028,7 +7279,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                       "justifyContent": "center",
                     },
                     {
-                      "backgroundColor": "#FFFFFF",
+                      "backgroundColor": "#E2E8E1",
                       "borderRadius": 18,
                       "height": 36,
                       "width": 36,
@@ -7040,7 +7291,6 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                   style={
                     [
                       {
-                        "color": "#FFFFFF",
                         "fontWeight": "600",
                       },
                       {
@@ -7071,6 +7321,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                       "fontWeight": "400",
                       "lineHeight": 21,
                     },
+                    null,
                     {
                       "color": "#14201B",
                       "textAlign": undefined,
@@ -7090,8 +7341,9 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                       "fontWeight": "400",
                       "lineHeight": 18,
                     },
+                    null,
                     {
-                      "color": "#5B6572",
+                      "color": "#4F5C55",
                       "textAlign": undefined,
                       "writingDirection": "ltr",
                     },
@@ -7103,7 +7355,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
               </Text>
             </View>
             <View
-              accessibilityLabel="rides.rideDetail.confirmedBadge"
+              accessibilityLabel="booking:phase.confirmed"
               accessibilityRole="text"
               accessible={true}
               style={
@@ -7126,7 +7378,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                   [
                     {
                       "fontSize": 12,
-                      "fontWeight": "500",
+                      "fontWeight": "600",
                     },
                     {
                       "color": "#22794F",
@@ -7134,12 +7386,12 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                   ]
                 }
               >
-                rides.rideDetail.confirmedBadge
+                booking:phase.confirmed
               </Text>
             </View>
             <Ionicons
               accessibilityElementsHidden={true}
-              color="#D3E1F5"
+              color="#CCD5CD"
               importantForAccessibility="no-hide-descendants"
               name="chevron-forward"
               size={16}
@@ -7173,8 +7425,8 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                   "gap": 8,
                 },
                 {
-                  "backgroundColor": "#E4EDFB",
-                  "borderColor": "#E4EDFB",
+                  "backgroundColor": "#E2E8E1",
+                  "borderColor": "#DEE5DE",
                 },
               ]
             }
@@ -7196,7 +7448,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                       "justifyContent": "center",
                     },
                     {
-                      "backgroundColor": "#FFFFFF",
+                      "backgroundColor": "#E2E8E1",
                       "borderRadius": 18,
                       "height": 36,
                       "width": 36,
@@ -7208,7 +7460,6 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                   style={
                     [
                       {
-                        "color": "#FFFFFF",
                         "fontWeight": "600",
                       },
                       {
@@ -7239,6 +7490,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                       "fontWeight": "400",
                       "lineHeight": 21,
                     },
+                    null,
                     {
                       "color": "#14201B",
                       "textAlign": undefined,
@@ -7258,8 +7510,9 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                       "fontWeight": "400",
                       "lineHeight": 18,
                     },
+                    null,
                     {
-                      "color": "#5B6572",
+                      "color": "#4F5C55",
                       "textAlign": undefined,
                       "writingDirection": "ltr",
                     },
@@ -7271,7 +7524,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
               </Text>
             </View>
             <View
-              accessibilityLabel="rides.rideDetail.confirmedBadge"
+              accessibilityLabel="booking:phase.confirmed"
               accessibilityRole="text"
               accessible={true}
               style={
@@ -7294,7 +7547,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                   [
                     {
                       "fontSize": 12,
-                      "fontWeight": "500",
+                      "fontWeight": "600",
                     },
                     {
                       "color": "#22794F",
@@ -7302,12 +7555,12 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                   ]
                 }
               >
-                rides.rideDetail.confirmedBadge
+                booking:phase.confirmed
               </Text>
             </View>
             <Ionicons
               accessibilityElementsHidden={true}
-              color="#D3E1F5"
+              color="#CCD5CD"
               importantForAccessibility="no-hide-descendants"
               name="chevron-forward"
               size={16}
@@ -7333,8 +7586,8 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
             "paddingTop": 8,
           },
           {
-            "backgroundColor": "#FFFFFF",
-            "borderTopColor": "#E4EDFB",
+            "backgroundColor": "#EEF1EC",
+            "borderTopColor": "#DEE5DE",
             "paddingBottom": 12,
           },
         ]
@@ -7353,23 +7606,34 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
         onPress={[Function]}
         style={[Function]}
       >
-        <Text
+        <View
           style={
-            [
-              {
-                "fontWeight": "600",
-              },
-              {
-                "fontSize": 16,
-              },
-              {
-                "color": "#14201B",
-              },
-            ]
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "gap": 8,
+            }
           }
         >
-          rides.rideDetail.cancelRide
-        </Text>
+          <Text
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "fontWeight": "600",
+                },
+                {
+                  "fontSize": 16,
+                },
+                {
+                  "color": "#14201B",
+                },
+              ]
+            }
+          >
+            rides.rideDetail.cancelRide
+          </Text>
+        </View>
       </Pressable>
     </View>
     <Modal
@@ -7384,7 +7648,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
               "flex": 1,
             },
             {
-              "backgroundColor": "#FFFFFF",
+              "backgroundColor": "#EEF1EC",
             },
           ]
         }
@@ -7641,7 +7905,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                     },
                     {
                       "backgroundColor": "#2E9E6C",
-                      "borderColor": "#FFFFFF",
+                      "borderColor": "#F7F9F5",
                     },
                   ]
                 }
@@ -7703,7 +7967,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                     },
                     {
                       "backgroundColor": "#2E9E6C",
-                      "borderColor": "#FFFFFF",
+                      "borderColor": "#F7F9F5",
                     },
                   ]
                 }
@@ -7753,7 +8017,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                     },
                     {
                       "backgroundColor": "#2E9E6C",
-                      "borderColor": "#FFFFFF",
+                      "borderColor": "#F7F9F5",
                     },
                   ]
                 }
@@ -7803,14 +8067,14 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                     },
                     {
                       "backgroundColor": "#B5503C",
-                      "borderColor": "#FFFFFF",
+                      "borderColor": "#F7F9F5",
                     },
                   ]
                 }
               >
                 <Ionicons
                   accessibilityElementsHidden={true}
-                  color="#FFFFFF"
+                  color="#F7F9F5"
                   importantForAccessibility="no-hide-descendants"
                   name="remove"
                   size={16}
@@ -7853,14 +8117,14 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                     },
                     {
                       "backgroundColor": "#B5503C",
-                      "borderColor": "#FFFFFF",
+                      "borderColor": "#F7F9F5",
                     },
                   ]
                 }
               >
                 <Ionicons
                   accessibilityElementsHidden={true}
-                  color="#FFFFFF"
+                  color="#F7F9F5"
                   importantForAccessibility="no-hide-descendants"
                   name="remove"
                   size={16}
@@ -7908,7 +8172,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                     },
                     {
                       "backgroundColor": "#14201B",
-                      "borderColor": "#FFFFFF",
+                      "borderColor": "#F7F9F5",
                     },
                   ]
                 }
@@ -7927,7 +8191,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                         "width": 7,
                       },
                       {
-                        "backgroundColor": "#FFFFFF",
+                        "backgroundColor": "#F4F6F2",
                       },
                     ]
                   }
@@ -7955,9 +8219,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
             style={
               [
                 {
-                  "backgroundColor": "#EAE7DC",
-                },
-                {
+                  "backgroundColor": "#E2E8E1",
                   "borderRadius": 0,
                   "height": 16,
                   "opacity": AnimatedValue {
@@ -7970,11 +8232,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
             }
           />
         </View>
-        <TouchableOpacity
-          accessibilityLabel="rides.rideDetail.close"
-          accessibilityRole="button"
-          hitSlop={12}
-          onPress={[Function]}
+        <View
           style={
             [
               {
@@ -7995,18 +8253,27 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                 "width": 40,
               },
               {
-                "backgroundColor": "#FFFFFF",
                 "top": 8,
               },
             ]
           }
         >
-          <Ionicons
-            color="#14201B"
-            name="close"
-            size={22}
-          />
-        </TouchableOpacity>
+          <Pressable
+            accessibilityLabel="rides.rideDetail.close"
+            accessibilityRole="button"
+            hitSlop={8}
+            onPress={[Function]}
+            style={[Function]}
+          >
+            <Ionicons
+              accessibilityElementsHidden={true}
+              color="#14201B"
+              importantForAccessibility="no-hide-descendants"
+              name="close"
+              size={20}
+            />
+          </Pressable>
+        </View>
       </View>
     </Modal>
   </View>,

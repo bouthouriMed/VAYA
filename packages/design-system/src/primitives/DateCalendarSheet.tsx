@@ -9,9 +9,10 @@ import Animated, {
 } from 'react-native-reanimated';
 import { BottomSheet } from './BottomSheet';
 import { Text } from './Text';
+import { Button } from './Button';
 import { Icon } from './Icon';
 import { Chip } from './Chip';
-import { spacing, radii } from '../tokens/index';
+import { spacing } from '../tokens/index';
 import { useAppTheme } from '../theme/AppThemeProvider';
 import {
   buildDayOptions,
@@ -196,23 +197,8 @@ export function DateCalendarSheet({
       theme={theme}
       contentGesture={monthSwipeGesture}
       bottomInset={bottomInset}
-      headerContent={
-        <View style={styles.header}>
-          <View style={styles.headerSpacer} />
-          <Text variant="h3" color={theme.ink} style={styles.headerTitle}>
-            {title}
-          </Text>
-          <TouchableOpacity
-            onPress={onClose}
-            hitSlop={12}
-            style={styles.closeBtn}
-            accessibilityRole="button"
-            accessibilityLabel={closeLabel}
-          >
-            <Icon name="close" size="sm" color={theme.ink} />
-          </TouchableOpacity>
-        </View>
-      }
+      title={title}
+      closeLabel={closeLabel}
     >
       {/* `style` here is load-bearing, not decorative: a horizontal
        *  ScrollView's own outer box defaults to `flexGrow: 1` regardless
@@ -345,43 +331,13 @@ export function DateCalendarSheet({
       </GestureDetector>
 
       <View style={styles.footer}>
-        <TouchableOpacity
-          onPress={confirm}
-          style={[styles.confirmBtn, { backgroundColor: theme.ink }]}
-          accessibilityRole="button"
-          accessibilityLabel={confirmLabel}
-        >
-          <Text variant="label" color={theme.onInk}>
-            {confirmLabel}
-          </Text>
-        </TouchableOpacity>
+        <Button size="lg" label={confirmLabel} onPress={confirm} theme={theme} />
       </View>
     </BottomSheet>
   );
 }
 
 const styles = StyleSheet.create({
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    width: '100%',
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.md
-  },
-  headerSpacer: {
-    width: 32,
-  },
-  headerTitle: {
-    flex: 1,
-    textAlign: 'center',
-  },
-  closeBtn: {
-    width: 32,
-    height: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   quickDayScroll: {
     flexGrow: 0,
     flexShrink: 0,
@@ -455,11 +411,5 @@ const styles = StyleSheet.create({
     // above happens to render on a given device.
     marginTop: 'auto',
     paddingTop: spacing.lg,
-  },
-  confirmBtn: {
-    height: 48,
-    borderRadius: radii.lg,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
 });

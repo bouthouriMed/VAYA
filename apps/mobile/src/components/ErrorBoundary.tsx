@@ -1,6 +1,6 @@
 import React from 'react';
 import { View } from 'react-native';
-import { Button, Screen, Stack, Text, colors, spacing } from '@vaya/design-system';
+import { Button, Screen, Stack, Text, useAppTheme, spacing } from '@vaya/design-system';
 import { useTranslation } from 'react-i18next';
 import { captureException } from '../services/monitoring/sentry';
 
@@ -50,14 +50,15 @@ export class ErrorBoundary extends React.Component<Props, State> {
 
 function ErrorBoundaryFallback({ onRetry }: { onRetry: () => void }): React.JSX.Element {
   const { t } = useTranslation();
+  const { colors: theme } = useAppTheme();
   return (
-    <View style={{ flex: 1, backgroundColor: colors.gray50 }}>
+    <View style={{ flex: 1, backgroundColor: theme.background }}>
       <Screen>
         <Stack gap="lg" align="center" style={{ flex: 1, justifyContent: 'center' }}>
           <Text variant="h2" align="center">
             {t('errors:boundary.title')}
           </Text>
-          <Text variant="body" color={colors.gray600} align="center">
+          <Text variant="body" color={theme.inkMuted} align="center">
             {t('errors:boundary.description')}
           </Text>
           <Button

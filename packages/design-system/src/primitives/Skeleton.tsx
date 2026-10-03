@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
-import { colors, radii, typography } from '../tokens/index';
+import { Animated, type StyleProp, type ViewStyle } from 'react-native';
+import { radii, typography } from '../tokens/index';
+import { useAppTheme } from '../theme/AppThemeProvider';
 
 const PULSE_DURATION_MS = 700;
 const MIN_OPACITY = 0.45;
@@ -52,13 +53,13 @@ export function SkeletonBlock({
   style,
 }: SkeletonBlockProps): React.JSX.Element {
   const opacity = usePulse();
+  const { colors: theme } = useAppTheme();
   return (
     <Animated.View
       accessibilityElementsHidden
       importantForAccessibility="no-hide-descendants"
       style={[
-        styles.base,
-        { width, height, borderRadius: radii[radius], opacity },
+        { backgroundColor: theme.surfaceMuted, width, height, borderRadius: radii[radius], opacity },
         style,
       ]}
     />
@@ -108,8 +109,3 @@ export function SkeletonText({
   );
 }
 
-const styles = StyleSheet.create({
-  base: {
-    backgroundColor: colors.gray200,
-  },
-});

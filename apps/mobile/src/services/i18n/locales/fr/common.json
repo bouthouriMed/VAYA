@@ -26,7 +26,11 @@
     "swap": "Inverser départ et arrivée",
     "accept": "Accepter",
     "decline": "Refuser",
-    "viewProfile": "Voir le profil de {{name}}"
+    "viewProfile": "Voir le profil de {{name}}",
+    "disable": "Désactiver",
+    "dismiss": "Ignorer",
+    "enable": "Activer",
+    "notNow": "Pas maintenant"
   },
   "status": {
     "loading": "Chargement…",
@@ -70,7 +74,9 @@
     "whereTo": "Où allez-vous ?",
     "date": "Date",
     "time": "Heure",
-    "passengers": "Passagers"
+    "passengers": "Passagers",
+    "tripCount_one": "{{count}} trajet",
+    "tripCount_other": "{{count}} trajets"
   },
   "errors": {
     "generic": "Une erreur est survenue. Réessayez.",
@@ -97,5 +103,17 @@
     "restartMessage": "Passer en {{language}} modifie le sens de lecture de l'application. Redémarrez VAYA pour appliquer ce changement.",
     "restartCta": "Redémarrer maintenant",
     "restartLater": "Plus tard"
+  },
+  "duration": {
+    "minutes": "{{count}} min",
+    "hours": "{{count}} h",
+    "hoursMinutes": "{{hours}} h {{minutes}}",
+    "days_one": "{{count}} jour",
+    "days_other": "{{count}} jours"
+  },
+  "tier": {
+    "new": "Nouveau",
+    "trusted": "Confiance",
+    "top_rated": "Top VAYA"
   }
 }

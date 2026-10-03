@@ -26,7 +26,11 @@
     "swap": "تبديل نقطة الانطلاق والوجهة",
     "accept": "قبول",
     "decline": "رفض",
-    "viewProfile": "عرض الملف الشخصي لـ{{name}}"
+    "viewProfile": "عرض الملف الشخصي لـ{{name}}",
+    "disable": "إيقاف",
+    "dismiss": "تجاهل",
+    "enable": "تفعيل",
+    "notNow": "ليس الآن"
   },
   "status": {
     "loading": "جارٍ التحميل…",
@@ -94,7 +98,13 @@
     "whereTo": "إلى أين تذهب؟",
     "date": "التاريخ",
     "time": "الوقت",
-    "passengers": "الركاب"
+    "passengers": "الركاب",
+    "tripCount_zero": "{{count}} رحلة",
+    "tripCount_one": "رحلة واحدة",
+    "tripCount_two": "رحلتان",
+    "tripCount_few": "{{count}} رحلات",
+    "tripCount_many": "{{count}} رحلة",
+    "tripCount_other": "{{count}} رحلة"
   },
   "errors": {
     "generic": "حدث خطأ ما. يرجى المحاولة مرة أخرى.",
@@ -121,5 +131,21 @@
     "restartMessage": "التبديل إلى {{language}} يغيّر اتجاه عرض التطبيق. أعد تشغيل VAYA لتطبيق هذا التغيير.",
     "restartCta": "إعادة التشغيل الآن",
     "restartLater": "لاحقًا"
+  },
+  "duration": {
+    "minutes": "{{count}} د",
+    "hours": "{{count}} س",
+    "hoursMinutes": "{{hours}} س {{minutes}} د",
+    "days_zero": "{{count}} يوم",
+    "days_one": "يوم واحد",
+    "days_two": "يومان",
+    "days_few": "{{count}} أيام",
+    "days_many": "{{count}} يومًا",
+    "days_other": "{{count}} يوم"
+  },
+  "tier": {
+    "new": "جديد",
+    "trusted": "موثوق",
+    "top_rated": "الأفضل في VAYA"
   }
 }

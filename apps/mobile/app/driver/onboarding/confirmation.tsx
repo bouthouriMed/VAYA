@@ -1,8 +1,8 @@
 import { useEffect, useRef } from 'react';
-import { Animated, View, StyleSheet, Easing, AccessibilityInfo, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { Animated, View, StyleSheet, Easing, AccessibilityInfo, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { Text, Icon, useAppTheme, haptics, spacing, radii, colors } from '@vaya/design-system';
+import { Text, Icon, useAppTheme, haptics, spacing, Button } from '@vaya/design-system';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useGetMyDriverProfileQuery } from '../../../src/state/api';
 import { verificationDeclineReasonKey } from '../../../src/features/driver-onboarding/verificationDeclineCopy';
@@ -96,9 +96,9 @@ export default function VerificationConfirmationScreen(): React.JSX.Element {
   // Anything else (pending | under_review) falls through to the default
   // branch in the title/subtitle derivation below.
 
-  const badgeTone = isApproved ? colors.success : isResubmission || isRejected ? colors.error : colors.warning;
-  const badgeToneLight = isApproved ? colors.successLight : isResubmission || isRejected ? colors.errorLight : colors.warningLight;
-  const badgeToneDark = isApproved ? colors.successDark : isResubmission || isRejected ? colors.errorDark : colors.warningDark;
+  const badgeTone = isApproved ? theme.accent : isResubmission || isRejected ? theme.error : theme.warning;
+  const badgeToneLight = isApproved ? theme.accentGlow + '55' : isResubmission || isRejected ? theme.errorMuted : theme.warningMuted;
+  const badgeToneDark = isApproved ? theme.accentStrong : isResubmission || isRejected ? theme.error : theme.warning;
   const iconName = isApproved ? 'shield-checkmark' : isResubmission ? 'refresh' : isRejected ? 'close-circle' : 'shield-checkmark';
 
   let title: string;
@@ -175,21 +175,16 @@ export default function VerificationConfirmationScreen(): React.JSX.Element {
       </View>
 
       <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.lg }]}>
-        <TouchableOpacity
-          style={[styles.cta, { backgroundColor: theme.ink }]}
+        <Button
+          size="lg"
+          label={ctaLabel}
+          icon={isResubmission ? 'camera-outline' : 'time-outline'}
           onPress={() => {
             haptics.selection();
             handleCta();
           }}
-          activeOpacity={0.85}
-          accessibilityRole="button"
-          accessibilityLabel={ctaLabel}
-        >
-          <Icon name={isResubmission ? 'camera-outline' : 'time-outline'} size="sm" color={theme.onInk} />
-          <Text variant="label" color={theme.onInk}>
-            {ctaLabel}
-          </Text>
-        </TouchableOpacity>
+          style={styles.cta}
+        />
       </View>
     </View>
   );
@@ -241,13 +236,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.sm,
   },
+  // Layout only — shape, size and colors come from the design-system Button.
   cta: {
     width: '100%',
-    minHeight: 52,
-    borderRadius: radii.lg,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.sm,
   },
 });

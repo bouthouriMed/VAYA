@@ -21,7 +21,7 @@
   "status_full": "Full",
   "status_in_progress": "In progress",
   "settlement_title": "Trip completed",
-  "settlement_pay": "Pay {{price}} DT directly to {{name}}",
+  "settlement_pay": "Pay {{price}} directly to {{name}}",
   "rate_prompt": "How was {{name}}?",
   "finish": "Finish",
   "filters": {
@@ -109,7 +109,12 @@
     "detected": "Detected",
     "driversLicense": "Driver's license",
     "insuranceProof": "Insurance proof",
-    "identitySelfie": "Identity selfie"
+    "identitySelfie": "Identity selfie",
+    "confirmTodayRide": "Prepare today's ride",
+    "viewTodayRide": "View today's ride",
+    "updateError": "Your change couldn't be saved. Try again.",
+    "loadError": "Couldn't load your recurring rides",
+    "confirmPublish": "Confirm and publish"
   },
   "detail": {
     "title": "My booking",
@@ -133,7 +138,8 @@
       "pickup": "Your driver has arrived",
       "active": "Trip in progress",
       "arriving": "Almost at your destination"
-    }
+    },
+    "loadError": "Couldn't load this booking"
   },
   "days": {
     "mon": "Mon",
@@ -144,5 +150,43 @@
     "sat": "Sat",
     "sun": "Sun",
     "everyDay": "Every day"
-  }
+  },
+  "destination": "Destination",
+  "driver_join": "Head to the pickup point",
+  "section_payment": "Payment",
+  "section_trip": "Trip",
+  "status_confirmed": "Confirmed",
+  "status_confirmed_title": "Your seat is confirmed",
+  "status_confirmed_hint": "{{name}} accepted your request. Your trip details are below.",
+  "waiting_confirmation": "Pickup point to be confirmed",
+  "requestSentTitle": "Request sent",
+  "responseDeadline": "Expect a reply before {{time}}",
+  "responseDeadlineDay": "Expect a reply before {{date}} at {{time}}",
+  "phase": {
+    "awaiting_response": "Awaiting reply",
+    "confirmed": "Confirmed",
+    "in_progress": "In progress",
+    "completed": "Completed",
+    "declined": "Declined",
+    "cancelled_by_rider": "Cancelled by you",
+    "cancelled_by_driver": "Cancelled by the driver",
+    "expired": "Expired",
+    "superseded": "Replaced",
+    "no_show": "No-show reported"
+  },
+  "ridePhase": {
+    "draft": "Draft",
+    "published": "Published",
+    "full": "Full",
+    "in_progress": "In progress",
+    "completed": "Completed",
+    "cancelled": "Cancelled"
+  },
+  "pickupTitle": "Meeting point",
+  "pickupPointLabel": "Pickup point",
+  "arrived": "You've arrived",
+  "arrivedAt": "Arrived in {{place}}",
+  "ratingThanks": "Thanks! Your review of {{name}} was sent.",
+  "rateCta": "Rate {{name}}",
+  "shareMessage": "My VAYA ride with {{driver}}: {{pickup}} → {{destination}}, {{price}}."
 }

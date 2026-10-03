@@ -1,5 +1,12 @@
 import { useMemo, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import {
@@ -19,6 +26,7 @@ import {
   useToast,
   StatusBarBlend,
   type IconName,
+  Button,
 } from '@vaya/design-system';
 import { TRUST_TIER_LABELS, type TrustTier } from '@vaya/domain';
 import { router } from 'expo-router';
@@ -89,7 +97,7 @@ export default function ProfileScreen(): React.JSX.Element {
   const dispatch = useAppDispatch();
   const accessToken = useAppSelector((s) => s.auth.accessToken);
   const refreshToken = useAppSelector((s) => s.auth.refreshToken);
-  const {colors: theme, scheme} = useAppTheme();
+  const { colors: theme, scheme } = useAppTheme();
   const toast = useToast();
   const { changeLanguage } = useLanguage();
   const userLocale = useAppSelector((s) => s.language.locale) || 'fr';
@@ -137,9 +145,21 @@ export default function ProfileScreen(): React.JSX.Element {
   const APPEARANCE_OPTIONS = useMemo(
     () =>
       [
-        { value: 'system' as AppearancePreference, label: t('settings:appearance.system'), icon: 'phone-portrait-outline' as IconName },
-        { value: 'light' as AppearancePreference, label: t('settings:appearance.light'), icon: 'sunny-outline' as IconName },
-        { value: 'dark' as AppearancePreference, label: t('settings:appearance.dark'), icon: 'moon-outline' as IconName },
+        {
+          value: 'system' as AppearancePreference,
+          label: t('settings:appearance.system'),
+          icon: 'phone-portrait-outline' as IconName,
+        },
+        {
+          value: 'light' as AppearancePreference,
+          label: t('settings:appearance.light'),
+          icon: 'sunny-outline' as IconName,
+        },
+        {
+          value: 'dark' as AppearancePreference,
+          label: t('settings:appearance.dark'),
+          icon: 'moon-outline' as IconName,
+        },
       ] as const,
     [t],
   );
@@ -160,7 +180,9 @@ export default function ProfileScreen(): React.JSX.Element {
   // same ContextualAuthSheet search/publish already use.
   if (!accessToken) {
     return (
-      <View style={[styles.container, styles.guestContainer, { backgroundColor: theme.background }]}>
+      <View
+        style={[styles.container, styles.guestContainer, { backgroundColor: theme.background }]}
+      >
         <View style={{ height: insets.top + spacing.sm }} />
         <EmptyState
           icon={<Icon name="person-circle-outline" size="lg" color={theme.inkFaint} />}
@@ -226,16 +248,15 @@ export default function ProfileScreen(): React.JSX.Element {
   const driverStatus: 'loading' | 'none' | 'pending' | 'approved' | 'rejected' =
     isDriverProfileLoading
       ? 'loading'
-      : ((realDriverProfile?.verificationStatus ?? 'none') as 'none' | 'pending' | 'approved' | 'rejected');
+      : ((realDriverProfile?.verificationStatus ?? 'none') as
+          'none' | 'pending' | 'approved' | 'rejected');
   const primaryVehicle = realDriverProfile?.vehicles[0];
 
   function goToDriverFlow(): void {
     haptics.selection();
     // Only a genuinely approved profile skips onboarding — any other state
     // (including rejected) belongs back in the wizard.
-    router.push(
-      driverStatus === 'approved' ? '/(tabs)/publish' : '/driver/onboarding',
-    );
+    router.push(driverStatus === 'approved' ? '/(tabs)/publish' : '/driver/onboarding');
   }
 
   async function handleChangePhoto(): Promise<void> {
@@ -385,7 +406,11 @@ export default function ProfileScreen(): React.JSX.Element {
         // rather than three separate dead entries — Payment specifically
         // dropped rather than kept alongside, since this app has no payment
         // rail at all yet (not even a partial one) to gesture toward.
-        { key: 'security-privacy', icon: 'shield-checkmark-outline', label: t('profile:rows.securityPrivacy') },
+        {
+          key: 'security-privacy',
+          icon: 'shield-checkmark-outline',
+          label: t('profile:rows.securityPrivacy'),
+        },
       ],
     },
     {
@@ -447,8 +472,6 @@ export default function ProfileScreen(): React.JSX.Element {
                   uri={me.avatarUrl}
                   name={me.fullName}
                   sizePx={96}
-                  fallbackBackgroundColor={theme.surfaceMuted}
-                  fallbackTextColor={theme.ink}
                   style={{ borderWidth: 2, borderColor: theme.outlineVariant }}
                 />
                 {/* Small, subtle edit affordance instead of a text link below
@@ -558,7 +581,10 @@ export default function ProfileScreen(): React.JSX.Element {
             accessibilityRole="button"
             accessibilityLabel={
               primaryVehicle
-                ? t('profile:driver.verifiedWithVehicleAria', { make: primaryVehicle.make, model: primaryVehicle.model })
+                ? t('profile:driver.verifiedWithVehicleAria', {
+                    make: primaryVehicle.make,
+                    model: primaryVehicle.model,
+                  })
                 : t('profile:driver.verifiedAria')
             }
           >
@@ -657,77 +683,86 @@ export default function ProfileScreen(): React.JSX.Element {
 
         {/* Grouped navigation sections */}
         <View style={styles.sectionsWrap}>
-          {sections.map((section) => (
-            <View key={section.title}>
-              <Text variant="caption" color={theme.inkFaint} style={styles.sectionTitle}>
-                {section.title}
-              </Text>
-              <View
-                style={[
-                  styles.groupCard,
-                  { backgroundColor: theme.surface, borderColor: theme.outlineVariant },
-                  elevation?.sm,
-                ]}
-              >
-                {section.rows.map((row, i) => (
-                  <View key={row.key}>
-                    {i > 0 ? (
-                      <View
-                        style={[styles.rowDivider, { backgroundColor: theme.outlineVariant }]}
-                      />
-                    ) : null}
-                    <TouchableOpacity
-                      style={styles.row}
-                      onPress={row.onPress}
-                      disabled={!row.onPress}
-                      activeOpacity={0.6}
-                      accessibilityRole={row.onPress ? 'button' : 'text'}
-                      accessibilityLabel={row.label}
-                      accessibilityState={{ disabled: !row.onPress }}
-                    >
-                      <View>
-                        <Icon
-                          name={row.icon}
-                          size="sm"
-                          color={row.onPress ? theme.inkMuted : theme.outline}
+          {/* Rows for features that don't exist yet are hidden rather than
+              shown as dead "coming soon" entries. */}
+          {sections
+            .map((section) => ({
+              ...section,
+              rows: section.rows.filter((row) => row.onPress || row.value),
+            }))
+            .filter((section) => section.rows.length > 0)
+            .map((section) => (
+              <View key={section.title}>
+                <Text variant="caption" color={theme.inkFaint} style={styles.sectionTitle}>
+                  {section.title}
+                </Text>
+                <View
+                  style={[
+                    styles.groupCard,
+                    { backgroundColor: theme.surface, borderColor: theme.outlineVariant },
+                    elevation?.sm,
+                  ]}
+                >
+                  {section.rows.map((row, i) => (
+                    <View key={row.key}>
+                      {i > 0 ? (
+                        <View
+                          style={[styles.rowDivider, { backgroundColor: theme.outlineVariant }]}
                         />
-                        {row.alert ? (
-                          <View
-                            style={[styles.rowAlertDot, { backgroundColor: theme.accent, borderColor: theme.surface }]}
-                          />
-                        ) : null}
-                      </View>
-                      <Text
-                        variant="body"
-                        color={row.onPress ? theme.ink : theme.inkFaint}
-                        style={styles.rowLabel}
+                      ) : null}
+                      <TouchableOpacity
+                        style={styles.row}
+                        onPress={row.onPress}
+                        disabled={!row.onPress}
+                        activeOpacity={0.6}
+                        accessibilityRole={row.onPress ? 'button' : 'text'}
+                        accessibilityLabel={row.label}
+                        accessibilityState={{ disabled: !row.onPress }}
                       >
-                        {row.label}
-                      </Text>
-                      {row.value ? (
-                        <Text variant="caption" color={theme.inkFaint}>
-                          {row.value}
+                        <View>
+                          <Icon
+                            name={row.icon}
+                            size="sm"
+                            color={row.onPress ? theme.inkMuted : theme.outline}
+                          />
+                          {row.alert ? (
+                            <View
+                              style={[
+                                styles.rowAlertDot,
+                                { backgroundColor: theme.accent, borderColor: theme.surface },
+                              ]}
+                            />
+                          ) : null}
+                        </View>
+                        <Text
+                          variant="body"
+                          color={row.onPress ? theme.ink : theme.inkFaint}
+                          style={styles.rowLabel}
+                        >
+                          {row.label}
                         </Text>
-                      ) : row.onPress ? (
-                        <Icon name="chevron-forward" size="xs" color={theme.outline} />
-                      ) : (
-                        <Text variant="caption" color={theme.inkFaint}>
-                          {t('common:status.comingSoon')}
-                        </Text>
-                      )}
-                    </TouchableOpacity>
-                  </View>
-                ))}
+                        {row.value ? (
+                          <Text variant="caption" color={theme.inkFaint}>
+                            {row.value}
+                          </Text>
+                        ) : (
+                          <Icon
+                            name="chevron-forward"
+                            size="xs"
+                            color={theme.inkFaint}
+                            directional
+                          />
+                        )}
+                      </TouchableOpacity>
+                    </View>
+                  ))}
+                </View>
               </View>
-            </View>
-          ))}
+            ))}
 
           {/* Logout */}
           <TouchableOpacity
-            style={[
-              styles.logoutCard,
-              elevation?.sm,
-            ]}
+            style={[styles.logoutCard, elevation?.sm]}
             onPress={() => setConfirmingLogout(true)}
             activeOpacity={0.7}
             accessibilityRole="button"
@@ -959,7 +994,11 @@ export default function ProfileScreen(): React.JSX.Element {
       <BottomSheet
         visible={addingPhone}
         onClose={() => setAddingPhone(false)}
-        title={phoneStep === 'phone' ? t('profile:phoneSheet.addTitle') : t('profile:phoneSheet.verifyTitle')}
+        title={
+          phoneStep === 'phone'
+            ? t('profile:phoneSheet.addTitle')
+            : t('profile:phoneSheet.verifyTitle')
+        }
         heightRatio={0.42}
         theme={theme}
       >
@@ -997,27 +1036,14 @@ export default function ProfileScreen(): React.JSX.Element {
                 {phoneError}
               </Text>
             ) : null}
-            <TouchableOpacity
+            <Button
+              size="lg"
+              label={t('profile:phoneSheet.sendCode')}
               onPress={() => void sendPhoneOtp()}
               disabled={!canSendPhoneOtp}
-              activeOpacity={0.85}
-              accessibilityRole="button"
-              accessibilityLabel={t('profile:phoneSheet.sendCode')}
-              accessibilityState={{ disabled: !canSendPhoneOtp, busy: isSendingPhoneOtp }}
-              style={[
-                styles.phoneCta,
-                { backgroundColor: theme.ink },
-                !canSendPhoneOtp && styles.ctaDisabled,
-              ]}
-            >
-              {isSendingPhoneOtp ? (
-                <ActivityIndicator size="small" color={theme.onInk} />
-              ) : (
-                <Text variant="label" color={theme.onInk}>
-                  {t('profile:phoneSheet.sendCode')}
-                </Text>
-              )}
-            </TouchableOpacity>
+              loading={isSendingPhoneOtp}
+              style={styles.phoneCta}
+            />
           </View>
         ) : (
           <View style={styles.phoneSheetBody}>
@@ -1054,27 +1080,14 @@ export default function ProfileScreen(): React.JSX.Element {
                 {phoneError}
               </Text>
             ) : null}
-            <TouchableOpacity
+            <Button
+              size="lg"
+              label={t('profile:phoneSheet.verify')}
               onPress={() => void confirmPhoneOtp()}
               disabled={!canVerifyPhoneOtp}
-              activeOpacity={0.85}
-              accessibilityRole="button"
-              accessibilityLabel={t('profile:phoneSheet.verify')}
-              accessibilityState={{ disabled: !canVerifyPhoneOtp, busy: isVerifyingPhoneOtp }}
-              style={[
-                styles.phoneCta,
-                { backgroundColor: theme.ink },
-                !canVerifyPhoneOtp && styles.ctaDisabled,
-              ]}
-            >
-              {isVerifyingPhoneOtp ? (
-                <ActivityIndicator size="small" color={theme.onInk} />
-              ) : (
-                <Text variant="label" color={theme.onInk}>
-                  {t('profile:phoneSheet.verify')}
-                </Text>
-              )}
-            </TouchableOpacity>
+              loading={isVerifyingPhoneOtp}
+              style={styles.phoneCta}
+            />
             <TouchableOpacity onPress={() => setPhoneStep('phone')} accessibilityRole="button">
               <Text variant="bodySmall" color={theme.accent} align="center">
                 {t('profile:phoneSheet.changeNumber')}
@@ -1284,12 +1297,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   phoneCta: {
-    minHeight: 48,
-    borderRadius: radii.lg,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  ctaDisabled: {
-    opacity: 0.5,
+    width: '100%',
   },
 });

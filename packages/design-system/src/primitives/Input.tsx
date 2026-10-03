@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import {
   TextInput,
   View,
@@ -8,62 +8,47 @@ import {
   type TextStyle,
   type StyleProp,
 } from 'react-native';
-import { colors, spacing, radii, typography } from '../tokens/index';
+import { spacing, radii, typography } from '../tokens/index';
 import type { AppPalette } from '../theme/palette';
+import { useAppTheme } from '../theme/AppThemeProvider';
 
 interface InputProps extends Omit<TextInputProps, 'style'> {
   label?: string;
   error?: string;
   helperText?: string;
-  /** Optional `useAppTheme()` override (Stitch migration) — when given, the
-   *  field follows the live theme (a bordered, faintly-tinted recessed
-   *  field, matching GlassSurface/BottomSheet/Chip's own treatment) instead
-   *  of the legacy static `colors` tokens, which render as a flat white box
-   *  regardless of the surrounding screen's theme. Unused (and defaulting
-   *  to the legacy look) anywhere this primitive hasn't been migrated yet. */
+  /** Overrides the theme from context — only for a screen pinned to one palette. */
   theme?: AppPalette;
   /** Style applied to the underlying TextInput (last, so callers win). */
   style?: StyleProp<TextStyle>;
 }
 
+/**
+ * The one text field: a surface-colored field with a hairline outline that
+ * turns `ink` on focus and `error` when invalid. The label sits above the
+ * field; placeholders use `inkFaint` so they never read as a typed value.
+ */
 export function Input({
   label,
   error,
   helperText,
   style,
-  theme,
+  theme: themeOverride,
   onFocus,
   onBlur,
   ...props
 }: InputProps): React.JSX.Element {
+  const { colors: contextTheme } = useAppTheme();
+  const theme = themeOverride ?? contextTheme;
   const [isFocused, setIsFocused] = useState(false);
 
-  const labelColor = theme ? theme.inkMuted : colors.gray700;
-  const placeholderColor = theme ? theme.inkFaint : colors.gray400;
-  const helperColor = theme ? theme.inkFaint : colors.gray500;
-  const errorColor = theme ? theme.error : colors.error;
-
-  const inputThemedStyle = theme
-    ? {
-        backgroundColor: theme.surfaceMuted,
-        borderColor: isFocused ? theme.ink : theme.outlineVariant,
-        color: theme.ink,
-      }
-    : null;
+  const borderColor = error ? theme.error : isFocused ? theme.ink : theme.outline;
 
   return (
     <View style={styles.container}>
-      {label && <RNText style={[styles.label, { color: labelColor }]}>{label}</RNText>}
+      {label ? <RNText style={[styles.label, { color: theme.inkMuted }]}>{label}</RNText> : null}
       <TextInput
-        style={[
-          styles.input,
-          inputThemedStyle,
-          !theme && isFocused && styles.inputFocused,
-          !theme && error ? styles.inputError : null,
-          theme && error ? { borderColor: errorColor } : null,
-          style,
-        ]}
-        placeholderTextColor={placeholderColor}
+        style={[styles.input, { backgroundColor: theme.surface, borderColor, color: theme.ink }, style]}
+        placeholderTextColor={theme.inkFaint}
         onFocus={(e) => {
           setIsFocused(true);
           onFocus?.(e);
@@ -76,10 +61,8 @@ export function Input({
         accessibilityLabel={props.accessibilityLabel ?? label}
         accessibilityHint={props.accessibilityHint ?? error ?? helperText}
       />
-      {error && <RNText style={[styles.error, { color: errorColor }]}>{error}</RNText>}
-      {helperText && !error && (
-        <RNText style={[styles.helper, { color: helperColor }]}>{helperText}</RNText>
-      )}
+      {error ? <RNText style={[styles.helper, { color: theme.error }]}>{error}</RNText> : null}
+      {helperText && !error ? <RNText style={[styles.helper, { color: theme.inkFaint }]}>{helperText}</RNText> : null}
     </View>
   );
 }
@@ -91,31 +74,16 @@ const styles = StyleSheet.create({
   label: {
     fontSize: typography.fontSize.sm,
     fontWeight: typography.fontWeight.medium,
-    color: colors.gray700,
   },
   input: {
     borderWidth: 1,
-    borderColor: colors.gray300,
-    borderRadius: radii.md,
+    borderRadius: radii.lg,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     fontSize: typography.fontSize.md,
-    color: colors.gray900,
-    minHeight: 44,
-    backgroundColor: colors.white,
-  },
-  inputFocused: {
-    borderColor: colors.primary,
-  },
-  inputError: {
-    borderColor: colors.error,
-  },
-  error: {
-    fontSize: typography.fontSize.xs,
-    color: colors.error,
+    minHeight: 52,
   },
   helper: {
     fontSize: typography.fontSize.xs,
-    color: colors.gray500,
   },
 });

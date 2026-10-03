@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Svg, { Circle, Path } from 'react-native-svg';
 import { useTranslation } from 'react-i18next';
-import { Text, Icon, StepProgress, useToast, useAppTheme, haptics, spacing, radii, ABSOLUTE_FILL_OBJECT, type IconName } from '@vaya/design-system';
+import { Text, Icon, StepProgress, useToast, useAppTheme, haptics, spacing, radii, ABSOLUTE_FILL_OBJECT, type IconName, ScreenHeader, Button } from '@vaya/design-system';
 
 export type CaptureGuideShape = 'document' | 'face';
 
@@ -144,17 +144,12 @@ export function CaptureCamera({
         <Text variant="body" color={theme.inkMuted} align="center" style={styles.permissionBody}>
           {t('onboarding.capture.permissionBody')}
         </Text>
-        <TouchableOpacity
-          style={[styles.cta, { backgroundColor: theme.ink }]}
+        <Button
+          size="lg"
+          label={t('onboarding.capture.allowCamera')}
           onPress={() => void requestPermission()}
-          activeOpacity={0.85}
-          accessibilityRole="button"
-          accessibilityLabel={t('onboarding.capture.allowCamera')}
-        >
-          <Text variant="label" color={theme.onInk}>
-            {t('onboarding.capture.allowCamera')}
-          </Text>
-        </TouchableOpacity>
+          style={styles.cta}
+        />
         <TouchableOpacity
           onPress={onBack}
           hitSlop={12}
@@ -174,13 +169,14 @@ export function CaptureCamera({
     return (
       <View style={[styles.container, { backgroundColor: theme.background }]}>
         <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
-          <View style={styles.headerRow}>
-            <View style={styles.headerSpacer} />
-            <Text variant="h3" color={theme.ink} numberOfLines={1} style={styles.headerTitle}>
-              {title}
-            </Text>
-            <View style={styles.headerSpacer} />
-          </View>
+        <ScreenHeader
+          transparent
+          bordered={false}
+          onBack={onBack}
+          backLabel={t('onboarding.capture.back')}
+          title={title}
+          style={styles.headerBar}
+        />
         </View>
 
         <View style={styles.body}>
@@ -198,20 +194,15 @@ export function CaptureCamera({
         </View>
 
         <View style={[styles.reviewActions, { paddingBottom: insets.bottom + spacing.lg }]}>
-          <TouchableOpacity
-            style={[styles.cta, { backgroundColor: theme.ink }]}
+          <Button
+            size="lg"
+            label={t('onboarding.capture.usePhoto')}
             onPress={() => {
               haptics.success();
               onCapture(capturedUri);
             }}
-            activeOpacity={0.85}
-            accessibilityRole="button"
-            accessibilityLabel={t('onboarding.capture.usePhoto')}
-          >
-            <Text variant="label" color={theme.onInk}>
-              {t('onboarding.capture.usePhoto')}
-            </Text>
-          </TouchableOpacity>
+            style={styles.cta}
+          />
           <TouchableOpacity
             style={styles.retakeBtn}
             onPress={() => {
@@ -361,6 +352,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  headerBar: {
+    paddingHorizontal: 0,
+  },
   header: {
     paddingHorizontal: spacing.lg,
     gap: spacing.md,
@@ -492,10 +486,6 @@ const styles = StyleSheet.create({
   },
   cta: {
     width: '100%',
-    minHeight: 52,
-    borderRadius: radii.lg,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   permissionWrap: {
     alignItems: 'center',

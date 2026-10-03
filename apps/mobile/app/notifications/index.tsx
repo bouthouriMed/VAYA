@@ -1,8 +1,6 @@
 import { useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { router, Redirect } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
@@ -13,12 +11,16 @@ import {
   Icon,
   Avatar,
   Badge,
-  SkeletonBlock,
+  ScreenHeader,
+  HeaderIconButton,
+  StateView,
   useAppTheme,
   spacing,
   radii,
   elevation,
   haptics,
+  addDays,
+  Button,
 } from '@vaya/design-system';
 import { useAppSelector } from '../../src/state/store';
 import { formatDaySectionLabel } from '../../src/features/conversations/inboxHelpers';
@@ -45,7 +47,7 @@ function formatWhen(iso: string, t: (key: string) => string, locale: SupportedLo
   const isToday = date.toDateString() === now.toDateString();
   const time = formatTime(date, locale);
   if (isToday) return `${t('common:time.today')}, ${time}`;
-  const yesterday = new Date(now.getTime() - 24 * 60 * 60_000);
+  const yesterday = addDays(now, -1);
   if (date.toDateString() === yesterday.toDateString()) return `${t('common:time.yesterday')}, ${time}`;
   return `${formatDate(date, locale, { weekday: 'short', day: 'numeric', month: 'short' })} · ${time}`;
 }
@@ -173,8 +175,6 @@ function DriverRequestCard({
               uri={info.counterpartAvatarUrl}
               name={info.counterpartName ?? '?'}
               sizePx={44}
-              fallbackBackgroundColor={theme.surfaceMuted}
-              fallbackTextColor={theme.ink}
             />
           </TouchableOpacity>
           <View style={styles.requestIdentityText}>
@@ -246,30 +246,24 @@ function DriverRequestCard({
       ) : (
         <>
           <View style={[styles.actionBar, { borderTopColor: theme.outlineVariant }]}>
-            <TouchableOpacity
-              style={[styles.actionButton, styles.declineButton, { borderColor: theme.outline }]}
+            <Button
+              variant="outline"
+              size="md"
+              label={t('common:actions.decline')}
               onPress={() => void respond('decline')}
               disabled={isBusy}
-              activeOpacity={0.7}
-              accessibilityRole="button"
               accessibilityLabel={t('common:actions.decline')}
-            >
-              <Text variant="label" color={theme.error}>
-                {t('common:actions.decline')}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.actionButton, { backgroundColor: theme.accent }]}
+              style={styles.actionFlex}
+            />
+            <Button
+              variant="primary"
+              size="md"
+              label={t('common:actions.accept')}
               onPress={() => void respond('accept')}
               disabled={isBusy}
-              activeOpacity={0.85}
-              accessibilityRole="button"
               accessibilityLabel={t('common:actions.accept')}
-            >
-              <Text variant="label" color={theme.onAccent}>
-                {t('common:actions.accept')}
-              </Text>
-            </TouchableOpacity>
+              style={styles.actionFlex}
+            />
           </View>
           {actionError ? (
             <Text variant="caption" color={theme.error} style={styles.actionErrorText}>
@@ -370,7 +364,12 @@ export default function NotificationsScreen(): React.JSX.Element {
   const { t, i18n } = useTranslation();
   const locale = i18n.language as SupportedLocale;
   const accessToken = useAppSelector((s) => s.auth.accessToken);
-  const { data: notifications, isLoading } = useListNotificationsQuery(undefined, {
+  const {
+    data: notifications,
+    isLoading,
+    isError,
+    refetch,
+  } = useListNotificationsQuery(undefined, {
     skip: !accessToken,
   });
   const [markRead] = useMarkNotificationReadMutation();
@@ -415,60 +414,48 @@ export default function NotificationsScreen(): React.JSX.Element {
 
   const unreadCount = notifications?.filter((n) => !n.readAt).length ?? 0;
 
+  function markAllRead(): void {
+    for (const notification of notifications ?? []) {
+      if (!notification.readAt) void markRead(notification.id);
+    }
+  }
+
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <LinearGradient
-        colors={theme.backgroundGradient}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
-        style={StyleSheet.absoluteFill}
+      <ScreenHeader
+        topInset={insets.top}
+        onBack={() => (router.canGoBack() ? router.back() : router.replace('/(tabs)/explore'))}
+        backLabel={t('common:actions.back')}
+        title={t('notifications:inbox.title')}
+        subtitle={unreadCount > 0 ? t('notifications:inbox.unread', { count: unreadCount }) : undefined}
+        right={
+          unreadCount > 0 ? (
+            <HeaderIconButton
+              icon="checkmark-done-outline"
+              onPress={markAllRead}
+              accessibilityLabel={t('notifications:inbox.markAllRead')}
+            />
+          ) : null
+        }
       />
-      <View pointerEvents="none" style={[styles.ambientGlow, { backgroundColor: theme.accentGlow }]} />
-
-      <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
-        <TouchableOpacity
-          onPress={() => (router.canGoBack() ? router.back() : router.replace('/(tabs)/explore'))}
-          hitSlop={12}
-          style={[styles.backBtn, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }, elevation?.sm]}
-          accessibilityRole="button"
-          accessibilityLabel={t('common:actions.back')}
-        >
-          <Ionicons name="chevron-back" size={20} color={theme.ink} />
-        </TouchableOpacity>
-        <View style={styles.headerTitleCol}>
-          <Text variant="headlineDisplay" color={theme.ink}>
-            {t('notifications:inbox.title')}
-          </Text>
-          {unreadCount > 0 ? (
-            <Text variant="bodySmall" color={theme.inkMuted}>
-              {t('notifications:inbox.unread', { count: unreadCount })}
-            </Text>
-          ) : null}
-        </View>
-        <View style={styles.backBtn} />
-      </View>
 
       {isLoading ? (
-        <View style={styles.loadingList}>
-          {[0, 1, 2].map((i) => (
-            <SkeletonBlock key={i} height={100} radius="xl" />
-          ))}
-        </View>
+        <StateView status="loading" skeleton="list" />
+      ) : isError ? (
+        <StateView
+          status="error"
+          title={t('notifications:inbox.loadError')}
+          description={t('trips:loadError.description')}
+          actionLabel={t('common:actions.retry')}
+          onAction={() => void refetch()}
+        />
       ) : !notifications || notifications.length === 0 ? (
-        <View style={styles.emptyHero}>
-          <View style={styles.emptyIconWrap}>
-            <View style={[styles.emptyGlow, { backgroundColor: theme.accentGlow }]} />
-            <View style={[styles.emptyIconRing, { backgroundColor: theme.surfaceMuted }]}>
-              <Icon name="notifications-outline" size="lg" color={theme.ink} />
-            </View>
-          </View>
-          <Text variant="h3" color={theme.ink} style={styles.emptyTitle}>
-            {t('notifications:inbox.empty')}
-          </Text>
-          <Text variant="body" color={theme.inkMuted} style={styles.emptyDescription}>
-            {t('notifications:inbox.emptyDescription')}
-          </Text>
-        </View>
+        <StateView
+          status="empty"
+          iconName="notifications-outline"
+          title={t('notifications:inbox.empty')}
+          description={t('notifications:inbox.emptyDescription')}
+        />
       ) : (
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.list}>
           {sections.map((section) => (
@@ -501,81 +488,6 @@ export default function NotificationsScreen(): React.JSX.Element {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  // A soft ambient wash behind the header instead of a flat background +
-  // hard border line — the same depth-through-gradient-and-light treatment
-  // messages.tsx's ScreenBackground already established for this app's
-  // other inbox-shaped screen, previously the one visible thing setting
-  // this screen apart as "the basic one."
-  ambientGlow: {
-    position: 'absolute',
-    top: -80,
-    right: -60,
-    width: 240,
-    height: 240,
-    borderRadius: 120,
-    opacity: 0.35,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.md,
-  },
-  backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: radii.full,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitleCol: {
-    alignItems: 'center',
-    gap: 1,
-  },
-  loadingList: {
-    padding: spacing.lg,
-    gap: spacing.sm,
-  },
-  // Mirrors messages.tsx's own "no messages yet" hero exactly (wrap sized
-  // to just the icon so the glow can't bleed into the title below it —
-  // that was a real, separately-reported overlap bug there).
-  emptyHero: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: spacing.xl,
-  },
-  emptyIconWrap: {
-    width: 96,
-    height: 96,
-    marginBottom: spacing.lg,
-  },
-  emptyGlow: {
-    position: 'absolute',
-    top: -10,
-    left: -10,
-    width: 116,
-    height: 116,
-    borderRadius: 58,
-    opacity: 0.5,
-  },
-  emptyIconRing: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  emptyTitle: {
-    textAlign: 'center',
-    marginBottom: spacing.xs,
-  },
-  emptyDescription: {
-    textAlign: 'center',
-    maxWidth: 280,
   },
   list: {
     padding: spacing.lg,
@@ -685,15 +597,8 @@ const styles = StyleSheet.create({
     paddingTop: spacing.sm,
     borderTopWidth: StyleSheet.hairlineWidth,
   },
-  actionButton: {
+  actionFlex: {
     flex: 1,
-    borderRadius: radii.full,
-    paddingVertical: spacing.sm,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  declineButton: {
-    borderWidth: 1,
   },
   actionErrorText: {
     textAlign: 'center',

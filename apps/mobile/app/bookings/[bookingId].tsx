@@ -1,8 +1,7 @@
 import { useMemo, useState } from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Modal } from 'react-native';
+import { View, StyleSheet, ScrollView, TouchableOpacity, Modal } from 'react-native';
 import { Marker, Polyline } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import type { SupportedLocale } from '@vaya/config';
@@ -12,6 +11,9 @@ import {
   Avatar,
   Badge,
   Button,
+  ScreenHeader,
+  HeaderIconButton,
+  StateView,
   MapPreview,
   MapCanvas,
   PickupPin,
@@ -41,6 +43,7 @@ import { formatDate, formatTime, formatDistance, formatCurrency } from '../../sr
 import { CancellationSheet } from '../../src/features/bookings/CancellationSheet';
 import { trackEvent } from '../../src/services/analytics/analytics';
 import { trustTierBadge } from '../../src/features/ratings/ratingHelpers';
+import { bookingStatusDisplay } from '../../src/features/status/statusDisplay';
 import { useCurrentPosition } from '../../src/services/location/useCurrentPosition';
 import { estimateArrivalLabel } from '../../src/features/driver-rides/myRidesHelpers';
 import { useCallCounterpart } from '../../src/features/bookings/useCallCounterpart';
@@ -55,22 +58,6 @@ const TRACKABLE_TRIP_STATUSES: readonly TripStatus[] = ['driver_approaching', 'p
 
 type ThemeColors = ReturnType<typeof useAppTheme>['colors'];
 type TFn = (key: string, options?: Record<string, unknown>) => string;
-
-const BOOKING_BADGE_KEY: Record<Booking['status'], { key: string; variant: 'default' | 'success' | 'warning' | 'error' | 'info' }> = {
-  pending: { key: 'booking:status_pending', variant: 'warning' },
-  accepted: { key: 'booking:status_accepted', variant: 'success' },
-  declined: { key: 'booking:status_declined', variant: 'error' },
-  cancelled_by_rider: { key: 'booking:status_cancelled_by_rider', variant: 'default' },
-  cancelled_by_driver: { key: 'booking:status_cancelled_by_driver', variant: 'error' },
-  expired: { key: 'booking:status_expired', variant: 'default' },
-  completed: { key: 'booking:status_completed', variant: 'info' },
-  no_show: { key: 'booking:status_no_show', variant: 'error' },
-};
-
-function getBookingBadge(t: TFn, status: Booking['status']): { label: string; variant: 'default' | 'success' | 'warning' | 'error' | 'info' } {
-  const { key, variant } = BOOKING_BADGE_KEY[status];
-  return { label: t(key), variant };
-}
 
 const CANCELLABLE_STATUSES: Booking['status'][] = ['pending', 'accepted'];
 // Only an upcoming, still-live booking has a meaningful "distance to
@@ -117,7 +104,7 @@ function DriverCard({
   // "Confiance"/"Top VAYA" (the tiers a driver with real trip/rating
   // history can actually earn) stay shown — those genuinely add
   // information the caption doesn't.
-  const tierMeta = trustTier && trustTier !== 'new' ? trustTierBadge(trustTier) : null;
+  const tierMeta = trustTier && trustTier !== 'new' ? trustTierBadge(trustTier, t) : null;
   const { call, isLoading: isCalling } = useCallCounterpart(bookingId);
   return (
     <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
@@ -132,8 +119,6 @@ function DriverCard({
           uri={avatarUrl}
           name={fullName}
           sizePx={52}
-          fallbackBackgroundColor={theme.surfaceMuted}
-          fallbackTextColor={theme.ink}
         />
         <View style={styles.driverText}>
           <Text variant="label" color={theme.ink} numberOfLines={1}>
@@ -239,10 +224,20 @@ export default function BookingDetailScreen(): React.JSX.Element {
   const [routeModalOpen, setRouteModalOpen] = useState(false);
   const { position } = useCurrentPosition();
 
-  const { data: bookings, isLoading: isBookingsLoading } = useListMyBookingsQuery();
+  const {
+    data: bookings,
+    isLoading: isBookingsLoading,
+    isError: isBookingsError,
+    refetch: refetchBookings,
+  } = useListMyBookingsQuery();
   const booking = useMemo(() => bookings?.find((b) => b.id === bookingId), [bookings, bookingId]);
 
-  const { data: ride, isLoading: isRideLoading } = useGetRideQuery(booking?.rideId ?? '', {
+  const {
+    data: ride,
+    isLoading: isRideLoading,
+    isError: isRideError,
+    refetch: refetchRide,
+  } = useGetRideQuery(booking?.rideId ?? '', {
     skip: !booking,
   });
   const { data: driverProfile } = useGetUserPublicProfileQuery(booking?.ride?.driverUserId ?? '', {
@@ -282,20 +277,50 @@ export default function BookingDetailScreen(): React.JSX.Element {
     });
   }
 
+  const goBack = (): void => (router.canGoBack() ? router.back() : router.replace('/(tabs)/trips'));
+  const header = (
+    <ScreenHeader
+      topInset={insets.top}
+      onBack={goBack}
+      backLabel={t('common:actions.back')}
+      title={t('booking:detail.title')}
+    />
+  );
+
   if (isBookingsLoading || (booking && isRideLoading)) {
     return (
-      <View style={[styles.loadingWrap, { backgroundColor: theme.background }]}>
-        <ActivityIndicator size="large" color={theme.accent} />
+      <View style={[styles.container, { backgroundColor: theme.background }]}>
+        {header}
+        <StateView status="loading" skeleton="detail" />
       </View>
     );
   }
 
   if (!booking || !booking.ride || !ride) {
+    const failed = isBookingsError || isRideError;
     return (
-      <View style={[styles.loadingWrap, { backgroundColor: theme.background }]}>
-        <Text variant="body" color={theme.inkFaint}>
-          {t('booking:detail.notFound')}
-        </Text>
+      <View style={[styles.container, { backgroundColor: theme.background }]}>
+        {header}
+        {failed ? (
+          <StateView
+            status="error"
+            title={t('booking:detail.loadError')}
+            description={t('trips:loadError.description')}
+            actionLabel={t('common:actions.retry')}
+            onAction={() => {
+              void refetchBookings();
+              if (booking) void refetchRide();
+            }}
+          />
+        ) : (
+          <StateView
+            status="empty"
+            iconName="receipt-outline"
+            title={t('booking:detail.notFound')}
+            actionLabel={t('common:actions.back')}
+            onAction={goBack}
+          />
+        )}
       </View>
     );
   }
@@ -304,7 +329,7 @@ export default function BookingDetailScreen(): React.JSX.Element {
   // but narrowing of a simple const does.
   const bookingRide = booking.ride;
 
-  const badge = getBookingBadge(t, booking.status);
+  const badge = bookingStatusDisplay(t, booking.status, { rideStatus: booking.ride.status, tripStatus: trip?.status });
   // Server-enforced too (bookings.service.ts's assertTripNotStarted) — once
   // the driver has actually started the trip, cancelling stops being the
   // right action for either party; this is the UI half of that rule, not
@@ -356,12 +381,7 @@ export default function BookingDetailScreen(): React.JSX.Element {
   // it prefers the trip's real progress state once there's a trip worth
   // tracking — "Accepted" is a request-lifecycle word that stops meaning
   // much the moment the journey is actually underway.
-  const mapBadgeLabel =
-    trip && isTrackable
-      ? t(`booking:detail.tripStatusLabel.${trip.status}`)
-      : booking.status === 'accepted'
-        ? t('booking:detail.statusInProgress')
-        : badge.label;
+  const mapBadgeLabel = trip && isTrackable ? t(`booking:detail.tripStatusLabel.${trip.status}`) : badge.label;
   const showLiveDistance = LIVE_DISTANCE_STATUSES.includes(booking.status) && position != null;
   const distanceToPickupKm = position
     ? haversineKm(
@@ -390,22 +410,8 @@ export default function BookingDetailScreen(): React.JSX.Element {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
+      {header}
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
-          <TouchableOpacity
-            onPress={() => (router.canGoBack() ? router.back() : router.replace('/(tabs)/trips'))}
-            hitSlop={12}
-            accessibilityRole="button"
-            accessibilityLabel={t('common:actions.back')}
-          >
-            <Ionicons name="chevron-back" size={24} color={theme.ink} />
-          </TouchableOpacity>
-          <Text variant="h3" color={theme.ink} style={styles.headerTitle}>
-            {t('booking:detail.title')}
-          </Text>
-          <View style={styles.headerSpacer} />
-        </View>
-
         <View style={styles.mapCard}>
           <MapPreview
             height={160}
@@ -634,15 +640,13 @@ export default function BookingDetailScreen(): React.JSX.Element {
               </Marker>
             ) : null}
           </MapCanvas>
-          <TouchableOpacity
-            style={[styles.routeModalClose, { top: insets.top + spacing.sm, backgroundColor: theme.surface }]}
-            onPress={() => setRouteModalOpen(false)}
-            hitSlop={12}
-            accessibilityRole="button"
-            accessibilityLabel={t('common:actions.close')}
-          >
-            <Ionicons name="close" size={22} color={theme.ink} />
-          </TouchableOpacity>
+          <View style={[styles.routeModalClose, { top: insets.top + spacing.sm }]}>
+            <HeaderIconButton
+              icon="close"
+              onPress={() => setRouteModalOpen(false)}
+              accessibilityLabel={t('common:actions.close')}
+            />
+          </View>
         </View>
       </Modal>
 
@@ -661,27 +665,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  loadingWrap: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   scrollContent: {
     paddingBottom: spacing.xl,
     gap: spacing.md,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.sm,
-  },
-  headerTitle: {
-    flex: 1,
-    textAlign: 'center',
-  },
-  headerSpacer: {
-    width: 24,
   },
   mapCard: {
     position: 'relative',

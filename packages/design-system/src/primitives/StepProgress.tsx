@@ -1,8 +1,9 @@
 import React, { useEffect, useRef } from 'react';
 import { View, StyleSheet, Animated, Easing, type StyleProp, type ViewStyle } from 'react-native';
-import { colors, spacing, radii } from '../tokens/index';
+import { spacing, radii } from '../tokens/index';
 import { useReducedMotion } from '../utils/useReducedMotion';
 import type { AppPalette } from '../theme/palette';
+import { useAppTheme } from '../theme/AppThemeProvider';
 
 interface StepProgressProps {
   /** 1-indexed. */
@@ -22,9 +23,11 @@ interface StepProgressProps {
 export function StepProgress({
   currentStep,
   totalSteps,
-  theme,
+  theme: themeOverride,
   style,
 }: StepProgressProps): React.JSX.Element {
+  const { colors: contextTheme } = useAppTheme();
+  const theme = themeOverride ?? contextTheme;
   const reduceMotion = useReducedMotion();
   const fill = useRef(new Animated.Value(0)).current;
 
@@ -45,8 +48,8 @@ export function StepProgress({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentStep, reduceMotion]);
 
-  const track = { backgroundColor: theme?.outlineVariant ?? colors.gray200 };
-  const fillColor = { backgroundColor: theme?.accent ?? colors.secondary };
+  const track = { backgroundColor: theme.outlineVariant };
+  const fillColor = { backgroundColor: theme.accent };
 
   return (
     <View

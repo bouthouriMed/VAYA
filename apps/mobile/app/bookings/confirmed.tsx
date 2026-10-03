@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
-import { Animated, View, StyleSheet, TouchableOpacity, Easing } from 'react-native';
+import { Animated, View, StyleSheet, Easing } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { Text, Icon, useAppTheme, spacing, radii, haptics } from '@vaya/design-system';
+import { Text, Icon, Button, ScreenHeader, useAppTheme, spacing, radii, haptics } from '@vaya/design-system';
+import type { SupportedLocale } from '@vaya/config';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useListMyBookingsQuery } from '../../src/state/api';
 import { CancellationSheet } from '../../src/features/bookings/CancellationSheet';
+import { formatCalendarDate, formatCurrency, formatDateTime, formatTime, toIntlTag } from '../../src/utils/localeFormat';
 
 // How often to re-poll bookings while waiting for a driver response. There
 // is no push/websocket channel into this specific screen — Phase 7's push
@@ -28,7 +29,8 @@ const POLL_MS = 5000;
  *  is shown at all until the real booking (and its real `expiresAt`) has
  *  actually loaded from the poll below — never a placeholder number. */
 export default function ConfirmedScreen(): React.JSX.Element {
-  const { t } = useTranslation(['booking', 'activeTrip', 'common']);
+  const { t, i18n } = useTranslation(['booking', 'activeTrip', 'common']);
+  const locale = i18n.language as SupportedLocale;
   const params = useLocalSearchParams<{
     bookingId?: string;
     driverName?: string;
@@ -81,49 +83,50 @@ export default function ConfirmedScreen(): React.JSX.Element {
   }, [booking?.status, params]);
 
   const declined = booking?.status === 'declined' || booking?.status === 'expired';
-  const minutes = remainingMs !== null ? Math.floor(remainingMs / 60_000) : null;
-  const seconds =
-    remainingMs !== null
-      ? Math.floor((remainingMs % 60_000) / 1000)
-          .toString()
-          .padStart(2, '0')
-      : null;
-
+  const isSameDay = (a: Date, b: Date): boolean => a.toDateString() === b.toDateString();
+  const deadline = expiresAtMs !== null && remainingMs !== null && remainingMs > 0 ? new Date(expiresAtMs) : null;
+  const deadlineLabel = deadline
+    ? isSameDay(deadline, new Date(nowMs))
+      ? t('booking:responseDeadline', { time: formatTime(deadline, locale) })
+      : t('booking:responseDeadlineDay', {
+          date: formatCalendarDate(deadline, toIntlTag(locale), { weekday: 'long', day: 'numeric', month: 'long' }),
+          time: formatTime(deadline, locale),
+        })
+    : null;
+  // The ride's real departure, from the polled booking — never the current
+  // clock (this card used to render `new Date()` as if it were the ride time).
+  const departure = booking?.ride?.departureAt ? new Date(booking.ride.departureAt) : null;
+  const tone = declined
+    ? { fill: theme.errorMuted, icon: theme.error, ring: theme.error }
+    : { fill: theme.warningMuted, icon: theme.warning, ring: theme.warning };
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      {/* headerShown: false for this route (bookings/_layout) — the OS
-       *  status bar has no native header above it, so the first row must
-       *  clear insets.top itself. */}
-      <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
-        <TouchableOpacity
-          onPress={() => router.replace('/(tabs)/explore')}
-          hitSlop={12}
-          accessibilityRole="button"
-          accessibilityLabel={t('common:actions.close')}
-        >
-          <Ionicons name="close" size={22} color={theme.ink} />
-        </TouchableOpacity>
-        <Text variant="h3" color={theme.ink}>
-          Vaya
-        </Text>
-        <View style={{ width: 22 }} />
-      </View>
+      <ScreenHeader
+        topInset={insets.top}
+        leading="close"
+        onBack={() => router.replace('/(tabs)/explore')}
+        backLabel={t('common:actions.close')}
+        title={t('booking:requestSentTitle')}
+        bordered={false}
+      />
 
       <View style={styles.body}>
         <View style={styles.badgeWrap}>
-          <Animated.View
-            style={[
-              styles.ring,
-              { borderColor: theme.accent, transform: [{ scale: ringScale }], opacity: ringOpacity },
-            ]}
-          />
-          <Animated.View style={[styles.badge, { backgroundColor: theme.accent, transform: [{ scale: badgeScale }] }]}>
-            <Ionicons name={declined ? 'close' : 'checkmark'} size={40} color={theme.onAccent} />
+          {!declined ? (
+            <Animated.View
+              style={[
+                styles.ring,
+                { borderColor: tone.ring, transform: [{ scale: ringScale }], opacity: ringOpacity },
+              ]}
+            />
+          ) : null}
+          <Animated.View style={[styles.badge, { backgroundColor: tone.fill, transform: [{ scale: badgeScale }] }]}>
+            <Icon name={declined ? 'close' : 'hourglass-outline'} size="lg" color={tone.icon} />
           </Animated.View>
         </View>
 
-        <Text variant="h1" color={theme.ink} align="center" style={styles.title}>
+        <Text variant="h2" color={theme.ink} align="center" style={styles.title}>
           {declined
             ? t('booking:declined_title', { name: driverFirstName })
             : t('booking:pending_title', { name: driverFirstName })}
@@ -137,15 +140,15 @@ export default function ConfirmedScreen(): React.JSX.Element {
           <>
             <Text variant="body" color={theme.inkMuted} align="center" style={styles.subtitle}>
               {t('booking:status_pending_hint', { name: driverFirstName })}
-              {minutes !== null && seconds !== null ? (
-                <>
-                  {' '}
-                  <Text variant="body" color={theme.ink} style={styles.bold}>
-                    {minutes}:{seconds}
-                  </Text>
-                </>
-              ) : null}
             </Text>
+            {deadlineLabel ? (
+              <View style={[styles.deadlinePill, { backgroundColor: theme.warningMuted }]}>
+                <Icon name="time-outline" size="xs" color={theme.warning} />
+                <Text variant="label" color={theme.ink}>
+                  {deadlineLabel}
+                </Text>
+              </View>
+            ) : null}
             <Text variant="bodySmall" color={theme.inkFaint} align="center">
               {t('booking:status_pending_notification')}
             </Text>
@@ -155,15 +158,19 @@ export default function ConfirmedScreen(): React.JSX.Element {
         {params.pickupLabel && params.destinationLabel ? (
           <View style={[styles.summaryCard, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
             <View style={styles.summaryHeaderRow}>
-              <View style={styles.summaryTimeRow}>
-                <Icon name="time-outline" size="xs" color={theme.inkFaint} />
-                <Text variant="caption" color={theme.inkFaint}>
-                  {new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
-                </Text>
-              </View>
+              {departure ? (
+                <View style={styles.summaryTimeRow}>
+                  <Icon name="calendar-outline" size="xs" color={theme.inkMuted} />
+                  <Text variant="caption" color={theme.inkMuted}>
+                    {formatDateTime(departure, locale)}
+                  </Text>
+                </View>
+              ) : (
+                <View />
+              )}
               {params.price ? (
-                <Text variant="h3" color={theme.accent}>
-                  {params.price} DT
+                <Text variant="title" color={theme.ink}>
+                  {formatCurrency(Number(params.price), locale)}
                 </Text>
               ) : null}
             </View>
@@ -186,30 +193,18 @@ export default function ConfirmedScreen(): React.JSX.Element {
         ) : null}
       </View>
 
-      <View style={styles.actions}>
-        <TouchableOpacity
-          style={[styles.primaryBtn, { backgroundColor: theme.ink }]}
+      <View style={[styles.actions, { paddingBottom: insets.bottom + spacing.lg }]}>
+        <Button
+          size="lg"
+          label={t('booking:backToResults')}
           onPress={() => router.dismissTo('/search/results')}
-          activeOpacity={0.85}
-          accessibilityRole="button"
-          accessibilityLabel={t('booking:backToResults')}
-        >
-          <Text variant="label" color={theme.onInk}>
-            {t('booking:backToResults')}
-          </Text>
-        </TouchableOpacity>
+        />
         {!declined ? (
-          <TouchableOpacity
-            style={styles.ghostBtn}
+          <Button
+            variant="ghost"
+            label={t('booking:cancel_request')}
             onPress={() => setCancelSheetVisible(true)}
-            activeOpacity={0.7}
-            accessibilityRole="button"
-            accessibilityLabel={t('booking:cancel_request')}
-          >
-            <Text variant="label" color={theme.inkFaint}>
-              {t('booking:cancel_request')}
-            </Text>
-          </TouchableOpacity>
+          />
         ) : null}
       </View>
 
@@ -232,13 +227,6 @@ const RING_SIZE = 84;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.sm,
   },
   body: {
     flex: 1,
@@ -274,8 +262,14 @@ const styles = StyleSheet.create({
   subtitle: {
     marginBottom: spacing.xs,
   },
-  bold: {
-    fontWeight: '700',
+  deadlinePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    borderRadius: radii.full,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    marginBottom: spacing.xs,
   },
   summaryCard: {
     width: '100%',
@@ -323,18 +317,8 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   actions: {
-    padding: spacing.lg,
-    gap: spacing.sm,
-  },
-  primaryBtn: {
-    height: 52,
-    borderRadius: radii.lg,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  ghostBtn: {
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.lg,
+    gap: spacing.xs,
   },
 });

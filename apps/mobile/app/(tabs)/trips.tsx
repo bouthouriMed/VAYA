@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { formatDate, formatTime, formatCurrency } from '../../src/utils/localeFormat';
@@ -11,12 +11,14 @@ import {
   Avatar,
   Badge,
   EmptyState,
+  StateView,
   MapPreview,
   NotificationBell,
   useAppTheme,
   haptics,
   spacing,
   radii,
+  LargeTitleHeader,
 } from '@vaya/design-system';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useAppSelector } from '../../src/state/store';
@@ -26,7 +28,6 @@ import {
   useGetRideQuery,
   useGetMyDriverProfileQuery,
   useListNotificationsQuery,
-  type Booking,
   type Ride,
 } from '../../src/state/api';
 import {
@@ -36,48 +37,20 @@ import {
   computeTripPhase,
 } from '../../src/features/driver-rides/myRidesHelpers';
 import { decodePolyline, sliceRouteBetween } from '../../src/utils/polyline';
+import { isQueryErrorOtherThan404 } from '../../src/state/queryErrors';
+import { bookingStatusDisplay, rideStatusDisplay, type StatusDisplay } from '../../src/features/status/statusDisplay';
 import { shortenPlaceLabel } from '../../src/utils/placeLabel';
 
 type ThemeColors = ReturnType<typeof useAppTheme>['colors'];
-type BadgeVariant = 'default' | 'success' | 'warning' | 'error' | 'info';
-
-function getBookingStatus(t: (key: string) => string, status: Booking['status']): { label: string; variant: BadgeVariant } {
-  const statusMap: Record<Booking['status'], { key: string; variant: BadgeVariant }> = {
-    pending: { key: 'booking:status_pending', variant: 'warning' },
-    accepted: { key: 'booking:status_accepted', variant: 'success' },
-    declined: { key: 'booking:status_declined', variant: 'error' },
-    cancelled_by_rider: { key: 'booking:status_cancelled_by_rider', variant: 'default' },
-    cancelled_by_driver: { key: 'booking:status_cancelled_by_driver', variant: 'error' },
-    expired: { key: 'booking:status_expired', variant: 'default' },
-    completed: { key: 'booking:status_completed', variant: 'info' },
-    no_show: { key: 'booking:status_no_show', variant: 'error' },
-  };
-  const { key, variant } = statusMap[status];
-  return { label: t(key), variant };
-}
-
-function getRideStatus(t: (key: string) => string, status: Ride['status']): { label: string; variant: BadgeVariant } {
-  const statusMap: Record<Ride['status'], { key: string; variant: BadgeVariant }> = {
-    draft: { key: 'booking:status_draft', variant: 'default' },
-    published: { key: 'booking:status_published', variant: 'success' },
-    full: { key: 'booking:status_full', variant: 'info' },
-    in_progress: { key: 'booking:status_in_progress', variant: 'warning' },
-    completed: { key: 'booking:status_completed', variant: 'info' },
-    cancelled: { key: 'booking:status_cancelled_by_driver', variant: 'error' },
-  };
-  const { key, variant } = statusMap[status];
-  return { label: t(key), variant };
-}
-
 const UPCOMING_RIDE_STATUSES: Ride['status'][] = ['draft', 'published', 'full'];
 
 function formatWhen(iso: string, t: (key: string) => string, locale: string): string {
   const date = new Date(iso);
   const now = new Date();
   const isToday = date.toDateString() === now.toDateString();
-  const time = formatTime(date, locale as any);
+  const time = formatTime(date, locale as SupportedLocale);
   if (isToday) return `${t('common:time.today')}, ${time}`;
-  return `${formatDate(date, locale as any, { weekday: 'short', day: 'numeric', month: 'short' })} · ${time}`;
+  return `${formatDate(date, locale as SupportedLocale, { weekday: 'short', day: 'numeric', month: 'short' })} · ${time}`;
 }
 
 type CardCounterpart =
@@ -107,7 +80,7 @@ function TripCard({
 }: {
   theme: ThemeColors;
   dateTimeLabel: string;
-  badge: { label: string; variant: BadgeVariant };
+  badge: StatusDisplay;
   originLabel: string;
   destinationLabel: string;
   counterpart: CardCounterpart;
@@ -135,7 +108,7 @@ function TripCard({
         <Text variant="label" color={theme.ink} style={styles.tripCardDate}>
           {dateTimeLabel}
         </Text>
-        <Badge label={badge.label} variant={badge.variant} theme={theme} />
+        <Badge label={badge.label} variant={badge.tone} theme={theme} />
       </View>
 
       <View style={styles.timeline}>
@@ -170,8 +143,6 @@ function TripCard({
                   uri={counterpart.avatarUrl}
                   name={counterpart.name}
                   sizePx={28}
-                  fallbackBackgroundColor={theme.surfaceMuted}
-                  fallbackTextColor={theme.ink}
                 />
               </TouchableOpacity>
             ) : (
@@ -179,8 +150,6 @@ function TripCard({
                 uri={counterpart.avatarUrl}
                 name={counterpart.name}
                 sizePx={28}
-                fallbackBackgroundColor={theme.surfaceMuted}
-                fallbackTextColor={theme.ink}
               />
             )}
             <Text variant="bodySmall" color={theme.inkMuted} numberOfLines={1} style={styles.counterpartName}>
@@ -217,11 +186,30 @@ export default function TripsScreen(): React.JSX.Element {
   const locale = useAppSelector((s) => s.language.locale) || 'en';
   const { openRequestsForRide } = useLocalSearchParams<{ openRequestsForRide?: string }>();
   const accessToken = useAppSelector((s) => s.auth.accessToken);
-  const { data: bookings, isLoading: isBookingsLoading } = useListMyBookingsQuery(undefined, {
+  const {
+    data: bookings,
+    isLoading: isBookingsLoading,
+    isError: isBookingsError,
+    refetch: refetchBookings,
+  } = useListMyBookingsQuery(undefined, {
     skip: !accessToken,
   });
-  const { data: driverProfile } = useGetMyDriverProfileQuery(undefined, { skip: !accessToken });
-  const { data: myRides } = useListMyRidesQuery(undefined, { skip: !driverProfile });
+  const {
+    data: driverProfile,
+    error: driverProfileError,
+    isLoading: isDriverProfileLoading,
+    refetch: refetchDriverProfile,
+  } = useGetMyDriverProfileQuery(undefined, { skip: !accessToken });
+  const {
+    data: myRides,
+    isLoading: isRidesLoading,
+    isError: isRidesError,
+    refetch: refetchRides,
+  } = useListMyRidesQuery(undefined, { skip: !driverProfile });
+  // A 404 genuinely means "not a driver yet"; any other failure is an error
+  // and must never be shown as the "become a driver" empty state.
+  const isDriverProfileError = isQueryErrorOtherThan404(driverProfileError);
+  const isDriverSideError = isDriverProfileError || isRidesError;
   // Defaults to rider; flips once we know which role actually HAS trips —
   // never leaves a driver staring at an empty "Passager" tab when their
   // real activity is on the "Conducteur" side, or vice versa.
@@ -360,31 +348,27 @@ export default function TripsScreen(): React.JSX.Element {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top']}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
-        {/* Page header */}
-        <View style={styles.pageHeaderRow}>
-          <View style={styles.pageHeader}>
-            <Text variant="headlineDisplay" color={theme.ink} style={styles.heading}>
-              {t('trips:title')}
-            </Text>
-            <Text variant="body" color={theme.inkMuted}>
-              {t('trips:subtitle')}
-            </Text>
-          </View>
-          <NotificationBell
-            theme={theme}
-            unreadCount={unreadNotificationsCount}
-            onPress={() => {
-              haptics.selection();
-              router.push('/notifications');
-            }}
-            accessibilityLabel={hasUnreadNotifications ? t('trips:notificationsUnreadAria') : t('trips:notificationsAria')}
-          />
-        </View>
+        <LargeTitleHeader
+          title={t('trips:title')}
+          subtitle={t('trips:subtitle')}
+          style={styles.pageHeader}
+          right={
+            <NotificationBell
+              theme={theme}
+              unreadCount={unreadNotificationsCount}
+              onPress={() => {
+                haptics.selection();
+                router.push('/notifications');
+              }}
+              accessibilityLabel={hasUnreadNotifications ? t('trips:notificationsUnreadAria') : t('trips:notificationsAria')}
+            />
+          }
+        />
 
         {!accessToken ? (
           <View style={styles.guestEmptyWrap}>
             <EmptyState
-              icon={<Icon name="car-sport-outline" size="lg" color={theme.inkFaint} />}
+              iconName="car-sport-outline"
               title={t('trips:guestEmpty.title')}
               description={t('trips:guestEmpty.description')}
               actionLabel={t('trips:guestEmpty.cta')}
@@ -411,7 +395,7 @@ export default function TripsScreen(): React.JSX.Element {
             >
               <MapPreview
                 height={128}
-                badge={getRideStatus(t, heroRide.status).label}
+                badge={rideStatusDisplay(t, heroRide.status).label}
                 origin={{ latitude: heroRide.originLat, longitude: heroRide.originLng }}
                 destination={{ latitude: heroRide.destinationLat, longitude: heroRide.destinationLng }}
                 routeCoordinates={heroPolyline}
@@ -453,7 +437,7 @@ export default function TripsScreen(): React.JSX.Element {
                   <View style={styles.timelineEntries}>
                     <View style={styles.timelineEntry}>
                       <Text variant="caption" color={theme.inkMuted}>
-                        {formatTime(new Date(heroRide.departureAt), locale as any)}
+                        {formatTime(new Date(heroRide.departureAt), locale as SupportedLocale)}
                       </Text>
                       <Text variant="body" color={theme.ink} numberOfLines={1}>
                         {heroRide.originLabel}
@@ -498,7 +482,7 @@ export default function TripsScreen(): React.JSX.Element {
             <View style={[styles.heroCard, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
               <MapPreview
                 height={128}
-                badge={getBookingStatus(t, riderHeroBooking.status).label}
+                badge={bookingStatusDisplay(t, riderHeroBooking.status, { rideStatus: riderHeroBooking.ride.status }).label}
                 pickup={riderHeroPickupPoint}
                 dropoff={riderHeroDropoffPoint}
                 theme={theme}
@@ -540,7 +524,7 @@ export default function TripsScreen(): React.JSX.Element {
                   <View style={styles.timelineEntries}>
                     <View style={styles.timelineEntry}>
                       <Text variant="caption" color={theme.inkMuted}>
-                        {formatTime(new Date(riderHeroBooking.ride.departureAt), locale as any)}
+                        {formatTime(new Date(riderHeroBooking.ride.departureAt), locale as SupportedLocale)}
                       </Text>
                       <Text variant="body" color={theme.ink} numberOfLines={1}>
                         {riderHeroBooking.pickupLabel}
@@ -614,9 +598,22 @@ export default function TripsScreen(): React.JSX.Element {
 
         {segment === 'driver' ? (
           <View style={styles.section}>
-            {!driverProfile ? (
+            {isDriverProfileLoading || isRidesLoading ? (
+              <StateView status="loading" skeleton="list" />
+            ) : isDriverSideError ? (
+              <StateView
+                status="error"
+                title={t('trips:loadError.title')}
+                description={t('trips:loadError.description')}
+                actionLabel={t('common:actions.retry')}
+                onAction={() => {
+                  void refetchDriverProfile();
+                  if (driverProfile) void refetchRides();
+                }}
+              />
+            ) : !driverProfile ? (
               <EmptyState
-                icon={<Icon name="car-outline" size="lg" color={theme.inkFaint} />}
+                iconName="car-outline"
                 title={t('trips:driverEmpty.notDriverYet')}
                 description={t('trips:driverEmpty.notDriverDesc')}
                 actionLabel={t('trips:driverEmpty.becomeDriver')}
@@ -624,7 +621,7 @@ export default function TripsScreen(): React.JSX.Element {
               />
             ) : remainingRides.length === 0 && !heroRide ? (
               <EmptyState
-                icon={<Icon name="car-outline" size="lg" color={theme.inkFaint} />}
+                iconName="car-outline"
                 title={t('trips:driverEmpty.noRides')}
                 description={t('trips:driverEmpty.noRidesDesc')}
                 actionLabel={t('trips:driverEmpty.publishRide')}
@@ -644,7 +641,7 @@ export default function TripsScreen(): React.JSX.Element {
                     key={ride.id}
                     theme={theme}
                     dateTimeLabel={formatWhen(ride.departureAt, t, locale)}
-                    badge={getRideStatus(t, ride.status)}
+                    badge={rideStatusDisplay(t, ride.status)}
                     originLabel={ride.originLabel}
                     destinationLabel={ride.destinationLabel}
                     counterpart={{
@@ -664,10 +661,18 @@ export default function TripsScreen(): React.JSX.Element {
         ) : (
           <View style={styles.section}>
             {isBookingsLoading ? (
-              <ActivityIndicator size="small" color={theme.accent} style={styles.loading} />
+              <StateView status="loading" skeleton="list" />
+            ) : isBookingsError ? (
+              <StateView
+                status="error"
+                title={t('trips:loadError.title')}
+                description={t('trips:loadError.description')}
+                actionLabel={t('common:actions.retry')}
+                onAction={() => void refetchBookings()}
+              />
             ) : (bookings?.length ?? 0) === 0 ? (
               <EmptyState
-                icon={<Icon name="search-outline" size="lg" color={theme.inkFaint} />}
+                iconName="search-outline"
                 title={t('trips:riderEmpty.noBookings')}
                 description={t('trips:riderEmpty.noBookingsDesc')}
                 actionLabel={t('trips:riderEmpty.findRide')}
@@ -680,7 +685,7 @@ export default function TripsScreen(): React.JSX.Element {
                     key={booking.id}
                     theme={theme}
                     dateTimeLabel={booking.ride ? formatWhen(booking.ride.departureAt, t, locale) : ''}
-                    badge={getBookingStatus(t, booking.status)}
+                    badge={bookingStatusDisplay(t, booking.status, { rideStatus: booking.ride?.status })}
                     originLabel={booking.pickupLabel ?? booking.ride?.originLabel ?? t('booking:departure')}
                     destinationLabel={
                       booking.dropoffLabel ?? booking.ride?.destinationLabel ?? t('booking:arrival')
@@ -702,7 +707,7 @@ export default function TripsScreen(): React.JSX.Element {
                         key={booking.id}
                         theme={theme}
                         dateTimeLabel={booking.ride ? formatWhen(booking.ride.departureAt, t, locale) : ''}
-                        badge={getBookingStatus(t, booking.status)}
+                        badge={bookingStatusDisplay(t, booking.status, { rideStatus: booking.ride?.status })}
                         originLabel={booking.pickupLabel ?? booking.ride?.originLabel ?? t('booking:departure')}
                         destinationLabel={
                           booking.dropoffLabel ?? booking.ride?.destinationLabel ?? t('booking:arrival')
@@ -739,19 +744,9 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     paddingBottom: spacing['4xl'],
   },
-  pageHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    gap: spacing.sm,
-    marginTop: 5
-  },
   pageHeader: {
-    flex: 1,
-    gap: 17,
-  },
-  heading: {
-    textAlign: 'center',
+    paddingHorizontal: 0,
+    paddingTop: 0,
   },
   sectionHeading: {
     textTransform: 'uppercase',

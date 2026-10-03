@@ -4,9 +4,7 @@ import {
   StyleSheet,
   Animated,
   AccessibilityInfo,
-  TouchableOpacity,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import {
@@ -19,8 +17,8 @@ import {
   spacing,
   radii,
   typography,
-  ABSOLUTE_FILL_OBJECT,
   type IconName,
+  Button,
 } from '@vaya/design-system';
 import { router } from 'expo-router';
 
@@ -85,23 +83,8 @@ export default function BecomeDriverScreen(): React.JSX.Element {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <LinearGradient
-        colors={theme.backgroundGradient}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
-        style={StyleSheet.absoluteFill}
-      />
-      <View
-        pointerEvents="none"
-        style={[styles.glowTop, { backgroundColor: theme.accentGlow }]}
-      />
-      <View
-        pointerEvents="none"
-        style={[styles.glowSeam, { backgroundColor: theme.accent }]}
-      />
-
       <View style={[styles.hero, { paddingTop: insets.top + spacing.sm }]}>
-        <ScreenHeader onBack={() => router.back()} tone={isDark ? 'dark' : 'light'} />
+        <ScreenHeader onBack={() => router.back()} transparent bordered={false} backLabel={t('onboarding.index.back')} />
 
         <Animated.View
           style={[styles.heroBody, { opacity: fade, transform: [{ translateY: rise }] }]}
@@ -152,44 +135,14 @@ export default function BecomeDriverScreen(): React.JSX.Element {
         </View>
 
         <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.lg }]}>
-          <TouchableOpacity
+          <Button
+            size="lg"
+            label={t('onboarding.index.startCta')}
+            trailingIcon="arrow-forward"
             onPress={() => router.push('/driver/onboarding/vehicle')}
-            activeOpacity={0.85}
-            accessibilityRole="button"
-            accessibilityLabel={t('onboarding.index.startCta')}
             style={styles.ctaWrap}
-          >
-            <LinearGradient
-              colors={theme.inkGradient}
-              start={{ x: 0.1, y: 0 }}
-              end={{ x: 0.9, y: 1 }}
-              style={styles.cta}
-            >
-              <View pointerEvents="none" style={styles.ctaSheenClip}>
-                <LinearGradient
-                  colors={['transparent', theme.glimmer, 'transparent']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={styles.ctaSheen}
-                />
-              </View>
-              <Text variant="label" color={theme.onInk}>
-                {t('onboarding.index.startCta')}
-              </Text>
-              <Icon name="arrow-forward" size="sm" color={theme.onInk} />
-            </LinearGradient>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => router.back()}
-            hitSlop={12}
-            style={styles.secondaryBack}
-            accessibilityRole="button"
-            accessibilityLabel={t('onboarding.index.back')}
-          >
-            <Text variant="bodySmall" color={theme.inkMuted}>
-              {t('onboarding.index.later')}
-            </Text>
-          </TouchableOpacity>
+          />
+          <Button variant="ghost" label={t('onboarding.index.later')} onPress={() => router.back()} />
         </View>
       </View>
     </View>
@@ -200,24 +153,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     overflow: 'hidden',
-  },
-  glowTop: {
-    position: 'absolute',
-    top: -140,
-    left: -80,
-    width: 320,
-    height: 320,
-    borderRadius: 160,
-    opacity: 0.28,
-  },
-  glowSeam: {
-    position: 'absolute',
-    top: '30%',
-    right: -110,
-    width: 300,
-    height: 300,
-    borderRadius: 150,
-    opacity: 0.14,
   },
   hero: {
     paddingHorizontal: spacing.lg,
@@ -232,6 +167,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.lg,
     fontWeight: typography.fontWeight.semibold,
     letterSpacing: 1.5,
+    textTransform: 'uppercase',
   },
   headline: {
     marginTop: spacing.sm,
@@ -263,7 +199,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.md,
     padding: spacing.lg,
-    borderWidth: 1,
   },
   benefitIcon: {
     width: 40,
@@ -287,30 +222,5 @@ const styles = StyleSheet.create({
   },
   ctaWrap: {
     width: '100%',
-    borderRadius: radii.lg,
-    overflow: 'hidden',
-  },
-  cta: {
-    width: '100%',
-    minHeight: 52,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.sm,
-  },
-  ctaSheenClip: {
-    ...ABSOLUTE_FILL_OBJECT,
-    overflow: 'hidden',
-  },
-  ctaSheen: {
-    position: 'absolute',
-    top: -20,
-    left: -40,
-    width: '70%',
-    height: '260%',
-    transform: [{ rotate: '20deg' }],
-  },
-  secondaryBack: {
-    padding: spacing.sm,
   },
 });

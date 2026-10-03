@@ -1,4 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
+import type React from 'react';
+import { createElement } from 'react';
+import renderer, { act, type ReactTestInstance } from 'react-test-renderer';
 import { PriceRangeStepper, clampPrice } from '../primitives/PriceRangeStepper';
 
 describe('clampPrice', () => {
@@ -19,55 +22,68 @@ describe('clampPrice', () => {
   });
 });
 
-// Same "call the function component directly" pattern as
-// accessibility.test.ts — PriceRangeStepper has no internal hooks, so this
-// is a valid way to assert on the props actually reaching the underlying
-// RN elements without needing a full renderer.
+// Rendered through react-test-renderer (the stepper reads the theme from
+// context), then queried by role/label on the rendered host nodes.
+function render(props: React.ComponentProps<typeof PriceRangeStepper>): ReactTestInstance {
+  let instance: renderer.ReactTestRenderer;
+  act(() => {
+    instance = renderer.create(createElement(PriceRangeStepper, props));
+  });
+  return instance!.root;
+}
+
+const host = (root: ReactTestInstance, pred: (p: Record<string, unknown>) => boolean): ReactTestInstance[] =>
+  root.findAll((n) => typeof n.type === 'string' && pred(n.props as Record<string, unknown>));
+
+function allText(root: ReactTestInstance): string {
+  return host(root, () => true)
+    .flatMap((n) => n.children.filter((c): c is string => typeof c === 'string'))
+    .join(' | ');
+}
+
 describe('PriceRangeStepper', () => {
   it('never renders a value outside [min, max], even if `value` is out of range', () => {
-    const element = PriceRangeStepper({ min: 5, max: 10, recommended: 7, value: 99, onChange: vi.fn() });
-    const valueBox = element.props.children[1]; // stepperRow -> [decrement, valueBox, increment]
-    const valueText = valueBox.props.children[1].props.children;
-    const displayedText = JSON.stringify(valueText);
-    expect(displayedText).toContain('10');
-    expect(displayedText).not.toContain('99');
+    const text = allText(render({ min: 5, max: 10, recommended: 7, value: 99, onChange: vi.fn() }));
+    expect(text).toContain('10 DT');
+    expect(text).not.toContain('99');
   });
 
   it('exposes the bound to assistive tech via accessibilityValue on the track', () => {
-    const element = PriceRangeStepper({ min: 5, max: 10, recommended: 7, value: 6, onChange: vi.fn() });
-    // container -> [label, stepperRow, track, captionRow, estimateNote?]
-    const track = element.props.children[2];
-    expect(track.props.accessibilityRole).toBe('adjustable');
-    expect(track.props.accessibilityValue).toEqual({ min: 5, max: 10, now: 6 });
+    const [track] = host(render({ min: 5, max: 10, recommended: 7, value: 6, onChange: vi.fn() }), (p) => p.accessibilityRole === 'adjustable');
+    expect(track!.props.accessibilityValue).toEqual({ min: 5, max: 10, now: 6 });
   });
 
   it('rounds accessibilityValue to integers for a fractional DT price — a non-integer here crashes Fabric', () => {
     // Real-world case: a long route's server-computed bounds/recommendation
-    // can legitimately be fractional DT (e.g. 176.5), unlike this test
-    // suite's other round-number fixtures.
-    const element = PriceRangeStepper({
-      min: 150.5,
-      max: 210,
-      recommended: 176.5,
-      value: 176.5,
-      onChange: vi.fn(),
-    });
-    const track = element.props.children[2];
-    expect(track.props.accessibilityValue).toEqual({ min: 151, max: 210, now: 177 });
-    expect(Number.isInteger(track.props.accessibilityValue.min)).toBe(true);
-    expect(Number.isInteger(track.props.accessibilityValue.max)).toBe(true);
-    expect(Number.isInteger(track.props.accessibilityValue.now)).toBe(true);
+    // can legitimately be fractional DT (e.g. 176.5).
+    const [track] = host(
+      render({ min: 150.5, max: 210, recommended: 176.5, value: 176.5, onChange: vi.fn() }),
+      (p) => p.accessibilityRole === 'adjustable',
+    );
+    expect(track!.props.accessibilityValue).toEqual({ min: 151, max: 210, now: 177 });
   });
 
   it('disables the decrement button at the min bound and the increment button at the max bound', () => {
-    const atMin = PriceRangeStepper({ min: 5, max: 10, recommended: 7, value: 5, onChange: vi.fn() });
-    const atMinRow = atMin.props.children[1];
-    expect(atMinRow.props.children[0].props.disabled).toBe(true); // decrement
-    expect(atMinRow.props.children[2].props.disabled).toBe(false); // increment
+    const disabledOf = (root: ReactTestInstance, label: string): unknown =>
+      host(root, (p) => p.accessibilityLabel === label)[0]!.props.accessibilityState;
+    const atMin = render({ min: 5, max: 10, recommended: 7, value: 5, onChange: vi.fn() });
+    expect(disabledOf(atMin, 'Diminuer la contribution')).toEqual({ disabled: true });
+    expect(disabledOf(atMin, 'Augmenter la contribution')).toEqual({ disabled: false });
+    const atMax = render({ min: 5, max: 10, recommended: 7, value: 10, onChange: vi.fn() });
+    expect(disabledOf(atMax, 'Diminuer la contribution')).toEqual({ disabled: false });
+    expect(disabledOf(atMax, 'Augmenter la contribution')).toEqual({ disabled: true });
+  });
 
-    const atMax = PriceRangeStepper({ min: 5, max: 10, recommended: 7, value: 10, onChange: vi.fn() });
-    const atMaxRow = atMax.props.children[1];
-    expect(atMaxRow.props.children[0].props.disabled).toBe(false); // decrement
-    expect(atMaxRow.props.children[2].props.disabled).toBe(true); // increment
+  it('uses caller-supplied labels and formatter', () => {
+    const root = render({
+      min: 5,
+      max: 10,
+      recommended: 7,
+      value: 6,
+      onChange: vi.fn(),
+      labels: { suggested: (p) => `Suggested: ${p}` },
+      formatValue: (n) => `TND ${n}`,
+    });
+    expect(allText(root)).toContain('Suggested: TND 7');
   });
 });

@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Modal } from 'react-native';
+import { View, StyleSheet, ScrollView, TouchableOpacity, Modal } from 'react-native';
 import { Marker, Polyline } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { router, useLocalSearchParams } from 'expo-router';
 import type { SupportedLocale } from '@vaya/config';
@@ -12,6 +11,9 @@ import {
   Avatar,
   Badge,
   Button,
+  ScreenHeader,
+  HeaderIconButton,
+  StateView,
   MapPreview,
   MapCanvas,
   PickupPin,
@@ -48,6 +50,7 @@ import { estimateArrivalLabel, computeTripPhase } from '../../../src/features/dr
 import { buildItineraryThread, type ItineraryStopEvent } from '../../../src/features/driver-rides/itineraryThread';
 import { PassengerItineraryThread } from '../../../src/features/driver-rides/PassengerItineraryThread';
 import { formatTime, formatRelativeTime, toIntlTag } from '../../../src/utils/localeFormat';
+import { bookingStatusDisplay } from '../../../src/features/status/statusDisplay';
 
 const TRACKABLE_TRIP_STATUSES: readonly TripStatus[] = ['driver_approaching', 'pickup', 'active', 'arriving'];
 // M-099/M-100 (docs/unified_driver_and_passenger_journey.md §35): the API
@@ -134,8 +137,6 @@ function PendingRequestRow({
               uri={booking.rider.avatarUrl}
               name={booking.rider.fullName}
               sizePx={40}
-              fallbackBackgroundColor={theme.surface}
-              fallbackTextColor={theme.ink}
             />
           </TouchableOpacity>
         ) : (
@@ -143,8 +144,6 @@ function PendingRequestRow({
             uri={undefined}
             name="?"
             sizePx={40}
-            fallbackBackgroundColor={theme.surface}
-            fallbackTextColor={theme.ink}
           />
         )}
         <View style={styles.requestIdentityText}>
@@ -174,30 +173,24 @@ function PendingRequestRow({
         <Icon name="chevron-forward" size="sm" color={theme.inkFaint} />
       </View>
       <View style={styles.requestActions}>
-        <TouchableOpacity
-          style={[styles.pillButton, styles.pillButtonOutline, { borderColor: theme.outline }]}
+        <Button
+          variant="outline"
+          size="sm"
+          label={t('rides.requestsSheet.decline')}
           onPress={() => void respond('decline')}
           disabled={isBusy}
-          activeOpacity={0.7}
-          accessibilityRole="button"
           accessibilityLabel={`${t('rides.requestsSheet.decline')} ${booking.rider?.fullName ?? ''}`}
-        >
-          <Text variant="label" color={theme.error}>
-            {t('rides.requestsSheet.decline')}
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.pillButton, { backgroundColor: theme.accent }]}
+          style={styles.pillFlex}
+        />
+        <Button
+          variant="primary"
+          size="sm"
+          label={t('rides.requestsSheet.accept')}
           onPress={() => void respond('accept')}
           disabled={isBusy}
-          activeOpacity={0.85}
-          accessibilityRole="button"
           accessibilityLabel={`${t('rides.requestsSheet.accept')} ${booking.rider?.fullName ?? ''}`}
-        >
-          <Text variant="label" color={theme.onAccent}>
-            {t('rides.requestsSheet.accept')}
-          </Text>
-        </TouchableOpacity>
+          style={styles.pillFlex}
+        />
       </View>
       {error ? (
         <Text variant="caption" color={theme.error} style={styles.requestError}>
@@ -249,20 +242,10 @@ export default function DriverRideHubScreen(): React.JSX.Element {
   const [managedBooking, setManagedBooking] = useState<Booking | null>(null);
   const [detailBooking, setDetailBooking] = useState<Booking | null>(null);
 
-  const ANSWERED_BADGE: Record<Booking['status'], { label: string; variant: 'default' | 'success' | 'warning' | 'error' }> = {
-    pending: { label: t('rides.requestsSheet.sectionPending'), variant: 'warning' },
-    accepted: { label: t('rides.rideDetail.confirmedBadge'), variant: 'success' },
-    declined: { label: t('rides.requestsSheet.decline'), variant: 'error' },
-    cancelled_by_rider: { label: t('rides.rideDetail.cancelRide'), variant: 'default' },
-    cancelled_by_driver: { label: t('rides.rideDetail.cancelRide'), variant: 'error' },
-    expired: { label: t('rides.requestsSheet.empty'), variant: 'default' },
-    completed: { label: t('rides.rideDetail.arrival'), variant: 'default' },
-    no_show: { label: t('rides.requestsSheet.empty'), variant: 'error' },
-  };
   const [cancellingRide, setCancellingRide] = useState(false);
   const [routeModalOpen, setRouteModalOpen] = useState(false);
 
-  const { data: ride, isLoading: isRideLoading } = useGetRideQuery(rideId);
+  const { data: ride, isLoading: isRideLoading, isError: isRideError, refetch: refetchRide } = useGetRideQuery(rideId);
   const { data: requests, isLoading: isRequestsLoading } = useListRequestsForRideQuery(rideId);
   const { data: stops } = useGetRideStopsQuery(rideId);
 
@@ -510,20 +493,39 @@ export default function DriverRideHubScreen(): React.JSX.Element {
         })()
       : undefined;
 
-  if (isRideLoading) {
-    return (
-      <View style={[styles.loadingWrap, { backgroundColor: theme.background }]}>
-        <ActivityIndicator size="large" color={theme.accent} />
-      </View>
-    );
-  }
+  const goBack = (): void => (router.canGoBack() ? router.back() : router.replace('/(tabs)/trips'));
+  const header = (
+    <ScreenHeader
+      topInset={insets.top}
+      onBack={goBack}
+      backLabel={t('rides.rideDetail.back')}
+      title={t('rides.rideDetail.myRide')}
+    />
+  );
 
-  if (!ride) {
+  if (isRideLoading || !ride) {
     return (
-      <View style={[styles.loadingWrap, { backgroundColor: theme.background }]}>
-        <Text variant="body" color={theme.inkFaint}>
-          {t('rides.rideDetail.rideNotFound')}
-        </Text>
+      <View style={[styles.container, { backgroundColor: theme.background }]}>
+        {header}
+        {isRideLoading ? (
+          <StateView status="loading" skeleton="detail" />
+        ) : isRideError ? (
+          <StateView
+            status="error"
+            title={t('rides.rideDetail.loadError')}
+            description={t('trips:loadError.description')}
+            actionLabel={t('common:actions.retry')}
+            onAction={() => void refetchRide()}
+          />
+        ) : (
+          <StateView
+            status="empty"
+            iconName="car-outline"
+            title={t('rides.rideDetail.rideNotFound')}
+            actionLabel={t('common:actions.back')}
+            onAction={goBack}
+          />
+        )}
       </View>
     );
   }
@@ -575,22 +577,8 @@ export default function DriverRideHubScreen(): React.JSX.Element {
       {acceptedBookings.map((booking) => (
         <AcceptedBookingTripBridge key={booking.id} bookingId={booking.id} onTripChange={handleTripChange} />
       ))}
+      {header}
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
-          <TouchableOpacity
-            onPress={() => (router.canGoBack() ? router.back() : router.replace('/(tabs)/trips'))}
-            hitSlop={12}
-            accessibilityRole="button"
-            accessibilityLabel={t('rides.rideDetail.back')}
-          >
-            <Ionicons name="chevron-back" size={24} color={theme.ink} />
-          </TouchableOpacity>
-          <Text variant="h3" color={theme.ink} style={styles.headerTitle}>
-            {t('rides.rideDetail.myRide')}
-          </Text>
-          <View style={styles.headerSpacer} />
-        </View>
-
         <View style={styles.mapCard}>
           <MapPreview
             height={160}
@@ -718,7 +706,7 @@ export default function DriverRideHubScreen(): React.JSX.Element {
             {t('rides.rideDetail.pendingSection', { count: pending.length })}
           </Text>
           {isRequestsLoading ? (
-            <ActivityIndicator size="small" color={theme.accent} style={styles.loading} />
+            <StateView status="loading" skeleton="list" />
           ) : pending.length === 0 ? (
             <Text variant="bodySmall" color={theme.inkFaint} style={styles.emptyHint}>
               {t('rides.rideDetail.noPendingRequests')}
@@ -743,7 +731,7 @@ export default function DriverRideHubScreen(): React.JSX.Element {
               {t('rides.rideDetail.passengers')}
             </Text>
             {answered.map((booking) => {
-              const meta = ANSWERED_BADGE[booking.status];
+              const meta = bookingStatusDisplay(t, booking.status, { rideStatus: ride.status, tripStatus: tripsByBooking[booking.id]?.status });
               const manageable = booking.status === 'accepted';
               const trip = tripsByBooking[booking.id];
               // Once this passenger's own trip has genuinely started, its
@@ -780,8 +768,6 @@ export default function DriverRideHubScreen(): React.JSX.Element {
                           uri={booking.rider.avatarUrl}
                           name={booking.rider.fullName}
                           sizePx={36}
-                          fallbackBackgroundColor={theme.surface}
-                          fallbackTextColor={theme.ink}
                         />
                       </TouchableOpacity>
                     ) : (
@@ -789,8 +775,6 @@ export default function DriverRideHubScreen(): React.JSX.Element {
                         uri={undefined}
                         name="?"
                         sizePx={36}
-                        fallbackBackgroundColor={theme.surface}
-                        fallbackTextColor={theme.ink}
                       />
                     )}
                     <View style={styles.requestIdentityText}>
@@ -801,21 +785,17 @@ export default function DriverRideHubScreen(): React.JSX.Element {
                         {`${booking.seatsRequested} place${booking.seatsRequested > 1 ? 's' : ''}`}
                       </Text>
                     </View>
-                    <Badge label={badgeLabel} variant={meta.variant} theme={theme} />
+                    <Badge label={badgeLabel} variant={meta.tone} theme={theme} />
                     {manageable ? <Icon name="chevron-forward" size="xs" color={theme.outline} /> : null}
                   </TouchableOpacity>
                   {showBoardButton ? (
-                    <TouchableOpacity
-                      style={[styles.boardButton, { backgroundColor: theme.accent }]}
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      label={t('rides.rideDetail.passengerAboard')}
                       onPress={() => void handlePassengerAboard(trip!.id)}
-                      activeOpacity={0.85}
-                      accessibilityRole="button"
                       accessibilityLabel={`${t('rides.rideDetail.passengerAboard')} ${booking.rider?.fullName ?? ''}`}
-                    >
-                      <Text variant="label" color={theme.onAccent}>
-                        {t('rides.rideDetail.passengerAboard')}
-                      </Text>
-                    </TouchableOpacity>
+                    />
                   ) : null}
                 </View>
               );
@@ -952,15 +932,13 @@ export default function DriverRideHubScreen(): React.JSX.Element {
               )}
             </Marker>
           </MapCanvas>
-          <TouchableOpacity
-            style={[styles.routeModalClose, { top: insets.top + spacing.sm, backgroundColor: theme.surface }]}
-            onPress={() => setRouteModalOpen(false)}
-            hitSlop={12}
-            accessibilityRole="button"
-            accessibilityLabel={t('rides.rideDetail.close')}
-          >
-            <Ionicons name="close" size={22} color={theme.ink} />
-          </TouchableOpacity>
+          <View style={[styles.routeModalClose, { top: insets.top + spacing.sm }]}>
+            <HeaderIconButton
+              icon="close"
+              onPress={() => setRouteModalOpen(false)}
+              accessibilityLabel={t('rides.rideDetail.close')}
+            />
+          </View>
         </View>
       </Modal>
 
@@ -989,26 +967,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  loadingWrap: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   scrollContent: {
     paddingBottom: spacing.xl,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.sm,
-  },
-  headerTitle: {
-    flex: 1,
-    textAlign: 'center',
-  },
-  headerSpacer: {
-    width: 24,
   },
   mapCard: {
     position: 'relative',
@@ -1137,9 +1097,6 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.4,
   },
-  loading: {
-    marginTop: spacing.sm,
-  },
   emptyHint: {
     paddingVertical: spacing.sm,
   },
@@ -1162,15 +1119,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: spacing.sm,
   },
-  pillButton: {
+  pillFlex: {
     flex: 1,
-    borderRadius: radii.full,
-    paddingVertical: spacing.sm,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  pillButtonOutline: {
-    borderWidth: 1,
   },
   requestError: {
     textAlign: 'center',
@@ -1182,12 +1132,6 @@ const styles = StyleSheet.create({
   },
   answeredGroup: {
     gap: spacing.xs,
-  },
-  boardButton: {
-    borderRadius: radii.lg,
-    paddingVertical: spacing.sm,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   scrollSpacer: {
     height: spacing['3xl'],

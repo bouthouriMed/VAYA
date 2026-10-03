@@ -21,7 +21,7 @@
   "status_full": "Complet",
   "status_in_progress": "En cours",
   "settlement_title": "Trajet terminé",
-  "settlement_pay": "Réglez {{price}} DT directement avec {{name}}",
+  "settlement_pay": "Réglez {{price}} directement avec {{name}}",
   "rate_prompt": "Comment était {{name}} ?",
   "finish": "Terminer",
   "filters": {
@@ -109,7 +109,12 @@
     "detected": "Détecté",
     "driversLicense": "Permis de conduire",
     "insuranceProof": "Attestation d'assurance",
-    "identitySelfie": "Selfie d'identité"
+    "identitySelfie": "Selfie d'identité",
+    "confirmTodayRide": "Préparer le trajet du jour",
+    "viewTodayRide": "Voir le trajet du jour",
+    "updateError": "La modification n'a pas pu être enregistrée. Réessayez.",
+    "loadError": "Impossible de charger vos trajets réguliers",
+    "confirmPublish": "Confirmer et publier"
   },
   "detail": {
     "title": "Ma réservation",
@@ -133,7 +138,8 @@
       "pickup": "Votre conducteur est arrivé",
       "active": "Trajet en cours",
       "arriving": "Vous arrivez bientôt à destination"
-    }
+    },
+    "loadError": "Impossible de charger cette réservation"
   },
   "days": {
     "mon": "Lun",
@@ -144,5 +150,43 @@
     "sat": "Sam",
     "sun": "Dim",
     "everyDay": "Tous les jours"
-  }
+  },
+  "destination": "Destination",
+  "driver_join": "Me rendre au point de prise en charge",
+  "section_payment": "Paiement",
+  "section_trip": "Trajet",
+  "status_confirmed": "Confirmé",
+  "status_confirmed_title": "Votre place est confirmée",
+  "status_confirmed_hint": "{{name}} a accepté votre demande. Retrouvez les détails de votre trajet ci-dessous.",
+  "waiting_confirmation": "Point de prise en charge à confirmer",
+  "requestSentTitle": "Demande envoyée",
+  "responseDeadline": "Réponse attendue avant {{time}}",
+  "responseDeadlineDay": "Réponse attendue avant le {{date}} à {{time}}",
+  "phase": {
+    "awaiting_response": "En attente de réponse",
+    "confirmed": "Confirmée",
+    "in_progress": "En cours",
+    "completed": "Terminée",
+    "declined": "Refusée",
+    "cancelled_by_rider": "Annulée par vous",
+    "cancelled_by_driver": "Annulée par le conducteur",
+    "expired": "Expirée",
+    "superseded": "Remplacée",
+    "no_show": "Absence signalée"
+  },
+  "ridePhase": {
+    "draft": "Brouillon",
+    "published": "Publié",
+    "full": "Complet",
+    "in_progress": "En cours",
+    "completed": "Terminé",
+    "cancelled": "Annulé"
+  },
+  "pickupTitle": "Rendez-vous",
+  "pickupPointLabel": "Point de prise en charge",
+  "arrived": "Vous êtes arrivé·e",
+  "arrivedAt": "Arrivé·e à {{place}}",
+  "ratingThanks": "Merci ! Votre avis sur {{name}} a été envoyé.",
+  "rateCta": "Noter {{name}}",
+  "shareMessage": "Mon trajet VAYA avec {{driver}} : {{pickup}} → {{destination}}, {{price}}."
 }

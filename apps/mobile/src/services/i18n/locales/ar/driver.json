@@ -26,7 +26,15 @@
       "timeQuickPlus30": "+30 دقيقة",
       "timeQuickPlus1h": "+1 ساعة",
       "timeQuickCustom": "مخصص",
-      "weekdayLabels": ["ن", "ث", "ر", "خ", "ج", "س", "ح"],
+      "weekdayLabels": [
+        "ن",
+        "ث",
+        "ر",
+        "خ",
+        "ج",
+        "س",
+        "ح"
+      ],
       "previousMonth": "الشهر السابق",
       "nextMonth": "الشهر التالي",
       "confirmDate": "تأكيد التاريخ",
@@ -55,7 +63,11 @@
       "contributionLabel": "المساهمة لكل مقعد",
       "suggested": "مقترح",
       "min": "الحد الأدنى",
-      "max": "الحد الأقصى"
+      "max": "الحد الأقصى",
+      "decrease": "خفض المساهمة",
+      "increase": "رفع المساهمة",
+      "suggestedValue": "المقترح: {{price}}",
+      "estimateNote": "تقدير مبني على المسافة المستقيمة: يبقى النطاق أوسع حتى يتم تأكيد المسار الفعلي."
     },
     "stopsStep": {
       "pickupTitle": "نقطة الالتقاء",
@@ -200,10 +212,10 @@
         "plate": "رقم اللوحة"
       },
       "placeholders": {
-        "make": "Peugeot",
-        "model": "208",
-        "color": "رمادي",
-        "plate": "208TU1234"
+        "make": "مثال: Peugeot",
+        "model": "مثال: 208",
+        "color": "مثال: رمادي",
+        "plate": "مثال: 208 TU 1234"
       },
       "removeSeat": "إزالة مقعد",
       "addSeat": "إضافة مقعد",
@@ -334,7 +346,8 @@
         "active": "الراكب في السيارة",
         "arriving": "على وشك الوصول",
         "completed": "انتهت"
-      }
+      },
+      "loadError": "تعذّر تحميل هذه الرحلة"
     },
     "manageSheet": {
       "title": "إدارة هذه الرحلة",

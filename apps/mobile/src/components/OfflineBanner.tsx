@@ -1,6 +1,6 @@
 import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Text, Icon, colors, spacing } from '@vaya/design-system';
+import { Text, Icon, useAppTheme, spacing } from '@vaya/design-system';
 import { useTranslation } from 'react-i18next';
 import { useIsOffline } from '../hooks/useIsOffline';
 
@@ -14,6 +14,7 @@ import { useIsOffline } from '../hooks/useIsOffline';
 export function OfflineBanner(): React.JSX.Element | null {
   const isOffline = useIsOffline();
   const insets = useSafeAreaInsets();
+  const { colors: theme } = useAppTheme();
   const { t } = useTranslation();
 
   if (!isOffline) return null;
@@ -24,7 +25,7 @@ export function OfflineBanner(): React.JSX.Element | null {
       accessibilityLabel={t('common:offline.message')}
       style={{
         paddingTop: insets.top,
-        backgroundColor: colors.warningDark,
+        backgroundColor: theme.warning,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
@@ -32,8 +33,8 @@ export function OfflineBanner(): React.JSX.Element | null {
         paddingBottom: spacing.xs,
       }}
     >
-      <Icon name="alert-circle-outline" size="xs" color={colors.white} />
-      <Text variant="caption" color={colors.white}>
+      <Icon name="alert-circle-outline" size="xs" color={theme.onInk} />
+      <Text variant="caption" color={theme.onInk}>
         {t('common:offline.message')}
       </Text>
     </View>

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { radii, spacing } from '../tokens/index';
 import { Text } from './Text';
+import { Button } from './Button';
 import { Icon } from './Icon';
 import { BottomSheet } from './BottomSheet';
 import { useAppTheme } from '../theme/AppThemeProvider';
@@ -88,24 +89,8 @@ export function PassengerSheet({
       onClose={onClose}
       heightRatio={0.42}
       theme={theme}
-      headerContent={
-        <View style={styles.headerRow}>
-          <View style={styles.headerSpacer} />
-          {/* Same h3 header grammar as DateCalendarSheet/TimeWheelSheet —
-           *  every sheet title in the system is h3, never a smaller label. */}
-          <Text variant="h3" style={[styles.headerTitle, { color: theme.ink }]}>
-            {title}
-          </Text>
-          <TouchableOpacity
-            onPress={onClose}
-            accessibilityRole="button"
-            accessibilityLabel={closeLabel}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          >
-            <Icon name="close" size="sm" color={theme.ink} />
-          </TouchableOpacity>
-        </View>
-      }
+      title={title}
+      closeLabel={closeLabel}
     >
       <View style={styles.body}>
         <View
@@ -186,38 +171,23 @@ export function PassengerSheet({
         </Text>
       </View>
 
-      <TouchableOpacity
+      <Button
+        size="lg"
+        theme={theme}
         testID="passenger-confirm"
+        label={confirmLabel}
+        accessibilityLabel={confirmAriaLabel(formatCount(draft))}
         onPress={() => {
           onChange(clampPassengerCount(draft, min, max));
           onClose();
         }}
-        style={[styles.confirmButton, { backgroundColor: theme.ink }]}
-        accessibilityRole="button"
-        accessibilityLabel={confirmAriaLabel(formatCount(draft))}
-        activeOpacity={0.85}
-      >
-        <Text variant="bodySmall" style={[styles.confirmLabel, { color: theme.background }]}>
-          {confirmLabel}
-        </Text>
-      </TouchableOpacity>
+        style={styles.confirmButton}
+      />
     </BottomSheet>
   );
 }
 
 const styles = StyleSheet.create({
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.xl,
-  },
-  headerSpacer: {
-    width: spacing['3xl'],
-  },
-  headerTitle: {
-    flex: 1,
-    textAlign: 'center',
-  },
   body: {
     alignItems: 'center',
     paddingTop: spacing.lg,
@@ -250,14 +220,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs,
   },
   confirmButton: {
-    marginTop: spacing.sm,
     marginHorizontal: spacing.lg,
-    marginBottom: spacing.lg,
-    paddingVertical: spacing.lg - 2,
-    borderRadius: radii.full,
-    alignItems: 'center',
-  },
-  confirmLabel: {
-    fontWeight: '600',
+    marginTop: spacing.lg,
   },
 });

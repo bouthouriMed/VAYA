@@ -1,9 +1,8 @@
 import { useEffect } from 'react';
-import { View, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
+import { View, StyleSheet, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { Text, Avatar, Icon, useAppTheme, spacing, radii } from '@vaya/design-system';
+import { Text, Avatar, Icon, Button, ScreenHeader, StateView, useAppTheme, spacing, radii } from '@vaya/design-system';
 import { router, useLocalSearchParams } from 'expo-router';
 import {
   useGetUserPublicProfileQuery,
@@ -58,20 +57,30 @@ export default function TrustScreen(): React.JSX.Element {
     }
   }, [trustSummary]);
 
-  if (isProfileLoading) {
-    return (
-      <View style={[styles.loadingWrap, { backgroundColor: theme.background }]}>
-        <ActivityIndicator size="large" color={theme.accent} />
-      </View>
-    );
-  }
+  const header = (
+    <ScreenHeader
+      topInset={insets.top}
+      onBack={() => router.back()}
+      backLabel={t('common:actions.back')}
+      title={t('search:trust.title')}
+    />
+  );
 
-  if (!profile) {
+  if (isProfileLoading || !profile) {
     return (
-      <View style={[styles.loadingWrap, { backgroundColor: theme.background }]}>
-        <Text variant="body" color={theme.inkFaint}>
-          {t('search:trust.profileNotFound')}
-        </Text>
+      <View style={[styles.container, { backgroundColor: theme.background }]}>
+        {header}
+        {isProfileLoading ? (
+          <StateView status="loading" skeleton="detail" />
+        ) : (
+          <StateView
+            status="error"
+            iconName="person-outline"
+            title={t('search:trust.profileNotFound')}
+            actionLabel={t('common:actions.back')}
+            onAction={() => router.back()}
+          />
+        )}
       </View>
     );
   }
@@ -108,20 +117,7 @@ export default function TrustScreen(): React.JSX.Element {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <View style={[styles.header, { paddingTop: insets.top + spacing.sm, backgroundColor: theme.surface, borderBottomColor: theme.outlineVariant }]}>
-        <TouchableOpacity
-          onPress={() => router.back()}
-          hitSlop={12}
-          accessibilityRole="button"
-          accessibilityLabel={t('common:actions.back')}
-        >
-          <Ionicons name="chevron-back" size={22} color={theme.ink} />
-        </TouchableOpacity>
-        <Text variant="h3" color={theme.ink}>
-          {t('search:trust.title')}
-        </Text>
-        <View style={{ width: 22 }} />
-      </View>
+      {header}
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.identity}>
@@ -131,8 +127,6 @@ export default function TrustScreen(): React.JSX.Element {
               name={profile.fullName}
               sizePx={104}
               style={{ borderWidth: 3, borderColor: theme.surface }}
-              fallbackBackgroundColor={theme.surfaceMuted}
-              fallbackTextColor={theme.ink}
             />
             {driverStats ? (
               <View style={[styles.verifiedBadge, { backgroundColor: theme.accent, borderColor: theme.surface }]}>
@@ -316,39 +310,52 @@ export default function TrustScreen(): React.JSX.Element {
         ) : null}
 
         {driverStats ? (
-          tripCount > 0 ? (
-            <TouchableOpacity
-              style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}
-              onPress={() => router.push({ pathname: '/search/reviews', params: { driverUserId, driverName: profile.fullName } })}
-              activeOpacity={0.8}
-            >
-              <View style={styles.cardTitleRow}>
-                <Icon name="chatbubble-ellipses-outline" size="sm" color={theme.inkFaint} />
-                <Text variant="label" color={theme.ink} style={styles.reviewsTitle}>
-                  {t('search:trust.reviewsTitle')}
-                </Text>
-                <Icon name="chevron-forward" size="sm" color={theme.inkFaint} />
-              </View>
-              <Text variant="bodySmall" color={theme.inkFaint}>
-                {t('search:trust.reviewsSubtitle', { name: firstName })}
-              </Text>
-            </TouchableOpacity>
-          ) : (
-            <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
-              <View style={styles.cardTitleRow}>
-                <Icon name="chatbubble-ellipses-outline" size="sm" color={theme.inkFaint} />
-                <Text variant="label" color={theme.ink} style={styles.reviewsTitle}>
-                  {t('search:trust.reviewsTitle')}
-                </Text>
-              </View>
-              <Text variant="bodySmall" color={theme.inkMuted}>
-                {t('search:trust.reviewsEmpty', { name: firstName })}
-              </Text>
-              <Text variant="bodySmall" color={theme.accent} style={styles.firstReviewLine}>
-                {t('search:trust.reviewsFirstLine')}
+          <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
+            <View style={styles.cardTitleRow}>
+              <Icon name="chatbubble-ellipses-outline" size="sm" color={theme.inkFaint} />
+              <Text variant="label" color={theme.ink} style={styles.reviewsTitle}>
+                {t('search:trust.reviewsTitle')}
               </Text>
             </View>
-          )
+            {tripCount > 0 ? (
+              <>
+                <View style={styles.reviewStatsRow}>
+                  <View style={styles.reviewStat}>
+                    <Icon name="star" size="xs" color={theme.accent} />
+                    <Text variant="label" color={theme.ink}>
+                      {ratingLabel}
+                    </Text>
+                    <Text variant="bodySmall" color={theme.inkMuted}>
+                      {t('search:trust.ratingLabel')}
+                    </Text>
+                  </View>
+                  {relevantTier ? (
+                    <View style={styles.reviewStat}>
+                      <Icon name="time-outline" size="xs" color={theme.accent} />
+                      <Text variant="label" color={theme.ink}>
+                        {`${Math.round(relevantTier.punctualityScore * 100)} %`}
+                      </Text>
+                      <Text variant="bodySmall" color={theme.inkMuted}>
+                        {t('search:trust.punctualityLabel')}
+                      </Text>
+                    </View>
+                  ) : null}
+                </View>
+                <Text variant="bodySmall" color={theme.inkFaint}>
+                  {t('search:trust.reviewsPrivate')}
+                </Text>
+              </>
+            ) : (
+              <>
+                <Text variant="bodySmall" color={theme.inkMuted}>
+                  {t('search:trust.reviewsEmpty', { name: firstName })}
+                </Text>
+                <Text variant="bodySmall" color={theme.accent} style={styles.firstReviewLine}>
+                  {t('search:trust.reviewsFirstLine')}
+                </Text>
+              </>
+            )}
+          </View>
         ) : null}
 
         <View style={styles.scrollSpacer} />
@@ -361,34 +368,18 @@ export default function TrustScreen(): React.JSX.Element {
          *  /conversations/:bookingId), not a guess from booking status —
          *  once it's true this is a genuine working entry into that
          *  conversation, never just a re-labeled dead button. */}
-        {canMessage ? (
-          <TouchableOpacity
-            style={[styles.cta, { backgroundColor: theme.accent }]}
-            onPress={openConversation}
-            activeOpacity={0.85}
-            accessibilityRole="button"
-            accessibilityLabel={t('common:actions.message')}
-          >
-            <Icon name="chatbubble-outline" size="sm" color={theme.onAccent} />
-            <Text variant="label" color={theme.onAccent}>
-              {t('common:actions.message')}
-            </Text>
-          </TouchableOpacity>
-        ) : (
-          <>
-            <View style={[styles.cta, styles.ctaDisabled, { backgroundColor: theme.ink }]}>
-              <Icon name="chatbubble-outline" size="sm" color={theme.onInk} />
-              <Text variant="label" color={theme.onInk}>
-                {t('common:actions.message')}
-              </Text>
-            </View>
-            <Text variant="caption" color={theme.inkFaint} align="center">
-              {isDriverProfile
-                ? t('search:trust.messageAvailability')
-                : t('search:trust.messageAvailabilityDriver')}
-            </Text>
-          </>
-        )}
+        <Button
+          size="lg"
+          icon="chatbubble-outline"
+          label={t('common:actions.message')}
+          onPress={openConversation}
+          disabled={!canMessage}
+        />
+        {!canMessage ? (
+          <Text variant="caption" color={theme.inkFaint} align="center">
+            {isDriverProfile ? t('search:trust.messageAvailability') : t('search:trust.messageAvailabilityDriver')}
+          </Text>
+        ) : null}
       </View>
     </View>
   );
@@ -397,19 +388,6 @@ export default function TrustScreen(): React.JSX.Element {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  loadingWrap: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.sm,
-    borderBottomWidth: StyleSheet.hairlineWidth,
   },
   scrollContent: {
     padding: spacing.lg,
@@ -514,6 +492,16 @@ const styles = StyleSheet.create({
   reviewsTitle: {
     flex: 1,
   },
+  reviewStatsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.lg,
+  },
+  reviewStat: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
   firstReviewLine: {
     fontWeight: '600',
   },
@@ -557,17 +545,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,
     gap: spacing.sm,
-  },
-  cta: {
-    width: '100%',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.xs,
-    borderRadius: radii.full,
-    paddingVertical: spacing.md,
-  },
-  ctaDisabled: {
-    opacity: 0.4,
   },
 });

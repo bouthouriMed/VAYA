@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { View, StyleSheet, ScrollView, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, ScrollView, Image, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { Text, Icon, GlassSurface, useAppTheme, haptics, spacing, radii } from '@vaya/design-system';
+import { Text, Icon, GlassSurface, useAppTheme, haptics, spacing, radii, ScreenHeader, Button } from '@vaya/design-system';
 import { router } from 'expo-router';
 import {
   useGetMyDriverProfileQuery,
@@ -160,15 +160,12 @@ export default function ResubmitVerificationScreen(): React.JSX.Element {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
-        <TouchableOpacity onPress={() => router.back()} hitSlop={12} accessibilityRole="button">
-          <Icon name="arrow-back" size="sm" color={theme.ink} />
-        </TouchableOpacity>
-        <Text variant="h3" color={theme.ink} style={styles.headerTitle}>
-          {t('resubmit.title')}
-        </Text>
-        <View style={styles.headerSpacer} />
-      </View>
+      <ScreenHeader
+        topInset={insets.top}
+        onBack={() => router.back()}
+        backLabel={t('common:actions.back')}
+        title={t('resubmit.title')}
+      />
 
       <ScrollView contentContainerStyle={styles.content}>
         {isProfileLoading ? (
@@ -227,26 +224,16 @@ export default function ResubmitVerificationScreen(): React.JSX.Element {
       </ScrollView>
 
       <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.lg, backgroundColor: theme.background }]}>
-        <TouchableOpacity
-          style={[styles.cta, { backgroundColor: theme.ink }, isSubmitting && styles.ctaDisabled]}
+        <Button
+          size="lg"
+          label={t('resubmit.submit')}
+          loading={isSubmitting}
           onPress={() => {
             haptics.selection();
             void submit();
           }}
-          disabled={isSubmitting}
-          activeOpacity={0.85}
-          accessibilityRole="button"
-          accessibilityLabel={isSubmitting ? t('resubmit.submitting') : t('resubmit.submit')}
-          accessibilityState={{ disabled: isSubmitting, busy: isSubmitting }}
-        >
-          {isSubmitting ? (
-            <ActivityIndicator color={theme.onInk} />
-          ) : (
-            <Text variant="label" color={theme.onInk}>
-              {t('resubmit.submit')}
-            </Text>
-          )}
-        </TouchableOpacity>
+          style={styles.cta}
+        />
       </View>
     </View>
   );
@@ -255,20 +242,6 @@ export default function ResubmitVerificationScreen(): React.JSX.Element {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.md,
-  },
-  headerTitle: {
-    flex: 1,
-    textAlign: 'center',
-  },
-  headerSpacer: {
-    width: 24,
   },
   content: {
     padding: spacing.lg,
@@ -293,6 +266,7 @@ const styles = StyleSheet.create({
   },
   cardEyebrow: {
     letterSpacing: 1,
+    textTransform: 'uppercase',
   },
   thumbRow: {
     flexDirection: 'row',
@@ -315,14 +289,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.sm,
   },
+  // Layout only — shape, size and colors come from the design-system Button.
   cta: {
     width: '100%',
-    minHeight: 52,
-    borderRadius: radii.lg,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  ctaDisabled: {
-    opacity: 0.5,
   },
 });

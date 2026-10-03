@@ -6,8 +6,6 @@ import {
   Image,
   Animated,
   AccessibilityInfo,
-  TouchableOpacity,
-  ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -21,6 +19,8 @@ import {
   spacing,
   radii,
   type AppPalette,
+  ScreenHeader,
+  Button,
 } from '@vaya/design-system';
 import { router } from 'expo-router';
 import { useAppDispatch, useAppSelector } from '../../../src/state/store';
@@ -270,23 +270,17 @@ export default function SelfieCaptureScreen(): React.JSX.Element {
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
-        <View style={styles.headerRow}>
-          <TouchableOpacity
-            onPress={() => {
-              haptics.selection();
-              setPhase('capture');
-            }}
-            hitSlop={12}
-            accessibilityRole="button"
-          accessibilityLabel={t('onboarding.index.back')}
-          >
-            <Icon name="arrow-back" size="sm" color={theme.ink} />
-          </TouchableOpacity>
-          <Text variant="h3" color={theme.ink} style={styles.headerTitle}>
-            {t('onboarding.selfie.reviewTitle')}
-          </Text>
-          <View style={styles.headerSpacer} />
-        </View>
+        <ScreenHeader
+          transparent
+          bordered={false}
+          onBack={() => {
+            haptics.selection();
+            setPhase('capture');
+          }}
+          backLabel={t('onboarding.index.back')}
+          title={t('onboarding.selfie.reviewTitle')}
+          style={styles.headerBar}
+        />
         <StepProgress currentStep={4} totalSteps={4} theme={theme} />
       </View>
 
@@ -344,26 +338,16 @@ export default function SelfieCaptureScreen(): React.JSX.Element {
       </ScrollView>
 
       <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.lg, backgroundColor: theme.background }]}>
-        <TouchableOpacity
-          style={[styles.cta, { backgroundColor: theme.ink }, isSubmitting && styles.ctaDisabled]}
+        <Button
+          size="lg"
+          label={errorMessage ? t('onboarding.selfie.reviewRetake') : t('onboarding.selfie.reviewConfirm')}
+          loading={isSubmitting}
           onPress={() => {
             haptics.selection();
             void submit();
           }}
-          disabled={isSubmitting}
-          activeOpacity={0.85}
-          accessibilityRole="button"
-          accessibilityLabel={errorMessage ? t('onboarding.selfie.reviewRetake') : t('onboarding.selfie.reviewConfirm')}
-          accessibilityState={{ disabled: isSubmitting, busy: isSubmitting }}
-        >
-          {isSubmitting ? (
-            <ActivityIndicator color={theme.onInk} />
-          ) : (
-            <Text variant="label" color={theme.onInk}>
-              {errorMessage ? t('onboarding.selfie.reviewRetake') : t('onboarding.selfie.reviewConfirm')}
-            </Text>
-          )}
-        </TouchableOpacity>
+          style={styles.cta}
+        />
       </View>
     </View>
   );
@@ -373,21 +357,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  headerBar: {
+    paddingHorizontal: 0,
+  },
   header: {
     paddingHorizontal: spacing.lg,
     gap: spacing.md,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  headerTitle: {
-    flex: 1,
-    textAlign: 'center',
-  },
-  headerSpacer: {
-    width: spacing.xl,
   },
   content: {
     padding: spacing.lg,
@@ -404,6 +379,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.lg,
     fontWeight: '600',
     letterSpacing: 1.5,
+    textTransform: 'uppercase',
   },
   title: {
     marginTop: spacing.xs,
@@ -422,6 +398,7 @@ const styles = StyleSheet.create({
   cardEyebrow: {
     letterSpacing: 1,
     marginBottom: 2,
+    textTransform: 'uppercase',
   },
   vehicleRow: {
     flexDirection: 'row',
@@ -470,14 +447,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.sm,
   },
+  // Layout only — shape, size and colors come from the design-system Button.
   cta: {
     width: '100%',
-    minHeight: 52,
-    borderRadius: radii.lg,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  ctaDisabled: {
-    opacity: 0.5,
   },
 });

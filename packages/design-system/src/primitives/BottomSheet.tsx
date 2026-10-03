@@ -21,8 +21,10 @@ import Animated, {
 } from 'react-native-reanimated';
 import { BlurView } from 'expo-blur';
 import { Text } from './Text';
-import { colors, radii, spacing, elevation, springs } from '../tokens/index';
+import { HeaderIconButton } from './ScreenHeader';
+import { radii, spacing, elevation, springs } from '../tokens/index';
 import type { AppPalette } from '../theme/palette';
+import { useAppTheme } from '../theme/AppThemeProvider';
 
 interface BottomSheetProps {
   visible: boolean;
@@ -32,6 +34,10 @@ interface BottomSheetProps {
    *  for a caller whose header is more than a plain string (e.g. a
    *  centered title with its own close button). */
   headerContent?: React.ReactNode;
+  /** Shows the standard × close control at the header's trailing edge,
+   *  with this accessibility label. Every sheet with a title should pass
+   *  it, so all sheets share one header layout. */
+  closeLabel?: string;
   children: React.ReactNode;
   /** Fraction of screen height the sheet occupies when open. */
   heightRatio?: number;
@@ -43,10 +49,7 @@ interface BottomSheetProps {
    *  explicitly `requireExternalGestureToFail` it, so a touch that the
    *  content gesture claims can never also trigger dismiss. */
   contentGesture?: PanGesture;
-  /** Optional `useAppTheme()` override (Stitch migration) — when given, the
-   *  sheet surface/handle/title follow the live theme instead of the
-   *  legacy static `colors` token. Unused anywhere this primitive hasn't
-   *  been migrated yet. */
+  /** Overrides the theme from context — only for a screen pinned to one palette. */
   theme?: AppPalette;
   /** Real device bottom inset — pass `useSafeAreaInsets().bottom` from the
    *  caller so content anchored to the sheet's bottom edge (an action bar's
@@ -136,10 +139,13 @@ export function BottomSheet({
   headerContent,
   children,
   heightRatio = 0.6,
-  theme,
+  closeLabel,
+  theme: themeOverride,
   contentGesture,
   bottomInset = 0,
 }: BottomSheetProps): React.JSX.Element {
+  const { colors: contextTheme } = useAppTheme();
+  const theme = themeOverride ?? contextTheme;
   const screenHeight = Dimensions.get('window').height;
   const sheetHeight = screenHeight * heightRatio;
   const translateY = useSharedValue(sheetHeight);
@@ -272,20 +278,26 @@ export function BottomSheet({
                 // (Android's `elevation` has no directional component, so this
                 // only affects iOS).
                 styles.sheetShadowDirection,
-                theme ? { backgroundColor: theme.surface, shadowColor: theme.ink } : null,
+                { backgroundColor: theme.surface, shadowColor: theme.ink },
                 { height: sheetHeight },
                 sheetAnimatedStyle,
               ]}
             >
               <View style={styles.handleArea}>
-                <View
-                  style={[styles.handle, theme ? { backgroundColor: theme.outlineVariant } : null]}
-                />
+                <View style={[styles.handle, { backgroundColor: theme.outlineVariant }]} />
                 {headerContent ??
-                  (title ? (
-                    <Text variant="h3" color={theme?.ink} style={styles.title}>
-                      {title}
-                    </Text>
+                  (title || closeLabel ? (
+                    <View style={styles.headerRow}>
+                      <View style={styles.headerSide} />
+                      <Text variant="title" color={theme.ink} align="center" style={styles.headerTitle} numberOfLines={2}>
+                        {title ?? ''}
+                      </Text>
+                      <View style={[styles.headerSide, styles.headerSideEnd]}>
+                        {closeLabel ? (
+                          <HeaderIconButton icon="close" onPress={onClose} accessibilityLabel={closeLabel} />
+                        ) : null}
+                      </View>
+                    </View>
                   ) : null)}
               </View>
               <View
@@ -318,10 +330,8 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   sheet: {
-    backgroundColor: colors.white,
     borderTopLeftRadius: radii['2xl'],
     borderTopRightRadius: radii['2xl'],
-    shadowColor: colors.gray900,
   },
   sheetShadowDirection: {
     shadowOffset: { width: 0, height: -6 },
@@ -336,10 +346,22 @@ const styles = StyleSheet.create({
     width: 40,
     height: 4,
     borderRadius: radii.full,
-    backgroundColor: colors.gray300,
   },
-  title: {
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'stretch',
     paddingHorizontal: spacing.lg,
+    gap: spacing.sm,
+  },
+  headerSide: {
+    width: 40,
+  },
+  headerSideEnd: {
+    alignItems: 'flex-end',
+  },
+  headerTitle: {
+    flex: 1,
   },
   content: {
     flex: 1,

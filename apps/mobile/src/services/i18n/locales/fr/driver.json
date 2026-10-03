@@ -22,7 +22,15 @@
       "timeQuickPlus30": "+30 min",
       "timeQuickPlus1h": "+1 h",
       "timeQuickCustom": "Personnalisé",
-      "weekdayLabels": ["L", "M", "M", "J", "V", "S", "D"],
+      "weekdayLabels": [
+        "L",
+        "M",
+        "M",
+        "J",
+        "V",
+        "S",
+        "D"
+      ],
       "previousMonth": "Mois précédent",
       "nextMonth": "Mois suivant",
       "confirmDate": "Confirmer la date",
@@ -32,7 +40,7 @@
       "choosePriceCta": "Choisir le prix"
     },
     "routeStep": {
-      "title": "ITINÉRAIRES DISPONIBLES",
+      "title": "Itinéraires disponibles",
       "continue": "Continuer",
       "availableCount_one": "{{count}} itinéraire disponible",
       "availableCount_other": "{{count}} itinéraires disponibles",
@@ -42,12 +50,16 @@
       "recommendedLabel": "Recommandé"
     },
     "priceStep": {
-      "title": "PRIX SUGGÉRÉ",
+      "title": "Prix suggéré",
       "description": "Ce montant est calculé pour ce trajet — vous pouvez l'ajuster dans la marge proposée.",
       "contributionLabel": "Contribution par place",
       "suggested": "Suggéré",
       "min": "Minimum",
-      "max": "Maximum"
+      "max": "Maximum",
+      "decrease": "Diminuer la contribution",
+      "increase": "Augmenter la contribution",
+      "suggestedValue": "Suggéré : {{price}}",
+      "estimateNote": "Estimation basée sur la distance à vol d'oiseau : la marge reste plus large tant que l'itinéraire réel n'est pas confirmé."
     },
     "stopsStep": {
       "pickupTitle": "Point de rendez-vous",
@@ -87,24 +99,24 @@
     "reviewStep": {
       "readyToPublish": "Prêt à publier votre trajet ?",
       "checkDetails": "Vérifiez les détails ci-dessous — vous pouvez modifier chaque section avant de confirmer.",
-      "itinerary": "ITINÉRAIRE",
+      "itinerary": "Itinéraire",
       "editItinerary": "Modifier l'itinéraire",
       "modify": "Modifier",
       "meetingPoint": "Point de rendez-vous",
       "estimatedArrival": "~{{time}}",
-      "stops": "ARRÊTS SUPPLÉMENTAIRES",
+      "stops": "Arrêts supplémentaires",
       "editStops": "Modifier les arrêts",
       "stopsCount_one": "{{count}} arrêt sur votre trajet",
       "stopsCount_other": "{{count}} arrêts sur votre trajet",
       "stopsNone": "Aucun arrêt supplémentaire",
-      "price": "PRIX PAR PLACE",
+      "price": "Prix par place",
       "editPrice": "Modifier le prix",
       "afterVerification": "Après vérification",
-      "seatsAvailable": "PLACES DISPONIBLES",
+      "seatsAvailable": "Places disponibles",
       "editSeats": "Modifier le nombre de places",
       "totalSeats_one": "{{count}} place au total",
       "totalSeats_other": "{{count}} places au total",
-      "vehicle": "VÉHICULE",
+      "vehicle": "Véhicule",
       "addAfterVerify": "Vous ajouterez votre véhicule lors de la vérification de votre profil conducteur.",
       "publishCta": "Publier ce trajet",
       "verifyCta": "Vérifier mon profil pour publier",
@@ -167,19 +179,19 @@
     "vehicle": {
       "stepTitle": "Votre véhicule",
       "stepLabel": "Étape {{current}} sur {{total}}",
-      "vehicleDetails": "DÉTAILS DU VÉHICULE",
+      "vehicleDetails": "Détails du véhicule",
       "seatCount": "Nombre de places passagers",
       "fields": {
         "make": "Marque",
         "model": "Modèle",
         "color": "Couleur",
-        "plate": "Plaque d'immatriculation"
+        "plate": "Immatriculation"
       },
       "placeholders": {
-        "make": "Peugeot",
-        "model": "208",
-        "color": "Grise",
-        "plate": "208TU1234"
+        "make": "ex. Peugeot",
+        "model": "ex. 208",
+        "color": "ex. Grise",
+        "plate": "ex. 208 TU 1234"
       },
       "removeSeat": "Retirer une place",
       "addSeat": "Ajouter une place",
@@ -189,11 +201,11 @@
       "captureTitle": "Vérification d'identité",
       "captureInstruction": "Prenez un selfie pour confirmer votre identité.",
       "reviewTitle": "Vérifier et confirmer",
-      "reviewEyebrow": "DERNIÈRE ÉTAPE",
+      "reviewEyebrow": "Dernière étape",
       "reviewHeadline": "Tout est prêt",
       "reviewSubtitle": "Vérifiez vos informations avant d'activer votre profil conducteur.",
-      "vehicleSection": "VÉHICULE",
-      "documentsSection": "DOCUMENTS VÉRIFIÉS EN DIRECT",
+      "vehicleSection": "Véhicule",
+      "documentsSection": "Documents vérifiés en direct",
       "tipLight": "Bon éclairage",
       "tipFace": "Face à la caméra",
       "tipGlasses": "Retirez vos lunettes",
@@ -306,7 +318,8 @@
         "active": "À bord",
         "arriving": "Arrivée proche",
         "completed": "Terminé"
-      }
+      },
+      "loadError": "Impossible de charger ce trajet"
     },
     "manageSheet": {
       "title": "Gérer ce trajet",

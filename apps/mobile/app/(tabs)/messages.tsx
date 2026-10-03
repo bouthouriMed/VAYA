@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react';
 import { SectionList, View, StyleSheet, TouchableOpacity, ScrollView, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import { router } from 'expo-router';
 import { useAppSelector } from '../../src/state/store';
@@ -10,16 +9,18 @@ import { ContextualAuthSheet } from '../../src/features/auth/ContextualAuthSheet
 import {
   Text,
   Avatar,
-  Button,
   Icon,
   EmptyState,
-  SkeletonBlock,
   useAppTheme,
   haptics,
   spacing,
   radii,
   elevation,
   type AppPalette,
+  LargeTitleHeader,
+  HeaderIconButton,
+  Chip,
+  StateView,
 } from '@vaya/design-system';
 import { useListConversationsQuery } from '../../src/state/api';
 import {
@@ -35,12 +36,8 @@ import {
 } from '../../src/features/conversations/inboxHelpers';
 import { shortenPlaceLabel } from '../../src/utils/placeLabel';
 
-/** Full-screen wash shared by every render path (guest, loading, error,
- *  populated) — a flat theme.background fill read as generic/basic; this
- *  layers the theme's own backgroundGradient (a two-stop vignette, not a
- *  parallel palette) plus one soft ambient accent glow behind the header,
- *  the same depth-through-gradient-and-light treatment the rest of the
- *  Stitch-rebuilt flow already earns on its hero surfaces. */
+/** Screen wrapper shared by every render path (guest, loading, error,
+ *  populated): the theme background under a top safe area. */
 function ScreenBackground({
   theme,
   children,
@@ -49,14 +46,7 @@ function ScreenBackground({
   children: React.ReactNode;
 }): React.JSX.Element {
   return (
-    <View style={styles.root}>
-      <LinearGradient
-        colors={theme.backgroundGradient}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
-        style={StyleSheet.absoluteFill}
-      />
-      <View pointerEvents="none" style={[styles.ambientGlow, { backgroundColor: theme.accentGlow }]} />
+    <View style={[styles.root, { backgroundColor: theme.background }]}>
       <SafeAreaView style={styles.container} edges={['top']}>
         {children}
       </SafeAreaView>
@@ -64,113 +54,28 @@ function ScreenBackground({
   );
 }
 
-/** Local rounded-full filter pill — deliberately not the shared `Chip`
- *  primitive: Chip's selected state is a fixed solid-accent fill (the
- *  right call for its other callers), while this row's own design
- *  reference (stitch/message/inbox-trip-centric-overview.html) calls for a
- *  solid near-black active pill instead. `theme.inkGradient` gives that
- *  black real depth (a diagonal charcoal wash, not a flat #000) rather
- *  than diluting the brand palette with literal black. */
-function FilterPill({
-  label,
-  selected,
-  onPress,
-  theme,
-}: {
-  label: string;
-  selected: boolean;
-  onPress: () => void;
-  theme: AppPalette;
-}): React.JSX.Element {
-  if (selected) {
-    return (
-      <TouchableOpacity
-        onPress={onPress}
-        activeOpacity={0.85}
-        accessibilityRole="button"
-        accessibilityLabel={label}
-        accessibilityState={{ selected: true }}
-        style={styles.filterPillWrap}
-      >
-        <LinearGradient
-          colors={theme.inkGradient}
-          start={{ x: 0.1, y: 0 }}
-          end={{ x: 0.9, y: 1 }}
-          style={[styles.filterPill, elevation?.sm, { shadowColor: theme.ink }]}
-        >
-          <Text variant="label" color={theme.onInk} style={styles.filterPillText}>
-            {label}
-          </Text>
-        </LinearGradient>
-      </TouchableOpacity>
-    );
-  }
-  return (
-    <TouchableOpacity
-      onPress={onPress}
-      activeOpacity={0.7}
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      accessibilityState={{ selected: false }}
-      style={[
-        styles.filterPill,
-        { backgroundColor: theme.surfaceMuted, borderWidth: 1, borderColor: theme.outlineVariant },
-      ]}
-    >
-      <Text variant="label" color={theme.inkMuted} style={styles.filterPillText}>
-        {label}
-      </Text>
-    </TouchableOpacity>
-  );
-}
-
-/**
- * Top app bar shared by every render path (guest, loading, error, inbox).
- */
+/** Tab-root header shared by every render path (guest, loading, error, inbox). */
 function InboxHeader({
-  theme,
   searchOpen,
   onToggleSearch,
 }: {
-  theme: ReturnType<typeof useAppTheme>['colors'];
   searchOpen?: boolean;
   onToggleSearch?: () => void;
 }): React.JSX.Element {
   const { t } = useTranslation();
   return (
-    <View style={styles.header}>
-      <View style={styles.headerSlot} />
-      <Text
-        variant="headlineDisplay"
-        color={theme.ink}
-        numberOfLines={1}
-        style={styles.headerTitle}
-      >
-        {t('messages:title')}
-      </Text>
-      {onToggleSearch ? (
-        <TouchableOpacity
-          onPress={onToggleSearch}
-          accessibilityRole="button"
-          accessibilityLabel={searchOpen ? t('messages:searchClose') : t('messages:searchAria')}
-          style={[
-            styles.headerSlot,
-            styles.headerIconBtn,
-            { backgroundColor: theme.surface, borderColor: theme.outlineVariant },
-            elevation?.sm,
-            { shadowColor: theme.ink },
-          ]}
-        >
-          <Icon
-            name={searchOpen ? 'close-outline' : 'search-outline'}
-            size="sm"
-            color={theme.ink}
+    <LargeTitleHeader
+      title={t('messages:title')}
+      right={
+        onToggleSearch ? (
+          <HeaderIconButton
+            icon={searchOpen ? 'close' : 'search'}
+            onPress={onToggleSearch}
+            accessibilityLabel={searchOpen ? t('messages:searchClose') : t('messages:searchAria')}
           />
-        </TouchableOpacity>
-      ) : (
-        <View style={styles.headerSlot} />
-      )}
-    </View>
+        ) : null
+      }
+    />
   );
 }
 
@@ -240,9 +145,9 @@ export default function MessagesScreen(): React.JSX.Element {
   if (!accessToken) {
     return (
       <ScreenBackground theme={theme}>
-        <InboxHeader theme={theme} />
+        <InboxHeader />
         <EmptyState
-          icon={<Icon name="chatbubble-ellipses-outline" size="lg" color={theme.inkFaint} />}
+          iconName="chatbubble-ellipses-outline"
           title={t('messages:guestEmpty.title')}
           description={t('messages:guestEmpty.description')}
           actionLabel={t('messages:guestEmpty.cta')}
@@ -262,12 +167,8 @@ export default function MessagesScreen(): React.JSX.Element {
   if (isLoading) {
     return (
       <ScreenBackground theme={theme}>
-        <InboxHeader theme={theme} />
-        <View style={styles.skeletonWrap}>
-          {[0, 1, 2, 3].map((i) => (
-            <SkeletonBlock key={i} height={92} radius="xl" />
-          ))}
-        </View>
+        <InboxHeader />
+        <StateView status="loading" skeleton="list" />
       </ScreenBackground>
     );
   }
@@ -275,9 +176,9 @@ export default function MessagesScreen(): React.JSX.Element {
   if (isError) {
     return (
       <ScreenBackground theme={theme}>
-        <InboxHeader theme={theme} />
-        <EmptyState
-          icon={<Icon name="cloud-offline-outline" size="lg" color={theme.inkFaint} />}
+        <InboxHeader />
+        <StateView
+          status="error"
           title={t('messages:error.title')}
           description={t('messages:error.description')}
           actionLabel={t('common:actions.retry')}
@@ -289,7 +190,7 @@ export default function MessagesScreen(): React.JSX.Element {
 
   return (
     <ScreenBackground theme={theme}>
-      <InboxHeader theme={theme} searchOpen={searchOpen} onToggleSearch={toggleSearch} />
+      <InboxHeader searchOpen={searchOpen} onToggleSearch={toggleSearch} />
 
       {searchOpen ? (
         <View style={styles.searchWrap}>
@@ -334,15 +235,11 @@ export default function MessagesScreen(): React.JSX.Element {
           contentContainerStyle={styles.filters}
         >
           {FILTERS.map(({ key, label }) => (
-            <FilterPill
+            <Chip
               key={key}
               label={label}
-              onPress={() => {
-                haptics.selection();
-                setFilter(key);
-              }}
+              onPress={() => setFilter(key)}
               selected={filter === key}
-              theme={theme}
             />
           ))}
         </ScrollView>
@@ -421,8 +318,6 @@ export default function MessagesScreen(): React.JSX.Element {
                   uri={item.otherParty.avatarUrl}
                   name={item.otherParty.fullName}
                   sizePx={48}
-                  fallbackBackgroundColor={theme.surfaceMuted}
-                  fallbackTextColor={theme.ink}
                 />
               </TouchableOpacity>
 
@@ -489,30 +384,16 @@ export default function MessagesScreen(): React.JSX.Element {
         }}
         ListEmptyComponent={
           filter === 'all' ? (
-            <View style={styles.emptyHero}>
-              <View style={styles.emptyIconWrap}>
-                <View style={[styles.emptyGlow, { backgroundColor: theme.accentGlow }]} />
-                <View style={[styles.emptyIconRing, { backgroundColor: theme.surfaceMuted }]}>
-                  <Icon name="chatbubbles-outline" size="lg" color={theme.ink} />
-                </View>
-              </View>
-              <Text variant="h3" color={theme.ink} style={styles.emptyTitle}>
-                {t('messages:emptyHero.title')}
-              </Text>
-              <Text variant="body" color={theme.inkMuted} style={styles.emptyDescription}>
-                {t('messages:emptyHero.description')}
-              </Text>
-              <Button
-                label={t('messages:emptyHero.cta')}
-                variant="primary"
-                theme={theme}
-                onPress={() => router.navigate('/(tabs)/explore')}
-                style={styles.emptyAction}
-              />
-            </View>
+            <EmptyState
+              iconName="chatbubbles-outline"
+              title={t('messages:emptyHero.title')}
+              description={t('messages:emptyHero.description')}
+              actionLabel={t('messages:emptyHero.cta')}
+              onAction={() => router.navigate('/(tabs)/explore')}
+            />
           ) : (
             <EmptyState
-              icon={<Icon name="funnel-outline" size="lg" color={theme.inkFaint} />}
+              iconName="funnel-outline"
               title={t('messages:filterEmpty.title')}
               description={t('messages:filterEmpty.description')}
             />
@@ -527,38 +408,8 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
   },
-  ambientGlow: {
-    position: 'absolute',
-    top: -190,
-    alignSelf: 'center',
-    width: 260,
-    height: 260,
-    borderRadius: 130,
-    opacity: 0.14,
-  },
   container: {
     flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-  },
-  headerSlot: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerIconBtn: {
-    borderRadius: radii.full,
-    borderWidth: 1,
-  },
-  headerTitle: {
-    flex: 1,
-    textAlign: 'center',
   },
   searchWrap: {
     paddingHorizontal: spacing.lg,
@@ -595,20 +446,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.md,
   },
-  filterPillWrap: {
-    alignSelf: 'flex-start',
-  },
-  filterPill: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm + 2,
-    borderRadius: radii.full,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  filterPillText: {
-    fontWeight: '600',
-  },
   list: {
     flex: 1,
   },
@@ -622,6 +459,7 @@ const styles = StyleSheet.create({
   },
   sectionHeaderWrap: {
     paddingTop: spacing.md,
+    textTransform: 'uppercase',
   },
   sectionHeader: {
     textTransform: 'uppercase',
@@ -697,15 +535,6 @@ const styles = StyleSheet.create({
   previewUnread: {
     fontWeight: '600',
   },
-  skeletonWrap: {
-    padding: spacing.lg,
-    gap: spacing.sm,
-  },
-  emptyHero: {
-    alignItems: 'center',
-    paddingHorizontal: spacing.xl,
-    paddingTop: spacing['3xl'],
-  },
   // Wraps just the icon ring (not the title/description below it) so the
   // decorative glow — sized a little larger than the ring on purpose, to
   // bleed softly past its edges — has a bounded box to center within
@@ -714,36 +543,4 @@ const styles = StyleSheet.create({
   // 180×180 (nearly double the 96px ring) with no `alignSelf`, it rendered
   // pinned to the container's left edge and tall enough to bleed down over
   // the title text below — the reported "icon overlapping text" bug.
-  emptyIconWrap: {
-    width: 96,
-    height: 96,
-    marginBottom: spacing.lg,
-  },
-  emptyGlow: {
-    position: 'absolute',
-    top: -10,
-    left: -10,
-    width: 116,
-    height: 116,
-    borderRadius: 58,
-    opacity: 0.5,
-  },
-  emptyIconRing: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  emptyTitle: {
-    textAlign: 'center',
-    marginBottom: spacing.xs,
-  },
-  emptyDescription: {
-    textAlign: 'center',
-    marginBottom: spacing.lg,
-  },
-  emptyAction: {
-    width: '100%',
-  },
 });

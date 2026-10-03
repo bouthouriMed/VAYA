@@ -1,8 +1,10 @@
-﻿import React from 'react';
+import React from 'react';
 import { View, StyleSheet, type ViewStyle } from 'react-native';
-import { colors, spacing } from '../tokens/index';
+import { spacing } from '../tokens/index';
+import { useAppTheme } from '../theme/AppThemeProvider';
 
 interface DividerProps {
+  /** Defaults to the theme's `outlineVariant`. */
   color?: string;
   thickness?: number;
   marginVertical?: keyof typeof spacing;
@@ -10,11 +12,12 @@ interface DividerProps {
 }
 
 export function Divider({
-  color = colors.gray200,
+  color,
   thickness = 1,
   marginVertical = 'md',
   style,
 }: DividerProps): React.JSX.Element {
+  const { colors: theme } = useAppTheme();
   return (
     <View
       accessibilityElementsHidden
@@ -22,7 +25,7 @@ export function Divider({
       style={[
         styles.divider,
         {
-          backgroundColor: color,
+          backgroundColor: color ?? theme.outlineVariant,
           height: thickness,
           marginVertical: spacing[marginVertical],
         },

@@ -26,7 +26,11 @@
     "swap": "Swap origin and destination",
     "accept": "Accept",
     "decline": "Decline",
-    "viewProfile": "View {{name}}'s profile"
+    "viewProfile": "View {{name}}'s profile",
+    "disable": "Turn off",
+    "dismiss": "Dismiss",
+    "enable": "Turn on",
+    "notNow": "Not now"
   },
   "status": {
     "loading": "Loading…",
@@ -70,7 +74,9 @@
     "whereTo": "Where are you going?",
     "date": "Date",
     "time": "Time",
-    "passengers": "Passengers"
+    "passengers": "Passengers",
+    "tripCount_one": "{{count}} trip",
+    "tripCount_other": "{{count}} trips"
   },
   "errors": {
     "generic": "Something went wrong. Please try again.",
@@ -97,5 +103,17 @@
     "restartMessage": "Switching to {{language}} changes the app's layout direction. Restart VAYA to apply it.",
     "restartCta": "Restart now",
     "restartLater": "Later"
+  },
+  "duration": {
+    "minutes": "{{count}} min",
+    "hours": "{{count}} h",
+    "hoursMinutes": "{{hours}} h {{minutes}}",
+    "days_one": "{{count}} day",
+    "days_other": "{{count}} days"
+  },
+  "tier": {
+    "new": "New",
+    "trusted": "Trusted",
+    "top_rated": "Top VAYA"
   }
 }

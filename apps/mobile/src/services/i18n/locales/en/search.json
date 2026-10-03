@@ -16,8 +16,8 @@
     "candidateCount_one": "{{count}} ride available today on this route",
     "candidateCount_other": "{{count}} rides available today on this route",
     "meetingPoint": "Meeting point",
-    "bestMatch": "BEST MATCH",
-    "timeOffsetNote": "Departs {{offsetMin}} after your requested time — pickup is a {{walkMinutes}} walk away."
+    "bestMatch": "Best match",
+    "timeOffsetNote": "Leaves {{offset}} after your requested time · {{walkMinutes}} walk to the meeting point."
   },
   "composer": {
     "myLocation": "My current location",
@@ -54,7 +54,8 @@
     "overrideDetourUnknown": "Impact on the driver's trip not yet computable — checked again when you confirm.",
     "overrideNotFeasible": "This point is a significant detour from the driver's planned route. You can still send your request.",
     "overrideConfirm": "Use this point",
-    "overrideLoading": "Computing the real impact…"
+    "overrideLoading": "Computing the real impact…",
+    "title": "Pickup point"
   },
   "dropoffPoint": {
     "noDropoff": "No accessible drop-off point found.",
@@ -66,7 +67,8 @@
     "pointDetails": "Details for {{label}}",
     "walkFromDestination": "{{minutes}} from your destination.",
     "walkToDestination": "{{minutes}} to your destination.",
-    "driverValidatedStop": "This point was confirmed by the driver as a stop on their route."
+    "driverValidatedStop": "This point was confirmed by the driver as a stop on their route.",
+    "title": "Drop-off point"
   },
   "details": {
     "viewRouteFullscreen": "View route on full screen",
@@ -88,7 +90,9 @@
     "selfBookingError": "You can't request a seat on your own ride.",
     "duplicateBookingError": "You already have a request for this ride.",
     "rideNotBookableError": "This ride is no longer accepting requests.",
-    "pickupNotAvailableError": "This point is too far from the driver's route, or couldn't be verified right now. Try again or pick another ride."
+    "pickupNotAvailableError": "This point is too far from the driver's route, or couldn't be verified right now. Try again or pick another ride.",
+    "screenTitle": "Ride details",
+    "loadError": "Couldn't load this ride"
   },
   "trust": {
     "title": "Profile",
@@ -112,20 +116,13 @@
     "verificationVehicle": "Registered vehicle — plate shown below",
     "aboutTitle": "About {{name}}",
     "reviewsTitle": "Reviews",
-    "reviewsSubtitle": "See all reviews about {{name}}",
     "reviewsEmpty": "{{name}} hasn't received any reviews yet.",
     "reviewsFirstLine": "Share yours after your ride — the first review counts the most.",
     "messageDriver": "Message driver",
     "messageAvailability": "Available once your seat request is accepted.",
-    "messageAvailabilityDriver": "Available once you accept this request."
-  },
-  "reviews": {
-    "fallbackDriverName": "this driver",
-    "mockReviews": [
-      { "when": "2 days ago", "comment": "Great ride, very punctual. The car was spotless and he helped me with my bags." },
-      { "when": "5 days ago", "comment": "Clean car and careful driving. Handled traffic well. I'd happily book this route again." },
-      { "when": "1 week ago", "comment": "Good experience overall. A bit quiet, but the ride was smooth and on time." }
-    ]
+    "messageAvailabilityDriver": "Available once you accept this request.",
+    "punctualityLabel": "Punctuality",
+    "reviewsPrivate": "Comments left after a trip stay private between the driver and the passenger. The rating above reflects every review received."
   },
   "timePicker": {
     "when": "When?",
@@ -137,7 +134,15 @@
   },
   "datePickerSheet": {
     "title": "Departure date",
-    "weekdayLabels": ["M", "T", "W", "T", "F", "S", "S"],
+    "weekdayLabels": [
+      "M",
+      "T",
+      "W",
+      "T",
+      "F",
+      "S",
+      "S"
+    ],
     "previousMonth": "Previous month",
     "nextMonth": "Next month",
     "confirm": "Confirm date",

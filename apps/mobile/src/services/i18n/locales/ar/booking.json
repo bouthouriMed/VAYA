@@ -21,7 +21,7 @@
   "status_full": "ممتلئ",
   "status_in_progress": "قيد التنفيذ",
   "settlement_title": "اكتملت الرحلة",
-  "settlement_pay": "ادفع {{price}} DT مباشرة لـ {{name}}",
+  "settlement_pay": "ادفع {{price}} مباشرة لـ{{name}}",
   "rate_prompt": "كيف كان {{name}}؟",
   "finish": "إنهاء",
   "filters": {
@@ -109,7 +109,12 @@
     "detected": "مكتشف",
     "driversLicense": "رخصة القيادة",
     "insuranceProof": "إثبات التأمين",
-    "identitySelfie": "صورة هوية"
+    "identitySelfie": "صورة هوية",
+    "confirmTodayRide": "تحضير رحلة اليوم",
+    "viewTodayRide": "عرض رحلة اليوم",
+    "updateError": "تعذّر حفظ التعديل. أعد المحاولة.",
+    "loadError": "تعذّر تحميل رحلاتك المنتظمة",
+    "confirmPublish": "تأكيد ونشر"
   },
   "detail": {
     "title": "حجزي",
@@ -137,7 +142,8 @@
       "pickup": "وصل سائقك",
       "active": "الرحلة جارية",
       "arriving": "أنت على وشك الوصول إلى وجهتك"
-    }
+    },
+    "loadError": "تعذّر تحميل هذا الحجز"
   },
   "days": {
     "mon": "اثنين",
@@ -148,5 +154,43 @@
     "sat": "سبت",
     "sun": "أحد",
     "everyDay": "كل يوم"
-  }
+  },
+  "destination": "الوجهة",
+  "driver_join": "التوجّه إلى نقطة الالتقاء",
+  "section_payment": "الدفع",
+  "section_trip": "الرحلة",
+  "status_confirmed": "مؤكَّد",
+  "status_confirmed_title": "تم تأكيد مقعدك",
+  "status_confirmed_hint": "قبل {{name}} طلبك. تجد تفاصيل رحلتك أدناه.",
+  "waiting_confirmation": "نقطة الالتقاء قيد التأكيد",
+  "requestSentTitle": "تم إرسال الطلب",
+  "responseDeadline": "الرد متوقع قبل {{time}}",
+  "responseDeadlineDay": "الرد متوقع قبل {{date}} على الساعة {{time}}",
+  "phase": {
+    "awaiting_response": "في انتظار الرد",
+    "confirmed": "مؤكَّد",
+    "in_progress": "جارٍ",
+    "completed": "مكتمل",
+    "declined": "مرفوض",
+    "cancelled_by_rider": "ألغيته أنت",
+    "cancelled_by_driver": "ألغاه السائق",
+    "expired": "منتهي الصلاحية",
+    "superseded": "تم استبداله",
+    "no_show": "تم الإبلاغ عن غياب"
+  },
+  "ridePhase": {
+    "draft": "مسودة",
+    "published": "منشور",
+    "full": "مكتمل العدد",
+    "in_progress": "جارٍ",
+    "completed": "منتهٍ",
+    "cancelled": "ملغى"
+  },
+  "pickupTitle": "نقطة الالتقاء",
+  "pickupPointLabel": "نقطة الصعود",
+  "arrived": "لقد وصلت",
+  "arrivedAt": "وصلت إلى {{place}}",
+  "ratingThanks": "شكرًا! تم إرسال تقييمك لـ{{name}}.",
+  "rateCta": "تقييم {{name}}",
+  "shareMessage": "رحلتي على VAYA مع {{driver}}: {{pickup}} ← {{destination}}، {{price}}."
 }

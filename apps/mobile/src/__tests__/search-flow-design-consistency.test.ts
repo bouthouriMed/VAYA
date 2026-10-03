@@ -50,8 +50,9 @@ describe('search screens are fully on useAppTheme(), not the legacy static color
     'search/composer.tsx',
     'search/results.tsx',
     'search/trust.tsx',
-    'search/reviews.tsx',
     'search/ride-details.tsx',
+    'search/pickup-point.tsx',
+    'search/dropoff-point.tsx',
   ];
 
   for (const screen of migratedScreens) {
@@ -63,17 +64,6 @@ describe('search screens are fully on useAppTheme(), not the legacy static color
     });
   }
 
-  // Known, documented gap (not a regression): pickup-point.tsx predates the
-  // Stitch dark-mode pass and was never in its migrated-screens list — see
-  // CLAUDE.md's Post-Phase-11 fixes note. Asserted explicitly so a future
-  // migration of this screen updates this test instead of it silently
-  // staying stale.
-  it('search/pickup-point.tsx is a documented, not-yet-migrated exception', () => {
-    const source = readScreen('search/pickup-point.tsx');
-    const imports = designSystemImports(source);
-    expect(imports).toContain('colors');
-    expect(imports).not.toContain('useAppTheme');
-  });
 });
 
 // Phase 13 (docs/roadmap/phase-13-search-engine.md) replaced the old
@@ -134,10 +124,15 @@ describe('theme-aware primitives keep accepting an explicit theme prop', () => {
     expect(source).toMatch(/theme:\s*AppPalette;/);
   });
 
-  it('ReviewCard accepts an optional theme override, and reviews.tsx passes it', () => {
+  it('ReviewCard accepts an optional theme override', () => {
     const cardSource = readPrimitive('primitives/ReviewCard.tsx');
     expect(cardSource).toMatch(/theme\?:\s*AppPalette/);
-    const reviewsScreen = readScreen('search/reviews.tsx');
-    expect(reviewsScreen).toContain('theme={theme}');
+  });
+
+  // Rating comments are private to a trip's two parties (Phase 9), so there
+  // is no real per-review data to list publicly. The old search/reviews.tsx
+  // rendered invented reviewers instead; it must not come back.
+  it('no screen renders a mock review list', () => {
+    expect(readScreen('search/trust.tsx')).not.toContain('/search/reviews');
   });
 });

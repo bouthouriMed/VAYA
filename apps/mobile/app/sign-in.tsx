@@ -25,6 +25,7 @@ import {
   typography,
   haptics,
   ABSOLUTE_FILL_OBJECT,
+  HeaderIconButton,
 } from '@vaya/design-system';
 import { router, Redirect } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -181,21 +182,14 @@ export default function SignInScreen(): React.JSX.Element {
           end={{ x: 0.5, y: 1 }}
           style={StyleSheet.absoluteFill}
         />
-        <View pointerEvents="none" style={styles.glowTop} />
-        <View pointerEvents="none" style={styles.glowBottom} />
 
         <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
-          <TouchableOpacity
-            onPress={() =>
-              router.canGoBack() ? router.back() : router.replace('/(tabs)/explore')
-            }
-            hitSlop={12}
-            style={styles.closeBtn}
-            accessibilityRole="button"
+          <HeaderIconButton
+            icon="close"
+            tone="overlay"
+            onPress={() => (router.canGoBack() ? router.back() : router.replace('/(tabs)/explore'))}
             accessibilityLabel={t('common:actions.close')}
-          >
-            <Ionicons name="close" size={24} color={darkPalette.ink} />
-          </TouchableOpacity>
+          />
         </View>
 
         <View style={styles.spacer} />
@@ -286,7 +280,7 @@ export default function SignInScreen(): React.JSX.Element {
               <View style={styles.dividerRow}>
                 <View style={[styles.dividerLine, { backgroundColor: darkPalette.outlineVariant }]} />
                 <Text variant="caption" color={darkPalette.inkFaint}>
-                  {t('common:actions.continue')}
+                  {t('auth:dividerOr')}
                 </Text>
                 <View style={[styles.dividerLine, { backgroundColor: darkPalette.outlineVariant }]} />
               </View>
@@ -296,7 +290,7 @@ export default function SignInScreen(): React.JSX.Element {
                 disabled={isGoogleLoading}
                 activeOpacity={0.85}
                 accessibilityRole="button"
-                accessibilityLabel={t('auth:guest.signInCta')}
+                accessibilityLabel={t('auth:continueWithGoogle')}
                 accessibilityState={{ disabled: isGoogleLoading, busy: isGoogleLoading }}
                 style={[
                   styles.googleCta,
@@ -313,7 +307,7 @@ export default function SignInScreen(): React.JSX.Element {
                   <>
                     <Ionicons name="logo-google" size={18} color={darkPalette.ink} />
                     <Text variant="label" color={darkPalette.ink}>
-                      {t('auth:guest.signInCta')}
+                      {t('auth:continueWithGoogle')}
                     </Text>
                   </>
                 )}
@@ -362,35 +356,9 @@ const styles = StyleSheet.create({
     backgroundColor: darkPalette.background,
     overflow: 'hidden',
   },
-  glowTop: {
-    position: 'absolute',
-    top: -140,
-    left: -80,
-    width: 320,
-    height: 320,
-    borderRadius: 160,
-    backgroundColor: darkPalette.accentGlow,
-    opacity: 0.3,
-  },
-  glowBottom: {
-    position: 'absolute',
-    bottom: -160,
-    right: -100,
-    width: 360,
-    height: 360,
-    borderRadius: 180,
-    backgroundColor: darkPalette.accent,
-    opacity: 0.18,
-  },
   header: {
     alignItems: 'flex-start',
     paddingHorizontal: spacing.lg,
-  },
-  closeBtn: {
-    width: 36,
-    height: 36,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   spacer: {
     flex: 1,

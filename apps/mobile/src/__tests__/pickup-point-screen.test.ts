@@ -43,8 +43,8 @@ describe('search/pickup-point.tsx is real-map-backed, not pixel-projection', () 
     expect(source).toContain('stopId: selectedStop.stopId');
   });
 
-  it('shows an honest EmptyState when zero stops are within range', () => {
-    expect(source).toContain('EmptyState');
+  it('shows an honest empty state when zero stops are within range', () => {
+    expect(source).toContain('status="empty"');
     expect(source).toContain('rankedStops.length === 0');
   });
 
@@ -144,8 +144,8 @@ describe('search/dropoff-point.tsx is real-map-backed and stop-driven', () => {
     expect(source).toContain('stopId: selectedStop.stopId');
   });
 
-  it('shows an honest EmptyState when zero dropoff stops are within range', () => {
-    expect(source).toContain('EmptyState');
+  it('shows an honest empty state when zero dropoff stops are within range', () => {
+    expect(source).toContain('status="empty"');
     expect(source).toContain('rankedDropoffStops.length === 0');
   });
 

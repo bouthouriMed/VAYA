@@ -1,31 +1,14 @@
 import { Stack } from 'expo-router';
-import { colors } from '@vaya/design-system';
+import { useAppTheme } from '@vaya/design-system';
 
+/** Every booking screen draws its own `ScreenHeader` (or, for the live map,
+ *  a floating back button) — the native header stays off so headers never
+ *  stack or show a blank, off-theme bar. */
 export default function BookingsLayout(): React.JSX.Element {
+  const { colors: theme } = useAppTheme();
   return (
-    <Stack
-      screenOptions={{
-        headerShown: true,
-        headerStyle: { backgroundColor: colors.gray100 },
-        headerShadowVisible: false,
-        headerTintColor: colors.gray900,
-        headerTitleStyle: { fontWeight: '700' },
-        headerBackButtonDisplayMode: 'minimal',
-      }}
-    >
-      <Stack.Screen name="[bookingId]" options={{ headerShown: false }} />
-      <Stack.Screen name="confirmed" options={{ headerShown: false, gestureEnabled: false }} />
-      <Stack.Screen name="pending" options={{ title: '' }} />
-      <Stack.Screen name="pickup" options={{ title: '' }} />
-      <Stack.Screen name="live" options={{ title: '' }} />
-      <Stack.Screen
-        name="settlement"
-        options={{
-          title: '',
-          headerTransparent: true,
-          headerTintColor: colors.navyText,
-        }}
-      />
+    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: theme.background } }}>
+      <Stack.Screen name="confirmed" options={{ gestureEnabled: false }} />
     </Stack>
   );
 }

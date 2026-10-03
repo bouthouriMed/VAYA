@@ -2,7 +2,6 @@ import React, { useEffect, useRef } from 'react';
 import {
   Modal as RNModal,
   Animated,
-  Pressable,
   StyleSheet,
   TouchableWithoutFeedback,
   View,
@@ -11,9 +10,9 @@ import { Card } from './Card';
 import { Text } from './Text';
 import { Button } from './Button';
 import { ABSOLUTE_FILL_OBJECT } from '../utils/absoluteFill';
-import { colors, spacing } from '../tokens/index';
-import { haptics } from '../utils/haptics';
+import { spacing } from '../tokens/index';
 import type { AppPalette } from '../theme/palette';
+import { useAppTheme } from '../theme/AppThemeProvider';
 
 interface ModalProps {
   visible: boolean;
@@ -49,8 +48,10 @@ export function Modal({
   onConfirm,
   confirmDestructive,
   cancelLabel = 'Annuler',
-  theme,
+  theme: themeOverride,
 }: ModalProps): React.JSX.Element {
+  const { colors: contextTheme } = useAppTheme();
+  const theme = themeOverride ?? contextTheme;
   const scale = useRef(new Animated.Value(0.94)).current;
   const opacity = useRef(new Animated.Value(0)).current;
 
@@ -69,42 +70,21 @@ export function Modal({
       </TouchableWithoutFeedback>
       <View style={styles.centerWrap} pointerEvents="box-none">
         <Animated.View style={{ transform: [{ scale }], opacity, width: '100%' }}>
-          <Card
-            style={{
-              ...styles.card,
-              ...(theme ? { backgroundColor: theme.surface } : {}),
-            }}
-          >
+          <Card style={[styles.card, { backgroundColor: theme.surface }]}>
             {title ? (
-              <Text variant="h3" color={theme ? theme.ink : colors.gray900} style={styles.title}>
+              <Text variant="title" color={theme.ink} style={styles.title}>
                 {title}
               </Text>
             ) : null}
             {children}
             {confirmLabel && onConfirm ? (
               <View style={styles.actions}>
-                <Pressable
-                  onPress={() => {
-                    haptics.selection();
-                    onClose();
-                  }}
-                  accessibilityRole="button"
-                  accessibilityLabel={cancelLabel}
-                  style={styles.cancelBtn}
-                >
-                  <Text variant="label" color={theme ? theme.inkMuted : colors.gray700}>
-                    {cancelLabel}
-                  </Text>
-                </Pressable>
+                <Button variant="ghost" label={cancelLabel} onPress={onClose} theme={theme} />
                 <Button
                   label={confirmLabel}
-                  variant={confirmDestructive ? 'primary' : 'primary'}
+                  variant={confirmDestructive ? 'destructive' : 'primary'}
                   onPress={onConfirm}
-                  style={
-                    confirmDestructive
-                      ? { backgroundColor: theme ? theme.error : colors.error }
-                      : undefined
-                  }
+                  theme={theme}
                 />
               </View>
             ) : null}
@@ -136,11 +116,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'flex-end',
     alignItems: 'center',
-    gap: spacing.lg,
+    gap: spacing.sm,
     marginTop: spacing.sm,
-  },
-  cancelBtn: {
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.sm,
   },
 });

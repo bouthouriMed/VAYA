@@ -122,7 +122,7 @@ describe('MapPreview occupancy segments (driver ride-hub itinerary thread)', () 
     expect(polylines[0]!.props.coordinates).toEqual([A, B, C]);
   });
 
-  it('ignores occupancySegments when no theme is given, same as showPremiumPins', () => {
+  it('colors occupancy segments from the context theme when no theme prop is given', () => {
     const tree = renderJSON(
       createElement(MapPreview, {
         routeCoordinates: [A, B, C],
@@ -131,6 +131,7 @@ describe('MapPreview occupancy segments (driver ride-hub itinerary thread)', () 
     );
     const polylines = findAllByType(tree as JsonNode, 'Polyline');
     expect(polylines).toHaveLength(1);
-    expect(polylines[0]!.props.coordinates).toEqual([A, B, C]);
+    expect(polylines[0]!.props.coordinates).toEqual([A, B]);
+    expect(polylines[0]!.props.strokeColor).toBe(lightPalette.accent);
   });
 });

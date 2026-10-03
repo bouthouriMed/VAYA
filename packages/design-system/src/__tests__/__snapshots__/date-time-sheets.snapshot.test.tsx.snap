@@ -48,10 +48,8 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
         style={
           [
             {
-              "backgroundColor": "#FFFFFF",
               "borderTopLeftRadius": 24,
               "borderTopRightRadius": 24,
-              "shadowColor": "#26333A",
             },
             {
               "elevation": 8,
@@ -63,7 +61,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
               },
             },
             {
-              "backgroundColor": "#FFFFFF",
+              "backgroundColor": "#F7F9F5",
               "shadowColor": "#14201B",
             },
             {
@@ -93,13 +91,12 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
             style={
               [
                 {
-                  "backgroundColor": "#DDD9CA",
                   "borderRadius": 9999,
                   "height": 4,
                   "width": 40,
                 },
                 {
-                  "backgroundColor": "#E4EDFB",
+                  "backgroundColor": "#DEE5DE",
                 },
               ]
             }
@@ -108,65 +105,71 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
             style={
               {
                 "alignItems": "center",
+                "alignSelf": "stretch",
                 "flexDirection": "row",
-                "justifyContent": "space-between",
-                "paddingBottom": 12,
+                "gap": 8,
                 "paddingHorizontal": 16,
-                "width": "100%",
               }
             }
           >
             <View
               style={
                 {
-                  "width": 32,
+                  "width": 40,
                 }
               }
             />
             <Text
+              numberOfLines={2}
               style={
                 [
                   {
-                    "fontSize": 24,
+                    "fontSize": 18,
                     "fontWeight": "600",
-                    "lineHeight": 28.799999999999997,
+                    "lineHeight": 23.400000000000002,
                   },
+                  null,
                   {
                     "color": "#14201B",
-                    "textAlign": undefined,
+                    "textAlign": "center",
                     "writingDirection": "ltr",
                   },
                   {
                     "flex": 1,
-                    "textAlign": "center",
                   },
                 ]
               }
             >
               Date de départ
             </Text>
-            <TouchableOpacity
-              accessibilityLabel="Fermer"
-              accessibilityRole="button"
-              hitSlop={12}
-              onPress={[Function]}
+            <View
               style={
-                {
-                  "alignItems": "center",
-                  "height": 32,
-                  "justifyContent": "center",
-                  "width": 32,
-                }
+                [
+                  {
+                    "width": 40,
+                  },
+                  {
+                    "alignItems": "flex-end",
+                  },
+                ]
               }
             >
-              <Ionicons
-                accessibilityElementsHidden={true}
-                color="#14201B"
-                importantForAccessibility="no-hide-descendants"
-                name="close"
-                size={20}
-              />
-            </TouchableOpacity>
+              <Pressable
+                accessibilityLabel="Fermer"
+                accessibilityRole="button"
+                hitSlop={8}
+                onPress={[Function]}
+                style={[Function]}
+              >
+                <Ionicons
+                  accessibilityElementsHidden={true}
+                  color="#14201B"
+                  importantForAccessibility="no-hide-descendants"
+                  name="close"
+                  size={20}
+                />
+              </Pressable>
+            </View>
           </View>
         </View>
         <View
@@ -211,11 +214,11 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                     "flexDirection": "row",
                     "gap": 4,
                     "paddingHorizontal": 12,
-                    "paddingVertical": 4,
+                    "paddingVertical": 6,
                   },
                   {
-                    "backgroundColor": "#FFFFFF",
-                    "borderColor": "#E4EDFB",
+                    "backgroundColor": "#F7F9F5",
+                    "borderColor": "#DEE5DE",
                     "borderWidth": 1,
                   },
                   undefined,
@@ -226,11 +229,11 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                 style={
                   [
                     {
-                      "fontSize": 12,
+                      "fontSize": 14,
                       "fontWeight": "600",
                     },
                     {
-                      "color": "#5B6572",
+                      "color": "#4F5C55",
                     },
                   ]
                 }
@@ -256,11 +259,11 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                     "flexDirection": "row",
                     "gap": 4,
                     "paddingHorizontal": 12,
-                    "paddingVertical": 4,
+                    "paddingVertical": 6,
                   },
                   {
-                    "backgroundColor": "#FFFFFF",
-                    "borderColor": "#E4EDFB",
+                    "backgroundColor": "#F7F9F5",
+                    "borderColor": "#DEE5DE",
                     "borderWidth": 1,
                   },
                   undefined,
@@ -271,11 +274,11 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                 style={
                   [
                     {
-                      "fontSize": 12,
+                      "fontSize": 14,
                       "fontWeight": "600",
                     },
                     {
-                      "color": "#5B6572",
+                      "color": "#4F5C55",
                     },
                   ]
                 }
@@ -284,7 +287,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              accessibilityLabel="dim. 20"
+              accessibilityLabel="sam. 3"
               accessibilityRole="button"
               accessibilityState={
                 {
@@ -301,11 +304,11 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                     "flexDirection": "row",
                     "gap": 4,
                     "paddingHorizontal": 12,
-                    "paddingVertical": 4,
+                    "paddingVertical": 6,
                   },
                   {
-                    "backgroundColor": "#FFFFFF",
-                    "borderColor": "#E4EDFB",
+                    "backgroundColor": "#F7F9F5",
+                    "borderColor": "#DEE5DE",
                     "borderWidth": 1,
                   },
                   undefined,
@@ -316,20 +319,20 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                 style={
                   [
                     {
-                      "fontSize": 12,
+                      "fontSize": 14,
                       "fontWeight": "600",
                     },
                     {
-                      "color": "#5B6572",
+                      "color": "#4F5C55",
                     },
                   ]
                 }
               >
-                dim. 20
+                sam. 3
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              accessibilityLabel="lun. 21"
+              accessibilityLabel="dim. 4"
               accessibilityRole="button"
               accessibilityState={
                 {
@@ -346,11 +349,11 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                     "flexDirection": "row",
                     "gap": 4,
                     "paddingHorizontal": 12,
-                    "paddingVertical": 4,
+                    "paddingVertical": 6,
                   },
                   {
-                    "backgroundColor": "#FFFFFF",
-                    "borderColor": "#E4EDFB",
+                    "backgroundColor": "#F7F9F5",
+                    "borderColor": "#DEE5DE",
                     "borderWidth": 1,
                   },
                   undefined,
@@ -361,20 +364,20 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                 style={
                   [
                     {
-                      "fontSize": 12,
+                      "fontSize": 14,
                       "fontWeight": "600",
                     },
                     {
-                      "color": "#5B6572",
+                      "color": "#4F5C55",
                     },
                   ]
                 }
               >
-                lun. 21
+                dim. 4
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              accessibilityLabel="mar. 22"
+              accessibilityLabel="lun. 5"
               accessibilityRole="button"
               accessibilityState={
                 {
@@ -391,11 +394,11 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                     "flexDirection": "row",
                     "gap": 4,
                     "paddingHorizontal": 12,
-                    "paddingVertical": 4,
+                    "paddingVertical": 6,
                   },
                   {
-                    "backgroundColor": "#FFFFFF",
-                    "borderColor": "#E4EDFB",
+                    "backgroundColor": "#F7F9F5",
+                    "borderColor": "#DEE5DE",
                     "borderWidth": 1,
                   },
                   undefined,
@@ -406,20 +409,20 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                 style={
                   [
                     {
-                      "fontSize": 12,
+                      "fontSize": 14,
                       "fontWeight": "600",
                     },
                     {
-                      "color": "#5B6572",
+                      "color": "#4F5C55",
                     },
                   ]
                 }
               >
-                mar. 22
+                lun. 5
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              accessibilityLabel="mer. 23"
+              accessibilityLabel="mar. 6"
               accessibilityRole="button"
               accessibilityState={
                 {
@@ -436,11 +439,11 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                     "flexDirection": "row",
                     "gap": 4,
                     "paddingHorizontal": 12,
-                    "paddingVertical": 4,
+                    "paddingVertical": 6,
                   },
                   {
-                    "backgroundColor": "#FFFFFF",
-                    "borderColor": "#E4EDFB",
+                    "backgroundColor": "#F7F9F5",
+                    "borderColor": "#DEE5DE",
                     "borderWidth": 1,
                   },
                   undefined,
@@ -451,16 +454,16 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                 style={
                   [
                     {
-                      "fontSize": 12,
+                      "fontSize": 14,
                       "fontWeight": "600",
                     },
                     {
-                      "color": "#5B6572",
+                      "color": "#4F5C55",
                     },
                   ]
                 }
               >
-                mer. 23
+                mar. 6
               </Text>
             </TouchableOpacity>
           </ScrollView>
@@ -497,7 +500,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "width": 36,
                     },
                     {
-                      "borderColor": "#E4EDFB",
+                      "borderColor": "#DEE5DE",
                     },
                     false,
                   ]
@@ -505,7 +508,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
               >
                 <Ionicons
                   accessibilityElementsHidden={true}
-                  color="#5B6572"
+                  color="#4F5C55"
                   importantForAccessibility="no-hide-descendants"
                   name="chevron-back"
                   size={20}
@@ -529,6 +532,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "fontWeight": "600",
                       "lineHeight": 28.799999999999997,
                     },
+                    null,
                     {
                       "color": "#14201B",
                       "textAlign": undefined,
@@ -548,8 +552,9 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "fontWeight": "400",
                       "lineHeight": 18,
                     },
+                    null,
                     {
-                      "color": "#8B93A3",
+                      "color": "#7D8981",
                       "textAlign": undefined,
                       "writingDirection": "ltr",
                     },
@@ -583,7 +588,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "width": 36,
                     },
                     {
-                      "borderColor": "#E4EDFB",
+                      "borderColor": "#DEE5DE",
                     },
                   ]
                 }
@@ -613,8 +618,9 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                     "fontWeight": "400",
                     "lineHeight": 18,
                   },
+                  null,
                   {
-                    "color": "#8B93A3",
+                    "color": "#7D8981",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -638,8 +644,9 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                     "fontWeight": "400",
                     "lineHeight": 18,
                   },
+                  null,
                   {
-                    "color": "#8B93A3",
+                    "color": "#7D8981",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -663,8 +670,9 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                     "fontWeight": "400",
                     "lineHeight": 18,
                   },
+                  null,
                   {
-                    "color": "#8B93A3",
+                    "color": "#7D8981",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -688,8 +696,9 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                     "fontWeight": "400",
                     "lineHeight": 18,
                   },
+                  null,
                   {
-                    "color": "#8B93A3",
+                    "color": "#7D8981",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -713,8 +722,9 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                     "fontWeight": "400",
                     "lineHeight": 18,
                   },
+                  null,
                   {
-                    "color": "#8B93A3",
+                    "color": "#7D8981",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -738,8 +748,9 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                     "fontWeight": "400",
                     "lineHeight": 18,
                   },
+                  null,
                   {
-                    "color": "#8B93A3",
+                    "color": "#7D8981",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -765,8 +776,9 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                     "fontWeight": "400",
                     "lineHeight": 18,
                   },
+                  null,
                   {
-                    "color": "#8B93A3",
+                    "color": "#7D8981",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -894,6 +906,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "fontWeight": "400",
                       "lineHeight": 24,
                     },
+                    null,
                     {
                       "color": "#14201B",
                       "textAlign": undefined,
@@ -937,6 +950,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "fontWeight": "400",
                       "lineHeight": 24,
                     },
+                    null,
                     {
                       "color": "#14201B",
                       "textAlign": undefined,
@@ -980,6 +994,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "fontWeight": "400",
                       "lineHeight": 24,
                     },
+                    null,
                     {
                       "color": "#14201B",
                       "textAlign": undefined,
@@ -1023,6 +1038,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "fontWeight": "400",
                       "lineHeight": 24,
                     },
+                    null,
                     {
                       "color": "#14201B",
                       "textAlign": undefined,
@@ -1066,6 +1082,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "fontWeight": "400",
                       "lineHeight": 24,
                     },
+                    null,
                     {
                       "color": "#14201B",
                       "textAlign": undefined,
@@ -1109,6 +1126,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "fontWeight": "400",
                       "lineHeight": 24,
                     },
+                    null,
                     {
                       "color": "#14201B",
                       "textAlign": undefined,
@@ -1152,6 +1170,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "fontWeight": "400",
                       "lineHeight": 24,
                     },
+                    null,
                     {
                       "color": "#14201B",
                       "textAlign": undefined,
@@ -1195,6 +1214,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "fontWeight": "400",
                       "lineHeight": 24,
                     },
+                    null,
                     {
                       "color": "#14201B",
                       "textAlign": undefined,
@@ -1240,8 +1260,9 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "fontWeight": "400",
                       "lineHeight": 24,
                     },
+                    null,
                     {
-                      "color": "#FFFFFF",
+                      "color": "#F4F6F2",
                       "textAlign": undefined,
                       "writingDirection": "ltr",
                     },
@@ -1285,6 +1306,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "fontWeight": "400",
                       "lineHeight": 24,
                     },
+                    null,
                     {
                       "color": "#14201B",
                       "textAlign": undefined,
@@ -1328,6 +1350,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "fontWeight": "400",
                       "lineHeight": 24,
                     },
+                    null,
                     {
                       "color": "#14201B",
                       "textAlign": undefined,
@@ -1371,6 +1394,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "fontWeight": "400",
                       "lineHeight": 24,
                     },
+                    null,
                     {
                       "color": "#14201B",
                       "textAlign": undefined,
@@ -1414,6 +1438,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "fontWeight": "400",
                       "lineHeight": 24,
                     },
+                    null,
                     {
                       "color": "#14201B",
                       "textAlign": undefined,
@@ -1457,6 +1482,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "fontWeight": "400",
                       "lineHeight": 24,
                     },
+                    null,
                     {
                       "color": "#14201B",
                       "textAlign": undefined,
@@ -1500,6 +1526,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "fontWeight": "400",
                       "lineHeight": 24,
                     },
+                    null,
                     {
                       "color": "#14201B",
                       "textAlign": undefined,
@@ -1543,6 +1570,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "fontWeight": "400",
                       "lineHeight": 24,
                     },
+                    null,
                     {
                       "color": "#14201B",
                       "textAlign": undefined,
@@ -1586,6 +1614,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "fontWeight": "400",
                       "lineHeight": 24,
                     },
+                    null,
                     {
                       "color": "#14201B",
                       "textAlign": undefined,
@@ -1629,6 +1658,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "fontWeight": "400",
                       "lineHeight": 24,
                     },
+                    null,
                     {
                       "color": "#14201B",
                       "textAlign": undefined,
@@ -1672,6 +1702,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "fontWeight": "400",
                       "lineHeight": 24,
                     },
+                    null,
                     {
                       "color": "#14201B",
                       "textAlign": undefined,
@@ -1715,6 +1746,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "fontWeight": "400",
                       "lineHeight": 24,
                     },
+                    null,
                     {
                       "color": "#14201B",
                       "textAlign": undefined,
@@ -1758,6 +1790,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "fontWeight": "400",
                       "lineHeight": 24,
                     },
+                    null,
                     {
                       "color": "#14201B",
                       "textAlign": undefined,
@@ -1801,6 +1834,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "fontWeight": "400",
                       "lineHeight": 24,
                     },
+                    null,
                     {
                       "color": "#14201B",
                       "textAlign": undefined,
@@ -1844,6 +1878,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "fontWeight": "400",
                       "lineHeight": 24,
                     },
+                    null,
                     {
                       "color": "#14201B",
                       "textAlign": undefined,
@@ -1887,6 +1922,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "fontWeight": "400",
                       "lineHeight": 24,
                     },
+                    null,
                     {
                       "color": "#14201B",
                       "textAlign": undefined,
@@ -1930,6 +1966,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "fontWeight": "400",
                       "lineHeight": 24,
                     },
+                    null,
                     {
                       "color": "#14201B",
                       "textAlign": undefined,
@@ -1973,6 +2010,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "fontWeight": "400",
                       "lineHeight": 24,
                     },
+                    null,
                     {
                       "color": "#14201B",
                       "textAlign": undefined,
@@ -2016,6 +2054,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "fontWeight": "400",
                       "lineHeight": 24,
                     },
+                    null,
                     {
                       "color": "#14201B",
                       "textAlign": undefined,
@@ -2059,6 +2098,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "fontWeight": "400",
                       "lineHeight": 24,
                     },
+                    null,
                     {
                       "color": "#14201B",
                       "textAlign": undefined,
@@ -2102,6 +2142,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "fontWeight": "400",
                       "lineHeight": 24,
                     },
+                    null,
                     {
                       "color": "#14201B",
                       "textAlign": undefined,
@@ -2145,6 +2186,7 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
                       "fontWeight": "400",
                       "lineHeight": 24,
                     },
+                    null,
                     {
                       "color": "#14201B",
                       "textAlign": undefined,
@@ -2226,44 +2268,48 @@ exports[`DateCalendarSheet snapshots > renders the month grid with the given val
               }
             }
           >
-            <TouchableOpacity
+            <Pressable
               accessibilityLabel="Confirmer la date"
               accessibilityRole="button"
+              accessibilityState={
+                {
+                  "busy": false,
+                  "disabled": false,
+                }
+              }
+              disabled={false}
               onPress={[Function]}
-              style={
-                [
+              style={[Function]}
+            >
+              <View
+                style={
                   {
                     "alignItems": "center",
-                    "borderRadius": 12,
-                    "height": 48,
-                    "justifyContent": "center",
-                  },
-                  {
-                    "backgroundColor": "#14201B",
-                  },
-                ]
-              }
-            >
-              <Text
-                style={
-                  [
-                    {
-                      "fontSize": 14,
-                      "fontWeight": "500",
-                      "lineHeight": 21,
-                    },
-                    {
-                      "color": "#FFFFFF",
-                      "textAlign": undefined,
-                      "writingDirection": "ltr",
-                    },
-                    undefined,
-                  ]
+                    "flexDirection": "row",
+                    "gap": 8,
+                  }
                 }
               >
-                Confirmer la date
-              </Text>
-            </TouchableOpacity>
+                <Text
+                  numberOfLines={1}
+                  style={
+                    [
+                      {
+                        "fontWeight": "600",
+                      },
+                      {
+                        "fontSize": 16,
+                      },
+                      {
+                        "color": "#F4F6F2",
+                      },
+                    ]
+                  }
+                >
+                  Confirmer la date
+                </Text>
+              </View>
+            </Pressable>
           </View>
         </View>
       </Animated.View>
@@ -2320,10 +2366,8 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
         style={
           [
             {
-              "backgroundColor": "#FFFFFF",
               "borderTopLeftRadius": 24,
               "borderTopRightRadius": 24,
-              "shadowColor": "#26333A",
             },
             {
               "elevation": 8,
@@ -2335,16 +2379,16 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
               },
             },
             {
-              "backgroundColor": "#FFFFFF",
+              "backgroundColor": "#F7F9F5",
               "shadowColor": "#14201B",
             },
             {
-              "height": 422,
+              "height": 523.28,
             },
             {
               "transform": [
                 {
-                  "translateY": 422,
+                  "translateY": 523.28,
                 },
               ],
             },
@@ -2365,13 +2409,12 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
             style={
               [
                 {
-                  "backgroundColor": "#DDD9CA",
                   "borderRadius": 9999,
                   "height": 4,
                   "width": 40,
                 },
                 {
-                  "backgroundColor": "#E4EDFB",
+                  "backgroundColor": "#DEE5DE",
                 },
               ]
             }
@@ -2380,64 +2423,71 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
             style={
               {
                 "alignItems": "center",
+                "alignSelf": "stretch",
                 "flexDirection": "row",
-                "justifyContent": "space-between",
+                "gap": 8,
                 "paddingHorizontal": 16,
-                "width": "100%",
               }
             }
           >
             <View
               style={
                 {
-                  "width": 32,
+                  "width": 40,
                 }
               }
             />
             <Text
+              numberOfLines={2}
               style={
                 [
                   {
-                    "fontSize": 24,
+                    "fontSize": 18,
                     "fontWeight": "600",
-                    "lineHeight": 28.799999999999997,
+                    "lineHeight": 23.400000000000002,
                   },
+                  null,
                   {
                     "color": "#14201B",
-                    "textAlign": undefined,
+                    "textAlign": "center",
                     "writingDirection": "ltr",
                   },
                   {
                     "flex": 1,
-                    "textAlign": "center",
                   },
                 ]
               }
             >
               Heure
             </Text>
-            <TouchableOpacity
-              accessibilityLabel="Fermer"
-              accessibilityRole="button"
-              hitSlop={12}
-              onPress={[Function]}
+            <View
               style={
-                {
-                  "alignItems": "center",
-                  "height": 32,
-                  "justifyContent": "center",
-                  "width": 32,
-                }
+                [
+                  {
+                    "width": 40,
+                  },
+                  {
+                    "alignItems": "flex-end",
+                  },
+                ]
               }
             >
-              <Ionicons
-                accessibilityElementsHidden={true}
-                color="#14201B"
-                importantForAccessibility="no-hide-descendants"
-                name="close"
-                size={20}
-              />
-            </TouchableOpacity>
+              <Pressable
+                accessibilityLabel="Fermer"
+                accessibilityRole="button"
+                hitSlop={8}
+                onPress={[Function]}
+                style={[Function]}
+              >
+                <Ionicons
+                  accessibilityElementsHidden={true}
+                  color="#14201B"
+                  importantForAccessibility="no-hide-descendants"
+                  name="close"
+                  size={20}
+                />
+              </Pressable>
+            </View>
           </View>
         </View>
         <View
@@ -2466,8 +2516,9 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                     "fontWeight": "400",
                     "lineHeight": 21,
                   },
+                  null,
                   {
-                    "color": "#5B6572",
+                    "color": "#4F5C55",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
@@ -2486,6 +2537,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                     "fontWeight": "700",
                     "lineHeight": 36,
                   },
+                  null,
                   {
                     "color": "#14201B",
                     "textAlign": undefined,
@@ -2527,8 +2579,8 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                     "width": 266,
                   },
                   {
-                    "backgroundColor": "#E4EDFB",
-                    "borderColor": "#E4EDFB",
+                    "backgroundColor": "#E2E8E1",
+                    "borderColor": "#DEE5DE",
                   },
                 ]
               }
@@ -2593,7 +2645,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "textAlign": "center",
                       },
                       {
-                        "color": "#E4EDFB",
+                        "color": "#DEE5DE",
                         "opacity": 0.35,
                         "transform": [
                           {
@@ -2631,7 +2683,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "textAlign": "center",
                       },
                       {
-                        "color": "#E4EDFB",
+                        "color": "#DEE5DE",
                         "opacity": 0.35,
                         "transform": [
                           {
@@ -2669,7 +2721,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "textAlign": "center",
                       },
                       {
-                        "color": "#E4EDFB",
+                        "color": "#DEE5DE",
                         "opacity": 0.35,
                         "transform": [
                           {
@@ -2707,7 +2759,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "textAlign": "center",
                       },
                       {
-                        "color": "#E4EDFB",
+                        "color": "#DEE5DE",
                         "opacity": 0.35,
                         "transform": [
                           {
@@ -2745,7 +2797,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "textAlign": "center",
                       },
                       {
-                        "color": "#E4EDFB",
+                        "color": "#DEE5DE",
                         "opacity": 0.35,
                         "transform": [
                           {
@@ -2783,7 +2835,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "textAlign": "center",
                       },
                       {
-                        "color": "#E4EDFB",
+                        "color": "#DEE5DE",
                         "opacity": 0.35,
                         "transform": [
                           {
@@ -2821,7 +2873,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "textAlign": "center",
                       },
                       {
-                        "color": "#E4EDFB",
+                        "color": "#DEE5DE",
                         "opacity": 0.35,
                         "transform": [
                           {
@@ -2859,7 +2911,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "textAlign": "center",
                       },
                       {
-                        "color": "#E4EDFB",
+                        "color": "#DEE5DE",
                         "opacity": 0.35,
                         "transform": [
                           {
@@ -2897,7 +2949,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "textAlign": "center",
                       },
                       {
-                        "color": "#E4EDFB",
+                        "color": "#DEE5DE",
                         "opacity": 0.35,
                         "transform": [
                           {
@@ -2935,7 +2987,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "textAlign": "center",
                       },
                       {
-                        "color": "#E4EDFB",
+                        "color": "#DEE5DE",
                         "opacity": 0.35,
                         "transform": [
                           {
@@ -2973,7 +3025,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "textAlign": "center",
                       },
                       {
-                        "color": "#E4EDFB",
+                        "color": "#DEE5DE",
                         "opacity": 0.35,
                         "transform": [
                           {
@@ -3011,7 +3063,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "textAlign": "center",
                       },
                       {
-                        "color": "#E4EDFB",
+                        "color": "#DEE5DE",
                         "opacity": 0.35,
                         "transform": [
                           {
@@ -3049,7 +3101,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "textAlign": "center",
                       },
                       {
-                        "color": "#E4EDFB",
+                        "color": "#DEE5DE",
                         "opacity": 0.35,
                         "transform": [
                           {
@@ -3087,7 +3139,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "textAlign": "center",
                       },
                       {
-                        "color": "#E4EDFB",
+                        "color": "#DEE5DE",
                         "opacity": 0.35,
                         "transform": [
                           {
@@ -3125,7 +3177,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "textAlign": "center",
                       },
                       {
-                        "color": "#E4EDFB",
+                        "color": "#DEE5DE",
                         "opacity": 0.35,
                         "transform": [
                           {
@@ -3163,7 +3215,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "textAlign": "center",
                       },
                       {
-                        "color": "#E4EDFB",
+                        "color": "#DEE5DE",
                         "opacity": 0.35,
                         "transform": [
                           {
@@ -3201,7 +3253,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "textAlign": "center",
                       },
                       {
-                        "color": "#E4EDFB",
+                        "color": "#DEE5DE",
                         "opacity": 0.35,
                         "transform": [
                           {
@@ -3239,7 +3291,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "textAlign": "center",
                       },
                       {
-                        "color": "#E4EDFB",
+                        "color": "#DEE5DE",
                         "opacity": 0.35,
                         "transform": [
                           {
@@ -3315,7 +3367,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "textAlign": "center",
                       },
                       {
-                        "color": "#E4EDFB",
+                        "color": "#DEE5DE",
                         "opacity": 0.35,
                         "transform": [
                           {
@@ -3353,7 +3405,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "textAlign": "center",
                       },
                       {
-                        "color": "#E4EDFB",
+                        "color": "#DEE5DE",
                         "opacity": 0.35,
                         "transform": [
                           {
@@ -3391,7 +3443,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "textAlign": "center",
                       },
                       {
-                        "color": "#E4EDFB",
+                        "color": "#DEE5DE",
                         "opacity": 0.35,
                         "transform": [
                           {
@@ -3429,7 +3481,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "textAlign": "center",
                       },
                       {
-                        "color": "#E4EDFB",
+                        "color": "#DEE5DE",
                         "opacity": 0.35,
                         "transform": [
                           {
@@ -3467,7 +3519,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "textAlign": "center",
                       },
                       {
-                        "color": "#E4EDFB",
+                        "color": "#DEE5DE",
                         "opacity": 0.35,
                         "transform": [
                           {
@@ -3501,6 +3553,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                       "fontWeight": "700",
                       "lineHeight": 36,
                     },
+                    null,
                     {
                       "color": "#14201B",
                       "textAlign": undefined,
@@ -3575,7 +3628,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "textAlign": "center",
                       },
                       {
-                        "color": "#E4EDFB",
+                        "color": "#DEE5DE",
                         "opacity": 0.35,
                         "transform": [
                           {
@@ -3613,7 +3666,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "textAlign": "center",
                       },
                       {
-                        "color": "#E4EDFB",
+                        "color": "#DEE5DE",
                         "opacity": 0.35,
                         "transform": [
                           {
@@ -3651,7 +3704,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "textAlign": "center",
                       },
                       {
-                        "color": "#E4EDFB",
+                        "color": "#DEE5DE",
                         "opacity": 0.35,
                         "transform": [
                           {
@@ -3689,7 +3742,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "textAlign": "center",
                       },
                       {
-                        "color": "#E4EDFB",
+                        "color": "#DEE5DE",
                         "opacity": 0.35,
                         "transform": [
                           {
@@ -3727,7 +3780,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "textAlign": "center",
                       },
                       {
-                        "color": "#E4EDFB",
+                        "color": "#DEE5DE",
                         "opacity": 0.35,
                         "transform": [
                           {
@@ -3765,7 +3818,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "textAlign": "center",
                       },
                       {
-                        "color": "#E4EDFB",
+                        "color": "#DEE5DE",
                         "opacity": 0.35,
                         "transform": [
                           {
@@ -3841,7 +3894,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "textAlign": "center",
                       },
                       {
-                        "color": "#E4EDFB",
+                        "color": "#DEE5DE",
                         "opacity": 0.35,
                         "transform": [
                           {
@@ -3879,7 +3932,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "textAlign": "center",
                       },
                       {
-                        "color": "#E4EDFB",
+                        "color": "#DEE5DE",
                         "opacity": 0.35,
                         "transform": [
                           {
@@ -3917,7 +3970,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "textAlign": "center",
                       },
                       {
-                        "color": "#E4EDFB",
+                        "color": "#DEE5DE",
                         "opacity": 0.35,
                         "transform": [
                           {
@@ -3955,7 +4008,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "textAlign": "center",
                       },
                       {
-                        "color": "#E4EDFB",
+                        "color": "#DEE5DE",
                         "opacity": 0.35,
                         "transform": [
                           {
@@ -3993,7 +4046,7 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
                         "textAlign": "center",
                       },
                       {
-                        "color": "#E4EDFB",
+                        "color": "#DEE5DE",
                         "opacity": 0.35,
                         "transform": [
                           {
@@ -4011,8 +4064,8 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
             <LinearGradient
               colors={
                 [
-                  "#FFFFFFFF",
-                  "#FFFFFF00",
+                  "#F7F9F5FF",
+                  "#F7F9F500",
                 ]
               }
               pointerEvents="none"
@@ -4033,8 +4086,8 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
             <LinearGradient
               colors={
                 [
-                  "#FFFFFF00",
-                  "#FFFFFFFF",
+                  "#F7F9F500",
+                  "#F7F9F5FF",
                 ]
               }
               pointerEvents="none"
@@ -4061,44 +4114,48 @@ exports[`TimeWheelSheet snapshots > renders the hour:minute wheel with the given
               }
             }
           >
-            <TouchableOpacity
+            <Pressable
               accessibilityLabel="Confirmer"
               accessibilityRole="button"
+              accessibilityState={
+                {
+                  "busy": false,
+                  "disabled": false,
+                }
+              }
+              disabled={false}
               onPress={[Function]}
-              style={
-                [
+              style={[Function]}
+            >
+              <View
+                style={
                   {
                     "alignItems": "center",
-                    "borderRadius": 12,
-                    "height": 52,
-                    "justifyContent": "center",
-                  },
-                  {
-                    "backgroundColor": "#14201B",
-                  },
-                ]
-              }
-            >
-              <Text
-                style={
-                  [
-                    {
-                      "fontSize": 14,
-                      "fontWeight": "500",
-                      "lineHeight": 21,
-                    },
-                    {
-                      "color": "#FFFFFF",
-                      "textAlign": undefined,
-                      "writingDirection": "ltr",
-                    },
-                    undefined,
-                  ]
+                    "flexDirection": "row",
+                    "gap": 8,
+                  }
                 }
               >
-                Confirmer
-              </Text>
-            </TouchableOpacity>
+                <Text
+                  numberOfLines={1}
+                  style={
+                    [
+                      {
+                        "fontWeight": "600",
+                      },
+                      {
+                        "fontSize": 16,
+                      },
+                      {
+                        "color": "#F4F6F2",
+                      },
+                    ]
+                  }
+                >
+                  Confirmer
+                </Text>
+              </View>
+            </Pressable>
           </View>
         </View>
       </Animated.View>
