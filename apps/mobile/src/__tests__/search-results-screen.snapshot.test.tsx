@@ -55,10 +55,10 @@ const searchState: RootState['search'] = {
   searchId: 'search-1',
 };
 
-function mockStore(): void {
+function mockStore(search: RootState['search'] = searchState): void {
   vi.doMock('../state/store', () => ({
     useAppSelector: (selector: (s: Pick<RootState, 'search'>) => unknown) =>
-      selector({ search: searchState }),
+      selector({ search }),
   }));
 }
 
@@ -83,9 +83,16 @@ function candidate(overrides: Partial<MatchCandidate>): MatchCandidate {
     originLng: 10.32,
     destinationLat: 36.8,
     destinationLng: 10.18,
+    passengerJourney: { originLat: 36.88, originLng: 10.32, destinationLat: 36.8, destinationLng: 10.18 },
+    // A stop-less endpoint ride: boarding/alighting at the ride's own
+    // endpoints, which coincide with the passenger's searched places here.
+    pickupPoint: { stopId: null, label: 'La Marsa', lat: 36.88, lng: 10.32, walkMinutes: 0 },
+    dropoffPoint: { stopId: null, label: 'Avenue Habib Bourguiba', lat: 36.8, lng: 10.18, walkMinutes: 0 },
     routePolyline: null,
     rankedStops: [],
     rankedDropoffStops: [],
+    recommendedStopId: null,
+    recommendedDropoffStopId: null,
     pickupViable: true,
     dropoffViable: true,
     matchType: 'endpoint',
@@ -178,5 +185,63 @@ describe('search/results.tsx snapshots', () => {
       </ToastProvider>,
     );
     expect(tree).toMatchSnapshot();
+  });
+
+  // The reported bug: driver Cité Tahrir -> La Marsa, passenger Menzah 6 ->
+  // Lac 2. The card must show the passenger's own journey with the resolved
+  // Menzah 6 pickup / Lac 2 drop-off stops — never La Marsa.
+  it("shows the passenger's own Menzah 6 -> Lac 2 journey for a sub-segment of a Cité Tahrir -> La Marsa ride", async () => {
+    vi.resetModules();
+    mockStore({
+      ...searchState,
+      origin: { label: 'Menzah 6, Ariana', lat: 36.8495, lng: 10.1735 },
+      destination: { label: 'Lac 2, Tunis', lat: 36.853, lng: 10.2735 },
+    });
+    const menzahStop = { stopId: 'stop-menzah', label: 'Av. Hédi Nouira', lat: 36.8475, lng: 10.1725, walkMinutes: 3, sequence: 1 };
+    const lacStop = { stopId: 'stop-lac', label: 'Rue du Lac Windermere', lat: 36.8505, lng: 10.2712, walkMinutes: 4, sequence: 2 };
+    mockApi({
+      matching: {
+        data: {
+          tier: 'route_passthrough',
+          standoutRideId: null,
+          message: null,
+          candidates: [
+            candidate({
+              matchType: 'route_passthrough',
+              // The driver's own ride: Cité Tahrir -> La Marsa.
+              originLat: 36.826,
+              originLng: 10.14,
+              destinationLat: 36.878,
+              destinationLng: 10.324,
+              passengerJourney: { originLat: 36.8495, originLng: 10.1735, destinationLat: 36.853, destinationLng: 10.2735 },
+              pickupPoint: { stopId: menzahStop.stopId, label: menzahStop.label, lat: menzahStop.lat, lng: menzahStop.lng, walkMinutes: 3 },
+              dropoffPoint: { stopId: lacStop.stopId, label: lacStop.label, lat: lacStop.lat, lng: lacStop.lng, walkMinutes: 4 },
+              rankedStops: [menzahStop],
+              rankedDropoffStops: [lacStop],
+              recommendedStopId: menzahStop.stopId,
+              recommendedDropoffStopId: lacStop.stopId,
+              pickupWalkMinutes: 3,
+              dropoffWalkMinutes: 4,
+              pickupEtaSeconds: 600,
+              dropoffEtaSeconds: 1500,
+            }),
+          ],
+        },
+      },
+    });
+    const { ResultsScreen, ToastProvider } = await loadScreen();
+    const rendered = JSON.stringify(
+      renderJSON(
+        <ToastProvider>
+          <ResultsScreen />
+        </ToastProvider>,
+      ),
+    );
+    expect(rendered).toContain('Menzah 6');
+    expect(rendered).toContain('Lac 2');
+    expect(rendered).toContain('Av. Hédi Nouira');
+    expect(rendered).toContain('Rue du Lac Windermere');
+    expect(rendered).not.toContain('La Marsa');
+    expect(rendered).not.toContain('Tahrir');
   });
 });

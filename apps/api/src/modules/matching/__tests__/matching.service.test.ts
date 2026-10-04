@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import {
   rankStopsByWalkDistance,
+  resolvePassengerSegment,
+  pickDirectionalPair,
   isPickupViable,
   isDropoffViable,
   deriveMatchingThresholds,
@@ -317,5 +319,178 @@ describe('mergeCandidatesByRide', () => {
     const a = makeCandidate({ rideId: 'ride-a', score: 0.5 });
     expect(mergeCandidatesByRide([], [a], [])).toEqual([a]);
     expect(mergeCandidatesByRide()).toEqual([]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Passenger journey as a sub-segment of the driver's route (reported bug:
+// driver Cité Tahrir -> La Marsa at 19:10, passenger Menzah 6 -> Lac 2 at
+// 19:20 was shown "Menzah 6 -> La Marsa" — the driver's destination standing
+// in for the passenger's). Real-ish Tunis coordinates; the driver's route
+// runs Cité Tahrir -> Menzah 6 -> Lac 2 -> La Marsa.
+// ---------------------------------------------------------------------------
+const CITE_TAHRIR = { lat: 36.826, lng: 10.14 };
+const MENZAH_6 = { lat: 36.848, lng: 10.172 };
+const LAC_2 = { lat: 36.851, lng: 10.272 };
+const LA_MARSA = { lat: 36.878, lng: 10.324 };
+const DRIVER_ROUTE = [CITE_TAHRIR, MENZAH_6, LAC_2, LA_MARSA];
+
+function routeStop(id: string, label: string, point: { lat: number; lng: number }, sequence: number) {
+  return { id, label, lat: point.lat, lng: point.lng, sequence, suitabilityScore: 0.8, deviationMeters: 50 };
+}
+
+// Driver-selected stops along the corridor, in route order.
+const STOP_TAHRIR = routeStop('stop-tahrir', 'Cité Tahrir — Station', CITE_TAHRIR, 0);
+const STOP_MENZAH = routeStop('stop-menzah', 'Menzah 6 — Av. Hédi Nouira', { lat: 36.8475, lng: 10.1725 }, 1);
+const STOP_LAC = routeStop('stop-lac', 'Lac 2 — Rue du Lac Windermere', { lat: 36.8505, lng: 10.2712 }, 2);
+const STOP_MARSA = routeStop('stop-marsa', 'La Marsa — Centre', LA_MARSA, 3);
+
+// Passenger points slightly off the driver's exact route (~150-300m).
+const PASSENGER_ORIGIN = { lat: 36.8495, lng: 10.1735 }; // Menzah 6
+const PASSENGER_DESTINATION = { lat: 36.853, lng: 10.2735 }; // Lac 2
+
+// Commute-profile walk caps (the trip is ~9km straight-line) — see
+// passengerWalkCaps in matching.service.ts.
+const commute = getMatchingThresholds('commute');
+const baseParams = {
+  passengerOrigin: PASSENGER_ORIGIN,
+  passengerDestination: PASSENGER_DESTINATION,
+  routePoints: DRIVER_ROUTE,
+  maxPickupWalkM: commute.tightPickupRadiusM,
+  maxDropoffWalkM: commute.tightDropoffRadiusM,
+  maxDeviationM: 3000,
+};
+
+describe('resolvePassengerSegment — the passenger journey is a sub-segment of the driver route', () => {
+  it('acceptance: Menzah 6 -> Lac 2 on a Cité Tahrir -> La Marsa ride resolves to a Menzah 6 pickup and a Lac 2 dropoff, never La Marsa', () => {
+    const segment = resolvePassengerSegment({
+      ...baseParams,
+      rideStops: [STOP_TAHRIR, STOP_MENZAH, STOP_LAC, STOP_MARSA],
+    });
+
+    expect(segment.pickup?.stopId).toBe('stop-menzah');
+    expect(segment.dropoff?.stopId).toBe('stop-lac');
+    expect(segment.dropoff?.label).toContain('Lac 2');
+    expect(segment.dropoff?.label).not.toContain('La Marsa');
+    expect(segment.recommendedStopId).toBe('stop-menzah');
+    expect(segment.recommendedDropoffStopId).toBe('stop-lac');
+    // Minimal walking: a few minutes each way, not a cross-town hike.
+    expect(segment.pickup!.walkMinutes).toBeLessThan(5);
+    expect(segment.dropoff!.walkMinutes).toBeLessThan(5);
+    // Pickup strictly before dropoff along the driver's route, both
+    // genuinely mid-route (the driver's own endpoints are 0 and 1).
+    expect(segment.pickupRouteFraction).toBeGreaterThan(0);
+    expect(segment.pickupRouteFraction).toBeLessThan(segment.dropoffRouteFraction);
+    expect(segment.dropoffRouteFraction).toBeLessThan(1);
+  });
+
+  it("never offers the driver's destination as the passenger's dropoff even when the tier would allow it within a wide radius, if a stop near the passenger's destination exists", () => {
+    // The endpoint tier offers the ride's own destination within its WIDE
+    // dropoff radius (10km here — La Marsa is ~5.5km from Lac 2). The
+    // walkable Lac 2 stop must still win.
+    const segment = resolvePassengerSegment({
+      ...baseParams,
+      rideStops: [STOP_TAHRIR, STOP_MENZAH, STOP_LAC, STOP_MARSA],
+      rideDestination: { label: 'La Marsa', ...LA_MARSA, maxWalkM: 10_000 },
+    });
+    expect(segment.dropoff?.stopId).toBe('stop-lac');
+    expect(segment.dropoff?.label).not.toBe('La Marsa');
+  });
+
+  it("rejects an excessive walk: a ride whose only dropoff near the passenger's side is at the driver's destination (La Marsa) is not a Lac 2 match", () => {
+    // No stop at Lac 2 — the old 8km "walkable" cutoff accepted the La
+    // Marsa stop (~5.5km away) as the passenger's dropoff.
+    const segment = resolvePassengerSegment({
+      ...baseParams,
+      rideStops: [STOP_TAHRIR, STOP_MENZAH, STOP_MARSA],
+    });
+    expect(segment.dropoff).toBeNull();
+    expect(segment.rankedDropoffStops).toEqual([]);
+  });
+
+  it('rejects a reversed journey: Lac 2 -> Menzah 6 against a driver heading Cité Tahrir -> La Marsa', () => {
+    const segment = resolvePassengerSegment({
+      ...baseParams,
+      passengerOrigin: PASSENGER_DESTINATION,
+      passengerDestination: PASSENGER_ORIGIN,
+      rideStops: [STOP_TAHRIR, STOP_MENZAH, STOP_LAC, STOP_MARSA],
+    });
+    expect(segment.pickup).toBeNull();
+    expect(segment.dropoff).toBeNull();
+  });
+
+  it('with several pickup and dropoff options, keeps every offered dropoff after a reachable pickup and pairs the best ones in route order', () => {
+    const menzahEarly = routeStop('menzah-early', 'Menzah 6 — Nord', { lat: 36.8485, lng: 10.171 }, 1);
+    const menzahLate = routeStop('menzah-late', 'Menzah 6 — Est', { lat: 36.849, lng: 10.175 }, 2);
+    const lacEarly = routeStop('lac-early', 'Lac 2 — Ouest', { lat: 36.8515, lng: 10.27 }, 3);
+    const lacLate = routeStop('lac-late', 'Lac 2 — Est', { lat: 36.853, lng: 10.274 }, 4);
+    const segment = resolvePassengerSegment({
+      ...baseParams,
+      rideStops: [STOP_TAHRIR, menzahEarly, menzahLate, lacEarly, lacLate, { ...STOP_MARSA, sequence: 5 }],
+    });
+
+    expect(['menzah-early', 'menzah-late']).toContain(segment.pickup?.stopId);
+    expect(['lac-early', 'lac-late']).toContain(segment.dropoff?.stopId);
+    expect(segment.rankedStops.map((s) => s.stopId).sort()).toEqual(['menzah-early', 'menzah-late']);
+    expect(segment.rankedDropoffStops.map((s) => s.stopId).sort()).toEqual(['lac-early', 'lac-late']);
+    // Every ranked stop carries its route position so a client can keep a
+    // chosen dropoff after a chosen pickup.
+    expect(segment.rankedDropoffStops.every((s) => s.sequence !== null && s.sequence > 1)).toBe(true);
+  });
+
+  it('never pairs a dropoff stop that comes before the pickup stop on the route', () => {
+    // Two stops both walkable from each end of a very short trip: the one
+    // nearest the destination sits BEFORE the one nearest the origin.
+    const a = routeStop('a', 'A', { lat: 36.8476, lng: 10.1722 }, 1);
+    const b = routeStop('b', 'B', { lat: 36.8478, lng: 10.1745 }, 2);
+    const segment = resolvePassengerSegment({
+      ...baseParams,
+      passengerOrigin: { lat: 36.8479, lng: 10.1748 }, // next to B (seq 2)
+      passengerDestination: { lat: 36.8475, lng: 10.1719 }, // next to A (seq 1)
+      routePoints: DRIVER_ROUTE,
+      rideStops: [a, b],
+    });
+    // Closest-by-foot would be B -> A (backwards); the only direction-valid
+    // pair is A -> B.
+    expect(segment.pickup?.stopId).toBe('a');
+    expect(segment.dropoff?.stopId).toBe('b');
+    expect(segment.rankedDropoffStops.some((s) => s.stopId === 'a')).toBe(false);
+  });
+
+  it("resolves a legacy stop-less ride's own endpoints only when they are themselves within reach of the passenger's points", () => {
+    const nearOrigin = { lat: CITE_TAHRIR.lat + 0.002, lng: CITE_TAHRIR.lng };
+    const nearDestination = { lat: LA_MARSA.lat + 0.002, lng: LA_MARSA.lng };
+    const segment = resolvePassengerSegment({
+      ...baseParams,
+      passengerOrigin: nearOrigin,
+      passengerDestination: nearDestination,
+      rideStops: [],
+      rideOrigin: { label: 'Cité Tahrir', ...CITE_TAHRIR, maxWalkM: 4000 },
+      rideDestination: { label: 'La Marsa', ...LA_MARSA, maxWalkM: 5000 },
+    });
+    expect(segment.pickup).toMatchObject({ stopId: null, label: 'Cité Tahrir' });
+    expect(segment.dropoff).toMatchObject({ stopId: null, label: 'La Marsa' });
+    expect(segment.pickupRouteFraction).toBe(0);
+    expect(segment.dropoffRouteFraction).toBe(1);
+  });
+});
+
+describe('pickDirectionalPair', () => {
+  const opt = (stopId: string, sequence: number) => ({ stopId, label: stopId, lat: 0, lng: 0, walkMinutes: 1, sequence });
+
+  it('pairs the preferred pickup with the first preferred dropoff strictly after it', () => {
+    expect(pickDirectionalPair([opt('p', 1)], [opt('d0', 0), opt('d2', 2)])).toEqual({
+      pickup: opt('p', 1),
+      dropoff: opt('d2', 2),
+    });
+  });
+
+  it('falls back to the next pickup when the preferred one has nothing after it', () => {
+    const pair = pickDirectionalPair([opt('late', 5), opt('early', 1)], [opt('d', 3)]);
+    expect(pair?.pickup.stopId).toBe('early');
+  });
+
+  it('returns null when every dropoff precedes every pickup (reversed direction)', () => {
+    expect(pickDirectionalPair([opt('p', 3)], [opt('d', 1)])).toBeNull();
   });
 });

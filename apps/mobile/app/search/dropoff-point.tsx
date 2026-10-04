@@ -28,7 +28,11 @@ import { selectDropoffStop } from '../../src/state/searchSlice';
 import { useMatchingSearchQuery, type MatchCandidate, type RankedStop } from '../../src/state/api';
 import { decodePolyline } from '../../src/utils/polyline';
 import { trackEvent } from '../../src/services/analytics/analytics';
-import { defaultStopId, rankedPosition } from '../../src/features/pickup-selection/pickupSelection';
+import {
+  defaultStopId,
+  dropoffStopsAfterPickup,
+  rankedPosition,
+} from '../../src/features/pickup-selection/pickupSelection';
 
 /**
  * Dropoff-side mirror of search/pickup-point.tsx (Phase 13, docs/roadmap/
@@ -68,16 +72,22 @@ export default function DropoffPointScreen(): React.JSX.Element {
     () => searchResult?.candidates.find((c) => c.rideId === rideId),
     [searchResult, rideId],
   );
-  const rankedDropoffStops = useMemo(() => candidate?.rankedDropoffStops ?? [], [candidate]);
+  // Only stops after the passenger's chosen pickup along the driver's route
+  // — a dropoff behind the pickup isn't a trip in the driver's direction.
+  const selectedPickup = useAppSelector((s) => s.search.selectedStop);
+  const rankedDropoffStops = useMemo(() => {
+    const pickupSequence = candidate?.rankedStops.find((s) => s.stopId === selectedPickup?.stopId)?.sequence;
+    return dropoffStopsAfterPickup(candidate?.rankedDropoffStops ?? [], pickupSequence);
+  }, [candidate, selectedPickup]);
 
   const [selectedStopId, setSelectedStopId] = useState<string | null>(null);
   const [detailStop, setDetailStop] = useState<RankedStop | null>(null);
 
   useEffect(() => {
     if (!selectedStopId && rankedDropoffStops.length > 0) {
-      setSelectedStopId(defaultStopId(rankedDropoffStops));
+      setSelectedStopId(defaultStopId(rankedDropoffStops, candidate?.recommendedDropoffStopId));
     }
-  }, [rankedDropoffStops, selectedStopId]);
+  }, [rankedDropoffStops, selectedStopId, candidate]);
 
   const region = useMemo(() => {
     const points = rankedDropoffStops.map((s) => ({ lat: s.lat, lng: s.lng }));

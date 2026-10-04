@@ -8,8 +8,26 @@ import type { RankedStop } from '../../state/api';
  * docs/ux/principles.md #1: the passenger shouldn't have to scan a list
  * before anything is chosen. Returns null when there is nothing to select.
  */
-export function defaultStopId(rankedStops: RankedStop[]): string | null {
+export function defaultStopId(rankedStops: RankedStop[], recommendedStopId?: string | null): string | null {
+  // The server's recommendation (matching.service.ts's resolvePassengerSegment
+  // — the best walk/detour balance that also keeps pickup before dropoff)
+  // wins whenever it's one of the offered stops; otherwise the closest.
+  if (recommendedStopId && rankedStops.some((s) => s.stopId === recommendedStopId)) return recommendedStopId;
   return rankedStops[0]?.stopId ?? null;
+}
+
+/**
+ * The dropoff stops still reachable after the passenger's chosen pickup:
+ * only those strictly later along the driver's route (createBooking rejects
+ * any other order). A stop with no known route position is kept — the
+ * server re-validates the order anyway.
+ */
+export function dropoffStopsAfterPickup(
+  rankedDropoffStops: RankedStop[],
+  pickupSequence: number | null | undefined,
+): RankedStop[] {
+  if (pickupSequence == null) return rankedDropoffStops;
+  return rankedDropoffStops.filter((s) => s.sequence == null || s.sequence > pickupSequence);
 }
 
 /**

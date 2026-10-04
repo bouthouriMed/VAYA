@@ -44,6 +44,7 @@ import { useContextualAuth } from '../../src/features/auth/useContextualAuth';
 import { ContextualAuthSheet } from '../../src/features/auth/ContextualAuthSheet';
 import { formatDate, formatTime } from '../../src/utils/localeFormat';
 import { formatDurationLabel } from '../../src/utils/durationLabel';
+import { resolvePassengerSegmentPoints } from '../../src/features/search/passengerSegment';
 import type { TFunction } from 'i18next';
 
 type TFn = (key: string, params?: Record<string, unknown>) => string;
@@ -172,47 +173,30 @@ export default function RideDetailsScreen(): React.JSX.Element {
     return ride?.routePolyline ? decodePolyline(ride.routePolyline) : [];
   }, [isDetourMatch, candidate, ride]);
 
-  // Matched by stopId, not label text — a label match is fragile (two real
-  // stops can share display text) and silently produced wrong results.
-  const pickupStopId = selectedStop?.stopId ?? candidate?.rankedStops[0]?.stopId;
+  // The passenger's OWN pickup/dropoff — a sub-segment of the driver's
+  // route, never the driver's destination standing in for theirs. See
+  // resolvePassengerSegmentPoints for the precedence rules. Matched by
+  // stopId, not label text — a label match is fragile (two real stops can
+  // share display text) and silently produced wrong results.
+  const segmentPoints = resolvePassengerSegmentPoints({
+    candidate,
+    selectedPickup: selectedStop,
+    selectedDropoff: selectedDropoffStop,
+    searchOrigin: origin,
+    searchDestination: destination,
+    ride,
+  });
+  const pickupStopId = segmentPoints.pickup.stopId;
   const pickupStop = useMemo(
     () => stops?.find((s) => s.id === pickupStopId),
     [stops, pickupStopId],
   );
-  // A detour match has no real driver-selected stop at all (pickupViable:
-  // false, by design — see MatchCandidate.detour's doc comment) — the
-  // passenger's own searched origin/destination (search.origin/destination,
-  // exactly what scoreDetourCandidates computed the detour against) IS the
-  // real pickup/dropoff point in that case, never the driver's own
-  // origin/destination label.
-  const pickupLabel = isDetourMatch
-    ? (origin?.label ?? ride?.originLabel)
-    : (pickupStop?.label ?? selectedStop?.label ?? candidate?.rankedStops[0]?.label ?? ride?.originLabel);
+  const pickupLabel = pickupStop?.label ?? segmentPoints.pickup.label;
   const pickupWalkMinutes = candidate?.pickupWalkMinutes;
-  // A route-passthrough match (Phase 13, docs/roadmap/phase-13-search-engine.md)
-  // may have a dropoff stop the passenger explicitly chose on
-  // search/dropoff-point.tsx. For a plain endpoint match there's no such
-  // passenger choice to make, but the RIDE itself may still have a real
-  // driver-confirmed dropoff stop (the second of the pickup/dropoff pair
-  // Publish's map-selection flow persists) — falling back straight to
-  // ride.destinationLabel skipped that real, more precise point entirely.
-  // Only once neither exists does this fall back to the ride's own
-  // general destination, exactly as every booking behaved before dropoff
-  // stops existed.
-  const rideDropoffStop = useMemo(() => {
-    if (!stops || stops.length === 0) return undefined;
-    return [...stops].sort((a, b) => b.sequence - a.sequence)[0];
-  }, [stops]);
-  const dropoffStopId = selectedDropoffStop?.stopId ?? rideDropoffStop?.id;
-  const dropoffLabel = isDetourMatch
-    ? (destination?.label ?? ride?.destinationLabel)
-    : (selectedDropoffStop?.label ?? rideDropoffStop?.label ?? ride?.destinationLabel);
-  const dropoffLat = isDetourMatch
-    ? (destination?.lat ?? ride?.destinationLat)
-    : (selectedDropoffStop?.lat ?? rideDropoffStop?.lat ?? ride?.destinationLat);
-  const dropoffLng = isDetourMatch
-    ? (destination?.lng ?? ride?.destinationLng)
-    : (selectedDropoffStop?.lng ?? rideDropoffStop?.lng ?? ride?.destinationLng);
+  const dropoffStopId = segmentPoints.dropoff.stopId;
+  const dropoffLabel = segmentPoints.dropoff.label;
+  const dropoffLat = segmentPoints.dropoff.lat;
+  const dropoffLng = segmentPoints.dropoff.lng;
 
   // The passenger's own segment on the map — a route_passthrough booking's
   // real pickup/dropoff can sit well inside a much longer driver route
@@ -224,8 +208,8 @@ export default function RideDetailsScreen(): React.JSX.Element {
   // "route" (detourRoutePolyline above) already runs origin->pickup, not
   // the driver's own origin->pickup, so slicing from the driver's origin
   // would silently include a leg the passenger doesn't actually ride.
-  const segmentOriginLat = isDetourMatch ? origin?.lat : (pickupStop?.lat ?? ride?.originLat);
-  const segmentOriginLng = isDetourMatch ? origin?.lng : (pickupStop?.lng ?? ride?.originLng);
+  const segmentOriginLat = pickupStop?.lat ?? segmentPoints.pickup.lat;
+  const segmentOriginLng = pickupStop?.lng ?? segmentPoints.pickup.lng;
   const segmentOrigin =
     segmentOriginLat != null && segmentOriginLng != null
       ? { lat: segmentOriginLat, lng: segmentOriginLng }

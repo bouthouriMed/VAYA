@@ -85,6 +85,17 @@ function toPinData(
   };
 }
 
+/** Where this passenger actually boards — the server-resolved pickup near
+ *  THEIR origin, falling back to the passenger's own searched point. Never
+ *  the driver's own origin (Cité Tahrir for a Menzah 6 search on a Cité
+ *  Tahrir -> La Marsa ride), which is not where this passenger gets in. */
+function passengerPickupCoordinate(candidate: MatchCandidate): { lat: number; lng: number } {
+  return candidate.pickupPoint ?? {
+    lat: candidate.passengerJourney.originLat,
+    lng: candidate.passengerJourney.originLng,
+  };
+}
+
 /** Splits a geocoded label like "Nabeul Centre, Nabeul, Tunisie" into a
  *  broad first segment (for the card's bold "city" line) and the fuller
  *  original label (for the specific "place" line below it) — real search
@@ -135,7 +146,9 @@ function RideResultCard({
   // the two where it was actually wrong.
   const pickupTime = new Date(new Date(candidate.departureAt).getTime() + candidate.pickupEtaSeconds * 1000);
   const time = formatTime(pickupTime, locale);
-  const closestStop = candidate.rankedStops[0];
+  // The server-resolved boarding stop near the passenger's origin (pickup
+  // before dropoff, best walk/detour balance), not merely the closest.
+  const pickupStop = candidate.pickupPoint?.stopId ? candidate.pickupPoint : candidate.rankedStops[0];
   let timeOffsetNote: string | undefined;
   if (searchAt) {
     const offsetMin = Math.round((pickupTime.getTime() - new Date(searchAt).getTime()) / 60_000);
@@ -156,10 +169,12 @@ function RideResultCard({
     timeLabel: time,
     priceLabel: formatCurrency(candidate.contributionPerSeat, locale),
     pickupCityLabel: origin?.label ? splitLocationLabel(origin.label).city : t('search:results.departure'),
-    pickupPlaceLabel: closestStop?.label ?? t('search:results.meetingPoint'),
+    pickupPlaceLabel: pickupStop?.label ?? t('search:results.meetingPoint'),
     pickupWalkLabel: walkSuffixLabel(t, Math.max(1, candidate.pickupWalkMinutes)),
     dropoffCityLabel: dropoffSplit.city,
-    dropoffPlaceLabel: dropoffSplit.place,
+    // The drop-off stop near the passenger's OWN destination when there is
+    // one; the city line above is always the passenger's destination.
+    dropoffPlaceLabel: candidate.dropoffPoint?.stopId ? (candidate.dropoffPoint.label ?? dropoffSplit.place) : dropoffSplit.place,
     dropoffWalkLabel: walkSuffixLabel(t, Math.max(1, candidate.dropoffWalkMinutes)),
     seatsAvailable: candidate.seatsAvailable,
     seatsLabel: t('common:terms.seat', { count: candidate.seatsAvailable }),
@@ -304,7 +319,7 @@ export default function ResultsScreen(): React.JSX.Element {
   }
 
   const mapRegion = useMemo(() => {
-    const points = sorted.map((c) => ({ lat: c.originLat, lng: c.originLng }));
+    const points = sorted.map(passengerPickupCoordinate);
     if (origin) points.push({ lat: origin.lat, lng: origin.lng });
     return regionForPoints(points);
   }, [sorted, origin]);
@@ -359,7 +374,10 @@ export default function ResultsScreen(): React.JSX.Element {
               {sorted.map((candidate) => (
                 <Marker
                   key={candidate.rideId}
-                  coordinate={{ latitude: candidate.originLat, longitude: candidate.originLng }}
+                  coordinate={{
+                    latitude: passengerPickupCoordinate(candidate).lat,
+                    longitude: passengerPickupCoordinate(candidate).lng,
+                  }}
                   onPress={() => selectCandidate(candidate)}
                   zIndex={candidate.rideId === bestMatchId ? 10 : 1}
                 >
