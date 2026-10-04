@@ -62,7 +62,8 @@ export async function getOverviewMetrics(db: Database, windowDays: number) {
       booked: sql<number>`coalesce(sum(${rides.seatsTotal} - ${rides.seatsAvailable}), 0)::int`,
     })
     .from(rides)
-    .where(inArray(rides.status, ['published', 'full', 'in_progress', 'completed']));
+    // `expired` rides were genuinely offered (just never booked or driven).
+    .where(inArray(rides.status, ['published', 'full', 'in_progress', 'completed', 'expired']));
 
   const [searchSubmitted, searchResultsShown, searchNoResults, searchResultSelected] =
     await Promise.all([

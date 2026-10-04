@@ -301,6 +301,8 @@
       "started": "Started",
       "startedWithEta": "Started · ETA {{time}}",
       "finished": "Finished",
+      "expired": "Expired · never started",
+      "departurePassed": "Departure time passed",
       "intermediateStopsNote_one": "{{count}} stop along the way",
       "intermediateStopsNote_other": "{{count}} stops along the way",
       "journeyStartCta": "Start the trip",

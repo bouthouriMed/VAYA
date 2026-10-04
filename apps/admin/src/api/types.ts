@@ -15,7 +15,7 @@ export type VerificationDeclineReason =
   | 'invalid_document'
   | 'additional_info_required'
   | 'other';
-export type RideStatus = 'draft' | 'published' | 'full' | 'in_progress' | 'completed' | 'cancelled';
+export type RideStatus = 'draft' | 'published' | 'full' | 'in_progress' | 'completed' | 'cancelled' | 'expired';
 export type BookingStatus =
   | 'pending'
   | 'accepted'

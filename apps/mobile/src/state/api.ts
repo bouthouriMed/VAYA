@@ -376,7 +376,7 @@ export interface Ride {
   seatsTotal: number;
   seatsAvailable: number;
   contributionPerSeat: number;
-  status: 'draft' | 'published' | 'full' | 'in_progress' | 'completed' | 'cancelled';
+  status: 'draft' | 'published' | 'full' | 'in_progress' | 'completed' | 'cancelled' | 'expired';
   routePolyline: string | null;
   estimatedDurationSec: number | null;
   /** Route-selection step: which kind of route alternative the driver

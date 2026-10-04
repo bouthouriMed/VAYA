@@ -301,6 +301,8 @@
       "started": "Trajet en cours",
       "startedWithEta": "En cours · Arrivée {{time}}",
       "finished": "Terminé",
+      "expired": "Expiré · jamais démarré",
+      "departurePassed": "Heure de départ passée",
       "intermediateStopsNote_one": "{{count}} arrêt en cours de route",
       "intermediateStopsNote_other": "{{count}} arrêts en cours de route",
       "journeyStartCta": "Démarrer le trajet",

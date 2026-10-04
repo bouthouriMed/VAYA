@@ -29,8 +29,9 @@ const PROACTIVE_MATCH_COOLDOWN_MS = 12 * 60 * 60 * 1000;
 
 // history rows we actually consider "happened" for detection purposes —
 // excludes draft/cancelled rides and pending/declined/cancelled bookings,
-// which were never real trips.
-const DRIVER_HISTORY_RIDE_STATUSES = ['published', 'full', 'in_progress', 'completed'] as const;
+// which were never real trips. `expired` stays in: it's a published ride
+// nobody booked — still a real signal the driver drives that corridor.
+const DRIVER_HISTORY_RIDE_STATUSES = ['published', 'full', 'in_progress', 'completed', 'expired'] as const;
 const RIDER_HISTORY_BOOKING_STATUSES = ['accepted', 'completed'] as const;
 
 export async function listMyRecurringPatterns(db: Database, userId: string) {

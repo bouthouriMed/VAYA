@@ -113,11 +113,16 @@ describe('computeTripPhase', () => {
     expect(computeTripPhase(ride, NOW)).toBe('upcoming');
   });
 
-  it('is "in_progress" once the scheduled departure has passed, for a still-active ride', () => {
+  it('is "departed" — never "in_progress" — once departure has passed on a ride nobody started', () => {
     for (const status of ['published', 'full', 'draft'] as const) {
       const ride = makeRide({ status, departureAt: new Date(2026, 7, 20, 9, 0).toISOString() });
-      expect(computeTripPhase(ride, NOW)).toBe('in_progress');
+      expect(computeTripPhase(ride, NOW)).toBe('departed');
     }
+  });
+
+  it('is "expired" for a ride the server closed as never driven', () => {
+    const ride = makeRide({ status: 'expired', departureAt: new Date(2026, 7, 18, 9, 0).toISOString() });
+    expect(computeTripPhase(ride, NOW)).toBe('expired');
   });
 
   it('is "completed" once the ride is marked completed, even if departure is technically future', () => {

@@ -181,7 +181,8 @@
     "full": "Complet",
     "in_progress": "En cours",
     "completed": "Terminé",
-    "cancelled": "Annulé"
+    "cancelled": "Annulé",
+    "expired": "Expiré"
   },
   "pickupTitle": "Rendez-vous",
   "pickupPointLabel": "Point de prise en charge",
