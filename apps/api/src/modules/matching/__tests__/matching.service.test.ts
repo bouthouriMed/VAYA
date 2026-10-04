@@ -238,6 +238,7 @@ function makeCandidate(overrides: Partial<MatchCandidate> & { rideId: string; sc
     dropoffWalkMeters: 160,
     dropoffWalkMinutes: 2,
     withinWalkingDistance: true,
+    nearRequestedTime: true,
     routeOverlapPercent: 50,
     reasons: [],
     clusterLabel: 'Maintenant',
@@ -252,6 +253,8 @@ function makeCandidate(overrides: Partial<MatchCandidate> & { rideId: string; sc
     dropoffViable: true,
     matchType: 'endpoint',
     detour: null,
+    pickupEtaSeconds: 0,
+    dropoffEtaSeconds: 0,
     ...overrides,
   };
 }
@@ -270,6 +273,58 @@ describe('computeMatchBand', () => {
 describe('rankMatchCandidates', () => {
   const when = new Date('2026-09-01T08:00:00Z');
   const input = { originLat: 36.8, originLng: 10.18, destinationLat: 36.85, destinationLng: 10.2, when };
+
+  it('ranks rides around the requested time first, then walkable ones, then the rest of the day', () => {
+    const atTimeWalkable = makeCandidate({ rideId: 'at-time-walkable', score: 0.5 });
+    const atTimeFurther = makeCandidate({
+      rideId: 'at-time-further',
+      score: 0.9,
+      withinWalkingDistance: false,
+    });
+    const laterWalkable = makeCandidate({
+      rideId: 'later-walkable',
+      score: 0.95,
+      nearRequestedTime: false,
+      departureAt: new Date(when.getTime() + 5 * 3_600_000),
+    });
+    const morningFurther = makeCandidate({
+      rideId: 'morning-further',
+      score: 0.95,
+      nearRequestedTime: false,
+      withinWalkingDistance: false,
+      departureAt: new Date(when.getTime() - 6 * 3_600_000),
+    });
+    const { ranked, standoutRideId } = rankMatchCandidates(
+      [morningFurther, laterWalkable, atTimeFurther, atTimeWalkable],
+      input,
+    );
+    expect(ranked.map((c) => c.rideId)).toEqual([
+      'at-time-walkable',
+      'at-time-further',
+      'later-walkable',
+      'morning-further',
+    ]);
+    expect(standoutRideId).toBe('at-time-walkable');
+  });
+
+  it('orders the rest of the day by closeness of the pickup to the requested time', () => {
+    const in3h = makeCandidate({
+      rideId: 'in-3h',
+      score: 0.6,
+      nearRequestedTime: false,
+      departureAt: new Date(when.getTime() + 3 * 3_600_000),
+    });
+    const ago2h = makeCandidate({
+      rideId: 'ago-2h',
+      score: 0.6,
+      nearRequestedTime: false,
+      departureAt: new Date(when.getTime() - 2 * 3_600_000),
+    });
+    expect(rankMatchCandidates([in3h, ago2h], input).ranked.map((c) => c.rideId)).toEqual([
+      'ago-2h',
+      'in-3h',
+    ]);
+  });
 
   it('always ranks rides within walking distance first, even above a higher-scored ride further away', () => {
     const farButGreat = makeCandidate({ rideId: 'far', score: 0.95, withinWalkingDistance: false });

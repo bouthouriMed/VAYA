@@ -109,7 +109,7 @@ Before this, a passenger could see results with 30-60 minute walks: the endpoint
 | commute / urban (≤ 45 km) | a 15-minute walk (~920 m straight line, ~1.2 km on foot) | up to 3 km straight line | beyond 3 km |
 | intercity (> 45 km) | 10 km straight line | up to 20 km | beyond 20 km |
 
-Any access over a 20-minute walk is shown as "X km away", never as a walking time. Each ride's boarding/alighting pair is resolved within walking distance first and only falls back to the extended reach when no walkable pair exists (`resolvePassengerSegmentWithinReach`); the result carries `withinWalkingDistance`. `rankMatchCandidates` orders by `withinWalkingDistance` first, then quality band, then departure-time proximity (closest-departure: walkable first, then time) — so a ride a few km away is offered to riders willing to go further, but never above one they can walk to. When no result is walkable, the banner says so ("Aucun trajet à distance de marche…") and the app shows a "Un peu plus loin de vous" divider before the first ride further away. The 3 km / 20 km reach is a first-cut value (`MAX_EXTENDED_*_ACCESS_M`), to tune against real booking data.
+Any access over a 20-minute walk is shown as "X km away", never as a walking time. Each ride's boarding/alighting pair is resolved within walking distance first and only falls back to the extended reach when no walkable pair exists (`resolvePassengerSegmentWithinReach`); the result carries `withinWalkingDistance`. `rankMatchCandidates` orders by the requested time first (see "Search time window" below), then `withinWalkingDistance`, then quality band, then pickup-time proximity (closest-departure: walkable first, then time) — so among rides around the requested time, a ride a few km away is offered to riders willing to go further, but never above one they can walk to. When no result is walkable, the banner says so ("Aucun trajet à distance de marche…") and the app shows a "Un peu plus loin de vous" divider before the first ride further away. The 3 km / 20 km reach is a first-cut value (`MAX_EXTENDED_*_ACCESS_M`), to tune against real booking data.
 
 - **Honest walk times:** `estimateWalk` multiplies the straight line by `STREET_DISTANCE_FACTOR` (1.3). `walkMeters`/`walkMinutes` on `RankedStop`, `PassengerPoint` and `MatchCandidate` (`pickupWalkMeters`, `dropoffWalkMeters`) and `bookings.pickupWalkMeters`/`dropoffWalkMeters` are this street estimate. Scores still use the straight line, so ranking is unchanged.
 - **No wide endpoint fallback:** the ride's own origin/destination are offered only within the same reach. The wide radius remains a coarse database pre-filter only.
@@ -117,6 +117,19 @@ Any access over a 20-minute walk is shown as "X km away", never as a walking tim
 - **Booking agrees with search:** `resolveStopWalkMeters` (`bookings.service.ts`) enforces the extended reach, keyed on the ride's length (never stricter than the passenger's own, since their journey is a sub-segment of the ride).
 - **One display rule:** the app shows every walk through `apps/mobile/src/features/search/passengerAccess.ts` (`describePassengerAccess` from `@vaya/domain`): whole minutes up to 20, a distance beyond. It never computes its own walk estimate except for the live device-to-pickup distance on the booking screen, which uses the same estimate.
 - If no stop on a matched ride is close enough, that's a legitimate "doesn't reach you conveniently" result — surface it honestly (`docs/ux/passenger-journey.md` §4), don't force a bad match.
+
+### Search time window (2026-10-04)
+
+A search for 15:00 used to look only at rides departing 11:00-19:00. It now looks at every ride that **Tunis calendar day** (`searchTimeWindow` in `packages/domain/src/matching/search-time.ts`, `searchWindowFor` in `matching.service.ts`), widened to at least ±4h so a 23:30 search still sees a 00:45 ride, and never including rides that left more than 5 minutes ago.
+
+The requested time still comes first. Each result carries `nearRequestedTime` (the passenger's own pickup — departure plus `pickupEtaSeconds` — within 90 minutes of the requested time), and results are ordered:
+
+1. around the requested time;
+2. within walking distance;
+3. match quality band;
+4. closeness of the pickup to the requested time (earlier or later).
+
+The app shows an "Autres départs ce jour-là" divider before the rest of the day and says when a ride leaves *before* the requested time. When nothing is around the requested time, the banner says "Aucun trajet autour de l'heure demandée. Voici les autres départs de la journée." When nothing departs that day at all, the existing closest-departure fallback (next 14 days) and "Me notifier" still apply. The recurring-pattern proactive check keeps its tight ±90-minute window. The in-progress tier keeps its own ±4h window (those rides have already departed).
 
 ### Implementation note (Phase 5): the "zero viable stops" decision
 

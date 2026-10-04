@@ -22,7 +22,9 @@ import {
   getMatchingThresholds,
   getPassengerAccessCaps,
   getPassengerExtendedReachCaps,
+  isNearRequestedTime,
   isWithinWalkingDistance,
+  searchTimeWindow,
   straightLineFromWalkMeters,
   rankStopsByJointOptimum,
   wouldExceedCapacity,
@@ -33,6 +35,7 @@ import {
   type TripProfileType,
 } from '@vaya/domain';
 import type { MatchingSearchInput, NotifyMeInput } from '@vaya/validation';
+import { TUNISIA_TIMEZONE } from '@vaya/config';
 
 type Database = ReturnType<typeof getDatabase>;
 
@@ -166,6 +169,28 @@ function passengerJourneyOf(input: MatchingSearchInput): MatchCandidate['passeng
     destinationLat: input.destinationLat,
     destinationLng: input.destinationLng,
   };
+}
+
+/**
+ * Departure window for a search: the whole Tunis day of the requested
+ * time (at least ±4h around it), never rides that already left. A 15:00
+ * search sees the 08:00 and 20:00 rides too; isNearRequestedTime then puts
+ * the ones around 15:00 first (rankMatchCandidates).
+ */
+function searchWindowFor(input: MatchingSearchInput): { windowStart: Date; windowEnd: Date } {
+  const { start, end } = searchTimeWindow({ requestedAt: input.when, now: new Date(), timeZone: TUNISIA_TIMEZONE });
+  return { windowStart: start, windowEnd: end };
+}
+
+/** Whether this passenger's own pickup (not the driver's departure from
+ *  their origin) is around the requested time. */
+function nearRequestedTimeOf(departureAt: Date, pickupEtaSeconds: number, input: MatchingSearchInput): boolean {
+  return isNearRequestedTime(new Date(departureAt.getTime() + pickupEtaSeconds * 1000), input.when);
+}
+
+/** When this passenger is actually picked up. */
+function pickupAtOf(candidate: MatchCandidate): number {
+  return candidate.departureAt.getTime() + candidate.pickupEtaSeconds * 1000;
 }
 
 type ReachCaps = { pickupM: number; dropoffM: number };
@@ -365,6 +390,10 @@ export interface MatchCandidate {
    *  Results are always ordered walkable-first; a ride a bit further away
    *  is still shown, after them, as a distance rather than a walk. */
   withinWalkingDistance: boolean;
+  /** True when THIS passenger's pickup is within 90 minutes of the time
+   *  they asked for. A search shows every ride that day; these come first,
+   *  the rest of the day after them. */
+  nearRequestedTime: boolean;
   /** 'route_passthrough' for a ride found because its route runs through
    *  the rider's corridor (the driver's own origin/destination are
    *  elsewhere) rather than because its own endpoints matched — lets the
@@ -1045,6 +1074,11 @@ function buildEndpointCandidate(
     pickupViable: true,
     dropoffViable: true,
     withinWalkingDistance,
+    nearRequestedTime: nearRequestedTimeOf(
+      ride.departureAt,
+      (ride.estimatedDurationSec ?? 0) * segment.pickupRouteFraction,
+      input,
+    ),
     matchType: 'endpoint',
     detour: null,
     // The driver's ETA to the passenger's RESOLVED points: 0 / full
@@ -1068,10 +1102,9 @@ async function scoreCandidates(
   input: MatchingSearchInput,
   pickupRadiusM: number,
   dropoffRadiusM: number,
-  timeWindowMin: number,
+  window: { windowStart: Date; windowEnd: Date } = searchWindowFor(input),
 ): Promise<MatchCandidate[]> {
-  const windowStart = new Date(input.when.getTime() - timeWindowMin * 60_000);
-  const windowEnd = new Date(input.when.getTime() + timeWindowMin * 60_000);
+  const { windowStart, windowEnd } = window;
 
   const origin = { lat: input.originLat, lng: input.originLng };
   const destination = { lat: input.destinationLat, lng: input.destinationLng };
@@ -1148,10 +1181,8 @@ async function scorePassThroughCandidates(
   db: Database,
   input: MatchingSearchInput,
   thresholds: MatchingThresholds,
-  timeWindowMin: number,
 ): Promise<MatchCandidate[]> {
-  const windowStart = new Date(input.when.getTime() - timeWindowMin * 60_000);
-  const windowEnd = new Date(input.when.getTime() + timeWindowMin * 60_000);
+  const { windowStart, windowEnd } = searchWindowFor(input);
   // The PostGIS pre-filter and the qualification test below both use the
   // WIDE walkability radius, not the tighter corridorWidthM — see the real
   // bug this fixed: a passenger searching "Zaragoza" gets a city-center
@@ -1293,6 +1324,11 @@ async function scorePassThroughCandidates(
       pickupViable: true,
       dropoffViable: true,
       withinWalkingDistance,
+      nearRequestedTime: nearRequestedTimeOf(
+        ride.departureAt,
+        (ride.estimatedDurationSec ?? 0) * segment.pickupRouteFraction,
+        input,
+      ),
       matchType: 'route_passthrough',
       detour: null,
       // The resolved stop sits partway through a real, already-computed
@@ -1490,6 +1526,11 @@ async function scoreInProgressCandidates(
       pickupViable: true,
       dropoffViable: true,
       withinWalkingDistance,
+      nearRequestedTime: nearRequestedTimeOf(
+        ride.departureAt,
+        (ride.estimatedDurationSec ?? 0) * segment.pickupRouteFraction,
+        input,
+      ),
       matchType: 'route_passthrough',
       detour: null,
       pickupEtaSeconds: Math.round((ride.estimatedDurationSec ?? 0) * segment.pickupRouteFraction),
@@ -1536,12 +1577,10 @@ async function scoreInProgressCandidates(
 async function scoreDetourCandidates(
   db: Database,
   input: MatchingSearchInput,
-  timeWindowMin: number,
   thresholds: MatchingThresholds,
   maxDetourRatio: number,
 ): Promise<MatchCandidate[]> {
-  const windowStart = new Date(input.when.getTime() - timeWindowMin * 60_000);
-  const windowEnd = new Date(input.when.getTime() + timeWindowMin * 60_000);
+  const { windowStart, windowEnd } = searchWindowFor(input);
 
   const origin = { lat: input.originLat, lng: input.originLng };
   const destination = { lat: input.destinationLat, lng: input.destinationLng };
@@ -1722,6 +1761,7 @@ async function scoreDetourCandidates(
       dropoffViable: false,
       // The driver comes to the passenger's own points: no walk at all.
       withinWalkingDistance: true,
+      nearRequestedTime: nearRequestedTimeOf(ride.departureAt, pickupEtaSeconds, input),
       matchType: 'detour',
       detour: { extraDurationSeconds, extraDistanceMeters, detourRatio },
       pickupEtaSeconds,
@@ -1889,24 +1929,27 @@ export function rankMatchCandidates(
   candidates: MatchCandidate[],
   input: MatchingSearchInput,
 ): { ranked: MatchCandidate[]; standoutRideId: string | null } {
+  // Order, most important first:
+  //  1. around the requested time (pickup within 90 min) — the passenger
+  //     chose a time; the rest of the day is the fallback;
+  //  2. within walking distance — a ride they can walk to beats one they'd
+  //     need a lift to reach;
+  //  3. match quality band;
+  //  4. how close the pickup is to the requested time.
+  const groupOf = (c: MatchCandidate) => `${Number(!c.nearRequestedTime)}${Number(!c.withinWalkingDistance)}`;
   const ranked = [...candidates].sort((a, b) => {
-    // Walkable rides always come first: a ride the passenger can walk to
-    // beats one they'd need a lift to reach, whatever else differs.
-    const reachDiff = Number(b.withinWalkingDistance) - Number(a.withinWalkingDistance);
-    if (reachDiff !== 0) return reachDiff;
+    const groupDiff = groupOf(a).localeCompare(groupOf(b));
+    if (groupDiff !== 0) return groupDiff;
     const bandDiff = BAND_ORDER[computeMatchBand(a.score)] - BAND_ORDER[computeMatchBand(b.score)];
     if (bandDiff !== 0) return bandDiff;
-    return (
-      Math.abs(a.departureAt.getTime() - input.when.getTime()) -
-      Math.abs(b.departureAt.getTime() - input.when.getTime())
-    );
+    return Math.abs(pickupAtOf(a) - input.when.getTime()) - Math.abs(pickupAtOf(b) - input.when.getTime());
   });
   if (ranked.length === 0) return { ranked, standoutRideId: null };
 
   const top = ranked[0]!;
   const topBand = computeMatchBand(top.score);
   const topBandCount = ranked.filter(
-    (c) => c.withinWalkingDistance === top.withinWalkingDistance && computeMatchBand(c.score) === topBand,
+    (c) => groupOf(c) === groupOf(top) && computeMatchBand(c.score) === topBand,
   ).length;
   return { ranked, standoutRideId: topBandCount === 1 ? ranked[0]!.rideId : null };
 }
@@ -1966,6 +2009,9 @@ function classifyOverallTier(
   return 'route_passthrough';
 }
 
+const OTHER_TIMES_MESSAGE =
+  "Aucun trajet autour de l'heure demandée. Voici les autres départs de la journée.";
+
 const NOT_WALKABLE_MESSAGE =
   "Aucun trajet à distance de marche. Voici les plus proches, du plus près au plus loin.";
 
@@ -2005,14 +2051,10 @@ export async function searchRides(db: Database, input: MatchingSearchInput): Pro
   const thresholds = deriveMatchingThresholds(input);
 
   const [endpointCandidates, passThroughCandidates, inProgressCandidates] = await Promise.all([
-    scoreCandidates(
-      db,
-      input,
-      thresholds.widePickupRadiusM,
-      thresholds.wideDropoffRadiusM,
-      WIDE_TIME_WINDOW_MIN,
-    ),
-    scorePassThroughCandidates(db, input, thresholds, WIDE_TIME_WINDOW_MIN),
+    // Every ride that day (searchWindowFor) — the ones around the
+    // requested time are ranked first.
+    scoreCandidates(db, input, thresholds.widePickupRadiusM, thresholds.wideDropoffRadiusM),
+    scorePassThroughCandidates(db, input, thresholds),
     // M-091/EDGE-050: a trip already in progress is matchable against the
     // driver's current position and remaining route — merged in alongside
     // the other two retrieval mechanisms rather than gated as a separate
@@ -2025,12 +2067,19 @@ export async function searchRides(db: Database, input: MatchingSearchInput): Pro
   if (merged.length > 0) {
     const { ranked, standoutRideId } = rankMatchCandidates(merged, input);
     const tier = classifyOverallTier(ranked, input, thresholds);
+    const noneAtRequestedTime = !ranked.some((c) => c.nearRequestedTime);
     const noneWalkable = !ranked.some((c) => c.withinWalkingDistance);
     return {
       tier,
       candidates: ranked,
       standoutRideId,
-      message: noneWalkable ? NOT_WALKABLE_MESSAGE : tier === 'exact' ? null : TIER_MESSAGES[tier],
+      message: noneAtRequestedTime
+        ? OTHER_TIMES_MESSAGE
+        : noneWalkable
+          ? NOT_WALKABLE_MESSAGE
+          : tier === 'exact'
+            ? null
+            : TIER_MESSAGES[tier],
     };
   }
 
@@ -2040,13 +2089,7 @@ export async function searchRides(db: Database, input: MatchingSearchInput): Pro
   // for a config read the common case never needs" discipline the rest of
   // this cascade already follows for detour's own routing calls.
   const operationalConfig = await getActiveOperationalConfig(db);
-  const detour = await scoreDetourCandidates(
-    db,
-    input,
-    WIDE_TIME_WINDOW_MIN,
-    thresholds,
-    operationalConfig.maxDetourRatio,
-  );
+  const detour = await scoreDetourCandidates(db, input, thresholds, operationalConfig.maxDetourRatio);
   if (detour.length > 0) {
     const { ranked, standoutRideId } = rankMatchCandidates(detour, input);
     return { tier: 'detour_match', candidates: ranked, standoutRideId, message: TIER_MESSAGES.detour_match };
@@ -2090,7 +2133,10 @@ export async function findBestMatchForRecurringPattern(
     { originLat: pattern.originLat, originLng: pattern.originLng, destinationLat: pattern.destinationLat, destinationLng: pattern.destinationLng, when },
     TIGHT_PICKUP_RADIUS_M,
     TIGHT_DROPOFF_RADIUS_M,
-    TIGHT_TIME_WINDOW_MIN,
+    {
+      windowStart: new Date(when.getTime() - TIGHT_TIME_WINDOW_MIN * 60_000),
+      windowEnd: new Date(when.getTime() + TIGHT_TIME_WINDOW_MIN * 60_000),
+    },
   );
   return candidates.find((c) => c.pickupViable && c.seatsAvailable > 0) ?? null;
 }

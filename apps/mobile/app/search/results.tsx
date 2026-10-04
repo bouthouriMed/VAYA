@@ -61,6 +61,21 @@ function departureBadgeLabel(date: Date, locale: SupportedLocale, t: TFn): strin
   return formatDateTime(date, locale);
 }
 
+/** The group heading to show between two consecutive (server-ordered)
+ *  results, if the second one starts a new group. */
+function resultDividerKey(previous: MatchCandidate | undefined, current: MatchCandidate): string | null {
+  if (!previous) return null;
+  if (previous.nearRequestedTime && !current.nearRequestedTime) return 'search:results.otherTimesThatDay';
+  if (
+    previous.nearRequestedTime === current.nearRequestedTime &&
+    previous.withinWalkingDistance &&
+    !current.withinWalkingDistance
+  ) {
+    return 'search:results.furtherAway';
+  }
+  return null;
+}
+
 function toPinData(
   candidate: MatchCandidate,
   t: TFn,
@@ -146,9 +161,11 @@ function RideResultCard({
   let timeOffsetNote: string | undefined;
   if (searchAt) {
     const offsetMin = Math.round((pickupTime.getTime() - new Date(searchAt).getTime()) / 60_000);
-    if (offsetMin > 2) {
-      timeOffsetNote = t('search:results.timeOffsetNote', {
-        offset: formatDurationLabel(t as unknown as TFunction, offsetMin),
+    // The search shows every ride that day, so a ride can leave before the
+    // requested time as well as after it — say which.
+    if (Math.abs(offsetMin) > 2) {
+      timeOffsetNote = t(offsetMin > 0 ? 'search:results.timeOffsetNote' : 'search:results.timeOffsetNoteEarlier', {
+        offset: formatDurationLabel(t as unknown as TFunction, Math.abs(offsetMin)),
         access: accessLabel(t, candidate.pickupWalkMeters, locale),
       });
     }
@@ -431,17 +448,17 @@ export default function ResultsScreen(): React.JSX.Element {
             <View style={styles.cardsCol}>
               {sorted.map((candidate, index) => (
                 <Fragment key={candidate.rideId}>
-                  {/* The server orders walkable rides first; mark where the
-                      ones a bit further away begin, rather than letting a
-                      "à 2,4 km" card blend in with walkable ones. */}
-                  {index > 0 && !candidate.withinWalkingDistance && sorted[index - 1]!.withinWalkingDistance ? (
+                  {/* The server orders: around the requested time first, then
+                      the rest of the day; inside each, walkable rides before
+                      ones a bit further away. Mark where each group starts. */}
+                  {resultDividerKey(sorted[index - 1], candidate) ? (
                     <Text
                       variant="caption"
                       color={theme.inkFaint}
                       style={styles.furtherDivider}
                       accessibilityRole="header"
                     >
-                      {t('search:results.furtherAway')}
+                      {t(resultDividerKey(sorted[index - 1], candidate)!)}
                     </Text>
                   ) : null}
                   <RideResultCard

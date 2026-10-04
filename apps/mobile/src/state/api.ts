@@ -166,6 +166,9 @@ export interface MatchCandidate {
   /** Both ends within walking distance. The server always lists these
    *  first; rides a bit further away follow, shown as a distance. */
   withinWalkingDistance: boolean;
+  /** Pickup within 90 min of the searched time. A search returns every ride
+   *  that day; the server lists these first, the rest of the day after. */
+  nearRequestedTime: boolean;
   routeOverlapPercent: number;
   score: number;
   reasons: string[];

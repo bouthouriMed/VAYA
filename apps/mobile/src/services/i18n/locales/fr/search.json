@@ -18,7 +18,9 @@
     "meetingPoint": "Point de rendez-vous",
     "bestMatch": "Meilleure correspondance",
     "timeOffsetNote": "Part {{offset}} après l'heure demandée · point de rendez-vous : {{access}}.",
-    "furtherAway": "Un peu plus loin de vous"
+    "furtherAway": "Un peu plus loin de vous",
+    "otherTimesThatDay": "Autres départs ce jour-là",
+    "timeOffsetNoteEarlier": "Part {{offset}} avant l'heure demandée · point de rendez-vous : {{access}}."
   },
   "composer": {
     "myLocation": "Ma position actuelle",

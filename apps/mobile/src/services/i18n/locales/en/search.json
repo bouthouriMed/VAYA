@@ -18,7 +18,9 @@
     "meetingPoint": "Meeting point",
     "bestMatch": "Best match",
     "timeOffsetNote": "Leaves {{offset}} after your requested time · meeting point: {{access}}.",
-    "furtherAway": "A bit further from you"
+    "furtherAway": "A bit further from you",
+    "otherTimesThatDay": "Other departures that day",
+    "timeOffsetNoteEarlier": "Leaves {{offset}} before your requested time · meeting point: {{access}}."
   },
   "composer": {
     "myLocation": "My current location",

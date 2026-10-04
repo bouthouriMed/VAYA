@@ -41,7 +41,20 @@ describe('matching.service — tier cascade, real Postgres (+ real OSRM for rout
   // Search 3 days out — outside Ride A's exact/wide window entirely, so the
   // closest_departure fixture (also in Area A) can't be shadowed by it.
   const closestDepartureSearchWhen = new Date(now.getTime() + 3 * 24 * 3_600_000);
-  const closestDepartureRideWhen = new Date(closestDepartureSearchWhen.getTime() + 10 * 3_600_000);
+  // 30h later: always a different day from the search, so the search's
+  // own whole-day window can't find it and closest_departure must.
+  const closestDepartureRideWhen = new Date(closestDepartureSearchWhen.getTime() + 30 * 3_600_000);
+
+  // "Area C" (isolated, inland south): a search for 15:00 Tunis time three
+  // days out, with a walkable ride at 15:30 and another at 07:00 that day.
+  const areaCDay = new Date(now.getTime() + 3 * 24 * 3_600_000);
+  const tunisAt = (hour: number, minute = 0) =>
+    new Date(Date.UTC(areaCDay.getUTCFullYear(), areaCDay.getUTCMonth(), areaCDay.getUTCDate(), hour - 1, minute));
+  const areaCSearchWhen = tunisAt(15);
+  const areaCOrigin = { lat: 31.0, lng: 9.5 };
+  const areaCDestination = { lat: 31.2, lng: 9.7 };
+  let areaCAtTimeRideId: string;
+  let areaCMorningRideId: string;
 
   const areaAOrigin = { lat: 36.75, lng: 10.2 };
   const areaADestination = { lat: 36.78, lng: 10.23 };
@@ -182,6 +195,26 @@ describe('matching.service — tier cascade, real Postgres (+ real OSRM for rout
       departureAt: new Date(areaAWhen.getTime() + 3 * 3_600_000),
     });
 
+    // Area C — a 15:30 ride and a 07:00 ride, same day, same endpoints.
+    areaCAtTimeRideId = await insertRide({
+      originLabel: 'Area C Origin',
+      originLat: areaCOrigin.lat,
+      originLng: areaCOrigin.lng,
+      destinationLabel: 'Area C Destination',
+      destinationLat: areaCDestination.lat,
+      destinationLng: areaCDestination.lng,
+      departureAt: tunisAt(15, 30),
+    });
+    areaCMorningRideId = await insertRide({
+      originLabel: 'Area C Origin (morning)',
+      originLat: areaCOrigin.lat,
+      originLng: areaCOrigin.lng,
+      destinationLabel: 'Area C Destination (morning)',
+      destinationLat: areaCDestination.lat,
+      destinationLng: areaCDestination.lng,
+      departureAt: tunisAt(7),
+    });
+
     // Ride B-mid — right time, ~2km away: a bit further than a walk.
     areaBMidRideId = await insertRide({
       originLabel: 'Area B Mid Ride Origin',
@@ -315,7 +348,29 @@ describe('matching.service — tier cascade, real Postgres (+ real OSRM for rout
     expect(result.candidates.length).toBeGreaterThan(0);
   });
 
-  it('shows a ride a bit further away after every ride within walking distance, and nothing beyond reach', async () => {
+  it('shows every ride that day, the ones around the requested time first', async () => {
+    const search = { originLat: areaCOrigin.lat, originLng: areaCOrigin.lng, destinationLat: areaCDestination.lat, destinationLng: areaCDestination.lng };
+    const result = await searchRides(db, { ...search, when: areaCSearchWhen });
+    const ids = result.candidates.map((c) => c.rideId);
+    // The 07:00 ride is 8h from a 15:00 search — still shown, but after 15:30.
+    expect(ids).toEqual([areaCAtTimeRideId, areaCMorningRideId]);
+    expect(result.candidates[0]!.nearRequestedTime).toBe(true);
+    expect(result.candidates[1]!.nearRequestedTime).toBe(false);
+    expect(result.standoutRideId).not.toBe(areaCMorningRideId);
+
+    // Searching 07:30 instead flips the order.
+    const morning = await searchRides(db, { ...search, when: tunisAt(7, 30) });
+    expect(morning.candidates.map((c) => c.rideId)).toEqual([areaCMorningRideId, areaCAtTimeRideId]);
+
+    // Searching 21:00: nothing around that time — both rides that day, and
+    // the banner says so.
+    const evening = await searchRides(db, { ...search, when: tunisAt(21) });
+    expect(evening.candidates.map((c) => c.rideId)).toEqual([areaCAtTimeRideId, areaCMorningRideId]);
+    expect(evening.candidates.every((c) => !c.nearRequestedTime)).toBe(true);
+    expect(evening.message).toMatch(/autres départs de la journée/);
+  });
+
+  it('shows a ride a bit further away, and nothing beyond reach; around the requested time comes before walkability', async () => {
     const result = await searchRides(db, {
       originLat: areaBRiderOrigin.lat,
       originLng: areaBRiderOrigin.lng,
@@ -327,14 +382,14 @@ describe('matching.service — tier cascade, real Postgres (+ real OSRM for rout
     expect(ids).not.toContain(areaBFarRideId);
     expect(ids).toContain(areaBMidRideId);
     // The ~2km ride leaves at exactly the requested time, the walkable one
-    // 3h later — the walkable one still comes first.
+    // 3h later: the requested time wins, so the ~2km ride comes first.
     const mid = result.candidates.find((c) => c.rideId === areaBMidRideId)!;
     expect(mid.withinWalkingDistance).toBe(false);
+    expect(mid.nearRequestedTime).toBe(true);
     expect(mid.pickupWalkMinutes).toBeGreaterThan(15);
-    const firstFar = result.candidates.findIndex((c) => !c.withinWalkingDistance);
-    const lastWalkable = result.candidates.map((c) => c.withinWalkingDistance).lastIndexOf(true);
-    expect(lastWalkable).toBeGreaterThanOrEqual(0);
-    expect(lastWalkable).toBeLessThan(firstFar);
+    const near = result.candidates.find((c) => c.withinWalkingDistance)!;
+    expect(near.nearRequestedTime).toBe(false);
+    expect(ids.indexOf(areaBMidRideId)).toBeLessThan(ids.indexOf(near.rideId));
     for (const candidate of result.candidates) {
       expect(candidate.pickupViable).toBe(true);
       expect(candidate.dropoffViable).toBe(true);

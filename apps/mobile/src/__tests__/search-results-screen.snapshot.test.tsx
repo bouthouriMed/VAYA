@@ -84,6 +84,7 @@ function candidate(overrides: Partial<MatchCandidate>): MatchCandidate {
     dropoffWalkMeters: 0,
     dropoffWalkMinutes: 0,
     withinWalkingDistance: true,
+    nearRequestedTime: true,
     routeOverlapPercent: 0.8,
     score: 0.9,
     reasons: [],
@@ -295,5 +296,45 @@ describe('search/results.tsx snapshots', () => {
     expect(far).toBeGreaterThan(divider);
     // The far ride is described as a distance, never as a 39-minute walk.
     expect(rendered).toContain('search:walk.distanceAway');
+  });
+
+  it('marks where the other departures that day begin, and says when a ride leaves before the requested time', async () => {
+    vi.resetModules();
+    mockStore();
+    mockApi({
+      matching: {
+        data: {
+          tier: 'wide_corridor',
+          standoutRideId: null,
+          message: null,
+          candidates: [
+            candidate({ rideId: 'ride-now', driverFullName: 'Now Driver', departureAt: '2026-08-21T21:10:00.000Z' }),
+            candidate({
+              rideId: 'ride-morning',
+              driverUserId: 'user-morning',
+              driverFullName: 'Morning Driver',
+              nearRequestedTime: false,
+              departureAt: '2026-08-21T07:00:00.000Z',
+            }),
+          ],
+        },
+      },
+    });
+    const { ResultsScreen, ToastProvider } = await loadScreen();
+    const rendered = JSON.stringify(
+      renderJSON(
+        <ToastProvider>
+          <ResultsScreen />
+        </ToastProvider>,
+      ),
+    );
+    const now = rendered.indexOf('Now Driver');
+    const divider = rendered.indexOf('search:results.otherTimesThatDay');
+    const morning = rendered.indexOf('Morning Driver');
+    expect(now).toBeGreaterThanOrEqual(0);
+    expect(divider).toBeGreaterThan(now);
+    expect(morning).toBeGreaterThan(divider);
+    expect(rendered).toContain('search:results.timeOffsetNoteEarlier');
+    expect(rendered).not.toContain('search:results.furtherAway');
   });
 });

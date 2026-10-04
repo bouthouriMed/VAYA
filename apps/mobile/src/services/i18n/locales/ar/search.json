@@ -18,7 +18,9 @@
     "meetingPoint": "نقطة الالتقاء",
     "bestMatch": "الأنسب لك",
     "timeOffsetNote": "تنطلق بعد {{offset}} من الوقت المطلوب · نقطة الالتقاء: {{access}}.",
-    "furtherAway": "أبعد قليلًا عنك"
+    "furtherAway": "أبعد قليلًا عنك",
+    "otherTimesThatDay": "رحلات أخرى في نفس اليوم",
+    "timeOffsetNoteEarlier": "تنطلق قبل {{offset}} من الوقت المطلوب · نقطة الالتقاء: {{access}}."
   },
   "composer": {
     "myLocation": "موقعي الحالي",
