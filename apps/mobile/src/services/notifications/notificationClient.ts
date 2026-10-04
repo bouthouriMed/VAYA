@@ -1,6 +1,10 @@
-import * as Notifications from 'expo-notifications';
+import type { PermissionStatus } from 'expo-notifications';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
+import { loadNotifications } from './notificationsModule';
+
+// Null in Expo Go on Android, where push is unsupported (notificationsModule.ts).
+const Notifications = loadNotifications();
 
 /**
  * Foreground display policy: suppress the native banner/list/sound/badge
@@ -10,7 +14,7 @@ import { Platform } from 'react-native';
  * that's the real OS push notification, exactly as the phase spec
  * requires.
  */
-Notifications.setNotificationHandler({
+Notifications?.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowBanner: false,
     shouldShowList: false,
@@ -32,7 +36,7 @@ Notifications.setNotificationHandler({
 // the notification body — the category exists so the buttons are visually
 // present and wired for that real handler to slot in later without
 // touching this registration again.
-void Notifications.setNotificationCategoryAsync('RIDE_REQUEST', [
+void Notifications?.setNotificationCategoryAsync('RIDE_REQUEST', [
   {
     identifier: 'ACCEPT_RIDE',
     buttonTitle: 'Accepter',
@@ -55,19 +59,21 @@ export function currentDevicePlatform(): 'ios' | 'android' | null {
  *  no-op on iOS/web. Safe to call unconditionally and repeatedly — channel
  *  creation is idempotent. */
 export async function ensureAndroidNotificationChannel(): Promise<void> {
-  if (Platform.OS !== 'android') return;
+  if (Platform.OS !== 'android' || !Notifications) return;
   await Notifications.setNotificationChannelAsync('default', {
     name: 'default',
     importance: Notifications.AndroidImportance.DEFAULT,
   });
 }
 
-export async function getPushPermissionStatus(): Promise<Notifications.PermissionStatus> {
+export async function getPushPermissionStatus(): Promise<PermissionStatus | 'unavailable'> {
+  if (!Notifications) return 'unavailable';
   const settings = await Notifications.getPermissionsAsync();
   return settings.status;
 }
 
-export async function requestPushPermission(): Promise<Notifications.PermissionStatus> {
+export async function requestPushPermission(): Promise<PermissionStatus | 'unavailable'> {
+  if (!Notifications) return 'unavailable';
   const settings = await Notifications.requestPermissionsAsync();
   return settings.status;
 }
@@ -81,6 +87,7 @@ export async function requestPushPermission(): Promise<Notifications.PermissionS
  * crash, exactly like lib/routing.ts's OSRM-unavailable fallback pattern.
  */
 export async function getExpoPushToken(): Promise<string | null> {
+  if (!Notifications) return null;
   try {
     const projectId = Constants.expoConfig?.extra?.eas?.projectId as string | undefined;
     const token = await Notifications.getExpoPushTokenAsync(

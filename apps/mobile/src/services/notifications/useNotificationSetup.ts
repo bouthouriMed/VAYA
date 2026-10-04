@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
-import * as Notifications from 'expo-notifications';
 import { router } from 'expo-router';
 import { useToast } from '@vaya/design-system';
 import { trackEvent } from '../analytics/analytics';
 import { resolveNotificationDeepLink } from './deepLink';
+import { loadNotifications } from './notificationsModule';
 
 function readNotificationType(data: unknown): string | undefined {
   if (data && typeof data === 'object' && 'type' in data) {
@@ -32,6 +32,10 @@ export function useNotificationSetup(): void {
   const toast = useToast();
 
   useEffect(() => {
+    // Null in Expo Go on Android, where push is unsupported — nothing to listen to.
+    const Notifications = loadNotifications();
+    if (!Notifications) return;
+
     const receivedSubscription = Notifications.addNotificationReceivedListener((notification) => {
       const type = readNotificationType(notification.request.content.data);
       const message =
