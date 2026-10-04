@@ -41,6 +41,9 @@ export async function requestPushPermissionAndRegister(
   await markPromptedForPushPermission();
 
   const status = await requestPushPermission();
+  // Expo Go on Android has no push support at all (notificationsModule.ts)
+  // — not a user decision, so not tracked as a denial.
+  if (status === 'unavailable') return;
   if (status !== 'granted') {
     trackEvent('push_permission_denied');
     return;

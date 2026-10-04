@@ -74,7 +74,20 @@ if (!connection) {
       }
       return processNotificationDispatchJob(db, job as Job<NotificationDispatchJobData>);
     },
-    { connection, concurrency: 5 },
+    {
+      connection,
+      concurrency: 5,
+      // Fewer idle Redis commands. On a request-metered Redis (Upstash) an
+      // idle worker's defaults — a 5s long-poll and a stalled-job sweep
+      // every 30s, around the clock — are a large share of the monthly
+      // quota (a real incident: the plan's 500k limit was exhausted).
+      // Neither delays real work: a newly added job wakes the long-poll
+      // immediately, and repeat/delayed jobs bound the poll by their own
+      // due time. A stalled job (worker died mid-job) is now recovered
+      // within ~5 minutes instead of ~30s, fine for these job types.
+      drainDelay: 60,
+      stalledInterval: 5 * 60_000,
+    },
   );
 
   worker.on('completed', (job) => {

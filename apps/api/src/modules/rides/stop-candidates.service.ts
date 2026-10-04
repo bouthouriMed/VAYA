@@ -3,7 +3,6 @@ import { createHash } from 'node:crypto';
 import type { getDatabase } from '../../lib/database.js';
 import { routeStops, rides } from '../../db/schema/index.js';
 import { cached } from '../../lib/cache.js';
-import { getRedis } from '../../lib/redis.js';
 import { getLogger } from '../../config/logger.js';
 import { haversineDistanceMeters } from '../../lib/geo.js';
 import { nearestRoad, getRouteWithSpeedProfile, type RoutePoint } from '../../lib/routing.js';
@@ -364,10 +363,6 @@ function hashPolyline(polyline: string): string {
 }
 
 const CANDIDATE_CACHE_TTL_SEC = 3600;
-/** How long a ride's "already generated for this exact route" marker is
- *  kept — long-lived since a ride's route rarely changes after creation,
- *  well beyond any single publish session. */
-const RIDE_HASH_TTL_SEC = 30 * 24 * 3600;
 
 async function buildLabel(nearest: { name: string; lat: number; lng: number }): Promise<string> {
   if (nearest.name.trim().length > 0) return nearest.name;
@@ -504,17 +499,16 @@ export async function getDriverOwnedRideOrThrow(db: Database, rideId: string, us
 /**
  * Generates (or returns already-generated) candidate stops for a ride.
  *
- * Idempotency / invalidation (docs/domain/ride-engine.md: "route changes
- * after generation invalidate cached candidates"): the schema in that doc
- * has no `route_stops.source_polyline_hash` column, so this tracks "which
- * route these stops were generated for" as a Redis key
- * (`route-stops:ride-hash:{rideId}` -> polyline hash), a natural extension
- * of the same "cache candidate generation" role `lib/cache.ts` already
- * serves rather than a second mechanism. A call whose stored hash matches
- * the ride's current `routePolyline` is a no-op read; a mismatch (or first
- * call) deletes any stale rows and regenerates. When Redis isn't
- * configured, generation always re-runs — a correctness-safe degradation
- * (stale rows are still replaced, just without the fast path).
+ * Idempotency: a ride's route is fixed at creation (rides.service.ts's
+ * createRide is the only writer of `routePolyline`), so once a ride has
+ * stops they were generated for its one and only route. If any exist they
+ * are returned as-is — never deleted and regenerated. This used to be
+ * decided by a Redis marker (`route-stops:ride-hash:{rideId}`); whenever
+ * that marker was missing (Redis restarted, flushed, expired, or full), the
+ * next call deleted every stop on the ride — the driver's own selections
+ * and custom stops included, unlinking any booking that referenced them
+ * (bookings.pickup_stop_id is ON DELETE SET NULL). The database is the
+ * source of truth for "already generated".
  */
 export async function generateCandidateStopsForRide(
   db: Database,
@@ -531,17 +525,11 @@ export async function generateCandidateStopsForRide(
     polylineDistanceMeters(decodePolyline(ride.routePolyline)),
   ).type;
 
-  const hash = hashPolyline(ride.routePolyline);
-  const redis = getRedis();
-  const hashKey = `route-stops:ride-hash:${rideId}`;
-
   const existing = await db.query.routeStops.findMany({
     where: eq(routeStops.rideId, rideId),
     orderBy: asc(routeStops.sequence),
   });
-
-  const storedHash = redis ? await redis.get(hashKey) : null;
-  if (existing.length > 0 && storedHash === hash) {
+  if (existing.length > 0) {
     return { stops: existing, osrmUnavailable: false, regenerated: false, tripProfileType };
   }
 
@@ -552,13 +540,8 @@ export async function generateCandidateStopsForRide(
   );
 
   if (candidates === null) {
-    // Transient OSRM outage — keep serving whatever was already generated
-    // rather than wiping valid stops because of an unrelated infra blip.
-    return { stops: existing, osrmUnavailable: true, regenerated: false, tripProfileType };
-  }
-
-  if (existing.length > 0) {
-    await db.delete(routeStops).where(eq(routeStops.rideId, rideId));
+    // Transient routing outage — nothing generated yet; a later call retries.
+    return { stops: [], osrmUnavailable: true, regenerated: false, tripProfileType };
   }
 
   let inserted: RouteStopRow[] = [];
@@ -569,7 +552,6 @@ export async function generateCandidateStopsForRide(
       .returning();
   }
 
-  if (redis) await redis.set(hashKey, hash, 'EX', RIDE_HASH_TTL_SEC);
 
   return { stops: inserted, osrmUnavailable: false, regenerated: true, tripProfileType };
 }

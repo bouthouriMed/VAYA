@@ -13,6 +13,10 @@ export function getRedis(): Redis | null {
     _redis = new Redis(env.REDIS_URL, {
       maxRetriesPerRequest: 3,
       lazyConnect: true,
+      // This client only serves the best-effort cache (lib/cache.ts): an
+      // unreachable Redis must turn into a fast cache miss, not a request
+      // left waiting on reconnect retries.
+      commandTimeout: 1500,
     });
     _redis.on('error', (err) => {
       getLogger().error({ err }, 'Redis connection error');

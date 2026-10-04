@@ -12,6 +12,7 @@ const rankedStopSchema = z.object({
   label: z.string(),
   lat: z.number(),
   lng: z.number(),
+  walkMeters: z.number(),
   walkMinutes: z.number(),
   sequence: z.number().nullable(),
 });
@@ -23,6 +24,7 @@ const passengerPointSchema = z.object({
   label: z.string().nullable(),
   lat: z.number(),
   lng: z.number(),
+  walkMeters: z.number(),
   walkMinutes: z.number(),
 });
 
@@ -43,8 +45,12 @@ const matchCandidateSchema = z.object({
   departureAt: z.date(),
   seatsAvailable: z.number(),
   contributionPerSeat: z.number(),
+  pickupWalkMeters: z.number(),
   pickupWalkMinutes: z.number(),
+  dropoffWalkMeters: z.number(),
   dropoffWalkMinutes: z.number(),
+  withinWalkingDistance: z.boolean(),
+  nearRequestedTime: z.boolean(),
   routeOverlapPercent: z.number(),
   score: z.number(),
   reasons: z.array(z.string()),

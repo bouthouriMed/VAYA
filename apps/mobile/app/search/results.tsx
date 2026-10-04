@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import { View, StyleSheet, ActivityIndicator, TouchableOpacity, ScrollView } from 'react-native';
 import Reanimated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -40,18 +40,12 @@ import {
   type MatchCandidate,
 } from '../../src/state/api';
 import { useOpenDriver } from '../../src/features/search/useOpenDriver';
+import { usePrefetchTopRides } from '../../src/features/search/usePrefetchTopRides';
+import { accessLabel } from '../../src/features/search/passengerAccess';
 import { trackEvent } from '../../src/services/analytics/analytics';
 import { shortenPlaceLabel } from '../../src/utils/placeLabel';
 
 type TFn = (key: string, params?: Record<string, unknown>) => string;
-
-/** A localized "{{minutes}} à pied"-style walk label — reused for the map
- *  pin's ETA and the dropoff walk chip (search:walk.suffix), each built
- *  from the shared `common:terms.minute` pluralization rather than a
- *  hand-rolled "X min" string. */
-function walkSuffixLabel(t: TFn, minutes: number): string {
-  return t('search:walk.suffix', { minutes: t('common:terms.minute', { count: Math.round(minutes) }) });
-}
 
 /** "Aujourd'hui, 14:30" / "Demain, 09:00" / "21 août, 18:15"-style label for
  *  the searched date/time, built locally from `common:time.today`/
@@ -65,6 +59,21 @@ function departureBadgeLabel(date: Date, locale: SupportedLocale, t: TFn): strin
   const tomorrow = addDays(now, 1);
   if (isSameDay(date, tomorrow)) return `${t('common:time.tomorrow')}, ${formatTime(date, locale)}`;
   return formatDateTime(date, locale);
+}
+
+/** The group heading to show between two consecutive (server-ordered)
+ *  results, if the second one starts a new group. */
+function resultDividerKey(previous: MatchCandidate | undefined, current: MatchCandidate): string | null {
+  if (!previous) return null;
+  if (previous.nearRequestedTime && !current.nearRequestedTime) return 'search:results.otherTimesThatDay';
+  if (
+    previous.nearRequestedTime === current.nearRequestedTime &&
+    previous.withinWalkingDistance &&
+    !current.withinWalkingDistance
+  ) {
+    return 'search:results.furtherAway';
+  }
+  return null;
 }
 
 function toPinData(
@@ -81,7 +90,7 @@ function toPinData(
     id: candidate.rideId,
     name: (candidate.driverFullName ?? t('search:results.driverFallback')).split(' ')[0]!,
     priceLabel: formatCurrency(candidate.contributionPerSeat, locale),
-    etaLabel: walkSuffixLabel(t, candidate.pickupWalkMinutes),
+    etaLabel: accessLabel(t, candidate.pickupWalkMeters, locale),
   };
 }
 
@@ -152,10 +161,12 @@ function RideResultCard({
   let timeOffsetNote: string | undefined;
   if (searchAt) {
     const offsetMin = Math.round((pickupTime.getTime() - new Date(searchAt).getTime()) / 60_000);
-    if (offsetMin > 2) {
-      timeOffsetNote = t('search:results.timeOffsetNote', {
-        offset: formatDurationLabel(t as unknown as TFunction, offsetMin),
-        walkMinutes: t('common:terms.minute', { count: Math.max(1, Math.round(candidate.pickupWalkMinutes)) }),
+    // The search shows every ride that day, so a ride can leave before the
+    // requested time as well as after it — say which.
+    if (Math.abs(offsetMin) > 2) {
+      timeOffsetNote = t(offsetMin > 0 ? 'search:results.timeOffsetNote' : 'search:results.timeOffsetNoteEarlier', {
+        offset: formatDurationLabel(t as unknown as TFunction, Math.abs(offsetMin)),
+        access: accessLabel(t, candidate.pickupWalkMeters, locale),
       });
     }
   }
@@ -170,12 +181,12 @@ function RideResultCard({
     priceLabel: formatCurrency(candidate.contributionPerSeat, locale),
     pickupCityLabel: origin?.label ? splitLocationLabel(origin.label).city : t('search:results.departure'),
     pickupPlaceLabel: pickupStop?.label ?? t('search:results.meetingPoint'),
-    pickupWalkLabel: walkSuffixLabel(t, Math.max(1, candidate.pickupWalkMinutes)),
+    pickupWalkLabel: accessLabel(t, candidate.pickupWalkMeters, locale),
     dropoffCityLabel: dropoffSplit.city,
     // The drop-off stop near the passenger's OWN destination when there is
     // one; the city line above is always the passenger's destination.
     dropoffPlaceLabel: candidate.dropoffPoint?.stopId ? (candidate.dropoffPoint.label ?? dropoffSplit.place) : dropoffSplit.place,
-    dropoffWalkLabel: walkSuffixLabel(t, Math.max(1, candidate.dropoffWalkMinutes)),
+    dropoffWalkLabel: accessLabel(t, candidate.dropoffWalkMeters, locale),
     seatsAvailable: candidate.seatsAvailable,
     seatsLabel: t('common:terms.seat', { count: candidate.seatsAvailable }),
     bestMatchLabel: t('search:results.bestMatch'),
@@ -266,6 +277,7 @@ export default function ResultsScreen(): React.JSX.Element {
   // `searchResult` is undefined — the `points`/other memos further down
   // depend on `sorted`.
   const sorted = useMemo(() => searchResult?.candidates ?? [], [searchResult]);
+  usePrefetchTopRides(sorted);
   // Matching-engine architecture plan §Decisions #3 / §M: never re-derive
   // "best match" from a local score comparison — the server already
   // decided whether one candidate is a genuine standout, and deliberately
@@ -435,17 +447,31 @@ export default function ResultsScreen(): React.JSX.Element {
 
             <View style={styles.cardsCol}>
               {sorted.map((candidate, index) => (
-                <RideResultCard
-                  key={candidate.rideId}
-                  theme={theme}
-                  bestMatch={candidate.rideId === bestMatchId}
-                  candidate={candidate}
-                  origin={origin}
-                  destination={destination}
-                  searchAt={searchAt}
-                  onPress={() => selectCandidate(candidate)}
-                  index={index}
-                />
+                <Fragment key={candidate.rideId}>
+                  {/* The server orders: around the requested time first, then
+                      the rest of the day; inside each, walkable rides before
+                      ones a bit further away. Mark where each group starts. */}
+                  {resultDividerKey(sorted[index - 1], candidate) ? (
+                    <Text
+                      variant="caption"
+                      color={theme.inkFaint}
+                      style={styles.furtherDivider}
+                      accessibilityRole="header"
+                    >
+                      {t(resultDividerKey(sorted[index - 1], candidate)!)}
+                    </Text>
+                  ) : null}
+                  <RideResultCard
+                    theme={theme}
+                    bestMatch={candidate.rideId === bestMatchId}
+                    candidate={candidate}
+                    origin={origin}
+                    destination={destination}
+                    searchAt={searchAt}
+                    onPress={() => selectCandidate(candidate)}
+                    index={index}
+                  />
+                </Fragment>
               ))}
             </View>
 
@@ -555,6 +581,9 @@ const styles = StyleSheet.create({
   },
   cardsCol: {
     gap: spacing.md,
+  },
+  furtherDivider: {
+    marginTop: spacing.sm,
   },
   notifyButton: {
     marginTop: spacing.lg,

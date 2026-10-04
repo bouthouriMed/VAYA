@@ -40,6 +40,7 @@ import { decodePolyline, sliceRouteBetween } from '../../src/utils/polyline';
 import { isQueryErrorOtherThan404 } from '../../src/state/queryErrors';
 import { bookingStatusDisplay, rideStatusDisplay, type StatusDisplay } from '../../src/features/status/statusDisplay';
 import { shortenPlaceLabel } from '../../src/utils/placeLabel';
+import { useFocusAwarePolling } from '../../src/hooks/useFocusAwarePolling';
 
 type ThemeColors = ReturnType<typeof useAppTheme>['colors'];
 const UPCOMING_RIDE_STATUSES: Ride['status'][] = ['draft', 'published', 'full'];
@@ -219,8 +220,9 @@ export default function TripsScreen(): React.JSX.Element {
   // Same query/poll the explore tab's header bell and the notifications
   // inbox itself already use — no new endpoint, just a second reader of the
   // same cache entry.
+  const notificationsPolling = useFocusAwarePolling(30_000);
   const { data: notifications } = useListNotificationsQuery(undefined, {
-    pollingInterval: 30_000,
+    ...notificationsPolling,
     skip: !accessToken,
   });
   const unreadNotificationsCount = notifications?.filter((n) => !n.readAt).length ?? 0;

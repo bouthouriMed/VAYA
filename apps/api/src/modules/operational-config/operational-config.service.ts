@@ -17,6 +17,7 @@ import {
   MAX_ACTIVE_REQUESTS_PER_JOURNEY,
 } from '@vaya/domain';
 import { getLogger } from '../../config/logger.js';
+import { MemoryCache } from '../../lib/memory-cache.js';
 import { ValidationError } from '../../lib/errors.js';
 import { logAdminAction } from '../admin/audit-log.service.js';
 
@@ -72,7 +73,26 @@ export const DEFAULT_RESOLVED_OPERATIONAL_CONFIG: ResolvedOperationalConfig = {
  * Never throws: matching/booking must not be blocked by a missing or
  * partial config row, same discipline `getActivePricingConfig` established.
  */
+/**
+ * Read on every search fallback and on nearly every booking action (create,
+ * accept, cancel, no-show, previews). Kept in memory briefly: an admin edit
+ * clears this instance's copy immediately (updateOperationalConfig) and
+ * reaches any other API instance within OPERATIONAL_CONFIG_TTL_MS.
+ */
+const OPERATIONAL_CONFIG_TTL_MS = 30_000;
+const operationalConfigCache = new MemoryCache<ResolvedOperationalConfig>(1, OPERATIONAL_CONFIG_TTL_MS);
+
+/** Drops the cached row — after an admin edit, and for tests that write
+ *  `operational_configs` directly. */
+export function clearOperationalConfigCache(): void {
+  operationalConfigCache.clear();
+}
+
 export async function getActiveOperationalConfig(db: Database): Promise<ResolvedOperationalConfig> {
+  return operationalConfigCache.getOrLoad('national', () => loadActiveOperationalConfig(db));
+}
+
+async function loadActiveOperationalConfig(db: Database): Promise<ResolvedOperationalConfig> {
   const config = await db.query.operationalConfigs.findFirst({
     where: and(eq(operationalConfigs.scope, 'national'), eq(operationalConfigs.active, true)),
   });
@@ -175,5 +195,6 @@ export async function updateOperationalConfig(
     newState: updates,
   });
 
+  clearOperationalConfigCache();
   return getActiveOperationalConfig(db);
 }

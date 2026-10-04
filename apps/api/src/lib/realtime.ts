@@ -76,7 +76,10 @@ function getPublisher(): IORedis | null {
   const env = getEnv();
   if (!env.REDIS_URL) return null;
   if (!publisher) {
-    publisher = new IORedis(env.REDIS_URL, { maxRetriesPerRequest: null });
+    // commandTimeout: a publish must fail fast (falling back to local
+    // delivery below) rather than hang the location-update request while
+    // Redis is unreachable.
+    publisher = new IORedis(env.REDIS_URL, { maxRetriesPerRequest: null, commandTimeout: 2000 });
     publisher.on('error', (err) => getLogger().error({ err }, 'Realtime publisher Redis error'));
   }
   return publisher;

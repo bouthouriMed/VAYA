@@ -41,6 +41,8 @@ import {
 import { useCurrentPosition } from '../../src/services/location/useCurrentPosition';
 import { useMatchingSearchQuery, useListNotificationsQuery, useLazyGeocodeReverseQuery } from '../../src/state/api';
 import { trackEvent } from '../../src/services/analytics/analytics';
+import { useFocusAwarePolling } from '../../src/hooks/useFocusAwarePolling';
+import { roundForAddressLookup } from '../../src/utils/coordinates';
 
 // A tight, "you are here" urban crop — not a whole-metro overview.
 const TUNIS_REGION: MapRegion = {
@@ -90,8 +92,9 @@ export default function HomeSearchScreen(): React.JSX.Element {
   // expectations without hammering the API from the tab a rider lands on
   // most. Skipped for a guest — explore is now this app's guest-browsable
   // landing tab, and /notifications is identity-scoped.
+  const notificationsPolling = useFocusAwarePolling(30_000);
   const { data: notifications } = useListNotificationsQuery(undefined, {
-    pollingInterval: 30_000,
+    ...notificationsPolling,
     skip: !accessToken,
   });
   const unreadNotificationsCount = notifications?.filter((n) => !n.readAt).length ?? 0;
@@ -117,7 +120,7 @@ export default function HomeSearchScreen(): React.JSX.Element {
   useEffect(() => {
     if (origin || status !== 'granted' || !position) return;
     let cancelled = false;
-    void triggerReverseGeocode(position)
+    void triggerReverseGeocode(roundForAddressLookup(position), true)
       .unwrap()
       .then((result) => {
         if (cancelled || store.getState().search.origin) return;

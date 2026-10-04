@@ -15,6 +15,7 @@ import {
   useLazyGeocodeReverseQuery,
   type LocationType,
 } from '../../src/state/api';
+import { roundForAddressLookup } from '../../src/utils/coordinates';
 
 const SEARCH_DEBOUNCE_MS = 400;
 
@@ -124,7 +125,9 @@ export default function SearchComposerScreen(): React.JSX.Element {
     const trimmed = query.trim();
     if (trimmed.length < 2) return;
     const timer = setTimeout(() => {
-      void triggerAutocomplete({ input: trimmed, sessionToken: sessionTokenRef.current });
+      // preferCacheValue: retyping a prefix already asked in this session
+      // reuses the answer instead of another paid Places request.
+      void triggerAutocomplete({ input: trimmed, sessionToken: sessionTokenRef.current }, true);
     }, SEARCH_DEBOUNCE_MS);
     return () => clearTimeout(timer);
   }, [query, triggerAutocomplete]);
@@ -197,7 +200,7 @@ export default function SearchComposerScreen(): React.JSX.Element {
 
     setResolveError(false);
     const sessionToken = sessionTokenRef.current;
-    const result = await triggerDetails({ placeId: row.placeId, sessionToken }).unwrap().catch(() => null);
+    const result = await triggerDetails({ placeId: row.placeId, sessionToken }, true).unwrap().catch(() => null);
     if (!result) {
       // Places/Nominatim failure or an expired/mismatched session — brief
       // §29/§14: never silently drop the user's search, keep the typed
@@ -239,7 +242,9 @@ export default function SearchComposerScreen(): React.JSX.Element {
       // string, matching the same reverse-geocode pattern (tabs)/publish.tsx
       // uses for a dragged map pin. Falls back to the generic label only if
       // the reverse lookup fails.
-      const result = await triggerReverseGeocode(current).unwrap().catch(() => null);
+      const result = await triggerReverseGeocode(roundForAddressLookup(current), true)
+        .unwrap()
+        .catch(() => null);
       choose({
         label: result?.label ?? t('search:composer.myLocation'),
         lat: current.lat,

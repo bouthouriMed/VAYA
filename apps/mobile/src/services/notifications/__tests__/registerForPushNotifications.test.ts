@@ -48,6 +48,18 @@ describe('requestPushPermissionAndRegister', () => {
     expect(registerPushToken).not.toHaveBeenCalled();
   });
 
+  it('does nothing further (no denial tracked) where push is unavailable, e.g. Expo Go on Android', async () => {
+    mocks.hasPrompted.mockResolvedValue(false);
+    mocks.requestPushPermission.mockResolvedValue('unavailable');
+    const registerPushToken = vi.fn();
+
+    await requestPushPermissionAndRegister(registerPushToken);
+
+    expect(mocks.trackEvent).not.toHaveBeenCalled();
+    expect(mocks.getExpoPushToken).not.toHaveBeenCalled();
+    expect(registerPushToken).not.toHaveBeenCalled();
+  });
+
   it('marks prompted and tracks denial without registering a token when permission is denied', async () => {
     mocks.hasPrompted.mockResolvedValue(false);
     mocks.requestPushPermission.mockResolvedValue('denied');

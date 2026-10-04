@@ -17,7 +17,10 @@
     "candidateCount_other": "{{count}} رحلات متاحة اليوم على هذا المسار",
     "meetingPoint": "نقطة الالتقاء",
     "bestMatch": "الأنسب لك",
-    "timeOffsetNote": "تنطلق بعد {{offset}} من الوقت المطلوب · {{walkMinutes}} سيرًا إلى نقطة الالتقاء."
+    "timeOffsetNote": "تنطلق بعد {{offset}} من الوقت المطلوب · نقطة الالتقاء: {{access}}.",
+    "furtherAway": "أبعد قليلًا عنك",
+    "otherTimesThatDay": "رحلات أخرى في نفس اليوم",
+    "timeOffsetNoteEarlier": "تنطلق قبل {{offset}} من الوقت المطلوب · نقطة الالتقاء: {{access}}."
   },
   "composer": {
     "myLocation": "موقعي الحالي",
@@ -173,6 +176,7 @@
     "decrement": "إزالة راكب"
   },
   "walk": {
-    "suffix": "{{minutes}} سيرًا على الأقدام"
+    "suffix": "{{minutes}} سيرًا على الأقدام",
+    "distanceAway": "على بعد {{distance}}"
   }
 }

@@ -104,8 +104,61 @@ export function getQueueConnection(): IORedis | null {
   return _connection;
 }
 
+/**
+ * The producer side (enqueueing from API requests, registering schedules)
+ * gets its own fail-fast connection. The worker's connection above must
+ * never time out (BullMQ's blocking polls), but sharing it here meant that
+ * while Redis was unreachable `queue.add` waited forever — and the request
+ * that triggered a notification (driver onboarding, a booking) hung with
+ * it. Bounded retries + a command timeout make an enqueue fail within a few
+ * seconds instead, which enqueueNotificationDispatch already logs and
+ * swallows (a push notification is never worth failing the request).
+ */
+let _producerConnection: IORedis | null = null;
+
+function getProducerConnection(): IORedis | null {
+  const env = getEnv();
+  if (!env.REDIS_URL) return null;
+  if (!_producerConnection) {
+    _producerConnection = new IORedis(env.REDIS_URL, {
+      maxRetriesPerRequest: 1,
+      commandTimeout: 3000,
+    });
+    _producerConnection.on('error', (err) => {
+      getLogger().error({ err }, 'Notification queue (producer) Redis connection error');
+    });
+  }
+  return _producerConnection;
+}
+
+/** How long a request ever waits on the queue. BullMQ waits for its
+ *  connection to become ready before sending any command, so while Redis
+ *  refuses connections a command timeout alone never starts counting. */
+export const QUEUE_OPERATION_TIMEOUT_MS = 3000;
+
+/** Rejects if `operation` hasn't settled within QUEUE_OPERATION_TIMEOUT_MS. */
+export async function withQueueTimeout<T>(operation: Promise<T>): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<never>((_resolve, reject) => {
+    timer = setTimeout(
+      () =>
+        reject(
+          new Error(
+            `Queue operation timed out after ${QUEUE_OPERATION_TIMEOUT_MS}ms (Redis unavailable?)`,
+          ),
+        ),
+      QUEUE_OPERATION_TIMEOUT_MS,
+    );
+  });
+  try {
+    return await Promise.race([operation, timeout]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 export function getNotificationDispatchQueue(): Queue<QueueJobData> | null {
-  const connection = getQueueConnection();
+  const connection = getProducerConnection();
   if (!connection) return null;
   if (!_queue) {
     _queue = new Queue<QueueJobData>(NOTIFICATION_DISPATCH_QUEUE, { connection });
@@ -129,15 +182,17 @@ export async function enqueueNotificationDispatch(notificationId: string): Promi
     return;
   }
   try {
-    await queue.add(
-      DISPATCH_JOB_NAME,
-      { notificationId },
-      {
-        attempts: 3,
-        backoff: { type: 'exponential', delay: 2000 },
-        removeOnComplete: { count: 500 },
-        removeOnFail: { count: 1000 },
-      },
+    await withQueueTimeout(
+      queue.add(
+        DISPATCH_JOB_NAME,
+        { notificationId },
+        {
+          attempts: 3,
+          backoff: { type: 'exponential', delay: 2000 },
+          removeOnComplete: { count: 500 },
+          removeOnFail: { count: 1000 },
+        },
+      ),
     );
   } catch (err) {
     getLogger().error({ err, notificationId }, 'Failed to enqueue notification dispatch job');
@@ -239,6 +294,10 @@ export async function closeQueue(): Promise<void> {
   if (_queue) {
     await _queue.close();
     _queue = null;
+  }
+  if (_producerConnection) {
+    await _producerConnection.quit();
+    _producerConnection = null;
   }
   if (_connection) {
     await _connection.quit();

@@ -18,8 +18,10 @@ import { searchRides } from '../matching.service.js';
  * accidentally satisfying a different tier's search:
  *  - "Area A" (a Tunis suburb): an exact-match ride and a far-future ride
  *    on the same corridor (closest_departure).
- *  - "Area B" (~a hundred km southwest, inland): a ride only reachable by
- *    widening the radius (wide_corridor).
+ *  - "Area B" (~a hundred km southwest, inland): a ride a short walk away
+ *    but outside the tight time window (wide_corridor), one ~2 km away at
+ *    the exact time (shown, after the walkable one), and one whose
+ *    endpoints are 4-5 km away (never shown).
  *  - The real Tunis→Sousse coastal route: a long ride with two real
  *    mid-route stops, searched by a short sub-trip entirely inside it
  *    (route_passthrough).
@@ -39,7 +41,20 @@ describe('matching.service — tier cascade, real Postgres (+ real OSRM for rout
   // Search 3 days out — outside Ride A's exact/wide window entirely, so the
   // closest_departure fixture (also in Area A) can't be shadowed by it.
   const closestDepartureSearchWhen = new Date(now.getTime() + 3 * 24 * 3_600_000);
-  const closestDepartureRideWhen = new Date(closestDepartureSearchWhen.getTime() + 10 * 3_600_000);
+  // 30h later: always a different day from the search, so the search's
+  // own whole-day window can't find it and closest_departure must.
+  const closestDepartureRideWhen = new Date(closestDepartureSearchWhen.getTime() + 30 * 3_600_000);
+
+  // "Area C" (isolated, inland south): a search for 15:00 Tunis time three
+  // days out, with a walkable ride at 15:30 and another at 07:00 that day.
+  const areaCDay = new Date(now.getTime() + 3 * 24 * 3_600_000);
+  const tunisAt = (hour: number, minute = 0) =>
+    new Date(Date.UTC(areaCDay.getUTCFullYear(), areaCDay.getUTCMonth(), areaCDay.getUTCDate(), hour - 1, minute));
+  const areaCSearchWhen = tunisAt(15);
+  const areaCOrigin = { lat: 31.0, lng: 9.5 };
+  const areaCDestination = { lat: 31.2, lng: 9.7 };
+  let areaCAtTimeRideId: string;
+  let areaCMorningRideId: string;
 
   const areaAOrigin = { lat: 36.75, lng: 10.2 };
   const areaADestination = { lat: 36.78, lng: 10.23 };
@@ -53,11 +68,23 @@ describe('matching.service — tier cascade, real Postgres (+ real OSRM for rout
   // "urban" (≤45km).
   const areaBRiderOrigin = { lat: 36.3, lng: 9.5 };
   const areaBRiderDestination = { lat: 36.5, lng: 9.7 };
-  // ~4km/~5km offsets from the rider's own points — clearly inside the
-  // urban-profile WIDE radii (8km/10km) and outside TIGHT (2km/3km), not a
-  // borderline value that could flake.
-  const areaBRideOrigin = { lat: 36.336, lng: 9.5 }; // ~4km north of rider origin.
-  const areaBRideDestination = { lat: 36.545, lng: 9.7 }; // ~5km north of rider destination.
+  // A short walk (~500m) from the rider's own points, but departing 3h
+  // after the requested time: outside the tight 90-min window, inside the
+  // wide 240-min one.
+  const areaBRideOrigin = { lat: 36.3045, lng: 9.5 };
+  const areaBRideDestination = { lat: 36.5045, lng: 9.7 };
+  // ~2km from the rider's own points, at the exact requested time: beyond
+  // a 15-minute walk but within the 3km extended reach — shown, after
+  // every walkable ride.
+  const areaBMidRideOrigin = { lat: 36.318, lng: 9.5 };
+  const areaBMidRideDestination = { lat: 36.518, lng: 9.7 };
+  let areaBMidRideId: string;
+  // ~4km/~5km from the rider's own points: inside the old wide endpoint
+  // radii (8km/10km), so it used to appear as a ~40-60 minute walk. Now
+  // beyond the extended reach too — never a result.
+  const areaBFarRideOrigin = { lat: 36.336, lng: 9.5 };
+  const areaBFarRideDestination = { lat: 36.545, lng: 9.7 };
+  let areaBFarRideId: string;
 
   const tunis = { lat: 36.8065, lng: 10.1815 };
   const sousse = { lat: 35.8256, lng: 10.6369 };
@@ -156,8 +183,8 @@ describe('matching.service — tier cascade, real Postgres (+ real OSRM for rout
       departureAt: closestDepartureRideWhen,
     });
 
-    // Ride B — wide-corridor-only: endpoints outside TIGHT, inside WIDE
-    // (urban-profile radii, since the rider trip searching for it is >15km).
+    // Ride B — wide-corridor-only: walkable endpoints, departs 3h after
+    // the requested time (outside the tight window, inside the wide one).
     await insertRide({
       originLabel: 'Area B Ride Origin',
       originLat: areaBRideOrigin.lat,
@@ -165,6 +192,49 @@ describe('matching.service — tier cascade, real Postgres (+ real OSRM for rout
       destinationLabel: 'Area B Ride Destination',
       destinationLat: areaBRideDestination.lat,
       destinationLng: areaBRideDestination.lng,
+      departureAt: new Date(areaAWhen.getTime() + 3 * 3_600_000),
+    });
+
+    // Area C — a 15:30 ride and a 07:00 ride, same day, same endpoints.
+    areaCAtTimeRideId = await insertRide({
+      originLabel: 'Area C Origin',
+      originLat: areaCOrigin.lat,
+      originLng: areaCOrigin.lng,
+      destinationLabel: 'Area C Destination',
+      destinationLat: areaCDestination.lat,
+      destinationLng: areaCDestination.lng,
+      departureAt: tunisAt(15, 30),
+    });
+    areaCMorningRideId = await insertRide({
+      originLabel: 'Area C Origin (morning)',
+      originLat: areaCOrigin.lat,
+      originLng: areaCOrigin.lng,
+      destinationLabel: 'Area C Destination (morning)',
+      destinationLat: areaCDestination.lat,
+      destinationLng: areaCDestination.lng,
+      departureAt: tunisAt(7),
+    });
+
+    // Ride B-mid — right time, ~2km away: a bit further than a walk.
+    areaBMidRideId = await insertRide({
+      originLabel: 'Area B Mid Ride Origin',
+      originLat: areaBMidRideOrigin.lat,
+      originLng: areaBMidRideOrigin.lng,
+      destinationLabel: 'Area B Mid Ride Destination',
+      destinationLat: areaBMidRideDestination.lat,
+      destinationLng: areaBMidRideDestination.lng,
+      departureAt: areaAWhen,
+    });
+
+    // Ride B-far — right time, but its endpoints are 4-5 km from the
+    // rider's points.
+    areaBFarRideId = await insertRide({
+      originLabel: 'Area B Far Ride Origin',
+      originLat: areaBFarRideOrigin.lat,
+      originLng: areaBFarRideOrigin.lng,
+      destinationLabel: 'Area B Far Ride Destination',
+      destinationLat: areaBFarRideDestination.lat,
+      destinationLng: areaBFarRideDestination.lng,
       departureAt: areaAWhen,
     });
 
@@ -265,7 +335,7 @@ describe('matching.service — tier cascade, real Postgres (+ real OSRM for rout
     expect(result.candidates.some((c) => c.matchType === 'endpoint')).toBe(true);
   });
 
-  it('falls back to tier "wide_corridor" when only a wider radius finds a ride', async () => {
+  it('falls back to tier "wide_corridor" when only the wider time window finds a ride', async () => {
     const result = await searchRides(db, {
       originLat: areaBRiderOrigin.lat,
       originLng: areaBRiderOrigin.lng,
@@ -276,6 +346,58 @@ describe('matching.service — tier cascade, real Postgres (+ real OSRM for rout
     expect(result.tier).toBe('wide_corridor');
     expect(result.message).toBeTruthy();
     expect(result.candidates.length).toBeGreaterThan(0);
+  });
+
+  it('shows every ride that day, the ones around the requested time first', async () => {
+    const search = { originLat: areaCOrigin.lat, originLng: areaCOrigin.lng, destinationLat: areaCDestination.lat, destinationLng: areaCDestination.lng };
+    const result = await searchRides(db, { ...search, when: areaCSearchWhen });
+    const ids = result.candidates.map((c) => c.rideId);
+    // The 07:00 ride is 8h from a 15:00 search — still shown, but after 15:30.
+    expect(ids).toEqual([areaCAtTimeRideId, areaCMorningRideId]);
+    expect(result.candidates[0]!.nearRequestedTime).toBe(true);
+    expect(result.candidates[1]!.nearRequestedTime).toBe(false);
+    expect(result.standoutRideId).not.toBe(areaCMorningRideId);
+
+    // Searching 07:30 instead flips the order.
+    const morning = await searchRides(db, { ...search, when: tunisAt(7, 30) });
+    expect(morning.candidates.map((c) => c.rideId)).toEqual([areaCMorningRideId, areaCAtTimeRideId]);
+
+    // Searching 21:00: nothing around that time — both rides that day, and
+    // the banner says so.
+    const evening = await searchRides(db, { ...search, when: tunisAt(21) });
+    expect(evening.candidates.map((c) => c.rideId)).toEqual([areaCAtTimeRideId, areaCMorningRideId]);
+    expect(evening.candidates.every((c) => !c.nearRequestedTime)).toBe(true);
+    expect(evening.message).toMatch(/autres départs de la journée/);
+  });
+
+  it('shows a ride a bit further away, and nothing beyond reach; around the requested time comes before walkability', async () => {
+    const result = await searchRides(db, {
+      originLat: areaBRiderOrigin.lat,
+      originLng: areaBRiderOrigin.lng,
+      destinationLat: areaBRiderDestination.lat,
+      destinationLng: areaBRiderDestination.lng,
+      when: areaAWhen,
+    });
+    const ids = result.candidates.map((c) => c.rideId);
+    expect(ids).not.toContain(areaBFarRideId);
+    expect(ids).toContain(areaBMidRideId);
+    // The ~2km ride leaves at exactly the requested time, the walkable one
+    // 3h later: the requested time wins, so the ~2km ride comes first.
+    const mid = result.candidates.find((c) => c.rideId === areaBMidRideId)!;
+    expect(mid.withinWalkingDistance).toBe(false);
+    expect(mid.nearRequestedTime).toBe(true);
+    expect(mid.pickupWalkMinutes).toBeGreaterThan(15);
+    const near = result.candidates.find((c) => c.withinWalkingDistance)!;
+    expect(near.nearRequestedTime).toBe(false);
+    expect(ids.indexOf(areaBMidRideId)).toBeLessThan(ids.indexOf(near.rideId));
+    for (const candidate of result.candidates) {
+      expect(candidate.pickupViable).toBe(true);
+      expect(candidate.dropoffViable).toBe(true);
+      if (candidate.withinWalkingDistance) {
+        expect(candidate.pickupWalkMinutes).toBeLessThanOrEqual(15);
+        expect(candidate.dropoffWalkMinutes).toBeLessThanOrEqual(15);
+      }
+    }
   });
 
   // Matching-engine architecture plan §G / §A — "trip-profile-aware

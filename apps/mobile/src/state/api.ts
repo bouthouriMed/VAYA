@@ -16,6 +16,7 @@ import type {
 import { setAccessToken, clearAuth } from './authSlice';
 import { clearTokens } from '../services/auth/tokenStorage';
 import { getApiBaseUrl as getBaseUrl } from '../config/env';
+import { withStableDataDefaults } from './stableData';
 
 // POST /uploads returns a relative `/uploads/<file>` path rather than an
 // absolute URL (see apps/api/src/modules/uploads/uploads.routes.ts for why:
@@ -109,6 +110,9 @@ export interface RankedStop {
   label: string;
   lat: number;
   lng: number;
+  /** Server's honest street-walk estimate (straight line × 1.3) — display
+   *  it via features/search/passengerAccess, never re-estimate client-side. */
+  walkMeters: number;
   walkMinutes: number;
   /** Position along the driver's route — a dropoff must come after the
    *  chosen pickup. */
@@ -126,6 +130,7 @@ export interface PassengerPoint {
   label: string | null;
   lat: number;
   lng: number;
+  walkMeters: number;
   walkMinutes: number;
 }
 
@@ -148,11 +153,22 @@ export interface MatchCandidate {
   departureAt: string;
   seatsAvailable: number;
   contributionPerSeat: number;
+  /** Honest street-walk estimate from the passenger's origin to their
+   *  pickup — at most a 15-minute walk on a city/medium trip; on an
+   *  intercity trip it may be a meeting point a few km out, which the app
+   *  shows as a distance (features/search/passengerAccess). */
+  pickupWalkMeters: number;
   pickupWalkMinutes: number;
-  /** Dropoff-side mirror of `pickupWalkMinutes`, always server-computed at
-   *  the same walk pace as every other walk-time in the app — never fall
-   *  back to a client-side re-estimate for this leg when this is present. */
+  /** Dropoff-side mirror of `pickupWalkMeters`, always server-computed —
+   *  never fall back to a client-side re-estimate for this leg. */
+  dropoffWalkMeters: number;
   dropoffWalkMinutes: number;
+  /** Both ends within walking distance. The server always lists these
+   *  first; rides a bit further away follow, shown as a distance. */
+  withinWalkingDistance: boolean;
+  /** Pickup within 90 min of the searched time. A search returns every ride
+   *  that day; the server lists these first, the rest of the day after. */
+  nearRequestedTime: boolean;
   routeOverlapPercent: number;
   score: number;
   reasons: string[];
@@ -949,6 +965,7 @@ export const api = createApi({
     'TrustSummary',
     'PendingRating',
     'RecurringPatterns',
+    'PublicProfile',
   ],
   endpoints: (builder) => ({
     healthCheck: builder.query<{ status: string }, void>({
@@ -976,15 +993,21 @@ export const api = createApi({
       { input: string; sessionToken: string }
     >({
       query: (params) => ({ url: '/geocoding/autocomplete', params }),
+      // Lets typing back to an earlier prefix in the same search reuse the
+      // answer (the lazy triggers below pass preferCacheValue) instead of a
+      // new paid Places request.
+      keepUnusedDataFor: 300,
     }),
     geocodePlaceDetails: builder.query<
       LocationPoint | null,
       { placeId: string; sessionToken: string }
     >({
       query: (params) => ({ url: '/geocoding/place-details', params }),
+      keepUnusedDataFor: 1800,
     }),
     geocodeReverse: builder.query<GeocodeResult, { lat: number; lng: number }>({
       query: (params) => ({ url: '/geocoding/reverse', params }),
+      keepUnusedDataFor: 1800,
     }),
 
     matchingSearch: builder.query<
@@ -1012,7 +1035,7 @@ export const api = createApi({
     // is updateMeSchema — fullName/locale/avatarFileUrl, all optional.
     updateMe: builder.mutation<Me, UpdateMeInput>({
       query: (body) => ({ url: '/users/me', method: 'PATCH', body }),
-      invalidatesTags: ['Me'],
+      invalidatesTags: ['Me', 'PublicProfile'],
     }),
     // Account deletion (docs/legal/privacy-policy.md §10). The server
     // rejects with 409 while the Member has an active booking/ride — the
@@ -1034,6 +1057,11 @@ export const api = createApi({
     }),
     getUserPublicProfile: builder.query<PublicProfile, string>({
       query: (userId) => `/users/${userId}`,
+      // Name, photo, vehicle: rarely change. Kept for 10 minutes after the
+      // last screen showing it closes; your own edits (updateMe /
+      // updateVehicle) invalidate it immediately.
+      keepUnusedDataFor: 600,
+      providesTags: (_result, _error, userId) => [{ type: 'PublicProfile', id: userId }],
     }),
 
     getMyDriverProfile: builder.query<DriverProfile, void>({
@@ -1046,7 +1074,7 @@ export const api = createApi({
     }),
     updateVehicle: builder.mutation<Vehicle, UpdateVehicleInput>({
       query: (body) => ({ url: '/drivers/vehicle', method: 'PATCH', body }),
-      invalidatesTags: ['DriverProfile'],
+      invalidatesTags: ['DriverProfile', 'PublicProfile'],
     }),
 
     uploadFile: builder.mutation<{ url: string }, FormData>({
@@ -1111,6 +1139,8 @@ export const api = createApi({
     // retry/refetch.
     getCityDetourCandidates: builder.query<CityDetourCandidatesResult, string>({
       query: (rideId) => `/rides/${rideId}/city-detour-candidates`,
+      // Towns along a fixed route never change for that ride.
+      keepUnusedDataFor: 1800,
     }),
     updateRideStops: builder.mutation<
       RouteStop[],
@@ -1139,9 +1169,6 @@ export const api = createApi({
       }),
       invalidatesTags: (result, error, { rideId }) => [{ type: 'RideStops', id: rideId }],
     }),
-    // Public, passenger-facing: only the driver-selected stops (no `?all=true`),
-    // for the ride-details.tsx stop timeline — the same list a passenger's
-    // pickup selection is drawn from, just for a single already-chosen ride.
     // The road itinerary a trip's map draws (apps/api itinerary-route.
     // service.ts): the driver's whole trip through every accepted
     // passenger's pickup/dropoff, or a passenger's own pickup -> dropoff.
@@ -1155,8 +1182,14 @@ export const api = createApi({
         'MyBookings',
       ],
     }),
+    // Public, passenger-facing: only the driver-selected stops (no `?all=true`),
+    // for the ride-details.tsx stop timeline — the same list a passenger's
+    // pickup selection is drawn from, just for a single already-chosen ride.
     getRideStops: builder.query<RouteStop[], string>({
       query: (rideId) => `/rides/${rideId}/stops`,
+      // A ride's offered stops change only when its driver edits them
+      // (invalidated here by updateRideStops / addCustomStop).
+      keepUnusedDataFor: 300,
       providesTags: (result, error, rideId) => [{ type: 'RideStops', id: rideId }],
     }),
     // The driver's own editing view (every generated/custom candidate,
@@ -1323,6 +1356,8 @@ export const api = createApi({
     }),
     getUserTrustSummary: builder.query<TrustSummary, string>({
       query: (userId) => `/users/${userId}/trust-summary`,
+      // Aggregates that move only when a trip is rated.
+      keepUnusedDataFor: 300,
       providesTags: (_result, _error, userId) => [{ type: 'TrustSummary', id: userId }],
     }),
     getPendingRating: builder.query<PendingRating | null, void>({
@@ -1442,7 +1477,6 @@ export const {
   useGetMeQuery,
   useUpdateMeMutation,
   useDeleteMeMutation,
-  useGetUserPublicProfileQuery,
   useGetMyDriverProfileQuery,
   useCreateDriverOnboardingMutation,
   useUpdateVehicleMutation,
@@ -1455,10 +1489,8 @@ export const {
   useCancelRideMutation,
   usePublishRideMutation,
   useGenerateCandidateStopsMutation,
-  useGetCityDetourCandidatesQuery,
   useUpdateRideStopsMutation,
   useAddCustomStopMutation,
-  useGetRideStopsQuery,
   useGetRideItineraryRouteQuery,
   useLazyGetRideStopsForDriverQuery,
   useCreateBookingMutation,
@@ -1483,7 +1515,6 @@ export const {
   useGetTripByBookingQuery,
   useCompleteTripMutation,
   useCreateTripRatingMutation,
-  useGetUserTrustSummaryQuery,
   useGetPendingRatingQuery,
   useStartTripMutation,
   useConfirmPassengerAboardMutation,
@@ -1499,3 +1530,9 @@ export const {
   useListMyRecurringPatternsQuery,
   useUpdateRecurringPatternMutation,
 } = api;
+
+// Near-static data (see stableData.ts for why these refetch less often).
+export const useGetUserPublicProfileQuery = withStableDataDefaults(api.useGetUserPublicProfileQuery);
+export const useGetUserTrustSummaryQuery = withStableDataDefaults(api.useGetUserTrustSummaryQuery);
+export const useGetRideStopsQuery = withStableDataDefaults(api.useGetRideStopsQuery);
+export const useGetCityDetourCandidatesQuery = withStableDataDefaults(api.useGetCityDetourCandidatesQuery);

@@ -85,7 +85,7 @@ Road-class metadata from OSRM's base extract does not encode real-world "is ther
 Reuses `matching.service.ts`'s existing scoring shape rather than inventing a parallel system:
 
 - For a candidate ride, rank its `route_stops` (`is_driver_selected = true`) by walk-distance from the passenger's actual requested origin (same `haversineDistanceMeters` + `WALK_SPEED_M_PER_MIN` pattern already used for `pickupWalkMinutes`) — the pure function is `rankStopsByWalkDistance` in `matching.service.ts`.
-- Only surface stops within a walkable radius: the trip profile's **tight** pickup/dropoff radius (`passengerWalkCaps` in `matching.service.ts` — ~1/1.5km for a commute, 2/3km urban, 5/7.5km intercity). *Revised 2026-10-04:* this used to be the flat `WIDE_PICKUP_RADIUS_M` (8km), which let a stop at the driver's own destination count as a "walkable" dropoff for a passenger going somewhere several km earlier on the route.
+- Only surface boarding/alighting points within the passenger access cap (`getPassengerAccessCaps` in `packages/domain/src/matching/passenger-access.ts`, applied by `passengerWalkCaps` in `matching.service.ts`, classified by the **passenger's own** journey length). See "Passenger walking distance" below. *Revised 2026-10-04:* this used to be the flat `WIDE_PICKUP_RADIUS_M` (8km), which let a stop at the driver's own destination count as a "walkable" dropoff for a passenger going somewhere several km earlier on the route.
 
 ### The passenger journey is a sub-segment of the driver's route (2026-10-04)
 
@@ -100,12 +100,40 @@ A passenger result always represents the passenger's **own** requested journey, 
 
 Every `MatchCandidate` now carries `passengerJourney` (the search input echoed back — authoritative for passenger-facing labels/maps), `pickupPoint`/`dropoffPoint` (the resolved points), and each `RankedStop` carries its `sequence`. `originLat`…`destinationLng` remain the **driver's** ride endpoints, used only for the corridor. The driver's ride, route and destination are never modified; the driver keeps seeing their own route plus each booking's pickup/dropoff and detour (`GET /bookings/:id/detour-preview`, unchanged).
 
-Unchanged on purpose: the `wide_corridor` near-miss for a *stop-less* legacy ride (its own endpoints within the profile's wide radius) still offers the ride's own destination as the dropoff, reporting the real walk in `dropoffWalkMinutes` — an existing, tested product behavior, not part of this fix.
+### Passenger walking distance (2026-10-04)
+
+Before this, a passenger could see results with 30-60 minute walks: the endpoint tier offered a ride's own origin/destination anywhere inside the profile's *wide* radius (8-10 km in town), rides with no walkable stop were still returned (flagged non-viable), and every walk time was straight-line distance at 80 m/min, about 30% short of a real walk. Now, in every tier and in booking validation:
+
+| Passenger's trip | Within walking distance (listed first) | A bit further (listed after, never mixed in) | Never shown |
+|---|---|---|---|
+| commute / urban (≤ 45 km) | a 15-minute walk (~920 m straight line, ~1.2 km on foot) | up to 3 km straight line | beyond 3 km |
+| intercity (> 45 km) | 10 km straight line | up to 20 km | beyond 20 km |
+
+Any access over a 20-minute walk is shown as "X km away", never as a walking time. Each ride's boarding/alighting pair is resolved within walking distance first and only falls back to the extended reach when no walkable pair exists (`resolvePassengerSegmentWithinReach`); the result carries `withinWalkingDistance`. `rankMatchCandidates` orders by the requested time first (see "Search time window" below), then `withinWalkingDistance`, then quality band, then pickup-time proximity (closest-departure: walkable first, then time) — so among rides around the requested time, a ride a few km away is offered to riders willing to go further, but never above one they can walk to. When no result is walkable, the banner says so ("Aucun trajet à distance de marche…") and the app shows a "Un peu plus loin de vous" divider before the first ride further away. The 3 km / 20 km reach is a first-cut value (`MAX_EXTENDED_*_ACCESS_M`), to tune against real booking data.
+
+- **Honest walk times:** `estimateWalk` multiplies the straight line by `STREET_DISTANCE_FACTOR` (1.3). `walkMeters`/`walkMinutes` on `RankedStop`, `PassengerPoint` and `MatchCandidate` (`pickupWalkMeters`, `dropoffWalkMeters`) and `bookings.pickupWalkMeters`/`dropoffWalkMeters` are this street estimate. Scores still use the straight line, so ranking is unchanged.
+- **No wide endpoint fallback:** the ride's own origin/destination are offered only within the same reach. The wide radius remains a coarse database pre-filter only.
+- **Unreachable rides are not results:** an endpoint or closest-departure candidate with no boarding or alighting point inside the extended reach is dropped instead of returned flagged non-viable (this reverses the Phase 5 "include, flagged" choice below for those tiers). The notify-me alert and the closest-departure suggestion still cover "nothing close enough".
+- **Booking agrees with search:** `resolveStopWalkMeters` (`bookings.service.ts`) enforces the extended reach, keyed on the ride's length (never stricter than the passenger's own, since their journey is a sub-segment of the ride).
+- **One display rule:** the app shows every walk through `apps/mobile/src/features/search/passengerAccess.ts` (`describePassengerAccess` from `@vaya/domain`): whole minutes up to 20, a distance beyond. It never computes its own walk estimate except for the live device-to-pickup distance on the booking screen, which uses the same estimate.
 - If no stop on a matched ride is close enough, that's a legitimate "doesn't reach you conveniently" result — surface it honestly (`docs/ux/passenger-journey.md` §4), don't force a bad match.
+
+### Search time window (2026-10-04)
+
+A search for 15:00 used to look only at rides departing 11:00-19:00. It now looks at every ride that **Tunis calendar day** (`searchTimeWindow` in `packages/domain/src/matching/search-time.ts`, `searchWindowFor` in `matching.service.ts`), widened to at least ±4h so a 23:30 search still sees a 00:45 ride, and never including rides that left more than 5 minutes ago.
+
+The requested time still comes first. Each result carries `nearRequestedTime` (the passenger's own pickup — departure plus `pickupEtaSeconds` — within 90 minutes of the requested time), and results are ordered:
+
+1. around the requested time;
+2. within walking distance;
+3. match quality band;
+4. closeness of the pickup to the requested time (earlier or later).
+
+The app shows an "Autres départs ce jour-là" divider before the rest of the day and says when a ride leaves *before* the requested time. When nothing is around the requested time, the banner says "Aucun trajet autour de l'heure demandée. Voici les autres départs de la journée." When nothing departs that day at all, the existing closest-departure fallback (next 14 days) and "Me notifier" still apply. The recurring-pattern proactive check keeps its tight ±90-minute window. The in-progress tier keeps its own ±4h window (those rides have already departed).
 
 ### Implementation note (Phase 5): the "zero viable stops" decision
 
-The design above leaves "surface it honestly" underspecified — the actual choice is between excluding a non-viable ride from `matching.service.ts`'s results outright, or including it flagged as non-bookable. **Implemented: include, flagged.** Every `MatchCandidate` carries a `pickupViable: boolean` alongside its `rankedStops` array — `false` only when the ride has at least one driver-selected `route_stop` but none rank within the passenger walk cap of the passenger's origin (`WIDE_PICKUP_RADIUS_M` until 2026-10-04 — see above) (`isPickupViable` in `matching.service.ts`); always `true` for a legacy ride with zero `route_stops` at all, which keeps using the free-form pickup flow.
+The design above leaves "surface it honestly" underspecified — the actual choice is between excluding a non-viable ride from `matching.service.ts`'s results outright, or including it flagged as non-bookable. **Implemented: include, flagged** (*superseded 2026-10-04 for the endpoint and closest-departure tiers — see "Passenger walking distance" above; detour candidates are still returned non-bookable by design*). Every `MatchCandidate` carries a `pickupViable: boolean` alongside its `rankedStops` array — `false` only when the ride has at least one driver-selected `route_stop` but none rank within the passenger walk cap of the passenger's origin (`WIDE_PICKUP_RADIUS_M` until 2026-10-04 — see above) (`isPickupViable` in `matching.service.ts`); always `true` for a legacy ride with zero `route_stops` at all, which keeps using the free-form pickup flow.
 
 Why include-and-flag over silent exclusion: excluding server-side would make the `pickup_no_viable_stop` analytics event (this phase's own signal for whether Phase 4's candidate density needs tuning — see that phase's Risks section) unobservable from the client without standing up a second, server-side analytics path, which CLAUDE.md's architecture principles explicitly discourage until a second real use case justifies it. Keeping the flag in the API response lets the existing thin mobile `trackEvent` hook (`apps/mobile/src/services/analytics/analytics.ts`) fire the event with real data, while the mobile client (`search/cluster.tsx`) still never renders or lets a passenger tap into a `pickupViable: false` result — so the "never offer a fabricated/impossible pickup option" guarantee (product principle #1/#4) holds at the UI layer even though the ride isn't dropped from the wire response.
 

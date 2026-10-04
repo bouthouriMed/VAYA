@@ -70,6 +70,7 @@ import { requestPushPermissionAndRegister } from '../../src/services/notificatio
 import { buildStopSelectionPayload } from '../../src/features/driver-publish/stopSelection';
 import { resolveInitialPrice } from '../../src/features/driver-publish/priceSelection';
 import { isVerifiedDriver } from '../../src/features/driver-publish/verificationGate';
+import { classifyCreateRideError } from '../../src/features/driver-publish/createRideError';
 import { buildRecommendedPoints, type RecommendedPoint } from '../../src/features/driver-publish/nearestStops';
 import { publishStyles as styles } from '../../src/features/driver-publish/publishStyles';
 import { GhostButton, PrimaryButton, StepHeader } from '../../src/features/driver-publish/PublishChrome';
@@ -506,7 +507,7 @@ export default function PublishTabScreen(): React.JSX.Element {
     if (!isPinPlacementActive || selectedPointId !== null) return;
     const next = { lat: region.latitude, lng: region.longitude };
     setSelectionCenter(next);
-    void fetchReverseGeocode(next)
+    void fetchReverseGeocode(next, true)
       .unwrap()
       .then((result) => setCustomPointLabel(result.label))
       .catch(() => setCustomPointLabel(t('driver:publish.stopsStep.customPosition')));
@@ -757,9 +758,18 @@ export default function PublishTabScreen(): React.JSX.Element {
         // contributionPerSeat to `recommended`; the driver adjusts it on
         // the price step, once real bounds exist.
       }).unwrap();
-    } catch {
+    } catch (error) {
       haptics.error();
-      setErrorMessage(t('driver:publish.errors.createFailed'));
+      const failure = classifyCreateRideError(error);
+      if (failure.kind === 'verification') {
+        // The server only creates rides for approved drivers — show the
+        // status-specific verification sheet, not a generic failure.
+        void refetchDriverProfile();
+        setStep('review');
+        setIsVerificationPromptVisible(true);
+      } else {
+        setErrorMessage(t(failure.key));
+      }
       return;
     }
 
@@ -876,6 +886,19 @@ export default function PublishTabScreen(): React.JSX.Element {
     }
     const { data: freshProfile } = await refetchDriverProfile();
     const freshVehicle = freshProfile?.vehicles[0];
+    // A driver who has onboarded but isn't approved yet (pending, under
+    // review, resubmission required, rejected) can't create a ride — the
+    // server rejects it since the admin review queue replaced auto-
+    // approval. Show the status-specific verification sheet here instead of
+    // letting creation fail with a generic error.
+    if (freshProfile && !isVerifiedDriver(freshProfile)) {
+      // Same honest review screen a not-yet-onboarded driver gets (real
+      // itinerary/seats, price locked "after verification"), with the
+      // status-specific verification sheet open on top.
+      setStep('review');
+      setIsVerificationPromptVisible(true);
+      return;
+    }
     if (freshVehicle) {
       await enterRouteSelection(freshVehicle.id);
     } else {

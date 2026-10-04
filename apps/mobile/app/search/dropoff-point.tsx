@@ -33,6 +33,8 @@ import {
   dropoffStopsAfterPickup,
   rankedPosition,
 } from '../../src/features/pickup-selection/pickupSelection';
+import { accessAmount, accessLabel } from '../../src/features/search/passengerAccess';
+import type { SupportedLocale } from '@vaya/config';
 
 /**
  * Dropoff-side mirror of search/pickup-point.tsx (Phase 13, docs/roadmap/
@@ -49,7 +51,8 @@ export default function DropoffPointScreen(): React.JSX.Element {
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { rideId, driverUserId } = useLocalSearchParams<{ rideId: string; driverUserId: string }>();
   const insets = useSafeAreaInsets();
-  const { t } = useTranslation(['search', 'common', 'booking']);
+  const { t, i18n } = useTranslation(['search', 'common', 'booking']);
+  const locale = i18n.language as SupportedLocale;
   const dispatch = useAppDispatch();
 
   const origin = useAppSelector((s) => s.search.origin);
@@ -176,7 +179,7 @@ export default function DropoffPointScreen(): React.JSX.Element {
               key={stop.stopId}
               coordinate={{ latitude: stop.lat, longitude: stop.lng }}
               onPress={() => pickStop(stop)}
-              accessibilityLabel={`${stop.label}, ${t('search:walk.suffix', { minutes: t('common:terms.minute', { count: Math.round(stop.walkMinutes) }) })}`}
+              accessibilityLabel={`${stop.label}, ${accessLabel(t, stop.walkMeters, locale)}`}
             >
               <StopPin theme={theme} index={index + 1} selected={isSelected} />
             </Marker>
@@ -214,7 +217,7 @@ export default function DropoffPointScreen(): React.JSX.Element {
               <Text style={styles.footerLabel}>{selectedStop.label}</Text>
               <Text variant="bodySmall" color={theme.inkFaint} numberOfLines={1}>
                 {t('search:dropoffPoint.walkFromDestination', {
-                  minutes: t('common:terms.minute', { count: Math.round(selectedStop.walkMinutes) }),
+                  minutes: accessAmount(t, selectedStop.walkMeters, locale),
                 })}
               </Text>
             </View>
@@ -240,7 +243,7 @@ export default function DropoffPointScreen(): React.JSX.Element {
           <View style={styles.sheetContent}>
             <Text variant="body" color={theme.inkMuted}>
               {t('search:dropoffPoint.walkToDestination', {
-                minutes: t('common:terms.minute', { count: Math.round(detailStop.walkMinutes) }),
+                minutes: accessAmount(t, detailStop.walkMeters, locale),
               })}
             </Text>
             <Text variant="bodySmall" color={theme.inkFaint}>

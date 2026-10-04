@@ -58,4 +58,26 @@ describe('Health endpoints', () => {
 
     expect(response.statusCode).toBe(404);
   });
+
+  it('API responses are marked no-store (personal/live data must never sit in a device or proxy HTTP cache)', async () => {
+    const response = await app.inject({ method: 'GET', url: '/api/v1/health/live' });
+    expect(response.headers['cache-control']).toBe('no-store');
+  });
+
+  it('public uploads (random, never-rewritten filenames) are cacheable for a year', async () => {
+    const { mkdirSync, writeFileSync, rmSync } = await import('node:fs');
+    const path = await import('node:path');
+    const dir = path.resolve(process.cwd(), 'uploads');
+    mkdirSync(dir, { recursive: true });
+    const file = path.join(dir, 'cache-header-test.txt');
+    writeFileSync(file, 'x');
+    try {
+      const response = await app.inject({ method: 'GET', url: '/uploads/cache-header-test.txt' });
+      expect(response.statusCode).toBe(200);
+      expect(response.headers['cache-control']).toContain('max-age=31536000');
+      expect(response.headers['cache-control']).toContain('immutable');
+    } finally {
+      rmSync(file, { force: true });
+    }
+  });
 });

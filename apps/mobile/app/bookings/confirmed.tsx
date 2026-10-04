@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { useListMyBookingsQuery } from '../../src/state/api';
 import { CancellationSheet } from '../../src/features/bookings/CancellationSheet';
 import { formatCalendarDate, formatCurrency, formatDateTime, formatTime, toIntlTag } from '../../src/utils/localeFormat';
+import { useFocusAwarePolling } from '../../src/hooks/useFocusAwarePolling';
 
 // How often to re-poll bookings while waiting for a driver response. There
 // is no push/websocket channel into this specific screen — Phase 7's push
@@ -45,9 +46,10 @@ export default function ConfirmedScreen(): React.JSX.Element {
   const [nowMs, setNowMs] = useState(() => Date.now());
   const [cancelSheetVisible, setCancelSheetVisible] = useState(false);
 
+  const bookingsPolling = useFocusAwarePolling(POLL_MS);
   const { data: bookings } = useListMyBookingsQuery(undefined, {
     skip: !params.bookingId,
-    pollingInterval: POLL_MS,
+    ...bookingsPolling,
   });
   const booking = bookings?.find((b) => b.id === params.bookingId);
   const expiresAtMs = booking?.expiresAt ? new Date(booking.expiresAt).getTime() : null;
