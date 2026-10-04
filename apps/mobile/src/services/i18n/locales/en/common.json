@@ -115,5 +115,8 @@
     "new": "New",
     "trusted": "Trusted",
     "top_rated": "Top VAYA"
+  },
+  "map": {
+    "approximateRoute": "Approximate route — road directions unavailable right now"
   }
 }

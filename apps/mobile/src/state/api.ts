@@ -129,6 +129,15 @@ export interface PassengerPoint {
   walkMinutes: number;
 }
 
+/** GET /rides/:rideId/itinerary-route. `polyline` is null when no routing
+ *  engine was reachable — draw an explicitly approximate line through
+ *  `points` (travel order) then, never present it as a road. */
+export interface RideItineraryRoute {
+  polyline: string | null;
+  points: { lat: number; lng: number }[];
+  isEstimate: boolean;
+}
+
 export interface MatchCandidate {
   rideId: string;
   driverUserId: string;
@@ -1133,6 +1142,19 @@ export const api = createApi({
     // Public, passenger-facing: only the driver-selected stops (no `?all=true`),
     // for the ride-details.tsx stop timeline — the same list a passenger's
     // pickup selection is drawn from, just for a single already-chosen ride.
+    // The road itinerary a trip's map draws (apps/api itinerary-route.
+    // service.ts): the driver's whole trip through every accepted
+    // passenger's pickup/dropoff, or a passenger's own pickup -> dropoff.
+    // Tagged with the request/booking tags so accepting, declining or
+    // cancelling a passenger redraws it.
+    getRideItineraryRoute: builder.query<RideItineraryRoute, string>({
+      query: (rideId) => `/rides/${rideId}/itinerary-route`,
+      providesTags: (result, error, rideId) => [
+        { type: 'RideStops', id: rideId },
+        'RideRequests',
+        'MyBookings',
+      ],
+    }),
     getRideStops: builder.query<RouteStop[], string>({
       query: (rideId) => `/rides/${rideId}/stops`,
       providesTags: (result, error, rideId) => [{ type: 'RideStops', id: rideId }],
@@ -1437,6 +1459,7 @@ export const {
   useUpdateRideStopsMutation,
   useAddCustomStopMutation,
   useGetRideStopsQuery,
+  useGetRideItineraryRouteQuery,
   useLazyGetRideStopsForDriverQuery,
   useCreateBookingMutation,
   useListFellowPassengersQuery,

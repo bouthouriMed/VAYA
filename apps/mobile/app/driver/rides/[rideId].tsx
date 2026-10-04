@@ -29,6 +29,7 @@ import {
 import {
   useGetRideQuery,
   useGetRideStopsQuery,
+  useGetRideItineraryRouteQuery,
   useListRequestsForRideQuery,
   useAcceptBookingMutation,
   useDeclineBookingMutation,
@@ -41,6 +42,7 @@ import {
   type TripStatus,
 } from '../../../src/state/api';
 import { decodePolyline, routeOrderFraction, haversineKm, sliceRouteBetween } from '../../../src/utils/polyline';
+import { orderAlongStraightLine, resolveItineraryLine } from '../../../src/features/trip-shared/itineraryRoute';
 import { DriverBookingDetailSheet } from '../../../src/features/driver-rides/DriverBookingDetailSheet';
 import { RequestDetailSheet } from '../../../src/features/driver-rides/RequestDetailSheet';
 import { ManageRideSheet } from '../../../src/features/driver-rides/ManageRideSheet';
@@ -248,6 +250,7 @@ export default function DriverRideHubScreen(): React.JSX.Element {
   const { data: ride, isLoading: isRideLoading, isError: isRideError, refetch: refetchRide } = useGetRideQuery(rideId);
   const { data: requests, isLoading: isRequestsLoading } = useListRequestsForRideQuery(rideId);
   const { data: stops } = useGetRideStopsQuery(rideId);
+  const { data: itineraryRoute } = useGetRideItineraryRouteQuery(rideId);
 
   const pending = (requests ?? []).filter((r) => r.status === 'pending');
   const answered = (requests ?? []).filter((r) => r.status !== 'pending');
@@ -334,7 +337,9 @@ export default function DriverRideHubScreen(): React.JSX.Element {
     }
   }
 
-  const routeCoordinates = ride?.routePolyline ? decodePolyline(ride.routePolyline) : [];
+  // The ride's stored road route — used to order passenger points along the
+  // trip and derive their ETAs (unchanged), not as the only thing drawn.
+  const storedRouteCoordinates = ride?.routePolyline ? decodePolyline(ride.routePolyline) : [];
   // Only the driver-selected stops (the endpoint already filters to these —
   // see getRideStops's own comment), in route order. The publish flow
   // confirms exactly a pickup then a dropoff, so 2 real stops is the normal
@@ -393,7 +398,8 @@ export default function DriverRideHubScreen(): React.JSX.Element {
           const originLatLng = { latitude: ride!.originLat, longitude: ride!.originLng };
           const pickupLatLng = { latitude: booking.pickupLat, longitude: booking.pickupLng };
           if (haversineKm(pickupLatLng, originLatLng) * 1000 > DISTINCT_FROM_ENDPOINT_KM * 1000) {
-            const fraction = routeCoordinates.length > 1 ? routeOrderFraction(routeCoordinates, pickupLatLng) : 0;
+            const fraction =
+              storedRouteCoordinates.length > 1 ? routeOrderFraction(storedRouteCoordinates, pickupLatLng) : 0;
             points.push({
               bookingId: booking.id,
               kind: 'pickup',
@@ -414,7 +420,8 @@ export default function DriverRideHubScreen(): React.JSX.Element {
           const destinationLatLng = { latitude: ride!.destinationLat, longitude: ride!.destinationLng };
           const dropoffLatLng = { latitude: dropoffLat, longitude: dropoffLng };
           if (haversineKm(dropoffLatLng, destinationLatLng) * 1000 > DISTINCT_FROM_ENDPOINT_KM * 1000) {
-            const fraction = routeCoordinates.length > 1 ? routeOrderFraction(routeCoordinates, dropoffLatLng) : 1;
+            const fraction =
+              storedRouteCoordinates.length > 1 ? routeOrderFraction(storedRouteCoordinates, dropoffLatLng) : 1;
             points.push({
               bookingId: booking.id,
               kind: 'dropoff',
@@ -434,6 +441,30 @@ export default function DriverRideHubScreen(): React.JSX.Element {
         })
         .sort((a, b) => a.fraction - b.fraction)
     : [];
+
+  // What the maps draw as the route (GET /rides/:id/itinerary-route): the
+  // driver's real road itinerary through every accepted passenger's pickup/
+  // dropoff. Previously only ride.routePolyline was drawn — empty whenever
+  // routing was unreachable at publish time (the expanded map then showed
+  // two pins and no route), and never passing through a passenger picked
+  // up beside the original route. Without any road geometry, an explicitly
+  // approximate line joins origin -> passengers' points -> destination.
+  const itineraryLine = resolveItineraryLine(
+    itineraryRoute,
+    storedRouteCoordinates,
+    ride
+      ? [
+          { latitude: ride.originLat, longitude: ride.originLng },
+          ...orderAlongStraightLine(
+            { latitude: ride.originLat, longitude: ride.originLng },
+            { latitude: ride.destinationLat, longitude: ride.destinationLng },
+            passengerItineraryPoints.map((p) => ({ latitude: p.lat, longitude: p.lng })),
+          ),
+          { latitude: ride.destinationLat, longitude: ride.destinationLng },
+        ]
+      : [],
+  );
+  const routeCoordinates = itineraryLine.coordinates;
 
   // The threaded itinerary (2026-08-31 overlap-clarity fix,
   // docs/domain/ride-engine.md): turns the same real, route-order-sorted
@@ -878,11 +909,18 @@ export default function DriverRideHubScreen(): React.JSX.Element {
                           : theme.accentStrong
                     }
                     strokeWidth={segment.onboardSeats >= 2 ? 6 : segment.onboardSeats === 1 ? 5 : 4}
-                    lineDashPattern={segment.onboardSeats === 0 ? [8, 8] : undefined}
+                    lineDashPattern={segment.onboardSeats === 0 || itineraryLine.isApproximate ? [8, 8] : undefined}
                   />
                 ))
               : routeCoordinates.length > 1
-                ? <Polyline coordinates={routeCoordinates} strokeColor={theme.ink} strokeWidth={4} />
+                ? (
+                    <Polyline
+                      coordinates={routeCoordinates}
+                      strokeColor={theme.ink}
+                      strokeWidth={4}
+                      lineDashPattern={itineraryLine.isApproximate ? [8, 8] : undefined}
+                    />
+                  )
                 : null}
             <Marker
               coordinate={
@@ -932,6 +970,16 @@ export default function DriverRideHubScreen(): React.JSX.Element {
               )}
             </Marker>
           </MapCanvas>
+          {itineraryLine.isApproximate ? (
+            <View
+              style={[styles.approxRouteNote, { top: insets.top + spacing.sm, backgroundColor: theme.surface }]}
+              accessibilityRole="text"
+            >
+              <Text variant="caption" color={theme.inkMuted}>
+                {t('common:map.approximateRoute')}
+              </Text>
+            </View>
+          ) : null}
           <View style={[styles.routeModalClose, { top: insets.top + spacing.sm }]}>
             <HeaderIconButton
               icon="close"
@@ -1004,6 +1052,14 @@ const styles = StyleSheet.create({
   },
   routeModalMap: {
     flex: 1,
+  },
+  approxRouteNote: {
+    position: 'absolute',
+    left: spacing.lg,
+    right: 72,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: radii.lg,
   },
   routeModalClose: {
     position: 'absolute',

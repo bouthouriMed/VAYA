@@ -28,6 +28,7 @@ import {
 } from './stop-candidates.service.js';
 import { listCityDetourCandidates } from './city-detour-candidates.service.js';
 import { getRouteOptions } from './route-options.service.js';
+import { getRideItineraryRoute } from './itinerary-route.service.js';
 import { RATE_LIMITS } from '../../lib/rate-limit.js';
 
 const rideSchema = z.object({
@@ -213,6 +214,30 @@ export async function ridesRoutes(fastify: FastifyInstance): Promise<void> {
     async (request, reply) => {
       const ride = await getRideById(db, request.params.rideId);
       reply.send(ride);
+    },
+  );
+
+  // The road itinerary a trip's map draws for the viewer — the driver's
+  // whole trip through every accepted passenger's pickup/dropoff, or a
+  // passenger's own pickup -> dropoff leg (itinerary-route.service.ts).
+  app.get(
+    '/rides/:rideId/itinerary-route',
+    {
+      config: { rateLimit: RATE_LIMITS.routingPreview },
+      onRequest: [fastify.authenticate],
+      schema: {
+        params: rideIdParamSchema,
+        response: {
+          200: z.object({
+            polyline: z.string().nullable(),
+            points: z.array(z.object({ lat: z.number(), lng: z.number() })),
+            isEstimate: z.boolean(),
+          }),
+        },
+      },
+    },
+    async (request, reply) => {
+      reply.send(await getRideItineraryRoute(db, request.params.rideId, getUserId(request)));
     },
   );
 

@@ -214,6 +214,8 @@ function mockApi(requests: Booking[], tripsByBookingId: Record<string, Trip> = {
   vi.doMock('../state/api', () => ({
     useGetRideQuery: (): QueryResult<Ride> => ({ data: RIDE }),
     useGetRideStopsQuery: (): QueryResult<RouteStop[]> => ({ data: RIDE_STOPS }),
+    // Itinerary not loaded yet — the screen falls back to the stored route.
+    useGetRideItineraryRouteQuery: (): QueryResult<unknown> => ({ data: undefined }),
     useListRequestsForRideQuery: (): QueryResult<Booking[]> => ({ data: requests }),
     useAcceptBookingMutation: (): MutationTuple => mockMutation(),
     useDeclineBookingMutation: (): MutationTuple => mockMutation(),
