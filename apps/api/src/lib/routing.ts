@@ -1,6 +1,6 @@
 import { getEnv } from '../config/env.js';
 import { getLogger } from '../config/logger.js';
-import { getRedis } from './redis.js';
+import { cacheGetJson, cacheSetJson } from './cache.js';
 import { haversineDistanceMeters } from './geo.js';
 import { decodePolyline } from './polyline.js';
 import {
@@ -189,25 +189,16 @@ export async function getRoute(
   const key =
     `route:${origin.lat.toFixed(5)},${origin.lng.toFixed(5)}:${destination.lat.toFixed(5)},${destination.lng.toFixed(5)}` +
     (waypointKey ? `:via:${waypointKey}` : '');
-  const redis = getRedis();
-
-  if (redis) {
-    const hit = await redis.get(key);
-    if (hit) return JSON.parse(hit) as RouteResult;
-  }
+  // Best-effort cache (lib/cache.ts): a Redis outage costs a routing call,
+  // never the request.
+  const hit = await cacheGetJson<RouteResult>(key);
+  if (hit) return hit;
 
   const result =
     (await getRoutingProvider().computeRoute(origin, destination, waypoints)) ??
     fallbackRoute([origin, ...waypoints, destination]);
 
-  if (redis) {
-    await redis.set(
-      key,
-      JSON.stringify(result),
-      'EX',
-      result.isEstimate ? FALLBACK_CACHE_TTL_SEC : CACHE_TTL_SEC,
-    );
-  }
+  await cacheSetJson(key, result, result.isEstimate ? FALLBACK_CACHE_TTL_SEC : CACHE_TTL_SEC);
   return result;
 }
 
@@ -239,12 +230,8 @@ export async function getRouteAlternatives(
   const key =
     `route-alts:${origin.lat.toFixed(5)},${origin.lng.toFixed(5)}:${destination.lat.toFixed(5)},${destination.lng.toFixed(5)}` +
     (waypointKey ? `:via:${waypointKey}` : '');
-  const redis = getRedis();
-
-  if (redis) {
-    const hit = await redis.get(key);
-    if (hit) return JSON.parse(hit) as RouteAlternative[];
-  }
+  const hit = await cacheGetJson<RouteAlternative[]>(key);
+  if (hit) return hit;
 
   const provided = await getRoutingProvider().computeRouteAlternatives(origin, destination, waypoints);
   const result: RouteAlternative[] =
@@ -252,14 +239,7 @@ export async function getRouteAlternatives(
       ? provided
       : [{ ...fallbackRoute([origin, ...waypoints, destination]), kind: 'fastest', hasTolls: null }];
 
-  if (redis) {
-    const anyEstimate = result.some((r) => r.isEstimate);
-    await redis.set(
-      key,
-      JSON.stringify(result),
-      'EX',
-      anyEstimate ? ALTERNATIVES_FALLBACK_CACHE_TTL_SEC : ALTERNATIVES_CACHE_TTL_SEC,
-    );
-  }
+  const anyEstimate = result.some((r) => r.isEstimate);
+  await cacheSetJson(key, result, anyEstimate ? ALTERNATIVES_FALLBACK_CACHE_TTL_SEC : ALTERNATIVES_CACHE_TTL_SEC);
   return result;
 }

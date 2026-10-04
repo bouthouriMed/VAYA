@@ -1,6 +1,6 @@
 import type { LocationPoint, LocationPrediction, LocationType } from '@vaya/validation';
 import { getLogger } from '../../../config/logger.js';
-import { getRedis } from '../../../lib/redis.js';
+import { cacheGetJson, cacheSetJson } from '../../../lib/cache.js';
 import type { LocationProvider } from './location-provider.types.js';
 
 /**
@@ -144,21 +144,11 @@ export class NominatimProvider implements LocationProvider {
       // Stash full results so resolveLocation (called after the user picks
       // one) needs no second Nominatim call — a session-scoped cache, not a
       // permanent copy of Nominatim's data (expires in 10 minutes).
-      const redis = getRedis();
-      if (redis) {
-        await Promise.all(
-          points
-            .filter((p) => p.placeId)
-            .map((p) =>
-              redis.set(
-                `geo-session:${sessionToken}:${p.placeId}`,
-                JSON.stringify(p),
-                'EX',
-                SESSION_CACHE_TTL_SEC,
-              ),
-            ),
-        );
-      }
+      await Promise.all(
+        points
+          .filter((p) => p.placeId)
+          .map((p) => cacheSetJson(`geo-session:${sessionToken}:${p.placeId}`, p, SESSION_CACHE_TTL_SEC)),
+      );
 
       return points.map((p) => ({
         placeId: p.placeId ?? `nominatim:${p.latitude}:${p.longitude}`,
@@ -173,9 +163,7 @@ export class NominatimProvider implements LocationProvider {
   }
 
   async resolveLocation(placeId: string, sessionToken: string): Promise<LocationPoint | null> {
-    const redis = getRedis();
-    if (!redis) return null;
-    const cached = await redis.get(`geo-session:${sessionToken}:${placeId}`);
+    const cached = await cacheGetJson<LocationPoint>(`geo-session:${sessionToken}:${placeId}`);
     if (!cached) {
       getLogger().warn(
         { provider: 'nominatim', placeId },
@@ -183,7 +171,7 @@ export class NominatimProvider implements LocationProvider {
       );
       return null;
     }
-    return JSON.parse(cached) as LocationPoint;
+    return cached;
   }
 
   async reverseGeocode(lat: number, lng: number): Promise<LocationPoint | null> {

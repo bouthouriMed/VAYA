@@ -8,6 +8,7 @@ const mockQueue = {
 
 vi.mock('../../../lib/queue.js', () => ({
   getNotificationDispatchQueue: vi.fn(() => mockQueue),
+  withQueueTimeout: <T>(operation: Promise<T>) => operation,
 }));
 
 // Imported after the mock so it picks up the mocked module.

@@ -1,4 +1,4 @@
-import { getNotificationDispatchQueue } from '../../lib/queue.js';
+import { getNotificationDispatchQueue, withQueueTimeout } from '../../lib/queue.js';
 import { NotFoundError } from '../../lib/errors.js';
 
 /**
@@ -22,7 +22,7 @@ export async function listFailedJobs(limit: number): Promise<FailedJobSummary[]>
   const queue = getNotificationDispatchQueue();
   if (!queue) return [];
 
-  const jobs = await queue.getFailed(0, Math.max(0, limit - 1));
+  const jobs = await withQueueTimeout(queue.getFailed(0, Math.max(0, limit - 1)));
   return jobs.map((job) => ({
     id: job.id ?? '',
     name: job.name,
@@ -37,7 +37,7 @@ export async function listFailedJobs(limit: number): Promise<FailedJobSummary[]>
 export async function getFailedJobCount(): Promise<number> {
   const queue = getNotificationDispatchQueue();
   if (!queue) return 0;
-  return queue.getFailedCount();
+  return withQueueTimeout(queue.getFailedCount());
 }
 
 /** Re-enqueues a specific failed job for another attempt — the admin-panel
@@ -49,8 +49,8 @@ export async function retryFailedJob(jobId: string): Promise<void> {
   const queue = getNotificationDispatchQueue();
   if (!queue) throw new NotFoundError('Queue is unavailable (no REDIS_URL configured)');
 
-  const job = await queue.getJob(jobId);
+  const job = await withQueueTimeout(queue.getJob(jobId));
   if (!job) throw new NotFoundError(`No job found with id ${jobId}`);
 
-  await job.retry();
+  await withQueueTimeout(job.retry());
 }

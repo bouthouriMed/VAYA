@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { getRedis } from '../../lib/redis.js';
+import { cacheDel, cacheGetJson, cacheSetJson } from '../../lib/cache.js';
 import { getRouteAlternatives, type RoutePoint } from '../../lib/routing.js';
 import type { RouteOptionKind } from '../../lib/routing-providers/index.js';
 
@@ -77,23 +77,22 @@ export async function getRouteOptions(
   destination: RoutePoint,
 ): Promise<RouteOptionsResult> {
   const alternatives = await getRouteAlternatives(origin, destination);
-  const redis = getRedis();
 
   const options: RouteOption[] = await Promise.all(
     alternatives.map(async (alt, index) => {
       const token = randomUUID();
-      if (redis) {
-        const cached: CachedRouteToken = {
-          origin,
-          destination,
-          kind: alt.kind,
-          distanceM: alt.distanceM,
-          durationSec: alt.durationSec,
-          polyline: alt.polyline,
-          isEstimate: alt.isEstimate,
-        };
-        await redis.set(routeTokenKey(token), JSON.stringify(cached), 'EX', ROUTE_TOKEN_TTL_SEC);
-      }
+      // Best-effort: if the token can't be stored, redeeming it later just
+      // misses and createRide computes the default route (see below).
+      const cached: CachedRouteToken = {
+        origin,
+        destination,
+        kind: alt.kind,
+        distanceM: alt.distanceM,
+        durationSec: alt.durationSec,
+        polyline: alt.polyline,
+        isEstimate: alt.isEstimate,
+      };
+      await cacheSetJson(routeTokenKey(token), cached, ROUTE_TOKEN_TTL_SEC);
       return {
         token,
         kind: alt.kind,
@@ -130,13 +129,9 @@ export async function redeemRouteToken(
   expectedOrigin: RoutePoint,
   expectedDestination: RoutePoint,
 ): Promise<CachedRouteToken | null> {
-  const redis = getRedis();
-  if (!redis) return null;
+  const cached = await cacheGetJson<CachedRouteToken>(routeTokenKey(token));
+  if (!cached) return null;
 
-  const raw = await redis.get(routeTokenKey(token));
-  if (!raw) return null;
-
-  const cached = JSON.parse(raw) as CachedRouteToken;
   const originMatches =
     sameCoordinate(cached.origin.lat, expectedOrigin.lat) &&
     sameCoordinate(cached.origin.lng, expectedOrigin.lng);
@@ -145,6 +140,6 @@ export async function redeemRouteToken(
     sameCoordinate(cached.destination.lng, expectedDestination.lng);
   if (!originMatches || !destinationMatches) return null;
 
-  await redis.del(routeTokenKey(token));
+  await cacheDel(routeTokenKey(token));
   return cached;
 }

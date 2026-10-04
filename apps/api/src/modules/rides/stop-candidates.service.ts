@@ -2,8 +2,7 @@ import { and, asc, eq } from 'drizzle-orm';
 import { createHash } from 'node:crypto';
 import type { getDatabase } from '../../lib/database.js';
 import { routeStops, rides } from '../../db/schema/index.js';
-import { cached } from '../../lib/cache.js';
-import { getRedis } from '../../lib/redis.js';
+import { cached, cacheGet, cacheSet } from '../../lib/cache.js';
 import { getLogger } from '../../config/logger.js';
 import { haversineDistanceMeters } from '../../lib/geo.js';
 import { nearestRoad, getRouteWithSpeedProfile, type RoutePoint } from '../../lib/routing.js';
@@ -532,7 +531,6 @@ export async function generateCandidateStopsForRide(
   ).type;
 
   const hash = hashPolyline(ride.routePolyline);
-  const redis = getRedis();
   const hashKey = `route-stops:ride-hash:${rideId}`;
 
   const existing = await db.query.routeStops.findMany({
@@ -540,7 +538,7 @@ export async function generateCandidateStopsForRide(
     orderBy: asc(routeStops.sequence),
   });
 
-  const storedHash = redis ? await redis.get(hashKey) : null;
+  const storedHash = await cacheGet(hashKey);
   if (existing.length > 0 && storedHash === hash) {
     return { stops: existing, osrmUnavailable: false, regenerated: false, tripProfileType };
   }
@@ -569,7 +567,7 @@ export async function generateCandidateStopsForRide(
       .returning();
   }
 
-  if (redis) await redis.set(hashKey, hash, 'EX', RIDE_HASH_TTL_SEC);
+  await cacheSet(hashKey, hash, RIDE_HASH_TTL_SEC);
 
   return { stops: inserted, osrmUnavailable: false, regenerated: true, tripProfileType };
 }

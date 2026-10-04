@@ -2,7 +2,7 @@ import { eq } from 'drizzle-orm';
 import { classifyTripProfile, VIA_STOP_DETOUR_BUDGET, type TripProfileType } from '@vaya/domain';
 import { decodePolyline, projectPointOntoRoute, type LatLng } from '../../lib/polyline.js';
 import { haversineDistanceMeters } from '../../lib/geo.js';
-import { getRedis } from '../../lib/redis.js';
+import { cacheGetJson, cacheSetJson } from '../../lib/cache.js';
 import { queryNearbyPlaces, type OverpassPlace } from '../../lib/overpass.js';
 import { queryGoogleNearbyLocalities } from '../../lib/google-nearby-places.js';
 import { routeStops } from '../../db/schema/index.js';
@@ -286,11 +286,8 @@ export async function computeCityDetourCandidates(
   const hash = hashPolyline(routePolyline);
   const cacheKey = `route-stops:city-candidates:v4:${profile.type}:${hash}`;
 
-  const redis = getRedis();
-  if (redis) {
-    const hit = await redis.get(cacheKey);
-    if (hit) return JSON.parse(hit) as CityDetourCandidate[];
-  }
+  const hit = await cacheGetJson<CityDetourCandidate[]>(cacheKey);
+  if (hit) return hit;
 
   const samples = sampleRoutePoints(points, [], intervalM);
 
@@ -308,8 +305,8 @@ export async function computeCityDetourCandidates(
   // An empty result is either a genuine "no real cities near this route"
   // (rare, cheap to recompute) or transient infra trouble (should retry
   // next call) — either way, only a non-empty result is worth caching.
-  if (redis && result.length > 0) {
-    await redis.set(cacheKey, JSON.stringify(result), 'EX', CITY_CANDIDATE_CACHE_TTL_SEC);
+  if (result.length > 0) {
+    await cacheSetJson(cacheKey, result, CITY_CANDIDATE_CACHE_TTL_SEC);
   }
 
   return result;
