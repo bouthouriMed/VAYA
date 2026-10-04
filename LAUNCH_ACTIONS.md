@@ -16,7 +16,7 @@ Each item: **exact action → why → exact credential/config → where → how 
 - **Verify**: `pnpm --filter @vaya/api preflight` (with `DATABASE_URL` exported) reports `✓ Database (DATABASE_URL): reachable`. Then `pnpm --filter @vaya/api db:migrate` should complete with no errors, followed by `pnpm --filter @vaya/api verify-migrations` (checked automatically in CI too).
 
 ### 2. Provision production Redis
-- **Action**: Create a managed Redis instance (ElastiCache, Upstash, Redis Cloud, etc.). TLS-enabled (`rediss://`) is supported natively.
+- **Action**: On the Oracle VM deployment (`docker/docker-compose.oracle.yml`), Redis is now a self-hosted container — just set `REDIS_PASSWORD` in `docker/.env.prod` (`openssl rand -hex 32`); `REDIS_URL` is derived from it. Elsewhere, create a managed Redis instance (ElastiCache, Redis Cloud, etc.; TLS `rediss://` is supported natively). Avoid per-command-billed plans such as Upstash's free tier: the BullMQ worker and healthchecks issue commands around the clock, and the 500k/month limit was exhausted in production (2026-10-04).
 - **Why**: Without it the app still boots (degrades gracefully) but push/email notifications, the recurring-pattern scan, and rate-limit backing all silently stop working — a real, user-visible functionality loss, not a crash.
 - **Credential/config**: `REDIS_URL`.
 - **Where**: Same secret store as above.

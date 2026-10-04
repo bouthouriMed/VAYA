@@ -2,10 +2,18 @@
 # LAUNCH_ACTIONS.md for the manual provisioning steps). Unlike
 # docker-compose.prod.yml (which spins up its own local Postgres/Redis for a
 # closest-to-prod *local* dry run), this compose file has NO database/cache
-# containers at all — DATABASE_URL/REDIS_URL in .env.prod point at real
-# managed services (Supabase/Upstash), matching how this app actually runs
-# once deployed anywhere else too (a real orchestrator never colocates the
-# database with the app process either).
+# database container — DATABASE_URL in .env.prod points at managed Postgres
+# (Supabase: backups + PostGIS handled by the provider).
+#
+# Redis IS self-hosted here (the `redis` service below), replacing Upstash:
+# Upstash bills per command and the plan's monthly limit was exhausted in
+# production (Sentry VAYA-API-6). Redis only holds a best-effort cache and
+# the BullMQ job queue, so colocating it on this VM is low-risk — the API
+# keeps serving requests if it's down (apps/api/src/lib/cache.ts). It is
+# never exposed outside the Docker network and requires a password:
+# set REDIS_PASSWORD in .env.prod (e.g. `openssl rand -hex 32`). REDIS_URL
+# for the api/worker is derived from it below, overriding any REDIS_URL
+# still present in .env.prod.
 #
 # Adds one thing docker-compose.prod.yml doesn't need: a Caddy reverse proxy
 # in front of the API, terminating real automatic HTTPS (Let's Encrypt) so
@@ -15,6 +23,7 @@
 #
 # Usage: from the repo root, on the VM,
 #   cp apps/api/.env.example docker/.env.prod   # fill in real values
+#   echo "REDIS_PASSWORD=$(openssl rand -hex 32)" >> docker/.env.prod
 #   docker compose -f docker/docker-compose.oracle.yml --env-file docker/.env.prod up -d --build
 #
 # Then, from a machine with network access to the real DATABASE_URL (this
@@ -38,8 +47,12 @@ services:
       # image's own ENV NODE_ENV=production and switch off every production
       # safety check (insecure-default refusal, CORS/secret validation).
       NODE_ENV: production
+      REDIS_URL: redis://:${REDIS_PASSWORD:?Set REDIS_PASSWORD in docker/.env.prod}@redis:6379
     expose:
       - '3000'
+    depends_on:
+      redis:
+        condition: service_healthy
 
   worker:
     build:
@@ -50,6 +63,40 @@ services:
       - .env.prod
     environment:
       NODE_ENV: production
+      REDIS_URL: redis://:${REDIS_PASSWORD:?Set REDIS_PASSWORD in docker/.env.prod}@redis:6379
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  # Self-hosted Redis (see the header comment). No `ports:` — reachable only
+  # by the api/worker containers on this compose network, never from the
+  # internet. Append-only persistence on a named volume, so queued jobs
+  # (push notifications, sweeps) survive a restart. `noeviction` is what
+  # BullMQ requires (an evicted queue key corrupts the queue); cache keys all
+  # carry a TTL, and if memory ever fills, cache writes simply fail — which
+  # the API already treats as a cache miss.
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?Set REDIS_PASSWORD in docker/.env.prod}
+    command:
+      - sh
+      - -c
+      - >-
+        exec redis-server
+        --requirepass "$$REDIS_PASSWORD"
+        --appendonly yes
+        --appendfsync everysec
+        --maxmemory 512mb
+        --maxmemory-policy noeviction
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD-SHELL', 'redis-cli -a "$$REDIS_PASSWORD" --no-auth-warning ping | grep -q PONG']
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   caddy:
     image: caddy:2-alpine
@@ -65,5 +112,6 @@ services:
       - api
 
 volumes:
+  redis_data:
   caddy_data:
   caddy_config:
