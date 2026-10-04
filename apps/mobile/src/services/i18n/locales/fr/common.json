@@ -115,5 +115,8 @@
     "new": "Nouveau",
     "trusted": "Confiance",
     "top_rated": "Top VAYA"
+  },
+  "map": {
+    "approximateRoute": "Tracé approximatif — itinéraire routier indisponible pour le moment"
   }
 }

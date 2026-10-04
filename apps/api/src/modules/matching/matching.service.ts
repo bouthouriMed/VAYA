@@ -152,6 +152,30 @@ export function deriveMatchingThresholds(input: MatchingSearchInput): MatchingTh
   return getMatchingThresholds(profile.type);
 }
 
+/** The passenger's own requested journey, echoed onto every candidate —
+ *  see MatchCandidate.passengerJourney. */
+function passengerJourneyOf(input: MatchingSearchInput): MatchCandidate['passengerJourney'] {
+  return {
+    originLat: input.originLat,
+    originLng: input.originLng,
+    destinationLat: input.destinationLat,
+    destinationLng: input.destinationLng,
+  };
+}
+
+/**
+ * How far a passenger is ever asked to walk between their own requested
+ * point and a driver-selected stop: the trip profile's TIGHT radius (e.g.
+ * ~1-1.5km for a short urban commute, a few km for intercity, where a
+ * city-center geocode legitimately sits that far from the highway stop).
+ * Previously every on-route tier ranked stops against a flat 8km cutoff, so
+ * a stop at the driver's final destination (La Marsa) counted as a
+ * "walkable" dropoff for a passenger going to Lac 2, several km earlier.
+ */
+function passengerWalkCaps(thresholds: MatchingThresholds): { pickupM: number; dropoffM: number } {
+  return { pickupM: thresholds.tightPickupRadiusM, dropoffM: thresholds.tightDropoffRadiusM };
+}
+
 /**
  * M-039: the normalization ceiling `pickRecommendedStopId` uses for a
  * candidate stop's driver-side deviation component — the largest real
@@ -173,6 +197,29 @@ function clamp01(n: number): number {
 export interface RankedStop {
   stopId: string;
   label: string;
+  lat: number;
+  lng: number;
+  walkMinutes: number;
+  /** The stop's position along the driver's route (route_stops.sequence) —
+   *  lets a client keep a chosen dropoff strictly after a chosen pickup
+   *  without a second fetch. Null only when the caller ranked bare points
+   *  with no route order. */
+  sequence: number | null;
+}
+
+/**
+ * Where THIS passenger actually gets into / out of the car — always a point
+ * resolved near the passenger's OWN requested origin/destination, never the
+ * driver's own endpoint standing in for it. `stopId` is the driver-selected
+ * route_stop it resolves to; null when it is the ride's own origin/
+ * destination (a legacy stop-less ride whose endpoint is itself within
+ * reach) or, for a 'detour' match, the passenger's own searched point.
+ */
+export interface PassengerPoint {
+  stopId: string | null;
+  /** The stop's / ride endpoint's label; null for a 'detour' match (the
+   *  passenger's own searched label, which the client already holds). */
+  label: string | null;
   lat: number;
   lng: number;
   walkMinutes: number;
@@ -202,10 +249,32 @@ export interface MatchCandidate {
   score: number;
   reasons: string[];
   clusterLabel: string;
+  /** The DRIVER's own ride endpoints (e.g. Cité Tahrir -> La Marsa) — used
+   *  only to draw/understand the driver's corridor. Never passenger-facing:
+   *  a passenger result shows `passengerJourney` and `pickupPoint`/
+   *  `dropoffPoint` instead. */
   originLat: number;
   originLng: number;
   destinationLat: number;
   destinationLng: number;
+  /** The passenger's OWN requested journey (e.g. Menzah 6 -> Lac 2), echoed
+   *  verbatim from the search input — the authoritative origin/destination
+   *  for every passenger-facing label, map and time. The driver's route is
+   *  only the corridor this journey is a sub-segment of. */
+  passengerJourney: {
+    originLat: number;
+    originLng: number;
+    destinationLat: number;
+    destinationLng: number;
+  };
+  /** The resolved boarding point near the passenger's origin (see
+   *  PassengerPoint). Null only when the ride has driver-selected stops but
+   *  none is walkable from the passenger's origin (`pickupViable: false`). */
+  pickupPoint: PassengerPoint | null;
+  /** The resolved alighting point near the passenger's destination — always
+   *  strictly after `pickupPoint` along the driver's route. Null only when
+   *  no such point exists (`dropoffViable: false`). */
+  dropoffPoint: PassengerPoint | null;
   routePolyline: string | null;
   /** This ride's driver-selected route_stops (docs/domain/ride-engine.md),
    *  ranked by walk-distance from the passenger's requested origin,
@@ -297,7 +366,7 @@ export interface MatchCandidate {
  */
 export function rankStopsByWalkDistance(
   point: { lat: number; lng: number },
-  stops: { id: string; label: string; lat: number; lng: number }[],
+  stops: { id: string; label: string; lat: number; lng: number; sequence?: number }[],
   maxRadiusM: number = WIDE_PICKUP_RADIUS_M,
 ): RankedStop[] {
   return stops
@@ -310,6 +379,7 @@ export function rankStopsByWalkDistance(
       lat: stop.lat,
       lng: stop.lng,
       walkMinutes: distanceM / WALK_SPEED_M_PER_MIN,
+      sequence: stop.sequence ?? null,
     }));
 }
 
@@ -439,6 +509,184 @@ function pickRecommendedStopId(
   return ranked[0]?.stopId ?? null;
 }
 
+/** One place the passenger could board/alight, positioned along the
+ *  driver's route by `sequence` (the ride's own origin is -Infinity, its
+ *  own destination +Infinity). */
+export interface SegmentPointOption extends PassengerPoint {
+  sequence: number;
+}
+
+/**
+ * Picks the passenger's boarding/alighting pair from two preference-ordered
+ * option lists (best first): the most-preferred pickup that has ANY
+ * dropoff strictly after it along the driver's route, paired with the
+ * most-preferred such dropoff. Null when no direction-valid pair exists —
+ * a passenger is never matched by two points that merely sit on the
+ * driver's route in the wrong order (the reversed-direction case).
+ */
+export function pickDirectionalPair(
+  pickups: SegmentPointOption[],
+  dropoffs: SegmentPointOption[],
+): { pickup: SegmentPointOption; dropoff: SegmentPointOption } | null {
+  for (const pickup of pickups) {
+    const dropoff = dropoffs.find((d) => d.sequence > pickup.sequence);
+    if (dropoff) return { pickup, dropoff };
+  }
+  return null;
+}
+
+/** A ride endpoint offered as a boarding/alighting option, within its own
+ *  tier-specific reach (`maxWalkM`). */
+interface RideEndpointOption {
+  label: string;
+  lat: number;
+  lng: number;
+  maxWalkM: number;
+}
+
+export interface PassengerSegment {
+  /** Walkable pickup stops near the passenger's origin, closest first. */
+  rankedStops: RankedStop[];
+  /** Walkable dropoff stops near the passenger's destination, closest
+   *  first — only those strictly after at least one walkable pickup stop
+   *  (or every walkable one when boarding at the ride's own origin). */
+  rankedDropoffStops: RankedStop[];
+  recommendedStopId: string | null;
+  recommendedDropoffStopId: string | null;
+  pickup: PassengerPoint | null;
+  dropoff: PassengerPoint | null;
+  /** 0..1 position of `pickup`/`dropoff` along the driver's route — what
+   *  the driver's ETA to each point is derived from. */
+  pickupRouteFraction: number;
+  dropoffRouteFraction: number;
+}
+
+/**
+ * Resolves the passenger's own journey (their requested origin ->
+ * destination) as a sub-segment of a driver's route: the best walkable
+ * boarding point near the passenger's ORIGIN and the best walkable
+ * alighting point near the passenger's DESTINATION, with the pickup
+ * strictly before the dropoff along the driver's direction of travel. The
+ * driver's own origin/destination are only ever candidates here when the
+ * calling tier explicitly offers them AND they are themselves within reach
+ * of the passenger's point — never substituted for the passenger's
+ * destination just because the ride happens to end there (the reported
+ * "Menzah 6 -> Lac 2 shown as Menzah 6 -> La Marsa" bug).
+ *
+ * Pure (no I/O) — the one shared resolution every on-route tier uses.
+ */
+export function resolvePassengerSegment(params: {
+  passengerOrigin: LatLng;
+  passengerDestination: LatLng;
+  rideStops: StopRow[];
+  /** The driver's decoded route; may be empty (legacy ride). */
+  routePoints: LatLng[];
+  maxPickupWalkM: number;
+  maxDropoffWalkM: number;
+  maxDeviationM: number;
+  rideOrigin?: RideEndpointOption;
+  rideDestination?: RideEndpointOption;
+}): PassengerSegment {
+  const { passengerOrigin, passengerDestination, rideStops, routePoints } = params;
+  const rankedStops = rankStopsByWalkDistance(passengerOrigin, rideStops, params.maxPickupWalkM);
+  const walkableDropoffStops = rankStopsByWalkDistance(passengerDestination, rideStops, params.maxDropoffWalkM);
+  const recommendedStopId = pickRecommendedStopId(
+    rankedStops,
+    rideStops,
+    params.maxPickupWalkM,
+    params.maxDeviationM,
+  );
+
+  const toOption = (stop: RankedStop): SegmentPointOption => ({
+    stopId: stop.stopId,
+    label: stop.label,
+    lat: stop.lat,
+    lng: stop.lng,
+    walkMinutes: stop.walkMinutes,
+    sequence: stop.sequence ?? 0,
+  });
+  const endpointOption = (
+    endpoint: RideEndpointOption | undefined,
+    passengerPoint: LatLng,
+    sequence: number,
+  ): SegmentPointOption | null => {
+    if (!endpoint) return null;
+    const walkM = haversineDistanceMeters(passengerPoint, endpoint);
+    if (walkM > endpoint.maxWalkM) return null;
+    return {
+      stopId: null,
+      label: endpoint.label,
+      lat: endpoint.lat,
+      lng: endpoint.lng,
+      walkMinutes: walkM / WALK_SPEED_M_PER_MIN,
+      sequence,
+    };
+  };
+  // Preference order: VAYA's joint-optimum recommendation first (M-039),
+  // then everything else by walk distance.
+  const byPreference = (options: SegmentPointOption[], preferredStopId: string | null) =>
+    [...options].sort((a, b) => {
+      if (preferredStopId && a.stopId === preferredStopId) return -1;
+      if (preferredStopId && b.stopId === preferredStopId) return 1;
+      return a.walkMinutes - b.walkMinutes;
+    });
+
+  const rideOriginOption = endpointOption(params.rideOrigin, passengerOrigin, Number.NEGATIVE_INFINITY);
+  const rideDestinationOption = endpointOption(
+    params.rideDestination,
+    passengerDestination,
+    Number.POSITIVE_INFINITY,
+  );
+  const pickupOptions = byPreference(
+    [...rankedStops.map(toOption), ...(rideOriginOption ? [rideOriginOption] : [])],
+    recommendedStopId,
+  );
+
+  // A dropoff stop is only ever offered when it lies after SOME offerable
+  // pickup — a stop behind every possible boarding point can't be reached
+  // in the driver's direction of travel.
+  const earliestPickupSequence = Math.min(...pickupOptions.map((p) => p.sequence));
+  const rankedDropoffStops = walkableDropoffStops.filter(
+    (stop) => (stop.sequence ?? 0) > earliestPickupSequence,
+  );
+
+  let pair: { pickup: SegmentPointOption; dropoff: SegmentPointOption } | null = null;
+  let recommendedDropoffStopId: string | null = null;
+  for (const pickup of pickupOptions) {
+    const after = rankedDropoffStops.filter((stop) => (stop.sequence ?? 0) > pickup.sequence);
+    const recommendedAfter = pickRecommendedStopId(after, rideStops, params.maxDropoffWalkM, params.maxDeviationM);
+    const dropoffOptions = byPreference(
+      [...after.map(toOption), ...(rideDestinationOption ? [rideDestinationOption] : [])],
+      recommendedAfter,
+    );
+    const found = pickDirectionalPair([pickup], dropoffOptions);
+    if (found) {
+      pair = found;
+      recommendedDropoffStopId = recommendedAfter;
+      break;
+    }
+  }
+
+  const fractionOf = (point: SegmentPointOption, fallback: number): number => {
+    if (point.sequence === Number.NEGATIVE_INFINITY) return 0;
+    if (point.sequence === Number.POSITIVE_INFINITY) return 1;
+    if (routePoints.length < 2) return fallback;
+    return clamp01(projectPointOntoRoute(point, routePoints).fraction);
+  };
+  const stripSequence = ({ sequence: _sequence, ...point }: SegmentPointOption): PassengerPoint => point;
+
+  return {
+    rankedStops,
+    rankedDropoffStops,
+    recommendedStopId: pair ? pair.pickup.stopId : recommendedStopId,
+    recommendedDropoffStopId,
+    pickup: pair ? stripSequence(pair.pickup) : null,
+    dropoff: pair ? stripSequence(pair.dropoff) : null,
+    pickupRouteFraction: pair ? fractionOf(pair.pickup, 0) : 0,
+    dropoffRouteFraction: pair ? fractionOf(pair.dropoff, 1) : 1,
+  };
+}
+
 /**
  * M-091 (spec §30): each in-progress ride's real, already-reported live GPS
  * fix — never fabricated from the ride's (by definition, already-passed)
@@ -566,6 +814,9 @@ function buildEndpointCandidate(
     segmentsByRide: Map<string, BookingSegment[]>;
     pickupRadiusM: number;
     dropoffRadiusM: number;
+    /** Max walk to/from a driver-selected stop — see passengerWalkCaps. */
+    maxPickupWalkM: number;
+    maxDropoffWalkM: number;
     maxDeviationM: number;
   },
 ): MatchCandidate | null {
@@ -588,46 +839,71 @@ function buildEndpointCandidate(
   if (pickupDistanceM > ctx.pickupRadiusM || dropoffDistanceM > ctx.dropoffRadiusM) return null;
 
   const timeDeltaMin = Math.abs(ride.departureAt.getTime() - input.when.getTime()) / 60_000;
-  const pickupWalkMinutes = pickupDistanceM / WALK_SPEED_M_PER_MIN;
-  const dropoffWalkMinutes = dropoffDistanceM / WALK_SPEED_M_PER_MIN;
+
+  // Resolve the passenger's OWN boarding/alighting points near their own
+  // origin/destination. The ride's own endpoints remain candidates (this
+  // tier qualified the ride by them), but a walkable driver-selected stop
+  // closer to the passenger's destination — e.g. one at Lac 2 on a ride
+  // ending in La Marsa — always wins over the driver's destination.
+  const rideStops = ctx.stopsByRide.get(ride.id) ?? [];
+  const rideRoutePoints = ride.routePolyline ? decodePolyline(ride.routePolyline) : [];
+  const segment = resolvePassengerSegment({
+    passengerOrigin: ctx.origin,
+    passengerDestination: ctx.destination,
+    rideStops,
+    routePoints: rideRoutePoints,
+    maxPickupWalkM: ctx.maxPickupWalkM,
+    maxDropoffWalkM: ctx.maxDropoffWalkM,
+    maxDeviationM: ctx.maxDeviationM,
+    // A ride with driver-selected stops is boarded at a stop (createBooking
+    // requires one); only a legacy stop-less ride is boarded at its origin.
+    rideOrigin:
+      rideStops.length === 0
+        ? { label: ride.originLabel, lat: ride.originLat, lng: ride.originLng, maxWalkM: ctx.pickupRadiusM }
+        : undefined,
+    // A booking without a dropoff stop alights at the ride's destination —
+    // offered only within this tier's own dropoff radius.
+    rideDestination: {
+      label: ride.destinationLabel,
+      lat: ride.destinationLat,
+      lng: ride.destinationLng,
+      maxWalkM: ctx.dropoffRadiusM,
+    },
+  });
+  const { rankedStops, rankedDropoffStops, recommendedStopId, recommendedDropoffStopId } = segment;
+  const pickupViable = isPickupViable(rideStops.length, segment.pickup ? 1 : 0);
+  const dropoffViable = segment.dropoff !== null;
+
+  const pickupWalkMinutes = segment.pickup?.walkMinutes ?? pickupDistanceM / WALK_SPEED_M_PER_MIN;
+  const dropoffWalkMinutes = segment.dropoff?.walkMinutes ?? dropoffDistanceM / WALK_SPEED_M_PER_MIN;
+  const pickupWalkM = pickupWalkMinutes * WALK_SPEED_M_PER_MIN;
+  const dropoffWalkM = dropoffWalkMinutes * WALK_SPEED_M_PER_MIN;
 
   // Real road-geometry overlap when both routes have a polyline (rides
   // created before OSRM was wired, or seeded before a backfill, won't —
   // fall back to the old distance-ratio proxy so those still get a
   // reasonable estimate instead of a hard 0%).
-  const rideRoutePoints = ride.routePolyline ? decodePolyline(ride.routePolyline) : [];
   const routeOverlapPercent =
     ctx.riderRoutePoints.length > 0 && rideRoutePoints.length > 0
       ? 100 *
         computeRouteOverlapFraction(ctx.riderRoutePoints, rideRoutePoints, OVERLAP_CORRIDOR_WIDTH_M)
       : 100 *
         (1 -
-          (pickupDistanceM / TIGHT_PICKUP_RADIUS_M + dropoffDistanceM / TIGHT_DROPOFF_RADIUS_M) / 2);
+          (pickupWalkM / TIGHT_PICKUP_RADIUS_M + dropoffWalkM / TIGHT_DROPOFF_RADIUS_M) / 2);
 
   const score =
-    clamp01(1 - pickupDistanceM / TIGHT_PICKUP_RADIUS_M) * 0.4 +
+    clamp01(1 - pickupWalkM / TIGHT_PICKUP_RADIUS_M) * 0.4 +
     clamp01(1 - timeDeltaMin / TIGHT_TIME_WINDOW_MIN) * 0.3 +
-    clamp01(1 - dropoffDistanceM / TIGHT_DROPOFF_RADIUS_M) * 0.3;
-
-  const rideStops = ctx.stopsByRide.get(ride.id) ?? [];
-  const rankedStops = rankStopsByWalkDistance(ctx.origin, rideStops);
-  const rankedDropoffStops = rankStopsByWalkDistance(ctx.destination, rideStops);
-  const pickupViable = isPickupViable(rideStops.length, rankedStops.length);
-  const dropoffViable = isDropoffViable(rideStops.length, rankedDropoffStops.length);
-  const recommendedStopId = pickRecommendedStopId(rankedStops, rideStops, ctx.pickupRadiusM, ctx.maxDeviationM);
-  const recommendedDropoffStopId = pickRecommendedStopId(
-    rankedDropoffStops,
-    rideStops,
-    ctx.dropoffRadiusM,
-    ctx.maxDeviationM,
-  );
+    clamp01(1 - dropoffWalkM / TIGHT_DROPOFF_RADIUS_M) * 0.3;
 
   // M-081 (spec §25): the actual segment-precise capacity gate — this
   // rider's own implied pickup/dropoff stop pair (their real offered
   // resolution, not the ride-global bottleneck) checked against every
   // already-accepted booking's own segment.
-  const impliedPickupStopId = recommendedStopId ?? rankedStops[0]?.stopId;
-  const impliedDropoffStopId = recommendedDropoffStopId ?? rankedDropoffStops[0]?.stopId;
+  const impliedPickupStopId = segment.pickup ? (segment.pickup.stopId ?? undefined) : rankedStops[0]?.stopId;
+  const impliedDropoffStopId = segment.dropoff
+    ? (segment.dropoff.stopId ?? undefined)
+    : rankedDropoffStops[0]?.stopId;
   if (
     !hasSegmentCapacity(
       ctx.segmentsByRide.get(ride.id) ?? [],
@@ -658,6 +934,9 @@ function buildEndpointCandidate(
     originLng: ride.originLng,
     destinationLat: ride.destinationLat,
     destinationLng: ride.destinationLng,
+    passengerJourney: passengerJourneyOf(input),
+    pickupPoint: segment.pickup,
+    dropoffPoint: segment.dropoff,
     routePolyline: ride.routePolyline,
     rankedStops,
     rankedDropoffStops,
@@ -667,12 +946,11 @@ function buildEndpointCandidate(
     dropoffViable,
     matchType: 'endpoint',
     detour: null,
-    // Pickup ≈ the ride's own origin, by construction of this tier's own
-    // tight radius test — 0 offset is a real statement about that
-    // geometry, not a shortcut. Dropoff ≈ the ride's own full duration
-    // later, for the same reason.
-    pickupEtaSeconds: 0,
-    dropoffEtaSeconds: ride.estimatedDurationSec ?? 0,
+    // The driver's ETA to the passenger's RESOLVED points: 0 / full
+    // duration when they are the ride's own origin/destination, a
+    // route-fraction share when they are a stop partway along the route.
+    pickupEtaSeconds: Math.round((ride.estimatedDurationSec ?? 0) * segment.pickupRouteFraction),
+    dropoffEtaSeconds: Math.round((ride.estimatedDurationSec ?? 0) * segment.dropoffRouteFraction),
     detourRoutePolyline: null,
     reasons: buildReasons({
       pickupWalkMinutes,
@@ -729,6 +1007,7 @@ async function scoreCandidates(
   const stopsByRide = await fetchStopsByRide(db, rideIds);
   const segmentsByRide = await fetchAcceptedSegmentsByRide(db, rideIds, stopsByRide);
   const maxDeviationM = deriveMaxDeviationM(origin, destination);
+  const walkCaps = passengerWalkCaps(deriveMatchingThresholds(input));
 
   const scored: MatchCandidate[] = [];
   for (const ride of candidateRides) {
@@ -740,6 +1019,8 @@ async function scoreCandidates(
       segmentsByRide,
       pickupRadiusM,
       dropoffRadiusM,
+      maxPickupWalkM: walkCaps.pickupM,
+      maxDropoffWalkM: walkCaps.dropoffM,
       maxDeviationM,
     });
     if (candidate) scored.push(candidate);
@@ -820,6 +1101,7 @@ async function scorePassThroughCandidates(
   const stopsByRide = await fetchStopsByRide(db, passThroughRideIds);
   const segmentsByRide = await fetchAcceptedSegmentsByRide(db, passThroughRideIds, stopsByRide);
   const maxDeviationM = deriveMaxDeviationM(origin, destination);
+  const walkCaps = passengerWalkCaps(thresholds);
 
   const results: MatchCandidate[] = [];
   for (const ride of candidateRides) {
@@ -839,21 +1121,22 @@ async function scorePassThroughCandidates(
     const destProj = projectPointOntoRoute(destination, routePoints);
     if (destProj.fraction - originProj.fraction < MIN_ROUTE_FRACTION_GAP) continue;
 
+    // The passenger boards at a real driver-selected stop near THEIR origin
+    // and alights at one near THEIR destination, strictly in the driver's
+    // direction of travel — never at the driver's own endpoints, which are
+    // elsewhere by definition in this tier.
     const rideStops = stopsByRide.get(ride.id) ?? [];
-    const rankedStops = rankStopsByWalkDistance(origin, rideStops);
-    const rankedDropoffStops = rankStopsByWalkDistance(destination, rideStops);
-    if (rankedStops.length === 0 || rankedDropoffStops.length === 0) continue;
-    // rankStopsByWalkDistance was called with no explicit radius above, so
-    // it used its own default cutoff (WIDE_PICKUP_RADIUS_M) for both
-    // pickup and dropoff — the normalization ceiling here must match that,
-    // not candidateSearchRadiusM (a different, PostGIS-pre-filter radius).
-    const recommendedStopId = pickRecommendedStopId(rankedStops, rideStops, WIDE_PICKUP_RADIUS_M, maxDeviationM);
-    const recommendedDropoffStopId = pickRecommendedStopId(
-      rankedDropoffStops,
+    const segment = resolvePassengerSegment({
+      passengerOrigin: origin,
+      passengerDestination: destination,
       rideStops,
-      WIDE_PICKUP_RADIUS_M,
+      routePoints,
+      maxPickupWalkM: walkCaps.pickupM,
+      maxDropoffWalkM: walkCaps.dropoffM,
       maxDeviationM,
-    );
+    });
+    if (!segment.pickup || !segment.dropoff) continue;
+    const { rankedStops, rankedDropoffStops, recommendedStopId, recommendedDropoffStopId } = segment;
 
     // M-081: the segment-precise capacity gate, both ends always real
     // stops in this tier.
@@ -861,16 +1144,16 @@ async function scorePassThroughCandidates(
       !hasSegmentCapacity(
         segmentsByRide.get(ride.id) ?? [],
         ride.seatsTotal,
-        recommendedStopId ?? rankedStops[0]!.stopId,
-        recommendedDropoffStopId ?? rankedDropoffStops[0]!.stopId,
+        segment.pickup.stopId ?? undefined,
+        segment.dropoff.stopId ?? undefined,
         rideStops,
       )
     ) {
       continue;
     }
 
-    const pickupWalkMinutes = rankedStops[0]!.walkMinutes;
-    const dropoffWalkMinutes = rankedDropoffStops[0]!.walkMinutes;
+    const pickupWalkMinutes = segment.pickup.walkMinutes;
+    const dropoffWalkMinutes = segment.dropoff.walkMinutes;
     const timeDeltaMin = Math.abs(ride.departureAt.getTime() - input.when.getTime()) / 60_000;
     // How much of the rider's requested trip actually lines up with this
     // ride's route — a small bonus for a route whose length roughly
@@ -905,6 +1188,9 @@ async function scorePassThroughCandidates(
       originLng: ride.originLng,
       destinationLat: ride.destinationLat,
       destinationLng: ride.destinationLng,
+      passengerJourney: passengerJourneyOf(input),
+      pickupPoint: segment.pickup,
+      dropoffPoint: segment.dropoff,
       routePolyline: ride.routePolyline,
       rankedStops,
       rankedDropoffStops,
@@ -914,13 +1200,15 @@ async function scorePassThroughCandidates(
       dropoffViable: true,
       matchType: 'route_passthrough',
       detour: null,
-      // The stop sits partway through a real, already-computed route — a
-      // route-fraction share of the ride's real total duration, the same
-      // honest approximation scoreDetourCandidates already uses for its own
-      // ETA (no per-leg breakdown exists from the routing provider without
-      // doubling the routing cost — see that tier's own doc comment).
-      pickupEtaSeconds: Math.round((ride.estimatedDurationSec ?? 0) * clamp01(originProj.fraction)),
-      dropoffEtaSeconds: Math.round((ride.estimatedDurationSec ?? 0) * clamp01(destProj.fraction)),
+      // The resolved stop sits partway through a real, already-computed
+      // route — a route-fraction share of the ride's real total duration,
+      // the same honest approximation scoreDetourCandidates already uses for
+      // its own ETA (no per-leg breakdown exists from the routing provider
+      // without doubling the routing cost — see that tier's own doc
+      // comment). Measured at the actual pickup/dropoff STOP, not the
+      // passenger's raw searched point.
+      pickupEtaSeconds: Math.round((ride.estimatedDurationSec ?? 0) * segment.pickupRouteFraction),
+      dropoffEtaSeconds: Math.round((ride.estimatedDurationSec ?? 0) * segment.dropoffRouteFraction),
       detourRoutePolyline: null,
       reasons: [
         ...buildReasons({
@@ -994,6 +1282,7 @@ async function scoreInProgressCandidates(
   const stopsByRide = await fetchStopsByRide(db, inProgressRideIds);
   const segmentsByRide = await fetchAcceptedSegmentsByRide(db, inProgressRideIds, stopsByRide);
   const maxDeviationM = deriveMaxDeviationM(origin, destination);
+  const walkCaps = passengerWalkCaps(deriveMatchingThresholds(input));
 
   const results: MatchCandidate[] = [];
   for (const ride of candidateRides) {
@@ -1027,66 +1316,49 @@ async function scoreInProgressCandidates(
         projectPointOntoRoute(stop, routePoints).fraction >=
         driverProj.fraction - IN_PROGRESS_BEHIND_TOLERANCE_FRACTION,
     );
-    const rankedStops = rankStopsByWalkDistance(origin, stopsAheadOfDriver);
-    const rankedDropoffStops = rankStopsByWalkDistance(destination, stopsAheadOfDriver);
-
-    // M-091 real gap, found and fixed while verifying this tier end-to-end
-    // (a real HTTP journey, not just the direct-service-call integration
-    // test): the spec's own worked example — "Passenger searches Zaragoza
-    // -> Barcelona" where Barcelona is the driver's own, unchanged final
-    // destination — was unmatchable, because this tier unconditionally
-    // required BOTH ends to resolve via a real route_stop (mirroring
-    // scorePassThroughCandidates, whose pure-passthrough case genuinely
-    // needs that). A search endpoint that's simply the ride's own
-    // origin/destination doesn't need a stop at all — mirrors
-    // buildEndpointCandidate's own direct-radius check, the same real
-    // property that already lets an ordinary published-ride search work
-    // this way.
-    const originMatchesRideOriginM = haversineDistanceMeters(origin, {
-      lat: ride.originLat,
-      lng: ride.originLng,
-    });
-    const destMatchesRideDestinationM = haversineDistanceMeters(destination, {
-      lat: ride.destinationLat,
-      lng: ride.destinationLng,
-    });
-    const pickupViaRideOrigin = originMatchesRideOriginM <= WIDE_PICKUP_RADIUS_M;
-    const dropoffViaRideDestination = destMatchesRideDestinationM <= WIDE_PICKUP_RADIUS_M;
-    if (rankedStops.length === 0 && !pickupViaRideOrigin) continue;
-    if (rankedDropoffStops.length === 0 && !dropoffViaRideDestination) continue;
-
-    const recommendedStopId = pickRecommendedStopId(
-      rankedStops,
-      stopsAheadOfDriver,
-      WIDE_PICKUP_RADIUS_M,
+    // M-091 real gap (found verifying this tier end-to-end): a search
+    // endpoint that's simply the ride's own origin/destination — the spec's
+    // "Zaragoza -> Barcelona" example, Barcelona being the driver's own,
+    // unchanged final destination — needs no stop at all, so the ride's own
+    // endpoints are offered too, but only when they are themselves within
+    // walking reach of the passenger's own point (never as a stand-in for a
+    // passenger destination that lies elsewhere).
+    const segment = resolvePassengerSegment({
+      passengerOrigin: origin,
+      passengerDestination: destination,
+      rideStops: stopsAheadOfDriver,
+      routePoints,
+      maxPickupWalkM: walkCaps.pickupM,
+      maxDropoffWalkM: walkCaps.dropoffM,
       maxDeviationM,
-    );
-    const recommendedDropoffStopId = pickRecommendedStopId(
-      rankedDropoffStops,
-      stopsAheadOfDriver,
-      WIDE_PICKUP_RADIUS_M,
-      maxDeviationM,
-    );
+      rideOrigin: { label: ride.originLabel, lat: ride.originLat, lng: ride.originLng, maxWalkM: walkCaps.pickupM },
+      rideDestination: {
+        label: ride.destinationLabel,
+        lat: ride.destinationLat,
+        lng: ride.destinationLng,
+        maxWalkM: walkCaps.dropoffM,
+      },
+    });
+    if (!segment.pickup || !segment.dropoff) continue;
+    const { rankedStops, rankedDropoffStops, recommendedStopId, recommendedDropoffStopId } = segment;
 
-    // M-081: the segment-precise capacity gate — undefined stop ids
-    // (a direct ride-endpoint match, M-091's own fix) correctly span the
-    // ride's true start/end via hasSegmentCapacity's own -Infinity/
-    // +Infinity convention.
+    // M-081: the segment-precise capacity gate — a null stop id (a direct
+    // ride-endpoint match, M-091's own fix) correctly spans the ride's true
+    // start/end via hasSegmentCapacity's own -Infinity/+Infinity convention.
     if (
       !hasSegmentCapacity(
         segmentsByRide.get(ride.id) ?? [],
         ride.seatsTotal,
-        recommendedStopId ?? rankedStops[0]?.stopId,
-        recommendedDropoffStopId ?? rankedDropoffStops[0]?.stopId,
+        segment.pickup.stopId ?? undefined,
+        segment.dropoff.stopId ?? undefined,
         stopsAheadOfDriver,
       )
     ) {
       continue;
     }
 
-    const pickupWalkMinutes = rankedStops[0]?.walkMinutes ?? originMatchesRideOriginM / WALK_SPEED_M_PER_MIN;
-    const dropoffWalkMinutes =
-      rankedDropoffStops[0]?.walkMinutes ?? destMatchesRideDestinationM / WALK_SPEED_M_PER_MIN;
+    const pickupWalkMinutes = segment.pickup.walkMinutes;
+    const dropoffWalkMinutes = segment.dropoff.walkMinutes;
     const timeDeltaMin = Math.abs(ride.departureAt.getTime() - input.when.getTime()) / 60_000;
     const segmentFraction = clamp01(destProj.fraction - originProj.fraction);
 
@@ -1114,6 +1386,9 @@ async function scoreInProgressCandidates(
       originLng: ride.originLng,
       destinationLat: ride.destinationLat,
       destinationLng: ride.destinationLng,
+      passengerJourney: passengerJourneyOf(input),
+      pickupPoint: segment.pickup,
+      dropoffPoint: segment.dropoff,
       routePolyline: ride.routePolyline,
       rankedStops,
       rankedDropoffStops,
@@ -1123,8 +1398,8 @@ async function scoreInProgressCandidates(
       dropoffViable: true,
       matchType: 'route_passthrough',
       detour: null,
-      pickupEtaSeconds: Math.round((ride.estimatedDurationSec ?? 0) * clamp01(originProj.fraction)),
-      dropoffEtaSeconds: Math.round((ride.estimatedDurationSec ?? 0) * clamp01(destProj.fraction)),
+      pickupEtaSeconds: Math.round((ride.estimatedDurationSec ?? 0) * segment.pickupRouteFraction),
+      dropoffEtaSeconds: Math.round((ride.estimatedDurationSec ?? 0) * segment.dropoffRouteFraction),
       detourRoutePolyline: null,
       reasons: [
         ...buildReasons({
@@ -1244,9 +1519,19 @@ async function scoreDetourCandidates(
     // and surface here as a low-detour, driver-confirmation-required
     // match instead of being silently dropped by every tier.
     const rideStops = stopsByRide.get(ride.id) ?? [];
+    const walkCaps = passengerWalkCaps(thresholds);
+    const passThroughSegment = resolvePassengerSegment({
+      passengerOrigin: origin,
+      passengerDestination: destination,
+      rideStops,
+      routePoints,
+      maxPickupWalkM: walkCaps.pickupM,
+      maxDropoffWalkM: walkCaps.dropoffM,
+      maxDeviationM: deriveMaxDeviationM(origin, destination),
+    });
     const passThroughWouldQualify =
-      rankStopsByWalkDistance(origin, rideStops).length > 0 &&
-      rankStopsByWalkDistance(destination, rideStops).length > 0 &&
+      passThroughSegment.pickup !== null &&
+      passThroughSegment.dropoff !== null &&
       originProj.distanceM <= thresholds.corridorWidthM &&
       destProj.distanceM <= thresholds.corridorWidthM &&
       destProj.fraction - originProj.fraction >= MIN_ROUTE_FRACTION_GAP;
@@ -1316,6 +1601,11 @@ async function scoreDetourCandidates(
       originLng: ride.originLng,
       destinationLat: ride.destinationLat,
       destinationLng: ride.destinationLng,
+      passengerJourney: passengerJourneyOf(input),
+      // The driver detours to the passenger's own points — they ARE the
+      // pickup/dropoff, no walk.
+      pickupPoint: { stopId: null, label: null, lat: origin.lat, lng: origin.lng, walkMinutes: 0 },
+      dropoffPoint: { stopId: null, label: null, lat: destination.lat, lng: destination.lng, walkMinutes: 0 },
       routePolyline: ride.routePolyline,
       rankedStops: [],
       rankedDropoffStops: [],
@@ -1408,6 +1698,8 @@ async function findClosestDepartures(
       segmentsByRide,
       pickupRadiusM: thresholds.widePickupRadiusM,
       dropoffRadiusM: thresholds.wideDropoffRadiusM,
+      maxPickupWalkM: passengerWalkCaps(thresholds).pickupM,
+      maxDropoffWalkM: passengerWalkCaps(thresholds).dropoffM,
       maxDeviationM,
     });
     if (candidate) built.push(candidate);

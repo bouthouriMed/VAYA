@@ -29,6 +29,7 @@ import {
   useGetRideQuery,
   useGetUserPublicProfileQuery,
   useGetUserTrustSummaryQuery,
+  useGetRideItineraryRouteQuery,
   type Booking,
   type TrustTier,
 } from '../../src/state/api';
@@ -39,6 +40,7 @@ import {
   polylineDistanceKm,
   sliceRouteBetween,
 } from '../../src/utils/polyline';
+import { resolveItineraryLine } from '../../src/features/trip-shared/itineraryRoute';
 import { formatDate, formatTime, formatDistance, formatCurrency } from '../../src/utils/localeFormat';
 import { CancellationSheet } from '../../src/features/bookings/CancellationSheet';
 import { trackEvent } from '../../src/services/analytics/analytics';
@@ -240,6 +242,10 @@ export default function BookingDetailScreen(): React.JSX.Element {
   } = useGetRideQuery(booking?.rideId ?? '', {
     skip: !booking,
   });
+  // This passenger's own pickup -> dropoff as a real road route (GET
+  // /rides/:id/itinerary-route) — computed live, so it exists even when the
+  // ride's stored route is empty (published while routing was unreachable).
+  const { data: itineraryRoute } = useGetRideItineraryRouteQuery(booking?.rideId ?? '', { skip: !booking });
   const { data: driverProfile } = useGetUserPublicProfileQuery(booking?.ride?.driverUserId ?? '', {
     skip: !booking?.ride?.driverUserId,
   });
@@ -348,11 +354,16 @@ export default function BookingDetailScreen(): React.JSX.Element {
   // route not the entire driver route"). Naturally collapses to the whole
   // route for a plain endpoint-match booking (pickup/dropoff ARE the
   // ride's own origin/destination in that case).
-  const routeCoordinates =
+  const storedSegmentCoordinates =
     fullRouteCoordinates.length > 1
       ? sliceRouteBetween(fullRouteCoordinates, pickupPoint, dropoffPoint)
       : fullRouteCoordinates;
-  const segmentDistanceKm = polylineDistanceKm(routeCoordinates);
+  // What the maps draw: the live road itinerary, else the stored route's
+  // slice, else an explicitly approximate pickup -> dropoff line — never
+  // two unconnected pins.
+  const itineraryLine = resolveItineraryLine(itineraryRoute, storedSegmentCoordinates, [pickupPoint, dropoffPoint]);
+  const routeCoordinates = itineraryLine.coordinates;
+  const segmentDistanceKm = polylineDistanceKm(storedSegmentCoordinates);
   const fullDistanceKm = polylineDistanceKm(fullRouteCoordinates);
   // A real per-segment drive duration doesn't exist in the data model
   // (only the whole ride's estimatedDurationSec does) — derived
@@ -620,7 +631,12 @@ export default function BookingDetailScreen(): React.JSX.Element {
         <View style={[styles.routeModal, { backgroundColor: theme.background }]}>
           <MapCanvas region={fullRouteRegion} style={styles.routeModalMap}>
             {routeCoordinates.length > 1 ? (
-              <Polyline coordinates={routeCoordinates} strokeColor={theme.ink} strokeWidth={4} />
+              <Polyline
+                coordinates={routeCoordinates}
+                strokeColor={theme.ink}
+                strokeWidth={4}
+                lineDashPattern={itineraryLine.isApproximate ? [8, 8] : undefined}
+              />
             ) : null}
             <Marker coordinate={{ latitude: booking.pickupLat, longitude: booking.pickupLng }} anchor={{ x: 0.5, y: 0.5 }}>
               <PickupPin theme={theme} />
@@ -640,6 +656,16 @@ export default function BookingDetailScreen(): React.JSX.Element {
               </Marker>
             ) : null}
           </MapCanvas>
+          {itineraryLine.isApproximate ? (
+            <View
+              style={[styles.approxRouteNote, { top: insets.top + spacing.sm, backgroundColor: theme.surface }]}
+              accessibilityRole="text"
+            >
+              <Text variant="caption" color={theme.inkMuted}>
+                {t('common:map.approximateRoute')}
+              </Text>
+            </View>
+          ) : null}
           <View style={[styles.routeModalClose, { top: insets.top + spacing.sm }]}>
             <HeaderIconButton
               icon="close"
@@ -695,6 +721,14 @@ const styles = StyleSheet.create({
   },
   routeModalMap: {
     flex: 1,
+  },
+  approxRouteNote: {
+    position: 'absolute',
+    left: spacing.lg,
+    right: 72,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: radii.lg,
   },
   routeModalClose: {
     position: 'absolute',

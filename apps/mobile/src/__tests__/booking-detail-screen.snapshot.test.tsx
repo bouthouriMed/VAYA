@@ -87,6 +87,7 @@ type MutationTuple = [unknown, { isLoading: boolean }];
 function mockApi(): void {
   vi.doMock('../state/api', () => ({
     useListMyBookingsQuery: (): QueryResult<Booking[]> => ({ data: [ACCEPTED_BOOKING] }),
+    useGetRideItineraryRouteQuery: (): QueryResult<unknown> => ({ data: undefined }),
     useGetRideQuery: (): QueryResult<unknown> => ({
       data: {
         id: 'ride-1',

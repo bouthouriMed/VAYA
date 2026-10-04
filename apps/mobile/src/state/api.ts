@@ -110,6 +110,32 @@ export interface RankedStop {
   lat: number;
   lng: number;
   walkMinutes: number;
+  /** Position along the driver's route — a dropoff must come after the
+   *  chosen pickup. */
+  sequence: number | null;
+}
+
+/** Where THIS passenger actually boards/alights — resolved server-side near
+ *  the passenger's OWN requested origin/destination (matching.service.ts's
+ *  resolvePassengerSegment), never the driver's endpoint standing in for it.
+ *  `stopId` null = the ride's own origin/destination (legacy stop-less
+ *  ride) or, for a 'detour' match, the passenger's own searched point
+ *  (`label` null then — use the search's own label). */
+export interface PassengerPoint {
+  stopId: string | null;
+  label: string | null;
+  lat: number;
+  lng: number;
+  walkMinutes: number;
+}
+
+/** GET /rides/:rideId/itinerary-route. `polyline` is null when no routing
+ *  engine was reachable — draw an explicitly approximate line through
+ *  `points` (travel order) then, never present it as a road. */
+export interface RideItineraryRoute {
+  polyline: string | null;
+  points: { lat: number; lng: number }[];
+  isEstimate: boolean;
 }
 
 export interface MatchCandidate {
@@ -131,10 +157,28 @@ export interface MatchCandidate {
   score: number;
   reasons: string[];
   clusterLabel: string;
+  /** The DRIVER's ride endpoints — the corridor only, never shown to a
+   *  passenger as their own trip (use `passengerJourney`/`pickupPoint`/
+   *  `dropoffPoint`). */
   originLat: number;
   originLng: number;
   destinationLat: number;
   destinationLng: number;
+  /** The passenger's own requested journey, echoed back by the server —
+   *  authoritative for every passenger-facing label/map. */
+  passengerJourney: {
+    originLat: number;
+    originLng: number;
+    destinationLat: number;
+    destinationLng: number;
+  };
+  /** Resolved boarding point near the passenger's origin; null only when
+   *  `pickupViable` is false. */
+  pickupPoint: PassengerPoint | null;
+  /** Resolved alighting point near the passenger's destination, always
+   *  after `pickupPoint` on the driver's route; null only when
+   *  `dropoffViable` is false. */
+  dropoffPoint: PassengerPoint | null;
   routePolyline: string | null;
   /** This ride's driver-selected route_stops, ranked by walk-distance from
    *  the passenger's requested origin, closest first. Empty for a legacy
@@ -146,6 +190,11 @@ export interface MatchCandidate {
    *  ride's own destination", the behavior every ride had before this
    *  field existed. */
   rankedDropoffStops: RankedStop[];
+  /** VAYA's recommended pickup/dropoff stop among `rankedStops`/
+   *  `rankedDropoffStops` (best walk/detour balance, pickup before
+   *  dropoff) — not necessarily the closest by foot. */
+  recommendedStopId: string | null;
+  recommendedDropoffStopId: string | null;
   /** False only when this ride has route_stops but none are within a
    *  walkable radius for this passenger — a legitimate "doesn't reach you
    *  conveniently" result. Always true for legacy (stop-less) rides. */
@@ -1093,6 +1142,19 @@ export const api = createApi({
     // Public, passenger-facing: only the driver-selected stops (no `?all=true`),
     // for the ride-details.tsx stop timeline — the same list a passenger's
     // pickup selection is drawn from, just for a single already-chosen ride.
+    // The road itinerary a trip's map draws (apps/api itinerary-route.
+    // service.ts): the driver's whole trip through every accepted
+    // passenger's pickup/dropoff, or a passenger's own pickup -> dropoff.
+    // Tagged with the request/booking tags so accepting, declining or
+    // cancelling a passenger redraws it.
+    getRideItineraryRoute: builder.query<RideItineraryRoute, string>({
+      query: (rideId) => `/rides/${rideId}/itinerary-route`,
+      providesTags: (result, error, rideId) => [
+        { type: 'RideStops', id: rideId },
+        'RideRequests',
+        'MyBookings',
+      ],
+    }),
     getRideStops: builder.query<RouteStop[], string>({
       query: (rideId) => `/rides/${rideId}/stops`,
       providesTags: (result, error, rideId) => [{ type: 'RideStops', id: rideId }],
@@ -1397,6 +1459,7 @@ export const {
   useUpdateRideStopsMutation,
   useAddCustomStopMutation,
   useGetRideStopsQuery,
+  useGetRideItineraryRouteQuery,
   useLazyGetRideStopsForDriverQuery,
   useCreateBookingMutation,
   useListFellowPassengersQuery,

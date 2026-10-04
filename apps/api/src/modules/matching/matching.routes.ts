@@ -13,6 +13,17 @@ const rankedStopSchema = z.object({
   lat: z.number(),
   lng: z.number(),
   walkMinutes: z.number(),
+  sequence: z.number().nullable(),
+});
+
+// The passenger's resolved boarding/alighting point — see
+// matching.service.ts's PassengerPoint.
+const passengerPointSchema = z.object({
+  stopId: z.string().uuid().nullable(),
+  label: z.string().nullable(),
+  lat: z.number(),
+  lng: z.number(),
+  walkMinutes: z.number(),
 });
 
 // Google/PostGIS location spec §7 — populated only for matchType: 'detour'.
@@ -42,6 +53,17 @@ const matchCandidateSchema = z.object({
   originLng: z.number(),
   destinationLat: z.number(),
   destinationLng: z.number(),
+  // The passenger's OWN requested journey — authoritative for every
+  // passenger-facing label/map; originLat..destinationLng above are the
+  // driver's ride endpoints.
+  passengerJourney: z.object({
+    originLat: z.number(),
+    originLng: z.number(),
+    destinationLat: z.number(),
+    destinationLng: z.number(),
+  }),
+  pickupPoint: passengerPointSchema.nullable(),
+  dropoffPoint: passengerPointSchema.nullable(),
   routePolyline: z.string().nullable(),
   rankedStops: z.array(rankedStopSchema),
   rankedDropoffStops: z.array(rankedStopSchema),

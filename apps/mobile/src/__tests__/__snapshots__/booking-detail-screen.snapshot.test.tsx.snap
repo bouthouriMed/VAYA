@@ -353,6 +353,22 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
             userInterfaceStyle="light"
             zoomEnabled={false}
           >
+            <Polyline
+              coordinates={
+                [
+                  {
+                    "latitude": 36.842,
+                    "longitude": 10.18,
+                  },
+                  {
+                    "latitude": 36.4,
+                    "longitude": 10.6,
+                  },
+                ]
+              }
+              strokeColor="#14201B"
+              strokeWidth={3}
+            />
             <Marker
               anchor={
                 {
@@ -1651,6 +1667,28 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
             provider="google"
             style={{}}
           >
+            <Polyline
+              coordinates={
+                [
+                  {
+                    "latitude": 36.842,
+                    "longitude": 10.18,
+                  },
+                  {
+                    "latitude": 36.4,
+                    "longitude": 10.6,
+                  },
+                ]
+              }
+              lineDashPattern={
+                [
+                  8,
+                  8,
+                ]
+              }
+              strokeColor="#14201B"
+              strokeWidth={4}
+            />
             <Marker
               anchor={
                 {
@@ -1782,6 +1820,46 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
               ]
             }
           />
+        </View>
+        <View
+          accessibilityRole="text"
+          style={
+            [
+              {
+                "borderRadius": 12,
+                "left": 16,
+                "paddingHorizontal": 12,
+                "paddingVertical": 4,
+                "position": "absolute",
+                "right": 72,
+              },
+              {
+                "backgroundColor": "#F7F9F5",
+                "top": 8,
+              },
+            ]
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "lineHeight": 18,
+                },
+                null,
+                {
+                  "color": "#4F5C55",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            common:map.approximateRoute
+          </Text>
         </View>
         <View
           style={

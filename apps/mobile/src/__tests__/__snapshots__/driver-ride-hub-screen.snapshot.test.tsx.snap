@@ -352,6 +352,36 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
             userInterfaceStyle="light"
             zoomEnabled={false}
           >
+            <Polyline
+              coordinates={
+                [
+                  {
+                    "latitude": 36.8065,
+                    "longitude": 10.1815,
+                  },
+                  {
+                    "latitude": 36.8065,
+                    "longitude": 10.1815,
+                  },
+                  {
+                    "latitude": 35.8256,
+                    "longitude": 10.6369,
+                  },
+                  {
+                    "latitude": 35.8256,
+                    "longitude": 10.6369,
+                  },
+                ]
+              }
+              lineDashPattern={
+                [
+                  6,
+                  6,
+                ]
+              }
+              strokeColor="#CCD5CD"
+              strokeWidth={3}
+            />
             <Marker
               anchor={
                 {
@@ -1651,6 +1681,36 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
             provider="google"
             style={{}}
           >
+            <Polyline
+              coordinates={
+                [
+                  {
+                    "latitude": 36.8065,
+                    "longitude": 10.1815,
+                  },
+                  {
+                    "latitude": 36.8065,
+                    "longitude": 10.1815,
+                  },
+                  {
+                    "latitude": 35.8256,
+                    "longitude": 10.6369,
+                  },
+                  {
+                    "latitude": 35.8256,
+                    "longitude": 10.6369,
+                  },
+                ]
+              }
+              lineDashPattern={
+                [
+                  8,
+                  8,
+                ]
+              }
+              strokeColor="#CCD5CD"
+              strokeWidth={4}
+            />
             <Marker
               anchor={
                 {
@@ -1818,6 +1878,46 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
               ]
             }
           />
+        </View>
+        <View
+          accessibilityRole="text"
+          style={
+            [
+              {
+                "borderRadius": 12,
+                "left": 16,
+                "paddingHorizontal": 12,
+                "paddingVertical": 4,
+                "position": "absolute",
+                "right": 72,
+              },
+              {
+                "backgroundColor": "#F7F9F5",
+                "top": 8,
+              },
+            ]
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "lineHeight": 18,
+                },
+                null,
+                {
+                  "color": "#4F5C55",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            common:map.approximateRoute
+          </Text>
         </View>
         <View
           style={
@@ -2231,6 +2331,60 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
             userInterfaceStyle="light"
             zoomEnabled={false}
           >
+            <Polyline
+              coordinates={
+                [
+                  {
+                    "latitude": 36.8065,
+                    "longitude": 10.1815,
+                  },
+                  {
+                    "latitude": 36.8065,
+                    "longitude": 10.1815,
+                  },
+                  {
+                    "latitude": 36.81,
+                    "longitude": 10.19,
+                  },
+                  {
+                    "latitude": 36.81,
+                    "longitude": 10.19,
+                  },
+                ]
+              }
+              lineDashPattern={
+                [
+                  6,
+                  6,
+                ]
+              }
+              strokeColor="#CCD5CD"
+              strokeWidth={3}
+            />
+            <Polyline
+              coordinates={
+                [
+                  {
+                    "latitude": 36.81,
+                    "longitude": 10.19,
+                  },
+                  {
+                    "latitude": 36.81,
+                    "longitude": 10.19,
+                  },
+                  {
+                    "latitude": 35.8256,
+                    "longitude": 10.6369,
+                  },
+                  {
+                    "latitude": 35.8256,
+                    "longitude": 10.6369,
+                  },
+                ]
+              }
+              strokeColor="#2E9E6C"
+              strokeWidth={4}
+            />
             <Marker
               anchor={
                 {
@@ -4308,6 +4462,66 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
             provider="google"
             style={{}}
           >
+            <Polyline
+              coordinates={
+                [
+                  {
+                    "latitude": 36.8065,
+                    "longitude": 10.1815,
+                  },
+                  {
+                    "latitude": 36.8065,
+                    "longitude": 10.1815,
+                  },
+                  {
+                    "latitude": 36.81,
+                    "longitude": 10.19,
+                  },
+                  {
+                    "latitude": 36.81,
+                    "longitude": 10.19,
+                  },
+                ]
+              }
+              lineDashPattern={
+                [
+                  8,
+                  8,
+                ]
+              }
+              strokeColor="#CCD5CD"
+              strokeWidth={4}
+            />
+            <Polyline
+              coordinates={
+                [
+                  {
+                    "latitude": 36.81,
+                    "longitude": 10.19,
+                  },
+                  {
+                    "latitude": 36.81,
+                    "longitude": 10.19,
+                  },
+                  {
+                    "latitude": 35.8256,
+                    "longitude": 10.6369,
+                  },
+                  {
+                    "latitude": 35.8256,
+                    "longitude": 10.6369,
+                  },
+                ]
+              }
+              lineDashPattern={
+                [
+                  8,
+                  8,
+                ]
+              }
+              strokeColor="#2E9E6C"
+              strokeWidth={5}
+            />
             <Marker
               anchor={
                 {
@@ -4525,6 +4739,46 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
               ]
             }
           />
+        </View>
+        <View
+          accessibilityRole="text"
+          style={
+            [
+              {
+                "borderRadius": 12,
+                "left": 16,
+                "paddingHorizontal": 12,
+                "paddingVertical": 4,
+                "position": "absolute",
+                "right": 72,
+              },
+              {
+                "backgroundColor": "#F7F9F5",
+                "top": 8,
+              },
+            ]
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "lineHeight": 18,
+                },
+                null,
+                {
+                  "color": "#4F5C55",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            common:map.approximateRoute
+          </Text>
         </View>
         <View
           style={
@@ -4938,6 +5192,138 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
             userInterfaceStyle="light"
             zoomEnabled={false}
           >
+            <Polyline
+              coordinates={
+                [
+                  {
+                    "latitude": 36.8065,
+                    "longitude": 10.1815,
+                  },
+                  {
+                    "latitude": 36.8065,
+                    "longitude": 10.1815,
+                  },
+                  {
+                    "latitude": 36.75,
+                    "longitude": 10.3,
+                  },
+                  {
+                    "latitude": 36.75,
+                    "longitude": 10.3,
+                  },
+                ]
+              }
+              lineDashPattern={
+                [
+                  6,
+                  6,
+                ]
+              }
+              strokeColor="#CCD5CD"
+              strokeWidth={3}
+            />
+            <Polyline
+              coordinates={
+                [
+                  {
+                    "latitude": 36.75,
+                    "longitude": 10.3,
+                  },
+                  {
+                    "latitude": 36.75,
+                    "longitude": 10.3,
+                  },
+                  {
+                    "latitude": 36.4,
+                    "longitude": 10.6,
+                  },
+                  {
+                    "latitude": 36.4,
+                    "longitude": 10.6,
+                  },
+                ]
+              }
+              strokeColor="#2E9E6C"
+              strokeWidth={4}
+            />
+            <Polyline
+              coordinates={
+                [
+                  {
+                    "latitude": 36.4,
+                    "longitude": 10.6,
+                  },
+                  {
+                    "latitude": 36.4,
+                    "longitude": 10.6,
+                  },
+                  {
+                    "latitude": 36.13,
+                    "longitude": 10.38,
+                  },
+                  {
+                    "latitude": 36.13,
+                    "longitude": 10.38,
+                  },
+                ]
+              }
+              strokeColor="#22794F"
+              strokeWidth={5}
+            />
+            <Polyline
+              coordinates={
+                [
+                  {
+                    "latitude": 36.13,
+                    "longitude": 10.38,
+                  },
+                  {
+                    "latitude": 36.13,
+                    "longitude": 10.38,
+                  },
+                  {
+                    "latitude": 35.73,
+                    "longitude": 10.58,
+                  },
+                  {
+                    "latitude": 35.73,
+                    "longitude": 10.58,
+                  },
+                ]
+              }
+              strokeColor="#2E9E6C"
+              strokeWidth={4}
+            />
+            <Polyline
+              coordinates={
+                [
+                  {
+                    "latitude": 35.73,
+                    "longitude": 10.58,
+                  },
+                  {
+                    "latitude": 35.73,
+                    "longitude": 10.58,
+                  },
+                  {
+                    "latitude": 35.8256,
+                    "longitude": 10.6369,
+                  },
+                  {
+                    "latitude": 35.8256,
+                    "longitude": 10.6369,
+                  },
+                ]
+              }
+              lineDashPattern={
+                [
+                  6,
+                  6,
+                ]
+              }
+              strokeColor="#CCD5CD"
+              strokeWidth={3}
+            />
             <Marker
               anchor={
                 {
@@ -7864,6 +8250,156 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
             provider="google"
             style={{}}
           >
+            <Polyline
+              coordinates={
+                [
+                  {
+                    "latitude": 36.8065,
+                    "longitude": 10.1815,
+                  },
+                  {
+                    "latitude": 36.8065,
+                    "longitude": 10.1815,
+                  },
+                  {
+                    "latitude": 36.75,
+                    "longitude": 10.3,
+                  },
+                  {
+                    "latitude": 36.75,
+                    "longitude": 10.3,
+                  },
+                ]
+              }
+              lineDashPattern={
+                [
+                  8,
+                  8,
+                ]
+              }
+              strokeColor="#CCD5CD"
+              strokeWidth={4}
+            />
+            <Polyline
+              coordinates={
+                [
+                  {
+                    "latitude": 36.75,
+                    "longitude": 10.3,
+                  },
+                  {
+                    "latitude": 36.75,
+                    "longitude": 10.3,
+                  },
+                  {
+                    "latitude": 36.4,
+                    "longitude": 10.6,
+                  },
+                  {
+                    "latitude": 36.4,
+                    "longitude": 10.6,
+                  },
+                ]
+              }
+              lineDashPattern={
+                [
+                  8,
+                  8,
+                ]
+              }
+              strokeColor="#2E9E6C"
+              strokeWidth={5}
+            />
+            <Polyline
+              coordinates={
+                [
+                  {
+                    "latitude": 36.4,
+                    "longitude": 10.6,
+                  },
+                  {
+                    "latitude": 36.4,
+                    "longitude": 10.6,
+                  },
+                  {
+                    "latitude": 36.13,
+                    "longitude": 10.38,
+                  },
+                  {
+                    "latitude": 36.13,
+                    "longitude": 10.38,
+                  },
+                ]
+              }
+              lineDashPattern={
+                [
+                  8,
+                  8,
+                ]
+              }
+              strokeColor="#22794F"
+              strokeWidth={6}
+            />
+            <Polyline
+              coordinates={
+                [
+                  {
+                    "latitude": 36.13,
+                    "longitude": 10.38,
+                  },
+                  {
+                    "latitude": 36.13,
+                    "longitude": 10.38,
+                  },
+                  {
+                    "latitude": 35.73,
+                    "longitude": 10.58,
+                  },
+                  {
+                    "latitude": 35.73,
+                    "longitude": 10.58,
+                  },
+                ]
+              }
+              lineDashPattern={
+                [
+                  8,
+                  8,
+                ]
+              }
+              strokeColor="#2E9E6C"
+              strokeWidth={5}
+            />
+            <Polyline
+              coordinates={
+                [
+                  {
+                    "latitude": 35.73,
+                    "longitude": 10.58,
+                  },
+                  {
+                    "latitude": 35.73,
+                    "longitude": 10.58,
+                  },
+                  {
+                    "latitude": 35.8256,
+                    "longitude": 10.6369,
+                  },
+                  {
+                    "latitude": 35.8256,
+                    "longitude": 10.6369,
+                  },
+                ]
+              }
+              lineDashPattern={
+                [
+                  8,
+                  8,
+                ]
+              }
+              strokeColor="#CCD5CD"
+              strokeWidth={4}
+            />
             <Marker
               anchor={
                 {
@@ -8231,6 +8767,46 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
               ]
             }
           />
+        </View>
+        <View
+          accessibilityRole="text"
+          style={
+            [
+              {
+                "borderRadius": 12,
+                "left": 16,
+                "paddingHorizontal": 12,
+                "paddingVertical": 4,
+                "position": "absolute",
+                "right": 72,
+              },
+              {
+                "backgroundColor": "#F7F9F5",
+                "top": 8,
+              },
+            ]
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "lineHeight": 18,
+                },
+                null,
+                {
+                  "color": "#4F5C55",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            common:map.approximateRoute
+          </Text>
         </View>
         <View
           style={

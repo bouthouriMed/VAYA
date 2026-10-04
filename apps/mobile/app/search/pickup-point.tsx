@@ -92,9 +92,9 @@ export default function PickupPointScreen(): React.JSX.Element {
   // before anything is chosen.
   useEffect(() => {
     if (!selectedStopId && rankedStops.length > 0) {
-      setSelectedStopId(defaultStopId(rankedStops));
+      setSelectedStopId(defaultStopId(rankedStops, candidate?.recommendedStopId));
     }
-  }, [rankedStops, selectedStopId]);
+  }, [rankedStops, selectedStopId, candidate]);
 
   useEffect(() => {
     if (!isLoading && candidate && rankedStops.length === 0) {

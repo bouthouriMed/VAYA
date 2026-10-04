@@ -324,6 +324,16 @@ export async function searchRidesAsRider(
       pickupViable: boolean;
       dropoffViable: boolean;
       rankedStops: Array<{ stopId: string; label: string; walkMinutes: number }>;
+      rankedDropoffStops: Array<{ stopId: string; label: string; walkMinutes: number }>;
+      originLat: number;
+      originLng: number;
+      destinationLat: number;
+      destinationLng: number;
+      passengerJourney: { originLat: number; originLng: number; destinationLat: number; destinationLng: number };
+      pickupPoint: { stopId: string | null; label: string | null; lat: number; lng: number; walkMinutes: number } | null;
+      dropoffPoint: { stopId: string | null; label: string | null; lat: number; lng: number; walkMinutes: number } | null;
+      pickupEtaSeconds: number;
+      dropoffEtaSeconds: number;
       pickupEtaMinutes?: number;
       contributionPerSeat?: number;
     }>;
