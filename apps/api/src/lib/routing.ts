@@ -1,6 +1,7 @@
 import { getEnv } from '../config/env.js';
 import { getLogger } from '../config/logger.js';
 import { cacheGetJson, cacheSetJson } from './cache.js';
+import { MemoryCache } from './memory-cache.js';
 import { haversineDistanceMeters } from './geo.js';
 import { decodePolyline } from './polyline.js';
 import {
@@ -17,10 +18,33 @@ import {
 // adapters and this file.
 export type { RoutePoint, RouteResult, RouteAlternative };
 
-const CACHE_TTL_SEC = 3600;
-// Short-lived: a fallback estimate shouldn't keep being served for a full
-// hour once OSRM comes back online (e.g. someone runs prepare.sh mid-session).
+// Real routes are cached for a day: no traffic model is requested from
+// either provider (Google Routes defaults to TRAFFIC_UNAWARE; OSRM has none),
+// so the same two points always yield the same road, distance and duration
+// — hourly expiry only re-bought identical answers (and, for Google, paid
+// for them again).
+const CACHE_TTL_SEC = 24 * 3600;
+// Short-lived: a fallback estimate shouldn't keep being served once the
+// routing provider comes back (e.g. someone runs prepare.sh mid-session).
 const FALLBACK_CACHE_TTL_SEC = 60;
+// In-process first tier in front of Redis (lib/memory-cache.ts): a hot
+// route — the same corridor searched or booked repeatedly — costs no
+// network round trip at all, and concurrent requests for one route share a
+// single provider call. Bounded: a long route's polyline is a few KB.
+const MEMORY_ROUTE_TTL_MS = 10 * 60_000;
+const routeMemory = new MemoryCache<RouteResult>(500, MEMORY_ROUTE_TTL_MS);
+const alternativesMemory = new MemoryCache<RouteAlternative[]>(100, MEMORY_ROUTE_TTL_MS);
+
+function memoryTtlMs(isEstimate: boolean): number {
+  return isEstimate ? FALLBACK_CACHE_TTL_SEC * 1000 : MEMORY_ROUTE_TTL_MS;
+}
+
+/** Test-only: forget every in-process cached route. */
+export function clearRouteMemoryCache(): void {
+  routeMemory.clear();
+  alternativesMemory.clear();
+}
+
 const FETCH_TIMEOUT_MS = 4000;
 // Plausible average includes intersections/traffic — used only for the
 // straight-line fallback when OSRM is unavailable, never shown as if it
@@ -189,24 +213,28 @@ export async function getRoute(
   const key =
     `route:${origin.lat.toFixed(5)},${origin.lng.toFixed(5)}:${destination.lat.toFixed(5)},${destination.lng.toFixed(5)}` +
     (waypointKey ? `:via:${waypointKey}` : '');
-  // Best-effort cache (lib/cache.ts): a Redis outage costs a routing call,
-  // never the request.
-  const hit = await cacheGetJson<RouteResult>(key);
-  if (hit) return hit;
+  return routeMemory.getOrLoad(
+    key,
+    async () => {
+      // Best-effort shared cache (lib/cache.ts): a Redis outage costs a
+      // routing call, never the request.
+      const hit = await cacheGetJson<RouteResult>(key);
+      if (hit) return hit;
 
-  const result =
-    (await getRoutingProvider().computeRoute(origin, destination, waypoints)) ??
-    fallbackRoute([origin, ...waypoints, destination]);
+      const result =
+        (await getRoutingProvider().computeRoute(origin, destination, waypoints)) ??
+        fallbackRoute([origin, ...waypoints, destination]);
 
-  await cacheSetJson(key, result, result.isEstimate ? FALLBACK_CACHE_TTL_SEC : CACHE_TTL_SEC);
-  return result;
+      await cacheSetJson(key, result, result.isEstimate ? FALLBACK_CACHE_TTL_SEC : CACHE_TTL_SEC);
+      return result;
+    },
+    (result) => memoryTtlMs(result.isEstimate),
+  );
 }
 
-// Shorter-lived than a single route's cache: alternatives are requested
-// once per route-selection step (not on every render the way a single
-// route is), so there's less value in holding them a full hour, and a
-// shorter TTL means a provider outage's fallback single-option result
-// doesn't get stuck being served for long once the provider recovers.
+// Shorter-lived than a single route's cache: alternatives are only asked
+// for during the publish wizard's route step (a driver going back and forth
+// within one session), so a day-long copy would just occupy Redis.
 const ALTERNATIVES_CACHE_TTL_SEC = 600;
 const ALTERNATIVES_FALLBACK_CACHE_TTL_SEC = 60;
 
@@ -230,16 +258,26 @@ export async function getRouteAlternatives(
   const key =
     `route-alts:${origin.lat.toFixed(5)},${origin.lng.toFixed(5)}:${destination.lat.toFixed(5)},${destination.lng.toFixed(5)}` +
     (waypointKey ? `:via:${waypointKey}` : '');
-  const hit = await cacheGetJson<RouteAlternative[]>(key);
-  if (hit) return hit;
+  return alternativesMemory.getOrLoad(
+    key,
+    async () => {
+      const hit = await cacheGetJson<RouteAlternative[]>(key);
+      if (hit) return hit;
 
-  const provided = await getRoutingProvider().computeRouteAlternatives(origin, destination, waypoints);
-  const result: RouteAlternative[] =
-    provided && provided.length > 0
-      ? provided
-      : [{ ...fallbackRoute([origin, ...waypoints, destination]), kind: 'fastest', hasTolls: null }];
+      const provided = await getRoutingProvider().computeRouteAlternatives(origin, destination, waypoints);
+      const result: RouteAlternative[] =
+        provided && provided.length > 0
+          ? provided
+          : [{ ...fallbackRoute([origin, ...waypoints, destination]), kind: 'fastest', hasTolls: null }];
 
-  const anyEstimate = result.some((r) => r.isEstimate);
-  await cacheSetJson(key, result, anyEstimate ? ALTERNATIVES_FALLBACK_CACHE_TTL_SEC : ALTERNATIVES_CACHE_TTL_SEC);
-  return result;
+      const anyEstimate = result.some((r) => r.isEstimate);
+      await cacheSetJson(
+        key,
+        result,
+        anyEstimate ? ALTERNATIVES_FALLBACK_CACHE_TTL_SEC : ALTERNATIVES_CACHE_TTL_SEC,
+      );
+      return result;
+    },
+    (result) => memoryTtlMs(result.some((r) => r.isEstimate)),
+  );
 }

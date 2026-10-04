@@ -40,6 +40,7 @@ import {
   type MatchCandidate,
 } from '../../src/state/api';
 import { useOpenDriver } from '../../src/features/search/useOpenDriver';
+import { usePrefetchTopRides } from '../../src/features/search/usePrefetchTopRides';
 import { trackEvent } from '../../src/services/analytics/analytics';
 import { shortenPlaceLabel } from '../../src/utils/placeLabel';
 
@@ -266,6 +267,7 @@ export default function ResultsScreen(): React.JSX.Element {
   // `searchResult` is undefined — the `points`/other memos further down
   // depend on `sorted`.
   const sorted = useMemo(() => searchResult?.candidates ?? [], [searchResult]);
+  usePrefetchTopRides(sorted);
   // Matching-engine architecture plan §Decisions #3 / §M: never re-derive
   // "best match" from a local score comparison — the server already
   // decided whether one candidate is a genuine standout, and deliberately

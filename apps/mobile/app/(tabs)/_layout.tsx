@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useAppTheme, haptics } from '@vaya/design-system';
 import { useAppSelector } from '../../src/state/store';
 import { useListConversationsQuery } from '../../src/state/api';
+import { useFocusAwarePolling } from '../../src/hooks/useFocusAwarePolling';
 
 // Matches explore.tsx/trips.tsx's own background-polling cadence — this is
 // a tab-bar badge, not an open chat screen, so it doesn't need
@@ -22,9 +23,12 @@ export default function TabLayout(): React.JSX.Element {
 
   // messages.tsx guards itself for guests (see the comment below), so this
   // query is skipped the same way rather than firing for a signed-out user.
+  // Paused while a screen is pushed over the tabs (the tab bar and its
+  // badge aren't visible then) and while the app is in the background.
+  const unreadPolling = useFocusAwarePolling(UNREAD_POLL_MS);
   const { data: conversations } = useListConversationsQuery(undefined, {
     skip: !accessToken,
-    pollingInterval: UNREAD_POLL_MS,
+    ...unreadPolling,
   });
   const unreadCount = conversations?.filter((c) => c.hasUnread).length ?? 0;
 

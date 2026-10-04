@@ -42,6 +42,7 @@ import {
 } from '../../src/features/conversations/conversationHelpers';
 import { trackEvent } from '../../src/services/analytics/analytics';
 import { shortenPlaceLabel } from '../../src/utils/placeLabel';
+import { useFocusAwarePolling } from '../../src/hooks/useFocusAwarePolling';
 
 // Polling-based delivery only (docs/roadmap/phase-08-messaging.md — no
 // WebSockets/real-time infra for v1). 4s keeps a trip-coordination
@@ -71,9 +72,10 @@ export default function ConversationScreen(): React.JSX.Element {
     error: conversationError,
   } = useGetConversationByBookingQuery(bookingId, { skip: !bookingId });
 
+  const messagesPolling = useFocusAwarePolling(POLL_INTERVAL_MS);
   const { data: messages } = useListConversationMessagesQuery(
     { conversationId: conversation?.id ?? '' },
-    { skip: !conversation, pollingInterval: POLL_INTERVAL_MS },
+    { skip: !conversation, ...messagesPolling },
   );
 
   const [sendConversationMessage, { isLoading: isSending }] = useSendConversationMessageMutation();

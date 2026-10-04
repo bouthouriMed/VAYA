@@ -44,6 +44,7 @@ export default defineConfig({
         './src/__mocks__/react-native-safe-area-context.ts',
       ),
       '@react-native-community/netinfo': path.resolve(__dirname, './src/__mocks__/netinfo.ts'),
+      '@react-navigation/native': path.resolve(__dirname, './src/__mocks__/react-navigation-native.ts'),
     },
     coverage: {
       provider: 'v8',

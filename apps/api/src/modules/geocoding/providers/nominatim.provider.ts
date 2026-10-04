@@ -25,6 +25,10 @@ const TUNISIA_VIEWBOX = '7.5,37.6,11.6,30.2';
 // need a second network call for a result autocomplete() already fetched.
 // 10 minutes comfortably covers "user picked a result shortly after typing".
 const SESSION_CACHE_TTL_SEC = 600;
+// Place names and addresses in OSM change rarely; a day for typed searches,
+// a week for reverse lookups of a fixed point.
+const SEARCH_CACHE_TTL_SEC = 24 * 3600;
+const REVERSE_CACHE_TTL_SEC = 7 * 24 * 3600;
 
 interface NominatimResult {
   display_name: string;
@@ -135,9 +139,17 @@ export class NominatimProvider implements LocationProvider {
       }
       url.searchParams.set('addressdetails', '1');
 
-      const response = await fetchWithTimeout(url.toString());
-      if (!response.ok) throw new Error(`Nominatim search failed: ${response.status}`);
-      const results = (await response.json()) as NominatimResult[];
+      // OSM's Nominatim usage policy requires clients to cache results (and
+      // allows at most 1 request/second) — the same typed query from any
+      // user is answered from cache for a day.
+      const queryKey = `geo-search:nominatim:${this.restrictToTunisia ? 'tn' : 'all'}:${input.trim().toLowerCase().replace(/\s+/g, ' ')}`;
+      let results = await cacheGetJson<NominatimResult[]>(queryKey);
+      if (!results) {
+        const response = await fetchWithTimeout(url.toString());
+        if (!response.ok) throw new Error(`Nominatim search failed: ${response.status}`);
+        results = (await response.json()) as NominatimResult[];
+        await cacheSetJson(queryKey, results, SEARCH_CACHE_TTL_SEC);
+      }
 
       const points = results.map(toLocationPoint);
 
@@ -184,9 +196,17 @@ export class NominatimProvider implements LocationProvider {
       url.searchParams.set('format', 'json');
       url.searchParams.set('addressdetails', '1');
 
-      const response = await fetchWithTimeout(url.toString());
-      if (!response.ok) throw new Error(`Nominatim reverse geocode failed: ${response.status}`);
-      const result = (await response.json()) as NominatimResult;
+      // Keyed on the same ~11m rounding the request itself uses, so every
+      // lookup that would hit Nominatim with identical parameters shares one
+      // cached answer (OSM usage policy requires caching).
+      const reverseKey = `geo-reverse:nominatim:${roundedLat},${roundedLng}`;
+      let result = await cacheGetJson<NominatimResult>(reverseKey);
+      if (!result) {
+        const response = await fetchWithTimeout(url.toString());
+        if (!response.ok) throw new Error(`Nominatim reverse geocode failed: ${response.status}`);
+        result = (await response.json()) as NominatimResult;
+        await cacheSetJson(reverseKey, result, REVERSE_CACHE_TTL_SEC);
+      }
       return { ...toLocationPoint(result), latitude: lat, longitude: lng };
     } catch (err) {
       getLogger().warn({ err, provider: 'nominatim', lat, lng }, 'Nominatim reverse geocode failed');

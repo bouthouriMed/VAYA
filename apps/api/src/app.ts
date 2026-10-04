@@ -120,9 +120,15 @@ export async function buildApp() {
   // written to.
   const uploadsRoot = path.resolve(process.cwd(), 'uploads');
   mkdirSync(uploadsRoot, { recursive: true });
+  // Public uploads (avatars, vehicle photos) are stored under a random
+  // UUID filename and never rewritten — a changed photo is a new URL — so
+  // devices may keep them for a year instead of re-downloading the same
+  // image on every screen that shows it.
   await app.register(staticPlugin, {
     root: uploadsRoot,
     prefix: '/uploads/',
+    maxAge: '365d',
+    immutable: true,
   });
 
   // The complete endpoint/schema map (Swagger UI + openapi.json) is only
@@ -226,6 +232,16 @@ export async function buildApp() {
 
   // Error handler
   app.setErrorHandler(errorHandler);
+
+  // API responses are personal and/or live (bookings, seats, messages,
+  // KYC files): never let a device or proxy HTTP cache keep or replay them.
+  // The mobile app's own cache (RTK Query) decides what to reuse and when to
+  // refetch. Routes that set their own Cache-Control (e.g. the /uploads/
+  // static files above) keep it.
+  app.addHook('onSend', async (_request, reply, payload) => {
+    if (!reply.hasHeader('cache-control')) reply.header('cache-control', 'no-store');
+    return payload;
+  });
 
   // Records every response into the two /metrics series (lib/metrics.ts).
   // Labeled by `routeOptions.url` (the parameterized pattern, e.g.

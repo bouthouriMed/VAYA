@@ -119,6 +119,9 @@ export class S3StorageAdapter implements StorageAdapter {
         Key: key,
         Body: buffer,
         ContentType: contentType || contentTypeForExt(ext),
+        // Same reasoning as app.ts's /uploads/ static mount: a public object
+        // is written once under a random key and never changed.
+        CacheControl: 'public, max-age=31536000, immutable',
       }),
     );
     return this.publicUrlFor(key);

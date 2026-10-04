@@ -84,7 +84,7 @@ export default function StopsSelectionScreen(): React.JSX.Element {
     const trimmed = query.trim();
     if (trimmed.length < 2) return;
     const timer = setTimeout(() => {
-      void triggerAutocomplete({ input: trimmed, sessionToken: sessionTokenRef.current });
+      void triggerAutocomplete({ input: trimmed, sessionToken: sessionTokenRef.current }, true);
     }, SEARCH_DEBOUNCE_MS);
     return () => clearTimeout(timer);
   }, [query, triggerAutocomplete]);
@@ -137,7 +137,7 @@ export default function StopsSelectionScreen(): React.JSX.Element {
     }
     setErrorMessage(null);
     const sessionToken = sessionTokenRef.current;
-    const result = await triggerDetails({ placeId: row.placeId, sessionToken }).unwrap().catch(() => null);
+    const result = await triggerDetails({ placeId: row.placeId, sessionToken }, true).unwrap().catch(() => null);
     if (!result) {
       setErrorMessage(t('search:composer.resolveError'));
       return;

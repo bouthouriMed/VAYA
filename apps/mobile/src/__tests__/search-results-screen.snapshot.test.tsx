@@ -43,6 +43,12 @@ vi.mock('../features/search/useOpenDriver', () => ({
   useOpenDriver: () => vi.fn(),
 }));
 
+// Prefetching talks to the real RTK Query store; the screen's rendering
+// doesn't depend on it.
+vi.mock('../features/search/usePrefetchTopRides', () => ({
+  usePrefetchTopRides: () => undefined,
+}));
+
 const searchState: RootState['search'] = {
   origin: { label: 'La Marsa, Tunis', lat: 36.88, lng: 10.32 },
   destination: { label: 'Avenue Habib Bourguiba, Tunis', lat: 36.8, lng: 10.18 },

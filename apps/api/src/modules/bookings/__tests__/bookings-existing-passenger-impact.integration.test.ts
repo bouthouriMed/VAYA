@@ -13,7 +13,7 @@ import {
 import { getRoute } from '../../../lib/routing.js';
 import { decodePolyline } from '../../../lib/polyline.js';
 import { createBooking, acceptBooking } from '../bookings.service.js';
-import { updateOperationalConfig } from '../../operational-config/operational-config.service.js';
+import { updateOperationalConfig, clearOperationalConfigCache } from '../../operational-config/operational-config.service.js';
 import { AppError } from '../../../lib/errors.js';
 
 /**
@@ -139,6 +139,7 @@ describe('bookings.service — existing-passenger soft protection (M-083/M-084/E
 
   afterEach(async () => {
     await db.delete(operationalConfigs).where(eq(operationalConfigs.scope, 'national'));
+    clearOperationalConfigCache();
   });
 
   afterAll(async () => {

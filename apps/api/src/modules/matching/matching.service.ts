@@ -177,6 +177,21 @@ function passengerWalkCaps(thresholds: MatchingThresholds): { pickupM: number; d
 }
 
 /**
+ * The rider's own requested route, used only as a scoring signal (how much
+ * of it overlaps a candidate ride's route, at OVERLAP_CORRIDOR_WIDTH_M
+ * resolution) — never for distances, prices or anything shown as exact.
+ * Rounded to 3 decimals (~100m) before routing so nearby searches between
+ * the same neighbourhoods share one cached route (lib/routing.ts) instead of
+ * every slightly different GPS/geocoded point paying for its own routing
+ * call; the rounding is below the 150m corridor the overlap is measured in.
+ */
+async function getRiderRoutePoints(origin: LatLng, destination: LatLng): Promise<LatLng[]> {
+  const round = (p: LatLng): LatLng => ({ lat: Math.round(p.lat * 1000) / 1000, lng: Math.round(p.lng * 1000) / 1000 });
+  const route = await getRoute(round(origin), round(destination));
+  return route.polyline ? decodePolyline(route.polyline) : [];
+}
+
+/**
  * M-039: the normalization ceiling `pickRecommendedStopId` uses for a
  * candidate stop's driver-side deviation component — the largest real
  * detour ANY stop on a ride of this trip length could have survived
@@ -1000,8 +1015,7 @@ async function scoreCandidates(
 
   // One OSRM call for the rider's own requested route (cached — cheap even
   // when called again from a different tier's pass).
-  const riderRoute = await getRoute(origin, destination);
-  const riderRoutePoints = riderRoute.polyline ? decodePolyline(riderRoute.polyline) : [];
+  const riderRoutePoints = await getRiderRoutePoints(origin, destination);
 
   const rideIds = candidateRides.map((r) => r.id);
   const stopsByRide = await fetchStopsByRide(db, rideIds);
@@ -1681,8 +1695,7 @@ async function findClosestDepartures(
     lookaheadEnd,
     candidateIds ?? undefined,
   );
-  const riderRoute = await getRoute(origin, destination);
-  const riderRoutePoints = riderRoute.polyline ? decodePolyline(riderRoute.polyline) : [];
+  const riderRoutePoints = await getRiderRoutePoints(origin, destination);
   const closestDepartureRideIds = candidateRides.map((r) => r.id);
   const stopsByRide = await fetchStopsByRide(db, closestDepartureRideIds);
   const segmentsByRide = await fetchAcceptedSegmentsByRide(db, closestDepartureRideIds, stopsByRide);

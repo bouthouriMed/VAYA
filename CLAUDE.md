@@ -71,7 +71,7 @@ Beyond the base Rules above: pricing and ride-engine business logic belongs in `
 
 ## Architecture principles
 
-NOW/NEXT/SCALE horizons are explicit and load-bearing — see `docs/architecture/overview.md`. Do not start SCALE-phase work (PostGIS, read replicas, idempotency enforcement, formal abuse prevention) without a measured trigger (real latency numbers, real concurrent load, real observed abuse) — premature optimization here is itself the risk the SCALE phase exists to avoid. Application-level haversine scanning over a time-windowed row fetch (the current matching approach) is intentionally KEEP, not a stopgap to feel guilty about, through the NOW/NEXT range.
+NOW/NEXT/SCALE horizons are explicit and load-bearing — see `docs/architecture/overview.md`. Do not start SCALE-phase work (PostGIS, read replicas, idempotency enforcement, formal abuse prevention) without a measured trigger (real latency numbers, real concurrent load, real observed abuse) — premature optimization here is itself the risk the SCALE phase exists to avoid. Application-level haversine scanning over a time-windowed row fetch (the current matching approach) is intentionally KEEP, not a stopgap to feel guilty about, through the NOW/NEXT range. Caching rules (what is cached where, and what must never be): `docs/architecture/caching.md` — Redis is best-effort on the request path, never a dependency a request can fail on.
 
 ## Domain rules
 

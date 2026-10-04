@@ -3,6 +3,7 @@ import type { getDatabase } from '../../lib/database.js';
 import { recurringDetectionConfigs } from '../../db/schema/index.js';
 import { DEFAULT_RECURRING_DETECTION_CONFIG, type RecurringDetectionConfig } from '@vaya/domain';
 import { getLogger } from '../../config/logger.js';
+import { MemoryCache } from '../../lib/memory-cache.js';
 
 type Database = ReturnType<typeof getDatabase>;
 
@@ -18,9 +19,22 @@ type Database = ReturnType<typeof getDatabase>;
  * `DEFAULT_RECURRING_DETECTION_CONFIG` and logs a warning so the gap stays
  * visible without failing the caller.
  */
+// Read once per user by the daily detection scan; no admin write path.
+const RECURRING_CONFIG_TTL_MS = 5 * 60_000;
+const recurringConfigCache = new MemoryCache<RecurringDetectionConfig>(1, RECURRING_CONFIG_TTL_MS);
+
+/** Drops the cached row — for tests that write `recurring_detection_configs` directly. */
+export function clearRecurringDetectionConfigCache(): void {
+  recurringConfigCache.clear();
+}
+
 export async function getActiveRecurringDetectionConfig(
   db: Database,
 ): Promise<RecurringDetectionConfig> {
+  return recurringConfigCache.getOrLoad('global', () => loadActiveRecurringDetectionConfig(db));
+}
+
+async function loadActiveRecurringDetectionConfig(db: Database): Promise<RecurringDetectionConfig> {
   const config = await db.query.recurringDetectionConfigs.findFirst({
     where: and(eq(recurringDetectionConfigs.scope, 'global'), eq(recurringDetectionConfigs.active, true)),
   });

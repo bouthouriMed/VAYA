@@ -24,8 +24,9 @@ vi.mock('../routing-providers/index.js', () => ({
 }));
 
 describe('best-effort cache when Redis is failing (Upstash quota exhausted)', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     computeRoute.mockReset();
+    (await import('../routing.js')).clearRouteMemoryCache();
   });
 
   it('cacheGet/cacheSet/cacheDel never throw — a failure is a miss / a skipped write', async () => {

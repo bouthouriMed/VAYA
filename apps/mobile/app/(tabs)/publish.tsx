@@ -507,7 +507,7 @@ export default function PublishTabScreen(): React.JSX.Element {
     if (!isPinPlacementActive || selectedPointId !== null) return;
     const next = { lat: region.latitude, lng: region.longitude };
     setSelectionCenter(next);
-    void fetchReverseGeocode(next)
+    void fetchReverseGeocode(next, true)
       .unwrap()
       .then((result) => setCustomPointLabel(result.label))
       .catch(() => setCustomPointLabel(t('driver:publish.stopsStep.customPosition')));

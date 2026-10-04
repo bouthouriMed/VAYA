@@ -17,6 +17,7 @@ import {
 } from '../recurring.service.js';
 import { createRide, publishRide } from '../../rides/rides.service.js';
 import { getNotificationDispatchQueue, closeQueue } from '../../../lib/queue.js';
+import { clearRecurringDetectionConfigCache } from '../recurring-config.service.js';
 
 const JOB_STATUSES = ['waiting', 'delayed', 'active', 'completed', 'failed'] as const;
 
@@ -89,6 +90,7 @@ describe('Phase 11 — recurring rides (detection, enable, auto-draft, proactive
       .values({ scope: 'global', ...TEST_CONFIG, active: true })
       .returning();
     testConfigId = inserted!.id;
+    clearRecurringDetectionConfigCache();
 
     const base = Date.now() % 10_000_000;
 

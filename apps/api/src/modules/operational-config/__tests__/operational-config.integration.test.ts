@@ -14,6 +14,7 @@ import {
   getActiveOperationalConfig,
   updateOperationalConfig,
   DEFAULT_RESOLVED_OPERATIONAL_CONFIG,
+  clearOperationalConfigCache,
 } from '../operational-config.service.js';
 import { cancelBooking, createBooking } from '../../bookings/bookings.service.js';
 import { getRoute } from '../../../lib/routing.js';
@@ -37,6 +38,7 @@ describe('operational-config.service — VAYA operational policy configuration (
     // deactivates, so DEFAULT_RESOLVED_OPERATIONAL_CONFIG's fallback is
     // exercised fresh by the next test too.
     await db.delete(operationalConfigs).where(eq(operationalConfigs.scope, 'national'));
+    clearOperationalConfigCache();
   });
 
   afterAll(async () => {
