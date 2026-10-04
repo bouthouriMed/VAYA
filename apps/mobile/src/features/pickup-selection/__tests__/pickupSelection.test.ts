@@ -8,6 +8,7 @@ function stop(overrides: Partial<RankedStop> = {}): RankedStop {
     label: 'Test stop',
     lat: 36.8,
     lng: 10.18,
+    walkMeters: 400,
     walkMinutes: 5,
     sequence: null,
     ...overrides,

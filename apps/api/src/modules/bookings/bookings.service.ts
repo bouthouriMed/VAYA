@@ -16,7 +16,9 @@ import {
   evaluateExistingPassengerImpact,
   evaluateNoShowReport,
   findSameJourneySiblings,
+  estimateWalk,
   getMatchingThresholds,
+  getPassengerAccessCaps,
   isDeadlineApproaching,
   wouldExceedCapacity,
   CANCELLATION_REASONS,
@@ -473,25 +475,40 @@ async function assertExistingPassengerImpactAcceptable(
  * ephemeral search-time-only value.
  */
 function resolveStopWalkMeters(
-  ride: { routePolyline: string | null },
+  ride: {
+    routePolyline: string | null;
+    originLat: number;
+    originLng: number;
+    destinationLat: number;
+    destinationLng: number;
+  },
   requestedPoint: { lat: number; lng: number },
   stop: { lat: number; lng: number },
   radiusKind: 'pickup' | 'dropoff',
 ): number {
-  const profile = ride.routePolyline
-    ? classifyTripProfile(polylineLengthMeters(decodePolyline(ride.routePolyline)))
-    : classifyTripProfile(0); // No real route length known — 'commute' is classifyTripProfile's own floor, the most conservative (tightest) radius rather than assuming a generous one.
-  const thresholds = getMatchingThresholds(profile.type);
-  const radiusM = radiusKind === 'pickup' ? thresholds.widePickupRadiusM : thresholds.wideDropoffRadiusM;
-  const walkMeters = haversineDistanceMeters(requestedPoint, stop);
-  if (walkMeters > radiusM) {
+  // Same caps search offers stops under (@vaya/domain getPassengerAccessCaps),
+  // keyed on the ride's own length: a passenger's journey is a sub-segment
+  // of the ride, so the ride's profile is never stricter than the one the
+  // search used — anything search offered passes here, a 40-minute walk
+  // doesn't. Without a stored route, the straight line between the ride's
+  // endpoints stands in for its length.
+  const rideLengthM = ride.routePolyline
+    ? polylineLengthMeters(decodePolyline(ride.routePolyline))
+    : haversineDistanceMeters(
+        { lat: ride.originLat, lng: ride.originLng },
+        { lat: ride.destinationLat, lng: ride.destinationLng },
+      );
+  const caps = getPassengerAccessCaps(classifyTripProfile(rideLengthM).type);
+  const radiusM = radiusKind === 'pickup' ? caps.pickupM : caps.dropoffM;
+  const straightLineM = haversineDistanceMeters(requestedPoint, stop);
+  if (straightLineM > radiusM) {
     throw new ValidationError(
       radiusKind === 'pickup'
         ? 'Selected pickup stop is too far from your requested location'
         : 'Selected dropoff stop is too far from your requested location',
     );
   }
-  return walkMeters;
+  return estimateWalk(straightLineM).walkMeters;
 }
 
 /** Live tracking (docs/domain/live-tracking.md): once the driver has

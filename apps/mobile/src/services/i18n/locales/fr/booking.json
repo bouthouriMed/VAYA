@@ -139,7 +139,8 @@
       "active": "Trajet en cours",
       "arriving": "Vous arrivez bientôt à destination"
     },
-    "loadError": "Impossible de charger cette réservation"
+    "loadError": "Impossible de charger cette réservation",
+    "distanceToPickupFar": "Point de rendez-vous à {{distance}} de votre position"
   },
   "days": {
     "mon": "Lun",

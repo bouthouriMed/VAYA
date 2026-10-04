@@ -35,6 +35,8 @@ import { decodePolyline } from '../../src/utils/polyline';
 import { trackEvent } from '../../src/services/analytics/analytics';
 import { defaultStopId, rankedPosition } from '../../src/features/pickup-selection/pickupSelection';
 import { formatDistance } from '../../src/utils/localeFormat';
+import { accessAmount, accessLabel } from '../../src/features/search/passengerAccess';
+import { describePassengerAccess } from '@vaya/domain';
 import type { SupportedLocale } from '@vaya/config';
 
 /**
@@ -241,7 +243,7 @@ export default function PickupPointScreen(): React.JSX.Element {
               key={stop.stopId}
               coordinate={{ latitude: stop.lat, longitude: stop.lng }}
               onPress={() => pickStop(stop)}
-              accessibilityLabel={`${stop.label}, ${t('search:walk.suffix', { minutes: t('common:terms.minute', { count: Math.round(stop.walkMinutes) }) })}`}
+              accessibilityLabel={`${stop.label}, ${accessLabel(t, stop.walkMeters, locale)}`}
             >
               <StopPin theme={theme} index={index + 1} selected={isSelected} />
             </Marker>
@@ -298,7 +300,7 @@ export default function PickupPointScreen(): React.JSX.Element {
             <View style={styles.footerTextCol}>
               <Text style={styles.footerLabel}>{selectedStop.label}</Text>
               <Text variant="bodySmall" color={theme.inkFaint} numberOfLines={1}>
-                {t('search:walk.suffix', { minutes: t('common:terms.minute', { count: Math.round(selectedStop.walkMinutes) }) })}
+                {accessLabel(t, selectedStop.walkMeters, locale)}
               </Text>
             </View>
             <Icon name="information-circle-outline" size="sm" color={theme.inkFaint} />
@@ -323,7 +325,7 @@ export default function PickupPointScreen(): React.JSX.Element {
           <View style={styles.sheetContent}>
             <Text variant="body" color={theme.inkMuted}>
               {t('search:pickupPoint.walkFromOrigin', {
-                minutes: t('common:terms.minute', { count: Math.round(detailStop.walkMinutes) }),
+                minutes: accessAmount(t, detailStop.walkMeters, locale),
               })}
             </Text>
             <Text variant="bodySmall" color={theme.inkFaint}>
@@ -368,12 +370,11 @@ export default function PickupPointScreen(): React.JSX.Element {
                 {overridePreviewState.data?.walkMeters != null ? (
                   <Text variant="body" color={theme.inkMuted}>
                     {t('search:pickupPoint.overrideWalk', {
-                      minutes: t('common:terms.minute', {
-                        count: Math.max(1, Math.round(overridePreviewState.data.walkMeters / 80)),
-                      }),
+                      minutes: accessAmount(t, overridePreviewState.data.walkMeters, locale),
                     })}
-                    {' · '}
-                    {formatDistance(overridePreviewState.data.walkMeters, locale)}
+                    {describePassengerAccess(overridePreviewState.data.walkMeters).kind === 'walk'
+                      ? ` · ${formatDistance(overridePreviewState.data.walkMeters, locale)}`
+                      : null}
                   </Text>
                 ) : null}
                 {overridePreviewState.data?.withinAllowance === true &&

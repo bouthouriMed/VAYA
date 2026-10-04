@@ -79,7 +79,9 @@ function candidate(overrides: Partial<MatchCandidate>): MatchCandidate {
     departureAt: '2026-08-21T21:28:00.000Z',
     seatsAvailable: 4,
     contributionPerSeat: 5.5,
+    pickupWalkMeters: 0,
     pickupWalkMinutes: 0,
+    dropoffWalkMeters: 0,
     dropoffWalkMinutes: 0,
     routeOverlapPercent: 0.8,
     score: 0.9,
@@ -92,8 +94,8 @@ function candidate(overrides: Partial<MatchCandidate>): MatchCandidate {
     passengerJourney: { originLat: 36.88, originLng: 10.32, destinationLat: 36.8, destinationLng: 10.18 },
     // A stop-less endpoint ride: boarding/alighting at the ride's own
     // endpoints, which coincide with the passenger's searched places here.
-    pickupPoint: { stopId: null, label: 'La Marsa', lat: 36.88, lng: 10.32, walkMinutes: 0 },
-    dropoffPoint: { stopId: null, label: 'Avenue Habib Bourguiba', lat: 36.8, lng: 10.18, walkMinutes: 0 },
+    pickupPoint: { stopId: null, label: 'La Marsa', lat: 36.88, lng: 10.32, walkMeters: 0, walkMinutes: 0 },
+    dropoffPoint: { stopId: null, label: 'Avenue Habib Bourguiba', lat: 36.8, lng: 10.18, walkMeters: 0, walkMinutes: 0 },
     routePolyline: null,
     rankedStops: [],
     rankedDropoffStops: [],
@@ -203,8 +205,8 @@ describe('search/results.tsx snapshots', () => {
       origin: { label: 'Menzah 6, Ariana', lat: 36.8495, lng: 10.1735 },
       destination: { label: 'Lac 2, Tunis', lat: 36.853, lng: 10.2735 },
     });
-    const menzahStop = { stopId: 'stop-menzah', label: 'Av. Hédi Nouira', lat: 36.8475, lng: 10.1725, walkMinutes: 3, sequence: 1 };
-    const lacStop = { stopId: 'stop-lac', label: 'Rue du Lac Windermere', lat: 36.8505, lng: 10.2712, walkMinutes: 4, sequence: 2 };
+    const menzahStop = { stopId: 'stop-menzah', label: 'Av. Hédi Nouira', lat: 36.8475, lng: 10.1725, walkMeters: 240, walkMinutes: 3, sequence: 1 };
+    const lacStop = { stopId: 'stop-lac', label: 'Rue du Lac Windermere', lat: 36.8505, lng: 10.2712, walkMeters: 320, walkMinutes: 4, sequence: 2 };
     mockApi({
       matching: {
         data: {
@@ -220,13 +222,15 @@ describe('search/results.tsx snapshots', () => {
               destinationLat: 36.878,
               destinationLng: 10.324,
               passengerJourney: { originLat: 36.8495, originLng: 10.1735, destinationLat: 36.853, destinationLng: 10.2735 },
-              pickupPoint: { stopId: menzahStop.stopId, label: menzahStop.label, lat: menzahStop.lat, lng: menzahStop.lng, walkMinutes: 3 },
-              dropoffPoint: { stopId: lacStop.stopId, label: lacStop.label, lat: lacStop.lat, lng: lacStop.lng, walkMinutes: 4 },
+              pickupPoint: { stopId: menzahStop.stopId, label: menzahStop.label, lat: menzahStop.lat, lng: menzahStop.lng, walkMeters: 240, walkMinutes: 3 },
+              dropoffPoint: { stopId: lacStop.stopId, label: lacStop.label, lat: lacStop.lat, lng: lacStop.lng, walkMeters: 320, walkMinutes: 4 },
               rankedStops: [menzahStop],
               rankedDropoffStops: [lacStop],
               recommendedStopId: menzahStop.stopId,
               recommendedDropoffStopId: lacStop.stopId,
+              pickupWalkMeters: 240,
               pickupWalkMinutes: 3,
+              dropoffWalkMeters: 320,
               dropoffWalkMinutes: 4,
               pickupEtaSeconds: 600,
               dropoffEtaSeconds: 1500,

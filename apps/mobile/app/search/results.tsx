@@ -41,18 +41,11 @@ import {
 } from '../../src/state/api';
 import { useOpenDriver } from '../../src/features/search/useOpenDriver';
 import { usePrefetchTopRides } from '../../src/features/search/usePrefetchTopRides';
+import { accessLabel } from '../../src/features/search/passengerAccess';
 import { trackEvent } from '../../src/services/analytics/analytics';
 import { shortenPlaceLabel } from '../../src/utils/placeLabel';
 
 type TFn = (key: string, params?: Record<string, unknown>) => string;
-
-/** A localized "{{minutes}} à pied"-style walk label — reused for the map
- *  pin's ETA and the dropoff walk chip (search:walk.suffix), each built
- *  from the shared `common:terms.minute` pluralization rather than a
- *  hand-rolled "X min" string. */
-function walkSuffixLabel(t: TFn, minutes: number): string {
-  return t('search:walk.suffix', { minutes: t('common:terms.minute', { count: Math.round(minutes) }) });
-}
 
 /** "Aujourd'hui, 14:30" / "Demain, 09:00" / "21 août, 18:15"-style label for
  *  the searched date/time, built locally from `common:time.today`/
@@ -82,7 +75,7 @@ function toPinData(
     id: candidate.rideId,
     name: (candidate.driverFullName ?? t('search:results.driverFallback')).split(' ')[0]!,
     priceLabel: formatCurrency(candidate.contributionPerSeat, locale),
-    etaLabel: walkSuffixLabel(t, candidate.pickupWalkMinutes),
+    etaLabel: accessLabel(t, candidate.pickupWalkMeters, locale),
   };
 }
 
@@ -156,7 +149,7 @@ function RideResultCard({
     if (offsetMin > 2) {
       timeOffsetNote = t('search:results.timeOffsetNote', {
         offset: formatDurationLabel(t as unknown as TFunction, offsetMin),
-        walkMinutes: t('common:terms.minute', { count: Math.max(1, Math.round(candidate.pickupWalkMinutes)) }),
+        access: accessLabel(t, candidate.pickupWalkMeters, locale),
       });
     }
   }
@@ -171,12 +164,12 @@ function RideResultCard({
     priceLabel: formatCurrency(candidate.contributionPerSeat, locale),
     pickupCityLabel: origin?.label ? splitLocationLabel(origin.label).city : t('search:results.departure'),
     pickupPlaceLabel: pickupStop?.label ?? t('search:results.meetingPoint'),
-    pickupWalkLabel: walkSuffixLabel(t, Math.max(1, candidate.pickupWalkMinutes)),
+    pickupWalkLabel: accessLabel(t, candidate.pickupWalkMeters, locale),
     dropoffCityLabel: dropoffSplit.city,
     // The drop-off stop near the passenger's OWN destination when there is
     // one; the city line above is always the passenger's destination.
     dropoffPlaceLabel: candidate.dropoffPoint?.stopId ? (candidate.dropoffPoint.label ?? dropoffSplit.place) : dropoffSplit.place,
-    dropoffWalkLabel: walkSuffixLabel(t, Math.max(1, candidate.dropoffWalkMinutes)),
+    dropoffWalkLabel: accessLabel(t, candidate.dropoffWalkMeters, locale),
     seatsAvailable: candidate.seatsAvailable,
     seatsLabel: t('common:terms.seat', { count: candidate.seatsAvailable }),
     bestMatchLabel: t('search:results.bestMatch'),

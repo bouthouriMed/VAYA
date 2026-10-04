@@ -15,8 +15,8 @@ const ride = {
 const searchOrigin = { label: 'Menzah 6, Tunis', lat: 36.8495, lng: 10.1735 };
 const searchDestination = { label: 'Lac 2, Tunis', lat: 36.853, lng: 10.2735 };
 
-const menzahStop = { stopId: 'stop-menzah', label: 'Menzah 6 — Av. Hédi Nouira', lat: 36.8475, lng: 10.1725, walkMinutes: 3, sequence: 1 };
-const lacStop = { stopId: 'stop-lac', label: 'Lac 2 — Rue du Lac Windermere', lat: 36.8505, lng: 10.2712, walkMinutes: 4, sequence: 2 };
+const menzahStop = { stopId: 'stop-menzah', label: 'Menzah 6 — Av. Hédi Nouira', lat: 36.8475, lng: 10.1725, walkMeters: 240, walkMinutes: 3, sequence: 1 };
+const lacStop = { stopId: 'stop-lac', label: 'Lac 2 — Rue du Lac Windermere', lat: 36.8505, lng: 10.2712, walkMeters: 320, walkMinutes: 4, sequence: 2 };
 
 function candidate(overrides: Partial<MatchCandidate> = {}): MatchCandidate {
   return {
@@ -29,7 +29,9 @@ function candidate(overrides: Partial<MatchCandidate> = {}): MatchCandidate {
     departureAt: '2026-10-05T18:10:00.000Z',
     seatsAvailable: 3,
     contributionPerSeat: 4,
+    pickupWalkMeters: 240,
     pickupWalkMinutes: 3,
+    dropoffWalkMeters: 320,
     dropoffWalkMinutes: 4,
     routeOverlapPercent: 100,
     score: 0.8,
@@ -46,8 +48,8 @@ function candidate(overrides: Partial<MatchCandidate> = {}): MatchCandidate {
       destinationLat: searchDestination.lat,
       destinationLng: searchDestination.lng,
     },
-    pickupPoint: { stopId: menzahStop.stopId, label: menzahStop.label, lat: menzahStop.lat, lng: menzahStop.lng, walkMinutes: 3 },
-    dropoffPoint: { stopId: lacStop.stopId, label: lacStop.label, lat: lacStop.lat, lng: lacStop.lng, walkMinutes: 4 },
+    pickupPoint: { stopId: menzahStop.stopId, label: menzahStop.label, lat: menzahStop.lat, lng: menzahStop.lng, walkMeters: 240, walkMinutes: 3 },
+    dropoffPoint: { stopId: lacStop.stopId, label: lacStop.label, lat: lacStop.lat, lng: lacStop.lng, walkMeters: 320, walkMinutes: 4 },
     routePolyline: null,
     rankedStops: [menzahStop],
     rankedDropoffStops: [lacStop],
@@ -103,7 +105,7 @@ describe('resolvePassengerSegmentPoints', () => {
       ...base,
       candidate: candidate({
         rankedDropoffStops: [],
-        dropoffPoint: { stopId: null, label: 'La Marsa', lat: ride.destinationLat, lng: ride.destinationLng, walkMinutes: 2 },
+        dropoffPoint: { stopId: null, label: 'La Marsa', lat: ride.destinationLat, lng: ride.destinationLng, walkMeters: 160, walkMinutes: 2 },
       }),
     });
     expect(dropoff.label).toBe('La Marsa');

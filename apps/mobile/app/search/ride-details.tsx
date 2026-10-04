@@ -43,6 +43,7 @@ import { decodePolyline, polylineDistanceKm, sliceRouteBetween } from '../../src
 import { useContextualAuth } from '../../src/features/auth/useContextualAuth';
 import { ContextualAuthSheet } from '../../src/features/auth/ContextualAuthSheet';
 import { formatDate, formatTime } from '../../src/utils/localeFormat';
+import { accessAmount } from '../../src/features/search/passengerAccess';
 import { formatDurationLabel } from '../../src/utils/durationLabel';
 import { resolvePassengerSegmentPoints } from '../../src/features/search/passengerSegment';
 import type { TFunction } from 'i18next';
@@ -192,7 +193,7 @@ export default function RideDetailsScreen(): React.JSX.Element {
     [stops, pickupStopId],
   );
   const pickupLabel = pickupStop?.label ?? segmentPoints.pickup.label;
-  const pickupWalkMinutes = candidate?.pickupWalkMinutes;
+  const pickupWalkMeters = candidate?.pickupWalkMeters;
   const dropoffStopId = segmentPoints.dropoff.stopId;
   const dropoffLabel = segmentPoints.dropoff.label;
   const dropoffLat = segmentPoints.dropoff.lat;
@@ -611,10 +612,10 @@ export default function RideDetailsScreen(): React.JSX.Element {
               <Text variant="body" color={theme.ink}>
                 {pickupLabel ?? ride.originLabel}
               </Text>
-              {pickupWalkMinutes !== undefined ? (
+              {pickupWalkMeters !== undefined && pickupWalkMeters > 0 ? (
                 <Text variant="caption" color={theme.inkFaint}>
                   {t('search:details.walkToMeetingPoint', {
-                    minutes: t('common:terms.minute', { count: Math.round(pickupWalkMinutes) }),
+                    minutes: accessAmount(t, pickupWalkMeters, locale),
                   })}
                 </Text>
               ) : null}

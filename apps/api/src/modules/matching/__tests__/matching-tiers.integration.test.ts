@@ -18,8 +18,9 @@ import { searchRides } from '../matching.service.js';
  * accidentally satisfying a different tier's search:
  *  - "Area A" (a Tunis suburb): an exact-match ride and a far-future ride
  *    on the same corridor (closest_departure).
- *  - "Area B" (~a hundred km southwest, inland): a ride only reachable by
- *    widening the radius (wide_corridor).
+ *  - "Area B" (~a hundred km southwest, inland): a ride a short walk away
+ *    but outside the tight time window (wide_corridor), and one whose
+ *    endpoints are a 40-minute walk away (never shown).
  *  - The real Tunis→Sousse coastal route: a long ride with two real
  *    mid-route stops, searched by a short sub-trip entirely inside it
  *    (route_passthrough).
@@ -53,11 +54,17 @@ describe('matching.service — tier cascade, real Postgres (+ real OSRM for rout
   // "urban" (≤45km).
   const areaBRiderOrigin = { lat: 36.3, lng: 9.5 };
   const areaBRiderDestination = { lat: 36.5, lng: 9.7 };
-  // ~4km/~5km offsets from the rider's own points — clearly inside the
-  // urban-profile WIDE radii (8km/10km) and outside TIGHT (2km/3km), not a
-  // borderline value that could flake.
-  const areaBRideOrigin = { lat: 36.336, lng: 9.5 }; // ~4km north of rider origin.
-  const areaBRideDestination = { lat: 36.545, lng: 9.7 }; // ~5km north of rider destination.
+  // A short walk (~500m) from the rider's own points, but departing 3h
+  // after the requested time: outside the tight 90-min window, inside the
+  // wide 240-min one.
+  const areaBRideOrigin = { lat: 36.3045, lng: 9.5 };
+  const areaBRideDestination = { lat: 36.5045, lng: 9.7 };
+  // ~4km/~5km from the rider's own points: inside the old wide endpoint
+  // radii (8km/10km), so it used to appear as a ~40-60 minute walk. Now
+  // beyond the 15-minute city walk cap — never a result.
+  const areaBFarRideOrigin = { lat: 36.336, lng: 9.5 };
+  const areaBFarRideDestination = { lat: 36.545, lng: 9.7 };
+  let areaBFarRideId: string;
 
   const tunis = { lat: 36.8065, lng: 10.1815 };
   const sousse = { lat: 35.8256, lng: 10.6369 };
@@ -156,8 +163,8 @@ describe('matching.service — tier cascade, real Postgres (+ real OSRM for rout
       departureAt: closestDepartureRideWhen,
     });
 
-    // Ride B — wide-corridor-only: endpoints outside TIGHT, inside WIDE
-    // (urban-profile radii, since the rider trip searching for it is >15km).
+    // Ride B — wide-corridor-only: walkable endpoints, departs 3h after
+    // the requested time (outside the tight window, inside the wide one).
     await insertRide({
       originLabel: 'Area B Ride Origin',
       originLat: areaBRideOrigin.lat,
@@ -165,6 +172,18 @@ describe('matching.service — tier cascade, real Postgres (+ real OSRM for rout
       destinationLabel: 'Area B Ride Destination',
       destinationLat: areaBRideDestination.lat,
       destinationLng: areaBRideDestination.lng,
+      departureAt: new Date(areaAWhen.getTime() + 3 * 3_600_000),
+    });
+
+    // Ride B-far — right time, but its endpoints are a 40-60 minute walk
+    // from the rider's points.
+    areaBFarRideId = await insertRide({
+      originLabel: 'Area B Far Ride Origin',
+      originLat: areaBFarRideOrigin.lat,
+      originLng: areaBFarRideOrigin.lng,
+      destinationLabel: 'Area B Far Ride Destination',
+      destinationLat: areaBFarRideDestination.lat,
+      destinationLng: areaBFarRideDestination.lng,
       departureAt: areaAWhen,
     });
 
@@ -265,7 +284,7 @@ describe('matching.service — tier cascade, real Postgres (+ real OSRM for rout
     expect(result.candidates.some((c) => c.matchType === 'endpoint')).toBe(true);
   });
 
-  it('falls back to tier "wide_corridor" when only a wider radius finds a ride', async () => {
+  it('falls back to tier "wide_corridor" when only the wider time window finds a ride', async () => {
     const result = await searchRides(db, {
       originLat: areaBRiderOrigin.lat,
       originLng: areaBRiderOrigin.lng,
@@ -276,6 +295,23 @@ describe('matching.service — tier cascade, real Postgres (+ real OSRM for rout
     expect(result.tier).toBe('wide_corridor');
     expect(result.message).toBeTruthy();
     expect(result.candidates.length).toBeGreaterThan(0);
+  });
+
+  it('never shows a city/medium-trip ride whose boarding or alighting point is beyond a 15-minute walk', async () => {
+    const result = await searchRides(db, {
+      originLat: areaBRiderOrigin.lat,
+      originLng: areaBRiderOrigin.lng,
+      destinationLat: areaBRiderDestination.lat,
+      destinationLng: areaBRiderDestination.lng,
+      when: areaAWhen,
+    });
+    expect(result.candidates.map((c) => c.rideId)).not.toContain(areaBFarRideId);
+    for (const candidate of result.candidates) {
+      expect(candidate.pickupViable).toBe(true);
+      expect(candidate.dropoffViable).toBe(true);
+      expect(candidate.pickupWalkMinutes).toBeLessThanOrEqual(15);
+      expect(candidate.dropoffWalkMinutes).toBeLessThanOrEqual(15);
+    }
   });
 
   // Matching-engine architecture plan §G / §A — "trip-profile-aware

@@ -12,7 +12,14 @@ import {
   type MatchCandidate,
 } from '../matching.service.js';
 import { polylineLengthMeters } from '../../../lib/polyline.js';
-import { detourAllowanceSec, getMatchingThresholds } from '@vaya/domain';
+import {
+  detourAllowanceSec,
+  getMatchingThresholds,
+  getPassengerAccessCaps,
+  STREET_DISTANCE_FACTOR,
+  WALK_SPEED_M_PER_MIN,
+} from '@vaya/domain';
+import { haversineDistanceMeters } from '../../../lib/geo.js';
 
 // Pure functions, no DB/OSRM dependency — exercised the same way
 // stop-candidates.service.test.ts exercises its own pure scoring/
@@ -56,6 +63,14 @@ describe('rankStopsByWalkDistance', () => {
 
   it('returns an empty array for a ride with no stops at all', () => {
     expect(rankStopsByWalkDistance(origin, [])).toEqual([]);
+  });
+
+  it('reports an honest street walk (straight line x STREET_DISTANCE_FACTOR), not the straight line', () => {
+    const stop = stopAtLatOffset('s', 0.01);
+    const straightM = haversineDistanceMeters(origin, stop);
+    const [ranked] = rankStopsByWalkDistance(origin, [stop]);
+    expect(ranked!.walkMeters).toBeCloseTo(straightM * STREET_DISTANCE_FACTOR, 6);
+    expect(ranked!.walkMinutes).toBeCloseTo((straightM * STREET_DISTANCE_FACTOR) / WALK_SPEED_M_PER_MIN, 6);
   });
 
   it('carries the stop label/lat/lng through unchanged', () => {
@@ -216,7 +231,9 @@ function makeCandidate(overrides: Partial<MatchCandidate> & { rideId: string; sc
     departureAt: new Date('2026-09-01T08:00:00Z'),
     seatsAvailable: 3,
     contributionPerSeat: 10,
+    pickupWalkMeters: 160,
     pickupWalkMinutes: 2,
+    dropoffWalkMeters: 160,
     dropoffWalkMinutes: 2,
     routeOverlapPercent: 50,
     reasons: [],
@@ -349,15 +366,15 @@ const STOP_MARSA = routeStop('stop-marsa', 'La Marsa — Centre', LA_MARSA, 3);
 const PASSENGER_ORIGIN = { lat: 36.8495, lng: 10.1735 }; // Menzah 6
 const PASSENGER_DESTINATION = { lat: 36.853, lng: 10.2735 }; // Lac 2
 
-// Commute-profile walk caps (the trip is ~9km straight-line) — see
-// passengerWalkCaps in matching.service.ts.
-const commute = getMatchingThresholds('commute');
+// City-trip walk caps (the trip is ~9km straight-line, a 'commute') — a
+// 15-minute walk at most; see passengerWalkCaps in matching.service.ts.
+const cityCaps = getPassengerAccessCaps('commute');
 const baseParams = {
   passengerOrigin: PASSENGER_ORIGIN,
   passengerDestination: PASSENGER_DESTINATION,
   routePoints: DRIVER_ROUTE,
-  maxPickupWalkM: commute.tightPickupRadiusM,
-  maxDropoffWalkM: commute.tightDropoffRadiusM,
+  maxPickupWalkM: cityCaps.pickupM,
+  maxDropoffWalkM: cityCaps.dropoffM,
   maxDeviationM: 3000,
 };
 
@@ -374,9 +391,10 @@ describe('resolvePassengerSegment — the passenger journey is a sub-segment of 
     expect(segment.dropoff?.label).not.toContain('La Marsa');
     expect(segment.recommendedStopId).toBe('stop-menzah');
     expect(segment.recommendedDropoffStopId).toBe('stop-lac');
-    // Minimal walking: a few minutes each way, not a cross-town hike.
-    expect(segment.pickup!.walkMinutes).toBeLessThan(5);
-    expect(segment.dropoff!.walkMinutes).toBeLessThan(5);
+    // Minimal walking: a few minutes each way (honest street estimate),
+    // well under the 15-minute city cap.
+    expect(segment.pickup!.walkMinutes).toBeLessThan(8);
+    expect(segment.dropoff!.walkMinutes).toBeLessThan(8);
     // Pickup strictly before dropoff along the driver's route, both
     // genuinely mid-route (the driver's own endpoints are 0 and 1).
     expect(segment.pickupRouteFraction).toBeGreaterThan(0);
@@ -473,10 +491,33 @@ describe('resolvePassengerSegment — the passenger journey is a sub-segment of 
     expect(segment.pickupRouteFraction).toBe(0);
     expect(segment.dropoffRouteFraction).toBe(1);
   });
+
+  it("never offers a stop-less city ride whose own origin is a 40-minute walk away (no wide endpoint fallback on a city trip)", () => {
+    // The ride starts ~2.4km (straight line) from the passenger: inside the
+    // old 4-8km endpoint radius, so it used to show as a ~30-40 min walk.
+    const passengerOrigin = { lat: CITE_TAHRIR.lat + 0.022, lng: CITE_TAHRIR.lng };
+    const segment = resolvePassengerSegment({
+      ...baseParams,
+      passengerOrigin,
+      passengerDestination: { lat: LA_MARSA.lat + 0.002, lng: LA_MARSA.lng },
+      rideStops: [],
+      rideOrigin: { label: 'Cité Tahrir', ...CITE_TAHRIR, maxWalkM: cityCaps.pickupM },
+      rideDestination: { label: 'La Marsa', ...LA_MARSA, maxWalkM: cityCaps.dropoffM },
+    });
+    expect(segment.pickup).toBeNull();
+  });
 });
 
 describe('pickDirectionalPair', () => {
-  const opt = (stopId: string, sequence: number) => ({ stopId, label: stopId, lat: 0, lng: 0, walkMinutes: 1, sequence });
+  const opt = (stopId: string, sequence: number) => ({
+    stopId,
+    label: stopId,
+    lat: 0,
+    lng: 0,
+    walkMeters: 80,
+    walkMinutes: 1,
+    sequence,
+  });
 
   it('pairs the preferred pickup with the first preferred dropoff strictly after it', () => {
     expect(pickDirectionalPair([opt('p', 1)], [opt('d0', 0), opt('d2', 2)])).toEqual({

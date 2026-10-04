@@ -139,7 +139,8 @@
       "active": "Trip in progress",
       "arriving": "Almost at your destination"
     },
-    "loadError": "Couldn't load this booking"
+    "loadError": "Couldn't load this booking",
+    "distanceToPickupFar": "Meeting point {{distance}} from your location"
   },
   "days": {
     "mon": "Mon",

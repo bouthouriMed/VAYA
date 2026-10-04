@@ -17,7 +17,7 @@
     "candidateCount_other": "{{count}} rides available today on this route",
     "meetingPoint": "Meeting point",
     "bestMatch": "Best match",
-    "timeOffsetNote": "Leaves {{offset}} after your requested time · {{walkMinutes}} walk to the meeting point."
+    "timeOffsetNote": "Leaves {{offset}} after your requested time · meeting point: {{access}}."
   },
   "composer": {
     "myLocation": "My current location",
@@ -165,6 +165,7 @@
     "decrement": "Remove a passenger"
   },
   "walk": {
-    "suffix": "{{minutes}} walk"
+    "suffix": "{{minutes}} walk",
+    "distanceAway": "{{distance}} away"
   }
 }

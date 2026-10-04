@@ -17,7 +17,7 @@
     "candidateCount_other": "{{count}} trajets disponibles aujourd'hui sur cet itinéraire",
     "meetingPoint": "Point de rendez-vous",
     "bestMatch": "Meilleure correspondance",
-    "timeOffsetNote": "Part {{offset}} après l'heure demandée · {{walkMinutes}} à pied jusqu'au point de rendez-vous."
+    "timeOffsetNote": "Part {{offset}} après l'heure demandée · point de rendez-vous : {{access}}."
   },
   "composer": {
     "myLocation": "Ma position actuelle",
@@ -165,6 +165,7 @@
     "decrement": "Retirer un passager"
   },
   "walk": {
-    "suffix": "{{minutes}} à pied"
+    "suffix": "{{minutes}} à pied",
+    "distanceAway": "à {{distance}}"
   }
 }

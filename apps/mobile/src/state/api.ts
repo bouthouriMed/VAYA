@@ -110,6 +110,9 @@ export interface RankedStop {
   label: string;
   lat: number;
   lng: number;
+  /** Server's honest street-walk estimate (straight line × 1.3) — display
+   *  it via features/search/passengerAccess, never re-estimate client-side. */
+  walkMeters: number;
   walkMinutes: number;
   /** Position along the driver's route — a dropoff must come after the
    *  chosen pickup. */
@@ -127,6 +130,7 @@ export interface PassengerPoint {
   label: string | null;
   lat: number;
   lng: number;
+  walkMeters: number;
   walkMinutes: number;
 }
 
@@ -149,10 +153,15 @@ export interface MatchCandidate {
   departureAt: string;
   seatsAvailable: number;
   contributionPerSeat: number;
+  /** Honest street-walk estimate from the passenger's origin to their
+   *  pickup — at most a 15-minute walk on a city/medium trip; on an
+   *  intercity trip it may be a meeting point a few km out, which the app
+   *  shows as a distance (features/search/passengerAccess). */
+  pickupWalkMeters: number;
   pickupWalkMinutes: number;
-  /** Dropoff-side mirror of `pickupWalkMinutes`, always server-computed at
-   *  the same walk pace as every other walk-time in the app — never fall
-   *  back to a client-side re-estimate for this leg when this is present. */
+  /** Dropoff-side mirror of `pickupWalkMeters`, always server-computed —
+   *  never fall back to a client-side re-estimate for this leg. */
+  dropoffWalkMeters: number;
   dropoffWalkMinutes: number;
   routeOverlapPercent: number;
   score: number;

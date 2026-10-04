@@ -18,7 +18,10 @@ import {
 import {
   classifyTripProfile,
   detourAllowanceSec,
+  estimateWalk,
   getMatchingThresholds,
+  getPassengerAccessCaps,
+  straightLineFromWalkMeters,
   rankStopsByJointOptimum,
   wouldExceedCapacity,
   VIA_STOP_DETOUR_BUDGET,
@@ -56,7 +59,6 @@ const WIDE_TIME_WINDOW_MIN = 240;
 // architecture plan, §G) — only distance/corridor/detour thresholds are.
 // Both tiers' time windows stay flat across every trip profile.
 
-const WALK_SPEED_M_PER_MIN = 80;
 // How close the rider's own route needs to run to a candidate ride's actual
 // road path to count as "overlapping" — wide enough to tolerate minor
 // street-level detours, tight enough to mean something. Exported: reused by
@@ -164,16 +166,27 @@ function passengerJourneyOf(input: MatchingSearchInput): MatchCandidate['passeng
 }
 
 /**
- * How far a passenger is ever asked to walk between their own requested
- * point and a driver-selected stop: the trip profile's TIGHT radius (e.g.
- * ~1-1.5km for a short urban commute, a few km for intercity, where a
- * city-center geocode legitimately sits that far from the highway stop).
- * Previously every on-route tier ranked stops against a flat 8km cutoff, so
- * a stop at the driver's final destination (La Marsa) counted as a
- * "walkable" dropoff for a passenger going to Lac 2, several km earlier.
+ * How far (straight line) a passenger is ever asked to go between their own
+ * requested point and where they board / alight — a stop OR the ride's own
+ * origin/destination, in every tier (@vaya/domain getPassengerAccessCaps):
+ * a 15-minute walk on a city or medium trip, a meeting point up to 10 km
+ * away on an intercity one. Classified by the passenger's own journey, not
+ * the driver's: a short hop along an intercity ride is still a city trip
+ * for the passenger. Previously the radii were 2-3 km in town and the
+ * endpoint tier fell back to 8-10 km, so 40-minute walks reached results.
  */
-function passengerWalkCaps(thresholds: MatchingThresholds): { pickupM: number; dropoffM: number } {
-  return { pickupM: thresholds.tightPickupRadiusM, dropoffM: thresholds.tightDropoffRadiusM };
+function passengerWalkCaps(input: MatchingSearchInput): { pickupM: number; dropoffM: number } {
+  const straightLineDistanceM = haversineDistanceMeters(
+    { lat: input.originLat, lng: input.originLng },
+    { lat: input.destinationLat, lng: input.destinationLng },
+  );
+  return getPassengerAccessCaps(classifyTripProfile(straightLineDistanceM).type);
+}
+
+/** Straight-line distance behind a resolved point's walk estimate — what
+ *  the scores are expressed in (unchanged by the street-distance factor). */
+function straightLineMetersOf(point: { walkMeters: number }): number {
+  return straightLineFromWalkMeters(point.walkMeters);
 }
 
 /**
@@ -214,6 +227,9 @@ export interface RankedStop {
   label: string;
   lat: number;
   lng: number;
+  /** Estimated walk on real streets (straight line × STREET_DISTANCE_FACTOR,
+   *  @vaya/domain estimateWalk) — and its duration at walking pace. */
+  walkMeters: number;
   walkMinutes: number;
   /** The stop's position along the driver's route (route_stops.sequence) —
    *  lets a client keep a chosen dropoff strictly after a chosen pickup
@@ -237,6 +253,10 @@ export interface PassengerPoint {
   label: string | null;
   lat: number;
   lng: number;
+  /** Estimated street walk from/to the passenger's own point (see
+   *  RankedStop.walkMeters). Beyond a 20-minute walk (intercity only) the
+   *  client shows it as a distance, never as a walking time. */
+  walkMeters: number;
   walkMinutes: number;
 }
 
@@ -252,13 +272,15 @@ export interface MatchCandidate {
   departureAt: Date;
   seatsAvailable: number;
   contributionPerSeat: number;
+  /** Estimated street walk from the passenger's origin to `pickupPoint`
+   *  (@vaya/domain estimateWalk) — never more than the trip profile's cap
+   *  (see passengerWalkCaps). */
+  pickupWalkMeters: number;
   pickupWalkMinutes: number;
-  /** Dropoff-side mirror of `pickupWalkMinutes` — walk distance from the
-   *  passenger's requested destination to their actual dropoff point (the
-   *  closest ranked dropoff stop, or the ride's own destination for a
-   *  legacy/endpoint match), at the same WALK_SPEED_M_PER_MIN pace. Always
-   *  present so the client never has to fall back to a second, differently-
-   *  tuned client-side estimate for this leg. */
+  /** Dropoff-side mirror of `pickupWalkMeters`/`pickupWalkMinutes` — from
+   *  `dropoffPoint` to the passenger's requested destination. Always
+   *  present so the client never falls back to its own estimate. */
+  dropoffWalkMeters: number;
   dropoffWalkMinutes: number;
   routeOverlapPercent: number;
   score: number;
@@ -310,13 +332,11 @@ export interface MatchCandidate {
   recommendedStopId: string | null;
   /** Dropoff-side mirror of `recommendedStopId`, over `rankedDropoffStops`. */
   recommendedDropoffStopId: string | null;
-  /** False only when this ride has driver-selected route_stops but none of
-   *  them fall within a walkable radius of the passenger's requested
-   *  origin — a real, legitimate "this ride doesn't reach you
-   *  conveniently" result, not an incidental edge case. Always true for a
-   *  legacy ride with zero route_stops at all. See "Zero viable stops" in
-   *  docs/domain/ride-engine.md for the product decision behind surfacing
-   *  (not silently excluding) this case. */
+  /** Always true for the endpoint, route-passthrough and in-progress
+   *  tiers: a ride with no boarding point within the passenger's walk cap
+   *  is not returned at all (docs/domain/ride-engine.md, "Passenger walking
+   *  distance"). False only for a 'detour' match, which has no real stop
+   *  and needs the driver to confirm. */
   pickupViable: boolean;
   /** Dropoff-side mirror of `pickupViable` (Phase 13) — false only when the
    *  ride has route_stops but none rank near the passenger's destination. */
@@ -393,7 +413,7 @@ export function rankStopsByWalkDistance(
       label: stop.label,
       lat: stop.lat,
       lng: stop.lng,
-      walkMinutes: distanceM / WALK_SPEED_M_PER_MIN,
+      ...estimateWalk(distanceM),
       sequence: stop.sequence ?? null,
     }));
 }
@@ -514,7 +534,7 @@ function pickRecommendedStopId(
     if (!stop) continue;
     candidates.push({
       stopId: r.stopId,
-      walkDistanceMeters: r.walkMinutes * WALK_SPEED_M_PER_MIN,
+      walkDistanceMeters: straightLineMetersOf(r),
       suitabilityScore: stop.suitabilityScore,
       deviationMeters: stop.deviationMeters,
     });
@@ -617,6 +637,7 @@ export function resolvePassengerSegment(params: {
     label: stop.label,
     lat: stop.lat,
     lng: stop.lng,
+    walkMeters: stop.walkMeters,
     walkMinutes: stop.walkMinutes,
     sequence: stop.sequence ?? 0,
   });
@@ -633,7 +654,7 @@ export function resolvePassengerSegment(params: {
       label: endpoint.label,
       lat: endpoint.lat,
       lng: endpoint.lng,
-      walkMinutes: walkM / WALK_SPEED_M_PER_MIN,
+      ...estimateWalk(walkM),
       sequence,
     };
   };
@@ -827,9 +848,12 @@ function buildEndpointCandidate(
     riderRoutePoints: LatLng[];
     stopsByRide: Map<string, StopRow[]>;
     segmentsByRide: Map<string, BookingSegment[]>;
+    /** Coarse pre-filter on the ride's own endpoints (wide radii) — the
+     *  real bar is the passenger's resolved boarding/alighting point. */
     pickupRadiusM: number;
     dropoffRadiusM: number;
-    /** Max walk to/from a driver-selected stop — see passengerWalkCaps. */
+    /** Max straight-line distance to/from where the passenger boards and
+     *  alights — a stop or the ride's own endpoint — see passengerWalkCaps. */
     maxPickupWalkM: number;
     maxDropoffWalkM: number;
     maxDeviationM: number;
@@ -874,25 +898,29 @@ function buildEndpointCandidate(
     // requires one); only a legacy stop-less ride is boarded at its origin.
     rideOrigin:
       rideStops.length === 0
-        ? { label: ride.originLabel, lat: ride.originLat, lng: ride.originLng, maxWalkM: ctx.pickupRadiusM }
+        ? { label: ride.originLabel, lat: ride.originLat, lng: ride.originLng, maxWalkM: ctx.maxPickupWalkM }
         : undefined,
     // A booking without a dropoff stop alights at the ride's destination —
-    // offered only within this tier's own dropoff radius.
+    // offered only when it is itself within the passenger's walk cap.
     rideDestination: {
       label: ride.destinationLabel,
       lat: ride.destinationLat,
       lng: ride.destinationLng,
-      maxWalkM: ctx.dropoffRadiusM,
+      maxWalkM: ctx.maxDropoffWalkM,
     },
   });
+  // A ride that only passes "near" the passenger by the wide pre-filter but
+  // offers no boarding or alighting point within their walk cap is not a
+  // result: showing it would mean asking for a 30-40 minute walk (or a
+  // greyed-out card the passenger can't book). The notify-me alert and
+  // closest-departure suggestion cover the "nothing close enough" case.
+  if (!segment.pickup || !segment.dropoff) return null;
   const { rankedStops, rankedDropoffStops, recommendedStopId, recommendedDropoffStopId } = segment;
-  const pickupViable = isPickupViable(rideStops.length, segment.pickup ? 1 : 0);
-  const dropoffViable = segment.dropoff !== null;
 
-  const pickupWalkMinutes = segment.pickup?.walkMinutes ?? pickupDistanceM / WALK_SPEED_M_PER_MIN;
-  const dropoffWalkMinutes = segment.dropoff?.walkMinutes ?? dropoffDistanceM / WALK_SPEED_M_PER_MIN;
-  const pickupWalkM = pickupWalkMinutes * WALK_SPEED_M_PER_MIN;
-  const dropoffWalkM = dropoffWalkMinutes * WALK_SPEED_M_PER_MIN;
+  const pickupWalkMinutes = segment.pickup.walkMinutes;
+  const dropoffWalkMinutes = segment.dropoff.walkMinutes;
+  const pickupWalkM = straightLineMetersOf(segment.pickup);
+  const dropoffWalkM = straightLineMetersOf(segment.dropoff);
 
   // Real road-geometry overlap when both routes have a polyline (rides
   // created before OSRM was wired, or seeded before a backfill, won't —
@@ -915,10 +943,8 @@ function buildEndpointCandidate(
   // rider's own implied pickup/dropoff stop pair (their real offered
   // resolution, not the ride-global bottleneck) checked against every
   // already-accepted booking's own segment.
-  const impliedPickupStopId = segment.pickup ? (segment.pickup.stopId ?? undefined) : rankedStops[0]?.stopId;
-  const impliedDropoffStopId = segment.dropoff
-    ? (segment.dropoff.stopId ?? undefined)
-    : rankedDropoffStops[0]?.stopId;
+  const impliedPickupStopId = segment.pickup.stopId ?? undefined;
+  const impliedDropoffStopId = segment.dropoff.stopId ?? undefined;
   if (
     !hasSegmentCapacity(
       ctx.segmentsByRide.get(ride.id) ?? [],
@@ -941,7 +967,9 @@ function buildEndpointCandidate(
     departureAt: ride.departureAt,
     seatsAvailable: ride.seatsAvailable,
     contributionPerSeat: ride.contributionPerSeat,
+    pickupWalkMeters: segment.pickup.walkMeters,
     pickupWalkMinutes,
+    dropoffWalkMeters: segment.dropoff.walkMeters,
     dropoffWalkMinutes,
     routeOverlapPercent: clamp01(routeOverlapPercent / 100) * 100,
     score,
@@ -957,8 +985,8 @@ function buildEndpointCandidate(
     rankedDropoffStops,
     recommendedStopId,
     recommendedDropoffStopId,
-    pickupViable,
-    dropoffViable,
+    pickupViable: true,
+    dropoffViable: true,
     matchType: 'endpoint',
     detour: null,
     // The driver's ETA to the passenger's RESOLVED points: 0 / full
@@ -1021,7 +1049,7 @@ async function scoreCandidates(
   const stopsByRide = await fetchStopsByRide(db, rideIds);
   const segmentsByRide = await fetchAcceptedSegmentsByRide(db, rideIds, stopsByRide);
   const maxDeviationM = deriveMaxDeviationM(origin, destination);
-  const walkCaps = passengerWalkCaps(deriveMatchingThresholds(input));
+  const walkCaps = passengerWalkCaps(input);
 
   const scored: MatchCandidate[] = [];
   for (const ride of candidateRides) {
@@ -1056,10 +1084,8 @@ async function scoreCandidates(
  * polyline projection is a geometric fact about the road, not a validated
  * place to stop, and CLAUDE.md's product principle #1 forbids offering an
  * unvalidated pickup/dropoff. A ride with no stops near the rider's
- * projected points is simply excluded from this tier, not included flagged
- * non-viable the way `scoreCandidates` does for endpoint matches — an
- * un-bookable pass-through "match" would just be noise for a tier whose
- * entire purpose is turning up genuinely actionable results.
+ * projected points is simply excluded, as in every on-route tier — an
+ * un-bookable "match" would just be noise.
  */
 async function scorePassThroughCandidates(
   db: Database,
@@ -1115,7 +1141,7 @@ async function scorePassThroughCandidates(
   const stopsByRide = await fetchStopsByRide(db, passThroughRideIds);
   const segmentsByRide = await fetchAcceptedSegmentsByRide(db, passThroughRideIds, stopsByRide);
   const maxDeviationM = deriveMaxDeviationM(origin, destination);
-  const walkCaps = passengerWalkCaps(thresholds);
+  const walkCaps = passengerWalkCaps(input);
 
   const results: MatchCandidate[] = [];
   for (const ride of candidateRides) {
@@ -1176,9 +1202,9 @@ async function scorePassThroughCandidates(
     const segmentFraction = clamp01(destProj.fraction - originProj.fraction);
 
     const score =
-      clamp01(1 - (pickupWalkMinutes * WALK_SPEED_M_PER_MIN) / TIGHT_PICKUP_RADIUS_M) * 0.35 +
+      clamp01(1 - straightLineMetersOf(segment.pickup) / TIGHT_PICKUP_RADIUS_M) * 0.35 +
       clamp01(1 - timeDeltaMin / TIGHT_TIME_WINDOW_MIN) * 0.25 +
-      clamp01(1 - (dropoffWalkMinutes * WALK_SPEED_M_PER_MIN) / TIGHT_DROPOFF_RADIUS_M) * 0.25 +
+      clamp01(1 - straightLineMetersOf(segment.dropoff) / TIGHT_DROPOFF_RADIUS_M) * 0.25 +
       segmentFraction * 0.15;
 
     results.push({
@@ -1191,7 +1217,9 @@ async function scorePassThroughCandidates(
       departureAt: ride.departureAt,
       seatsAvailable: ride.seatsAvailable,
       contributionPerSeat: ride.contributionPerSeat,
+      pickupWalkMeters: segment.pickup.walkMeters,
       pickupWalkMinutes,
+      dropoffWalkMeters: segment.dropoff.walkMeters,
       dropoffWalkMinutes,
       // The rider's whole requested trip runs on this ride's route by
       // construction (that's the qualification test above) — a real 100%,
@@ -1296,7 +1324,7 @@ async function scoreInProgressCandidates(
   const stopsByRide = await fetchStopsByRide(db, inProgressRideIds);
   const segmentsByRide = await fetchAcceptedSegmentsByRide(db, inProgressRideIds, stopsByRide);
   const maxDeviationM = deriveMaxDeviationM(origin, destination);
-  const walkCaps = passengerWalkCaps(deriveMatchingThresholds(input));
+  const walkCaps = passengerWalkCaps(input);
 
   const results: MatchCandidate[] = [];
   for (const ride of candidateRides) {
@@ -1377,9 +1405,9 @@ async function scoreInProgressCandidates(
     const segmentFraction = clamp01(destProj.fraction - originProj.fraction);
 
     const score =
-      clamp01(1 - (pickupWalkMinutes * WALK_SPEED_M_PER_MIN) / TIGHT_PICKUP_RADIUS_M) * 0.35 +
+      clamp01(1 - straightLineMetersOf(segment.pickup) / TIGHT_PICKUP_RADIUS_M) * 0.35 +
       clamp01(1 - timeDeltaMin / TIGHT_TIME_WINDOW_MIN) * 0.25 +
-      clamp01(1 - (dropoffWalkMinutes * WALK_SPEED_M_PER_MIN) / TIGHT_DROPOFF_RADIUS_M) * 0.25 +
+      clamp01(1 - straightLineMetersOf(segment.dropoff) / TIGHT_DROPOFF_RADIUS_M) * 0.25 +
       segmentFraction * 0.15;
 
     results.push({
@@ -1392,7 +1420,9 @@ async function scoreInProgressCandidates(
       departureAt: ride.departureAt,
       seatsAvailable: ride.seatsAvailable,
       contributionPerSeat: ride.contributionPerSeat,
+      pickupWalkMeters: segment.pickup.walkMeters,
       pickupWalkMinutes,
+      dropoffWalkMeters: segment.dropoff.walkMeters,
       dropoffWalkMinutes,
       routeOverlapPercent: 100,
       score,
@@ -1533,7 +1563,7 @@ async function scoreDetourCandidates(
     // and surface here as a low-detour, driver-confirmation-required
     // match instead of being silently dropped by every tier.
     const rideStops = stopsByRide.get(ride.id) ?? [];
-    const walkCaps = passengerWalkCaps(thresholds);
+    const walkCaps = passengerWalkCaps(input);
     const passThroughSegment = resolvePassengerSegment({
       passengerOrigin: origin,
       passengerDestination: destination,
@@ -1607,7 +1637,9 @@ async function scoreDetourCandidates(
       departureAt: ride.departureAt,
       seatsAvailable: ride.seatsAvailable,
       contributionPerSeat: ride.contributionPerSeat,
+      pickupWalkMeters: 0,
       pickupWalkMinutes,
+      dropoffWalkMeters: 0,
       dropoffWalkMinutes,
       routeOverlapPercent: 0,
       score,
@@ -1618,8 +1650,15 @@ async function scoreDetourCandidates(
       passengerJourney: passengerJourneyOf(input),
       // The driver detours to the passenger's own points — they ARE the
       // pickup/dropoff, no walk.
-      pickupPoint: { stopId: null, label: null, lat: origin.lat, lng: origin.lng, walkMinutes: 0 },
-      dropoffPoint: { stopId: null, label: null, lat: destination.lat, lng: destination.lng, walkMinutes: 0 },
+      pickupPoint: { stopId: null, label: null, lat: origin.lat, lng: origin.lng, walkMeters: 0, walkMinutes: 0 },
+      dropoffPoint: {
+        stopId: null,
+        label: null,
+        lat: destination.lat,
+        lng: destination.lng,
+        walkMeters: 0,
+        walkMinutes: 0,
+      },
       routePolyline: ride.routePolyline,
       rankedStops: [],
       rankedDropoffStops: [],
@@ -1700,6 +1739,7 @@ async function findClosestDepartures(
   const stopsByRide = await fetchStopsByRide(db, closestDepartureRideIds);
   const segmentsByRide = await fetchAcceptedSegmentsByRide(db, closestDepartureRideIds, stopsByRide);
   const maxDeviationM = deriveMaxDeviationM(origin, destination);
+  const walkCaps = passengerWalkCaps(input);
 
   const built: MatchCandidate[] = [];
   for (const ride of candidateRides) {
@@ -1711,8 +1751,8 @@ async function findClosestDepartures(
       segmentsByRide,
       pickupRadiusM: thresholds.widePickupRadiusM,
       dropoffRadiusM: thresholds.wideDropoffRadiusM,
-      maxPickupWalkM: passengerWalkCaps(thresholds).pickupM,
-      maxDropoffWalkM: passengerWalkCaps(thresholds).dropoffM,
+      maxPickupWalkM: walkCaps.pickupM,
+      maxDropoffWalkM: walkCaps.dropoffM,
       maxDeviationM,
     });
     if (candidate) built.push(candidate);
@@ -1832,7 +1872,7 @@ export function mergeCandidatesByRide(...lists: MatchCandidate[][]): MatchCandid
  *  top-level `tier`/`message` a passenger sees, never to gate which
  *  candidates are returned (that gating is exactly what this phase
  *  retires). Recomputes distance from the already-stored walk-minutes
- *  fields (`distanceM = walkMinutes * WALK_SPEED_M_PER_MIN`) rather than
+ *  walk estimate (`straightLineFromWalkMeters`) rather than
  *  adding a redundant raw-distance field to `MatchCandidate`. */
 function isWithinTightBounds(
   candidate: MatchCandidate,
@@ -1840,8 +1880,8 @@ function isWithinTightBounds(
   thresholds: MatchingThresholds,
 ): boolean {
   if (candidate.matchType !== 'endpoint') return false;
-  const pickupDistanceM = candidate.pickupWalkMinutes * WALK_SPEED_M_PER_MIN;
-  const dropoffDistanceM = candidate.dropoffWalkMinutes * WALK_SPEED_M_PER_MIN;
+  const pickupDistanceM = straightLineFromWalkMeters(candidate.pickupWalkMeters);
+  const dropoffDistanceM = straightLineFromWalkMeters(candidate.dropoffWalkMeters);
   const timeDeltaMin = Math.abs(candidate.departureAt.getTime() - input.when.getTime()) / 60_000;
   return (
     pickupDistanceM <= thresholds.tightPickupRadiusM &&

@@ -35,11 +35,12 @@ import {
 } from '../../src/state/api';
 import {
   decodePolyline,
-  estimateWalkMinutes,
   haversineKm,
   polylineDistanceKm,
   sliceRouteBetween,
 } from '../../src/utils/polyline';
+import { accessAmount, walkMetersForStraightLine } from '../../src/features/search/passengerAccess';
+import { describePassengerAccess } from '@vaya/domain';
 import { resolveItineraryLine } from '../../src/features/trip-shared/itineraryRoute';
 import { formatDate, formatTime, formatDistance, formatCurrency } from '../../src/utils/localeFormat';
 import { CancellationSheet } from '../../src/features/bookings/CancellationSheet';
@@ -213,8 +214,9 @@ function DriverCard({
  * thumbnail — and while a booking is still upcoming, a live "distance to
  * pickup" is computed from the device's current position (never a fabricated
  * or search-time-stale figure, since a booking doesn't persist the
- * passenger's original search origin) at the same walk pace the server uses
- * everywhere else (utils/polyline.ts's estimateWalkMinutes).
+ * passenger's original search origin), with the same honest street-walk
+ * estimate the server uses (features/search/passengerAccess) — and as a
+ * plain distance when it is too far to be a walk.
  */
 export default function BookingDetailScreen(): React.JSX.Element {
   const { bookingId } = useLocalSearchParams<{ bookingId: string }>();
@@ -400,18 +402,8 @@ export default function BookingDetailScreen(): React.JSX.Element {
         { latitude: booking.pickupLat, longitude: booking.pickupLng },
       )
     : null;
-  const walkToPickupMin =
-    position != null
-      ? Math.max(
-          1,
-          Math.round(
-            estimateWalkMinutes(
-              { latitude: position.lat, longitude: position.lng },
-              { latitude: booking.pickupLat, longitude: booking.pickupLng },
-            ),
-          ),
-        )
-      : null;
+  const walkToPickupMeters =
+    distanceToPickupKm !== null ? walkMetersForStraightLine(distanceToPickupKm * 1000) : null;
 
   const fullRouteRegion =
     regionForPoints([
@@ -493,12 +485,16 @@ export default function BookingDetailScreen(): React.JSX.Element {
                 <Icon name="navigate-outline" size="xs" color={theme.ink} />
               </TouchableOpacity>
             </View>
-            {showLiveDistance && distanceToPickupKm !== null && walkToPickupMin !== null ? (
+            {showLiveDistance && distanceToPickupKm !== null && walkToPickupMeters !== null ? (
               <Text variant="caption" color={theme.inkFaint} style={styles.itineraryWalkNote}>
-                {t('booking:detail.distanceToPickup', {
-                  distance: formatDistance(distanceToPickupKm * 1000, locale),
-                  minutes: t('common:terms.minute', { count: walkToPickupMin }),
-                })}
+                {describePassengerAccess(walkToPickupMeters).kind === 'walk'
+                  ? t('booking:detail.distanceToPickup', {
+                      distance: formatDistance(distanceToPickupKm * 1000, locale),
+                      minutes: accessAmount(t, walkToPickupMeters, locale),
+                    })
+                  : t('booking:detail.distanceToPickupFar', {
+                      distance: formatDistance(distanceToPickupKm * 1000, locale),
+                    })}
               </Text>
             ) : null}
 
