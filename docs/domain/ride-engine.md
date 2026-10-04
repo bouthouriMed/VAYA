@@ -104,15 +104,17 @@ Every `MatchCandidate` now carries `passengerJourney` (the search input echoed b
 
 Before this, a passenger could see results with 30-60 minute walks: the endpoint tier offered a ride's own origin/destination anywhere inside the profile's *wide* radius (8-10 km in town), rides with no walkable stop were still returned (flagged non-viable), and every walk time was straight-line distance at 80 m/min, about 30% short of a real walk. Now, in every tier and in booking validation:
 
-| Passenger's trip | Furthest boarding/alighting point | Shown as |
-|---|---|---|
-| commute / urban (≤ 45 km) | a 15-minute walk (~920 m straight line, ~1.2 km on foot) | "X min walk" |
-| intercity (> 45 km) | 10 km straight line | "X min walk" up to 20 min, otherwise "X km away" |
+| Passenger's trip | Within walking distance (listed first) | A bit further (listed after, never mixed in) | Never shown |
+|---|---|---|---|
+| commute / urban (≤ 45 km) | a 15-minute walk (~920 m straight line, ~1.2 km on foot) | up to 3 km straight line | beyond 3 km |
+| intercity (> 45 km) | 10 km straight line | up to 20 km | beyond 20 km |
+
+Any access over a 20-minute walk is shown as "X km away", never as a walking time. Each ride's boarding/alighting pair is resolved within walking distance first and only falls back to the extended reach when no walkable pair exists (`resolvePassengerSegmentWithinReach`); the result carries `withinWalkingDistance`. `rankMatchCandidates` orders by `withinWalkingDistance` first, then quality band, then departure-time proximity (closest-departure: walkable first, then time) — so a ride a few km away is offered to riders willing to go further, but never above one they can walk to. When no result is walkable, the banner says so ("Aucun trajet à distance de marche…") and the app shows a "Un peu plus loin de vous" divider before the first ride further away. The 3 km / 20 km reach is a first-cut value (`MAX_EXTENDED_*_ACCESS_M`), to tune against real booking data.
 
 - **Honest walk times:** `estimateWalk` multiplies the straight line by `STREET_DISTANCE_FACTOR` (1.3). `walkMeters`/`walkMinutes` on `RankedStop`, `PassengerPoint` and `MatchCandidate` (`pickupWalkMeters`, `dropoffWalkMeters`) and `bookings.pickupWalkMeters`/`dropoffWalkMeters` are this street estimate. Scores still use the straight line, so ranking is unchanged.
-- **No wide endpoint fallback:** the ride's own origin/destination are offered only within the same cap. The wide radius remains a coarse database pre-filter only.
-- **Unreachable rides are not results:** an endpoint or closest-departure candidate with no boarding or alighting point inside the cap is dropped instead of returned flagged non-viable (this reverses the Phase 5 "include, flagged" choice below for those tiers). The notify-me alert and the closest-departure suggestion still cover "nothing close enough".
-- **Booking agrees with search:** `resolveStopWalkMeters` (`bookings.service.ts`) enforces the same caps, keyed on the ride's length (never stricter than the passenger's own, since their journey is a sub-segment of the ride).
+- **No wide endpoint fallback:** the ride's own origin/destination are offered only within the same reach. The wide radius remains a coarse database pre-filter only.
+- **Unreachable rides are not results:** an endpoint or closest-departure candidate with no boarding or alighting point inside the extended reach is dropped instead of returned flagged non-viable (this reverses the Phase 5 "include, flagged" choice below for those tiers). The notify-me alert and the closest-departure suggestion still cover "nothing close enough".
+- **Booking agrees with search:** `resolveStopWalkMeters` (`bookings.service.ts`) enforces the extended reach, keyed on the ride's length (never stricter than the passenger's own, since their journey is a sub-segment of the ride).
 - **One display rule:** the app shows every walk through `apps/mobile/src/features/search/passengerAccess.ts` (`describePassengerAccess` from `@vaya/domain`): whole minutes up to 20, a distance beyond. It never computes its own walk estimate except for the live device-to-pickup distance on the booking screen, which uses the same estimate.
 - If no stop on a matched ride is close enough, that's a legitimate "doesn't reach you conveniently" result — surface it honestly (`docs/ux/passenger-journey.md` §4), don't force a bad match.
 

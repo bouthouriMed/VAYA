@@ -83,6 +83,7 @@ function candidate(overrides: Partial<MatchCandidate>): MatchCandidate {
     pickupWalkMinutes: 0,
     dropoffWalkMeters: 0,
     dropoffWalkMinutes: 0,
+    withinWalkingDistance: true,
     routeOverlapPercent: 0.8,
     score: 0.9,
     reasons: [],
@@ -253,5 +254,46 @@ describe('search/results.tsx snapshots', () => {
     expect(rendered).toContain('Rue du Lac Windermere');
     expect(rendered).not.toContain('La Marsa');
     expect(rendered).not.toContain('Tahrir');
+  });
+
+  it('lists walkable rides first, then a divider, then rides a bit further away shown as a distance', async () => {
+    vi.resetModules();
+    mockStore();
+    mockApi({
+      matching: {
+        data: {
+          tier: 'wide_corridor',
+          standoutRideId: null,
+          message: null,
+          candidates: [
+            candidate({ rideId: 'ride-near', driverFullName: 'Near Driver', pickupWalkMeters: 400, pickupWalkMinutes: 5 }),
+            candidate({
+              rideId: 'ride-far',
+              driverUserId: 'user-far',
+              driverFullName: 'Far Driver',
+              withinWalkingDistance: false,
+              pickupWalkMeters: 3_100,
+              pickupWalkMinutes: 38.75,
+            }),
+          ],
+        },
+      },
+    });
+    const { ResultsScreen, ToastProvider } = await loadScreen();
+    const rendered = JSON.stringify(
+      renderJSON(
+        <ToastProvider>
+          <ResultsScreen />
+        </ToastProvider>,
+      ),
+    );
+    const near = rendered.indexOf('Near Driver');
+    const divider = rendered.indexOf('search:results.furtherAway');
+    const far = rendered.indexOf('Far Driver');
+    expect(near).toBeGreaterThanOrEqual(0);
+    expect(divider).toBeGreaterThan(near);
+    expect(far).toBeGreaterThan(divider);
+    // The far ride is described as a distance, never as a 39-minute walk.
+    expect(rendered).toContain('search:walk.distanceAway');
   });
 });

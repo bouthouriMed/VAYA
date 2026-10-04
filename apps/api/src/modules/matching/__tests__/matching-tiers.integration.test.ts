@@ -19,8 +19,9 @@ import { searchRides } from '../matching.service.js';
  *  - "Area A" (a Tunis suburb): an exact-match ride and a far-future ride
  *    on the same corridor (closest_departure).
  *  - "Area B" (~a hundred km southwest, inland): a ride a short walk away
- *    but outside the tight time window (wide_corridor), and one whose
- *    endpoints are a 40-minute walk away (never shown).
+ *    but outside the tight time window (wide_corridor), one ~2 km away at
+ *    the exact time (shown, after the walkable one), and one whose
+ *    endpoints are 4-5 km away (never shown).
  *  - The real Tunis→Sousse coastal route: a long ride with two real
  *    mid-route stops, searched by a short sub-trip entirely inside it
  *    (route_passthrough).
@@ -59,9 +60,15 @@ describe('matching.service — tier cascade, real Postgres (+ real OSRM for rout
   // wide 240-min one.
   const areaBRideOrigin = { lat: 36.3045, lng: 9.5 };
   const areaBRideDestination = { lat: 36.5045, lng: 9.7 };
+  // ~2km from the rider's own points, at the exact requested time: beyond
+  // a 15-minute walk but within the 3km extended reach — shown, after
+  // every walkable ride.
+  const areaBMidRideOrigin = { lat: 36.318, lng: 9.5 };
+  const areaBMidRideDestination = { lat: 36.518, lng: 9.7 };
+  let areaBMidRideId: string;
   // ~4km/~5km from the rider's own points: inside the old wide endpoint
   // radii (8km/10km), so it used to appear as a ~40-60 minute walk. Now
-  // beyond the 15-minute city walk cap — never a result.
+  // beyond the extended reach too — never a result.
   const areaBFarRideOrigin = { lat: 36.336, lng: 9.5 };
   const areaBFarRideDestination = { lat: 36.545, lng: 9.7 };
   let areaBFarRideId: string;
@@ -175,8 +182,19 @@ describe('matching.service — tier cascade, real Postgres (+ real OSRM for rout
       departureAt: new Date(areaAWhen.getTime() + 3 * 3_600_000),
     });
 
-    // Ride B-far — right time, but its endpoints are a 40-60 minute walk
-    // from the rider's points.
+    // Ride B-mid — right time, ~2km away: a bit further than a walk.
+    areaBMidRideId = await insertRide({
+      originLabel: 'Area B Mid Ride Origin',
+      originLat: areaBMidRideOrigin.lat,
+      originLng: areaBMidRideOrigin.lng,
+      destinationLabel: 'Area B Mid Ride Destination',
+      destinationLat: areaBMidRideDestination.lat,
+      destinationLng: areaBMidRideDestination.lng,
+      departureAt: areaAWhen,
+    });
+
+    // Ride B-far — right time, but its endpoints are 4-5 km from the
+    // rider's points.
     areaBFarRideId = await insertRide({
       originLabel: 'Area B Far Ride Origin',
       originLat: areaBFarRideOrigin.lat,
@@ -297,7 +315,7 @@ describe('matching.service — tier cascade, real Postgres (+ real OSRM for rout
     expect(result.candidates.length).toBeGreaterThan(0);
   });
 
-  it('never shows a city/medium-trip ride whose boarding or alighting point is beyond a 15-minute walk', async () => {
+  it('shows a ride a bit further away after every ride within walking distance, and nothing beyond reach', async () => {
     const result = await searchRides(db, {
       originLat: areaBRiderOrigin.lat,
       originLng: areaBRiderOrigin.lng,
@@ -305,12 +323,25 @@ describe('matching.service — tier cascade, real Postgres (+ real OSRM for rout
       destinationLng: areaBRiderDestination.lng,
       when: areaAWhen,
     });
-    expect(result.candidates.map((c) => c.rideId)).not.toContain(areaBFarRideId);
+    const ids = result.candidates.map((c) => c.rideId);
+    expect(ids).not.toContain(areaBFarRideId);
+    expect(ids).toContain(areaBMidRideId);
+    // The ~2km ride leaves at exactly the requested time, the walkable one
+    // 3h later — the walkable one still comes first.
+    const mid = result.candidates.find((c) => c.rideId === areaBMidRideId)!;
+    expect(mid.withinWalkingDistance).toBe(false);
+    expect(mid.pickupWalkMinutes).toBeGreaterThan(15);
+    const firstFar = result.candidates.findIndex((c) => !c.withinWalkingDistance);
+    const lastWalkable = result.candidates.map((c) => c.withinWalkingDistance).lastIndexOf(true);
+    expect(lastWalkable).toBeGreaterThanOrEqual(0);
+    expect(lastWalkable).toBeLessThan(firstFar);
     for (const candidate of result.candidates) {
       expect(candidate.pickupViable).toBe(true);
       expect(candidate.dropoffViable).toBe(true);
-      expect(candidate.pickupWalkMinutes).toBeLessThanOrEqual(15);
-      expect(candidate.dropoffWalkMinutes).toBeLessThanOrEqual(15);
+      if (candidate.withinWalkingDistance) {
+        expect(candidate.pickupWalkMinutes).toBeLessThanOrEqual(15);
+        expect(candidate.dropoffWalkMinutes).toBeLessThanOrEqual(15);
+      }
     }
   });
 

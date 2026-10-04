@@ -163,6 +163,9 @@ export interface MatchCandidate {
    *  never fall back to a client-side re-estimate for this leg. */
   dropoffWalkMeters: number;
   dropoffWalkMinutes: number;
+  /** Both ends within walking distance. The server always lists these
+   *  first; rides a bit further away follow, shown as a distance. */
+  withinWalkingDistance: boolean;
   routeOverlapPercent: number;
   score: number;
   reasons: string[];

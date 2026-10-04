@@ -18,7 +18,7 @@ import {
   findSameJourneySiblings,
   estimateWalk,
   getMatchingThresholds,
-  getPassengerAccessCaps,
+  getPassengerExtendedReachCaps,
   isDeadlineApproaching,
   wouldExceedCapacity,
   CANCELLATION_REASONS,
@@ -486,11 +486,11 @@ function resolveStopWalkMeters(
   stop: { lat: number; lng: number },
   radiusKind: 'pickup' | 'dropoff',
 ): number {
-  // Same caps search offers stops under (@vaya/domain getPassengerAccessCaps),
-  // keyed on the ride's own length: a passenger's journey is a sub-segment
-  // of the ride, so the ride's profile is never stricter than the one the
-  // search used — anything search offered passes here, a 40-minute walk
-  // doesn't. Without a stored route, the straight line between the ride's
+  // The furthest reach search ever offers a stop under (@vaya/domain
+  // getPassengerExtendedReachCaps), keyed on the ride's own length: a
+  // passenger's journey is a sub-segment of the ride, so the ride's profile
+  // is never stricter than the one the search used — anything search
+  // offered passes here, a stop across town doesn't. Without a stored route, the straight line between the ride's
   // endpoints stands in for its length.
   const rideLengthM = ride.routePolyline
     ? polylineLengthMeters(decodePolyline(ride.routePolyline))
@@ -498,7 +498,7 @@ function resolveStopWalkMeters(
         { lat: ride.originLat, lng: ride.originLng },
         { lat: ride.destinationLat, lng: ride.destinationLng },
       );
-  const caps = getPassengerAccessCaps(classifyTripProfile(rideLengthM).type);
+  const caps = getPassengerExtendedReachCaps(classifyTripProfile(rideLengthM).type);
   const radiusM = radiusKind === 'pickup' ? caps.pickupM : caps.dropoffM;
   const straightLineM = haversineDistanceMeters(requestedPoint, stop);
   if (straightLineM > radiusM) {

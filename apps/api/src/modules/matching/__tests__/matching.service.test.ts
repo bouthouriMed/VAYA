@@ -3,6 +3,7 @@ import {
   rankStopsByWalkDistance,
   resolvePassengerSegment,
   pickDirectionalPair,
+  resolvePassengerSegmentWithinReach,
   isPickupViable,
   isDropoffViable,
   deriveMatchingThresholds,
@@ -16,6 +17,7 @@ import {
   detourAllowanceSec,
   getMatchingThresholds,
   getPassengerAccessCaps,
+  getPassengerExtendedReachCaps,
   STREET_DISTANCE_FACTOR,
   WALK_SPEED_M_PER_MIN,
 } from '@vaya/domain';
@@ -235,6 +237,7 @@ function makeCandidate(overrides: Partial<MatchCandidate> & { rideId: string; sc
     pickupWalkMinutes: 2,
     dropoffWalkMeters: 160,
     dropoffWalkMinutes: 2,
+    withinWalkingDistance: true,
     routeOverlapPercent: 50,
     reasons: [],
     clusterLabel: 'Maintenant',
@@ -267,6 +270,22 @@ describe('computeMatchBand', () => {
 describe('rankMatchCandidates', () => {
   const when = new Date('2026-09-01T08:00:00Z');
   const input = { originLat: 36.8, originLng: 10.18, destinationLat: 36.85, destinationLng: 10.2, when };
+
+  it('always ranks rides within walking distance first, even above a higher-scored ride further away', () => {
+    const farButGreat = makeCandidate({ rideId: 'far', score: 0.95, withinWalkingDistance: false });
+    const nearButOk = makeCandidate({ rideId: 'near', score: 0.5, withinWalkingDistance: true });
+    const nearAndGood = makeCandidate({ rideId: 'near-good', score: 0.8, withinWalkingDistance: true });
+    const { ranked, standoutRideId } = rankMatchCandidates([farButGreat, nearButOk, nearAndGood], input);
+    expect(ranked.map((c) => c.rideId)).toEqual(['near-good', 'near', 'far']);
+    expect(standoutRideId).toBe('near-good');
+  });
+
+  it('orders rides further away among themselves by quality, then departure time', () => {
+    const farOk = makeCandidate({ rideId: 'far-ok', score: 0.5, withinWalkingDistance: false });
+    const farGood = makeCandidate({ rideId: 'far-good', score: 0.9, withinWalkingDistance: false });
+    const { ranked } = rankMatchCandidates([farOk, farGood], input);
+    expect(ranked.map((c) => c.rideId)).toEqual(['far-good', 'far-ok']);
+  });
 
   it('sorts a clearly-better candidate first, and flags it as the standout', () => {
     const mediocre = makeCandidate({ rideId: 'mediocre', score: 0.5 });
@@ -316,6 +335,12 @@ describe('rankMatchCandidates', () => {
 });
 
 describe('mergeCandidatesByRide', () => {
+  it('keeps the walkable representation of a ride over a higher-scored one further away', () => {
+    const far = makeCandidate({ rideId: 'ride-1', score: 0.9, withinWalkingDistance: false });
+    const near = makeCandidate({ rideId: 'ride-1', score: 0.4, withinWalkingDistance: true });
+    expect(mergeCandidatesByRide([far], [near])[0]!.withinWalkingDistance).toBe(true);
+  });
+
   it('deduplicates by rideId, keeping the higher-scored representation', () => {
     const asEndpoint = makeCandidate({ rideId: 'ride-1', score: 0.4, matchType: 'endpoint' });
     const asPassthrough = makeCandidate({ rideId: 'ride-1', score: 0.7, matchType: 'route_passthrough' });
@@ -505,6 +530,50 @@ describe('resolvePassengerSegment — the passenger journey is a sub-segment of 
       rideDestination: { label: 'La Marsa', ...LA_MARSA, maxWalkM: cityCaps.dropoffM },
     });
     expect(segment.pickup).toBeNull();
+  });
+});
+
+describe('resolvePassengerSegmentWithinReach — walkable first, a bit further only when needed', () => {
+  const reach = {
+    profile: 'commute' as const,
+    walk: getPassengerAccessCaps('commute'),
+    extended: getPassengerExtendedReachCaps('commute'),
+  };
+  const params = {
+    passengerOrigin: baseParams.passengerOrigin,
+    passengerDestination: baseParams.passengerDestination,
+    routePoints: baseParams.routePoints,
+    maxDeviationM: baseParams.maxDeviationM,
+  };
+
+  it('prefers a walkable pair and flags it within walking distance', () => {
+    const { segment, withinWalkingDistance } = resolvePassengerSegmentWithinReach(
+      { ...params, rideStops: [STOP_TAHRIR, STOP_MENZAH, STOP_LAC, STOP_MARSA] },
+      reach,
+    );
+    expect(segment.pickup?.stopId).toBe('stop-menzah');
+    expect(segment.dropoff?.stopId).toBe('stop-lac');
+    expect(withinWalkingDistance).toBe(true);
+  });
+
+  it('falls back to a stop a bit further away (~2 km), flagged as not within walking distance', () => {
+    // The only Lac-side stop sits ~2 km from the passenger's destination.
+    const lacFar = routeStop('lac-far', 'Lac 1', { lat: 36.835, lng: 10.262 }, 2);
+    const { segment, withinWalkingDistance } = resolvePassengerSegmentWithinReach(
+      { ...params, rideStops: [STOP_TAHRIR, STOP_MENZAH, lacFar, STOP_MARSA] },
+      reach,
+    );
+    expect(segment.dropoff?.stopId).toBe('lac-far');
+    expect(segment.dropoff!.walkMinutes).toBeGreaterThan(20);
+    expect(withinWalkingDistance).toBe(false);
+  });
+
+  it('still never offers a stop beyond the extended reach (La Marsa, ~5.5 km from Lac 2)', () => {
+    const { segment } = resolvePassengerSegmentWithinReach(
+      { ...params, rideStops: [STOP_TAHRIR, STOP_MENZAH, STOP_MARSA] },
+      reach,
+    );
+    expect(segment.dropoff).toBeNull();
   });
 });
 

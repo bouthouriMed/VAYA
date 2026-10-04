@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import { View, StyleSheet, ActivityIndicator, TouchableOpacity, ScrollView } from 'react-native';
 import Reanimated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -430,17 +430,31 @@ export default function ResultsScreen(): React.JSX.Element {
 
             <View style={styles.cardsCol}>
               {sorted.map((candidate, index) => (
-                <RideResultCard
-                  key={candidate.rideId}
-                  theme={theme}
-                  bestMatch={candidate.rideId === bestMatchId}
-                  candidate={candidate}
-                  origin={origin}
-                  destination={destination}
-                  searchAt={searchAt}
-                  onPress={() => selectCandidate(candidate)}
-                  index={index}
-                />
+                <Fragment key={candidate.rideId}>
+                  {/* The server orders walkable rides first; mark where the
+                      ones a bit further away begin, rather than letting a
+                      "à 2,4 km" card blend in with walkable ones. */}
+                  {index > 0 && !candidate.withinWalkingDistance && sorted[index - 1]!.withinWalkingDistance ? (
+                    <Text
+                      variant="caption"
+                      color={theme.inkFaint}
+                      style={styles.furtherDivider}
+                      accessibilityRole="header"
+                    >
+                      {t('search:results.furtherAway')}
+                    </Text>
+                  ) : null}
+                  <RideResultCard
+                    theme={theme}
+                    bestMatch={candidate.rideId === bestMatchId}
+                    candidate={candidate}
+                    origin={origin}
+                    destination={destination}
+                    searchAt={searchAt}
+                    onPress={() => selectCandidate(candidate)}
+                    index={index}
+                  />
+                </Fragment>
               ))}
             </View>
 
@@ -550,6 +564,9 @@ const styles = StyleSheet.create({
   },
   cardsCol: {
     gap: spacing.md,
+  },
+  furtherDivider: {
+    marginTop: spacing.sm,
   },
   notifyButton: {
     marginTop: spacing.lg,

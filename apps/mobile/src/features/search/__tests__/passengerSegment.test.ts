@@ -33,6 +33,7 @@ function candidate(overrides: Partial<MatchCandidate> = {}): MatchCandidate {
     pickupWalkMinutes: 3,
     dropoffWalkMeters: 320,
     dropoffWalkMinutes: 4,
+    withinWalkingDistance: true,
     routeOverlapPercent: 100,
     score: 0.8,
     reasons: [],

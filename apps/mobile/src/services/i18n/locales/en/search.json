@@ -17,7 +17,8 @@
     "candidateCount_other": "{{count}} rides available today on this route",
     "meetingPoint": "Meeting point",
     "bestMatch": "Best match",
-    "timeOffsetNote": "Leaves {{offset}} after your requested time · meeting point: {{access}}."
+    "timeOffsetNote": "Leaves {{offset}} after your requested time · meeting point: {{access}}.",
+    "furtherAway": "A bit further from you"
   },
   "composer": {
     "myLocation": "My current location",

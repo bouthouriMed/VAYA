@@ -17,7 +17,8 @@
     "candidateCount_other": "{{count}} رحلات متاحة اليوم على هذا المسار",
     "meetingPoint": "نقطة الالتقاء",
     "bestMatch": "الأنسب لك",
-    "timeOffsetNote": "تنطلق بعد {{offset}} من الوقت المطلوب · نقطة الالتقاء: {{access}}."
+    "timeOffsetNote": "تنطلق بعد {{offset}} من الوقت المطلوب · نقطة الالتقاء: {{access}}.",
+    "furtherAway": "أبعد قليلًا عنك"
   },
   "composer": {
     "myLocation": "موقعي الحالي",

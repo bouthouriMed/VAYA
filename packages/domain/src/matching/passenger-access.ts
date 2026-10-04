@@ -41,8 +41,8 @@ export function straightLineMetersForWalkMinutes(minutes: number): number {
 }
 
 /**
- * Maximum straight-line distance between the passenger's own point and the
- * point where they board / alight, per trip profile. City and medium trips
+ * Maximum straight-line distance for a point to count as "within walking
+ * distance" — results within it always come first, per trip profile. City and medium trips
  * are capped at a 15-minute walk (~920 m straight line, ~1.2 km on foot);
  * intercity trips allow a meeting point further out.
  */
@@ -54,6 +54,46 @@ export function getPassengerAccessCaps(profile: TripProfileType): {
     return { pickupM: MAX_INTERCITY_ACCESS_M, dropoffM: MAX_INTERCITY_ACCESS_M };
   const cityCapM = straightLineMetersForWalkMinutes(MAX_CITY_WALK_MINUTES);
   return { pickupM: cityCapM, dropoffM: cityCapM };
+}
+
+/**
+ * How far a ride may be and still be shown at all — after every ride within
+ * walking distance (getPassengerAccessCaps), never mixed in with them. A
+ * passenger willing to take a taxi or get dropped off a few km away still
+ * sees those rides, shown as a distance ("à 2,8 km"), not a walking time.
+ * Beyond this the ride doesn't serve them. Tunable once real booking data
+ * shows how far passengers actually go.
+ */
+export const MAX_EXTENDED_CITY_ACCESS_M = 3_000;
+export const MAX_EXTENDED_INTERCITY_ACCESS_M = 20_000;
+
+/** Straight-line reach for rides shown after the walkable ones. */
+export function getPassengerExtendedReachCaps(profile: TripProfileType): {
+  pickupM: number;
+  dropoffM: number;
+} {
+  const reachM =
+    profile === 'intercity' ? MAX_EXTENDED_INTERCITY_ACCESS_M : MAX_EXTENDED_CITY_ACCESS_M;
+  return { pickupM: reachM, dropoffM: reachM };
+}
+
+/**
+ * Whether both ends of a passenger's ride are within the comfortable cap —
+ * the first key VAYA orders results by. `walkMeters` are street estimates
+ * (estimateWalk); the caps are straight-line.
+ */
+export function isWithinWalkingDistance(
+  profile: TripProfileType,
+  pickupWalkMeters: number,
+  dropoffWalkMeters: number,
+): boolean {
+  const caps = getPassengerAccessCaps(profile);
+  // A hair of tolerance so a point exactly on the cap isn't misfiled by
+  // floating-point round-tripping through the street factor.
+  return (
+    straightLineFromWalkMeters(pickupWalkMeters) <= caps.pickupM + 0.5 &&
+    straightLineFromWalkMeters(dropoffWalkMeters) <= caps.dropoffM + 0.5
+  );
 }
 
 export interface WalkEstimate {

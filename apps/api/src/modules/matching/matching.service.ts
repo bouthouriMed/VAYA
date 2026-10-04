@@ -21,6 +21,8 @@ import {
   estimateWalk,
   getMatchingThresholds,
   getPassengerAccessCaps,
+  getPassengerExtendedReachCaps,
+  isWithinWalkingDistance,
   straightLineFromWalkMeters,
   rankStopsByJointOptimum,
   wouldExceedCapacity,
@@ -28,6 +30,7 @@ import {
   type BookingSegment,
   type JointStopCandidate,
   type MatchingThresholds,
+  type TripProfileType,
 } from '@vaya/domain';
 import type { MatchingSearchInput, NotifyMeInput } from '@vaya/validation';
 
@@ -165,22 +168,38 @@ function passengerJourneyOf(input: MatchingSearchInput): MatchCandidate['passeng
   };
 }
 
+type ReachCaps = { pickupM: number; dropoffM: number };
+
+/** How far (straight line) a passenger's boarding/alighting point may be —
+ *  see @vaya/domain passenger-access. */
+interface PassengerReach {
+  profile: TripProfileType;
+  /** Within walking distance (a 15-minute walk on a city or medium trip,
+   *  10 km on an intercity one): these rides always come first. */
+  walk: ReachCaps;
+  /** A bit further: still shown, after every walkable ride, as a distance
+   *  rather than a walking time. */
+  extended: ReachCaps;
+}
+
 /**
- * How far (straight line) a passenger is ever asked to go between their own
- * requested point and where they board / alight — a stop OR the ride's own
- * origin/destination, in every tier (@vaya/domain getPassengerAccessCaps):
- * a 15-minute walk on a city or medium trip, a meeting point up to 10 km
- * away on an intercity one. Classified by the passenger's own journey, not
- * the driver's: a short hop along an intercity ride is still a city trip
- * for the passenger. Previously the radii were 2-3 km in town and the
- * endpoint tier fell back to 8-10 km, so 40-minute walks reached results.
+ * The passenger's reach, classified by their OWN journey, not the
+ * driver's: a short hop along an intercity ride is still a city trip for
+ * the passenger. Previously the radii were 2-3 km in town and the endpoint
+ * tier fell back to 8-10 km, presented as 40-minute walks and ranked
+ * alongside rides next door.
  */
-function passengerWalkCaps(input: MatchingSearchInput): { pickupM: number; dropoffM: number } {
+function passengerReach(input: MatchingSearchInput): PassengerReach {
   const straightLineDistanceM = haversineDistanceMeters(
     { lat: input.originLat, lng: input.originLng },
     { lat: input.destinationLat, lng: input.destinationLng },
   );
-  return getPassengerAccessCaps(classifyTripProfile(straightLineDistanceM).type);
+  const profile = classifyTripProfile(straightLineDistanceM).type;
+  return {
+    profile,
+    walk: getPassengerAccessCaps(profile),
+    extended: getPassengerExtendedReachCaps(profile),
+  };
 }
 
 /** Straight-line distance behind a resolved point's walk estimate — what
@@ -341,6 +360,11 @@ export interface MatchCandidate {
   /** Dropoff-side mirror of `pickupViable` (Phase 13) — false only when the
    *  ride has route_stops but none rank near the passenger's destination. */
   dropoffViable: boolean;
+  /** True when both the pickup and the dropoff are within walking distance
+   *  (a 15-minute walk on a city/medium trip, 10 km on an intercity one).
+   *  Results are always ordered walkable-first; a ride a bit further away
+   *  is still shown, after them, as a distance rather than a walk. */
+  withinWalkingDistance: boolean;
   /** 'route_passthrough' for a ride found because its route runs through
    *  the rider's corridor (the driver's own origin/destination are
    *  elsewhere) rather than because its own endpoints matched — lets the
@@ -723,6 +747,41 @@ export function resolvePassengerSegment(params: {
   };
 }
 
+type ReachEndpoint = Omit<RideEndpointOption, 'maxWalkM'>;
+
+/**
+ * resolvePassengerSegment within the passenger's reach: walkable points
+ * first; only when no walkable pickup/dropoff pair exists, a pair within
+ * the extended reach. `withinWalkingDistance` is the first key results are
+ * ordered by (rankMatchCandidates), so a ride a bit further away is shown,
+ * but never above one the passenger can walk to.
+ */
+export function resolvePassengerSegmentWithinReach(
+  params: Omit<
+    Parameters<typeof resolvePassengerSegment>[0],
+    'maxPickupWalkM' | 'maxDropoffWalkM' | 'rideOrigin' | 'rideDestination'
+  > & { rideOrigin?: ReachEndpoint; rideDestination?: ReachEndpoint },
+  reach: PassengerReach,
+): { segment: PassengerSegment; withinWalkingDistance: boolean } {
+  const attempt = (caps: ReachCaps) =>
+    resolvePassengerSegment({
+      ...params,
+      maxPickupWalkM: caps.pickupM,
+      maxDropoffWalkM: caps.dropoffM,
+      rideOrigin: params.rideOrigin ? { ...params.rideOrigin, maxWalkM: caps.pickupM } : undefined,
+      rideDestination: params.rideDestination
+        ? { ...params.rideDestination, maxWalkM: caps.dropoffM }
+        : undefined,
+    });
+  const walkable = attempt(reach.walk);
+  const segment = walkable.pickup && walkable.dropoff ? walkable : attempt(reach.extended);
+  const withinWalkingDistance =
+    segment.pickup !== null &&
+    segment.dropoff !== null &&
+    isWithinWalkingDistance(reach.profile, segment.pickup.walkMeters, segment.dropoff.walkMeters);
+  return { segment, withinWalkingDistance };
+}
+
 /**
  * M-091 (spec §30): each in-progress ride's real, already-reported live GPS
  * fix — never fabricated from the ride's (by definition, already-passed)
@@ -852,10 +911,9 @@ function buildEndpointCandidate(
      *  real bar is the passenger's resolved boarding/alighting point. */
     pickupRadiusM: number;
     dropoffRadiusM: number;
-    /** Max straight-line distance to/from where the passenger boards and
-     *  alights — a stop or the ride's own endpoint — see passengerWalkCaps. */
-    maxPickupWalkM: number;
-    maxDropoffWalkM: number;
+    /** How far the passenger's boarding/alighting point may be — a stop
+     *  or the ride's own endpoint — see passengerReach. */
+    reach: PassengerReach;
     maxDeviationM: number;
   },
 ): MatchCandidate | null {
@@ -886,34 +944,33 @@ function buildEndpointCandidate(
   // ending in La Marsa — always wins over the driver's destination.
   const rideStops = ctx.stopsByRide.get(ride.id) ?? [];
   const rideRoutePoints = ride.routePolyline ? decodePolyline(ride.routePolyline) : [];
-  const segment = resolvePassengerSegment({
-    passengerOrigin: ctx.origin,
-    passengerDestination: ctx.destination,
-    rideStops,
-    routePoints: rideRoutePoints,
-    maxPickupWalkM: ctx.maxPickupWalkM,
-    maxDropoffWalkM: ctx.maxDropoffWalkM,
-    maxDeviationM: ctx.maxDeviationM,
-    // A ride with driver-selected stops is boarded at a stop (createBooking
-    // requires one); only a legacy stop-less ride is boarded at its origin.
-    rideOrigin:
-      rideStops.length === 0
-        ? { label: ride.originLabel, lat: ride.originLat, lng: ride.originLng, maxWalkM: ctx.maxPickupWalkM }
-        : undefined,
-    // A booking without a dropoff stop alights at the ride's destination —
-    // offered only when it is itself within the passenger's walk cap.
-    rideDestination: {
-      label: ride.destinationLabel,
-      lat: ride.destinationLat,
-      lng: ride.destinationLng,
-      maxWalkM: ctx.maxDropoffWalkM,
+  const { segment, withinWalkingDistance } = resolvePassengerSegmentWithinReach(
+    {
+      passengerOrigin: ctx.origin,
+      passengerDestination: ctx.destination,
+      rideStops,
+      routePoints: rideRoutePoints,
+      maxDeviationM: ctx.maxDeviationM,
+      // A ride with driver-selected stops is boarded at a stop (createBooking
+      // requires one); only a legacy stop-less ride is boarded at its origin.
+      rideOrigin:
+        rideStops.length === 0
+          ? { label: ride.originLabel, lat: ride.originLat, lng: ride.originLng }
+          : undefined,
+      // A booking without a dropoff stop alights at the ride's destination —
+      // offered only when it is itself within the passenger's reach.
+      rideDestination: {
+        label: ride.destinationLabel,
+        lat: ride.destinationLat,
+        lng: ride.destinationLng,
+      },
     },
-  });
+    ctx.reach,
+  );
   // A ride that only passes "near" the passenger by the wide pre-filter but
-  // offers no boarding or alighting point within their walk cap is not a
-  // result: showing it would mean asking for a 30-40 minute walk (or a
-  // greyed-out card the passenger can't book). The notify-me alert and
-  // closest-departure suggestion cover the "nothing close enough" case.
+  // offers no boarding or alighting point within their reach is not a
+  // result (nor a greyed-out card the passenger can't book). The notify-me
+  // alert and closest-departure suggestion cover "nothing close enough".
   if (!segment.pickup || !segment.dropoff) return null;
   const { rankedStops, rankedDropoffStops, recommendedStopId, recommendedDropoffStopId } = segment;
 
@@ -987,6 +1044,7 @@ function buildEndpointCandidate(
     recommendedDropoffStopId,
     pickupViable: true,
     dropoffViable: true,
+    withinWalkingDistance,
     matchType: 'endpoint',
     detour: null,
     // The driver's ETA to the passenger's RESOLVED points: 0 / full
@@ -1049,7 +1107,7 @@ async function scoreCandidates(
   const stopsByRide = await fetchStopsByRide(db, rideIds);
   const segmentsByRide = await fetchAcceptedSegmentsByRide(db, rideIds, stopsByRide);
   const maxDeviationM = deriveMaxDeviationM(origin, destination);
-  const walkCaps = passengerWalkCaps(input);
+  const reach = passengerReach(input);
 
   const scored: MatchCandidate[] = [];
   for (const ride of candidateRides) {
@@ -1061,8 +1119,7 @@ async function scoreCandidates(
       segmentsByRide,
       pickupRadiusM,
       dropoffRadiusM,
-      maxPickupWalkM: walkCaps.pickupM,
-      maxDropoffWalkM: walkCaps.dropoffM,
+      reach,
       maxDeviationM,
     });
     if (candidate) scored.push(candidate);
@@ -1141,7 +1198,7 @@ async function scorePassThroughCandidates(
   const stopsByRide = await fetchStopsByRide(db, passThroughRideIds);
   const segmentsByRide = await fetchAcceptedSegmentsByRide(db, passThroughRideIds, stopsByRide);
   const maxDeviationM = deriveMaxDeviationM(origin, destination);
-  const walkCaps = passengerWalkCaps(input);
+  const reach = passengerReach(input);
 
   const results: MatchCandidate[] = [];
   for (const ride of candidateRides) {
@@ -1166,15 +1223,10 @@ async function scorePassThroughCandidates(
     // direction of travel — never at the driver's own endpoints, which are
     // elsewhere by definition in this tier.
     const rideStops = stopsByRide.get(ride.id) ?? [];
-    const segment = resolvePassengerSegment({
-      passengerOrigin: origin,
-      passengerDestination: destination,
-      rideStops,
-      routePoints,
-      maxPickupWalkM: walkCaps.pickupM,
-      maxDropoffWalkM: walkCaps.dropoffM,
-      maxDeviationM,
-    });
+    const { segment, withinWalkingDistance } = resolvePassengerSegmentWithinReach(
+      { passengerOrigin: origin, passengerDestination: destination, rideStops, routePoints, maxDeviationM },
+      reach,
+    );
     if (!segment.pickup || !segment.dropoff) continue;
     const { rankedStops, rankedDropoffStops, recommendedStopId, recommendedDropoffStopId } = segment;
 
@@ -1240,6 +1292,7 @@ async function scorePassThroughCandidates(
       recommendedDropoffStopId,
       pickupViable: true,
       dropoffViable: true,
+      withinWalkingDistance,
       matchType: 'route_passthrough',
       detour: null,
       // The resolved stop sits partway through a real, already-computed
@@ -1324,7 +1377,7 @@ async function scoreInProgressCandidates(
   const stopsByRide = await fetchStopsByRide(db, inProgressRideIds);
   const segmentsByRide = await fetchAcceptedSegmentsByRide(db, inProgressRideIds, stopsByRide);
   const maxDeviationM = deriveMaxDeviationM(origin, destination);
-  const walkCaps = passengerWalkCaps(input);
+  const reach = passengerReach(input);
 
   const results: MatchCandidate[] = [];
   for (const ride of candidateRides) {
@@ -1365,22 +1418,18 @@ async function scoreInProgressCandidates(
     // endpoints are offered too, but only when they are themselves within
     // walking reach of the passenger's own point (never as a stand-in for a
     // passenger destination that lies elsewhere).
-    const segment = resolvePassengerSegment({
-      passengerOrigin: origin,
-      passengerDestination: destination,
-      rideStops: stopsAheadOfDriver,
-      routePoints,
-      maxPickupWalkM: walkCaps.pickupM,
-      maxDropoffWalkM: walkCaps.dropoffM,
-      maxDeviationM,
-      rideOrigin: { label: ride.originLabel, lat: ride.originLat, lng: ride.originLng, maxWalkM: walkCaps.pickupM },
-      rideDestination: {
-        label: ride.destinationLabel,
-        lat: ride.destinationLat,
-        lng: ride.destinationLng,
-        maxWalkM: walkCaps.dropoffM,
+    const { segment, withinWalkingDistance } = resolvePassengerSegmentWithinReach(
+      {
+        passengerOrigin: origin,
+        passengerDestination: destination,
+        rideStops: stopsAheadOfDriver,
+        routePoints,
+        maxDeviationM,
+        rideOrigin: { label: ride.originLabel, lat: ride.originLat, lng: ride.originLng },
+        rideDestination: { label: ride.destinationLabel, lat: ride.destinationLat, lng: ride.destinationLng },
       },
-    });
+      reach,
+    );
     if (!segment.pickup || !segment.dropoff) continue;
     const { rankedStops, rankedDropoffStops, recommendedStopId, recommendedDropoffStopId } = segment;
 
@@ -1440,6 +1489,7 @@ async function scoreInProgressCandidates(
       recommendedDropoffStopId,
       pickupViable: true,
       dropoffViable: true,
+      withinWalkingDistance,
       matchType: 'route_passthrough',
       detour: null,
       pickupEtaSeconds: Math.round((ride.estimatedDurationSec ?? 0) * segment.pickupRouteFraction),
@@ -1563,16 +1613,16 @@ async function scoreDetourCandidates(
     // and surface here as a low-detour, driver-confirmation-required
     // match instead of being silently dropped by every tier.
     const rideStops = stopsByRide.get(ride.id) ?? [];
-    const walkCaps = passengerWalkCaps(input);
-    const passThroughSegment = resolvePassengerSegment({
-      passengerOrigin: origin,
-      passengerDestination: destination,
-      rideStops,
-      routePoints,
-      maxPickupWalkM: walkCaps.pickupM,
-      maxDropoffWalkM: walkCaps.dropoffM,
-      maxDeviationM: deriveMaxDeviationM(origin, destination),
-    });
+    const { segment: passThroughSegment } = resolvePassengerSegmentWithinReach(
+      {
+        passengerOrigin: origin,
+        passengerDestination: destination,
+        rideStops,
+        routePoints,
+        maxDeviationM: deriveMaxDeviationM(origin, destination),
+      },
+      passengerReach(input),
+    );
     const passThroughWouldQualify =
       passThroughSegment.pickup !== null &&
       passThroughSegment.dropoff !== null &&
@@ -1670,6 +1720,8 @@ async function scoreDetourCandidates(
       // tier surfaces a real, calculated possibility, not a bookable stop.
       pickupViable: false,
       dropoffViable: false,
+      // The driver comes to the passenger's own points: no walk at all.
+      withinWalkingDistance: true,
       matchType: 'detour',
       detour: { extraDurationSeconds, extraDistanceMeters, detourRatio },
       pickupEtaSeconds,
@@ -1739,7 +1791,7 @@ async function findClosestDepartures(
   const stopsByRide = await fetchStopsByRide(db, closestDepartureRideIds);
   const segmentsByRide = await fetchAcceptedSegmentsByRide(db, closestDepartureRideIds, stopsByRide);
   const maxDeviationM = deriveMaxDeviationM(origin, destination);
-  const walkCaps = passengerWalkCaps(input);
+  const reach = passengerReach(input);
 
   const built: MatchCandidate[] = [];
   for (const ride of candidateRides) {
@@ -1751,18 +1803,20 @@ async function findClosestDepartures(
       segmentsByRide,
       pickupRadiusM: thresholds.widePickupRadiusM,
       dropoffRadiusM: thresholds.wideDropoffRadiusM,
-      maxPickupWalkM: walkCaps.pickupM,
-      maxDropoffWalkM: walkCaps.dropoffM,
+      reach,
       maxDeviationM,
     });
     if (candidate) built.push(candidate);
   }
 
+  // Walkable first, then by time-proximity — the same reach-first order as
+  // every other result list.
   return built
     .sort(
       (a, b) =>
+        Number(b.withinWalkingDistance) - Number(a.withinWalkingDistance) ||
         Math.abs(a.departureAt.getTime() - input.when.getTime()) -
-        Math.abs(b.departureAt.getTime() - input.when.getTime()),
+          Math.abs(b.departureAt.getTime() - input.when.getTime()),
     )
     .slice(0, CLOSEST_DEPARTURE_LIMIT);
 }
@@ -1836,6 +1890,10 @@ export function rankMatchCandidates(
   input: MatchingSearchInput,
 ): { ranked: MatchCandidate[]; standoutRideId: string | null } {
   const ranked = [...candidates].sort((a, b) => {
+    // Walkable rides always come first: a ride the passenger can walk to
+    // beats one they'd need a lift to reach, whatever else differs.
+    const reachDiff = Number(b.withinWalkingDistance) - Number(a.withinWalkingDistance);
+    if (reachDiff !== 0) return reachDiff;
     const bandDiff = BAND_ORDER[computeMatchBand(a.score)] - BAND_ORDER[computeMatchBand(b.score)];
     if (bandDiff !== 0) return bandDiff;
     return (
@@ -1845,8 +1903,11 @@ export function rankMatchCandidates(
   });
   if (ranked.length === 0) return { ranked, standoutRideId: null };
 
-  const topBand = computeMatchBand(ranked[0]!.score);
-  const topBandCount = ranked.filter((c) => computeMatchBand(c.score) === topBand).length;
+  const top = ranked[0]!;
+  const topBand = computeMatchBand(top.score);
+  const topBandCount = ranked.filter(
+    (c) => c.withinWalkingDistance === top.withinWalkingDistance && computeMatchBand(c.score) === topBand,
+  ).length;
   return { ranked, standoutRideId: topBandCount === 1 ? ranked[0]!.rideId : null };
 }
 
@@ -1861,7 +1922,12 @@ export function mergeCandidatesByRide(...lists: MatchCandidate[][]): MatchCandid
   for (const list of lists) {
     for (const candidate of list) {
       const existing = byRideId.get(candidate.rideId);
-      if (!existing || candidate.score > existing.score) byRideId.set(candidate.rideId, candidate);
+      // A walkable representation of the same ride always wins.
+      const better =
+        !existing ||
+        (candidate.withinWalkingDistance && !existing.withinWalkingDistance) ||
+        (candidate.withinWalkingDistance === existing.withinWalkingDistance && candidate.score > existing.score);
+      if (better) byRideId.set(candidate.rideId, candidate);
     }
   }
   return [...byRideId.values()];
@@ -1879,7 +1945,7 @@ function isWithinTightBounds(
   input: MatchingSearchInput,
   thresholds: MatchingThresholds,
 ): boolean {
-  if (candidate.matchType !== 'endpoint') return false;
+  if (candidate.matchType !== 'endpoint' || !candidate.withinWalkingDistance) return false;
   const pickupDistanceM = straightLineFromWalkMeters(candidate.pickupWalkMeters);
   const dropoffDistanceM = straightLineFromWalkMeters(candidate.dropoffWalkMeters);
   const timeDeltaMin = Math.abs(candidate.departureAt.getTime() - input.when.getTime()) / 60_000;
@@ -1899,6 +1965,9 @@ function classifyOverallTier(
   if (candidates.some((c) => c.matchType === 'endpoint')) return 'wide_corridor';
   return 'route_passthrough';
 }
+
+const NOT_WALKABLE_MESSAGE =
+  "Aucun trajet à distance de marche. Voici les plus proches, du plus près au plus loin.";
 
 const TIER_MESSAGES: Record<
   'wide_corridor' | 'route_passthrough' | 'detour_match' | 'closest_departure',
@@ -1956,11 +2025,12 @@ export async function searchRides(db: Database, input: MatchingSearchInput): Pro
   if (merged.length > 0) {
     const { ranked, standoutRideId } = rankMatchCandidates(merged, input);
     const tier = classifyOverallTier(ranked, input, thresholds);
+    const noneWalkable = !ranked.some((c) => c.withinWalkingDistance);
     return {
       tier,
       candidates: ranked,
       standoutRideId,
-      message: tier === 'exact' ? null : TIER_MESSAGES[tier],
+      message: noneWalkable ? NOT_WALKABLE_MESSAGE : tier === 'exact' ? null : TIER_MESSAGES[tier],
     };
   }
 
@@ -1991,7 +2061,9 @@ export async function searchRides(db: Database, input: MatchingSearchInput): Pro
       tier: 'closest_departure',
       candidates: closest,
       standoutRideId: null,
-      message: TIER_MESSAGES.closest_departure,
+      message: closest.some((c) => c.withinWalkingDistance)
+        ? TIER_MESSAGES.closest_departure
+        : NOT_WALKABLE_MESSAGE,
     };
   }
 

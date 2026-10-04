@@ -17,7 +17,8 @@
     "candidateCount_other": "{{count}} trajets disponibles aujourd'hui sur cet itinéraire",
     "meetingPoint": "Point de rendez-vous",
     "bestMatch": "Meilleure correspondance",
-    "timeOffsetNote": "Part {{offset}} après l'heure demandée · point de rendez-vous : {{access}}."
+    "timeOffsetNote": "Part {{offset}} après l'heure demandée · point de rendez-vous : {{access}}.",
+    "furtherAway": "Un peu plus loin de vous"
   },
   "composer": {
     "myLocation": "Ma position actuelle",

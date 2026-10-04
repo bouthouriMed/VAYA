@@ -3,6 +3,8 @@ import {
   describePassengerAccess,
   estimateWalk,
   getPassengerAccessCaps,
+  getPassengerExtendedReachCaps,
+  isWithinWalkingDistance,
   straightLineFromWalkMeters,
   MAX_CITY_WALK_MINUTES,
   MAX_DISPLAYED_WALK_MINUTES,
@@ -66,5 +68,32 @@ describe('describePassengerAccess', () => {
   it('a city trip never needs the distance form: its cap is under the display limit', () => {
     const cap = getPassengerAccessCaps('urban').pickupM;
     expect(describePassengerAccess(estimateWalk(cap).walkMeters).kind).toBe('walk');
+  });
+});
+
+describe('extended reach and walking-distance ordering', () => {
+  it('reaches further than the walking cap, so slightly further rides are still shown', () => {
+    for (const profile of ['commute', 'urban', 'intercity'] as const) {
+      const walk = getPassengerAccessCaps(profile);
+      const reach = getPassengerExtendedReachCaps(profile);
+      expect(reach.pickupM).toBeGreaterThan(walk.pickupM);
+      expect(reach.dropoffM).toBeGreaterThan(walk.dropoffM);
+    }
+  });
+
+  it('a ride is within walking distance only when BOTH ends are', () => {
+    const near = estimateWalk(500).walkMeters;
+    const far = estimateWalk(2_000).walkMeters;
+    expect(isWithinWalkingDistance('urban', near, near)).toBe(true);
+    expect(isWithinWalkingDistance('urban', near, far)).toBe(false);
+    expect(isWithinWalkingDistance('urban', far, near)).toBe(false);
+    // 2 km is still a reasonable meeting point on an intercity trip.
+    expect(isWithinWalkingDistance('intercity', far, far)).toBe(true);
+  });
+
+  it('a point exactly on the cap counts as within walking distance', () => {
+    const cap = getPassengerAccessCaps('urban').pickupM;
+    const onCap = estimateWalk(cap).walkMeters;
+    expect(isWithinWalkingDistance('urban', onCap, onCap)).toBe(true);
   });
 });
