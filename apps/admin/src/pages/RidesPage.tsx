@@ -10,7 +10,7 @@ import { Icon } from '../components/Icon';
 import { formatCurrency, formatDate, truncateId } from '../utils/format';
 
 const LIMIT = 20;
-const STATUSES = ['draft', 'published', 'full', 'in_progress', 'completed', 'cancelled'];
+const STATUSES = ['draft', 'published', 'full', 'in_progress', 'completed', 'cancelled', 'expired'];
 
 const PROGRESS: Record<string, number> = {
   draft: 0,
@@ -19,6 +19,7 @@ const PROGRESS: Record<string, number> = {
   in_progress: 70,
   completed: 100,
   cancelled: 0,
+  expired: 0,
 };
 
 const HEALTH: Record<string, 'success' | 'warning' | 'error' | 'neutral'> = {
@@ -28,6 +29,7 @@ const HEALTH: Record<string, 'success' | 'warning' | 'error' | 'neutral'> = {
   in_progress: 'success',
   completed: 'neutral',
   cancelled: 'error',
+  expired: 'neutral',
 };
 
 function shortOrigin(label: string): string {

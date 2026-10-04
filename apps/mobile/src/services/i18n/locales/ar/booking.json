@@ -185,7 +185,8 @@
     "full": "مكتمل العدد",
     "in_progress": "جارٍ",
     "completed": "منتهٍ",
-    "cancelled": "ملغى"
+    "cancelled": "ملغى",
+    "expired": "منتهي الصلاحية"
   },
   "pickupTitle": "نقطة الالتقاء",
   "pickupPointLabel": "نقطة الصعود",

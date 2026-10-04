@@ -181,7 +181,8 @@
     "full": "Full",
     "in_progress": "In progress",
     "completed": "Completed",
-    "cancelled": "Cancelled"
+    "cancelled": "Cancelled",
+    "expired": "Expired"
   },
   "pickupTitle": "Meeting point",
   "pickupPointLabel": "Pickup point",

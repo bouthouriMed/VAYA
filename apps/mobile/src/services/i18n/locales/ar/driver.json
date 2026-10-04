@@ -325,6 +325,8 @@
       "started": "الرحلة جارية",
       "startedWithEta": "جارية · الوصول {{time}}",
       "finished": "انتهت",
+      "expired": "منتهية الصلاحية · لم تبدأ",
+      "departurePassed": "فات موعد المغادرة",
       "intermediateStopsNote_zero": "بدون توقفات في الطريق",
       "intermediateStopsNote_one": "توقف واحد في الطريق",
       "intermediateStopsNote_two": "توقفان في الطريق",

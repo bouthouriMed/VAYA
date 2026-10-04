@@ -1,4 +1,4 @@
-import { and, eq, inArray } from 'drizzle-orm';
+import { and, eq, inArray, lt } from 'drizzle-orm';
 import type { getDatabase } from '../../lib/database.js';
 import {
   bookings,
@@ -16,6 +16,7 @@ import {
   classifyRouteDeviation,
   computeAutoTripStatusTransition,
   computeStaleTripAction,
+  computeUnstartedRideAction,
   deriveTrackingStatus,
   evaluateAutoNoShowClassification,
   evaluateAutoStart,
@@ -23,6 +24,7 @@ import {
   isWithinRatingWindow,
   updateLiveCorridor,
   PICKUP_ARRIVAL_RADIUS_M,
+  TRIP_AUTO_CLOSE_GRACE_MS,
   type TripStatus,
 } from '@vaya/domain';
 import { notifyBestEffort } from '../notifications/notifications.service.js';
@@ -171,13 +173,20 @@ async function syncRideStatusOnTripComplete(db: Database, rideId: string): Promi
     where: eq(rides.id, rideId),
     with: { bookings: { with: { trip: true } } },
   });
-  if (!ride || !canTransitionRideStatus(ride.status, 'completed')) return;
+  if (!ride) return;
+  // A trip can be completed straight from `scheduled` (either party's
+  // "Terminer" without the driver ever tapping "Démarrer"), so the ride may
+  // still be `published`/`full` here — it passes through `in_progress`
+  // (both edges are legal) instead of being stranded in `published`.
+  const viaInProgress = canTransitionRideStatus(ride.status, 'in_progress');
+  if (!viaInProgress && !canTransitionRideStatus(ride.status, 'completed')) return;
 
   const bookingsWithATrip = ride.bookings.filter((b) => b.status === 'accepted' || b.status === 'completed');
   const allTripsTerminal =
     bookingsWithATrip.length > 0 &&
     bookingsWithATrip.every((b) => b.trip && TERMINAL_TRIP_STATUSES_FOR_RIDE.includes(b.trip.status));
   if (!allTripsTerminal) return;
+  if (viaInProgress && !bookingsWithATrip.some((b) => b.trip?.status === 'completed')) return;
 
   await db
     .update(rides)
@@ -955,6 +964,64 @@ export async function runTripStalenessSweep(db: Database): Promise<TripStaleness
       }
     } catch (err) {
       getLogger().error({ err, tripId: trip.id, action }, 'Trip-staleness sweep failed for one trip — continuing with the rest');
+    }
+  }
+
+  return result;
+}
+
+export interface RideExpirySweepResult {
+  scanned: number;
+  expired: number;
+  completed: number;
+}
+
+/**
+ * The ride-level half of the staleness safety net (@vaya/domain's
+ * ride-expiry.ts): closes `published`/`full` rides whose departure came and
+ * went without the ride ever being started, so they stop showing as
+ * upcoming forever. Runs right after `runTripStalenessSweep` in the same
+ * job, so trips it just settled are already terminal here.
+ */
+export async function runRideExpirySweep(db: Database): Promise<RideExpirySweepResult> {
+  const now = new Date();
+  // Cheap pre-filter: a ride can't be past its close time unless its
+  // departure is at least the grace period old. The exact per-ride check
+  // (which adds the route duration) is computeUnstartedRideAction's.
+  const candidates = await db.query.rides.findMany({
+    where: and(
+      inArray(rides.status, ['published', 'full']),
+      lt(rides.departureAt, new Date(now.getTime() - TRIP_AUTO_CLOSE_GRACE_MS)),
+    ),
+    with: { bookings: { with: { trip: true } } },
+  });
+
+  const result: RideExpirySweepResult = { scanned: candidates.length, expired: 0, completed: 0 };
+
+  for (const ride of candidates) {
+    const action = computeUnstartedRideAction({
+      departureAt: ride.departureAt,
+      estimatedDurationSec: ride.estimatedDurationSec,
+      tripStatuses: ride.bookings.flatMap((b) => (b.trip ? [b.trip.status] : [])),
+      now,
+    });
+    if (action === 'none') continue;
+
+    try {
+      // 'complete' goes published/full -> in_progress -> completed (both
+      // legal edges); 'expire' is a direct published/full -> expired edge.
+      const target = action === 'expire' ? 'expired' : 'completed';
+      const [updated] = await db
+        .update(rides)
+        .set({ status: target, updatedAt: now })
+        .where(and(eq(rides.id, ride.id), eq(rides.status, ride.status)))
+        .returning({ id: rides.id });
+      if (updated) {
+        if (target === 'expired') result.expired += 1;
+        else result.completed += 1;
+      }
+    } catch (err) {
+      getLogger().error({ err, rideId: ride.id, action }, 'Ride-expiry sweep failed for one ride — continuing with the rest');
     }
   }
 

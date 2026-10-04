@@ -916,7 +916,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
             rides.rideDetail.itinerary
           </Text>
           <View
-            accessibilityLabel="rides.rideDetail.startedWithEta"
+            accessibilityLabel="rides.rideDetail.departurePassed"
             accessibilityRole="text"
             accessible={true}
             style={
@@ -928,7 +928,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                   "paddingVertical": 4,
                 },
                 {
-                  "backgroundColor": "#F1E6CB",
+                  "backgroundColor": "#E2E8E1",
                 },
                 undefined,
               ]
@@ -942,12 +942,12 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                     "fontWeight": "600",
                   },
                   {
-                    "color": "#9C7420",
+                    "color": "#4F5C55",
                   },
                 ]
               }
             >
-              rides.rideDetail.startedWithEta
+              rides.rideDetail.departurePassed
             </Text>
           </View>
         </View>
@@ -2969,7 +2969,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
             rides.rideDetail.itinerary
           </Text>
           <View
-            accessibilityLabel="rides.rideDetail.startedWithEta"
+            accessibilityLabel="rides.rideDetail.departurePassed"
             accessibilityRole="text"
             accessible={true}
             style={
@@ -2981,7 +2981,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                   "paddingVertical": 4,
                 },
                 {
-                  "backgroundColor": "#F1E6CB",
+                  "backgroundColor": "#E2E8E1",
                 },
                 undefined,
               ]
@@ -2995,12 +2995,12 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                     "fontWeight": "600",
                   },
                   {
-                    "color": "#9C7420",
+                    "color": "#4F5C55",
                   },
                 ]
               }
             >
-              rides.rideDetail.startedWithEta
+              rides.rideDetail.departurePassed
             </Text>
           </View>
         </View>
@@ -6058,7 +6058,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
             rides.rideDetail.itinerary
           </Text>
           <View
-            accessibilityLabel="rides.rideDetail.startedWithEta"
+            accessibilityLabel="rides.rideDetail.departurePassed"
             accessibilityRole="text"
             accessible={true}
             style={
@@ -6070,7 +6070,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                   "paddingVertical": 4,
                 },
                 {
-                  "backgroundColor": "#F1E6CB",
+                  "backgroundColor": "#E2E8E1",
                 },
                 undefined,
               ]
@@ -6084,12 +6084,12 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                     "fontWeight": "600",
                   },
                   {
-                    "color": "#9C7420",
+                    "color": "#4F5C55",
                   },
                 ]
               }
             >
-              rides.rideDetail.startedWithEta
+              rides.rideDetail.departurePassed
             </Text>
           </View>
         </View>

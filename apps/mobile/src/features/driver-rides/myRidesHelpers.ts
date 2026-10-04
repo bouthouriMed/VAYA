@@ -65,7 +65,7 @@ export function estimateArrivalLabel(
   return formatClock(arrival, intlTag);
 }
 
-export type TripPhase = 'upcoming' | 'in_progress' | 'completed' | 'cancelled';
+export type TripPhase = 'upcoming' | 'departed' | 'in_progress' | 'completed' | 'cancelled' | 'expired';
 
 /**
  * The driver ride-hub's status pill (2026-08-27 itinerary redesign):
@@ -79,20 +79,23 @@ export type TripPhase = 'upcoming' | 'in_progress' | 'completed' | 'cancelled';
  * booking's trip starting flips the ride to `in_progress`
  * (`syncRideStatusOnTripStart`, trips.service.ts) and the last one
  * completing flips it to `completed` (`syncRideStatusOnTripComplete`) — so
- * both are checked first and trusted directly when present. The
- * departure-time heuristic below is now only a fallback for the window
- * before any accepted booking's trip has actually started (a published/full
- * ride whose departure time has passed but no driver action has happened
- * yet) — a real, narrower gap than before, not a claim this fallback no
- * longer exists.
+ * both are checked first and trusted directly when present.
+ *
+ * "En cours" comes only from a real `in_progress` status, never from the
+ * clock: a published/full ride whose departure has passed is `departed`
+ * (honestly "departure time passed", not a claim it's underway). It used to
+ * read `in_progress` here, which left a ride nobody booked showing
+ * "en cours" forever; the server's ride-expiry sweep (trips.service.ts)
+ * now moves such rides to `expired` once they're clearly over.
  */
 export function computeTripPhase(ride: Ride, now: Date = new Date()): TripPhase {
   if (ride.status === 'cancelled') return 'cancelled';
+  if (ride.status === 'expired') return 'expired';
   if (ride.status === 'completed') return 'completed';
   if (ride.status === 'in_progress') return 'in_progress';
   const departure = new Date(ride.departureAt);
   if (!Number.isNaN(departure.getTime()) && now.getTime() >= departure.getTime()) {
-    return 'in_progress';
+    return 'departed';
   }
   return 'upcoming';
 }

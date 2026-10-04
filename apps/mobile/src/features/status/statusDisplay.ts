@@ -30,6 +30,7 @@ const RIDE_STATUS_TONE: Record<RideStatus, StatusTone> = {
   in_progress: 'info',
   completed: 'default',
   cancelled: 'error',
+  expired: 'default',
 };
 
 /**

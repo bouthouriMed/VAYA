@@ -28,9 +28,9 @@ import {
   useGetRideQuery,
   useGetMyDriverProfileQuery,
   useListNotificationsQuery,
-  type Ride,
 } from '../../src/state/api';
 import {
+  isUpcomingRide,
   pickNextUpcomingRide,
   orderRemainingRides,
   estimateArrivalLabel,
@@ -43,7 +43,6 @@ import { shortenPlaceLabel } from '../../src/utils/placeLabel';
 import { useFocusAwarePolling } from '../../src/hooks/useFocusAwarePolling';
 
 type ThemeColors = ReturnType<typeof useAppTheme>['colors'];
-const UPCOMING_RIDE_STATUSES: Ride['status'][] = ['draft', 'published', 'full'];
 
 function formatWhen(iso: string, t: (key: string) => string, locale: string): string {
   const date = new Date(iso);
@@ -631,19 +630,25 @@ export default function TripsScreen(): React.JSX.Element {
               />
             ) : (
               remainingRides.map((ride) => {
-                // in_progress isn't in UPCOMING_RIDE_STATUSES (it's its own
-                // phase, not "upcoming" — see the hero-selection comment
-                // above), but it's just as clearly not "past" either; a
-                // second in-progress ride beyond the single one the hero
-                // above already claimed shouldn't render dimmed like a
-                // completed one would.
-                const past = ride.status !== 'in_progress' && !UPCOMING_RIDE_STATUSES.includes(ride.status);
+                // in_progress isn't "upcoming" (it's its own phase — see the
+                // hero-selection comment above), but it's just as clearly not
+                // "past" either; a second in-progress ride beyond the single
+                // one the hero above already claimed shouldn't render dimmed
+                // like a completed one would. A published ride whose
+                // departure has passed *is* past, though — it never started,
+                // so it reads "departure time passed", not "Publié", until
+                // the server's ride-expiry sweep marks it expired.
+                const past = ride.status !== 'in_progress' && !isUpcomingRide(ride);
+                const badge: StatusDisplay =
+                  computeTripPhase(ride) === 'departed'
+                    ? { label: t('driver:rides.rideDetail.departurePassed'), tone: 'default' }
+                    : rideStatusDisplay(t, ride.status);
                 return (
                   <TripCard
                     key={ride.id}
                     theme={theme}
                     dateTimeLabel={formatWhen(ride.departureAt, t, locale)}
-                    badge={rideStatusDisplay(t, ride.status)}
+                    badge={badge}
                     originLabel={ride.originLabel}
                     destinationLabel={ride.destinationLabel}
                     counterpart={{

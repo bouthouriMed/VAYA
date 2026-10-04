@@ -1,0 +1,1 @@
+ALTER TYPE "ride_status" ADD VALUE 'expired';

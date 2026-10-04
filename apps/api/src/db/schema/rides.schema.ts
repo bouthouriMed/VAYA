@@ -21,6 +21,7 @@ export const rideStatusEnum = pgEnum('ride_status', [
   'in_progress',
   'completed',
   'cancelled',
+  'expired',
 ]);
 
 export const rides = pgTable(

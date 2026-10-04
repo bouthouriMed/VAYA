@@ -566,29 +566,33 @@ export default function DriverRideHubScreen(): React.JSX.Element {
   // to show the literal word "Departure" for the ride's entire lifetime
   // (draft/published/full/in_progress all showed "Departure", only the
   // color changed) with something reflecting where the trip actually is —
-  // see computeTripPhase's own doc comment: `in_progress`/`completed` are
-  // now real signals from live tracking (docs/domain/live-tracking.md) when
-  // present, with a departure-time heuristic as a narrower fallback only
-  // for the window before any accepted booking's trip has started.
+  // see computeTripPhase's own doc comment: "en cours" only ever comes from
+  // a real `in_progress` status (live tracking, docs/domain/live-tracking.md)
+  // — a ride whose departure passed without being started reads "departure
+  // time passed", and the server later marks it `expired`.
   const tripPhase = computeTripPhase(ride);
   const statusBadge: { label: string; variant: 'default' | 'success' | 'info' | 'warning' | 'error' } =
     tripPhase === 'cancelled'
       ? { label: t('common:terms.cancelled'), variant: 'error' }
-      : tripPhase === 'completed'
-        ? { label: t('rides.rideDetail.finished'), variant: 'info' }
-        : tripPhase === 'in_progress'
-          ? {
-              label: arrivalLabel
-                ? t('rides.rideDetail.startedWithEta', { time: arrivalLabel })
-                : t('rides.rideDetail.started'),
-              variant: 'warning',
-            }
-          : {
-              label: t('rides.rideDetail.departsIn', {
-                relative: formatRelativeTime(new Date(ride.departureAt), locale),
-              }),
-              variant: 'success',
-            };
+      : tripPhase === 'expired'
+        ? { label: t('rides.rideDetail.expired'), variant: 'default' }
+        : tripPhase === 'completed'
+          ? { label: t('rides.rideDetail.finished'), variant: 'info' }
+          : tripPhase === 'in_progress'
+            ? {
+                label: arrivalLabel
+                  ? t('rides.rideDetail.startedWithEta', { time: arrivalLabel })
+                  : t('rides.rideDetail.started'),
+                variant: 'warning',
+              }
+            : tripPhase === 'departed'
+              ? { label: t('rides.rideDetail.departurePassed'), variant: 'default' }
+              : {
+                  label: t('rides.rideDetail.departsIn', {
+                    relative: formatRelativeTime(new Date(ride.departureAt), locale),
+                  }),
+                  variant: 'success',
+                };
   // Real revenue insight for the driver — summed from actually-accepted
   // bookings' own contributionTotal (which already accounts for seat count),
   // never seatsTotal × price, so a partially-filled ride never overstates
