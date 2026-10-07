@@ -29,6 +29,8 @@ import { registerPushToken } from '../notifications/notifications.service.js';
 const meResponseSchema = z.object({
   id: z.string().uuid(),
   phone: z.string().nullable(),
+  // Self-declared contact number (no OTP) — see users.schema.ts.
+  contactPhone: z.string().nullable(),
   email: z.string().nullable(),
   authProvider: z.enum(['phone', 'google']),
   fullName: z.string(),

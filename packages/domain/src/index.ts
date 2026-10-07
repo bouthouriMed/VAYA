@@ -23,6 +23,7 @@ export * from './matching/search-time';
 export * from './ride/ride.types';
 export * from './ride/ride-status';
 export * from './ride/ride-expiry';
+export * from './ride/awaiting-verification';
 
 export * from './booking/booking.types';
 export * from './booking/booking-status';

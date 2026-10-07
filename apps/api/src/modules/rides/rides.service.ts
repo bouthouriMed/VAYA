@@ -1,10 +1,12 @@
-import { and, desc, eq, inArray } from 'drizzle-orm';
+import { and, desc, eq, inArray, isNotNull } from 'drizzle-orm';
 import type { getDatabase } from '../../lib/database.js';
 import { bookings, driverProfiles, recurringPatterns, rides, trips, vehicles } from '../../db/schema/index.js';
 import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from '../../lib/errors.js';
 import {
   canCancelTrip,
+  canRideAwaitVerification,
   canTransitionRideStatus,
+  resolveAwaitingRideOnApproval,
   computeCancellationPolicy,
   computeSuggestedPrice,
   type SuggestedPrice,
@@ -61,18 +63,27 @@ async function suggestPriceForRoute(db: Database, route: RouteResult): Promise<S
  * always synchronously auto-approved every driver) — with a real review
  * queue now in place, it does.
  */
-async function getDriverProfileOrThrow(db: Database, userId: string) {
+async function getDriverProfileOrThrow(
+  db: Database,
+  userId: string,
+  options: { allowAwaitingVerification?: boolean } = {},
+) {
   const profile = await db.query.driverProfiles.findFirst({
     where: eq(driverProfiles.userId, userId),
   });
   if (!profile) {
     throw new ForbiddenError('Complete driver onboarding before publishing a ride');
   }
-  if (profile.verificationStatus !== 'approved') {
-    throw new ForbiddenError('Your driver verification must be approved before publishing a ride');
-  }
   if (profile.suspendedAt) {
     throw new ForbiddenError('Your driving privileges have been restricted');
+  }
+  // A driver still in the review loop may build a ride and have it wait for
+  // approval (publishRide below) — it stays a `draft`, invisible to search,
+  // so this never lets an unverified driver reach a passenger.
+  const awaitingAllowed =
+    options.allowAwaitingVerification === true && canRideAwaitVerification(profile.verificationStatus);
+  if (profile.verificationStatus !== 'approved' && !awaitingAllowed) {
+    throw new ForbiddenError('Your driver verification must be approved before publishing a ride');
   }
   return profile;
 }
@@ -110,7 +121,7 @@ export async function createRide(
   userId: string,
   input: CreateRideInput,
 ): Promise<typeof rides.$inferSelect & RideWithPricing> {
-  const profile = await getDriverProfileOrThrow(db, userId);
+  const profile = await getDriverProfileOrThrow(db, userId, { allowAwaitingVerification: true });
 
   const vehicle = await db.query.vehicles.findFirst({
     where: and(eq(vehicles.id, input.vehicleId), eq(vehicles.driverProfileId, profile.id)),
@@ -287,7 +298,9 @@ export async function updateRide(
 }
 
 export async function listMyRides(db: Database, userId: string) {
-  const profile = await getDriverProfileOrThrow(db, userId);
+  // A driver still under review must see the ride waiting for their
+  // approval in their own trips list.
+  const profile = await getDriverProfileOrThrow(db, userId, { allowAwaitingVerification: true });
   return db.query.rides.findMany({
     where: eq(rides.driverProfileId, profile.id),
     orderBy: desc(rides.departureAt),
@@ -307,7 +320,12 @@ export async function getRideById(db: Database, rideId: string) {
  *  ride-creation flow now that candidate-stop generation/selection
  *  (stop-candidates.service.ts) happens between the two. Reuses the
  *  existing authoritative state machine (`canTransitionRideStatus` from
- *  `@vaya/domain`) rather than duplicating transition logic here. */
+ *  `@vaya/domain`) rather than duplicating transition logic here.
+ *
+ *  A driver whose verification is still under review gets their ride saved
+ *  instead: it stays `draft` with `publishOnVerificationAt` set, and
+ *  `publishRidesAwaitingVerification` publishes it on approval. The caller
+ *  tells the two apart from the returned row (`status` vs. the flag). */
 export async function publishRide(db: Database, rideId: string, userId: string) {
   const ride = await db.query.rides.findFirst({
     where: eq(rides.id, rideId),
@@ -320,14 +338,70 @@ export async function publishRide(db: Database, rideId: string, userId: string) 
   if (!canTransitionRideStatus(ride.status, 'published')) {
     throw new ConflictError(`Cannot publish a ride in status "${ride.status}"`);
   }
+  const profile = await getDriverProfileOrThrow(db, userId, { allowAwaitingVerification: true });
+
+  const now = new Date();
+  if (profile.verificationStatus !== 'approved') {
+    const [saved] = await db
+      .update(rides)
+      .set({ publishOnVerificationAt: ride.publishOnVerificationAt ?? now, updatedAt: now })
+      .where(eq(rides.id, rideId))
+      .returning();
+    if (!saved) throw new Error('Failed to save ride for publication after verification');
+    return saved;
+  }
 
   const [updated] = await db
     .update(rides)
-    .set({ status: 'published', updatedAt: new Date() })
+    .set({ status: 'published', publishOnVerificationAt: null, updatedAt: now })
     .where(eq(rides.id, rideId))
     .returning();
   if (!updated) throw new Error('Failed to publish ride');
   return updated;
+}
+
+export interface AwaitingRidesResult {
+  published: number;
+  expired: number;
+}
+
+/** Runs right after an admin approves a driver: publishes every ride they
+ *  saved while waiting (departure still ahead) and expires the ones whose
+ *  departure passed in the meantime. Conditional on the row still being a
+ *  flagged draft, so a concurrent cancel or a second approval can't double-
+ *  apply. */
+export async function publishRidesAwaitingVerification(
+  db: Database,
+  driverProfileId: string,
+  now: Date = new Date(),
+): Promise<AwaitingRidesResult> {
+  const waiting = await db.query.rides.findMany({
+    where: and(
+      eq(rides.driverProfileId, driverProfileId),
+      eq(rides.status, 'draft'),
+      isNotNull(rides.publishOnVerificationAt),
+    ),
+  });
+
+  const result: AwaitingRidesResult = { published: 0, expired: 0 };
+  for (const ride of waiting) {
+    const outcome = resolveAwaitingRideOnApproval(ride.departureAt, now);
+    const [updated] = await db
+      .update(rides)
+      .set({
+        status: outcome === 'publish' ? 'published' : 'expired',
+        publishOnVerificationAt: null,
+        updatedAt: now,
+      })
+      .where(
+        and(eq(rides.id, ride.id), eq(rides.status, 'draft'), isNotNull(rides.publishOnVerificationAt)),
+      )
+      .returning({ id: rides.id });
+    if (!updated) continue;
+    if (outcome === 'publish') result.published += 1;
+    else result.expired += 1;
+  }
+  return result;
 }
 
 export async function cancelRide(db: Database, rideId: string, userId: string) {

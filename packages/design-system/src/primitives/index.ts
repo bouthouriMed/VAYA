@@ -4,6 +4,7 @@ export type { ButtonVariant } from './Button';
 export { StateView } from './StateView';
 export type { StateViewStatus, StateViewSkeleton } from './StateView';
 export { Input } from './Input';
+export { PhoneInput, toTunisianE164, PHONE_COUNTRY_CODE } from './PhoneInput';
 export { Card } from './Card';
 export { Badge } from './Badge';
 export { Avatar } from './Avatar';

@@ -1,4 +1,4 @@
-import { and, eq, inArray, lt } from 'drizzle-orm';
+import { and, eq, inArray, isNotNull, lt } from 'drizzle-orm';
 import type { getDatabase } from '../../lib/database.js';
 import {
   bookings,
@@ -1023,6 +1023,26 @@ export async function runRideExpirySweep(db: Database): Promise<RideExpirySweepR
     } catch (err) {
       getLogger().error({ err, rideId: ride.id, action }, 'Ride-expiry sweep failed for one ride — continuing with the rest');
     }
+  }
+
+  // A ride saved while its driver waited for verification
+  // (publish_on_verification_at) never goes live if departure passes before
+  // approval — close it so it doesn't sit as "waiting" forever.
+  try {
+    const stale = await db
+      .update(rides)
+      .set({ status: 'expired', publishOnVerificationAt: null, updatedAt: now })
+      .where(
+        and(
+          eq(rides.status, 'draft'),
+          isNotNull(rides.publishOnVerificationAt),
+          lt(rides.departureAt, now),
+        ),
+      )
+      .returning({ id: rides.id });
+    result.expired += stale.length;
+  } catch (err) {
+    getLogger().error({ err }, 'Ride-expiry sweep failed to expire rides awaiting verification');
   }
 
   return result;

@@ -69,7 +69,13 @@ import { trackEvent } from '../../src/services/analytics/analytics';
 import { requestPushPermissionAndRegister } from '../../src/services/notifications/registerForPushNotifications';
 import { buildStopSelectionPayload } from '../../src/features/driver-publish/stopSelection';
 import { resolveInitialPrice } from '../../src/features/driver-publish/priceSelection';
-import { isVerifiedDriver } from '../../src/features/driver-publish/verificationGate';
+import {
+  canBuildRide,
+  isAwaitingVerification,
+  isVerifiedDriver,
+} from '../../src/features/driver-publish/verificationGate';
+import { ContactPhoneSheet } from '../../src/features/contact-phone/ContactPhoneSheet';
+import { useContactPhonePrompt } from '../../src/features/contact-phone/useContactPhonePrompt';
 import { classifyCreateRideError } from '../../src/features/driver-publish/createRideError';
 import { buildRecommendedPoints, type RecommendedPoint } from '../../src/features/driver-publish/nearestStops';
 import { publishStyles as styles } from '../../src/features/driver-publish/publishStyles';
@@ -304,6 +310,9 @@ export default function PublishTabScreen(): React.JSX.Element {
   const [registerPushToken] = useRegisterPushTokenMutation();
   const { requireAuth, isAuthSheetVisible, authTrigger, handleAuthenticated, cancelAuth } =
     useContextualAuth();
+  // "How can passengers reach you?" — asked on the final "Publier" tap only,
+  // and never blocks it (see useContactPhonePrompt).
+  const { ensureContactPhone, sheetProps: contactPhoneSheetProps } = useContactPhonePrompt();
 
   useEffect(() => {
     dispatch(resetSearch());
@@ -886,12 +895,11 @@ export default function PublishTabScreen(): React.JSX.Element {
     }
     const { data: freshProfile } = await refetchDriverProfile();
     const freshVehicle = freshProfile?.vehicles[0];
-    // A driver who has onboarded but isn't approved yet (pending, under
-    // review, resubmission required, rejected) can't create a ride — the
-    // server rejects it since the admin review queue replaced auto-
-    // approval. Show the status-specific verification sheet here instead of
-    // letting creation fail with a generic error.
-    if (freshProfile && !isVerifiedDriver(freshProfile)) {
+    // A driver still under review builds the whole ride like anyone else —
+    // "Publier" then saves it to go live automatically on approval
+    // (rides.publish_on_verification_at). Only a rejected driver can't build
+    // a ride at all (terminal status); show the status-specific sheet.
+    if (freshProfile && !canBuildRide(freshProfile)) {
       // Same honest review screen a not-yet-onboarded driver gets (real
       // itinerary/seats, price locked "after verification"), with the
       // status-specific verification sheet open on top.
@@ -1081,8 +1089,18 @@ export default function PublishTabScreen(): React.JSX.Element {
       trackEvent('ride_published_with_zero_stops', { rideId });
     }
     try {
-      await publishRide(rideId).unwrap();
+      const published = await publishRide(rideId).unwrap();
       haptics.success();
+      if (isAwaitingVerification(published)) {
+        // Saved server-side, published automatically once an admin approves
+        // the driver — ask for push permission so they hear when it goes live.
+        void requestPushPermissionAndRegister((args) => registerPushToken(args).unwrap());
+        toast({ message: t('driver:publish.awaitingVerificationToast'), tone: 'info' });
+        const needsResubmission = driverProfile?.verificationStatus === 'resubmission_required';
+        resetWizard();
+        router.replace(needsResubmission ? '/driver/onboarding/resubmit' : '/(tabs)/trips');
+        return;
+      }
       // Contextual push-permission prompt (docs/roadmap/phase-07-notifications.md):
       // a driver's first published ride is a real reason to ask — never
       // blocks navigation, and is a silent no-op after the first prompt.
@@ -1106,7 +1124,11 @@ export default function PublishTabScreen(): React.JSX.Element {
   // the ride stays a saved draft either way. A driver with no vehicle yet
   // never had a server-side ride to save in the first place — this is the
   // first and only point that case needs verification at all.
-  async function finalizePublish(): Promise<void> {
+  function finalizePublish(): void {
+    ensureContactPhone(() => void finalizePublishAfterContact(), 'publishing');
+  }
+
+  async function finalizePublishAfterContact(): Promise<void> {
     setErrorMessage(undefined);
 
     if (!hasRideData) {
@@ -1117,7 +1139,10 @@ export default function PublishTabScreen(): React.JSX.Element {
     const saved = await saveStopSelections();
     if (!saved) return;
 
-    if (!isVerifiedDriver(driverProfile)) {
+    // Approved → publishes now; still under review → the server saves it to
+    // publish on approval (publishNow handles both). Only a rejected driver
+    // is stopped here.
+    if (!canBuildRide(driverProfile)) {
       setIsVerificationPromptVisible(true);
       return;
     }
@@ -1550,8 +1575,13 @@ export default function PublishTabScreen(): React.JSX.Element {
             icon={hasRideData ? 'rocket-outline' : 'shield-checkmark-outline'}
             loading={isPublishing}
             disabled={isPublishing}
-            onPress={() => void finalizePublish()}
+            onPress={finalizePublish}
           />
+          {hasRideData && !isVerifiedDriver(driverProfile) ? (
+            <Text variant="bodySmall" color={theme.warning} align="center" style={styles.termsHint}>
+              {t('driver:publish.reviewStep.awaitingVerificationHint')}
+            </Text>
+          ) : null}
           {hasRideData ? (
             <TouchableOpacity
               onPress={() => router.push('/legal/terms')}
@@ -1574,6 +1604,7 @@ export default function PublishTabScreen(): React.JSX.Element {
           )}
         </View>
 
+        <ContactPhoneSheet {...contactPhoneSheetProps} />
         <BottomSheet
           theme={theme}
           visible={isVerificationPromptVisible}

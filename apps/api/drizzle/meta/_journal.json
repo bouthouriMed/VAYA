@@ -218,6 +218,13 @@
       "when": 1791146033503,
       "tag": "0030_ride_status_expired",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1791358903920,
+      "tag": "0031_rides_publish_on_verification_contact_phone",
+      "breakpoints": true
     }
   ]
 }

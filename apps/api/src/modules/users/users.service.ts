@@ -37,6 +37,7 @@ export async function updateUser(db: Database, userId: string, input: UpdateMeIn
   const updates: Partial<typeof users.$inferInsert> = {};
   if (input.fullName !== undefined) updates.fullName = input.fullName;
   if (input.locale !== undefined) updates.locale = input.locale;
+  if (input.contactPhone !== undefined) updates.contactPhone = input.contactPhone;
   // Never persist a client-supplied URL as-is (VAYA-SEC-009): only a
   // well-formed reference to a file this API's own upload endpoints minted,
   // rebuilt from its object name.
@@ -216,6 +217,7 @@ export async function deleteUser(db: Database, userId: string, reason?: string) 
     .update(users)
     .set({
       phone: null,
+      contactPhone: null,
       email: null,
       googleId: null,
       fullName: DELETED_ACCOUNT_NAME,

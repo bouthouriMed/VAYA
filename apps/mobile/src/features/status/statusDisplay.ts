@@ -49,6 +49,16 @@ export function bookingStatusDisplay(
   return { phase, label: t(`booking:phase.${phase}`), tone: BOOKING_PHASE_TONE[phase] };
 }
 
-export function rideStatusDisplay(t: TFunction, status: RideStatus): StatusDisplay {
+/** A `draft` ride flagged `publishOnVerificationAt` is not a draft to the
+ *  driver — they tapped "Publier" and it goes live once they're verified —
+ *  so it reads "En attente de vérification", never "Brouillon". */
+export function rideStatusDisplay(
+  t: TFunction,
+  status: RideStatus,
+  context: { publishOnVerificationAt?: string | null } = {},
+): StatusDisplay {
+  if (status === 'draft' && context.publishOnVerificationAt) {
+    return { label: t('booking:ridePhase.awaitingVerification'), tone: 'warning' };
+  }
   return { label: t(`booking:ridePhase.${status}`), tone: RIDE_STATUS_TONE[status] };
 }

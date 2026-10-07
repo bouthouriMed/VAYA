@@ -21,6 +21,7 @@ const ME: Me = {
   fullName: 'Salma Trabelsi',
   avatarUrl: null,
   phone: '+21698123456',
+  contactPhone: null,
   email: null,
   authProvider: 'phone',
   locale: 'fr',

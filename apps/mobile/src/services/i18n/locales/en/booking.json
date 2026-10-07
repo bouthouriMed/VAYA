@@ -182,7 +182,8 @@
     "in_progress": "In progress",
     "completed": "Completed",
     "cancelled": "Cancelled",
-    "expired": "Expired"
+    "expired": "Expired",
+    "awaitingVerification": "Waiting for verification"
   },
   "pickupTitle": "Meeting point",
   "pickupPointLabel": "Pickup point",
