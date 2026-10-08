@@ -58,7 +58,7 @@ describe('buildEmailTemplate', () => {
     expect(email!.html).toContain('vaya:///(tabs)/explore');
   });
 
-  it('renders a booking_cancelled email only when the booking was confirmed and the recipient is the driver', () => {
+  it('emails the driver only for a confirmed booking, and the passenger whenever the driver cancels', () => {
     const emailedDriver = buildEmailTemplate('booking_cancelled', {
       wasConfirmed: true,
       recipientRole: 'driver',
@@ -78,10 +78,78 @@ describe('buildEmailTemplate', () => {
     expect(pendingWithdrawal).toBeNull();
 
     const riderRecipient = buildEmailTemplate('booking_cancelled', {
-      wasConfirmed: true,
+      wasConfirmed: false,
       recipientRole: 'rider',
+      cancelledBy: 'driver',
+      reason: 'ride_cancelled',
+      originLabel: 'Tunis',
+      destinationLabel: 'Sousse',
     });
-    expect(riderRecipient).toBeNull();
+    expect(riderRecipient).not.toBeNull();
+    expect(riderRecipient!.html).toContain('a annulé le trajet');
+
+    const byAdmin = buildEmailTemplate('booking_cancelled', {
+      recipientRole: 'rider',
+      cancelledBy: 'admin',
+    });
+    expect(byAdmin!.html).toContain('L’équipe VAYA');
+  });
+
+  it('sends the passenger a receipt when their request is sent, with the response deadline', () => {
+    const email = buildEmailTemplate('booking_request_sent', {
+      driverName: 'Sami',
+      originLabel: 'Tunis',
+      destinationLabel: 'Sousse',
+      departureAt: '2026-09-01T08:00:00.000Z',
+      expiresAt: '2026-08-31T20:00:00.000Z',
+      seatsRequested: 2,
+    });
+    expect(email!.subject).toContain('Demande envoyée');
+    expect(email!.html).toContain('Sami');
+    expect(email!.html).toContain('pour répondre');
+    expect(email!.text).toContain('Places demandées : 2');
+  });
+
+  it('tells the passenger their request expired rather than that the driver declined it', () => {
+    const email = buildEmailTemplate('booking_declined', { reason: 'request_expired' });
+    expect(email!.subject).toContain('expiré');
+  });
+
+  it('confirms a published ride to the driver with seats and price', () => {
+    const email = buildEmailTemplate('ride_published', {
+      rideId: 'r1',
+      originLabel: 'Tunis',
+      destinationLabel: 'Sfax',
+      seatsAvailable: 3,
+      contributionPerSeat: 18,
+    });
+    expect(email!.subject).toContain('Trajet publié');
+    expect(email!.html).toContain('18 DT');
+    expect(email!.html).toContain('vaya:///driver/rides/r1');
+  });
+
+  it('covers every driver-verification step, including the reviewer message', () => {
+    expect(buildEmailTemplate('verification_submitted', {})!.subject).toContain('reçus');
+    expect(buildEmailTemplate('verification_approved', {})!.subject).toContain('vérifié');
+    const declined = buildEmailTemplate('verification_declined', { declineMessage: 'Permis illisible' });
+    expect(declined!.html).toContain('Permis illisible');
+    const resubmit = buildEmailTemplate('verification_resubmission_required', {});
+    expect(resubmit!.html).toContain('driver/onboarding/resubmit');
+  });
+
+  it('asks both parties to review once a trip is completed', () => {
+    const email = buildEmailTemplate('trip_completed', {
+      originLabel: 'Tunis',
+      destinationLabel: 'Sousse',
+      counterpartName: 'Amira',
+    });
+    expect(email!.html).toContain('Amira');
+    expect(email!.subject).toContain('Trajet terminé');
+  });
+
+  it('escapes user-provided text', () => {
+    const email = buildEmailTemplate('verification_declined', { declineMessage: '<script>x</script>' });
+    expect(email!.html).not.toContain('<script>x');
   });
 
   it('renders a rating_received email for either party, including the comment when present', () => {
@@ -103,9 +171,9 @@ describe('buildEmailTemplate', () => {
     expect(withoutComment!.html).not.toContain('<blockquote');
   });
 
-  it('returns null for event types that never emit email', () => {
-    expect(buildEmailTemplate('trip_completed', {})).toBeNull();
+  it('returns null for live/in-app-only event types', () => {
     expect(buildEmailTemplate('message_received', {})).toBeNull();
-    expect(buildEmailTemplate('verification_approved', {})).toBeNull();
+    expect(buildEmailTemplate('trip_driver_approaching', {})).toBeNull();
+    expect(buildEmailTemplate('trip_eta_changed', {})).toBeNull();
   });
 });

@@ -68,6 +68,10 @@ export const notificationEventTypeEnum = pgEnum('notification_event_type', [
   // about, never on every ~20s recompute (that stays WebSocket-only, per
   // M-114's "no notification spam from routine pings" invariant).
   'trip_eta_changed',
+  // Email-only receipts of the user's own action (@vaya/domain's
+  // EMAIL_ONLY_NOTIFICATION_TYPES) — never pushed, never in the inbox.
+  'booking_request_sent',
+  'ride_published',
 ]);
 
 export const notifications = pgTable('notifications', {

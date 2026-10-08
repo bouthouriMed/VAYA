@@ -197,4 +197,15 @@ describe('dispatchPushForNotification', () => {
     await expect(dispatchPushForNotification(db, NOTIFICATION_ID)).resolves.toBeUndefined();
     expect(deleteWhere).toHaveBeenCalledTimes(1);
   });
+  it('never pushes an email-only receipt (the user just did the action themselves)', async () => {
+    const db = makeFakeDb(
+      { id: NOTIFICATION_ID, userId: USER_ID, type: 'booking_request_sent', payload: {} },
+      [{ id: 'dt1', userId: USER_ID, token: 'ExponentPushToken[abc123]', platform: 'ios' }],
+    );
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+
+    await dispatchPushForNotification(db, NOTIFICATION_ID);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
 });

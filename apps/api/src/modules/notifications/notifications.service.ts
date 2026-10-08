@@ -1,5 +1,9 @@
-import { and, desc, eq, inArray } from 'drizzle-orm';
-import type { NotificationEventType } from '@vaya/domain';
+import { and, desc, eq, inArray, notInArray } from 'drizzle-orm';
+import {
+  EMAIL_ONLY_NOTIFICATION_TYPES,
+  isEmailOnlyNotificationType,
+  type NotificationEventType,
+} from '@vaya/domain';
 import type { RegisterPushTokenInput } from '@vaya/validation';
 import type { getDatabase } from '../../lib/database.js';
 import { deviceTokens, notifications, users } from '../../db/schema/index.js';
@@ -111,7 +115,10 @@ export async function notifyBestEffort(
 
 export async function listNotifications(db: Database, userId: string) {
   return db.query.notifications.findMany({
-    where: eq(notifications.userId, userId),
+    where: and(
+      eq(notifications.userId, userId),
+      notInArray(notifications.type, [...EMAIL_ONLY_NOTIFICATION_TYPES]),
+    ),
     orderBy: desc(notifications.createdAt),
     limit: NOTIFICATION_LIST_LIMIT,
   });
@@ -298,6 +305,8 @@ export async function dispatchPushForNotification(db: Database, notificationId: 
     getLogger().warn({ notificationId }, 'Notification row not found for dispatch — skipping');
     return;
   }
+  // A receipt of the user's own action: email only (see the domain doc).
+  if (isEmailOnlyNotificationType(notification.type)) return;
 
   const tokens = await db.query.deviceTokens.findMany({
     where: eq(deviceTokens.userId, notification.userId),

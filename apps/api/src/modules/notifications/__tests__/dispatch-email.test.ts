@@ -77,7 +77,7 @@ describe('dispatchEmailForNotification', () => {
 
   it('is a no-op for event types with no email template', async () => {
     const db = makeFakeDb(
-      { id: NOTIFICATION_ID, userId: USER_ID, type: 'trip_completed', payload: {} },
+      { id: NOTIFICATION_ID, userId: USER_ID, type: 'message_received', payload: {} },
       { id: USER_ID, email: 'user@example.com' },
     );
 
