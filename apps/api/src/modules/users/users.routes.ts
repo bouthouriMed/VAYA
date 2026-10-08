@@ -5,6 +5,7 @@ import {
   idParamSchema,
   registerPushTokenSchema,
   requestOtpSchema,
+  unregisterPushTokenSchema,
   updateMeSchema,
   verifyOtpSchema,
 } from '@vaya/validation';
@@ -24,7 +25,7 @@ import { RATE_LIMITS, keyedRateLimit } from '../../lib/rate-limit.js';
 // notification-domain data (device_tokens table), so the write logic lives
 // in the notifications module; this endpoint is exposed under /users/me per
 // the phase doc's explicit API shape.
-import { registerPushToken } from '../notifications/notifications.service.js';
+import { registerPushToken, unregisterPushToken } from '../notifications/notifications.service.js';
 
 const meResponseSchema = z.object({
   id: z.string().uuid(),
@@ -180,6 +181,23 @@ export async function usersRoutes(fastify: FastifyInstance): Promise<void> {
     async (request, reply) => {
       const deviceToken = await registerPushToken(db, getUserId(request), request.body);
       reply.send(deviceToken);
+    },
+  );
+
+  // Called by the app on logout, before the session is revoked, so this
+  // device stops receiving the signed-out account's notifications.
+  app.post(
+    '/users/me/push-token/unregister',
+    {
+      onRequest: [fastify.authenticate],
+      schema: {
+        body: unregisterPushTokenSchema,
+        response: { 200: z.object({ success: z.boolean() }) },
+      },
+    },
+    async (request, reply) => {
+      await unregisterPushToken(db, getUserId(request), request.body.token);
+      reply.send({ success: true });
     },
   );
 

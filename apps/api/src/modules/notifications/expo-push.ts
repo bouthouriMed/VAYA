@@ -19,9 +19,28 @@ export interface ExpoPushMessage {
    *  (notification channels + a JS response handler) not covered by this
    *  field at all. */
   categoryId?: string;
+  /** Android channel the notification posts to. Must match a channel the
+   *  app created (notificationClient.ts's `ensureAndroidNotificationChannel`
+   *  creates `default` with HIGH importance) — without it Android 8+ falls
+   *  back to a low-importance "Miscellaneous" channel: no heads-up banner,
+   *  often no sound, easy to miss entirely. */
+  channelId?: string;
+  /** `high` wakes a dozing Android device and is what lets FCM show the
+   *  notification immediately instead of batching it. */
+  priority?: 'default' | 'normal' | 'high';
+  sound?: 'default' | null;
 }
 
-interface ExpoPushTicket {
+/** Applied to every message unless the caller overrides them — the
+ *  delivery settings a user-facing, time-sensitive marketplace event
+ *  (a booking request, an acceptance) actually needs. */
+const DELIVERY_DEFAULTS = {
+  channelId: 'default',
+  priority: 'high',
+  sound: 'default',
+} as const satisfies Partial<ExpoPushMessage>;
+
+export interface ExpoPushTicket {
   status: 'ok' | 'error';
   id?: string;
   message?: string;
@@ -48,18 +67,29 @@ interface ExpoPushResponseBody {
 export async function sendExpoPushMessages(messages: ExpoPushMessage[]): Promise<ExpoPushTicket[]> {
   if (messages.length === 0) return [];
 
+  const headers: Record<string, string> = {
+    Accept: 'application/json',
+    'Accept-Encoding': 'gzip, deflate',
+    'Content-Type': 'application/json',
+  };
+  // Required only when "Enhanced push security" is turned on for the Expo
+  // project (expo.dev → project → Credentials → Access token); harmless
+  // otherwise. Read from process.env directly so this stays a leaf module
+  // with no config import (same as the other provider adapters).
+  const accessToken = process.env.EXPO_ACCESS_TOKEN;
+  if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
+
   const response = await fetch(EXPO_PUSH_URL, {
     method: 'POST',
-    headers: {
-      Accept: 'application/json',
-      'Accept-Encoding': 'gzip, deflate',
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(messages),
+    headers,
+    body: JSON.stringify(messages.map((m) => ({ ...DELIVERY_DEFAULTS, ...m }))),
   });
 
   if (!response.ok) {
-    throw new Error(`Expo push API responded with HTTP ${response.status}`);
+    const detail = await Promise.resolve()
+      .then(() => response.text())
+      .catch(() => '');
+    throw new Error(`Expo push API responded with HTTP ${response.status}: ${detail.slice(0, 500)}`);
   }
 
   const body = (await response.json()) as ExpoPushResponseBody;
@@ -69,4 +99,11 @@ export async function sendExpoPushMessages(messages: ExpoPushMessage[]): Promise
     throw new Error(`Expo push API rejected all ${failed.length} message(s): ${JSON.stringify(failed)}`);
   }
   return tickets;
+}
+
+/** A ticket error meaning the token will never work again (app
+ *  uninstalled, push permission revoked, token rotated) — the row should be
+ *  deleted rather than retried on every future notification. */
+export function isDeadTokenTicket(ticket: ExpoPushTicket): boolean {
+  return ticket.status === 'error' && ticket.details?.error === 'DeviceNotRegistered';
 }

@@ -1,4 +1,4 @@
-import { desc, eq } from 'drizzle-orm';
+import { and, desc, eq, inArray } from 'drizzle-orm';
 import type { NotificationEventType } from '@vaya/domain';
 import type { RegisterPushTokenInput } from '@vaya/validation';
 import type { getDatabase } from '../../lib/database.js';
@@ -6,7 +6,7 @@ import { deviceTokens, notifications, users } from '../../db/schema/index.js';
 import { ForbiddenError, NotFoundError } from '../../lib/errors.js';
 import { getLogger } from '../../config/logger.js';
 import { enqueueNotificationDispatch } from '../../lib/queue.js';
-import { sendExpoPushMessages } from './expo-push.js';
+import { isDeadTokenTicket, sendExpoPushMessages } from './expo-push.js';
 import { buildEmailTemplate } from './email-templates.js';
 import { getEmailProvider } from '../../lib/email/index.js';
 
@@ -44,6 +44,16 @@ export async function registerPushToken(
     .returning();
   if (!created) throw new Error('Failed to register device token');
   return created;
+}
+
+/** Removes this device's token from the signed-in user (logout) so the
+ *  device stops receiving the previous account's pushes. Scoped to the
+ *  caller's own rows — a token another account has since claimed is left
+ *  alone. Idempotent. */
+export async function unregisterPushToken(db: Database, userId: string, token: string): Promise<void> {
+  await db
+    .delete(deviceTokens)
+    .where(and(eq(deviceTokens.token, token), eq(deviceTokens.userId, userId)));
 }
 
 /**
@@ -304,7 +314,31 @@ export async function dispatchPushForNotification(db: Database, notificationId: 
     ...(categoryId ? { categoryId } : {}),
   }));
 
-  await sendExpoPushMessages(messages);
+  const tickets = await sendExpoPushMessages(messages);
+
+  // Expo returns one ticket per message, in order. A partial failure (some
+  // devices fine, some not) doesn't fail the job — but it must never be
+  // silent either: this is exactly where a missing FCM/APNs credential
+  // (`InvalidCredentials`) or an uninstalled app (`DeviceNotRegistered`)
+  // shows up.
+  const deadTokenIds: string[] = [];
+  tickets.forEach((ticket, i) => {
+    if (ticket.status !== 'error') return;
+    const token = tokens[i];
+    if (isDeadTokenTicket(ticket) && token) deadTokenIds.push(token.id);
+    getLogger().warn(
+      {
+        notificationId,
+        platform: token?.platform,
+        error: ticket.details?.error,
+        message: ticket.message,
+      },
+      'Expo push ticket error',
+    );
+  });
+  if (deadTokenIds.length > 0) {
+    await db.delete(deviceTokens).where(inArray(deviceTokens.id, deadTokenIds));
+  }
 }
 
 /**

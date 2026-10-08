@@ -20,3 +20,6 @@ export const registerPushTokenSchema = z.object({
   platform: devicePlatformSchema,
 });
 export type RegisterPushTokenInput = z.infer<typeof registerPushTokenSchema>;
+
+export const unregisterPushTokenSchema = registerPushTokenSchema.pick({ token: true });
+export type UnregisterPushTokenInput = z.infer<typeof unregisterPushTokenSchema>;
