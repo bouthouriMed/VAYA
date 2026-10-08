@@ -368,7 +368,15 @@ export async function dispatchEmailForNotification(db: Database, notificationId:
   if (!template) return;
 
   const user = await db.query.users.findFirst({ where: eq(users.id, notification.userId) });
-  if (!user?.email) return;
+  if (!user?.email) {
+    // Expected for phone-only accounts — logged so "no email was sent" is
+    // explainable from the worker logs rather than invisible.
+    getLogger().info(
+      { notificationId, userId: notification.userId, type: notification.type },
+      'Email skipped: user has no email address',
+    );
+    return;
+  }
 
   await getEmailProvider().sendEmail({
     to: user.email,

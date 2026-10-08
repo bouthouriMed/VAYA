@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, afterEach } from 'vitest';
+import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
 import type { getDatabase } from '../../../lib/database.js';
 import { dispatchPushForNotification } from '../notifications.service.js';
 
@@ -31,7 +31,14 @@ const NOTIFICATION_ID = '11111111-1111-1111-1111-111111111111';
 const USER_ID = '22222222-2222-2222-2222-222222222222';
 
 describe('dispatchPushForNotification', () => {
+  // getLogger() reads the validated env; give it the one required value so
+  // the logging branches run without a real database configured.
+  beforeEach(() => {
+    vi.stubEnv('DATABASE_URL', 'postgres://user:pass@localhost:5432/test');
+  });
+
   afterEach(() => {
+    vi.unstubAllEnvs();
     vi.restoreAllMocks();
   });
 
@@ -163,7 +170,6 @@ describe('dispatchPushForNotification', () => {
   });
 
   it('deletes a token Expo reports as DeviceNotRegistered, keeping the healthy one', async () => {
-    vi.stubEnv('DATABASE_URL', 'postgres://user:pass@localhost:5432/test');
     const deleteWhere = vi.fn().mockResolvedValue(undefined);
     const db = {
       ...makeFakeDb(
@@ -190,6 +196,5 @@ describe('dispatchPushForNotification', () => {
 
     await expect(dispatchPushForNotification(db, NOTIFICATION_ID)).resolves.toBeUndefined();
     expect(deleteWhere).toHaveBeenCalledTimes(1);
-    vi.unstubAllEnvs();
   });
 });
