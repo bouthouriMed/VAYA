@@ -12,6 +12,6 @@
     "visual:capture": "node visual/capture.cjs"
   },
   "devDependencies": {
-    "@playwright/test": "^1.47.2"
+    "@playwright/test": "^1.63.0"
   }
 }
