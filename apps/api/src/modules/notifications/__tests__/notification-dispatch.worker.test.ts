@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, afterEach } from 'vitest';
+import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
 import type { getDatabase } from '../../../lib/database.js';
 import { dispatchPushForNotification } from '../notifications.service.js';
 
@@ -31,7 +31,14 @@ const NOTIFICATION_ID = '11111111-1111-1111-1111-111111111111';
 const USER_ID = '22222222-2222-2222-2222-222222222222';
 
 describe('dispatchPushForNotification', () => {
+  // getLogger() reads the validated env; give it the one required value so
+  // the logging branches run without a real database configured.
+  beforeEach(() => {
+    vi.stubEnv('DATABASE_URL', 'postgres://user:pass@localhost:5432/test');
+  });
+
   afterEach(() => {
+    vi.unstubAllEnvs();
     vi.restoreAllMocks();
   });
 
@@ -144,5 +151,61 @@ describe('dispatchPushForNotification', () => {
     );
 
     await expect(dispatchPushForNotification(db, NOTIFICATION_ID)).rejects.toThrow(/500/);
+  });
+  it('sends with high priority, sound and the app\'s default Android channel', async () => {
+    const db = makeFakeDb(
+      { id: NOTIFICATION_ID, userId: USER_ID, type: 'booking_accepted', payload: {} },
+      [{ id: 'dt1', userId: USER_ID, token: 'ExponentPushToken[abc123]', platform: 'android' }],
+    );
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ data: [{ status: 'ok', id: 't1' }] }),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    await dispatchPushForNotification(db, NOTIFICATION_ID);
+
+    const body = JSON.parse(fetchMock.mock.calls[0]![1].body as string);
+    expect(body[0]).toMatchObject({ priority: 'high', sound: 'default', channelId: 'default' });
+  });
+
+  it('deletes a token Expo reports as DeviceNotRegistered, keeping the healthy one', async () => {
+    const deleteWhere = vi.fn().mockResolvedValue(undefined);
+    const db = {
+      ...makeFakeDb(
+        { id: NOTIFICATION_ID, userId: USER_ID, type: 'booking_accepted', payload: {} },
+        [
+          { id: 'dt-dead', userId: USER_ID, token: 'ExponentPushToken[dead]', platform: 'ios' },
+          { id: 'dt-ok', userId: USER_ID, token: 'ExponentPushToken[ok]', platform: 'android' },
+        ],
+      ),
+      delete: vi.fn(() => ({ where: deleteWhere })),
+    } as unknown as Database;
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            { status: 'error', message: 'not registered', details: { error: 'DeviceNotRegistered' } },
+            { status: 'ok', id: 't2' },
+          ],
+        }),
+      }),
+    );
+
+    await expect(dispatchPushForNotification(db, NOTIFICATION_ID)).resolves.toBeUndefined();
+    expect(deleteWhere).toHaveBeenCalledTimes(1);
+  });
+  it('never pushes an email-only receipt (the user just did the action themselves)', async () => {
+    const db = makeFakeDb(
+      { id: NOTIFICATION_ID, userId: USER_ID, type: 'booking_request_sent', payload: {} },
+      [{ id: 'dt1', userId: USER_ID, token: 'ExponentPushToken[abc123]', platform: 'ios' }],
+    );
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+
+    await dispatchPushForNotification(db, NOTIFICATION_ID);
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });

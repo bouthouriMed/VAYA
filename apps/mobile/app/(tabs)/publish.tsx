@@ -1085,7 +1085,7 @@ export default function PublishTabScreen(): React.JSX.Element {
       haptics.success();
       // Contextual push-permission prompt (docs/roadmap/phase-07-notifications.md):
       // a driver's first published ride is a real reason to ask — never
-      // blocks navigation, and is a silent no-op after the first prompt.
+      // blocks navigation; only shows the OS dialog if never answered, otherwise just (re)registers the token.
       void requestPushPermissionAndRegister((args) => registerPushToken(args).unwrap());
       // The only visible confirmation a publish actually succeeded — the
       // screen navigates away immediately after, so a toast (not a

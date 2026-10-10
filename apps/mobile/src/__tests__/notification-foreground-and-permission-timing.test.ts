@@ -25,9 +25,8 @@ function read(base: string, relativePath: string): string {
  *     original "contextual only, never on cold start" timing has been
  *     superseded by explicit product direction to ask upfront. The two
  *     original contextual call sites (driver/publish.tsx,
- *     search/ride-details.tsx) remain as harmless fallbacks — the
- *     once-per-install guard in pushPermissionStorage.ts means whichever
- *     fires first wins.
+ *     search/ride-details.tsx) remain as harmless fallbacks — the OS
+ *     dialog only shows while permission is still undetermined.
  */
 describe('notification foreground display and permission-prompt timing', () => {
   it('useNotificationSetup shows a Toast and tracks notification_delivered on foreground delivery', () => {
@@ -59,15 +58,21 @@ describe('notification foreground display and permission-prompt timing', () => {
     expect(source).toContain('NotificationBridge');
   });
 
-  it('PushPermissionBridge requests permission as soon as the user is authenticated, at most once', () => {
+  it('PushPermissionBridge registers on every sign-in and retries on foreground until registered', () => {
     const source = read(srcDir, 'services/notifications/PushPermissionBridge.tsx');
     expect(source).toContain('requestPushPermissionAndRegister(');
     expect(source).toContain('s.auth.accessToken');
-    // Guards against re-firing on every re-render once authenticated —
-    // requestPushPermissionAndRegister's own once-per-install SecureStore
-    // flag is the real dedup, this ref just avoids redundant calls within
-    // a single session.
-    expect(source).toContain('attempted.current');
+    // Reset on sign-out so the next account re-registers the token.
+    expect(source).toContain('registered.current = false');
+    expect(source).toContain("AppState.addEventListener('change'");
+  });
+
+  it('logout detaches this device from the account before revoking the session', () => {
+    const source = read(appDir, '(tabs)/profile.tsx');
+    const unregisterIndex = source.indexOf('await unregisterThisDevice(');
+    const logoutIndex = source.indexOf('await logout({ refreshToken }).unwrap();');
+    expect(unregisterIndex).toBeGreaterThan(-1);
+    expect(logoutIndex).toBeGreaterThan(unregisterIndex);
   });
 
   it('(tabs)/publish.tsx requests push permission only after a successful publish, not before', () => {

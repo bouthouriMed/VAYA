@@ -83,7 +83,14 @@ export async function adminCancelRide(
       .where(eq(bookings.id, booking.id));
     await notifyBestEffort(db, booking.riderId, 'booking_cancelled', {
       bookingId: booking.id,
+      rideId: params.rideId,
       reason: params.reason,
+      cancelledBy: 'admin',
+      recipientRole: 'rider',
+      wasConfirmed: booking.status === 'accepted',
+      originLabel: ride.originLabel,
+      destinationLabel: ride.destinationLabel,
+      departureAt: ride.departureAt.toISOString(),
     });
   }
 

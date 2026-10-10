@@ -2,11 +2,12 @@ import {
   currentDevicePlatform,
   ensureAndroidNotificationChannel,
   getExpoPushToken,
+  getPushPermissionStatus,
   requestPushPermission,
 } from './notificationClient';
-import { hasPromptedForPushPermission, markPromptedForPushPermission } from './pushPermissionStorage';
 import { shouldPromptForPushPermission } from './pushPermission';
 import { trackEvent } from '../analytics/analytics';
+import { captureException } from '../monitoring/sentry';
 
 export interface RegisterPushTokenArgs {
   token: string;
@@ -16,52 +17,71 @@ export interface RegisterPushTokenArgs {
 export type RegisterPushTokenFn = (args: RegisterPushTokenArgs) => Promise<unknown>;
 
 /**
- * Push-permission request + token registration. Called from
- * PushPermissionBridge.tsx as soon as the user is authenticated — the
- * app's current, explicit timing choice, prompting upfront rather than
- * waiting for a contextual moment (this function's original design,
- * documented in phase-07-notifications.md's UX behavior section — now
- * superseded by product direction).
+ * Makes sure the signed-in user's device is registered for push. Called by
+ * PushPermissionBridge.tsx on every authenticated app start / account
+ * switch, and after a first ride publish or booking request.
  *
- * Prompts at most once per install: the SecureStore flag in
- * pushPermissionStorage.ts remembers the outcome, so whichever trigger
- * point fires first "wins" and the rest (PushPermissionBridge,
- * driver/publish.tsx, search/ride-details.tsx) become silent no-ops.
+ * Two separate concerns:
+ *  - the OS permission dialog is shown at most once (only while the OS
+ *    status is still 'undetermined' — pushPermission.ts);
+ *  - token registration runs EVERY time permission is granted. Registering
+ *    only right after the dialog (the previous behavior) meant a token was
+ *    never re-sent after a reinstall, a token rotation, a failed first
+ *    attempt, or signing in to another account — so the server had no
+ *    token, or the wrong user's, and pushes silently went nowhere. The
+ *    server upserts by token, so repeating this is cheap and idempotent.
  *
- * `registerPushToken` is injected (the RTK Query mutation trigger from
- * state/api.ts) rather than imported directly, keeping this function
- * framework-agnostic and independently testable.
+ * `registerPushToken` is injected (the RTK Query mutation trigger) to keep
+ * this framework-agnostic and testable. Never throws: the calling flow
+ * (sign-in, publish, booking) has already succeeded by the time this runs.
+ * Resolves true once the server has this device's token.
  */
 export async function requestPushPermissionAndRegister(
   registerPushToken: RegisterPushTokenFn,
-): Promise<void> {
-  const alreadyPrompted = await hasPromptedForPushPermission();
-  if (!shouldPromptForPushPermission(alreadyPrompted)) return;
-
-  await markPromptedForPushPermission();
-
-  const status = await requestPushPermission();
-  // Expo Go on Android has no push support at all (notificationsModule.ts)
-  // — not a user decision, so not tracked as a denial.
-  if (status === 'unavailable') return;
-  if (status !== 'granted') {
-    trackEvent('push_permission_denied');
-    return;
-  }
-  trackEvent('push_permission_granted');
-
-  await ensureAndroidNotificationChannel();
-
-  const platform = currentDevicePlatform();
-  const token = await getExpoPushToken();
-  if (!token || !platform) return;
-
+): Promise<boolean> {
   try {
+    let status = await getPushPermissionStatus();
+    // Expo Go on Android has no push support at all (notificationsModule.ts).
+    if (status === 'unavailable') return false;
+
+    if (shouldPromptForPushPermission(status)) {
+      status = await requestPushPermission();
+      trackEvent(status === 'granted' ? 'push_permission_granted' : 'push_permission_denied');
+    }
+    if (status !== 'granted') return false;
+
+    await ensureAndroidNotificationChannel();
+
+    const platform = currentDevicePlatform();
+    const token = await getExpoPushToken();
+    if (!token || !platform) return false;
+
     await registerPushToken({ token, platform });
-  } catch {
-    // Registration failing must never affect the flow that triggered this
-    // call — the ride publish / booking request has already succeeded by
-    // the time this runs (both call sites invoke this after their own
-    // success path, never blocking on it).
+    return true;
+  } catch (err) {
+    // Reported, not swallowed: a failure here is exactly the "push silently
+    // doesn't work" case, and the only place it's visible is monitoring.
+    captureException(err);
+    return false;
+  }
+}
+
+/**
+ * Detaches this device from the signed-in account (logout). Must run while
+ * the session is still valid. Best-effort: a failure only means the old
+ * account may keep getting pushes on this device until the token is
+ * re-registered by the next sign-in, which reassigns it server-side.
+ */
+export async function unregisterThisDevice(
+  unregisterPushToken: (args: { token: string }) => Promise<unknown>,
+): Promise<void> {
+  try {
+    const status = await getPushPermissionStatus();
+    if (status !== 'granted') return;
+    const token = await getExpoPushToken();
+    if (!token) return;
+    await unregisterPushToken({ token });
+  } catch (err) {
+    captureException(err);
   }
 }

@@ -38,6 +38,7 @@ import { useAppDispatch, useAppSelector } from '../../src/state/store';
 import { clearAuth } from '../../src/state/authSlice';
 import { setAppearance } from '../../src/state/appearanceSlice';
 import { clearTokens } from '../../src/services/auth/tokenStorage';
+import { unregisterThisDevice } from '../../src/services/notifications/registerForPushNotifications';
 import {
   saveAppearancePreference,
   type AppearancePreference,
@@ -51,6 +52,7 @@ import {
   useGetMyDriverProfileQuery,
   useGetUserTrustSummaryQuery,
   useLogoutMutation,
+  useUnregisterPushTokenMutation,
   useRequestPhoneOtpMutation,
   useUpdateMeMutation,
   useUploadFileMutation,
@@ -114,6 +116,7 @@ export default function ProfileScreen(): React.JSX.Element {
     useGetMyDriverProfileQuery();
 
   const [logout] = useLogoutMutation();
+  const [unregisterPushToken] = useUnregisterPushTokenMutation();
   const [updateMe] = useUpdateMeMutation();
   const [deleteMe, { isLoading: isDeletingAccount }] = useDeleteMeMutation();
   const [uploadFile] = useUploadFileMutation();
@@ -203,6 +206,9 @@ export default function ProfileScreen(): React.JSX.Element {
   }
 
   async function handleLogout(): Promise<void> {
+    // Before revoking the session — the call needs it. Otherwise this
+    // device keeps receiving the signed-out account's notifications.
+    await unregisterThisDevice((args) => unregisterPushToken(args).unwrap());
     if (refreshToken) {
       try {
         await logout({ refreshToken }).unwrap();

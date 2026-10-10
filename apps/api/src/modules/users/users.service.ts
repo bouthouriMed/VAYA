@@ -7,6 +7,7 @@ import {
   bookings,
   rides,
   verificationDocuments,
+  deviceTokens,
 } from '../../db/schema/index.js';
 import { ConflictError, NotFoundError } from '../../lib/errors.js';
 import { consumeValidOtp, revokeAllRefreshTokensForUser } from '../auth/auth.service.js';
@@ -211,6 +212,8 @@ export async function deleteUser(db: Database, userId: string, reason?: string) 
   }
 
   await revokeAllRefreshTokensForUser(db, userId);
+  // A deleted account must stop receiving pushes on every device.
+  await db.delete(deviceTokens).where(eq(deviceTokens.userId, userId));
 
   const [updated] = await db
     .update(users)
