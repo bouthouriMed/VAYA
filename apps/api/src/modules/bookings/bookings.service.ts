@@ -2051,8 +2051,8 @@ export async function applyAutoNoShowClassification(
  *  `accepted` bookings only: before acceptance there's no real commitment
  *  to coordinate around, and after cancellation/completion there's no
  *  ongoing ride to call about. Returns `phone: null` rather than throwing
- *  when the counterpart genuinely has none (Google-auth-only accounts
- *  never collect a phone number, `users.phone` is nullable) — an honest
+ *  when the counterpart genuinely has none (neither a verified `phone` nor
+ *  a self-declared `contactPhone` on file) — an honest
  *  "no number on file" case, not an error. */
 export async function getBookingContactPhone(
   db: Database,
@@ -2073,5 +2073,8 @@ export async function getBookingContactPhone(
   const counterpart = await db.query.users.findFirst({ where: eq(users.id, counterpartUserId) });
   if (!counterpart) throw new NotFoundError('User');
 
-  return { phone: counterpart.phone };
+  // The OTP-verified login number wins; otherwise the number the user typed
+  // in themselves (profile or the publish/request prompt) so the two can
+  // still reach each other while no SMS provider is live.
+  return { phone: counterpart.phone ?? counterpart.contactPhone };
 }

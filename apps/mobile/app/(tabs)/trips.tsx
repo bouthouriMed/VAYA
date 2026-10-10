@@ -396,7 +396,7 @@ export default function TripsScreen(): React.JSX.Element {
             >
               <MapPreview
                 height={128}
-                badge={rideStatusDisplay(t, heroRide.status).label}
+                badge={rideStatusDisplay(t, heroRide.status, heroRide).label}
                 origin={{ latitude: heroRide.originLat, longitude: heroRide.originLng }}
                 destination={{ latitude: heroRide.destinationLat, longitude: heroRide.destinationLng }}
                 routeCoordinates={heroPolyline}
@@ -642,7 +642,7 @@ export default function TripsScreen(): React.JSX.Element {
                 const badge: StatusDisplay =
                   computeTripPhase(ride) === 'departed'
                     ? { label: t('driver:rides.rideDetail.departurePassed'), tone: 'default' }
-                    : rideStatusDisplay(t, ride.status);
+                    : rideStatusDisplay(t, ride.status, ride);
                 return (
                   <TripCard
                     key={ride.id}

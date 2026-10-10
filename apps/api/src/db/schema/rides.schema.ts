@@ -59,6 +59,12 @@ export const rides = pgTable(
     // added there later shouldn't require a migration here too.
     routeKind: varchar('route_kind', { length: 32 }),
     recurringPatternId: uuid('recurring_pattern_id').references(() => recurringPatterns.id),
+    // Set when a driver whose verification is still under review taps
+    // "Publier": the ride is kept as a `draft` (never visible to search) and
+    // published automatically the moment an admin approves the driver
+    // (admin-verification.service.ts → publishRidesAwaitingVerification).
+    // Cleared on that publish. Null for every other ride.
+    publishOnVerificationAt: timestamp('publish_on_verification_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },

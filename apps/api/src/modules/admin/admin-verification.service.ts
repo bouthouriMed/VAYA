@@ -11,6 +11,8 @@ import type {
 import { notifyBestEffort } from '../notifications/notifications.service.js';
 import { logAdminAction, listAuditLogs } from './audit-log.service.js';
 import { getStorage } from '../../lib/storage/index.js';
+import { getLogger } from '../../config/logger.js';
+import { publishRidesAwaitingVerification } from '../rides/rides.service.js';
 
 type Database = ReturnType<typeof getDatabase>;
 
@@ -122,7 +124,22 @@ export async function approveVerification(
     .returning();
   if (!updated) throw new Error('Failed to approve verification');
 
-  await notifyBestEffort(db, profile.userId, 'verification_approved', {});
+  // Rides the driver saved while waiting go live now — the approval itself
+  // has already committed, so a failure here is logged, never surfaced as a
+  // failed approval (the next approval-independent publish still works).
+  let awaitingRides = { published: 0, expired: 0 };
+  try {
+    awaitingRides = await publishRidesAwaitingVerification(db, params.driverProfileId, now);
+  } catch (err) {
+    getLogger().error(
+      { err, driverProfileId: params.driverProfileId },
+      'Publishing rides awaiting verification failed after approval',
+    );
+  }
+
+  await notifyBestEffort(db, profile.userId, 'verification_approved', {
+    publishedRideCount: awaitingRides.published,
+  });
   await logAdminAction(db, {
     adminUserId: params.adminUserId,
     action: 'VERIFICATION_APPROVED',

@@ -538,8 +538,17 @@ function renderVerificationSubmitted(): RenderedEmail {
   };
 }
 
-function renderVerificationApproved(): RenderedEmail {
-  const ctaUrl = appLink('/(tabs)/publish');
+function renderVerificationApproved(payload: Record<string, unknown>): RenderedEmail {
+  // Rides the driver saved while under review were just published by the
+  // approval itself (publishRidesAwaitingVerification) — inviting them to
+  // "publish a ride" would invite a duplicate, so point them at it instead.
+  const publishedRideCount = typeof payload.publishedRideCount === 'number' ? payload.publishedRideCount : 0;
+  const ridePublished = publishedRideCount > 0;
+  const ctaUrl = appLink(ridePublished ? '/(tabs)/trips' : '/(tabs)/publish');
+  const ctaLabel = ridePublished ? 'Voir mon trajet' : 'Publier un trajet';
+  const nextStep = ridePublished
+    ? 'Votre trajet en attente est maintenant publié : les passagers peuvent le réserver.'
+    : 'Vous pouvez publier vos trajets et partager vos frais de route avec des passagers.';
   return {
     subject: 'Vous êtes conducteur vérifié sur VAYA',
     html: shell({
@@ -547,16 +556,12 @@ function renderVerificationApproved(): RenderedEmail {
       heading: 'Profil conducteur vérifié',
       bodyHtml: `
         <p style="margin:0 0 16px;">Bonne nouvelle : votre profil conducteur est vérifié.</p>
-        <p style="margin:0;">Vous pouvez publier vos trajets et partager vos frais de route avec des passagers.</p>
+        <p style="margin:0;">${nextStep}</p>
       `,
-      ctaLabel: 'Publier un trajet',
+      ctaLabel,
       ctaUrl,
     }),
-    text: textLines([
-      'Votre profil conducteur est vérifié. Vous pouvez publier vos trajets.',
-      '',
-      `Publier un trajet : ${ctaUrl}`,
-    ]),
+    text: textLines([`Votre profil conducteur est vérifié. ${nextStep}`, '', `${ctaLabel} : ${ctaUrl}`]),
   };
 }
 
@@ -653,7 +658,7 @@ export function buildEmailTemplate(
     case 'verification_submitted':
       return renderVerificationSubmitted();
     case 'verification_approved':
-      return renderVerificationApproved();
+      return renderVerificationApproved(payload);
     case 'verification_declined':
       return renderVerificationNotApproved(payload, false);
     case 'verification_resubmission_required':

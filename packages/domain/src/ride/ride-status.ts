@@ -11,7 +11,10 @@ export const RIDE_STATUSES = [
 export type RideStatus = (typeof RIDE_STATUSES)[number];
 
 export const RIDE_STATUS_TRANSITIONS: Record<RideStatus, readonly RideStatus[]> = {
-  draft: ['published'],
+  // `cancelled`/`expired` from draft only ever apply to a ride waiting for
+  // its driver's verification (rides.publish_on_verification_at): the driver
+  // can withdraw it, and it expires if departure passes before approval.
+  draft: ['published', 'cancelled', 'expired'],
   published: ['full', 'in_progress', 'cancelled', 'expired'],
   full: ['published', 'in_progress', 'cancelled', 'expired'],
   in_progress: ['completed', 'cancelled'],

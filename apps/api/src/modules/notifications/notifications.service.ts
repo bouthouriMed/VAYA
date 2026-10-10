@@ -253,7 +253,9 @@ function bodyFor(type: NotificationEventType, payload: Record<string, unknown>):
     case 'verification_submitted':
       return 'Votre vérification a été soumise. Aucune action supplémentaire n’est requise pour le moment.';
     case 'verification_approved':
-      return 'Votre profil conducteur est vérifié — vous pouvez publier des trajets.';
+      return typeof payload.publishedRideCount === 'number' && payload.publishedRideCount > 0
+        ? 'Votre profil conducteur est vérifié — votre trajet en attente est maintenant publié.'
+        : 'Votre profil conducteur est vérifié — vous pouvez publier des trajets.';
     case 'verification_declined':
       return typeof payload.declineMessage === 'string'
         ? payload.declineMessage

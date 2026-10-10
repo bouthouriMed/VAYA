@@ -56,10 +56,10 @@ describe('computeUnstartedRideAction', () => {
 });
 
 describe('expired ride status', () => {
-  it('is reachable only from published/full, and is terminal', () => {
+  it('is reachable from published/full (and a draft awaiting verification), and is terminal', () => {
     expect(canTransitionRideStatus('published', 'expired')).toBe(true);
     expect(canTransitionRideStatus('full', 'expired')).toBe(true);
-    expect(canTransitionRideStatus('draft', 'expired')).toBe(false);
+    expect(canTransitionRideStatus('draft', 'expired')).toBe(true);
     expect(canTransitionRideStatus('in_progress', 'expired')).toBe(false);
     expect(canTransitionRideStatus('expired', 'published')).toBe(false);
     expect(canTransitionRideStatus('expired', 'cancelled')).toBe(false);

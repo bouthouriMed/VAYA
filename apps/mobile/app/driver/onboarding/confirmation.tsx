@@ -35,7 +35,7 @@ export default function VerificationConfirmationScreen(): React.JSX.Element {
   const { originLabel, destinationLabel, status } = useLocalSearchParams<{
     originLabel?: string;
     destinationLabel?: string;
-    status?: 'done' | 'error';
+    status?: 'done' | 'awaiting' | 'error';
   }>();
   const { data: driverProfile, isLoading } = useGetMyDriverProfileQuery();
   const hasPendingRide = Boolean(originLabel && destinationLabel);
@@ -106,7 +106,7 @@ export default function VerificationConfirmationScreen(): React.JSX.Element {
   if (isApproved) {
     title = t('onboarding.confirmation.successTitle');
     subtitle =
-      status === 'done' && hasPendingRide
+      (status === 'done' || status === 'awaiting') && hasPendingRide
         ? `${t('onboarding.confirmation.publishSuccess')} ${t('onboarding.confirmation.successDescription')}`
         : status === 'error' && hasPendingRide
           ? `${t('onboarding.confirmation.publishError')}`
@@ -123,9 +123,14 @@ export default function VerificationConfirmationScreen(): React.JSX.Element {
     subtitle = driverProfile.verificationDeclineMessage ?? t('onboarding.confirmation.rejectedTitle');
   } else {
     title = t('onboarding.confirmation.pendingTitle');
-    subtitle = hasPendingRide
-      ? `${t('onboarding.confirmation.pendingDescription')} ${t('onboarding.confirmation.pendingRideSavedNote')}`
-      : t('onboarding.confirmation.pendingDescription');
+    // Only claim the ride is saved when the real publish response said so
+    // ('awaiting' — rides.publish_on_verification_at is set server-side).
+    subtitle =
+      hasPendingRide && status === 'awaiting'
+        ? `${t('onboarding.confirmation.pendingDescription')} ${t('onboarding.confirmation.pendingRideSavedNote')}`
+        : hasPendingRide && status === 'error'
+          ? `${t('onboarding.confirmation.pendingDescription')} ${t('onboarding.confirmation.pendingRideSaveFailed')}`
+          : t('onboarding.confirmation.pendingDescription');
   }
 
   const ctaLabel = isResubmission

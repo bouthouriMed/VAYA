@@ -3,7 +3,6 @@ import {
   ActivityIndicator,
   ScrollView,
   StyleSheet,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -26,13 +25,13 @@ import {
   useToast,
   StatusBarBlend,
   type IconName,
-  Button,
 } from '@vaya/design-system';
 import { TRUST_TIER_LABELS, type TrustTier } from '@vaya/domain';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useContextualAuth } from '../../src/features/auth/useContextualAuth';
 import { ContextualAuthSheet } from '../../src/features/auth/ContextualAuthSheet';
+import { ContactPhoneSheet } from '../../src/features/contact-phone/ContactPhoneSheet';
 import { SUPPORTED_LOCALES, type SupportedLocale } from '@vaya/config';
 import { useAppDispatch, useAppSelector } from '../../src/state/store';
 import { clearAuth } from '../../src/state/authSlice';
@@ -53,11 +52,9 @@ import {
   useGetUserTrustSummaryQuery,
   useLogoutMutation,
   useUnregisterPushTokenMutation,
-  useRequestPhoneOtpMutation,
   useUpdateMeMutation,
   useUploadFileMutation,
   usePresignUploadMutation,
-  useVerifyPhoneOtpMutation,
 } from '../../src/state/api';
 
 const LOCALE_LABELS: Record<SupportedLocale, string> = {
@@ -121,8 +118,6 @@ export default function ProfileScreen(): React.JSX.Element {
   const [deleteMe, { isLoading: isDeletingAccount }] = useDeleteMeMutation();
   const [uploadFile] = useUploadFileMutation();
   const [presignUpload] = usePresignUploadMutation();
-  const [requestPhoneOtp, { isLoading: isSendingPhoneOtp }] = useRequestPhoneOtpMutation();
-  const [verifyPhoneOtp, { isLoading: isVerifyingPhoneOtp }] = useVerifyPhoneOtpMutation();
   const { requireAuth, isAuthSheetVisible, authTrigger, handleAuthenticated, cancelAuth } =
     useContextualAuth();
 
@@ -136,12 +131,10 @@ export default function ProfileScreen(): React.JSX.Element {
   const [locale, setLocale] = useState<SupportedLocale>('fr');
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
 
+  // No SMS provider is live, so there's no OTP step: the number is saved
+  // directly as the user's contact phone (shared only with an accepted
+  // counterpart). An OTP-verified `phone` is shown as-is and isn't editable.
   const [addingPhone, setAddingPhone] = useState(false);
-  const [phoneStep, setPhoneStep] = useState<'phone' | 'code'>('phone');
-  const [phoneDraft, setPhoneDraft] = useState('');
-  const [phoneOtpCode, setPhoneOtpCode] = useState('');
-  const [phoneDevCode, setPhoneDevCode] = useState<string | undefined>();
-  const [phoneError, setPhoneError] = useState<string | undefined>();
 
   const appearancePreference = useAppSelector((s) => s.appearance.preference);
 
@@ -304,53 +297,7 @@ export default function ProfileScreen(): React.JSX.Element {
   function openAddPhone(): void {
     haptics.selection();
     setShowingAccountInfo(false);
-    setPhoneDraft('');
-    setPhoneOtpCode('');
-    setPhoneError(undefined);
-    setPhoneDevCode(undefined);
-    setPhoneStep('phone');
     setAddingPhone(true);
-  }
-
-  const canSendPhoneOtp = phoneDraft.replace(/\s/g, '').length >= 8 && !isSendingPhoneOtp;
-
-  async function sendPhoneOtp(): Promise<void> {
-    if (!canSendPhoneOtp) return;
-    setPhoneError(undefined);
-    try {
-      const result = await requestPhoneOtp({
-        phone: `+216${phoneDraft.replace(/\s/g, '')}`,
-      }).unwrap();
-      setPhoneDevCode(result.devCode);
-      setPhoneStep('code');
-    } catch {
-      setPhoneError(t('profile:phoneSheet.invalidOrUnsent'));
-    }
-  }
-
-  const canVerifyPhoneOtp = phoneOtpCode.length === 6 && !isVerifyingPhoneOtp;
-
-  async function confirmPhoneOtp(): Promise<void> {
-    if (!canVerifyPhoneOtp) return;
-    setPhoneError(undefined);
-    try {
-      await verifyPhoneOtp({
-        phone: `+216${phoneDraft.replace(/\s/g, '')}`,
-        code: phoneOtpCode,
-      }).unwrap();
-      haptics.success();
-      toast({ message: t('profile:phoneSheet.verified'), tone: 'success' });
-      setAddingPhone(false);
-    } catch (err) {
-      haptics.error();
-      const status = (err as { status?: number } | undefined)?.status;
-      setPhoneError(
-        status === 409
-          ? t('profile:phoneSheet.alreadyLinked')
-          : t('profile:phoneSheet.invalidOrExpired'),
-      );
-      setPhoneOtpCode('');
-    }
   }
 
   function pickLocale(option: SupportedLocale): void {
@@ -954,6 +901,17 @@ export default function ProfileScreen(): React.JSX.Element {
                 <Text variant="body" color={theme.ink}>
                   {me.phone}
                 </Text>
+              ) : me.contactPhone ? (
+                <TouchableOpacity
+                  onPress={openAddPhone}
+                  activeOpacity={0.7}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('profile:phoneSheet.ariaPhone')}
+                >
+                  <Text variant="body" color={theme.ink}>
+                    {me.contactPhone}
+                  </Text>
+                </TouchableOpacity>
               ) : (
                 <TouchableOpacity
                   onPress={openAddPhone}
@@ -965,7 +923,7 @@ export default function ProfileScreen(): React.JSX.Element {
                     { backgroundColor: theme.surfaceMuted, borderColor: theme.accent },
                   ]}
                 >
-                  <Icon name="shield-checkmark-outline" size="xs" color={theme.accent} />
+                  <Icon name="call-outline" size="xs" color={theme.accent} />
                   <Text variant="bodySmall" color={theme.accent}>
                     {t('profile:infoSheet.addVerify')}
                   </Text>
@@ -997,111 +955,12 @@ export default function ProfileScreen(): React.JSX.Element {
         )}
       </BottomSheet>
 
-      <BottomSheet
+      <ContactPhoneSheet
         visible={addingPhone}
-        onClose={() => setAddingPhone(false)}
-        title={
-          phoneStep === 'phone'
-            ? t('profile:phoneSheet.addTitle')
-            : t('profile:phoneSheet.verifyTitle')
-        }
-        heightRatio={0.42}
-        theme={theme}
-      >
-        {phoneStep === 'phone' ? (
-          <View style={styles.phoneSheetBody}>
-            <Text variant="bodySmall" color={theme.inkMuted}>
-              {t('profile:phoneSheet.description')}
-            </Text>
-            <View
-              style={[
-                styles.phoneInputRow,
-                { backgroundColor: theme.surfaceMuted, borderColor: theme.outlineVariant },
-              ]}
-            >
-              <View style={[styles.countryPill, { backgroundColor: theme.surface }]}>
-                <Text variant="label" color={theme.ink}>
-                  +216
-                </Text>
-              </View>
-              <TextInput
-                value={phoneDraft}
-                onChangeText={setPhoneDraft}
-                placeholder={t('profile:phoneSheet.placeholder')}
-                placeholderTextColor={theme.inkFaint}
-                keyboardType="phone-pad"
-                returnKeyType="done"
-                onSubmitEditing={() => void sendPhoneOtp()}
-                style={[styles.phoneTextInput, { color: theme.ink }]}
-                accessibilityLabel={t('profile:phoneSheet.ariaPhone')}
-                autoFocus
-              />
-            </View>
-            {phoneError ? (
-              <Text variant="bodySmall" color={theme.error}>
-                {phoneError}
-              </Text>
-            ) : null}
-            <Button
-              size="lg"
-              label={t('profile:phoneSheet.sendCode')}
-              onPress={() => void sendPhoneOtp()}
-              disabled={!canSendPhoneOtp}
-              loading={isSendingPhoneOtp}
-              style={styles.phoneCta}
-            />
-          </View>
-        ) : (
-          <View style={styles.phoneSheetBody}>
-            <Text variant="bodySmall" color={theme.inkMuted}>
-              {t('profile:phoneSheet.codeSentTo', { phone: phoneDraft })}
-            </Text>
-            <TextInput
-              value={phoneOtpCode}
-              onChangeText={(v) => setPhoneOtpCode(v.replace(/[^0-9]/g, '').slice(0, 6))}
-              placeholder={t('profile:phoneSheet.codePlaceholder')}
-              placeholderTextColor={theme.inkFaint}
-              keyboardType="number-pad"
-              maxLength={6}
-              returnKeyType="done"
-              onSubmitEditing={() => void confirmPhoneOtp()}
-              style={[
-                styles.otpTextInput,
-                {
-                  color: theme.ink,
-                  borderColor: theme.outlineVariant,
-                  backgroundColor: theme.surfaceMuted,
-                },
-              ]}
-              accessibilityLabel={t('profile:phoneSheet.ariaCode')}
-              autoFocus
-            />
-            {phoneDevCode ? (
-              <Text variant="bodySmall" color={theme.inkFaint}>
-                {t('profile:phoneSheet.testCode', { code: phoneDevCode })}
-              </Text>
-            ) : null}
-            {phoneError ? (
-              <Text variant="bodySmall" color={theme.error}>
-                {phoneError}
-              </Text>
-            ) : null}
-            <Button
-              size="lg"
-              label={t('profile:phoneSheet.verify')}
-              onPress={() => void confirmPhoneOtp()}
-              disabled={!canVerifyPhoneOtp}
-              loading={isVerifyingPhoneOtp}
-              style={styles.phoneCta}
-            />
-            <TouchableOpacity onPress={() => setPhoneStep('phone')} accessibilityRole="button">
-              <Text variant="bodySmall" color={theme.accent} align="center">
-                {t('profile:phoneSheet.changeNumber')}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        )}
-      </BottomSheet>
+        context="profile"
+        initialPhone={me?.contactPhone}
+        onDone={() => setAddingPhone(false)}
+      />
     </View>
   );
 }
@@ -1268,41 +1127,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     borderRadius: radii.full,
     borderWidth: 1,
-  },
-  phoneSheetBody: {
-    gap: spacing.md,
-  },
-  phoneInputRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    borderWidth: 1,
-    borderRadius: radii.full,
-    paddingHorizontal: spacing.xs,
-    paddingVertical: spacing.xs,
-  },
-  countryPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: radii.full,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.sm,
-  },
-  phoneTextInput: {
-    flex: 1,
-    fontSize: 16,
-    paddingHorizontal: spacing.xs,
-  },
-  otpTextInput: {
-    borderWidth: 1,
-    borderRadius: radii.lg,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
-    fontSize: 20,
-    letterSpacing: 6,
-    textAlign: 'center',
-  },
-  phoneCta: {
-    width: '100%',
   },
 });

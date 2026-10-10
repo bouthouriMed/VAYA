@@ -131,6 +131,12 @@ describe('buildEmailTemplate', () => {
   it('covers every driver-verification step, including the reviewer message', () => {
     expect(buildEmailTemplate('verification_submitted', {})!.subject).toContain('reçus');
     expect(buildEmailTemplate('verification_approved', {})!.subject).toContain('vérifié');
+    expect(buildEmailTemplate('verification_approved', {})!.html).toContain('Publier un trajet');
+    // A ride saved while under review was published by the approval itself —
+    // the email points at it instead of inviting a duplicate publish.
+    const withRide = buildEmailTemplate('verification_approved', { publishedRideCount: 1 });
+    expect(withRide!.html).toContain('maintenant publié');
+    expect(withRide!.html).not.toContain('Publier un trajet');
     const declined = buildEmailTemplate('verification_declined', { declineMessage: 'Permis illisible' });
     expect(declined!.html).toContain('Permis illisible');
     const resubmit = buildEmailTemplate('verification_resubmission_required', {});

@@ -118,5 +118,17 @@
   },
   "map": {
     "approximateRoute": "Approximate route — road directions unavailable right now"
+  },
+  "contactPhone": {
+    "publishingTitle": "How can passengers reach you?",
+    "bookingTitle": "How can your driver reach you?",
+    "description": "Your number is only shared with the person whose ride is confirmed with you — never shown publicly.",
+    "placeholder": "22 123 456",
+    "label": "Phone number",
+    "invalid": "Enter an 8-digit Tunisian number.",
+    "saveFailed": "Couldn't save this number. Try again.",
+    "saveAndContinue": "Save and continue",
+    "saved": "Number saved.",
+    "profileTitle": "Your phone number"
   }
 }

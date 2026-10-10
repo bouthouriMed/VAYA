@@ -121,16 +121,17 @@
       "publishCta": "Publier ce trajet",
       "verifyCta": "Vérifier mon profil pour publier",
       "verifyDescription": "La vérification de votre profil conducteur prend environ 5 minutes.",
-      "termsHint": "En publiant, vous acceptez nos conditions d'utilisation."
+      "termsHint": "En publiant, vous acceptez nos conditions d'utilisation.",
+      "awaitingVerificationHint": "Votre profil est en cours de vérification : ce trajet sera publié automatiquement dès qu'il sera validé."
     },
     "publishedToast": "Votre trajet est publié !",
     "verificationSheet": {
       "title": "Une dernière étape pour prendre la route",
-      "description": "Pour publier votre premier trajet, nous devons vérifier votre profil de conducteur. Votre trajet est enregistré en brouillon — vous pourrez le publier vous-même une fois votre profil vérifié.",
+      "description": "Pour publier votre premier trajet, nous devons vérifier votre profil de conducteur. Votre trajet est conservé et sera publié automatiquement dès que votre profil sera vérifié.",
       "pillLabel": "Vérification requise",
       "startCta": "Commencer la vérification",
       "pendingTitle": "Vérification en cours",
-      "pendingDescription": "Votre profil est en cours d'examen. Votre trajet reste enregistré en brouillon — vous pourrez le publier dès que votre profil sera vérifié.",
+      "pendingDescription": "Votre profil est en cours d'examen. Votre trajet est enregistré et sera publié automatiquement dès que votre profil sera vérifié.",
       "pendingCta": "Voir le statut",
       "resubmitTitle": "Documents à mettre à jour",
       "resubmitDescription": "Certains de vos documents doivent être renvoyés pour continuer la vérification.",
@@ -148,7 +149,8 @@
       "publishFailed": "Impossible de publier ce trajet. Réessayez.",
       "accountRestricted": "Vos droits de conducteur sont restreints — contactez le support VAYA.",
       "tooManySeats": "Vous proposez plus de places que votre véhicule n’en a. Réduisez le nombre de places."
-    }
+    },
+    "awaitingVerificationToast": "Trajet enregistré — il sera publié dès que votre profil sera vérifié."
   },
   "onboarding": {
     "capture": {
@@ -246,11 +248,12 @@
       "publishError": "Profil vérifié mais le trajet n'a pas pu être publié. Réessayez depuis Mes Trajets.",
       "pendingTitle": "Vérification en cours",
       "pendingDescription": "Nous examinons vos documents. Vous serez averti dès que votre profil sera vérifié — aucune action n'est requise pour le moment.",
-      "pendingRideSavedNote": "Votre trajet est enregistré en brouillon. Vous pourrez le publier vous-même dès que votre profil sera vérifié.",
+      "pendingRideSavedNote": "Votre trajet est enregistré : il sera publié automatiquement dès que votre profil sera vérifié.",
       "resubmitTitle": "Documents à mettre à jour",
       "resubmitCta": "Mettre à jour mes documents",
       "rejectedTitle": "Vérification refusée",
-      "backCta": "Retour"
+      "backCta": "Retour",
+      "pendingRideSaveFailed": "Votre trajet n'a pas pu être enregistré. Vous pourrez le recréer depuis l'onglet Publier."
     }
   },
   "verificationReasons": {
