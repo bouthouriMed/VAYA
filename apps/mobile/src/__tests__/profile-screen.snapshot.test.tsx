@@ -139,6 +139,11 @@ vi.mock('expo-constants', () => ({
   ExecutionEnvironment: { Bare: 'bare', Standalone: 'standalone', StoreClient: 'storeClient' },
 }));
 
+// The real module loads expo-notifications (native) — irrelevant to what
+// these snapshots cover.
+vi.mock('../services/notifications/registerForPushNotifications', () => ({
+  unregisterThisDevice: vi.fn(),
+}));
 vi.mock('../services/settings/appearanceStorage', () => ({
   saveAppearancePreference: async () => {},
   loadAppearancePreference: async () => 'system' as const,
@@ -173,6 +178,7 @@ function mockApi({
       isLoading: isDriverProfileLoading,
     }),
     useLogoutMutation: () => [vi.fn(), { isLoading: false }],
+    useUnregisterPushTokenMutation: () => [vi.fn(), { isLoading: false }],
     useUpdateMeMutation: () => [vi.fn(), { isLoading: false }],
     useDeleteMeMutation: () => [vi.fn(), { isLoading: false }],
     useUploadFileMutation: () => [

@@ -1007,6 +1007,19 @@ export async function createBooking(
     departureAt: ride.departureAt.toISOString(),
   });
 
+  // Email-only receipt for the passenger (never pushed, never in the inbox).
+  await notifyBestEffort(db, riderId, 'booking_request_sent', {
+    bookingId: booking.id,
+    rideId,
+    driverName: await getUserFullNameSafe(db, ride.driverProfile.userId),
+    seatsRequested: booking.seatsRequested,
+    pickupLabel: booking.pickupLabel,
+    originLabel: booking.pickupLabel,
+    destinationLabel: booking.dropoffLabel ?? ride.destinationLabel,
+    departureAt: ride.departureAt.toISOString(),
+    expiresAt: booking.expiresAt?.toISOString(),
+  });
+
   // Real product feedback: a passenger should be able to message the driver
   // about a request the moment it's sent, not only once it's accepted — the
   // conversation now exists from here, not from acceptBooking. Real
@@ -1829,6 +1842,8 @@ export async function runBookingExpirySweep(db: Database): Promise<BookingExpiry
         bookingId: candidate.id,
         rideId: candidate.rideId,
         reason: 'request_expired',
+        originLabel: candidate.pickupLabel,
+        destinationLabel: candidate.dropoffLabel ?? candidate.ride.destinationLabel,
       });
       // Same reasoning as declineBooking's own close call — an expired
       // request's conversation is permanently closed, no trip is coming.

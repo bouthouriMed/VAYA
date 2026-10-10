@@ -113,6 +113,8 @@ describe('notification event coverage — spec §39\'s 12-item list vs. the real
         'booking_sibling_cancelled',
         'trip_active',
         'trip_eta_changed',
+        'booking_request_sent',
+        'ride_published',
       ]),
     );
   });

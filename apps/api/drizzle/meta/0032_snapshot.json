@@ -1,6 +1,6 @@
 {
-  "id": "2241278d-bbe1-4398-ac75-bb4a2ca97f4a",
-  "prevId": "d646f5ca-1e37-4217-b6c9-6014d50ecd60",
+  "id": "8abce098-a860-498b-9914-f8399a6ab838",
+  "prevId": "2241278d-bbe1-4398-ac75-bb4a2ca97f4a",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -1358,6 +1358,12 @@
           "primaryKey": false,
           "notNull": false
         },
+        "contact_phone": {
+          "name": "contact_phone",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": false
+        },
         "email": {
           "name": "email",
           "type": "varchar(255)",
@@ -1939,6 +1945,12 @@
         "recurring_pattern_id": {
           "name": "recurring_pattern_id",
           "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "publish_on_verification_at": {
+          "name": "publish_on_verification_at",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": false
         },

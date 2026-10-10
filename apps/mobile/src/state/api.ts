@@ -1298,6 +1298,9 @@ export const api = createApi({
     >({
       query: (body) => ({ url: '/users/me/push-token', method: 'POST', body }),
     }),
+    unregisterPushToken: builder.mutation<{ success: boolean }, { token: string }>({
+      query: (body) => ({ url: '/users/me/push-token/unregister', method: 'POST', body }),
+    }),
     listNotifications: builder.query<AppNotification[], void>({
       query: () => '/notifications',
       providesTags: ['Notifications'],
@@ -1514,6 +1517,7 @@ export const {
   useCancelBookingMutation,
   useReportNoShowMutation,
   useRegisterPushTokenMutation,
+  useUnregisterPushTokenMutation,
   useListNotificationsQuery,
   useMarkNotificationReadMutation,
   useGetConversationByBookingQuery,

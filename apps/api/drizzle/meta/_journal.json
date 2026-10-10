@@ -222,8 +222,15 @@
     {
       "idx": 31,
       "version": "7",
-      "when": 1791358903920,
-      "tag": "0031_rides_publish_on_verification_contact_phone",
+      "when": 1791464416640,
+      "tag": "0031_notification_email_only_events",
+      "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1791650250497,
+      "tag": "0032_rides_publish_on_verification_contact_phone",
       "breakpoints": true
     }
   ]

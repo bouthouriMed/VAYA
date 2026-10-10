@@ -2,6 +2,7 @@ import type { PermissionStatus } from 'expo-notifications';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 import { loadNotifications } from './notificationsModule';
+import { captureException } from '../monitoring/sentry';
 
 // Null in Expo Go on Android, where push is unsupported (notificationsModule.ts).
 const Notifications = loadNotifications();
@@ -57,12 +58,18 @@ export function currentDevicePlatform(): 'ios' | 'android' | null {
 
 /** Android 8+ requires a channel for any notification to show at all. A
  *  no-op on iOS/web. Safe to call unconditionally and repeatedly — channel
- *  creation is idempotent. */
+ *  creation is idempotent. HIGH importance is what gives a heads-up banner
+ *  and sound; the server targets this channel id (expo-push.ts's
+ *  DELIVERY_DEFAULTS). Android fixes a channel's importance at creation,
+ *  so this only applies on installs that hadn't created it yet — older
+ *  installs keep their original setting until the app is reinstalled. */
 export async function ensureAndroidNotificationChannel(): Promise<void> {
   if (Platform.OS !== 'android' || !Notifications) return;
   await Notifications.setNotificationChannelAsync('default', {
-    name: 'default',
-    importance: Notifications.AndroidImportance.DEFAULT,
+    name: 'Notifications',
+    importance: Notifications.AndroidImportance.HIGH,
+    sound: 'default',
+    vibrationPattern: [0, 250, 250, 250],
   });
 }
 
@@ -80,11 +87,10 @@ export async function requestPushPermission(): Promise<PermissionStatus | 'unava
 
 /**
  * Resolves the Expo push token for this device. Returns `null` (never
- * throws) on failure — real push credentials (EAS project id, APNs/FCM
- * certificates) are a genuine external-service setup step this sandboxed
- * environment cannot complete (see this phase's final report), so a
- * missing/failed token must degrade to "no push for this device," not a
- * crash, exactly like lib/routing.ts's OSRM-unavailable fallback pattern.
+ * throws) on failure so a build without push credentials degrades to "no
+ * push for this device" rather than crashing — but the failure is reported
+ * to monitoring: a missing google-services.json (Android/FCM) or APNs
+ * entitlement (iOS) surfaces exactly here and nowhere else.
  */
 export async function getExpoPushToken(): Promise<string | null> {
   if (!Notifications) return null;
@@ -94,7 +100,8 @@ export async function getExpoPushToken(): Promise<string | null> {
       projectId ? { projectId } : undefined,
     );
     return token.data;
-  } catch {
+  } catch (err) {
+    captureException(err);
     return null;
   }
 }

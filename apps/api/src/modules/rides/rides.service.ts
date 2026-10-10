@@ -357,6 +357,16 @@ export async function publishRide(db: Database, rideId: string, userId: string) 
     .where(eq(rides.id, rideId))
     .returning();
   if (!updated) throw new Error('Failed to publish ride');
+
+  // Email-only receipt for the driver (never pushed, never in the inbox).
+  await notifyBestEffort(db, userId, 'ride_published', {
+    rideId,
+    originLabel: updated.originLabel,
+    destinationLabel: updated.destinationLabel,
+    departureAt: updated.departureAt.toISOString(),
+    seatsAvailable: updated.seatsAvailable,
+    contributionPerSeat: updated.contributionPerSeat,
+  });
   return updated;
 }
 

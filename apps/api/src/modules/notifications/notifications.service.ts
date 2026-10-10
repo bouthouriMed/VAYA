@@ -1,12 +1,16 @@
-import { desc, eq } from 'drizzle-orm';
-import type { NotificationEventType } from '@vaya/domain';
+import { and, desc, eq, inArray, notInArray } from 'drizzle-orm';
+import {
+  EMAIL_ONLY_NOTIFICATION_TYPES,
+  isEmailOnlyNotificationType,
+  type NotificationEventType,
+} from '@vaya/domain';
 import type { RegisterPushTokenInput } from '@vaya/validation';
 import type { getDatabase } from '../../lib/database.js';
 import { deviceTokens, notifications, users } from '../../db/schema/index.js';
 import { ForbiddenError, NotFoundError } from '../../lib/errors.js';
 import { getLogger } from '../../config/logger.js';
 import { enqueueNotificationDispatch } from '../../lib/queue.js';
-import { sendExpoPushMessages } from './expo-push.js';
+import { isDeadTokenTicket, sendExpoPushMessages } from './expo-push.js';
 import { buildEmailTemplate } from './email-templates.js';
 import { getEmailProvider } from '../../lib/email/index.js';
 
@@ -44,6 +48,16 @@ export async function registerPushToken(
     .returning();
   if (!created) throw new Error('Failed to register device token');
   return created;
+}
+
+/** Removes this device's token from the signed-in user (logout) so the
+ *  device stops receiving the previous account's pushes. Scoped to the
+ *  caller's own rows — a token another account has since claimed is left
+ *  alone. Idempotent. */
+export async function unregisterPushToken(db: Database, userId: string, token: string): Promise<void> {
+  await db
+    .delete(deviceTokens)
+    .where(and(eq(deviceTokens.token, token), eq(deviceTokens.userId, userId)));
 }
 
 /**
@@ -101,7 +115,10 @@ export async function notifyBestEffort(
 
 export async function listNotifications(db: Database, userId: string) {
   return db.query.notifications.findMany({
-    where: eq(notifications.userId, userId),
+    where: and(
+      eq(notifications.userId, userId),
+      notInArray(notifications.type, [...EMAIL_ONLY_NOTIFICATION_TYPES]),
+    ),
     orderBy: desc(notifications.createdAt),
     limit: NOTIFICATION_LIST_LIMIT,
   });
@@ -290,6 +307,8 @@ export async function dispatchPushForNotification(db: Database, notificationId: 
     getLogger().warn({ notificationId }, 'Notification row not found for dispatch — skipping');
     return;
   }
+  // A receipt of the user's own action: email only (see the domain doc).
+  if (isEmailOnlyNotificationType(notification.type)) return;
 
   const tokens = await db.query.deviceTokens.findMany({
     where: eq(deviceTokens.userId, notification.userId),
@@ -306,7 +325,31 @@ export async function dispatchPushForNotification(db: Database, notificationId: 
     ...(categoryId ? { categoryId } : {}),
   }));
 
-  await sendExpoPushMessages(messages);
+  const tickets = await sendExpoPushMessages(messages);
+
+  // Expo returns one ticket per message, in order. A partial failure (some
+  // devices fine, some not) doesn't fail the job — but it must never be
+  // silent either: this is exactly where a missing FCM/APNs credential
+  // (`InvalidCredentials`) or an uninstalled app (`DeviceNotRegistered`)
+  // shows up.
+  const deadTokenIds: string[] = [];
+  tickets.forEach((ticket, i) => {
+    if (ticket.status !== 'error') return;
+    const token = tokens[i];
+    if (isDeadTokenTicket(ticket) && token) deadTokenIds.push(token.id);
+    getLogger().warn(
+      {
+        notificationId,
+        platform: token?.platform,
+        error: ticket.details?.error,
+        message: ticket.message,
+      },
+      'Expo push ticket error',
+    );
+  });
+  if (deadTokenIds.length > 0) {
+    await db.delete(deviceTokens).where(inArray(deviceTokens.id, deadTokenIds));
+  }
 }
 
 /**
@@ -336,7 +379,15 @@ export async function dispatchEmailForNotification(db: Database, notificationId:
   if (!template) return;
 
   const user = await db.query.users.findFirst({ where: eq(users.id, notification.userId) });
-  if (!user?.email) return;
+  if (!user?.email) {
+    // Expected for phone-only accounts — logged so "no email was sent" is
+    // explainable from the worker logs rather than invisible.
+    getLogger().info(
+      { notificationId, userId: notification.userId, type: notification.type },
+      'Email skipped: user has no email address',
+    );
+    return;
+  }
 
   await getEmailProvider().sendEmail({
     to: user.email,

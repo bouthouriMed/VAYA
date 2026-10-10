@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, afterEach } from 'vitest';
+import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
 import type { getDatabase } from '../../../lib/database.js';
 
 type Database = ReturnType<typeof getDatabase>;
@@ -35,7 +35,14 @@ const NOTIFICATION_ID = '11111111-1111-1111-1111-111111111111';
 const USER_ID = '22222222-2222-2222-2222-222222222222';
 
 describe('dispatchEmailForNotification', () => {
+  // getLogger() reads the validated env; give it the one required value so
+  // the logging branches run without a real database configured.
+  beforeEach(() => {
+    vi.stubEnv('DATABASE_URL', 'postgres://user:pass@localhost:5432/test');
+  });
+
   afterEach(() => {
+    vi.unstubAllEnvs();
     vi.clearAllMocks();
   });
 
@@ -70,7 +77,7 @@ describe('dispatchEmailForNotification', () => {
 
   it('is a no-op for event types with no email template', async () => {
     const db = makeFakeDb(
-      { id: NOTIFICATION_ID, userId: USER_ID, type: 'trip_completed', payload: {} },
+      { id: NOTIFICATION_ID, userId: USER_ID, type: 'message_received', payload: {} },
       { id: USER_ID, email: 'user@example.com' },
     );
 

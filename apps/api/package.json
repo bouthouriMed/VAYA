@@ -17,6 +17,8 @@
     "db:seed": "tsx src/db/seed.ts",
     "verify-migrations": "tsx scripts/verify-migrations.ts",
     "preflight": "tsx scripts/preflight.ts",
+    "push:test": "tsx scripts/push-test.ts",
+    "email:test": "tsx scripts/email-test.ts",
     "worker": "tsx watch src/worker.ts",
     "worker:start": "tsx src/worker.ts",
     "clean": "rm -rf dist node_modules"

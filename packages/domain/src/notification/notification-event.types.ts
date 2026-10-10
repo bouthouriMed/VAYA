@@ -50,8 +50,27 @@ export const NOTIFICATION_EVENT_TYPES = [
   'booking_sibling_cancelled',
   'trip_active',
   'trip_eta_changed',
+  // Email-only confirmations of the user's OWN action (see
+  // EMAIL_ONLY_NOTIFICATION_TYPES): the passenger's "your request was sent"
+  // receipt and the driver's "your ride is published" receipt.
+  'booking_request_sent',
+  'ride_published',
 ] as const;
 export type NotificationEventType = (typeof NOTIFICATION_EVENT_TYPES)[number];
+
+/**
+ * Confirmations of something the user just did themselves. They exist only
+ * to send a receipt email: no push (the user is looking at the app's own
+ * confirmation already) and never listed in the in-app inbox.
+ */
+export const EMAIL_ONLY_NOTIFICATION_TYPES = [
+  'booking_request_sent',
+  'ride_published',
+] as const satisfies readonly NotificationEventType[];
+
+export function isEmailOnlyNotificationType(type: NotificationEventType): boolean {
+  return (EMAIL_ONLY_NOTIFICATION_TYPES as readonly NotificationEventType[]).includes(type);
+}
 
 export interface NotificationEvent extends TimestampedEntity {
   userId: UUID;

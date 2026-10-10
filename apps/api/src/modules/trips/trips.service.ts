@@ -7,6 +7,7 @@ import {
   rides,
   riderProfiles,
   trips,
+  users,
 } from '../../db/schema/index.js';
 import { ConflictError, ForbiddenError, NotFoundError } from '../../lib/errors.js';
 import {
@@ -37,6 +38,16 @@ import { haversineDistanceMeters } from '../../lib/geo.js';
 import { getLogger } from '../../config/logger.js';
 
 type Database = ReturnType<typeof getDatabase>;
+
+/** First name only — enough for an email greeting, never a full identity. */
+async function getFullNameSafe(db: Database, userId: string): Promise<string | undefined> {
+  try {
+    const user = await db.query.users.findFirst({ where: eq(users.id, userId) });
+    return user?.fullName?.split(' ')[0];
+  } catch {
+    return undefined;
+  }
+}
 
 async function getTripWithPartiesOrThrow(db: Database, tripId: string) {
   const trip = await db.query.trips.findFirst({
@@ -249,8 +260,20 @@ async function applyTripCompletionSideEffects(
   // please rate" rather than minting a distinct `rating_prompted` event
   // type, per the phase doc's explicit "reuse trip_completed if that event
   // type already exists" option.
-  await notifyBestEffort(db, driverUserId, 'trip_completed', { tripId: trip.id, bookingId: trip.bookingId });
-  await notifyBestEffort(db, riderId, 'trip_completed', { tripId: trip.id, bookingId: trip.bookingId });
+  // Route + the other party's first name feed the "trip finished, leave a
+  // review" email (email-templates.ts's renderTripCompleted).
+  const [driverName, riderName] = await Promise.all([
+    getFullNameSafe(db, driverUserId),
+    getFullNameSafe(db, riderId),
+  ]);
+  const journey = {
+    tripId: trip.id,
+    bookingId: trip.bookingId,
+    originLabel: trip.booking.pickupLabel,
+    destinationLabel: trip.booking.dropoffLabel ?? trip.booking.ride.destinationLabel,
+  };
+  await notifyBestEffort(db, driverUserId, 'trip_completed', { ...journey, counterpartName: riderName });
+  await notifyBestEffort(db, riderId, 'trip_completed', { ...journey, counterpartName: driverName });
 }
 
 export async function completeTrip(db: Database, tripId: string, requestingUserId: string) {
