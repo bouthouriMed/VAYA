@@ -21,10 +21,9 @@ import { hydrateAppearance } from '../src/state/appearanceSlice';
 import { hydrateLanguage } from '../src/state/languageSlice';
 import { loadTokens } from '../src/services/auth/tokenStorage';
 import { loadAppearancePreference } from '../src/services/settings/appearanceStorage';
-import { loadLanguagePreference } from '../src/services/settings/languageStorage';
+import { readLanguagePreferenceSync } from '../src/services/settings/languageStorage';
 import { initI18n, detectDeviceLocale } from '../src/services/i18n';
 import { applyRtlDirection } from '../src/services/i18n/rtl';
-import { useLanguage } from '../src/hooks/useLanguage';
 import { ErrorBoundary } from '../src/components/ErrorBoundary';
 import { OfflineBanner } from '../src/components/OfflineBanner';
 import { initMonitoring } from '../src/services/monitoring/sentry';
@@ -34,12 +33,17 @@ import { RatingPromptBridge } from '../src/features/ratings/RatingPromptBridge';
 import { RecurringPatternPromptBridge } from '../src/features/recurring/RecurringPatternPromptBridge';
 
 // Runs once at module load, before the first render — i18next and the
-// native RTL flag must both be settled before any screen mounts. Uses the
-// device's own locale as the first-run guess; if a persisted explicit
-// choice disagrees, LanguageHydrator below reconciles it once storage
-// resolves (mirrors AuthHydrator/ThemedApp's own "sync guess, async
-// correct" pattern elsewhere in this file).
-const startupLocale = detectDeviceLocale();
+// native RTL flag must both be settled before any screen mounts. The
+// user's explicit choice is read synchronously so the language is applied
+// exactly once; the device locale is only the first-run fallback. (This
+// used to start on the device locale and switch to the saved choice once
+// an async read resolved — flipping RTL off then on again and reloading on
+// every launch, which crashed iOS Expo Go permanently once Arabic was
+// saved, since the Keychain-backed choice survives even a reinstall.) A
+// direction change applied here takes effect from the next launch;
+// startup never reloads the app.
+const persistedLocale = readLanguagePreferenceSync();
+const startupLocale = persistedLocale ?? detectDeviceLocale();
 applyRtlDirection(startupLocale);
 initI18n(startupLocale);
 
@@ -95,37 +99,16 @@ function AuthHydrator({ children }: { children: React.ReactNode }): React.JSX.El
   return <>{children}</>;
 }
 
-/** Reconciles the module-load device-locale guess (`startupLocale`, already
- *  active by the time this mounts) against any persisted explicit choice
- *  from a previous session. First run (nothing persisted yet) just mirrors
- *  the guess into the language slice. A returning user whose explicit
- *  choice disagrees with this session's device-locale guess (e.g. they
- *  picked French on an Arabic-locale device) gets reconciled through the
- *  same `useLanguage().changeLanguage` path profile.tsx's picker uses —
- *  including its RTL-reload handling, since that mismatch can also mean a
- *  layout-direction change. Renders nothing. */
+/** Mirrors the module-load locale (`startupLocale`, already active in
+ *  i18next and the native RTL flag) into the language slice, noting
+ *  whether it was the user's explicit choice or the device-locale
+ *  fallback. Renders nothing. */
 function LanguageHydrator(): null {
   const dispatch = useDispatch<AppDispatch>();
-  const { changeLanguage } = useLanguage();
 
   useEffect(() => {
-    let cancelled = false;
-    dispatch(hydrateLanguage({ locale: startupLocale, isExplicit: false }));
-
-    loadLanguagePreference().then((persisted) => {
-      if (cancelled || !persisted) return;
-      if (persisted !== startupLocale) {
-        void changeLanguage(persisted);
-      } else {
-        dispatch(hydrateLanguage({ locale: persisted, isExplicit: true }));
-      }
-    });
-
-    return () => {
-      cancelled = true;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- startupLocale is a module-scope constant
-  }, [dispatch, changeLanguage]);
+    dispatch(hydrateLanguage({ locale: startupLocale, isExplicit: persistedLocale !== null }));
+  }, [dispatch]);
 
   return null;
 }
