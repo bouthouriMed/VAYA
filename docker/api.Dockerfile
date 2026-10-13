@@ -67,7 +67,10 @@ USER node
 # (modules/health/health.routes.ts), which itself checks DB + Redis, not
 # just "is the process alive". Assumes the default API_PREFIX; override
 # this instruction in a derived image if a deployment sets a different one.
+# 127.0.0.1, not `localhost`: in this Alpine image `localhost` resolves to
+# IPv6 ::1 while the API binds IPv4 0.0.0.0, so a `localhost` probe is
+# refused and a perfectly healthy API was reported `unhealthy`.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
-  CMD wget -qO- http://localhost:3000/api/v1/health || exit 1
+  CMD wget -qO- http://127.0.0.1:3000/api/v1/health || exit 1
 
 CMD ["pnpm", "start"]
