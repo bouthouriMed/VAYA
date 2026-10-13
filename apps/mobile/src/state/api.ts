@@ -294,6 +294,10 @@ export interface PublicProfile {
 export interface Me {
   id: string;
   phone: string | null;
+  /** Number the user typed in themselves (no OTP) so a matched counterpart
+   *  can call them — `phone` (OTP-verified, used to sign in) wins when both
+   *  exist. */
+  contactPhone: string | null;
   email: string | null;
   authProvider: 'phone' | 'google';
   fullName: string;
@@ -383,6 +387,9 @@ export interface Ride {
    *  picked, or null (ride created before this feature existed, or the
    *  route token had already expired). */
   routeKind: string | null;
+  /** Set while the ride waits for its driver's verification: it stays a
+   *  `draft` and is published automatically on approval. */
+  publishOnVerificationAt?: string | null;
 }
 
 /** Route-selection step (publish.tsx, between the origin/destination form
@@ -1032,7 +1039,7 @@ export const api = createApi({
     }),
     // Profile hub: persists the rider-editable profile fields (avatar photo
     // URL from a completed /uploads call, chosen locale). Server-side shape
-    // is updateMeSchema — fullName/locale/avatarFileUrl, all optional.
+    // is updateMeSchema — fullName/locale/avatarFileUrl/contactPhone, all optional.
     updateMe: builder.mutation<Me, UpdateMeInput>({
       query: (body) => ({ url: '/users/me', method: 'PATCH', body }),
       invalidatesTags: ['Me', 'PublicProfile'],
@@ -1478,6 +1485,7 @@ export const {
   useLazyMatchingSearchQuery,
   useNotifyMeMutation,
   useGetMeQuery,
+  useLazyGetMeQuery,
   useUpdateMeMutation,
   useDeleteMeMutation,
   useGetMyDriverProfileQuery,

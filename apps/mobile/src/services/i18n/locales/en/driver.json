@@ -121,16 +121,17 @@
       "publishCta": "Publish this ride",
       "verifyCta": "Verify your profile to publish",
       "verifyDescription": "Verifying your driver profile takes about 5 minutes.",
-      "termsHint": "By publishing, you agree to our terms of use."
+      "termsHint": "By publishing, you agree to our terms of use.",
+      "awaitingVerificationHint": "Your profile is being verified: this ride will be published automatically as soon as it's approved."
     },
     "publishedToast": "Your ride is published!",
     "verificationSheet": {
       "title": "One last step before you hit the road",
-      "description": "To publish your first ride, we need to verify your driver profile. Your ride is saved as a draft — you'll be able to publish it yourself once your profile is verified.",
+      "description": "To publish your first ride, we need to verify your driver profile. Your ride is kept and will be published automatically as soon as your profile is verified.",
       "pillLabel": "Verification required",
       "startCta": "Start verification",
       "pendingTitle": "Verification in progress",
-      "pendingDescription": "Your profile is being reviewed. Your ride stays saved as a draft — you'll be able to publish it once your profile is verified.",
+      "pendingDescription": "Your profile is under review. Your ride is saved and will be published automatically as soon as your profile is verified.",
       "pendingCta": "View status",
       "resubmitTitle": "Documents need an update",
       "resubmitDescription": "Some of your documents need to be resubmitted to continue verification.",
@@ -148,7 +149,8 @@
       "publishFailed": "Unable to publish this ride. Try again.",
       "accountRestricted": "Your driving privileges are restricted — contact VAYA support.",
       "tooManySeats": "You offered more seats than your vehicle has. Lower the number of seats."
-    }
+    },
+    "awaitingVerificationToast": "Ride saved — it will be published as soon as your profile is verified."
   },
   "onboarding": {
     "capture": {
@@ -246,11 +248,12 @@
       "publishError": "Profile verified but the ride couldn't be published. Try from My Trips.",
       "pendingTitle": "Verification in progress",
       "pendingDescription": "We're reviewing your documents. You'll be notified as soon as your profile is verified — no action is needed right now.",
-      "pendingRideSavedNote": "Your ride is saved as a draft. You'll be able to publish it yourself once your profile is verified.",
+      "pendingRideSavedNote": "Your ride is saved: it will be published automatically as soon as your profile is verified.",
       "resubmitTitle": "Documents need an update",
       "resubmitCta": "Update my documents",
       "rejectedTitle": "Verification declined",
-      "backCta": "Back"
+      "backCta": "Back",
+      "pendingRideSaveFailed": "Your ride couldn't be saved. You can create it again from the Publish tab."
     }
   },
   "verificationReasons": {

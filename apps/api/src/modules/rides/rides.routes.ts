@@ -53,6 +53,9 @@ const rideSchema = z.object({
   // picked, or null (created before this feature existed, or the token had
   // expired) — see db/schema/rides.schema.ts's doc comment.
   routeKind: z.string().nullable(),
+  // Set while the ride waits for its driver's verification (status stays
+  // `draft`); null once published, or for any other ride.
+  publishOnVerificationAt: z.date().nullable(),
 });
 
 // Phase 6 (docs/domain/pricing.md): the computed bounded price suggestion,

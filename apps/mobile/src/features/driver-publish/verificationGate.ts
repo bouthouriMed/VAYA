@@ -1,4 +1,5 @@
 import type { VerificationStatus } from '../../state/api';
+import { canRideAwaitVerification } from '@vaya/domain';
 
 /**
  * Gate for the review screen's "Publish ride" action (stitch/verification's
@@ -22,4 +23,27 @@ export function isVerifiedDriver(
   driverProfile: { verificationStatus: VerificationStatus } | null | undefined,
 ): boolean {
   return driverProfile?.verificationStatus === 'approved';
+}
+
+/**
+ * Whether this driver can build a ride at all: approved drivers publish
+ * directly; a driver still in the review loop (pending/under_review/
+ * resubmission_required) builds the full ride and "Publier" saves it to go
+ * live automatically on approval (rides.publish_on_verification_at). Only a
+ * rejected driver is stopped — that status is terminal.
+ */
+export function canBuildRide(
+  driverProfile: { verificationStatus: VerificationStatus } | null | undefined,
+): boolean {
+  if (!driverProfile) return false;
+  return isVerifiedDriver(driverProfile) || canRideAwaitVerification(driverProfile.verificationStatus);
+}
+
+/** True when a `publishRide` response means "saved, waiting for
+ *  verification" rather than live. */
+export function isAwaitingVerification(ride: {
+  status: string;
+  publishOnVerificationAt?: string | null;
+}): boolean {
+  return ride.status === 'draft' && Boolean(ride.publishOnVerificationAt);
 }

@@ -9,6 +9,12 @@ export const users = pgTable('users', {
   // Still unique when present (Postgres allows multiple NULLs under a unique
   // constraint), so phone/OTP lookups and the OTP flow itself are unchanged.
   phone: varchar('phone', { length: 20 }).unique(),
+  // Phone number the user typed in themselves so a matched counterpart can
+  // reach them (bookings' contact-phone endpoint). Deliberately separate from
+  // `phone`: that one is OTP-verified, unique, and *signs people in* — an
+  // unverified number must never be able to claim someone else's login. Not
+  // unique for the same reason (two accounts may share a household number).
+  contactPhone: varchar('contact_phone', { length: 20 }),
   email: varchar('email', { length: 255 }).unique(),
   googleId: varchar('google_id', { length: 255 }).unique(),
   authProvider: authProviderEnum('auth_provider').notNull().default('phone'),

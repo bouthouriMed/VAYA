@@ -42,6 +42,8 @@ import { requestPushPermissionAndRegister } from '../../src/services/notificatio
 import { decodePolyline, polylineDistanceKm, sliceRouteBetween } from '../../src/utils/polyline';
 import { useContextualAuth } from '../../src/features/auth/useContextualAuth';
 import { ContextualAuthSheet } from '../../src/features/auth/ContextualAuthSheet';
+import { ContactPhoneSheet } from '../../src/features/contact-phone/ContactPhoneSheet';
+import { useContactPhonePrompt } from '../../src/features/contact-phone/useContactPhonePrompt';
 import { formatDate, formatTime } from '../../src/utils/localeFormat';
 import { accessAmount } from '../../src/features/search/passengerAccess';
 import { formatDurationLabel } from '../../src/utils/durationLabel';
@@ -141,6 +143,8 @@ export default function RideDetailsScreen(): React.JSX.Element {
   const [registerPushToken] = useRegisterPushTokenMutation();
   const { requireAuth, isAuthSheetVisible, authTrigger, handleAuthenticated, cancelAuth } =
     useContextualAuth();
+  // Asked once, right before the seat request is sent — never blocks it.
+  const { ensureContactPhone, sheetProps: contactPhoneSheetProps } = useContactPhonePrompt();
 
   // Same cache entry results.tsx/pickup-point.tsx already populated — gives
   // us the real per-passenger pickup-walk minutes without a second fetch.
@@ -330,7 +334,7 @@ export default function RideDetailsScreen(): React.JSX.Element {
       router.push({ pathname: '/search/dropoff-point', params: { rideId, driverUserId } });
       return;
     }
-    void requestSeat();
+    ensureContactPhone(() => void requestSeat(), 'booking');
   }
 
   async function requestSeat(): Promise<void> {
@@ -830,6 +834,7 @@ export default function RideDetailsScreen(): React.JSX.Element {
         </View>
       </Modal>
 
+      <ContactPhoneSheet {...contactPhoneSheetProps} />
       <ContextualAuthSheet
         visible={isAuthSheetVisible}
         trigger={authTrigger}

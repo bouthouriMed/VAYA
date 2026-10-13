@@ -186,7 +186,8 @@
     "in_progress": "جارٍ",
     "completed": "منتهٍ",
     "cancelled": "ملغى",
-    "expired": "منتهي الصلاحية"
+    "expired": "منتهي الصلاحية",
+    "awaitingVerification": "في انتظار التحقق"
   },
   "pickupTitle": "نقطة الالتقاء",
   "pickupPointLabel": "نقطة الصعود",

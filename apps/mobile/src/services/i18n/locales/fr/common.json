@@ -118,5 +118,17 @@
   },
   "map": {
     "approximateRoute": "Tracé approximatif — itinéraire routier indisponible pour le moment"
+  },
+  "contactPhone": {
+    "publishingTitle": "Comment vos passagers vous joignent ?",
+    "bookingTitle": "Comment votre conducteur vous joint ?",
+    "description": "Votre numéro n'est partagé qu'avec la personne dont le trajet est confirmé avec vous — jamais affiché publiquement.",
+    "placeholder": "22 123 456",
+    "label": "Numéro de téléphone",
+    "invalid": "Entrez un numéro tunisien à 8 chiffres.",
+    "saveFailed": "Impossible d'enregistrer ce numéro. Réessayez.",
+    "saveAndContinue": "Enregistrer et continuer",
+    "saved": "Numéro enregistré.",
+    "profileTitle": "Votre numéro de téléphone"
   }
 }

@@ -182,7 +182,8 @@
     "in_progress": "En cours",
     "completed": "Terminé",
     "cancelled": "Annulé",
-    "expired": "Expiré"
+    "expired": "Expiré",
+    "awaitingVerification": "En attente de vérification"
   },
   "pickupTitle": "Rendez-vous",
   "pickupPointLabel": "Point de prise en charge",

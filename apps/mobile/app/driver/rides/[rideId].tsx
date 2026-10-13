@@ -572,7 +572,9 @@ export default function DriverRideHubScreen(): React.JSX.Element {
   // time passed", and the server later marks it `expired`.
   const tripPhase = computeTripPhase(ride);
   const statusBadge: { label: string; variant: 'default' | 'success' | 'info' | 'warning' | 'error' } =
-    tripPhase === 'cancelled'
+    ride.status === 'draft' && ride.publishOnVerificationAt
+      ? { label: t('booking:ridePhase.awaitingVerification'), variant: 'warning' }
+      : tripPhase === 'cancelled'
       ? { label: t('common:terms.cancelled'), variant: 'error' }
       : tripPhase === 'expired'
         ? { label: t('rides.rideDetail.expired'), variant: 'default' }

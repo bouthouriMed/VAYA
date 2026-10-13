@@ -44,6 +44,17 @@ Enum values were added additively (`ALTER TYPE verification_status ADD VALUE ...
 
 `rides.service.ts`'s `createRide` (via `getDriverProfileOrThrow`) now rejects ride creation unless `verificationStatus === 'approved'` **and** `!suspendedAt` (the separate driver-privilege-restriction flag, below) — independent of whatever the mobile client's own `isVerifiedDriver` gate shows. This is the same "server-authoritative, never trust client UI alone" discipline CLAUDE.md already applies to pricing bounds, extended to verification. Before this change the check existed in the mobile client only and, per its own code comment, "in practice only ever fires for 'hasn't onboarded yet' — never a real pending/rejected profile," because nothing ever produced a real pending/rejected profile. It does now, so the server-side half of this gate is no longer a formality.
 
+## Rides saved while waiting for verification (2026-10-07)
+
+The eligibility gate above originally rejected every ride from a non-approved driver, so a driver who tapped "Publier" mid-review lost their ride — while the app told them it was "saved as a draft". Now:
+
+- `createRide` and `listMyRides` also accept a driver still in the review loop (`pending`/`under_review`/`resubmission_required` — `canRideAwaitVerification` in `packages/domain/src/ride/awaiting-verification.ts`). `rejected` (terminal) and a suspended driver are still refused.
+- `POST /rides/:id/publish` for such a driver keeps the ride `draft` and sets `rides.publish_on_verification_at` (migration `0031`). A draft is never searchable, so no passenger can see it.
+- `approveVerification` calls `publishRidesAwaitingVerification`: each flagged draft with a future departure is published, one whose departure already passed is `expired`. The `verification_approved` notification carries `publishedRideCount`. A failure there is logged and never undoes the approval.
+- The ride-expiry sweep expires a flagged draft whose departure passes before approval.
+- `draft → cancelled` and `draft → expired` were added to the ride state machine for these rides.
+- Mobile: the trips list and ride hub show "En attente de vérification"; the publish wizard lets a driver under review build the whole ride, and "Publier" saves it.
+
 ## Driver-privilege restriction — a separate axis from verification
 
 `driver_profiles.suspendedAt`/`suspendedReason` is a distinct admin action (`POST /admin/users/:id/restrict-driver`/`unrestrict-driver`) from verification status — an approved, previously-trustworthy driver can have driving privileges restricted (e.g. following a safety report) without re-litigating their document verification. Checked in the same `getDriverProfileOrThrow` gate. Account-level suspension (`users.suspendedAt`, blocking all API access including riding) is a third, broader axis — enforced in the global `authenticate` hook itself, ahead of any route-specific logic.

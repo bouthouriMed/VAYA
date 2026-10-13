@@ -35,6 +35,7 @@ import {
 import { CaptureCamera } from '../../../src/features/driver-onboarding/CaptureCamera';
 import { describeVerificationSubmitError } from '../../../src/features/driver-onboarding/verificationErrors';
 import { trackEvent } from '../../../src/services/analytics/analytics';
+import { isAwaitingVerification } from '../../../src/features/driver-publish/verificationGate';
 import { uploadViaPresignedUrl } from '../../../src/utils/fileUpload';
 
 function ThumbCard({
@@ -204,11 +205,15 @@ export default function SelfieCaptureScreen(): React.JSX.Element {
         return;
       }
 
-      let publishedOk = false;
+      // A freshly-onboarded driver is `pending` review, so the server saves
+      // the ride to publish automatically on approval ('awaiting') rather
+      // than publishing it now — the status passed on is whatever the real
+      // publish response says, never assumed.
+      let rideStatus: 'done' | 'awaiting' | 'error' = 'error';
       try {
         if (pendingRide) {
-          await publishRide(pendingRide.rideId).unwrap();
-          publishedOk = true;
+          const published = await publishRide(pendingRide.rideId).unwrap();
+          rideStatus = isAwaitingVerification(published) ? 'awaiting' : 'done';
         } else if (pendingRideDraft) {
           const newVehicle = onboardingProfile.vehicles[0];
           if (newVehicle) {
@@ -227,8 +232,8 @@ export default function SelfieCaptureScreen(): React.JSX.Element {
               departureAt: new Date(pendingRideDraft.departureAt),
               seatsTotal: pendingRideDraft.seatsTotal,
             }).unwrap();
-            await publishRide(created.id).unwrap();
-            publishedOk = true;
+            const published = await publishRide(created.id).unwrap();
+            rideStatus = isAwaitingVerification(published) ? 'awaiting' : 'done';
           }
         }
       } catch {
@@ -242,7 +247,7 @@ export default function SelfieCaptureScreen(): React.JSX.Element {
         params: {
           originLabel,
           destinationLabel,
-          status: publishedOk ? 'done' : 'error',
+          status: rideStatus,
         },
       });
     } catch (err) {
