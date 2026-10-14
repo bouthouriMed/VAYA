@@ -823,45 +823,6 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
           >
             rides.rideDetail.pricePerSeat
           </Text>
-          <View
-            style={
-              [
-                {
-                  "alignSelf": "flex-start",
-                  "borderRadius": 9999,
-                  "borderWidth": 1,
-                  "paddingHorizontal": 8,
-                  "paddingVertical": 2,
-                },
-                {
-                  "backgroundColor": "#F7F9F5",
-                  "borderColor": "#DEE5DE",
-                },
-              ]
-            }
-          >
-            <Text
-              numberOfLines={1}
-              style={
-                [
-                  {
-                    "fontSize": 12,
-                    "fontWeight": "400",
-                    "lineHeight": 18,
-                  },
-                  null,
-                  {
-                    "color": "#7D8981",
-                    "textAlign": undefined,
-                    "writingDirection": "ltr",
-                  },
-                  undefined,
-                ]
-              }
-            >
-              rides.rideDetail.maxPotentialRevenue
-            </Text>
-          </View>
         </View>
       </View>
       <View
@@ -975,9 +936,8 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
             }
           >
             <View
-              accessibilityLabel="rides.rideDetail.departure, 08:30, Tunis"
               accessibilityRole="text"
-              accessible={true}
+              accessible={false}
               style={
                 {
                   "flexDirection": "row",
@@ -1101,29 +1061,74 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                       08:30
                     </Text>
                   </View>
-                  <Text
-                    numberOfLines={1}
+                  <View
                     style={
-                      [
-                        {
-                          "fontSize": 16,
-                          "fontWeight": "400",
-                          "lineHeight": 24,
-                        },
-                        null,
-                        {
-                          "color": "#14201B",
-                          "textAlign": undefined,
-                          "writingDirection": "ltr",
-                        },
-                        {
-                          "fontWeight": "700",
-                        },
-                      ]
+                      {
+                        "alignItems": "center",
+                        "flexDirection": "row",
+                        "gap": 8,
+                      }
                     }
                   >
-                    Tunis
-                  </Text>
+                    <Text
+                      numberOfLines={2}
+                      style={
+                        [
+                          {
+                            "fontSize": 16,
+                            "fontWeight": "400",
+                            "lineHeight": 24,
+                          },
+                          null,
+                          {
+                            "color": "#14201B",
+                            "textAlign": undefined,
+                            "writingDirection": "ltr",
+                          },
+                          [
+                            {
+                              "fontWeight": "700",
+                            },
+                            {
+                              "flex": 1,
+                            },
+                          ],
+                        ]
+                      }
+                    >
+                      Tunis
+                    </Text>
+                    <TouchableOpacity
+                      accessibilityLabel="rides.rideDetail.mapsToDeparture"
+                      accessibilityRole="link"
+                      hitSlop={8}
+                      onPress={[Function]}
+                      style={
+                        [
+                          {
+                            "alignItems": "center",
+                            "borderRadius": 9999,
+                            "borderWidth": 1,
+                            "height": 32,
+                            "justifyContent": "center",
+                            "width": 32,
+                          },
+                          {
+                            "backgroundColor": "#E2E8E1",
+                            "borderColor": "#DEE5DE",
+                          },
+                        ]
+                      }
+                    >
+                      <Ionicons
+                        accessibilityElementsHidden={true}
+                        color="#14201B"
+                        importantForAccessibility="no-hide-descendants"
+                        name="navigate-outline"
+                        size={16}
+                      />
+                    </TouchableOpacity>
+                  </View>
                   <Text
                     numberOfLines={1}
                     style={
@@ -1170,9 +1175,8 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
             }
           >
             <View
-              accessibilityLabel="rides.rideDetail.arrival, 10:30, Sousse"
               accessibilityRole="text"
-              accessible={true}
+              accessible={false}
               style={
                 {
                   "flexDirection": "row",
@@ -1280,29 +1284,74 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                       10:30
                     </Text>
                   </View>
-                  <Text
-                    numberOfLines={1}
+                  <View
                     style={
-                      [
-                        {
-                          "fontSize": 16,
-                          "fontWeight": "400",
-                          "lineHeight": 24,
-                        },
-                        null,
-                        {
-                          "color": "#14201B",
-                          "textAlign": undefined,
-                          "writingDirection": "ltr",
-                        },
-                        {
-                          "fontWeight": "700",
-                        },
-                      ]
+                      {
+                        "alignItems": "center",
+                        "flexDirection": "row",
+                        "gap": 8,
+                      }
                     }
                   >
-                    Sousse
-                  </Text>
+                    <Text
+                      numberOfLines={2}
+                      style={
+                        [
+                          {
+                            "fontSize": 16,
+                            "fontWeight": "400",
+                            "lineHeight": 24,
+                          },
+                          null,
+                          {
+                            "color": "#14201B",
+                            "textAlign": undefined,
+                            "writingDirection": "ltr",
+                          },
+                          [
+                            {
+                              "fontWeight": "700",
+                            },
+                            {
+                              "flex": 1,
+                            },
+                          ],
+                        ]
+                      }
+                    >
+                      Sousse
+                    </Text>
+                    <TouchableOpacity
+                      accessibilityLabel="rides.rideDetail.mapsWholeTrip"
+                      accessibilityRole="link"
+                      hitSlop={8}
+                      onPress={[Function]}
+                      style={
+                        [
+                          {
+                            "alignItems": "center",
+                            "borderRadius": 9999,
+                            "borderWidth": 1,
+                            "height": 32,
+                            "justifyContent": "center",
+                            "width": 32,
+                          },
+                          {
+                            "backgroundColor": "#E2E8E1",
+                            "borderColor": "#DEE5DE",
+                          },
+                        ]
+                      }
+                    >
+                      <Ionicons
+                        accessibilityElementsHidden={true}
+                        color="#14201B"
+                        importantForAccessibility="no-hide-descendants"
+                        name="navigate-outline"
+                        size={16}
+                      />
+                    </TouchableOpacity>
+                  </View>
                   <Text
                     numberOfLines={1}
                     style={
@@ -1670,10 +1719,10 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
             }
             initialRegion={
               {
-                "latitude": 36.31,
-                "latitudeDelta": 1.5679999999999952,
-                "longitude": 10.405000000000001,
-                "longitudeDelta": 0.7200000000000017,
+                "latitude": 36.051207000000005,
+                "latitudeDelta": 2.0598899999999962,
+                "longitude": 10.4092,
+                "longitudeDelta": 0.6831000000000014,
               }
             }
             mapType="standard"
@@ -1681,6 +1730,25 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
             provider="google"
             style={{}}
           >
+            <Polyline
+              coordinates={
+                [
+                  {
+                    "latitude": 36.8065,
+                    "longitude": 10.1815,
+                  },
+                  {
+                    "latitude": 35.8256,
+                    "longitude": 10.6369,
+                  },
+                ]
+              }
+              lineCap="round"
+              lineJoin="round"
+              strokeColor="#F7F9F5"
+              strokeWidth={11}
+              zIndex={1}
+            />
             <Polyline
               coordinates={
                 [
@@ -1702,14 +1770,17 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                   },
                 ]
               }
+              lineCap="round"
               lineDashPattern={
                 [
-                  8,
+                  10,
                   8,
                 ]
               }
-              strokeColor="#CCD5CD"
-              strokeWidth={4}
+              lineJoin="round"
+              strokeColor="#2E9E6C"
+              strokeWidth={6}
+              zIndex={2}
             />
             <Marker
               anchor={
@@ -1724,6 +1795,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                   "longitude": 10.18,
                 }
               }
+              zIndex={20}
             >
               <View
                 style={
@@ -1791,6 +1863,7 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
                   "longitude": 10.63,
                 }
               }
+              zIndex={20}
             >
               <View
                 style={
@@ -1846,20 +1919,6 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
               </View>
             </Marker>
           </MapView>
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "backgroundColor": "#EDEBE1",
-                "bottom": 0,
-                "left": 0,
-                "opacity": 0.18,
-                "position": "absolute",
-                "right": 0,
-                "top": 0,
-              }
-            }
-          />
           <Animated.View
             accessibilityElementsHidden={true}
             importantForAccessibility="no-hide-descendants"
@@ -1878,6 +1937,242 @@ exports[`driver/rides/[rideId].tsx snapshots > no requests yet — honest empty 
               ]
             }
           />
+        </View>
+        <View
+          style={
+            [
+              {
+                "borderRadius": 16,
+                "borderWidth": 1,
+                "elevation": 4,
+                "gap": 8,
+                "left": 16,
+                "padding": 12,
+                "position": "absolute",
+                "right": 16,
+              },
+              {
+                "backgroundColor": "#F7F9F5",
+                "borderColor": "#DEE5DE",
+                "bottom": 12,
+              },
+            ]
+          }
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+                "gap": 8,
+              }
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "borderWidth": 3,
+                    "elevation": 2,
+                    "justifyContent": "center",
+                  },
+                  {
+                    "backgroundColor": "#22794F",
+                    "borderColor": "#F7F9F5",
+                    "borderRadius": 12,
+                    "height": 24,
+                    "width": 24,
+                  },
+                ]
+              }
+            >
+              <Ionicons
+                accessibilityElementsHidden={true}
+                color="#0D1512"
+                importantForAccessibility="no-hide-descendants"
+                name="car"
+                size={16}
+              />
+            </View>
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "lineHeight": 21,
+                  },
+                  null,
+                  {
+                    "color": "#4F5C55",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  {
+                    "fontVariant": [
+                      "tabular-nums",
+                    ],
+                    "width": 44,
+                  },
+                ]
+              }
+            >
+              08:30
+            </Text>
+            <Text
+              numberOfLines={1}
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  null,
+                  {
+                    "color": "#14201B",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  {
+                    "flex": 1,
+                    "fontWeight": "600",
+                  },
+                ]
+              }
+            >
+              Tunis
+            </Text>
+          </View>
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+                "gap": 8,
+              }
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "borderWidth": 3,
+                    "elevation": 2,
+                    "justifyContent": "center",
+                  },
+                  {
+                    "backgroundColor": "#14201B",
+                    "borderColor": "#F7F9F5",
+                    "borderRadius": 12,
+                    "height": 24,
+                    "width": 24,
+                  },
+                ]
+              }
+            >
+              <Ionicons
+                accessibilityElementsHidden={true}
+                color="#F4F6F2"
+                importantForAccessibility="no-hide-descendants"
+                name="flag"
+                size={16}
+              />
+            </View>
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "lineHeight": 21,
+                  },
+                  null,
+                  {
+                    "color": "#4F5C55",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  {
+                    "fontVariant": [
+                      "tabular-nums",
+                    ],
+                    "width": 44,
+                  },
+                ]
+              }
+            >
+              10:30
+            </Text>
+            <Text
+              numberOfLines={1}
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  null,
+                  {
+                    "color": "#14201B",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  {
+                    "flex": 1,
+                    "fontWeight": "600",
+                  },
+                ]
+              }
+            >
+              Sousse
+            </Text>
+          </View>
+          <Pressable
+            accessibilityLabel="rides.rideDetail.openInGoogleMaps"
+            accessibilityRole="button"
+            accessibilityState={
+              {
+                "busy": false,
+                "disabled": false,
+              }
+            }
+            disabled={false}
+            onPress={[Function]}
+            style={[Function]}
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 8,
+                }
+              }
+            >
+              <Text
+                numberOfLines={1}
+                style={
+                  [
+                    {
+                      "fontWeight": "600",
+                    },
+                    {
+                      "fontSize": 16,
+                    },
+                    {
+                      "color": "#14201B",
+                    },
+                  ]
+                }
+              >
+                rides.rideDetail.openInGoogleMaps
+              </Text>
+            </View>
+          </Pressable>
         </View>
         <View
           accessibilityRole="text"
@@ -2878,42 +3173,67 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
           </Text>
           <View
             style={
-              [
-                {
-                  "alignSelf": "flex-start",
-                  "borderRadius": 9999,
-                  "borderWidth": 1,
-                  "paddingHorizontal": 8,
-                  "paddingVertical": 2,
-                },
-                {
-                  "backgroundColor": "#F7F9F5",
-                  "borderColor": "#DEE5DE",
-                },
-              ]
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+                "marginTop": 2,
+              }
             }
           >
-            <Text
-              numberOfLines={1}
+            <TouchableOpacity
+              accessibilityLabel="common:actions.viewProfile"
+              accessibilityRole="button"
+              hitSlop={4}
+              onPress={[Function]}
               style={
                 [
                   {
-                    "fontSize": 12,
-                    "fontWeight": "400",
-                    "lineHeight": 18,
+                    "borderRadius": 9999,
+                    "borderWidth": 2,
                   },
-                  null,
                   {
-                    "color": "#7D8981",
-                    "textAlign": undefined,
-                    "writingDirection": "ltr",
+                    "borderColor": "#E2E8E1",
+                    "marginLeft": 0,
                   },
-                  undefined,
                 ]
               }
             >
-              rides.rideDetail.maxPotentialRevenue
-            </Text>
+              <View
+                accessibilityLabel="Photo de Karim Fassi"
+                accessibilityRole="image"
+                accessible={true}
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                    {
+                      "backgroundColor": "#E2E8E1",
+                      "borderRadius": 14,
+                      "height": 28,
+                      "width": 28,
+                    },
+                  ]
+                }
+              >
+                <Text
+                  style={
+                    [
+                      {
+                        "fontWeight": "600",
+                      },
+                      {
+                        "color": "#14201B",
+                        "fontSize": 11,
+                      },
+                    ]
+                  }
+                >
+                  KF
+                </Text>
+              </View>
+            </TouchableOpacity>
           </View>
         </View>
       </View>
@@ -3028,9 +3348,8 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
             }
           >
             <View
-              accessibilityLabel="rides.rideDetail.departure, 08:30, Tunis"
               accessibilityRole="text"
-              accessible={true}
+              accessible={false}
               style={
                 {
                   "flexDirection": "row",
@@ -3154,29 +3473,74 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                       08:30
                     </Text>
                   </View>
-                  <Text
-                    numberOfLines={1}
+                  <View
                     style={
-                      [
-                        {
-                          "fontSize": 16,
-                          "fontWeight": "400",
-                          "lineHeight": 24,
-                        },
-                        null,
-                        {
-                          "color": "#14201B",
-                          "textAlign": undefined,
-                          "writingDirection": "ltr",
-                        },
-                        {
-                          "fontWeight": "700",
-                        },
-                      ]
+                      {
+                        "alignItems": "center",
+                        "flexDirection": "row",
+                        "gap": 8,
+                      }
                     }
                   >
-                    Tunis
-                  </Text>
+                    <Text
+                      numberOfLines={2}
+                      style={
+                        [
+                          {
+                            "fontSize": 16,
+                            "fontWeight": "400",
+                            "lineHeight": 24,
+                          },
+                          null,
+                          {
+                            "color": "#14201B",
+                            "textAlign": undefined,
+                            "writingDirection": "ltr",
+                          },
+                          [
+                            {
+                              "fontWeight": "700",
+                            },
+                            {
+                              "flex": 1,
+                            },
+                          ],
+                        ]
+                      }
+                    >
+                      Tunis
+                    </Text>
+                    <TouchableOpacity
+                      accessibilityLabel="rides.rideDetail.mapsToDeparture"
+                      accessibilityRole="link"
+                      hitSlop={8}
+                      onPress={[Function]}
+                      style={
+                        [
+                          {
+                            "alignItems": "center",
+                            "borderRadius": 9999,
+                            "borderWidth": 1,
+                            "height": 32,
+                            "justifyContent": "center",
+                            "width": 32,
+                          },
+                          {
+                            "backgroundColor": "#E2E8E1",
+                            "borderColor": "#DEE5DE",
+                          },
+                        ]
+                      }
+                    >
+                      <Ionicons
+                        accessibilityElementsHidden={true}
+                        color="#14201B"
+                        importantForAccessibility="no-hide-descendants"
+                        name="navigate-outline"
+                        size={16}
+                      />
+                    </TouchableOpacity>
+                  </View>
                   <Text
                     numberOfLines={1}
                     style={
@@ -3484,9 +3848,8 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
             }
           >
             <View
-              accessibilityLabel="rides.rideDetail.arrival, 10:30, Sousse"
               accessibilityRole="text"
-              accessible={true}
+              accessible={false}
               style={
                 {
                   "flexDirection": "row",
@@ -3594,29 +3957,74 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                       10:30
                     </Text>
                   </View>
-                  <Text
-                    numberOfLines={1}
+                  <View
                     style={
-                      [
-                        {
-                          "fontSize": 16,
-                          "fontWeight": "400",
-                          "lineHeight": 24,
-                        },
-                        null,
-                        {
-                          "color": "#14201B",
-                          "textAlign": undefined,
-                          "writingDirection": "ltr",
-                        },
-                        {
-                          "fontWeight": "700",
-                        },
-                      ]
+                      {
+                        "alignItems": "center",
+                        "flexDirection": "row",
+                        "gap": 8,
+                      }
                     }
                   >
-                    Sousse
-                  </Text>
+                    <Text
+                      numberOfLines={2}
+                      style={
+                        [
+                          {
+                            "fontSize": 16,
+                            "fontWeight": "400",
+                            "lineHeight": 24,
+                          },
+                          null,
+                          {
+                            "color": "#14201B",
+                            "textAlign": undefined,
+                            "writingDirection": "ltr",
+                          },
+                          [
+                            {
+                              "fontWeight": "700",
+                            },
+                            {
+                              "flex": 1,
+                            },
+                          ],
+                        ]
+                      }
+                    >
+                      Sousse
+                    </Text>
+                    <TouchableOpacity
+                      accessibilityLabel="rides.rideDetail.mapsWholeTrip"
+                      accessibilityRole="link"
+                      hitSlop={8}
+                      onPress={[Function]}
+                      style={
+                        [
+                          {
+                            "alignItems": "center",
+                            "borderRadius": 9999,
+                            "borderWidth": 1,
+                            "height": 32,
+                            "justifyContent": "center",
+                            "width": 32,
+                          },
+                          {
+                            "backgroundColor": "#E2E8E1",
+                            "borderColor": "#DEE5DE",
+                          },
+                        ]
+                      }
+                    >
+                      <Ionicons
+                        accessibilityElementsHidden={true}
+                        color="#14201B"
+                        importantForAccessibility="no-hide-descendants"
+                        name="navigate-outline"
+                        size={16}
+                      />
+                    </TouchableOpacity>
+                  </View>
                   <Text
                     numberOfLines={1}
                     style={
@@ -4451,10 +4859,10 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
             }
             initialRegion={
               {
-                "latitude": 36.315,
-                "latitudeDelta": 1.5840000000000032,
-                "longitude": 10.405000000000001,
-                "longitudeDelta": 0.7200000000000017,
+                "latitude": 36.052012000000005,
+                "latitudeDelta": 2.0672400000000017,
+                "longitude": 10.4092,
+                "longitudeDelta": 0.6831000000000014,
               }
             }
             mapType="standard"
@@ -4470,6 +4878,29 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                     "longitude": 10.1815,
                   },
                   {
+                    "latitude": 36.81,
+                    "longitude": 10.19,
+                  },
+                  {
+                    "latitude": 35.8256,
+                    "longitude": 10.6369,
+                  },
+                ]
+              }
+              lineCap="round"
+              lineJoin="round"
+              strokeColor="#F7F9F5"
+              strokeWidth={11}
+              zIndex={1}
+            />
+            <Polyline
+              coordinates={
+                [
+                  {
+                    "latitude": 36.8065,
+                    "longitude": 10.1815,
+                  },
+                  {
                     "latitude": 36.8065,
                     "longitude": 10.1815,
                   },
@@ -4483,14 +4914,17 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                   },
                 ]
               }
+              lineCap="round"
               lineDashPattern={
                 [
-                  8,
+                  10,
                   8,
                 ]
               }
-              strokeColor="#CCD5CD"
-              strokeWidth={4}
+              lineJoin="round"
+              strokeColor="#2E9E6C"
+              strokeWidth={6}
+              zIndex={2}
             />
             <Polyline
               coordinates={
@@ -4513,14 +4947,17 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                   },
                 ]
               }
+              lineCap="round"
               lineDashPattern={
                 [
-                  8,
+                  10,
                   8,
                 ]
               }
-              strokeColor="#2E9E6C"
-              strokeWidth={5}
+              lineJoin="round"
+              strokeColor="#22794F"
+              strokeWidth={7}
+              zIndex={2}
             />
             <Marker
               anchor={
@@ -4535,6 +4972,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                   "longitude": 10.18,
                 }
               }
+              zIndex={20}
             >
               <View
                 style={
@@ -4652,6 +5090,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                   "longitude": 10.63,
                 }
               }
+              zIndex={20}
             >
               <View
                 style={
@@ -4707,20 +5146,6 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
               </View>
             </Marker>
           </MapView>
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "backgroundColor": "#EDEBE1",
-                "bottom": 0,
-                "left": 0,
-                "opacity": 0.18,
-                "position": "absolute",
-                "right": 0,
-                "top": 0,
-              }
-            }
-          />
           <Animated.View
             accessibilityElementsHidden={true}
             importantForAccessibility="no-hide-descendants"
@@ -4739,6 +5164,242 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
               ]
             }
           />
+        </View>
+        <View
+          style={
+            [
+              {
+                "borderRadius": 16,
+                "borderWidth": 1,
+                "elevation": 4,
+                "gap": 8,
+                "left": 16,
+                "padding": 12,
+                "position": "absolute",
+                "right": 16,
+              },
+              {
+                "backgroundColor": "#F7F9F5",
+                "borderColor": "#DEE5DE",
+                "bottom": 12,
+              },
+            ]
+          }
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+                "gap": 8,
+              }
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "borderWidth": 3,
+                    "elevation": 2,
+                    "justifyContent": "center",
+                  },
+                  {
+                    "backgroundColor": "#22794F",
+                    "borderColor": "#F7F9F5",
+                    "borderRadius": 12,
+                    "height": 24,
+                    "width": 24,
+                  },
+                ]
+              }
+            >
+              <Ionicons
+                accessibilityElementsHidden={true}
+                color="#0D1512"
+                importantForAccessibility="no-hide-descendants"
+                name="car"
+                size={16}
+              />
+            </View>
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "lineHeight": 21,
+                  },
+                  null,
+                  {
+                    "color": "#4F5C55",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  {
+                    "fontVariant": [
+                      "tabular-nums",
+                    ],
+                    "width": 44,
+                  },
+                ]
+              }
+            >
+              08:30
+            </Text>
+            <Text
+              numberOfLines={1}
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  null,
+                  {
+                    "color": "#14201B",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  {
+                    "flex": 1,
+                    "fontWeight": "600",
+                  },
+                ]
+              }
+            >
+              Tunis
+            </Text>
+          </View>
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+                "gap": 8,
+              }
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "borderWidth": 3,
+                    "elevation": 2,
+                    "justifyContent": "center",
+                  },
+                  {
+                    "backgroundColor": "#14201B",
+                    "borderColor": "#F7F9F5",
+                    "borderRadius": 12,
+                    "height": 24,
+                    "width": 24,
+                  },
+                ]
+              }
+            >
+              <Ionicons
+                accessibilityElementsHidden={true}
+                color="#F4F6F2"
+                importantForAccessibility="no-hide-descendants"
+                name="flag"
+                size={16}
+              />
+            </View>
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "lineHeight": 21,
+                  },
+                  null,
+                  {
+                    "color": "#4F5C55",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  {
+                    "fontVariant": [
+                      "tabular-nums",
+                    ],
+                    "width": 44,
+                  },
+                ]
+              }
+            >
+              10:30
+            </Text>
+            <Text
+              numberOfLines={1}
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  null,
+                  {
+                    "color": "#14201B",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  {
+                    "flex": 1,
+                    "fontWeight": "600",
+                  },
+                ]
+              }
+            >
+              Sousse
+            </Text>
+          </View>
+          <Pressable
+            accessibilityLabel="rides.rideDetail.openInGoogleMaps"
+            accessibilityRole="button"
+            accessibilityState={
+              {
+                "busy": false,
+                "disabled": false,
+              }
+            }
+            disabled={false}
+            onPress={[Function]}
+            style={[Function]}
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 8,
+                }
+              }
+            >
+              <Text
+                numberOfLines={1}
+                style={
+                  [
+                    {
+                      "fontWeight": "600",
+                    },
+                    {
+                      "fontSize": 16,
+                    },
+                    {
+                      "color": "#14201B",
+                    },
+                  ]
+                }
+              >
+                rides.rideDetail.openInGoogleMaps
+              </Text>
+            </View>
+          </Pressable>
         </View>
         <View
           accessibilityRole="text"
@@ -5967,42 +6628,121 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
           </Text>
           <View
             style={
-              [
-                {
-                  "alignSelf": "flex-start",
-                  "borderRadius": 9999,
-                  "borderWidth": 1,
-                  "paddingHorizontal": 8,
-                  "paddingVertical": 2,
-                },
-                {
-                  "backgroundColor": "#F7F9F5",
-                  "borderColor": "#DEE5DE",
-                },
-              ]
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+                "marginTop": 2,
+              }
             }
           >
-            <Text
-              numberOfLines={1}
+            <TouchableOpacity
+              accessibilityLabel="common:actions.viewProfile"
+              accessibilityRole="button"
+              hitSlop={4}
+              onPress={[Function]}
               style={
                 [
                   {
-                    "fontSize": 12,
-                    "fontWeight": "400",
-                    "lineHeight": 18,
+                    "borderRadius": 9999,
+                    "borderWidth": 2,
                   },
-                  null,
                   {
-                    "color": "#7D8981",
-                    "textAlign": undefined,
-                    "writingDirection": "ltr",
+                    "borderColor": "#E2E8E1",
+                    "marginLeft": 0,
                   },
-                  undefined,
                 ]
               }
             >
-              rides.rideDetail.maxPotentialRevenue
-            </Text>
+              <View
+                accessibilityLabel="Photo de Dinara Kochakajeva"
+                accessibilityRole="image"
+                accessible={true}
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                    {
+                      "backgroundColor": "#E2E8E1",
+                      "borderRadius": 14,
+                      "height": 28,
+                      "width": 28,
+                    },
+                  ]
+                }
+              >
+                <Text
+                  style={
+                    [
+                      {
+                        "fontWeight": "600",
+                      },
+                      {
+                        "color": "#14201B",
+                        "fontSize": 11,
+                      },
+                    ]
+                  }
+                >
+                  DK
+                </Text>
+              </View>
+            </TouchableOpacity>
+            <TouchableOpacity
+              accessibilityLabel="common:actions.viewProfile"
+              accessibilityRole="button"
+              hitSlop={4}
+              onPress={[Function]}
+              style={
+                [
+                  {
+                    "borderRadius": 9999,
+                    "borderWidth": 2,
+                  },
+                  {
+                    "borderColor": "#E2E8E1",
+                    "marginLeft": -8,
+                  },
+                ]
+              }
+            >
+              <View
+                accessibilityLabel="Photo de Alex Martin"
+                accessibilityRole="image"
+                accessible={true}
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                    {
+                      "backgroundColor": "#E2E8E1",
+                      "borderRadius": 14,
+                      "height": 28,
+                      "width": 28,
+                    },
+                  ]
+                }
+              >
+                <Text
+                  style={
+                    [
+                      {
+                        "fontWeight": "600",
+                      },
+                      {
+                        "color": "#14201B",
+                        "fontSize": 11,
+                      },
+                    ]
+                  }
+                >
+                  AM
+                </Text>
+              </View>
+            </TouchableOpacity>
           </View>
         </View>
       </View>
@@ -6117,9 +6857,8 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
             }
           >
             <View
-              accessibilityLabel="rides.rideDetail.departure, 08:30, Tunis"
               accessibilityRole="text"
-              accessible={true}
+              accessible={false}
               style={
                 {
                   "flexDirection": "row",
@@ -6243,29 +6982,74 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                       08:30
                     </Text>
                   </View>
-                  <Text
-                    numberOfLines={1}
+                  <View
                     style={
-                      [
-                        {
-                          "fontSize": 16,
-                          "fontWeight": "400",
-                          "lineHeight": 24,
-                        },
-                        null,
-                        {
-                          "color": "#14201B",
-                          "textAlign": undefined,
-                          "writingDirection": "ltr",
-                        },
-                        {
-                          "fontWeight": "700",
-                        },
-                      ]
+                      {
+                        "alignItems": "center",
+                        "flexDirection": "row",
+                        "gap": 8,
+                      }
                     }
                   >
-                    Tunis
-                  </Text>
+                    <Text
+                      numberOfLines={2}
+                      style={
+                        [
+                          {
+                            "fontSize": 16,
+                            "fontWeight": "400",
+                            "lineHeight": 24,
+                          },
+                          null,
+                          {
+                            "color": "#14201B",
+                            "textAlign": undefined,
+                            "writingDirection": "ltr",
+                          },
+                          [
+                            {
+                              "fontWeight": "700",
+                            },
+                            {
+                              "flex": 1,
+                            },
+                          ],
+                        ]
+                      }
+                    >
+                      Tunis
+                    </Text>
+                    <TouchableOpacity
+                      accessibilityLabel="rides.rideDetail.mapsToDeparture"
+                      accessibilityRole="link"
+                      hitSlop={8}
+                      onPress={[Function]}
+                      style={
+                        [
+                          {
+                            "alignItems": "center",
+                            "borderRadius": 9999,
+                            "borderWidth": 1,
+                            "height": 32,
+                            "justifyContent": "center",
+                            "width": 32,
+                          },
+                          {
+                            "backgroundColor": "#E2E8E1",
+                            "borderColor": "#DEE5DE",
+                          },
+                        ]
+                      }
+                    >
+                      <Ionicons
+                        accessibilityElementsHidden={true}
+                        color="#14201B"
+                        importantForAccessibility="no-hide-descendants"
+                        name="navigate-outline"
+                        size={16}
+                      />
+                    </TouchableOpacity>
+                  </View>
                   <Text
                     numberOfLines={1}
                     style={
@@ -7368,9 +8152,8 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
             }
           >
             <View
-              accessibilityLabel="rides.rideDetail.arrival, 10:30, Sousse"
               accessibilityRole="text"
-              accessible={true}
+              accessible={false}
               style={
                 {
                   "flexDirection": "row",
@@ -7478,29 +8261,74 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                       10:30
                     </Text>
                   </View>
-                  <Text
-                    numberOfLines={1}
+                  <View
                     style={
-                      [
-                        {
-                          "fontSize": 16,
-                          "fontWeight": "400",
-                          "lineHeight": 24,
-                        },
-                        null,
-                        {
-                          "color": "#14201B",
-                          "textAlign": undefined,
-                          "writingDirection": "ltr",
-                        },
-                        {
-                          "fontWeight": "700",
-                        },
-                      ]
+                      {
+                        "alignItems": "center",
+                        "flexDirection": "row",
+                        "gap": 8,
+                      }
                     }
                   >
-                    Sousse
-                  </Text>
+                    <Text
+                      numberOfLines={2}
+                      style={
+                        [
+                          {
+                            "fontSize": 16,
+                            "fontWeight": "400",
+                            "lineHeight": 24,
+                          },
+                          null,
+                          {
+                            "color": "#14201B",
+                            "textAlign": undefined,
+                            "writingDirection": "ltr",
+                          },
+                          [
+                            {
+                              "fontWeight": "700",
+                            },
+                            {
+                              "flex": 1,
+                            },
+                          ],
+                        ]
+                      }
+                    >
+                      Sousse
+                    </Text>
+                    <TouchableOpacity
+                      accessibilityLabel="rides.rideDetail.mapsWholeTrip"
+                      accessibilityRole="link"
+                      hitSlop={8}
+                      onPress={[Function]}
+                      style={
+                        [
+                          {
+                            "alignItems": "center",
+                            "borderRadius": 9999,
+                            "borderWidth": 1,
+                            "height": 32,
+                            "justifyContent": "center",
+                            "width": 32,
+                          },
+                          {
+                            "backgroundColor": "#E2E8E1",
+                            "borderColor": "#DEE5DE",
+                          },
+                        ]
+                      }
+                    >
+                      <Ionicons
+                        accessibilityElementsHidden={true}
+                        color="#14201B"
+                        importantForAccessibility="no-hide-descendants"
+                        name="navigate-outline"
+                        size={16}
+                      />
+                    </TouchableOpacity>
+                  </View>
                   <Text
                     numberOfLines={1}
                     style={
@@ -8239,10 +9067,10 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
             }
             initialRegion={
               {
-                "latitude": 36.265,
-                "latitudeDelta": 1.7120000000000006,
-                "longitude": 10.405000000000001,
-                "longitudeDelta": 0.7200000000000017,
+                "latitude": 35.977594999999994,
+                "latitudeDelta": 2.260650000000006,
+                "longitude": 10.4092,
+                "longitudeDelta": 0.6831000000000014,
               }
             }
             mapType="standard"
@@ -8258,6 +9086,41 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                     "longitude": 10.1815,
                   },
                   {
+                    "latitude": 36.75,
+                    "longitude": 10.3,
+                  },
+                  {
+                    "latitude": 36.4,
+                    "longitude": 10.6,
+                  },
+                  {
+                    "latitude": 36.13,
+                    "longitude": 10.38,
+                  },
+                  {
+                    "latitude": 35.73,
+                    "longitude": 10.58,
+                  },
+                  {
+                    "latitude": 35.8256,
+                    "longitude": 10.6369,
+                  },
+                ]
+              }
+              lineCap="round"
+              lineJoin="round"
+              strokeColor="#F7F9F5"
+              strokeWidth={11}
+              zIndex={1}
+            />
+            <Polyline
+              coordinates={
+                [
+                  {
+                    "latitude": 36.8065,
+                    "longitude": 10.1815,
+                  },
+                  {
                     "latitude": 36.8065,
                     "longitude": 10.1815,
                   },
@@ -8271,74 +9134,83 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                   },
                 ]
               }
+              lineCap="round"
               lineDashPattern={
                 [
-                  8,
-                  8,
-                ]
-              }
-              strokeColor="#CCD5CD"
-              strokeWidth={4}
-            />
-            <Polyline
-              coordinates={
-                [
-                  {
-                    "latitude": 36.75,
-                    "longitude": 10.3,
-                  },
-                  {
-                    "latitude": 36.75,
-                    "longitude": 10.3,
-                  },
-                  {
-                    "latitude": 36.4,
-                    "longitude": 10.6,
-                  },
-                  {
-                    "latitude": 36.4,
-                    "longitude": 10.6,
-                  },
-                ]
-              }
-              lineDashPattern={
-                [
-                  8,
+                  10,
                   8,
                 ]
               }
+              lineJoin="round"
               strokeColor="#2E9E6C"
-              strokeWidth={5}
-            />
-            <Polyline
-              coordinates={
-                [
-                  {
-                    "latitude": 36.4,
-                    "longitude": 10.6,
-                  },
-                  {
-                    "latitude": 36.4,
-                    "longitude": 10.6,
-                  },
-                  {
-                    "latitude": 36.13,
-                    "longitude": 10.38,
-                  },
-                  {
-                    "latitude": 36.13,
-                    "longitude": 10.38,
-                  },
-                ]
-              }
-              lineDashPattern={
-                [
-                  8,
-                  8,
-                ]
-              }
-              strokeColor="#22794F"
               strokeWidth={6}
+              zIndex={2}
+            />
+            <Polyline
+              coordinates={
+                [
+                  {
+                    "latitude": 36.75,
+                    "longitude": 10.3,
+                  },
+                  {
+                    "latitude": 36.75,
+                    "longitude": 10.3,
+                  },
+                  {
+                    "latitude": 36.4,
+                    "longitude": 10.6,
+                  },
+                  {
+                    "latitude": 36.4,
+                    "longitude": 10.6,
+                  },
+                ]
+              }
+              lineCap="round"
+              lineDashPattern={
+                [
+                  10,
+                  8,
+                ]
+              }
+              lineJoin="round"
+              strokeColor="#22794F"
+              strokeWidth={7}
+              zIndex={2}
+            />
+            <Polyline
+              coordinates={
+                [
+                  {
+                    "latitude": 36.4,
+                    "longitude": 10.6,
+                  },
+                  {
+                    "latitude": 36.4,
+                    "longitude": 10.6,
+                  },
+                  {
+                    "latitude": 36.13,
+                    "longitude": 10.38,
+                  },
+                  {
+                    "latitude": 36.13,
+                    "longitude": 10.38,
+                  },
+                ]
+              }
+              lineCap="round"
+              lineDashPattern={
+                [
+                  10,
+                  8,
+                ]
+              }
+              lineJoin="round"
+              strokeColor="#22794F"
+              strokeWidth={8}
+              zIndex={2}
             />
             <Polyline
               coordinates={
@@ -8361,44 +9233,50 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                   },
                 ]
               }
+              lineCap="round"
               lineDashPattern={
                 [
-                  8,
+                  10,
                   8,
                 ]
               }
+              lineJoin="round"
+              strokeColor="#22794F"
+              strokeWidth={7}
+              zIndex={2}
+            />
+            <Polyline
+              coordinates={
+                [
+                  {
+                    "latitude": 35.73,
+                    "longitude": 10.58,
+                  },
+                  {
+                    "latitude": 35.73,
+                    "longitude": 10.58,
+                  },
+                  {
+                    "latitude": 35.8256,
+                    "longitude": 10.6369,
+                  },
+                  {
+                    "latitude": 35.8256,
+                    "longitude": 10.6369,
+                  },
+                ]
+              }
+              lineCap="round"
+              lineDashPattern={
+                [
+                  10,
+                  8,
+                ]
+              }
+              lineJoin="round"
               strokeColor="#2E9E6C"
-              strokeWidth={5}
-            />
-            <Polyline
-              coordinates={
-                [
-                  {
-                    "latitude": 35.73,
-                    "longitude": 10.58,
-                  },
-                  {
-                    "latitude": 35.73,
-                    "longitude": 10.58,
-                  },
-                  {
-                    "latitude": 35.8256,
-                    "longitude": 10.6369,
-                  },
-                  {
-                    "latitude": 35.8256,
-                    "longitude": 10.6369,
-                  },
-                ]
-              }
-              lineDashPattern={
-                [
-                  8,
-                  8,
-                ]
-              }
-              strokeColor="#CCD5CD"
-              strokeWidth={4}
+              strokeWidth={6}
+              zIndex={2}
             />
             <Marker
               anchor={
@@ -8413,6 +9291,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                   "longitude": 10.18,
                 }
               }
+              zIndex={20}
             >
               <View
                 style={
@@ -8680,6 +9559,7 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                   "longitude": 10.63,
                 }
               }
+              zIndex={20}
             >
               <View
                 style={
@@ -8735,20 +9615,6 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
               </View>
             </Marker>
           </MapView>
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "backgroundColor": "#EDEBE1",
-                "bottom": 0,
-                "left": 0,
-                "opacity": 0.18,
-                "position": "absolute",
-                "right": 0,
-                "top": 0,
-              }
-            }
-          />
           <Animated.View
             accessibilityElementsHidden={true}
             importantForAccessibility="no-hide-descendants"
@@ -8767,6 +9633,242 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
               ]
             }
           />
+        </View>
+        <View
+          style={
+            [
+              {
+                "borderRadius": 16,
+                "borderWidth": 1,
+                "elevation": 4,
+                "gap": 8,
+                "left": 16,
+                "padding": 12,
+                "position": "absolute",
+                "right": 16,
+              },
+              {
+                "backgroundColor": "#F7F9F5",
+                "borderColor": "#DEE5DE",
+                "bottom": 12,
+              },
+            ]
+          }
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+                "gap": 8,
+              }
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "borderWidth": 3,
+                    "elevation": 2,
+                    "justifyContent": "center",
+                  },
+                  {
+                    "backgroundColor": "#22794F",
+                    "borderColor": "#F7F9F5",
+                    "borderRadius": 12,
+                    "height": 24,
+                    "width": 24,
+                  },
+                ]
+              }
+            >
+              <Ionicons
+                accessibilityElementsHidden={true}
+                color="#0D1512"
+                importantForAccessibility="no-hide-descendants"
+                name="car"
+                size={16}
+              />
+            </View>
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "lineHeight": 21,
+                  },
+                  null,
+                  {
+                    "color": "#4F5C55",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  {
+                    "fontVariant": [
+                      "tabular-nums",
+                    ],
+                    "width": 44,
+                  },
+                ]
+              }
+            >
+              08:30
+            </Text>
+            <Text
+              numberOfLines={1}
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  null,
+                  {
+                    "color": "#14201B",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  {
+                    "flex": 1,
+                    "fontWeight": "600",
+                  },
+                ]
+              }
+            >
+              Tunis
+            </Text>
+          </View>
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+                "gap": 8,
+              }
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "borderWidth": 3,
+                    "elevation": 2,
+                    "justifyContent": "center",
+                  },
+                  {
+                    "backgroundColor": "#14201B",
+                    "borderColor": "#F7F9F5",
+                    "borderRadius": 12,
+                    "height": 24,
+                    "width": 24,
+                  },
+                ]
+              }
+            >
+              <Ionicons
+                accessibilityElementsHidden={true}
+                color="#F4F6F2"
+                importantForAccessibility="no-hide-descendants"
+                name="flag"
+                size={16}
+              />
+            </View>
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "lineHeight": 21,
+                  },
+                  null,
+                  {
+                    "color": "#4F5C55",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  {
+                    "fontVariant": [
+                      "tabular-nums",
+                    ],
+                    "width": 44,
+                  },
+                ]
+              }
+            >
+              10:30
+            </Text>
+            <Text
+              numberOfLines={1}
+              style={
+                [
+                  {
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "lineHeight": 24,
+                  },
+                  null,
+                  {
+                    "color": "#14201B",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  {
+                    "flex": 1,
+                    "fontWeight": "600",
+                  },
+                ]
+              }
+            >
+              Sousse
+            </Text>
+          </View>
+          <Pressable
+            accessibilityLabel="rides.rideDetail.openInGoogleMaps"
+            accessibilityRole="button"
+            accessibilityState={
+              {
+                "busy": false,
+                "disabled": false,
+              }
+            }
+            disabled={false}
+            onPress={[Function]}
+            style={[Function]}
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 8,
+                }
+              }
+            >
+              <Text
+                numberOfLines={1}
+                style={
+                  [
+                    {
+                      "fontWeight": "600",
+                    },
+                    {
+                      "fontSize": 16,
+                    },
+                    {
+                      "color": "#14201B",
+                    },
+                  ]
+                }
+              >
+                rides.rideDetail.openInGoogleMaps
+              </Text>
+            </View>
+          </Pressable>
         </View>
         <View
           accessibilityRole="text"

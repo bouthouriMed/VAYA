@@ -30,6 +30,8 @@ export function PassengerItineraryThread({
   onboardRangeTemplate,
   occupancyTagTemplate,
   onPressPassenger,
+  onOpenInMaps,
+  openInMapsLabel,
 }: {
   thread: ItineraryThread;
   seatsTotal: number;
@@ -46,6 +48,11 @@ export function PassengerItineraryThread({
   /** `(seats, total) => string`, e.g. t('rideDetail.occupancyTag', {...}). */
   occupancyTagTemplate: (seats: number, total: number) => string;
   onPressPassenger?: (args: { riderId: string; bookingId: string }) => void;
+  /** Shows a Google Maps button on the departure/arrival rows; the caller
+   *  decides what each opens (googleMapsLink.ts). */
+  onOpenInMaps?: (node: ItineraryThreadNode) => void;
+  /** Accessibility label for that button, per endpoint. */
+  openInMapsLabel?: (node: ItineraryThreadNode) => string;
 }): React.JSX.Element {
   return (
     <View accessibilityRole="list">
@@ -70,6 +77,8 @@ export function PassengerItineraryThread({
               onboardRangeTemplate={onboardRangeTemplate}
               occupancyTagTemplate={occupancyTagTemplate}
               onPressPassenger={onPressPassenger}
+              onOpenInMaps={onOpenInMaps}
+              openInMapsLabel={openInMapsLabel}
             />
           </Reanimated.View>
         );
@@ -91,6 +100,8 @@ function ThreadRow({
   onboardRangeTemplate,
   occupancyTagTemplate,
   onPressPassenger,
+  onOpenInMaps,
+  openInMapsLabel,
 }: {
   node: ItineraryThreadNode;
   connectorOnboardSeats?: number;
@@ -104,15 +115,26 @@ function ThreadRow({
   onboardRangeTemplate: (from: string, to: string) => string;
   occupancyTagTemplate: (seats: number, total: number) => string;
   onPressPassenger?: (args: { riderId: string; bookingId: string }) => void;
+  onOpenInMaps?: (node: ItineraryThreadNode) => void;
+  openInMapsLabel?: (node: ItineraryThreadNode) => string;
 }): React.JSX.Element {
   const connectorStyle = !isLast ? styles.connector : undefined;
+  const isEndpoint = node.kind === 'origin' || node.kind === 'destination';
+  // A row with its own Maps button can't be one merged accessibility
+  // element, or the button becomes unreachable for screen readers.
+  const hasMapsButton = isEndpoint && onOpenInMaps != null;
   const seats = connectorOnboardSeats ?? 0;
   const connectorColor = seats === 0 ? theme.outline : seats === 1 ? theme.accent : theme.accentStrong;
   const connectorWidth = seats >= 2 ? 4 : seats === 1 ? 3 : 2;
   const rowLabel = accessibilityLabelFor(node, originEyebrow, destinationEyebrow, pickupPrefix, dropoffPrefix);
 
   return (
-    <View style={styles.row} accessible accessibilityRole="text" accessibilityLabel={rowLabel}>
+    <View
+      style={styles.row}
+      accessible={!hasMapsButton}
+      accessibilityRole="text"
+      accessibilityLabel={hasMapsButton ? undefined : rowLabel}
+    >
       <View style={styles.railCol}>
         <Marker node={node} theme={theme} />
         {connectorStyle ? (
@@ -128,8 +150,14 @@ function ThreadRow({
       </View>
 
       <View style={styles.contentCol}>
-        {node.kind === 'origin' || node.kind === 'destination' ? (
-          <EndpointContent node={node} eyebrow={node.kind === 'origin' ? originEyebrow : destinationEyebrow} theme={theme} />
+        {isEndpoint ? (
+          <EndpointContent
+            node={node}
+            eyebrow={node.kind === 'origin' ? originEyebrow : destinationEyebrow}
+            theme={theme}
+            onOpenInMaps={onOpenInMaps ? () => onOpenInMaps(node) : undefined}
+            openInMapsLabel={openInMapsLabel?.(node) ?? rowLabel}
+          />
         ) : (
           <PassengerContent
             node={node}
@@ -161,10 +189,14 @@ function EndpointContent({
   node,
   eyebrow,
   theme,
+  onOpenInMaps,
+  openInMapsLabel,
 }: {
   node: ItineraryThreadNode;
   eyebrow: string;
   theme: AppPalette;
+  onOpenInMaps?: () => void;
+  openInMapsLabel: string;
 }): React.JSX.Element {
   return (
     <View style={styles.contentPad}>
@@ -178,9 +210,22 @@ function EndpointContent({
           </Text>
         ) : null}
       </View>
-      <Text variant="body" color={theme.ink} numberOfLines={1} style={styles.boldLine}>
-        {node.placeLabel}
-      </Text>
+      <View style={styles.placeRow}>
+        <Text variant="body" color={theme.ink} numberOfLines={2} style={[styles.boldLine, styles.placeText]}>
+          {node.placeLabel}
+        </Text>
+        {onOpenInMaps ? (
+          <TouchableOpacity
+            onPress={onOpenInMaps}
+            hitSlop={8}
+            accessibilityRole="link"
+            accessibilityLabel={openInMapsLabel}
+            style={[styles.mapsButton, { backgroundColor: theme.surfaceMuted, borderColor: theme.outlineVariant }]}
+          >
+            <Icon name="navigate-outline" size="xs" color={theme.ink} />
+          </TouchableOpacity>
+        ) : null}
+      </View>
       {node.subLabel ? (
         <Text variant="caption" color={theme.inkFaint} numberOfLines={1}>
           {node.subLabel}
@@ -315,6 +360,22 @@ const styles = StyleSheet.create({
   },
   boldLine: {
     fontWeight: '700',
+  },
+  placeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  placeText: {
+    flex: 1,
+  },
+  mapsButton: {
+    width: 32,
+    height: 32,
+    borderRadius: radii.full,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   passengerHeaderRow: {
     flexDirection: 'row',

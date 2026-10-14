@@ -11,6 +11,7 @@ export * from './route/route.types';
 export * from './route/trip-profile.types';
 export * from './route/classify-trip-profile';
 export * from './route/live-corridor';
+export * from './route/place-label';
 
 export * from './matching/matching-thresholds.types';
 export * from './matching/matching-thresholds';

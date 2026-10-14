@@ -1,38 +1,22 @@
+import { readablePlaceLabel, shortPlaceLabel } from '@vaya/domain';
+
 /**
- * Shortens a real, full Google-formatted place label (rides.originLabel/
- * destinationLabel — a street-level place name, postal code, locality,
- * admin area, and country, comma-separated) down to just "locality, admin
- * area" for a compact card title — real UX feedback, driven live: a rural
- * address like "Mas de Born, 43512 Benifallet, Tarragona, Spain" made the
- * driver's own trip card title wrap 4 lines, when the postal code and
- * country are already shown in the card's own detail rows below.
- *
- * No structured city/region/country fields exist anywhere in this schema
- * (rides.originLabel is a single flat string — confirmed by reading
- * rides.schema.ts) — this is a best-effort heuristic over the real string
- * (drop the trailing country segment, strip a leading postal-code prefix
- * from each remaining segment, keep the last two), never a fabricated
- * value: every substring shown here is real text that was already in the
- * original label, just a shorter slice of it. Falls back to the original
- * label unchanged whenever the heuristic has nothing meaningful to trim
- * (a single-segment label with no commas at all).
+ * Display helpers for stored place labels (rides.originLabel, booking
+ * pickup/dropoff labels, ...). The parsing itself lives in `@vaya/domain`
+ * (route/place-label.ts) so the API, which cleans labels as it geocodes
+ * them, and the app, which also has to display rows stored before that,
+ * share one rule. Real labels look like "R4MF+76P، Rue 6863، Tunis,
+ * Tunisia" — a Plus Code plus Arabic commas — so neither helper ever
+ * shows the Plus Code.
  */
+
+/** A compact "place, locality" title for cards and headers —
+ *  "Rue 6863, Tunis". The full address belongs in the itinerary below it. */
 export function shortenPlaceLabel(label: string): string {
-  const segments = label
-    .split(',')
-    .map((s) => s.trim())
-    .filter(Boolean);
-  if (segments.length <= 1) return label;
+  return shortPlaceLabel(label);
+}
 
-  // Drop the trailing segment (Google's formatted-address convention always
-  // ends with the country) — segments.length > 1 here, so at least one
-  // segment always survives.
-  const withoutCountry = segments.slice(0, -1);
-
-  const cleaned = withoutCountry
-    .map((s) => s.replace(/^\d[\d\s-]*\s+/, '').trim())
-    .filter(Boolean);
-  const kept = cleaned.length > 0 ? cleaned : withoutCountry;
-
-  return kept.slice(-2).join(', ');
+/** The full address for itinerary rows — "Rue 6863, Tunis, Tunisia". */
+export function fullPlaceLabel(label: string): string {
+  return readablePlaceLabel(label);
 }

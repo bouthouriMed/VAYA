@@ -1,4 +1,5 @@
 import type { LocationPoint, LocationPrediction, LocationType } from '@vaya/validation';
+import { readablePlaceLabel } from '@vaya/domain';
 import { getLogger } from '../../../config/logger.js';
 import type { LocationProvider } from './location-provider.types.js';
 
@@ -264,15 +265,19 @@ export class GooglePlacesProvider implements LocationProvider {
         longText: c.long_name,
         types: c.types,
       }));
+      // Even a street_address result can come back prefixed with a Plus
+      // Code ("R4MF+76P، Rue 6863، Tunis, Tunisia"); this label is stored
+      // verbatim as a ride/booking place, so it's cleaned once, here.
+      const label = readablePlaceLabel(result.formatted_address);
       return {
         placeId: result.place_id,
-        label: result.formatted_address,
-        primaryText: result.formatted_address,
+        label,
+        primaryText: label,
         secondaryText: null,
         latitude: result.geometry.location.lat,
         longitude: result.geometry.location.lng,
         type: mapGoogleTypesToLocationType(result.types),
-        formattedAddress: result.formatted_address,
+        formattedAddress: label,
         city: findAddressComponent(components, 'locality'),
         governorate: findAddressComponent(components, 'administrative_area_level_1'),
         countryCode:

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity, Modal } from 'react-native';
+import { View, StyleSheet, ScrollView, TouchableOpacity, Modal, Linking } from 'react-native';
 import { Marker, Polyline } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -25,6 +25,7 @@ import {
   radii,
   haptics,
   regionForPoints,
+  elevation,
 } from '@vaya/design-system';
 import {
   useGetRideQuery,
@@ -52,6 +53,8 @@ import { estimateArrivalLabel, computeTripPhase } from '../../../src/features/dr
 import { buildItineraryThread, type ItineraryStopEvent } from '../../../src/features/driver-rides/itineraryThread';
 import { PassengerItineraryThread } from '../../../src/features/driver-rides/PassengerItineraryThread';
 import { formatTime, formatRelativeTime, toIntlTag } from '../../../src/utils/localeFormat';
+import { fullPlaceLabel, shortenPlaceLabel } from '../../../src/utils/placeLabel';
+import { buildGoogleMapsDirectionsUrl } from '../../../src/features/driver-rides/googleMapsLink';
 import { bookingStatusDisplay } from '../../../src/features/status/statusDisplay';
 
 const TRACKABLE_TRIP_STATUSES: readonly TripStatus[] = ['driver_approaching', 'pickup', 'active', 'arriving'];
@@ -63,6 +66,42 @@ const TRACKABLE_TRIP_STATUSES: readonly TripStatus[] = ['driver_approaching', 'p
 // Gated to a lead window before the ride's own departureAt: real evidence
 // can only start accumulating once the trip is actually imminent.
 const AUTO_START_BROADCAST_LEAD_MINUTES = 30;
+// Earnings card's passenger row: overlapping avatars, "+N" past this many.
+const MAX_STACKED_AVATARS = 4;
+const STACKED_AVATAR_PX = 28;
+const AVATAR_OVERLAP_PX = 8;
+// Fullscreen route line: accent core over a wider light casing.
+const ROUTE_CORE_WIDTH = 6;
+const ROUTE_CASING_WIDTH = 11;
+
+/** Departure/arrival badge on the fullscreen route — the same car/flag
+ *  marks the itinerary list uses, so map and list read as one thing. */
+function RouteEndpointMarker({
+  kind,
+  theme,
+  size = 32,
+}: {
+  kind: 'origin' | 'destination';
+  theme: ReturnType<typeof useAppTheme>['colors'];
+  size?: number;
+}): React.JSX.Element {
+  return (
+    <View
+      style={[
+        styles.routeEndpointMarker,
+        {
+          width: size,
+          height: size,
+          borderRadius: size / 2,
+          backgroundColor: kind === 'origin' ? theme.accentStrong : theme.ink,
+          borderColor: theme.surface,
+        },
+      ]}
+    >
+      <Icon name={kind === 'origin' ? 'car' : 'flag'} size="xs" color={kind === 'origin' ? theme.onAccent : theme.onInk} />
+    </View>
+  );
+}
 const TRIP_STATUS_LABEL_KEY: Partial<Record<TripStatus, string>> = {
   driver_approaching: 'rides.rideDetail.tripStatus.driverApproaching',
   pickup: 'rides.rideDetail.tripStatus.pickup',
@@ -405,7 +444,7 @@ export default function DriverRideHubScreen(): React.JSX.Element {
               kind: 'pickup',
               lat: booking.pickupLat,
               lng: booking.pickupLng,
-              label: booking.pickupLabel,
+              label: fullPlaceLabel(booking.pickupLabel),
               passengerName,
               avatarUrl: booking.rider?.avatarUrl ?? null,
               riderId: booking.rider?.id ?? null,
@@ -427,7 +466,7 @@ export default function DriverRideHubScreen(): React.JSX.Element {
               kind: 'dropoff',
               lat: dropoffLat,
               lng: dropoffLng,
-              label: booking.dropoffLabel ?? ride!.destinationLabel,
+              label: fullPlaceLabel(booking.dropoffLabel ?? ride!.destinationLabel),
               passengerName,
               avatarUrl: booking.rider?.avatarUrl ?? null,
               riderId: booking.rider?.id ?? null,
@@ -478,7 +517,7 @@ export default function DriverRideHubScreen(): React.JSX.Element {
         {
           lat: ride.originLat,
           lng: ride.originLng,
-          label: ride.originLabel,
+          label: fullPlaceLabel(ride.originLabel),
           timeLabel: formatTime(new Date(ride.departureAt), locale),
           subLabel:
             pickupStop && pickupStop.label !== ride.originLabel
@@ -488,7 +527,7 @@ export default function DriverRideHubScreen(): React.JSX.Element {
         {
           lat: ride.destinationLat,
           lng: ride.destinationLng,
-          label: ride.destinationLabel,
+          label: fullPlaceLabel(ride.destinationLabel),
           timeLabel: arrivalLabel,
           subLabel:
             dropoffStop && dropoffStop.label !== ride.destinationLabel
@@ -601,6 +640,7 @@ export default function DriverRideHubScreen(): React.JSX.Element {
   // what's actually confirmed.
   const confirmedBookings = answered.filter((b) => b.status === 'accepted');
   const confirmedRevenue = confirmedBookings.reduce((sum, b) => sum + b.contributionTotal, 0);
+  const acceptedRiders = confirmedBookings.flatMap((booking) => (booking.rider ? [{ booking, rider: booking.rider }] : []));
   const fullRouteRegion =
     regionForPoints([
       pickupStop ?? { lat: ride.originLat, lng: ride.originLng },
@@ -608,6 +648,26 @@ export default function DriverRideHubScreen(): React.JSX.Element {
       ...passengerItineraryPoints.map((p) => ({ lat: p.lat, lng: p.lng })),
       dropoffStop ?? { lat: ride.destinationLat, lng: ride.destinationLng },
     ]) ?? undefined;
+  // The fullscreen view frames the real road geometry (a curving route can
+  // leave the endpoints' box), then nudges the centre south so the route
+  // sits in the open map above the summary card rather than under it.
+  const fullscreenBase =
+    regionForPoints(
+      [
+        ...routeCoordinates.map((c) => ({ lat: c.latitude, lng: c.longitude })),
+        { lat: ride.originLat, lng: ride.originLng },
+        { lat: ride.destinationLat, lng: ride.destinationLng },
+        ...passengerItineraryPoints.map((p) => ({ lat: p.lat, lng: p.lng })),
+      ],
+      1.5,
+    ) ?? fullRouteRegion;
+  const fullscreenRouteRegion = fullscreenBase
+    ? {
+        ...fullscreenBase,
+        latitude: fullscreenBase.latitude - fullscreenBase.latitudeDelta * 0.18,
+        latitudeDelta: fullscreenBase.latitudeDelta * 1.4,
+      }
+    : undefined;
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -690,11 +750,44 @@ export default function DriverRideHubScreen(): React.JSX.Element {
                 ? t('rides.rideDetail.confirmedAmount', { revenue: confirmedRevenue })
                 : t('rides.rideDetail.pricePerSeat', { price: ride.contributionPerSeat })}
             </Text>
-            <View style={[styles.maxRevenuePill, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
-              <Text variant="caption" color={theme.inkFaint} numberOfLines={1}>
-                {t('rides.rideDetail.maxPotentialRevenue', { max: ride.contributionPerSeat * ride.seatsTotal })}
-              </Text>
-            </View>
+            {/* Who's actually coming — real accepted passengers only, each
+             *  opening their profile; nothing when no one has booked. (Was a
+             *  "of N DT max" pill: price × seats, a number no driver earns
+             *  unless every seat sells, so it read as a promise.) */}
+            {acceptedRiders.length > 0 ? (
+              <View style={styles.avatarStack}>
+                {acceptedRiders.slice(0, MAX_STACKED_AVATARS).map(({ booking, rider }, i) => (
+                  <TouchableOpacity
+                    key={booking.id}
+                    onPress={() =>
+                      router.push({ pathname: '/search/trust', params: { driverUserId: rider.id, bookingId: booking.id } })
+                    }
+                    hitSlop={4}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('common:actions.viewProfile', { name: rider.fullName })}
+                    style={[
+                      styles.stackedAvatar,
+                      { borderColor: theme.surfaceMuted, marginLeft: i === 0 ? 0 : -AVATAR_OVERLAP_PX },
+                    ]}
+                  >
+                    <Avatar uri={rider.avatarUrl} name={rider.fullName} sizePx={STACKED_AVATAR_PX} />
+                  </TouchableOpacity>
+                ))}
+                {acceptedRiders.length > MAX_STACKED_AVATARS ? (
+                  <View
+                    style={[
+                      styles.stackedAvatar,
+                      styles.avatarOverflow,
+                      { borderColor: theme.surfaceMuted, backgroundColor: theme.surface, marginLeft: -AVATAR_OVERLAP_PX },
+                    ]}
+                  >
+                    <Text variant="caption" color={theme.ink}>
+                      {`+${acceptedRiders.length - MAX_STACKED_AVATARS}`}
+                    </Text>
+                  </View>
+                ) : null}
+              </View>
+            ) : null}
           </View>
         </View>
 
@@ -733,6 +826,23 @@ export default function DriverRideHubScreen(): React.JSX.Element {
               occupancyTagTemplate={(seats, total) => t('rides.rideDetail.occupancyTag', { seats, total })}
               onPressPassenger={({ riderId, bookingId }) =>
                 router.push({ pathname: '/search/trust', params: { driverUserId: riderId, bookingId } })
+              }
+              // Departure: directions there from wherever the driver is.
+              // Arrival: the whole trip, through every passenger's pickup/
+              // dropoff in route order — the drive they'll actually make.
+              onOpenInMaps={(node) => {
+                const url =
+                  node.kind === 'origin'
+                    ? buildGoogleMapsDirectionsUrl({ destination: { lat: ride.originLat, lng: ride.originLng } })
+                    : buildGoogleMapsDirectionsUrl({
+                        origin: { lat: ride.originLat, lng: ride.originLng },
+                        destination: { lat: ride.destinationLat, lng: ride.destinationLng },
+                        waypoints: passengerItineraryPoints.map((p) => ({ lat: p.lat, lng: p.lng })),
+                      });
+                Linking.openURL(url).catch(() => showToast({ message: t('rides.rideDetail.mapsUnavailable'), tone: 'error' }));
+              }}
+              openInMapsLabel={(node) =>
+                node.kind === 'origin' ? t('rides.rideDetail.mapsToDeparture') : t('rides.rideDetail.mapsWholeTrip')
               }
             />
           ) : null}
@@ -897,37 +1007,43 @@ export default function DriverRideHubScreen(): React.JSX.Element {
         onRequestClose={() => setRouteModalOpen(false)}
       >
         <View style={[styles.routeModal, { backgroundColor: theme.background }]}>
-          <MapCanvas region={fullRouteRegion} style={styles.routeModalMap}>
-            {/* Same per-leg onboard-seat coloring as the map preview above
-             *  (occupancySegments) — a driver expanding to the fullscreen
-             *  route sees the exact same "how full is the car here" signal,
-             *  not a flat single-color line. */}
-            {occupancySegments && occupancySegments.length > 0
-              ? occupancySegments.map((segment, i) => (
-                  <Polyline
-                    key={`occupancy-${i}`}
-                    coordinates={segment.coordinates}
-                    strokeColor={
-                      segment.onboardSeats === 0
-                        ? theme.outline
-                        : segment.onboardSeats === 1
-                          ? theme.accent
-                          : theme.accentStrong
-                    }
-                    strokeWidth={segment.onboardSeats >= 2 ? 6 : segment.onboardSeats === 1 ? 5 : 4}
-                    lineDashPattern={segment.onboardSeats === 0 || itineraryLine.isApproximate ? [8, 8] : undefined}
-                  />
-                ))
+          {/* No tile wash here: it sits above the native map, route line
+           *  included, and muted the route into the terrain. */}
+          <MapCanvas region={fullscreenRouteRegion} style={styles.routeModalMap} tint={false}>
+            {/* Route drawn like a navigation app's: a light casing under a
+             *  solid accent core, so it reads against any terrain. The core
+             *  keeps the itinerary's occupancy signal — heavier and
+             *  stronger where passengers are aboard — and is dashed only
+             *  when the geometry itself is approximate. (Empty legs used to
+             *  be a thin dashed outline-grey line: on a ride with no
+             *  passengers yet, the whole route nearly vanished.) */}
+            {routeCoordinates.length > 1 ? (
+              <Polyline
+                coordinates={routeCoordinates}
+                strokeColor={theme.surface}
+                strokeWidth={ROUTE_CASING_WIDTH}
+                lineCap="round"
+                lineJoin="round"
+                zIndex={1}
+              />
+            ) : null}
+            {(occupancySegments && occupancySegments.length > 0
+              ? occupancySegments
               : routeCoordinates.length > 1
-                ? (
-                    <Polyline
-                      coordinates={routeCoordinates}
-                      strokeColor={theme.ink}
-                      strokeWidth={4}
-                      lineDashPattern={itineraryLine.isApproximate ? [8, 8] : undefined}
-                    />
-                  )
-                : null}
+                ? [{ coordinates: routeCoordinates, onboardSeats: 0 }]
+                : []
+            ).map((segment, i) => (
+              <Polyline
+                key={`route-${i}`}
+                coordinates={segment.coordinates}
+                strokeColor={segment.onboardSeats >= 1 ? theme.accentStrong : theme.accent}
+                strokeWidth={segment.onboardSeats >= 2 ? 8 : segment.onboardSeats === 1 ? 7 : ROUTE_CORE_WIDTH}
+                lineDashPattern={itineraryLine.isApproximate ? [10, 8] : undefined}
+                lineCap="round"
+                lineJoin="round"
+                zIndex={2}
+              />
+            ))}
             <Marker
               coordinate={
                 pickupStop
@@ -935,12 +1051,9 @@ export default function DriverRideHubScreen(): React.JSX.Element {
                   : { latitude: ride.originLat, longitude: ride.originLng }
               }
               anchor={{ x: 0.5, y: 0.5 }}
+              zIndex={20}
             >
-              {pickupStop ? (
-                <PickupPin theme={theme} />
-              ) : (
-                <View style={[styles.originDot, { backgroundColor: theme.accent, borderColor: theme.surface }]} />
-              )}
+              {pickupStop ? <PickupPin theme={theme} /> : <RouteEndpointMarker kind="origin" theme={theme} />}
             </Marker>
             {intermediateStops.map((stop) => (
               <Marker
@@ -968,14 +1081,53 @@ export default function DriverRideHubScreen(): React.JSX.Element {
                   : { latitude: ride.destinationLat, longitude: ride.destinationLng }
               }
               anchor={{ x: 0.5, y: 0.5 }}
+              zIndex={20}
             >
-              {dropoffStop ? (
-                <DropoffPin theme={theme} />
-              ) : (
-                <View style={[styles.destDot, { backgroundColor: theme.ink, borderColor: theme.surface }]} />
-              )}
+              {dropoffStop ? <DropoffPin theme={theme} /> : <RouteEndpointMarker kind="destination" theme={theme} />}
             </Marker>
           </MapCanvas>
+          {/* What the map shows, in words — and the way out to turn-by-turn
+           *  navigation, the thing a driver opening this view usually wants. */}
+          <View
+            style={[
+              styles.routeSummaryCard,
+              { bottom: insets.bottom + spacing.md, backgroundColor: theme.surface, borderColor: theme.outlineVariant },
+            ]}
+          >
+            <View style={styles.routeSummaryRow}>
+              <RouteEndpointMarker kind="origin" theme={theme} size={24} />
+              <Text variant="bodySmall" color={theme.inkMuted} style={styles.routeSummaryTime}>
+                {formatTime(new Date(ride.departureAt), locale)}
+              </Text>
+              <Text variant="body" color={theme.ink} numberOfLines={1} style={styles.routeSummaryPlace}>
+                {shortenPlaceLabel(ride.originLabel)}
+              </Text>
+            </View>
+            <View style={styles.routeSummaryRow}>
+              <RouteEndpointMarker kind="destination" theme={theme} size={24} />
+              <Text variant="bodySmall" color={theme.inkMuted} style={styles.routeSummaryTime}>
+                {arrivalLabel ?? '—'}
+              </Text>
+              <Text variant="body" color={theme.ink} numberOfLines={1} style={styles.routeSummaryPlace}>
+                {shortenPlaceLabel(ride.destinationLabel)}
+              </Text>
+            </View>
+            <Button
+              label={t('rides.rideDetail.openInGoogleMaps')}
+              variant="secondary"
+              theme={theme}
+              onPress={() =>
+                Linking.openURL(
+                  buildGoogleMapsDirectionsUrl({
+                    origin: { lat: ride.originLat, lng: ride.originLng },
+                    destination: { lat: ride.destinationLat, lng: ride.destinationLng },
+                    waypoints: passengerItineraryPoints.map((p) => ({ lat: p.lat, lng: p.lng })),
+                  }),
+                ).catch(() => showToast({ message: t('rides.rideDetail.mapsUnavailable'), tone: 'error' }))
+              }
+              style={styles.routeSummaryButton}
+            />
+          </View>
           {itineraryLine.isApproximate ? (
             <View
               style={[styles.approxRouteNote, { top: insets.top + spacing.sm, backgroundColor: theme.surface }]}
@@ -1081,17 +1233,37 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 3,
   },
-  originDot: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    borderWidth: 2,
+  routeEndpointMarker: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 3,
+    ...elevation.md,
   },
-  destDot: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    borderWidth: 2,
+  routeSummaryCard: {
+    position: 'absolute',
+    left: spacing.lg,
+    right: spacing.lg,
+    padding: spacing.md,
+    gap: spacing.sm,
+    borderRadius: radii.xl,
+    borderWidth: 1,
+    ...elevation.lg,
+  },
+  routeSummaryRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  routeSummaryTime: {
+    width: 44,
+    fontVariant: ['tabular-nums'],
+  },
+  routeSummaryPlace: {
+    flex: 1,
+    fontWeight: '600',
+  },
+  routeSummaryButton: {
+    marginTop: spacing.xs,
   },
   waypointDot: {
     width: 10,
@@ -1143,12 +1315,20 @@ const styles = StyleSheet.create({
   boldStat: {
     fontWeight: '700',
   },
-  maxRevenuePill: {
-    alignSelf: 'flex-start',
+  avatarStack: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 2,
+  },
+  stackedAvatar: {
     borderRadius: radii.full,
-    borderWidth: 1,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
+    borderWidth: 2,
+  },
+  avatarOverflow: {
+    width: STACKED_AVATAR_PX + 4,
+    height: STACKED_AVATAR_PX + 4,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   section: {
     paddingHorizontal: spacing.lg,

@@ -48,6 +48,10 @@ interface MapCanvasProps {
    *  search/pickup-point.tsx's override flow). Omit for a map with no such
    *  affordance (the default everywhere else). */
   onLongPress?: (coordinate: { latitude: number; longitude: number }) => void;
+  /** The brand tile wash sits above the whole native map — route lines
+   *  included — so it also mutes them. Pass false on a map whose job is
+   *  the route itself (e.g. a fullscreen route view). Default true. */
+  tint?: boolean;
 }
 
 /**
@@ -56,7 +60,14 @@ interface MapCanvasProps {
  * (onMapReady), instead of a blank frame. Phase 3 replaced the previous
  * CSS-art street-grid placeholder — see docs/design-system/README.md.
  */
-export function MapCanvas({ height, region, style, children, onLongPress }: MapCanvasProps): React.JSX.Element {
+export function MapCanvas({
+  height,
+  region,
+  style,
+  children,
+  onLongPress,
+  tint = true,
+}: MapCanvasProps): React.JSX.Element {
   const [isReady, setIsReady] = useState(false);
   // Was hardcoded `customMapStyle={[]}` — the token file's own doc comment
   // already claimed MapCanvas followed useAppTheme()'s scheme, but nothing
@@ -93,7 +104,7 @@ export function MapCanvas({ height, region, style, children, onLongPress }: MapC
         {children}
       </MapView>
       {/* Brand tile wash — sits above raw tiles, doesn't intercept gestures. */}
-      <View style={styles.tint} pointerEvents="none" />
+      {tint ? <View style={styles.tint} pointerEvents="none" /> : null}
       {!isReady ? <SkeletonBlock radius="none" style={StyleSheet.absoluteFill} /> : null}
     </View>
   );

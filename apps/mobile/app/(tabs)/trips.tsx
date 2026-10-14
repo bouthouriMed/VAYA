@@ -39,7 +39,7 @@ import {
 import { decodePolyline, sliceRouteBetween } from '../../src/utils/polyline';
 import { isQueryErrorOtherThan404 } from '../../src/state/queryErrors';
 import { bookingStatusDisplay, rideStatusDisplay, type StatusDisplay } from '../../src/features/status/statusDisplay';
-import { shortenPlaceLabel } from '../../src/utils/placeLabel';
+import { fullPlaceLabel, shortenPlaceLabel } from '../../src/utils/placeLabel';
 import { useFocusAwarePolling } from '../../src/hooks/useFocusAwarePolling';
 
 type ThemeColors = ReturnType<typeof useAppTheme>['colors'];
@@ -102,7 +102,7 @@ function TripCard({
       }}
       activeOpacity={0.7}
       accessibilityRole="button"
-      accessibilityLabel={`${originLabel} → ${destinationLabel}, ${dateTimeLabel}, ${badge.label}`}
+      accessibilityLabel={`${fullPlaceLabel(originLabel)} → ${fullPlaceLabel(destinationLabel)}, ${dateTimeLabel}, ${badge.label}`}
     >
       <View style={styles.tripCardTopRow}>
         <Text variant="label" color={theme.ink} style={styles.tripCardDate}>
@@ -119,10 +119,10 @@ function TripCard({
         </View>
         <View style={styles.timelineEntries}>
           <Text variant="body" color={theme.ink} numberOfLines={1}>
-            {originLabel}
+            {fullPlaceLabel(originLabel)}
           </Text>
           <Text variant="body" color={theme.ink} numberOfLines={1}>
-            {destinationLabel}
+            {fullPlaceLabel(destinationLabel)}
           </Text>
         </View>
       </View>
@@ -392,7 +392,7 @@ export default function TripsScreen(): React.JSX.Element {
               onPress={() => router.push({ pathname: '/driver/rides/[rideId]', params: { rideId: heroRide.id } })}
               activeOpacity={0.85}
               accessibilityRole="button"
-              accessibilityLabel={`${t('trips:manageRide')} — ${heroRide.originLabel} → ${heroRide.destinationLabel}`}
+              accessibilityLabel={`${t('trips:manageRide')} — ${fullPlaceLabel(heroRide.originLabel)} → ${fullPlaceLabel(heroRide.destinationLabel)}`}
             >
               <MapPreview
                 height={128}
@@ -406,11 +406,8 @@ export default function TripsScreen(): React.JSX.Element {
               <View style={styles.heroBody}>
                 <View style={styles.heroHeaderRow}>
                   <View style={styles.heroTitleCol}>
-                    {/* Real place labels, shortened to "locality, admin area"
-                        (utils/placeLabel.ts) — the full Google-formatted
-                        address (street, postal code, full locality, country)
-                        made a rural address wrap 4 lines here; the full
-                        version is still shown, unabbreviated, in the
+                    {/* Short "place, locality" title (utils/placeLabel.ts) —
+                        the full address, minus any Plus Code, is in the
                         timeline rows below and on the ride-detail screen. */}
                     <Text variant="h3" color={theme.ink}>
                       {`${shortenPlaceLabel(heroRide.originLabel)} → ${shortenPlaceLabel(heroRide.destinationLabel)}`}
@@ -440,8 +437,8 @@ export default function TripsScreen(): React.JSX.Element {
                       <Text variant="caption" color={theme.inkMuted}>
                         {formatTime(new Date(heroRide.departureAt), locale as SupportedLocale)}
                       </Text>
-                      <Text variant="body" color={theme.ink} numberOfLines={1}>
-                        {heroRide.originLabel}
+                      <Text variant="body" color={theme.ink} numberOfLines={2}>
+                        {fullPlaceLabel(heroRide.originLabel)}
                       </Text>
                     </View>
                     <View style={styles.timelineEntry}>
@@ -450,8 +447,8 @@ export default function TripsScreen(): React.JSX.Element {
                           {`${heroArrivalLabel} ${t('trips:estimated')}`}
                         </Text>
                       ) : null}
-                      <Text variant="body" color={theme.ink} numberOfLines={1}>
-                        {heroRide.destinationLabel}
+                      <Text variant="body" color={theme.ink} numberOfLines={2}>
+                        {fullPlaceLabel(heroRide.destinationLabel)}
                       </Text>
                     </View>
                   </View>
@@ -500,7 +497,7 @@ export default function TripsScreen(): React.JSX.Element {
                           -> Lleida on a Madrid -> Barcelona ride) must show
                           where THIS passenger actually boards/alights, not
                           the driver's full route. */}
-                      {`${riderHeroBooking.pickupLabel} → ${riderHeroBooking.dropoffLabel ?? riderHeroBooking.ride.destinationLabel}`}
+                      {`${shortenPlaceLabel(riderHeroBooking.pickupLabel)} → ${shortenPlaceLabel(riderHeroBooking.dropoffLabel ?? riderHeroBooking.ride.destinationLabel)}`}
                     </Text>
                     <Text variant="bodySmall" color={theme.inkMuted}>
                       {`${formatWhen(riderHeroBooking.ride.departureAt, t, locale)} • ${riderHeroBooking.ride.driverFullName ?? t('booking:driver')}`}
@@ -527,8 +524,8 @@ export default function TripsScreen(): React.JSX.Element {
                       <Text variant="caption" color={theme.inkMuted}>
                         {formatTime(new Date(riderHeroBooking.ride.departureAt), locale as SupportedLocale)}
                       </Text>
-                      <Text variant="body" color={theme.ink} numberOfLines={1}>
-                        {riderHeroBooking.pickupLabel}
+                      <Text variant="body" color={theme.ink} numberOfLines={2}>
+                        {fullPlaceLabel(riderHeroBooking.pickupLabel)}
                       </Text>
                     </View>
                     <View style={styles.timelineEntry}>
@@ -537,8 +534,8 @@ export default function TripsScreen(): React.JSX.Element {
                           {`${riderHeroArrivalLabel} ${t('trips:estimated')}`}
                         </Text>
                       ) : null}
-                      <Text variant="body" color={theme.ink} numberOfLines={1}>
-                        {riderHeroBooking.dropoffLabel ?? riderHeroBooking.ride.destinationLabel}
+                      <Text variant="body" color={theme.ink} numberOfLines={2}>
+                        {fullPlaceLabel(riderHeroBooking.dropoffLabel ?? riderHeroBooking.ride.destinationLabel)}
                       </Text>
                     </View>
                   </View>
