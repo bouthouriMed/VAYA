@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Platform, type StyleProp, type ViewStyle } from 'react-native';
-import MapView, { Marker, Polyline, PROVIDER_DEFAULT, type LatLng } from 'react-native-maps';
+import MapView, { Marker, PROVIDER_DEFAULT, type LatLng } from 'react-native-maps';
 import { colors, radii, spacing, typography, lightMapStyle, darkMapStyle } from '../tokens/index';
 import { regionForPoints, type LatLngPoint, type MapRegion } from '../utils/mapGeometry';
 import { ABSOLUTE_FILL_OBJECT } from '../utils/absoluteFill';
 import { SkeletonBlock } from './Skeleton';
 import { PickupPin, DropoffPin, PassengerStopPin } from './RideStopMarkers';
+import { RouteLine } from './RouteLine';
 import type { AppPalette } from '../theme/palette';
 import { useAppTheme } from '../theme/AppThemeProvider';
 
@@ -118,25 +119,21 @@ export function MapPreview({
         userInterfaceStyle={isDark ? 'dark' : 'light'}
         mapType={Platform.OS === 'ios' ? 'mutedStandard' : 'standard'}
       >
-        {showOccupancySegments
-          ? occupancySegments!.map((segment, i) => (
-              <Polyline
-                key={`occupancy-${i}`}
-                coordinates={segment.coordinates}
-                strokeColor={
-                  segment.onboardSeats === 0
-                    ? theme.outline
-                    : segment.onboardSeats === 1
-                      ? theme.accent
-                      : theme.accentStrong
-                }
-                strokeWidth={segment.onboardSeats >= 2 ? 5 : segment.onboardSeats === 1 ? 4 : 3}
-                lineDashPattern={segment.onboardSeats === 0 ? [6, 6] : undefined}
-              />
-            ))
-          : routeCoordinates && routeCoordinates.length > 1
-            ? <Polyline coordinates={routeCoordinates} strokeColor={theme.ink} strokeWidth={3} />
-            : null}
+        {/* Casing follows the whole route when given, else the joined
+         *  occupancy legs (a caller may pass only the legs). */}
+        <RouteLine
+          coordinates={
+            routeCoordinates && routeCoordinates.length > 1
+              ? routeCoordinates
+              : (occupancySegments ?? []).flatMap((s) => s.coordinates)
+          }
+          segments={
+            showOccupancySegments
+              ? occupancySegments!.map((s) => ({ coordinates: s.coordinates, emphasis: s.onboardSeats }))
+              : undefined
+          }
+          theme={theme}
+        />
         {showPremiumPins && pickup && dropoff ? (
           <>
             <Marker coordinate={pickup} anchor={{ x: 0.5, y: 0.5 }}>

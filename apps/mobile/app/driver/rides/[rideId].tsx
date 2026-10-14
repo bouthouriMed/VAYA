@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { View, StyleSheet, ScrollView, TouchableOpacity, Modal, Linking } from 'react-native';
-import { Marker, Polyline } from 'react-native-maps';
+import { Marker } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -26,6 +26,8 @@ import {
   haptics,
   regionForPoints,
   elevation,
+  RouteLine,
+  RouteEndpointPin,
 } from '@vaya/design-system';
 import {
   useGetRideQuery,
@@ -54,7 +56,7 @@ import { buildItineraryThread, type ItineraryStopEvent } from '../../../src/feat
 import { PassengerItineraryThread } from '../../../src/features/driver-rides/PassengerItineraryThread';
 import { formatTime, formatRelativeTime, toIntlTag } from '../../../src/utils/localeFormat';
 import { fullPlaceLabel, shortenPlaceLabel } from '../../../src/utils/placeLabel';
-import { buildGoogleMapsDirectionsUrl } from '../../../src/features/driver-rides/googleMapsLink';
+import { buildGoogleMapsDirectionsUrl } from '../../../src/utils/googleMapsLink';
 import { bookingStatusDisplay } from '../../../src/features/status/statusDisplay';
 
 const TRACKABLE_TRIP_STATUSES: readonly TripStatus[] = ['driver_approaching', 'pickup', 'active', 'arriving'];
@@ -70,38 +72,7 @@ const AUTO_START_BROADCAST_LEAD_MINUTES = 30;
 const MAX_STACKED_AVATARS = 4;
 const STACKED_AVATAR_PX = 28;
 const AVATAR_OVERLAP_PX = 8;
-// Fullscreen route line: accent core over a wider light casing.
-const ROUTE_CORE_WIDTH = 6;
-const ROUTE_CASING_WIDTH = 11;
 
-/** Departure/arrival badge on the fullscreen route — the same car/flag
- *  marks the itinerary list uses, so map and list read as one thing. */
-function RouteEndpointMarker({
-  kind,
-  theme,
-  size = 32,
-}: {
-  kind: 'origin' | 'destination';
-  theme: ReturnType<typeof useAppTheme>['colors'];
-  size?: number;
-}): React.JSX.Element {
-  return (
-    <View
-      style={[
-        styles.routeEndpointMarker,
-        {
-          width: size,
-          height: size,
-          borderRadius: size / 2,
-          backgroundColor: kind === 'origin' ? theme.accentStrong : theme.ink,
-          borderColor: theme.surface,
-        },
-      ]}
-    >
-      <Icon name={kind === 'origin' ? 'car' : 'flag'} size="xs" color={kind === 'origin' ? theme.onAccent : theme.onInk} />
-    </View>
-  );
-}
 const TRIP_STATUS_LABEL_KEY: Partial<Record<TripStatus, string>> = {
   driver_approaching: 'rides.rideDetail.tripStatus.driverApproaching',
   pickup: 'rides.rideDetail.tripStatus.pickup',
@@ -1017,33 +988,13 @@ export default function DriverRideHubScreen(): React.JSX.Element {
              *  when the geometry itself is approximate. (Empty legs used to
              *  be a thin dashed outline-grey line: on a ride with no
              *  passengers yet, the whole route nearly vanished.) */}
-            {routeCoordinates.length > 1 ? (
-              <Polyline
-                coordinates={routeCoordinates}
-                strokeColor={theme.surface}
-                strokeWidth={ROUTE_CASING_WIDTH}
-                lineCap="round"
-                lineJoin="round"
-                zIndex={1}
-              />
-            ) : null}
-            {(occupancySegments && occupancySegments.length > 0
-              ? occupancySegments
-              : routeCoordinates.length > 1
-                ? [{ coordinates: routeCoordinates, onboardSeats: 0 }]
-                : []
-            ).map((segment, i) => (
-              <Polyline
-                key={`route-${i}`}
-                coordinates={segment.coordinates}
-                strokeColor={segment.onboardSeats >= 1 ? theme.accentStrong : theme.accent}
-                strokeWidth={segment.onboardSeats >= 2 ? 8 : segment.onboardSeats === 1 ? 7 : ROUTE_CORE_WIDTH}
-                lineDashPattern={itineraryLine.isApproximate ? [10, 8] : undefined}
-                lineCap="round"
-                lineJoin="round"
-                zIndex={2}
-              />
-            ))}
+            <RouteLine
+              coordinates={routeCoordinates}
+              segments={occupancySegments?.map((s) => ({ coordinates: s.coordinates, emphasis: s.onboardSeats }))}
+              size="full"
+              dashed={itineraryLine.isApproximate}
+              theme={theme}
+            />
             <Marker
               coordinate={
                 pickupStop
@@ -1053,7 +1004,7 @@ export default function DriverRideHubScreen(): React.JSX.Element {
               anchor={{ x: 0.5, y: 0.5 }}
               zIndex={20}
             >
-              {pickupStop ? <PickupPin theme={theme} /> : <RouteEndpointMarker kind="origin" theme={theme} />}
+              {pickupStop ? <PickupPin theme={theme} /> : <RouteEndpointPin kind="start" theme={theme} />}
             </Marker>
             {intermediateStops.map((stop) => (
               <Marker
@@ -1083,7 +1034,7 @@ export default function DriverRideHubScreen(): React.JSX.Element {
               anchor={{ x: 0.5, y: 0.5 }}
               zIndex={20}
             >
-              {dropoffStop ? <DropoffPin theme={theme} /> : <RouteEndpointMarker kind="destination" theme={theme} />}
+              {dropoffStop ? <DropoffPin theme={theme} /> : <RouteEndpointPin kind="end" theme={theme} />}
             </Marker>
           </MapCanvas>
           {/* What the map shows, in words — and the way out to turn-by-turn
@@ -1095,7 +1046,7 @@ export default function DriverRideHubScreen(): React.JSX.Element {
             ]}
           >
             <View style={styles.routeSummaryRow}>
-              <RouteEndpointMarker kind="origin" theme={theme} size={24} />
+              <RouteEndpointPin kind="start" theme={theme} size={24} />
               <Text variant="bodySmall" color={theme.inkMuted} style={styles.routeSummaryTime}>
                 {formatTime(new Date(ride.departureAt), locale)}
               </Text>
@@ -1104,7 +1055,7 @@ export default function DriverRideHubScreen(): React.JSX.Element {
               </Text>
             </View>
             <View style={styles.routeSummaryRow}>
-              <RouteEndpointMarker kind="destination" theme={theme} size={24} />
+              <RouteEndpointPin kind="end" theme={theme} size={24} />
               <Text variant="bodySmall" color={theme.inkMuted} style={styles.routeSummaryTime}>
                 {arrivalLabel ?? '—'}
               </Text>
@@ -1232,12 +1183,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 6,
     elevation: 3,
-  },
-  routeEndpointMarker: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 3,
-    ...elevation.md,
   },
   routeSummaryCard: {
     position: 'absolute',

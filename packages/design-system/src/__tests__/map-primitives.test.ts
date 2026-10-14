@@ -90,7 +90,11 @@ describe('MapPreview occupancy segments (driver ride-hub itinerary thread)', () 
   const B = { latitude: 36.82, longitude: 10.2 };
   const C = { latitude: 36.84, longitude: 10.22 };
 
-  it('colors each leg by onboard seats: dashed/outline when empty, accent for one, accentStrong for two+', () => {
+  // Routes are drawn by RouteLine: a light casing first, then one solid
+  // core per leg. An empty leg stays a solid accent line — it used to be a
+  // thin dashed outline-grey line that vanished into the map on a ride with
+  // no passengers yet.
+  it('draws each leg solid, heavier and stronger as passengers board, over one casing', () => {
     const tree = renderJSON(
       createElement(MapPreview, {
         theme: lightPalette,
@@ -102,36 +106,38 @@ describe('MapPreview occupancy segments (driver ride-hub itinerary thread)', () 
       }),
     );
 
-    const polylines = findAllByType(tree as JsonNode, 'Polyline');
-    expect(polylines).toHaveLength(3);
+    const [casing, empty, one, two] = findAllByType(tree as JsonNode, 'Polyline');
+    expect(casing!.props.strokeColor).toBe(lightPalette.surface);
+    expect(casing!.props.coordinates).toEqual([A, B, B, C, C, A]);
 
-    expect(polylines[0]!.props.strokeColor).toBe(lightPalette.outline);
-    expect(polylines[0]!.props.lineDashPattern).toEqual([6, 6]);
+    expect(empty!.props.strokeColor).toBe(lightPalette.accent);
+    expect(empty!.props.lineDashPattern).toBeUndefined();
 
-    expect(polylines[1]!.props.strokeColor).toBe(lightPalette.accent);
-    expect(polylines[1]!.props.lineDashPattern).toBeUndefined();
-
-    expect(polylines[2]!.props.strokeColor).toBe(lightPalette.accentStrong);
-    expect(polylines[2]!.props.strokeWidth).toBeGreaterThan(polylines[1]!.props.strokeWidth as number);
+    expect(one!.props.strokeColor).toBe(lightPalette.accentStrong);
+    expect(two!.props.strokeColor).toBe(lightPalette.accentStrong);
+    expect(two!.props.strokeWidth as number).toBeGreaterThan(one!.props.strokeWidth as number);
+    expect(one!.props.strokeWidth as number).toBeGreaterThan(empty!.props.strokeWidth as number);
   });
 
-  it('falls back to a single flat routeCoordinates polyline when no occupancySegments are given', () => {
+  it('draws the whole route as one core over its casing when no occupancySegments are given', () => {
     const tree = renderJSON(createElement(MapPreview, { routeCoordinates: [A, B, C] }));
     const polylines = findAllByType(tree as JsonNode, 'Polyline');
-    expect(polylines).toHaveLength(1);
+    expect(polylines).toHaveLength(2);
     expect(polylines[0]!.props.coordinates).toEqual([A, B, C]);
+    expect(polylines[1]!.props.coordinates).toEqual([A, B, C]);
+    expect(polylines[1]!.props.strokeColor).toBe(lightPalette.accent);
   });
 
-  it('colors occupancy segments from the context theme when no theme prop is given', () => {
+  it('colors the route from the context theme when no theme prop is given', () => {
     const tree = renderJSON(
       createElement(MapPreview, {
         routeCoordinates: [A, B, C],
         occupancySegments: [{ coordinates: [A, B], onboardSeats: 1 }],
       }),
     );
-    const polylines = findAllByType(tree as JsonNode, 'Polyline');
-    expect(polylines).toHaveLength(1);
-    expect(polylines[0]!.props.coordinates).toEqual([A, B]);
-    expect(polylines[0]!.props.strokeColor).toBe(lightPalette.accent);
+    const [casing, core] = findAllByType(tree as JsonNode, 'Polyline');
+    expect(casing!.props.coordinates).toEqual([A, B, C]);
+    expect(core!.props.coordinates).toEqual([A, B]);
+    expect(core!.props.strokeColor).toBe(lightPalette.accentStrong);
   });
 });

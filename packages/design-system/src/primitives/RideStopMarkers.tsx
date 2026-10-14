@@ -170,3 +170,52 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
 });
+
+/**
+ * RouteEndpointPin: where a ride (or a passenger's leg of it) starts and
+ * ends, as a car (start) and a flag (end) badge — the same marks the
+ * itinerary lists use, so a map and the list beside it read as one thing.
+ * Larger than PickupPin/DropoffPin because it anchors a whole route line.
+ * A visual glyph like the pins above; the wrapping Marker or row owns the
+ * accessibility label.
+ */
+export function RouteEndpointPin({
+  kind,
+  theme,
+  size = 32,
+}: {
+  kind: 'start' | 'end';
+  theme: AppPalette;
+  size?: number;
+}): React.JSX.Element {
+  const isStart = kind === 'start';
+  return (
+    <View
+      style={[
+        endpointStyles.body,
+        {
+          width: size,
+          height: size,
+          borderRadius: size / 2,
+          borderWidth: size >= 28 ? 3 : 2,
+          backgroundColor: isStart ? theme.accentStrong : theme.ink,
+          borderColor: theme.surface,
+        },
+      ]}
+    >
+      <Icon name={isStart ? 'car' : 'flag'} size="xs" color={isStart ? theme.onAccent : theme.onInk} />
+    </View>
+  );
+}
+
+const endpointStyles = StyleSheet.create({
+  body: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+});

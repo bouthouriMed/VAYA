@@ -22,12 +22,15 @@ export function buildGoogleMapsDirectionsUrl({
   origin,
   destination,
   waypoints = [],
+  travelMode = 'driving',
 }: {
   origin?: MapsPoint;
   destination: MapsPoint;
   waypoints?: readonly MapsPoint[];
+  /** 'walking' for a passenger heading to a meeting point. */
+  travelMode?: 'driving' | 'walking';
 }): string {
-  const params = new URLSearchParams({ api: '1', destination: coord(destination), travelmode: 'driving' });
+  const params = new URLSearchParams({ api: '1', destination: coord(destination), travelmode: travelMode });
   if (origin) params.set('origin', coord(origin));
   const kept = waypoints.slice(0, MAX_MAPS_WAYPOINTS);
   if (kept.length > 0) params.set('waypoints', kept.map(coord).join('|'));

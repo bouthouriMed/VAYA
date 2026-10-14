@@ -366,8 +366,30 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
                   },
                 ]
               }
-              strokeColor="#14201B"
-              strokeWidth={3}
+              lineCap="round"
+              lineJoin="round"
+              strokeColor="#F7F9F5"
+              strokeWidth={7}
+              zIndex={1}
+            />
+            <Polyline
+              coordinates={
+                [
+                  {
+                    "latitude": 36.842,
+                    "longitude": 10.18,
+                  },
+                  {
+                    "latitude": 36.4,
+                    "longitude": 10.6,
+                  },
+                ]
+              }
+              lineCap="round"
+              lineJoin="round"
+              strokeColor="#2E9E6C"
+              strokeWidth={4}
+              zIndex={2}
             />
             <Marker
               anchor={
@@ -1666,6 +1688,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
             onMapReady={[Function]}
             provider="google"
             style={{}}
+            userInterfaceStyle="light"
           >
             <Polyline
               coordinates={

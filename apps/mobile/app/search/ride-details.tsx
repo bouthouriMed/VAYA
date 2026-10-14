@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, ScrollView, Modal } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, ScrollView, Modal, Linking } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Marker, Polyline } from 'react-native-maps';
+import { Marker } from 'react-native-maps';
 import { skipToken } from '@reduxjs/toolkit/query/react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -22,6 +22,9 @@ import {
   HeaderIconButton,
   StateView,
   Button,
+  RouteLine,
+  elevation,
+  useToast,
 } from '@vaya/design-system';
 import { router, useLocalSearchParams } from 'expo-router';
 import type { SupportedLocale } from '@vaya/config';
@@ -44,7 +47,9 @@ import { useContextualAuth } from '../../src/features/auth/useContextualAuth';
 import { ContextualAuthSheet } from '../../src/features/auth/ContextualAuthSheet';
 import { ContactPhoneSheet } from '../../src/features/contact-phone/ContactPhoneSheet';
 import { useContactPhonePrompt } from '../../src/features/contact-phone/useContactPhonePrompt';
-import { formatDate, formatTime } from '../../src/utils/localeFormat';
+import { formatCurrency, formatDate, formatTime } from '../../src/utils/localeFormat';
+import { fullPlaceLabel, shortenPlaceLabel } from '../../src/utils/placeLabel';
+import { buildGoogleMapsDirectionsUrl } from '../../src/utils/googleMapsLink';
 import { accessAmount } from '../../src/features/search/passengerAccess';
 import { formatDurationLabel } from '../../src/utils/durationLabel';
 import { resolvePassengerSegmentPoints } from '../../src/features/search/passengerSegment';
@@ -119,6 +124,7 @@ export default function RideDetailsScreen(): React.JSX.Element {
   const accessToken = useAppSelector((s) => s.auth.accessToken);
   const [bookingError, setBookingError] = useState<string | undefined>();
   const [routeModalOpen, setRouteModalOpen] = useState(false);
+  const showToast = useToast();
 
   const { data: ride, isLoading: isRideLoading, isError: isRideError, refetch: refetchRide } = useGetRideQuery(rideId);
   const {
@@ -483,6 +489,50 @@ export default function RideDetailsScreen(): React.JSX.Element {
       ? new Date(departureDate.getTime() + ride.estimatedDurationSec * 1000)
       : undefined;
 
+  const dayTitle = isSameDay(departureDate, now)
+    ? t('common:time.today')
+    : isSameDay(departureDate, addDays(now, 1))
+      ? t('common:time.tomorrow')
+      : (() => {
+          const l = formatDate(departureDate, locale, { weekday: 'long' });
+          return l.charAt(0).toUpperCase() + l.slice(1);
+        })();
+  const pickupPoint = {
+    lat: pickupStop?.lat ?? segmentOrigin?.lat ?? ride.originLat,
+    lng: pickupStop?.lng ?? segmentOrigin?.lng ?? ride.originLng,
+  };
+  const dropoffPoint = { lat: dropoffLat ?? ride.destinationLat, lng: dropoffLng ?? ride.destinationLng };
+  const pickupPlace = pickupLabel ?? ride.originLabel;
+  const dropoffPlace = dropoffLabel ?? ride.destinationLabel;
+  // Frame the real road geometry of this passenger's leg, not just its two
+  // ends — a curving route used to run off the edge of the preview.
+  const legRegion =
+    regionForPoints([
+      ...segmentCoordinates.map((c) => ({ lat: c.latitude, lng: c.longitude })),
+      pickupPoint,
+      dropoffPoint,
+    ]) ?? routeRegion;
+
+  function openInMaps(url: string): void {
+    Linking.openURL(url).catch(() => showToast({ message: t('search:details.mapsUnavailable'), tone: 'error' }));
+  }
+
+  const legMarkers = (
+    <>
+      <Marker coordinate={{ latitude: pickupPoint.lat, longitude: pickupPoint.lng }} anchor={{ x: 0.5, y: 0.5 }} zIndex={20}>
+        <PickupPin theme={theme} />
+      </Marker>
+      {intermediateStops.map((stop) => (
+        <Marker key={stop.id} coordinate={{ latitude: stop.lat, longitude: stop.lng }} anchor={{ x: 0.5, y: 0.5 }} zIndex={10}>
+          <View style={[styles.stopDot, { backgroundColor: theme.surface, borderColor: theme.accentStrong }]} />
+        </Marker>
+      ))}
+      <Marker coordinate={{ latitude: dropoffPoint.lat, longitude: dropoffPoint.lng }} anchor={{ x: 0.5, y: 0.5 }} zIndex={20}>
+        <DropoffPin theme={theme} />
+      </Marker>
+    </>
+  );
+
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       <ScreenHeader
@@ -493,262 +543,196 @@ export default function RideDetailsScreen(): React.JSX.Element {
       />
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <View style={styles.summaryRow}>
-          <View>
-            <Text variant="h2" color={theme.ink}>
-              {isSameDay(departureDate, now)
-                ? t('common:time.today')
-                : isSameDay(departureDate, addDays(now, 1))
-                  ? t('common:time.tomorrow')
-                  : (() => {
-                      const l = formatDate(departureDate, locale, { weekday: 'long' });
-                      return l.charAt(0).toUpperCase() + l.slice(1);
-                    })()}
-            </Text>
-            <Text variant="bodySmall" color={theme.inkFaint}>
-              {fullDateLabel(departureDate, locale)}
-            </Text>
-          </View>
-          <View style={styles.summaryPriceCol}>
-            <Text variant="h2" color={theme.ink}>
-              {ride.contributionPerSeat}
-              <Text variant="label" color={theme.inkFaint}>
-                {' '}
-                DT
-              </Text>
-            </Text>
-            <Text variant="bodySmall" color={theme.inkFaint}>
-              {t('search:details.seatsAvailable', { count: ride.seatsAvailable })}
-            </Text>
-          </View>
-        </View>
-
-        <View style={styles.mapCard}>
-          <MapCanvas region={routeRegion} height={160} style={styles.mapCanvas}>
-            {segmentCoordinates.length > 1 ? (
-              <Polyline coordinates={segmentCoordinates} strokeColor={theme.ink} strokeWidth={4} />
-            ) : null}
-            {/* The real pickup point when one is resolved (a driver-
-             *  confirmed route_stop) — the premium PickupPin, same as
-             *  everywhere else this concept renders. Falls back to a plain
-             *  origin dot only when no real stop exists yet. */}
-            {pickupStop ? (
-              <Marker
-                coordinate={{ latitude: pickupStop.lat, longitude: pickupStop.lng }}
-                anchor={{ x: 0.5, y: 0.5 }}
-              >
-                <PickupPin theme={theme} />
-              </Marker>
-            ) : (
-              <Marker
-                coordinate={{
-                  latitude: segmentOrigin?.lat ?? ride.originLat,
-                  longitude: segmentOrigin?.lng ?? ride.originLng,
-                }}
-                anchor={{ x: 0.5, y: 0.5 }}
-              >
-                <View style={[styles.originDot, { backgroundColor: theme.accent, borderColor: theme.surface }]} />
-              </Marker>
-            )}
-            {/* Genuine pass-through waypoints only — pickup/dropoff get
-             *  their own dedicated pins below, not this neutral dot. */}
-            {intermediateStops.map((stop) => (
-              <Marker
-                key={stop.id}
-                coordinate={{ latitude: stop.lat, longitude: stop.lng }}
-                anchor={{ x: 0.5, y: 0.5 }}
-              >
-                <View style={[styles.stopDot, { backgroundColor: theme.surface, borderColor: theme.ink }]} />
-              </Marker>
-            ))}
-            <Marker
-              coordinate={{ latitude: dropoffLat ?? ride.destinationLat, longitude: dropoffLng ?? ride.destinationLng }}
-              anchor={{ x: 0.5, y: 0.5 }}
-            >
-              {dropoffStop || selectedDropoffStop ? (
-                <DropoffPin theme={theme} />
-              ) : (
-                <View style={[styles.destDot, { backgroundColor: theme.ink, borderColor: theme.surface }]} />
-              )}
-            </Marker>
+        {/* The passenger's own leg, drawn with the shared RouteLine so it
+         *  reads on any terrain (it was a thin ink line on a dark map). */}
+        <View style={styles.mapWrap}>
+          <MapCanvas region={legRegion} height={MAP_HEIGHT} tint={false}>
+            <RouteLine coordinates={segmentCoordinates} theme={theme} />
+            {legMarkers}
           </MapCanvas>
-
           {segmentDurationSec ? (
-            <View style={[styles.mapValuesBadge, { backgroundColor: theme.surface }]}>
-              <Text variant="caption" color={theme.ink} style={styles.mapValuesText}>
-                ~{durationLabel(segmentDurationSec, t)}
+            <View style={[styles.mapChip, { backgroundColor: theme.surface }]}>
+              <Icon name="time-outline" size="xs" color={theme.ink} />
+              <Text variant="caption" color={theme.ink} style={styles.mapChipText}>
                 {segmentDistanceKm > 0
-                  ? ` · ${t('common:terms.km', { count: Math.round(segmentDistanceKm) })}`
-                  : ''}
+                  ? t('search:details.legSummary', {
+                      duration: durationLabel(segmentDurationSec, t),
+                      distance: t('common:terms.km', { count: Math.round(segmentDistanceKm) }),
+                    })
+                  : durationLabel(segmentDurationSec, t)}
               </Text>
             </View>
           ) : null}
-
           <TouchableOpacity
-            style={[styles.viewRouteBtn, { backgroundColor: theme.surface }]}
+            style={[styles.mapExpand, { backgroundColor: theme.surface }]}
             onPress={() => setRouteModalOpen(true)}
             activeOpacity={0.85}
+            hitSlop={6}
             accessibilityRole="button"
             accessibilityLabel={t('search:details.viewRouteFullscreen')}
           >
-            <Icon name="expand-outline" size="xs" color={theme.ink} />
-            <Text variant="caption" color={theme.ink}>
-              {t('search:details.viewRouteFullscreen')}
-            </Text>
+            <Icon name="expand-outline" size="sm" color={theme.ink} />
           </TouchableOpacity>
         </View>
 
-        <View style={[styles.timeline, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
-          <View style={styles.timelineRow}>
-            <View style={styles.timelineMarkerCol}>
-              <View style={[styles.timelineDot, styles.timelineDotOpen, { borderColor: theme.ink }]} />
-              <View style={[styles.timelineLine, { backgroundColor: theme.outlineVariant }]} />
-            </View>
-            <View style={styles.timelineTextCol}>
-              <View style={styles.timelineRoleRow}>
-                <Text variant="label" color={theme.ink}>
-                  {formatTime(pickupTime, locale)}
+        {/* The ticket: the journey on top, who drives below the
+         *  perforation — one object to read, not four identical boxes. */}
+        <View style={[styles.ticket, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
+          <View style={styles.ticketTop}>
+            <View style={styles.ticketHeader}>
+              <View style={styles.ticketHeaderLeft}>
+                <Text variant="headlineDisplay" color={theme.ink}>
+                  {dayTitle}
                 </Text>
-                <Text variant="caption" color={theme.inkFaint}>
-                  {t('common:terms.pickup')}
+                <Text variant="bodySmall" color={theme.inkMuted}>
+                  {fullDateLabel(departureDate, locale)}
                 </Text>
               </View>
-              <Text variant="body" color={theme.ink}>
-                {pickupLabel ?? ride.originLabel}
-              </Text>
-              {pickupWalkMeters !== undefined && pickupWalkMeters > 0 ? (
-                <Text variant="caption" color={theme.inkFaint}>
-                  {t('search:details.walkToMeetingPoint', {
-                    minutes: accessAmount(t, pickupWalkMeters, locale),
-                  })}
+              <View style={styles.ticketHeaderRight}>
+                <Text variant="headlineDisplay" color={theme.ink}>
+                  {formatCurrency(ride.contributionPerSeat, locale)}
                 </Text>
-              ) : null}
-            </View>
-          </View>
-
-          {intermediateStops.map((stop) => (
-            <View key={stop.id} style={styles.timelineRow}>
-              <View style={styles.timelineMarkerCol}>
-                <View style={[styles.timelineDot, styles.timelineDotStop, { borderColor: theme.outline }]} />
-                <View style={[styles.timelineLine, { backgroundColor: theme.outlineVariant }]} />
-              </View>
-              <View style={styles.timelineTextCol}>
-                <Text variant="body" color={theme.inkMuted}>
-                  {stop.label}
-                </Text>
-                <Text variant="caption" color={theme.inkFaint}>
-                  {t('search:details.briefStop')}
+                <Text variant="bodySmall" color={theme.inkMuted}>
+                  {t('search:details.perSeat')}
                 </Text>
               </View>
             </View>
-          ))}
 
-          <View style={[styles.timelineRow, styles.timelineRowLast]}>
-            <View style={styles.timelineMarkerCol}>
-              <View style={[styles.timelineDot, styles.timelineDotFilled, { backgroundColor: theme.ink }]} />
-            </View>
-            <View style={styles.timelineTextCol}>
-              <View style={styles.timelineRoleRow}>
-                {dropoffTime ? (
-                  <Text variant="label" color={theme.ink}>
-                    {formatTime(dropoffTime, locale)}
-                  </Text>
-                ) : null}
-                <Text variant="caption" color={theme.inkFaint}>
-                  {t('common:terms.dropoff')}
-                </Text>
-              </View>
-              <Text variant="body" color={theme.ink}>
-                {dropoffLabel ?? ride.destinationLabel}
-              </Text>
-            </View>
-          </View>
-        </View>
-
-        <TouchableOpacity
-          style={[styles.driverCard, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}
-          onPress={() => router.push({ pathname: '/search/trust', params: { rideId, driverUserId } })}
-          activeOpacity={0.8}
-          accessibilityRole="button"
-          accessibilityLabel={t('search:details.viewDriverProfile', { name: firstName })}
-        >
-          <Avatar
-            uri={profile.avatarUrl}
-            name={profile.fullName}
-            size="md"
-          />
-          <View style={styles.driverTextCol}>
-            <View style={styles.driverNameRow}>
-              <Text variant="label" color={theme.ink}>
-                {firstName}
-              </Text>
-              {driverStats ? <Icon name="checkmark-circle" size="xs" color={theme.accent} /> : null}
-            </View>
-            {driverStats ? (
-              <View style={styles.driverStatsRow}>
-                <Icon name="star" size="xs" color={theme.accent} />
-                <Text variant="caption" color={theme.inkMuted}>
-                  {driverStats.ratingAvg.toFixed(1)} · {t('common:terms.tripCount', { count: driverStats.tripCount })}
-                </Text>
-              </View>
-            ) : null}
-          </View>
-          <Icon name="chevron-forward" size="sm" color={theme.inkFaint} />
-        </TouchableOpacity>
-
-        {driverStats?.vehicle ? (
-          <View style={[styles.vehicleCard, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
-            <View style={[styles.vehicleIconWrap, { backgroundColor: theme.background, borderColor: theme.outlineVariant }]}>
-              <Icon name="car-sport" size="md" color={theme.inkFaint} />
-            </View>
-            <View>
-              <Text variant="label" color={theme.ink}>
-                {t('common:terms.vehicle')}
-              </Text>
-              <Text variant="bodySmall" color={theme.inkMuted}>
-                {driverStats.vehicle.make} {driverStats.vehicle.model} · {driverStats.vehicle.color}
-              </Text>
-            </View>
-          </View>
-        ) : null}
-
-        {passengers && passengers.length > 0 ? (
-          <View style={styles.passengersSection}>
-            <Text variant="caption" color={theme.inkFaint} style={styles.passengersTitle}>
-              {t('search:details.passengersHeader', { booked: bookedSeats, total: ride.seatsTotal })}
-            </Text>
-            <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
-              {passengers.map((passenger, i) => (
-                <View
-                  key={passenger.userId}
-                  style={[styles.passengerRow, i > 0 && { borderTopColor: theme.outlineVariant, borderTopWidth: 1 }]}
-                >
-                  {/* Deliberately not a profile link, unlike the driver
-                   *  avatar above: `useListFellowPassengersQuery`'s own doc
-                   *  comment (state/api.ts) is explicit that a fellow
-                   *  passenger's identity here is "public, first-name-only
-                   *  ... never a full identity" — a real backend privacy
-                   *  boundary, not just a UI choice. `GET /users/:id/
-                   *  public-profile` always returns a full legal name, so
-                   *  wiring this avatar to trust.tsx would leak exactly
-                   *  what that endpoint deliberately withholds. */}
-                  <Avatar
-                    uri={passenger.avatarUrl}
-                    name={passenger.firstName}
-                    size="sm"
-                  />
-                  <Text variant="body" color={theme.ink} style={styles.passengerName}>
-                    {passenger.firstName}
-                  </Text>
-                  <Icon name="star" size="xs" color={theme.accent} />
-                  <Text variant="bodySmall" color={theme.inkMuted}>
-                    {passenger.ratingAvg.toFixed(1)}
-                  </Text>
+            <View style={styles.journey}>
+              <JourneyStop
+                time={formatTime(pickupTime, locale)}
+                title={shortenPlaceLabel(pickupPlace)}
+                address={fullPlaceLabel(pickupPlace)}
+                note={
+                  pickupWalkMeters !== undefined && pickupWalkMeters > 0
+                    ? t('search:details.walkToMeetingPoint', { minutes: accessAmount(t, pickupWalkMeters, locale) })
+                    : undefined
+                }
+                kind="pickup"
+                theme={theme}
+                mapsLabel={t('search:details.mapsToPickup')}
+                onOpenMaps={() =>
+                  openInMaps(buildGoogleMapsDirectionsUrl({ destination: pickupPoint, travelMode: 'walking' }))
+                }
+              />
+              {intermediateStops.map((stop) => (
+                <View key={stop.id} style={styles.journeyRow}>
+                  <View style={styles.timeCol} />
+                  <View style={styles.railCol}>
+                    <View style={[styles.railLine, styles.railLineShort, { backgroundColor: theme.accent }]} />
+                    <View style={[styles.railStopDot, { backgroundColor: theme.surface, borderColor: theme.accentStrong }]} />
+                    <View style={[styles.railLine, styles.railLineShort, { backgroundColor: theme.accent }]} />
+                  </View>
+                  <View style={styles.passThroughRow}>
+                    <Text variant="bodySmall" color={theme.inkMuted} numberOfLines={1} style={styles.passThroughName}>
+                      {shortenPlaceLabel(stop.label)}
+                    </Text>
+                    <Text variant="caption" color={theme.inkFaint}>
+                      {t('search:details.briefStop')}
+                    </Text>
+                  </View>
                 </View>
               ))}
+              <JourneyStop
+                time={dropoffTime ? formatTime(dropoffTime, locale) : undefined}
+                title={shortenPlaceLabel(dropoffPlace)}
+                address={fullPlaceLabel(dropoffPlace)}
+                kind="dropoff"
+                theme={theme}
+                mapsLabel={t('search:details.mapsYourRide')}
+                onOpenMaps={() =>
+                  openInMaps(
+                    buildGoogleMapsDirectionsUrl({
+                      origin: pickupPoint,
+                      destination: dropoffPoint,
+                      waypoints: intermediateStops.map((s) => ({ lat: s.lat, lng: s.lng })),
+                    }),
+                  )
+                }
+              />
             </View>
           </View>
-        ) : null}
+
+          <Perforation theme={theme} />
+
+          <TouchableOpacity
+            style={styles.driverRow}
+            onPress={() => router.push({ pathname: '/search/trust', params: { rideId, driverUserId } })}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={t('search:details.viewDriverProfile', { name: firstName })}
+          >
+            <View>
+              <Avatar uri={profile.avatarUrl} name={profile.fullName} sizePx={DRIVER_AVATAR_PX} />
+              {driverStats ? (
+                <View style={[styles.verifiedBadge, { backgroundColor: theme.accentStrong, borderColor: theme.surface }]}>
+                  <Icon name="checkmark" size="xs" color={theme.onAccent} />
+                </View>
+              ) : null}
+            </View>
+            <View style={styles.driverText}>
+              <Text variant="label" color={theme.ink} style={styles.driverName}>
+                {firstName}
+              </Text>
+              {driverStats ? (
+                <View style={styles.inlineRow}>
+                  {driverStats.tripCount > 0 ? (
+                    <>
+                      <Icon name="star" size="xs" color={theme.accentStrong} />
+                      <Text variant="bodySmall" color={theme.ink}>
+                        {driverStats.ratingAvg.toFixed(1)}
+                      </Text>
+                      <Text variant="bodySmall" color={theme.inkMuted}>
+                        {t('common:terms.tripCount', { count: driverStats.tripCount })}
+                      </Text>
+                    </>
+                  ) : (
+                    <>
+                      <Icon name="sparkles-outline" size="xs" color={theme.accentStrong} />
+                      <Text variant="bodySmall" color={theme.inkMuted}>
+                        {t('search:details.newDriver')}
+                      </Text>
+                    </>
+                  )}
+                </View>
+              ) : null}
+              {driverStats?.vehicle ? (
+                <View style={styles.inlineRow}>
+                  <Icon name="car-sport-outline" size="xs" color={theme.inkMuted} />
+                  <Text variant="bodySmall" color={theme.inkMuted} numberOfLines={1}>
+                    {t('search:details.vehicleLine', {
+                      model: `${driverStats.vehicle.make} ${driverStats.vehicle.model}`,
+                      color: driverStats.vehicle.color,
+                    })}
+                  </Text>
+                </View>
+              ) : null}
+            </View>
+            <Icon name="chevron-forward" size="sm" color={theme.inkFaint} />
+          </TouchableOpacity>
+        </View>
+
+        {/* Who's in the car, as the car's seats: taken ones show who took
+         *  them, free ones are open — availability at a glance, and a
+         *  different shape from the driver above. */}
+        <View style={styles.seatsSection}>
+          <View style={styles.seatsHeader}>
+            <Text variant="label" color={theme.ink}>
+              {t('search:details.travellingWith')}
+            </Text>
+            <Text variant="bodySmall" color={theme.inkMuted}>
+              {t('search:details.seatsTaken', { count: bookedSeats, total: ride.seatsTotal })}
+            </Text>
+          </View>
+          <SeatRow
+            seatsTotal={ride.seatsTotal}
+            bookedSeats={bookedSeats}
+            passengers={passengers ?? []}
+            freeLabel={t('search:details.freeSeat')}
+            takenLabel={t('search:details.takenSeat')}
+            theme={theme}
+          />
+        </View>
 
         <View style={styles.scrollSpacer} />
       </ScrollView>
@@ -786,49 +770,30 @@ export default function RideDetailsScreen(): React.JSX.Element {
         onRequestClose={() => setRouteModalOpen(false)}
       >
         <View style={[styles.routeModal, { backgroundColor: theme.background }]}>
-          <MapCanvas region={routeRegion} style={styles.routeModalMap}>
-            <Marker
-              coordinate={
-                pickupStop
-                  ? { latitude: pickupStop.lat, longitude: pickupStop.lng }
-                  : { latitude: ride.originLat, longitude: ride.originLng }
-              }
-              anchor={{ x: 0.5, y: 0.5 }}
-            >
-              {pickupStop ? (
-                <PickupPin theme={theme} />
-              ) : (
-                <View style={[styles.originDot, { backgroundColor: theme.accent, borderColor: theme.surface }]} />
-              )}
-            </Marker>
-            {intermediateStops.map((stop) => (
-              <Marker
-                key={stop.id}
-                coordinate={{ latitude: stop.lat, longitude: stop.lng }}
-                anchor={{ x: 0.5, y: 0.5 }}
-              >
-                <View style={[styles.stopDot, { backgroundColor: theme.surface, borderColor: theme.ink }]} />
-              </Marker>
-            ))}
-            <Marker
-              coordinate={{ latitude: dropoffLat ?? ride.destinationLat, longitude: dropoffLng ?? ride.destinationLng }}
-              anchor={{ x: 0.5, y: 0.5 }}
-            >
-              {dropoffStop || selectedDropoffStop ? (
-                <DropoffPin theme={theme} />
-              ) : (
-                <View style={[styles.destDot, { backgroundColor: theme.ink, borderColor: theme.surface }]} />
-              )}
-            </Marker>
-            {segmentCoordinates.length > 1 ? (
-              <Polyline coordinates={segmentCoordinates} strokeColor={theme.ink} strokeWidth={4} />
-            ) : null}
+          <MapCanvas region={legRegion} style={styles.routeModalMap} tint={false}>
+            <RouteLine coordinates={segmentCoordinates} size="full" theme={theme} />
+            {legMarkers}
           </MapCanvas>
           <View style={[styles.routeModalClose, { top: insets.top + spacing.sm }]}>
             <HeaderIconButton
               icon="close"
               onPress={() => setRouteModalOpen(false)}
               accessibilityLabel={t('common:actions.close')}
+            />
+          </View>
+          <View style={[styles.routeModalFooter, { bottom: insets.bottom + spacing.md }]}>
+            <Button
+              label={t('search:details.openInGoogleMaps')}
+              theme={theme}
+              onPress={() =>
+                openInMaps(
+                  buildGoogleMapsDirectionsUrl({
+                    origin: pickupPoint,
+                    destination: dropoffPoint,
+                    waypoints: intermediateStops.map((s) => ({ lat: s.lat, lng: s.lng })),
+                  }),
+                )
+              }
             />
           </View>
         </View>
@@ -845,164 +810,388 @@ export default function RideDetailsScreen(): React.JSX.Element {
   );
 }
 
+const MAP_HEIGHT = 220;
+const DRIVER_AVATAR_PX = 52;
+const SEAT_PX = 48;
+const NOTCH_PX = 20;
+
+type Palette = ReturnType<typeof useAppTheme>['colors'];
+
+/** One end of the passenger's leg on the ticket: the time in its own
+ *  column (a timetable, not a form), the short place name, the full
+ *  address under it, and a way out to Google Maps. */
+function JourneyStop({
+  time,
+  title,
+  address,
+  note,
+  kind,
+  theme,
+  mapsLabel,
+  onOpenMaps,
+}: {
+  time?: string;
+  title: string;
+  address: string;
+  note?: string;
+  kind: 'pickup' | 'dropoff';
+  theme: Palette;
+  mapsLabel: string;
+  onOpenMaps: () => void;
+}): React.JSX.Element {
+  const isPickup = kind === 'pickup';
+  return (
+    <View style={styles.journeyRow}>
+      <View style={styles.timeCol}>
+        {time ? (
+          <Text variant="label" color={theme.ink} style={styles.timeText}>
+            {time}
+          </Text>
+        ) : null}
+      </View>
+      <View style={styles.railCol}>
+        {/* Lead-in above the dot: the line arriving at the drop-off, or
+         *  empty space above the pickup (nothing comes before it). */}
+        <View style={[styles.railLead, !isPickup ? { backgroundColor: theme.accent } : null]} />
+        <View
+          style={[
+            styles.railDot,
+            isPickup
+              ? { backgroundColor: theme.surface, borderColor: theme.accent }
+              : { backgroundColor: theme.ink, borderColor: theme.ink },
+          ]}
+        />
+        {isPickup ? <View style={[styles.railLine, { backgroundColor: theme.accent }]} /> : null}
+      </View>
+      <View style={[styles.stopTextCol, isPickup ? styles.stopTextColPickup : null]}>
+        <View style={styles.stopTitleRow}>
+          <Text variant="label" color={theme.ink} numberOfLines={1} style={styles.stopTitle}>
+            {title}
+          </Text>
+          <TouchableOpacity
+            onPress={onOpenMaps}
+            hitSlop={8}
+            accessibilityRole="link"
+            accessibilityLabel={mapsLabel}
+            style={[styles.mapsButton, { backgroundColor: theme.surfaceMuted, borderColor: theme.outlineVariant }]}
+          >
+            <Icon name="navigate-outline" size="xs" color={theme.ink} />
+          </TouchableOpacity>
+        </View>
+        {/* Only when it adds something — "Gare de Sousse" twice says nothing. */}
+        {address !== title ? (
+          <Text variant="bodySmall" color={theme.inkMuted} numberOfLines={2}>
+            {address}
+          </Text>
+        ) : null}
+        {note ? (
+          <View style={styles.inlineRow}>
+            <Icon name="walk-outline" size="xs" color={theme.accentStrong} />
+            <Text variant="caption" color={theme.accentStrong} style={styles.noteText}>
+              {note}
+            </Text>
+          </View>
+        ) : null}
+      </View>
+    </View>
+  );
+}
+
+/** The ticket's tear line: two notches cut from the edges and a dashed
+ *  rule between them. */
+function Perforation({ theme }: { theme: Palette }): React.JSX.Element {
+  return (
+    <View style={styles.perforation} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+      <View style={[styles.notch, styles.notchLeft, { backgroundColor: theme.background, borderColor: theme.outlineVariant }]} />
+      <View style={[styles.perforationRule, { borderColor: theme.outlineVariant }]} />
+      <View style={[styles.notch, styles.notchRight, { backgroundColor: theme.background, borderColor: theme.outlineVariant }]} />
+    </View>
+  );
+}
+
+/** The car's passenger seats, in order: fellow passengers (first name and
+ *  photo only — that endpoint's own privacy boundary, so never a profile
+ *  link), seats booked by someone not listed (a multi-seat booking), then
+ *  free seats. */
+function SeatRow({
+  seatsTotal,
+  bookedSeats,
+  passengers,
+  freeLabel,
+  takenLabel,
+  theme,
+}: {
+  seatsTotal: number;
+  bookedSeats: number;
+  passengers: { userId: string; firstName: string; avatarUrl: string | null }[];
+  freeLabel: string;
+  takenLabel: string;
+  theme: Palette;
+}): React.JSX.Element {
+  const shown = passengers.slice(0, bookedSeats);
+  const unnamedTaken = Math.max(bookedSeats - shown.length, 0);
+  const free = Math.max(seatsTotal - bookedSeats, 0);
+  return (
+    <View style={styles.seatRow} accessibilityRole="list">
+      {shown.map((p) => (
+        <View key={p.userId} style={styles.seat} accessible accessibilityLabel={p.firstName}>
+          <Avatar uri={p.avatarUrl ?? undefined} name={p.firstName} sizePx={SEAT_PX} />
+          <Text variant="caption" color={theme.ink} numberOfLines={1}>
+            {p.firstName}
+          </Text>
+        </View>
+      ))}
+      {Array.from({ length: unnamedTaken }).map((_, i) => (
+        <View key={`taken-${i}`} style={styles.seat} accessible accessibilityLabel={takenLabel}>
+          <View style={[styles.seatCircle, { backgroundColor: theme.surfaceMuted, borderColor: theme.outlineVariant }]}>
+            <Icon name="person" size="sm" color={theme.inkMuted} />
+          </View>
+          <Text variant="caption" color={theme.inkMuted} numberOfLines={1}>
+            {takenLabel}
+          </Text>
+        </View>
+      ))}
+      {Array.from({ length: free }).map((_, i) => (
+        <View key={`free-${i}`} style={styles.seat} accessible accessibilityLabel={freeLabel}>
+          <View style={[styles.seatCircle, styles.seatFree, { borderColor: theme.accent }]}>
+            <Icon name="add" size="sm" color={theme.accentStrong} />
+          </View>
+          <Text variant="caption" color={theme.accentStrong} numberOfLines={1}>
+            {freeLabel}
+          </Text>
+        </View>
+      ))}
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
   scrollContent: {
     padding: spacing.lg,
-    gap: spacing.md,
+    gap: spacing.lg,
   },
-  summaryRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-  },
-  summaryPriceCol: {
-    alignItems: 'flex-end',
-  },
-  mapCard: {
+  mapWrap: {
     position: 'relative',
   },
-  mapCanvas: {
-    height: 160,
-  },
-  mapValuesBadge: {
+  mapChip: {
     position: 'absolute',
     left: spacing.sm,
     top: spacing.sm,
-    borderRadius: radii.full,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-  },
-  mapValuesText: {
-    fontWeight: '600',
-  },
-  viewRouteBtn: {
-    position: 'absolute',
-    right: spacing.sm,
-    bottom: spacing.sm,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
     borderRadius: radii.full,
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
+    ...elevation.sm,
   },
-  timeline: {
+  mapChipText: {
+    fontWeight: '600',
+  },
+  mapExpand: {
+    position: 'absolute',
+    right: spacing.sm,
+    top: spacing.sm,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...elevation.sm,
+  },
+  ticket: {
     borderRadius: radii.xl,
     borderWidth: 1,
-    padding: spacing.md,
+    overflow: 'hidden',
+    ...elevation.sm,
   },
-  timelineRow: {
-    flexDirection: 'row',
-    gap: spacing.sm,
+  ticketTop: {
+    padding: spacing.lg,
+    gap: spacing.lg,
   },
-  timelineRoleRow: {
+  ticketHeader: {
     flexDirection: 'row',
-    alignItems: 'baseline',
     justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    gap: spacing.md,
   },
-  timelineRowLast: {
-    paddingBottom: 0,
-  },
-  timelineMarkerCol: {
-    width: 12,
-    alignItems: 'center',
-  },
-  timelineDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-  },
-  timelineDotOpen: {
-    borderWidth: 2,
-    backgroundColor: 'transparent',
-  },
-  timelineDotStop: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    borderWidth: 2,
-    backgroundColor: 'transparent',
-    marginTop: 2,
-  },
-  timelineDotFilled: {},
-  timelineLine: {
+  ticketHeaderLeft: {
     flex: 1,
-    width: 2,
-    marginVertical: 4,
-  },
-  timelineTextCol: {
-    flex: 1,
-    paddingBottom: spacing.md,
     gap: 2,
   },
-  stopDot: {
+  ticketHeaderRight: {
+    alignItems: 'flex-end',
+    gap: 2,
+  },
+  journey: {},
+  journeyRow: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
+    gap: spacing.sm,
+  },
+  // Time and rail dot sit level with the stop's title row (minHeight 34).
+  timeCol: {
+    width: 48,
+    paddingTop: 7,
+  },
+  timeText: {
+    fontVariant: ['tabular-nums'],
+  },
+  railCol: {
+    width: 14,
+    alignItems: 'center',
+  },
+  railDot: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    borderWidth: 3,
+  },
+  railLead: {
+    width: 2,
+    height: 10,
+  },
+  railLine: {
+    flex: 1,
+    width: 2,
+    minHeight: spacing.md,
+  },
+  railStopDot: {
     width: 10,
     height: 10,
     borderRadius: 5,
     borderWidth: 2,
   },
-  driverCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    borderRadius: radii.xl,
-    borderWidth: 1,
-    padding: spacing.md,
-  },
-  driverTextCol: {
+  stopTextCol: {
     flex: 1,
     gap: 2,
   },
-  driverNameRow: {
+  stopTextColPickup: {
+    paddingBottom: spacing.lg,
+  },
+  stopTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.xs,
+    gap: spacing.sm,
+    minHeight: 34,
   },
-  driverStatsRow: {
+  stopTitle: {
+    flex: 1,
+  },
+  noteText: {
+    flex: 1,
+  },
+  railLineShort: {
+    minHeight: spacing.sm,
+  },
+  passThroughRow: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: spacing.sm,
+    paddingVertical: spacing.sm,
   },
-  vehicleCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    borderRadius: radii.xl,
-    borderWidth: 1,
-    padding: spacing.md,
+  passThroughName: {
+    flexShrink: 1,
   },
-  vehicleIconWrap: {
-    width: 44,
-    height: 44,
-    borderRadius: radii.lg,
+  mapsButton: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  passengersSection: {
-    gap: spacing.sm,
-  },
-  passengersTitle: {
-    letterSpacing: 0.6,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-  },
-  card: {
-    borderRadius: radii.xl,
-    borderWidth: 1,
-    overflow: 'hidden',
-  },
-  passengerRow: {
+  inlineRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm,
-    padding: spacing.md,
+    gap: 4,
   },
-  passengerName: {
+  perforation: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: NOTCH_PX,
+  },
+  notch: {
+    width: NOTCH_PX,
+    height: NOTCH_PX,
+    borderRadius: NOTCH_PX / 2,
+    borderWidth: 1,
+  },
+  notchLeft: {
+    marginLeft: -NOTCH_PX / 2,
+  },
+  notchRight: {
+    marginRight: -NOTCH_PX / 2,
+  },
+  perforationRule: {
     flex: 1,
+    borderTopWidth: 1.5,
+    borderStyle: 'dashed',
+    marginHorizontal: spacing.sm,
+  },
+  driverRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    padding: spacing.lg,
+  },
+  verifiedBadge: {
+    position: 'absolute',
+    right: -2,
+    bottom: -2,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  driverText: {
+    flex: 1,
+    gap: 3,
+  },
+  driverName: {
+    fontSize: 17,
+  },
+  seatsSection: {
+    gap: spacing.md,
+  },
+  seatsHeader: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    justifyContent: 'space-between',
+  },
+  seatRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.lg,
+  },
+  seat: {
+    width: SEAT_PX + 8,
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  seatCircle: {
+    width: SEAT_PX,
+    height: SEAT_PX,
+    borderRadius: SEAT_PX / 2,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  seatFree: {
+    borderWidth: 1.5,
+    borderStyle: 'dashed',
+  },
+  stopDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    borderWidth: 2.5,
   },
   scrollSpacer: {
     height: 90,
@@ -1037,16 +1226,9 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 3,
   },
-  originDot: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    borderWidth: 2,
-  },
-  destDot: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    borderWidth: 2,
+  routeModalFooter: {
+    position: 'absolute',
+    left: spacing.lg,
+    right: spacing.lg,
   },
 });

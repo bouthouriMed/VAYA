@@ -26,6 +26,11 @@ describe('buildGoogleMapsDirectionsUrl', () => {
     expect(params(url).get('waypoints')).toBe('36.85,10.2|36.86,10.25');
   });
 
+  it('uses walking directions for a passenger heading to the meeting point', () => {
+    const url = buildGoogleMapsDirectionsUrl({ destination: DEPARTURE, travelMode: 'walking' });
+    expect(params(url).get('travelmode')).toBe('walking');
+  });
+
   it('caps waypoints at the Google Maps limit', () => {
     const many = Array.from({ length: 12 }, (_, i) => ({ lat: 36 + i / 100, lng: 10 }));
     const url = buildGoogleMapsDirectionsUrl({ origin: DEPARTURE, destination: ARRIVAL, waypoints: many });

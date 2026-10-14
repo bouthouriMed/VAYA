@@ -100,6 +100,11 @@ export function MapCanvas({
         // while testing in Expo Go.
         mapType={Platform.OS === 'ios' ? 'mutedStandard' : 'standard'}
         customMapStyle={scheme === 'dark' ? darkMapStyle : lightMapStyle}
+        // Apple Maps (Expo Go / iOS fallback) ignores customMapStyle and
+        // follows the DEVICE appearance: a phone in dark mode drew a dark
+        // map inside a light-themed app. MapPreview already pinned this;
+        // MapCanvas never did.
+        userInterfaceStyle={scheme === 'dark' ? 'dark' : 'light'}
       >
         {children}
       </MapView>
