@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { fullPlaceLabel } from '../../utils/placeLabel';
+import { openDirections } from '../../utils/openInMaps';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { BottomSheet, Button, Avatar, Icon, Text, useAppTheme, spacing, radii, haptics } from '@vaya/design-system';
 import { useTranslation } from 'react-i18next';
@@ -106,7 +108,7 @@ export function DriverBookingDetailSheet({
                 <Text variant="body" color={theme.ink} style={styles.riderName} numberOfLines={1}>
                   {booking.rider?.fullName ?? t('booking:passenger')}
                 </Text>
-                {riderTrust?.rider ? (
+                {riderTrust?.rider && riderTrust.rider.tripCount > 0 ? (
                   <View style={styles.ratingPill}>
                     <Icon name="star" size="xs" color={theme.accent} />
                     <Text variant="caption" color={theme.ink}>
@@ -132,12 +134,23 @@ export function DriverBookingDetailSheet({
             <Icon name="git-compare-outline" size="sm" color={theme.inkMuted} />
             <View style={styles.factText}>
               <Text variant="bodySmall" color={theme.ink} numberOfLines={2}>
-                {booking.pickupLabel}
+                {fullPlaceLabel(booking.pickupLabel)}
               </Text>
               <Text variant="bodySmall" color={theme.inkMuted} numberOfLines={2}>
-                {`→ ${booking.dropoffLabel ?? rideDestinationLabel ?? t('booking:destination')}`}
+                {`→ ${fullPlaceLabel(booking.dropoffLabel ?? rideDestinationLabel ?? t('booking:destination'))}`}
               </Text>
             </View>
+            {/* The driver's next move for an accepted passenger: drive to
+             *  where they're waiting. */}
+            <TouchableOpacity
+              onPress={() => void openDirections({ destination: { lat: booking.pickupLat, lng: booking.pickupLng } })}
+              hitSlop={8}
+              accessibilityRole="link"
+              accessibilityLabel={t('driver:rides.bookingDetail.directionsToPickup')}
+              style={[styles.mapsButton, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}
+            >
+              <Icon name="navigate-outline" size="xs" color={theme.ink} />
+            </TouchableOpacity>
           </View>
 
           <View style={styles.actionRow}>
@@ -231,6 +244,14 @@ const styles = StyleSheet.create({
   factText: {
     flex: 1,
     gap: 2,
+  },
+  mapsButton: {
+    width: 32,
+    height: 32,
+    borderRadius: radii.full,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   actionButton: {
     width: '100%',

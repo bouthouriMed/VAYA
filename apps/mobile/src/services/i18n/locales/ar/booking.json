@@ -191,6 +191,7 @@
   },
   "pickupTitle": "نقطة الالتقاء",
   "pickupPointLabel": "نقطة الصعود",
+  "walkToPickup": "الاتجاهات سيرًا",
   "arrived": "لقد وصلت",
   "arrivedAt": "وصلت إلى {{place}}",
   "ratingThanks": "شكرًا! تم إرسال تقييمك لـ{{name}}.",

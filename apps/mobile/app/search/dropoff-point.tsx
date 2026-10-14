@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
+import { fullPlaceLabel } from '../../src/utils/placeLabel';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
-import { Marker, Polyline } from 'react-native-maps';
+import { Marker } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { skipToken } from '@reduxjs/toolkit/query/react';
 import { useTranslation } from 'react-i18next';
@@ -8,6 +9,7 @@ import {
   Text,
   Button,
   MapCanvas,
+  RouteLine,
   BottomSheet,
   ScreenHeader,
   HeaderIconButton,
@@ -170,7 +172,7 @@ export default function DropoffPointScreen(): React.JSX.Element {
           </Marker>
         ) : null}
         {routeCoordinates.length > 1 ? (
-          <Polyline coordinates={routeCoordinates} strokeColor={theme.ink} strokeWidth={4} />
+          <RouteLine coordinates={routeCoordinates} theme={theme} />
         ) : null}
         {rankedDropoffStops.map((stop, index) => {
           const isSelected = stop.stopId === selectedStopId;
@@ -214,7 +216,7 @@ export default function DropoffPointScreen(): React.JSX.Element {
               <Icon name="flag" size="xs" color={theme.onInk} />
             </View>
             <View style={styles.footerTextCol}>
-              <Text style={styles.footerLabel}>{selectedStop.label}</Text>
+              <Text style={styles.footerLabel}>{fullPlaceLabel(selectedStop.label)}</Text>
               <Text variant="bodySmall" color={theme.inkFaint} numberOfLines={1}>
                 {t('search:dropoffPoint.walkFromDestination', {
                   minutes: accessAmount(t, selectedStop.walkMeters, locale),

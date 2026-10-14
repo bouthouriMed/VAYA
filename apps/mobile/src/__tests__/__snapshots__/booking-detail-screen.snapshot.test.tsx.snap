@@ -766,7 +766,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
               }
             >
               <Text
-                numberOfLines={1}
+                numberOfLines={2}
                 style={
                   [
                     {
@@ -888,7 +888,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
               }
             >
               <Text
-                numberOfLines={1}
+                numberOfLines={2}
                 style={
                   [
                     {
@@ -1020,11 +1020,12 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
                   "justifyContent": "center",
                 },
                 {
-                  "backgroundColor": "#E2E8E1",
+                  "backgroundColor": "#8FD9B4",
                   "borderRadius": 26,
                   "height": 52,
                   "width": 52,
                 },
+                undefined,
               ]
             }
           >
@@ -1175,6 +1176,97 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
           />
         </TouchableOpacity>
         <View
+          accessibilityLabel="common:terms.vehicle: Peugeot 301, Noire, 210TU3344"
+          accessible={true}
+          style={
+            [
+              {
+                "alignItems": "center",
+                "borderTopWidth": 1,
+                "flexDirection": "row",
+                "gap": 8,
+                "paddingTop": 12,
+              },
+              {
+                "borderTopColor": "#DEE5DE",
+              },
+            ]
+          }
+        >
+          <Ionicons
+            accessibilityElementsHidden={true}
+            color="#4F5C55"
+            importantForAccessibility="no-hide-descendants"
+            name="car-sport-outline"
+            size={20}
+          />
+          <Text
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "lineHeight": 21,
+                },
+                null,
+                {
+                  "color": "#14201B",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                {
+                  "flex": 1,
+                },
+              ]
+            }
+          >
+            Peugeot 301, Noire
+          </Text>
+          <View
+            style={
+              [
+                {
+                  "borderRadius": 4,
+                  "borderWidth": 1.5,
+                  "paddingHorizontal": 8,
+                  "paddingVertical": 2,
+                },
+                {
+                  "borderColor": "#14201B",
+                },
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "lineHeight": 18,
+                  },
+                  null,
+                  {
+                    "color": "#14201B",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  {
+                    "fontVariant": [
+                      "tabular-nums",
+                    ],
+                    "fontWeight": "700",
+                    "letterSpacing": 0.5,
+                  },
+                ]
+              }
+            >
+              210TU3344
+            </Text>
+          </View>
+        </View>
+        <View
           style={
             {
               "flexDirection": "row",
@@ -1283,115 +1375,6 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
               common:actions.call
             </Text>
           </TouchableOpacity>
-        </View>
-      </View>
-      <View
-        style={
-          [
-            {
-              "borderRadius": 16,
-              "borderWidth": 1,
-              "gap": 8,
-              "marginHorizontal": 16,
-              "padding": 12,
-            },
-            {
-              "alignItems": "center",
-              "flexDirection": "row",
-              "gap": 8,
-            },
-            {
-              "backgroundColor": "#F7F9F5",
-              "borderColor": "#DEE5DE",
-            },
-          ]
-        }
-      >
-        <View
-          style={
-            [
-              {
-                "alignItems": "center",
-                "borderRadius": 12,
-                "height": 44,
-                "justifyContent": "center",
-                "width": 44,
-              },
-              {
-                "backgroundColor": "#E2E8E1",
-              },
-            ]
-          }
-        >
-          <Ionicons
-            accessibilityElementsHidden={true}
-            color="#4F5C55"
-            importantForAccessibility="no-hide-descendants"
-            name="car-sport-outline"
-            size={24}
-          />
-        </View>
-        <View>
-          <Text
-            style={
-              [
-                {
-                  "fontSize": 14,
-                  "fontWeight": "500",
-                  "lineHeight": 21,
-                },
-                null,
-                {
-                  "color": "#14201B",
-                  "textAlign": undefined,
-                  "writingDirection": "ltr",
-                },
-                undefined,
-              ]
-            }
-          >
-            common:terms.vehicle
-          </Text>
-          <Text
-            style={
-              [
-                {
-                  "fontSize": 14,
-                  "fontWeight": "400",
-                  "lineHeight": 21,
-                },
-                null,
-                {
-                  "color": "#4F5C55",
-                  "textAlign": undefined,
-                  "writingDirection": "ltr",
-                },
-                undefined,
-              ]
-            }
-          >
-            Peugeot 301 · Noire
-          </Text>
-          <Text
-            style={
-              [
-                {
-                  "fontSize": 12,
-                  "fontWeight": "400",
-                  "lineHeight": 18,
-                },
-                null,
-                {
-                  "color": "#7D8981",
-                  "textAlign": undefined,
-                  "writingDirection": "ltr",
-                },
-                undefined,
-              ]
-            }
-          >
-            210TU3344
-          </Text>
         </View>
       </View>
       <View
@@ -1703,14 +1686,36 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
                   },
                 ]
               }
+              lineCap="round"
+              lineJoin="round"
+              strokeColor="#F7F9F5"
+              strokeWidth={11}
+              zIndex={1}
+            />
+            <Polyline
+              coordinates={
+                [
+                  {
+                    "latitude": 36.842,
+                    "longitude": 10.18,
+                  },
+                  {
+                    "latitude": 36.4,
+                    "longitude": 10.6,
+                  },
+                ]
+              }
+              lineCap="round"
               lineDashPattern={
                 [
-                  8,
+                  12,
                   8,
                 ]
               }
-              strokeColor="#14201B"
-              strokeWidth={4}
+              lineJoin="round"
+              strokeColor="#2E9E6C"
+              strokeWidth={6}
+              zIndex={2}
             />
             <Marker
               anchor={
@@ -1811,20 +1816,6 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
               />
             </Marker>
           </MapView>
-          <View
-            pointerEvents="none"
-            style={
-              {
-                "backgroundColor": "#EDEBE1",
-                "bottom": 0,
-                "left": 0,
-                "opacity": 0.18,
-                "position": "absolute",
-                "right": 0,
-                "top": 0,
-              }
-            }
-          />
           <Animated.View
             accessibilityElementsHidden={true}
             importantForAccessibility="no-hide-descendants"

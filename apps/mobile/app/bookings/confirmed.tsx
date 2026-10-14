@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { fullPlaceLabel } from '../../src/utils/placeLabel';
 import { Animated, View, StyleSheet, Easing } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text, Icon, Button, ScreenHeader, useAppTheme, spacing, radii, haptics } from '@vaya/design-system';
@@ -184,10 +185,10 @@ export default function ConfirmedScreen(): React.JSX.Element {
               </View>
               <View style={styles.summaryTextCol}>
                 <Text variant="body" color={theme.ink}>
-                  {params.pickupLabel}
+                  {fullPlaceLabel(params.pickupLabel)}
                 </Text>
                 <Text variant="body" color={theme.ink}>
-                  {params.destinationLabel}
+                  {fullPlaceLabel(params.destinationLabel)}
                 </Text>
               </View>
             </View>

@@ -299,6 +299,8 @@
       "mapsWholeTrip": "Open the whole trip in Google Maps",
       "mapsUnavailable": "Couldn't open Google Maps.",
       "openInGoogleMaps": "Open in Google Maps",
+      "seatsRequested_one": "{{count}} seat",
+      "seatsRequested_other": "{{count}} seats",
       "capacityLabel": "Capacity",
       "earningsLabel": "Earnings",
       "pendingSection": "To answer ({{count}})",
@@ -384,6 +386,7 @@
     },
     "bookingDetail": {
       "title": "Booking details",
+      "directionsToPickup": "Directions to the pickup point",
       "passenger": "Passenger",
       "destination": "Trip destination",
       "message": "Message",

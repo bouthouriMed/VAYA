@@ -1,4 +1,5 @@
 import { ScrollView, StyleSheet, View } from 'react-native';
+import { shortenPlaceLabel } from '../../src/utils/placeLabel';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -89,7 +90,7 @@ export default function RecurringPatternsScreen(): React.JSX.Element {
             <Card key={pattern.id} style={styles.card}>
               <View style={styles.cardHeader}>
                 <Text variant="label" color={theme.ink} style={styles.route} numberOfLines={2}>
-                  {`${pattern.originLabel} → ${pattern.destinationLabel}`}
+                  {`${shortenPlaceLabel(pattern.originLabel)} → ${shortenPlaceLabel(pattern.destinationLabel)}`}
                 </Text>
                 <Badge label={t(`booking:recurring.${pattern.status}`)} variant={STATUS_TONE[pattern.status]} />
               </View>

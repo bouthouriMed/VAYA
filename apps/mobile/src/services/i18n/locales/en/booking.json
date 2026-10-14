@@ -187,6 +187,7 @@
   },
   "pickupTitle": "Meeting point",
   "pickupPointLabel": "Pickup point",
+  "walkToPickup": "Walking directions",
   "arrived": "You've arrived",
   "arrivedAt": "Arrived in {{place}}",
   "ratingThanks": "Thanks! Your review of {{name}} was sent.",

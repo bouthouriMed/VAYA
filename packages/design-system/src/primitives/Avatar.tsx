@@ -84,8 +84,15 @@ export function Avatar({
           width: dimension,
           height: dimension,
           borderRadius: dimension / 2,
-          backgroundColor: theme.surfaceMuted,
+          // A brand tint, not surfaceMuted: initials sit on both surface and
+          // surfaceMuted cards, and on a surfaceMuted one the circle used to
+          // vanish, leaving loose letters. accentGlow contrasts with both
+          // (and with `ink` text) in light and dark.
+          backgroundColor: theme.accentGlow,
         },
+        // Callers' borders/margins (e.g. an overlapping avatar stack's ring)
+        // used to apply only to photos, never to initials.
+        style,
       ]}
     >
       <Text style={[styles.initials, { fontSize, color: theme.ink }]}>

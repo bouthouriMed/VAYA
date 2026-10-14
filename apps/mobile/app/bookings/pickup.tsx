@@ -14,6 +14,8 @@ import {
 import { router, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { CancellationSheet } from '../../src/features/bookings/CancellationSheet';
+import { fullPlaceLabel, shortenPlaceLabel } from '../../src/utils/placeLabel';
+import { openDirections } from '../../src/utils/openInMaps';
 
 /** Head-to-the-pickup step of the rider's trip flow (after acceptance). */
 export default function PickupScreen(): React.JSX.Element {
@@ -36,6 +38,8 @@ export default function PickupScreen(): React.JSX.Element {
     params.pickupLat && params.pickupLng
       ? { latitude: Number(params.pickupLat), longitude: Number(params.pickupLng) }
       : undefined;
+  const pickupTitle = params.pickupLabel ? shortenPlaceLabel(params.pickupLabel) : undefined;
+  const pickupAddress = params.pickupLabel ? fullPlaceLabel(params.pickupLabel) : undefined;
   // Phase 10 (docs/roadmap/phase-10-cancellation-no-show.md).
   const [cancelling, setCancelling] = useState(false);
 
@@ -56,13 +60,36 @@ export default function PickupScreen(): React.JSX.Element {
             anti-pattern Phase 1 removed. */}
         <MapPreview height={220} origin={pickupCoord} isDark={scheme === 'dark'} />
 
+        {/* Where to go, then how to get there: the place, its full
+         *  address only when it adds something, and walking directions —
+         *  the one thing to do before "I've arrived". */}
         <Card style={styles.pickupCard}>
           <Text variant="caption" color={theme.inkMuted}>
             {t('booking:pickupPointLabel')}
           </Text>
           <Text variant="title" color={theme.ink}>
-            {params.pickupLabel ?? t('booking:waiting_confirmation')}
+            {pickupTitle ?? t('booking:waiting_confirmation')}
           </Text>
+          {pickupAddress && pickupAddress !== pickupTitle ? (
+            <Text variant="bodySmall" color={theme.inkMuted}>
+              {pickupAddress}
+            </Text>
+          ) : null}
+          {pickupCoord ? (
+            <Button
+              label={t('booking:walkToPickup')}
+              icon="walk-outline"
+              variant="secondary"
+              size="sm"
+              onPress={() =>
+                void openDirections({
+                  destination: { lat: pickupCoord.latitude, lng: pickupCoord.longitude },
+                  travelMode: 'walking',
+                })
+              }
+              style={styles.directionsButton}
+            />
+          ) : null}
         </Card>
 
         <Card style={styles.driverRow}>
@@ -84,11 +111,12 @@ export default function PickupScreen(): React.JSX.Element {
             avatar
           )}
           <View style={styles.driverText}>
+            {/* The person you're meeting first, then the car to look for. */}
             <Text variant="label" color={theme.ink}>
-              {params.vehicleLabel ? `${params.vehicleLabel} · ${firstName}` : firstName}
+              {firstName}
             </Text>
-            <Text variant="bodySmall" color={theme.inkMuted}>
-              {t('booking:phase.confirmed')}
+            <Text variant="bodySmall" color={theme.inkMuted} numberOfLines={1}>
+              {params.vehicleLabel ?? t('booking:phase.confirmed')}
             </Text>
           </View>
           {params.bookingId ? (
@@ -144,6 +172,10 @@ const styles = StyleSheet.create({
   },
   pickupCard: {
     gap: 2,
+  },
+  directionsButton: {
+    alignSelf: 'flex-start',
+    marginTop: spacing.sm,
   },
   driverRow: {
     flexDirection: 'row',

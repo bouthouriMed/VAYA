@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
+import { fullPlaceLabel, shortenPlaceLabel } from '../../src/utils/placeLabel';
 import { View, StyleSheet, ScrollView, TouchableOpacity, Modal } from 'react-native';
-import { Marker, Polyline } from 'react-native-maps';
+import { Marker } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -16,6 +17,7 @@ import {
   StateView,
   MapPreview,
   MapCanvas,
+  RouteLine,
   PickupPin,
   DropoffPin,
   useAppTheme,
@@ -50,7 +52,7 @@ import { bookingStatusDisplay } from '../../src/features/status/statusDisplay';
 import { useCurrentPosition } from '../../src/services/location/useCurrentPosition';
 import { estimateArrivalLabel } from '../../src/features/driver-rides/myRidesHelpers';
 import { useCallCounterpart } from '../../src/features/bookings/useCallCounterpart';
-import { openInMaps } from '../../src/utils/openInMaps';
+import { openDirections } from '../../src/utils/openInMaps';
 import { useGetTripByBookingQuery, type TripStatus } from '../../src/state/api';
 
 // Mirrors driver/rides/[rideId].tsx's own TRACKABLE_TRIP_STATUSES — a trip
@@ -88,6 +90,7 @@ function DriverCard({
   onOpenProfile,
   callEnabled,
   bookingId,
+  vehicle,
 }: {
   theme: ThemeColors;
   t: TFn;
@@ -100,6 +103,9 @@ function DriverCard({
   onOpenProfile: () => void;
   callEnabled: boolean;
   bookingId: string;
+  /** The car to look for at the meeting point — part of the driver, not a
+   *  separate topic, so it lives in this card. */
+  vehicle?: { label: string; plate: string };
 }): React.JSX.Element {
   // Real UX feedback: a "Nouveau" trust-tier badge here is redundant with
   // "New on VAYA" already shown right below the driver's name — both are
@@ -148,6 +154,25 @@ function DriverCard({
         {tierMeta ? <Badge label={tierMeta.label} variant={tierMeta.variant} theme={theme} /> : null}
         <Icon name="chevron-forward" size="xs" color={theme.outline} />
       </TouchableOpacity>
+      {vehicle ? (
+        <View
+          style={[styles.vehicleRow, { borderTopColor: theme.outlineVariant }]}
+          accessible
+          accessibilityLabel={`${t('common:terms.vehicle')}: ${vehicle.label}, ${vehicle.plate}`}
+        >
+          <Icon name="car-sport-outline" size="sm" color={theme.inkMuted} />
+          <Text variant="bodySmall" color={theme.ink} numberOfLines={1} style={styles.vehicleLabel}>
+            {vehicle.label}
+          </Text>
+          {vehicle.plate ? (
+            <View style={[styles.plateChip, { borderColor: theme.ink }]}>
+              <Text variant="caption" color={theme.ink} style={styles.plateText}>
+                {vehicle.plate}
+              </Text>
+            </View>
+          ) : null}
+        </View>
+      ) : null}
       <View style={styles.quickActionsRow}>
         <TouchableOpacity
           style={[styles.quickAction, { backgroundColor: theme.surfaceMuted }]}
@@ -386,7 +411,6 @@ export default function BookingDetailScreen(): React.JSX.Element {
   const dropoffTimeLabel = segmentDurationSec
     ? estimateArrivalLabel(booking.ride.departureAt, segmentDurationSec, locale)
     : null;
-  const dropoffPlaceLabel = booking.dropoffLabel ?? booking.ride.destinationLabel;
 
   const isTrackable = trip != null && TRACKABLE_TRIP_STATUSES.includes(trip.status);
   // One status badge, not two: the map's own top-left badge is now the
@@ -453,7 +477,7 @@ export default function BookingDetailScreen(): React.JSX.Element {
                   a Madrid -> Barcelona ride) must show where THIS passenger
                   actually boards/alights, matching this file's own doc
                   comment above. */}
-              {`${booking.pickupLabel} → ${booking.dropoffLabel ?? booking.ride.destinationLabel}`}
+              {`${shortenPlaceLabel(booking.pickupLabel)} → ${shortenPlaceLabel(booking.dropoffLabel ?? booking.ride.destinationLabel)}`}
             </Text>
           </View>
           <Text variant="caption" color={theme.inkFaint}>
@@ -468,15 +492,15 @@ export default function BookingDetailScreen(): React.JSX.Element {
             <View style={styles.itineraryRow}>
               <View style={[styles.itineraryDot, { backgroundColor: theme.accent, borderColor: theme.surface }]} />
               <View style={styles.itineraryText}>
-                <Text variant="bodySmall" color={theme.ink} numberOfLines={1} style={styles.itineraryPrimary}>
-                  {booking.pickupLabel}
+                <Text variant="bodySmall" color={theme.ink} numberOfLines={2} style={styles.itineraryPrimary}>
+                  {fullPlaceLabel(booking.pickupLabel)}
                 </Text>
                 <Text variant="caption" color={theme.inkMuted} numberOfLines={1}>
                   {pickupTimeLabel}
                 </Text>
               </View>
               <TouchableOpacity
-                onPress={() => openInMaps(booking.pickupLat, booking.pickupLng, booking.pickupLabel)}
+                onPress={() => void openDirections({ destination: { lat: booking.pickupLat, lng: booking.pickupLng }, travelMode: 'walking' })}
                 hitSlop={8}
                 style={[styles.directionsIconBtn, { backgroundColor: theme.surfaceMuted }]}
                 accessibilityRole="button"
@@ -503,8 +527,8 @@ export default function BookingDetailScreen(): React.JSX.Element {
             <View style={styles.itineraryRow}>
               <View style={[styles.itineraryDot, { backgroundColor: theme.ink, borderColor: theme.surface }]} />
               <View style={styles.itineraryText}>
-                <Text variant="bodySmall" color={theme.ink} numberOfLines={1} style={styles.itineraryPrimary}>
-                  {booking.dropoffLabel ?? booking.ride.destinationLabel}
+                <Text variant="bodySmall" color={theme.ink} numberOfLines={2} style={styles.itineraryPrimary}>
+                  {fullPlaceLabel(booking.dropoffLabel ?? booking.ride.destinationLabel)}
                 </Text>
                 {dropoffTimeLabel ? (
                   <Text variant="caption" color={theme.inkMuted} numberOfLines={1}>
@@ -513,7 +537,7 @@ export default function BookingDetailScreen(): React.JSX.Element {
                 ) : null}
               </View>
               <TouchableOpacity
-                onPress={() => openInMaps(dropoffPoint.latitude, dropoffPoint.longitude, dropoffPlaceLabel)}
+                onPress={() => void openDirections({ origin: { lat: booking.pickupLat, lng: booking.pickupLng }, destination: { lat: dropoffPoint.latitude, lng: dropoffPoint.longitude } })}
                 hitSlop={8}
                 style={[styles.directionsIconBtn, { backgroundColor: theme.surfaceMuted }]}
                 accessibilityRole="button"
@@ -583,26 +607,15 @@ export default function BookingDetailScreen(): React.JSX.Element {
           onOpenProfile={openDriverProfile}
           callEnabled={booking.status === 'accepted'}
           bookingId={booking.id}
+          vehicle={
+            driverProfile?.driver?.vehicle
+              ? {
+                  label: `${driverProfile.driver.vehicle.make} ${driverProfile.driver.vehicle.model}, ${driverProfile.driver.vehicle.color}`,
+                  plate: driverProfile.driver.vehicle.plateNumber,
+                }
+              : undefined
+          }
         />
-
-        {driverProfile?.driver?.vehicle ? (
-          <View style={[styles.card, styles.vehicleCard, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
-            <View style={[styles.vehicleIcon, { backgroundColor: theme.surfaceMuted }]}>
-              <Icon name="car-sport-outline" size="md" color={theme.inkMuted} />
-            </View>
-            <View>
-              <Text variant="label" color={theme.ink}>
-                {t('common:terms.vehicle')}
-              </Text>
-              <Text variant="bodySmall" color={theme.inkMuted}>
-                {`${driverProfile.driver.vehicle.make} ${driverProfile.driver.vehicle.model} · ${driverProfile.driver.vehicle.color}`}
-              </Text>
-              <Text variant="caption" color={theme.inkFaint}>
-                {driverProfile.driver.vehicle.plateNumber}
-              </Text>
-            </View>
-          </View>
-        ) : null}
 
         <View style={styles.scrollSpacer} />
       </ScrollView>
@@ -625,15 +638,13 @@ export default function BookingDetailScreen(): React.JSX.Element {
         onRequestClose={() => setRouteModalOpen(false)}
       >
         <View style={[styles.routeModal, { backgroundColor: theme.background }]}>
-          <MapCanvas region={fullRouteRegion} style={styles.routeModalMap}>
-            {routeCoordinates.length > 1 ? (
-              <Polyline
-                coordinates={routeCoordinates}
-                strokeColor={theme.ink}
-                strokeWidth={4}
-                lineDashPattern={itineraryLine.isApproximate ? [8, 8] : undefined}
-              />
-            ) : null}
+          <MapCanvas region={fullRouteRegion} style={styles.routeModalMap} tint={false}>
+            <RouteLine
+              coordinates={routeCoordinates}
+              size="full"
+              dashed={itineraryLine.isApproximate}
+              theme={theme}
+            />
             <Marker coordinate={{ latitude: booking.pickupLat, longitude: booking.pickupLng }} anchor={{ x: 0.5, y: 0.5 }}>
               <PickupPin theme={theme} />
             </Marker>
@@ -865,17 +876,27 @@ const styles = StyleSheet.create({
   quickActionDisabled: {
     opacity: 0.5,
   },
-  vehicleCard: {
+  vehicleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
+    borderTopWidth: 1,
+    paddingTop: spacing.md,
   },
-  vehicleIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: radii.lg,
-    alignItems: 'center',
-    justifyContent: 'center',
+  vehicleLabel: {
+    flex: 1,
+  },
+  // Licence-plate chip: how you actually spot your ride at the kerb.
+  plateChip: {
+    borderWidth: 1.5,
+    borderRadius: radii.sm,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+  },
+  plateText: {
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    fontVariant: ['tabular-nums'],
   },
   scrollSpacer: {
     height: spacing['3xl'],

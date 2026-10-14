@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, ActivityIndicator, Modal } from 'react-native';
-import { Marker, Polyline } from 'react-native-maps';
+import { Marker } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   BottomSheet,
@@ -11,6 +11,7 @@ import {
   Text,
   MapPreview,
   MapCanvas,
+  RouteLine,
   PickupPin,
   DropoffPin,
   useAppTheme,
@@ -31,7 +32,8 @@ import {
   useDeclineBookingMutation,
 } from '../../state/api';
 import { formatDistance, formatTime } from '../../utils/localeFormat';
-import { openInMaps } from '../../utils/openInMaps';
+import { openDirections } from '../../utils/openInMaps';
+import { fullPlaceLabel } from '../../utils/placeLabel';
 import { trackEvent } from '../../services/analytics/analytics';
 import { decodePolyline, sliceRouteBetween } from '../../utils/polyline';
 
@@ -95,7 +97,7 @@ function RouteFitRow({
           </Text>
         </View>
         <Text variant="bodySmall" color={theme.ink} numberOfLines={2}>
-          {point.label}
+          {fullPlaceLabel(point.label)}
         </Text>
         {point.isPlannedStop ? (
           <View style={styles.fitBadgeRow}>
@@ -112,12 +114,12 @@ function RouteFitRow({
         ) : null}
       </View>
       <TouchableOpacity
-        onPress={() => openInMaps(point.lat, point.lng, point.label)}
+        onPress={() => void openDirections({ destination: { lat: point.lat, lng: point.lng } })}
         hitSlop={10}
         accessibilityRole="button"
-        accessibilityLabel={t('driver:rides.requestDetail.openInMaps', { label: point.label })}
+        accessibilityLabel={t('driver:rides.requestDetail.openInMaps', { label: fullPlaceLabel(point.label) })}
       >
-        <Icon name="map-outline" size="sm" color={theme.inkMuted} />
+        <Icon name="navigate-outline" size="sm" color={theme.inkMuted} />
       </TouchableOpacity>
     </View>
   );
@@ -328,7 +330,7 @@ export function RequestDetailSheet({
               <Text variant="body" color={theme.ink} style={styles.riderName} numberOfLines={1}>
                 {booking.rider?.fullName ?? t('booking:passenger')}
               </Text>
-              {riderTrust?.rider ? (
+              {riderTrust?.rider && riderTrust.rider.tripCount > 0 ? (
                 <View style={styles.ratingPill}>
                   <Icon name="star" size="xs" color={theme.accent} />
                   <Text variant="caption" color={theme.ink}>
@@ -490,18 +492,15 @@ export function RequestDetailSheet({
     <Modal visible={fullscreenMapOpen} animationType="slide" onRequestClose={() => setFullscreenMapOpen(false)}>
       <View style={[styles.routeModal, { backgroundColor: theme.background }]}>
         {preview ? (
-          <MapCanvas region={fullscreenRegion} style={styles.routeModalMap}>
-            {fullRouteCoordinates.length > 1 ? (
-              <Polyline coordinates={fullRouteCoordinates} strokeColor={theme.outline} strokeWidth={4} />
-            ) : null}
-            {segmentCoordinates.length > 1 ? (
-              <Polyline
-                coordinates={segmentCoordinates}
-                strokeColor={theme.accent}
-                strokeWidth={6}
-                zIndex={10}
-              />
-            ) : null}
+          <MapCanvas region={fullscreenRegion} style={styles.routeModalMap} tint={false}>
+            {/* The driver's whole route as a light casing (context), the
+             *  passenger's segment as the only coloured core (the answer). */}
+            <RouteLine
+              coordinates={fullRouteCoordinates.length > 1 ? fullRouteCoordinates : segmentCoordinates}
+              segments={segmentCoordinates.length > 1 ? [{ coordinates: segmentCoordinates, emphasis: 1 }] : undefined}
+              size="full"
+              theme={theme}
+            />
             <Marker
               coordinate={{ latitude: preview.pickup.lat, longitude: preview.pickup.lng }}
               anchor={{ x: 0.5, y: 0.5 }}

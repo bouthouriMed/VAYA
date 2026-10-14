@@ -53,10 +53,14 @@ exports[`profile.tsx snapshots — driver block vs verification status > approve
                   "justifyContent": "center",
                 },
                 {
-                  "backgroundColor": "#E2E8E1",
+                  "backgroundColor": "#8FD9B4",
                   "borderRadius": 48,
                   "height": 96,
                   "width": 96,
+                },
+                {
+                  "borderColor": "#DEE5DE",
+                  "borderWidth": 2,
                 },
               ]
             }
@@ -2031,10 +2035,14 @@ exports[`profile.tsx snapshots — driver block vs verification status > loading
                   "justifyContent": "center",
                 },
                 {
-                  "backgroundColor": "#E2E8E1",
+                  "backgroundColor": "#8FD9B4",
                   "borderRadius": 48,
                   "height": 96,
                   "width": 96,
+                },
+                {
+                  "borderColor": "#DEE5DE",
+                  "borderWidth": 2,
                 },
               ]
             }
@@ -3961,10 +3969,14 @@ exports[`profile.tsx snapshots — driver block vs verification status > no prof
                   "justifyContent": "center",
                 },
                 {
-                  "backgroundColor": "#E2E8E1",
+                  "backgroundColor": "#8FD9B4",
                   "borderRadius": 48,
                   "height": 96,
                   "width": 96,
+                },
+                {
+                  "borderColor": "#DEE5DE",
+                  "borderWidth": 2,
                 },
               ]
             }
@@ -5915,10 +5927,14 @@ exports[`profile.tsx snapshots — driver block vs verification status > pending
                   "justifyContent": "center",
                 },
                 {
-                  "backgroundColor": "#E2E8E1",
+                  "backgroundColor": "#8FD9B4",
                   "borderRadius": 48,
                   "height": 96,
                   "width": 96,
+                },
+                {
+                  "borderColor": "#DEE5DE",
+                  "borderWidth": 2,
                 },
               ]
             }
@@ -7860,10 +7876,14 @@ exports[`profile.tsx snapshots — driver block vs verification status > rejecte
                   "justifyContent": "center",
                 },
                 {
-                  "backgroundColor": "#E2E8E1",
+                  "backgroundColor": "#8FD9B4",
                   "borderRadius": 48,
                   "height": 96,
                   "width": 96,
+                },
+                {
+                  "borderColor": "#DEE5DE",
+                  "borderWidth": 2,
                 },
               ]
             }

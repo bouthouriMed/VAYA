@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { fullPlaceLabel } from '../../src/utils/placeLabel';
 import { View, StyleSheet, TextInput, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -262,7 +263,7 @@ export default function StopsSelectionScreen(): React.JSX.Element {
                 renderItem={({ item, index }) => (
                   <SelectableRow
                     theme={theme}
-                    label={item.label}
+                    label={fullPlaceLabel(item.label)}
                     subLabel={item.subLabel}
                     checked={selected.has(item.placeId)}
                     isLast={index === searchRows.length - 1}
@@ -285,7 +286,7 @@ export default function StopsSelectionScreen(): React.JSX.Element {
                 renderItem={({ item, index }) => (
                   <SelectableRow
                     theme={theme}
-                    label={item.label}
+                    label={fullPlaceLabel(item.label)}
                     checked={selected.has(item.key)}
                     isLast={index === recommendedRows.length - 1}
                     onPress={() => toggleCity(item)}

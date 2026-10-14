@@ -299,6 +299,8 @@
       "mapsWholeTrip": "Ouvrir tout le trajet dans Google Maps",
       "mapsUnavailable": "Impossible d'ouvrir Google Maps.",
       "openInGoogleMaps": "Ouvrir dans Google Maps",
+      "seatsRequested_one": "{{count}} place",
+      "seatsRequested_other": "{{count}} places",
       "capacityLabel": "Capacité",
       "earningsLabel": "Gains",
       "pendingSection": "À répondre ({{count}})",
@@ -384,6 +386,7 @@
     },
     "bookingDetail": {
       "title": "Détails de la réservation",
+      "directionsToPickup": "Itinéraire vers le point de prise en charge",
       "passenger": "Passager",
       "destination": "Destination du trajet",
       "message": "Message",

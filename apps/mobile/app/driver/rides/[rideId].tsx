@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity, Modal, Linking } from 'react-native';
+import { View, StyleSheet, ScrollView, TouchableOpacity, Modal } from 'react-native';
 import { Marker } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -56,7 +56,7 @@ import { buildItineraryThread, type ItineraryStopEvent } from '../../../src/feat
 import { PassengerItineraryThread } from '../../../src/features/driver-rides/PassengerItineraryThread';
 import { formatTime, formatRelativeTime, toIntlTag } from '../../../src/utils/localeFormat';
 import { fullPlaceLabel, shortenPlaceLabel } from '../../../src/utils/placeLabel';
-import { buildGoogleMapsDirectionsUrl } from '../../../src/utils/googleMapsLink';
+import { openDirections } from '../../../src/utils/openInMaps';
 import { bookingStatusDisplay } from '../../../src/features/status/statusDisplay';
 
 const TRACKABLE_TRIP_STATUSES: readonly TripStatus[] = ['driver_approaching', 'pickup', 'active', 'arriving'];
@@ -163,14 +163,14 @@ function PendingRequestRow({
             {booking.rider?.fullName ?? t('rides.rideDetail.passenger')}
           </Text>
           <Text variant="caption" color={theme.inkMuted} numberOfLines={1}>
-            {`${booking.seatsRequested} place${booking.seatsRequested > 1 ? 's' : ''} · ${booking.pickupLabel}`}
+            {`${t('rides.rideDetail.seatsRequested', { count: booking.seatsRequested })} · ${shortenPlaceLabel(booking.pickupLabel)}`}
           </Text>
           {/* This passenger's own dropoff — may not match the ride's own
            *  destination on a route-passthrough match, so the driver sees
            *  exactly where THIS rider goes before deciding, not just where
            *  the ride itself ends. */}
           <Text variant="caption" color={theme.inkFaint} numberOfLines={1}>
-            {`→ ${booking.dropoffLabel ?? rideDestinationLabel}`}
+            {`→ ${shortenPlaceLabel(booking.dropoffLabel ?? rideDestinationLabel)}`}
           </Text>
           {/* M-054/M-059 (docs/unified_driver_and_passenger_journey.md
            *  §20/§21): the real, server-authoritative response deadline —
@@ -619,6 +619,19 @@ export default function DriverRideHubScreen(): React.JSX.Element {
       ...passengerItineraryPoints.map((p) => ({ lat: p.lat, lng: p.lng })),
       dropoffStop ?? { lat: ride.destinationLat, lng: ride.destinationLng },
     ]) ?? undefined;
+  // The drive the driver will actually make: departure, every accepted
+  // passenger's pickup/dropoff in route order, arrival.
+  const wholeTripDirections = {
+    origin: { lat: ride.originLat, lng: ride.originLng },
+    destination: { lat: ride.destinationLat, lng: ride.destinationLng },
+    waypoints: passengerItineraryPoints.map((p) => ({ lat: p.lat, lng: p.lng })),
+  };
+  function openInMaps(options: Parameters<typeof openDirections>[0]): void {
+    void openDirections(options).then((opened) => {
+      if (!opened) showToast({ message: t('rides.rideDetail.mapsUnavailable'), tone: 'error' });
+    });
+  }
+
   // The fullscreen view frames the real road geometry (a curving route can
   // leave the endpoints' box), then nudges the centre south so the route
   // sits in the open map above the summary card rather than under it.
@@ -801,17 +814,13 @@ export default function DriverRideHubScreen(): React.JSX.Element {
               // Departure: directions there from wherever the driver is.
               // Arrival: the whole trip, through every passenger's pickup/
               // dropoff in route order — the drive they'll actually make.
-              onOpenInMaps={(node) => {
-                const url =
+              onOpenInMaps={(node) =>
+                openInMaps(
                   node.kind === 'origin'
-                    ? buildGoogleMapsDirectionsUrl({ destination: { lat: ride.originLat, lng: ride.originLng } })
-                    : buildGoogleMapsDirectionsUrl({
-                        origin: { lat: ride.originLat, lng: ride.originLng },
-                        destination: { lat: ride.destinationLat, lng: ride.destinationLng },
-                        waypoints: passengerItineraryPoints.map((p) => ({ lat: p.lat, lng: p.lng })),
-                      });
-                Linking.openURL(url).catch(() => showToast({ message: t('rides.rideDetail.mapsUnavailable'), tone: 'error' }));
-              }}
+                    ? { destination: { lat: ride.originLat, lng: ride.originLng } }
+                    : wholeTripDirections,
+                )
+              }
               openInMapsLabel={(node) =>
                 node.kind === 'origin' ? t('rides.rideDetail.mapsToDeparture') : t('rides.rideDetail.mapsWholeTrip')
               }
@@ -1067,15 +1076,7 @@ export default function DriverRideHubScreen(): React.JSX.Element {
               label={t('rides.rideDetail.openInGoogleMaps')}
               variant="secondary"
               theme={theme}
-              onPress={() =>
-                Linking.openURL(
-                  buildGoogleMapsDirectionsUrl({
-                    origin: { lat: ride.originLat, lng: ride.originLng },
-                    destination: { lat: ride.destinationLat, lng: ride.destinationLng },
-                    waypoints: passengerItineraryPoints.map((p) => ({ lat: p.lat, lng: p.lng })),
-                  }),
-                ).catch(() => showToast({ message: t('rides.rideDetail.mapsUnavailable'), tone: 'error' }))
-              }
+              onPress={() => openInMaps(wholeTripDirections)}
               style={styles.routeSummaryButton}
             />
           </View>

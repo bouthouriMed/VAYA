@@ -3263,11 +3263,12 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                       "justifyContent": "center",
                     },
                     {
-                      "backgroundColor": "#E2E8E1",
+                      "backgroundColor": "#8FD9B4",
                       "borderRadius": 14,
                       "height": 28,
                       "width": 28,
                     },
+                    undefined,
                   ]
                 }
               >
@@ -3760,11 +3761,12 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                               "justifyContent": "center",
                             },
                             {
-                              "backgroundColor": "#E2E8E1",
+                              "backgroundColor": "#8FD9B4",
                               "borderRadius": 14,
                               "height": 28,
                               "width": 28,
                             },
+                            undefined,
                           ]
                         }
                       >
@@ -4184,11 +4186,12 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                       "justifyContent": "center",
                     },
                     {
-                      "backgroundColor": "#E2E8E1",
+                      "backgroundColor": "#8FD9B4",
                       "borderRadius": 20,
                       "height": 40,
                       "width": 40,
                     },
+                    undefined,
                   ]
                 }
               >
@@ -4257,7 +4260,7 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                   ]
                 }
               >
-                1 place · Angle Rue de Kairouan
+                rides.rideDetail.seatsRequested · Angle Rue de Kairouan
               </Text>
               <Text
                 numberOfLines={1}
@@ -4466,11 +4469,12 @@ exports[`driver/rides/[rideId].tsx snapshots > one pending request (inline Accep
                       "justifyContent": "center",
                     },
                     {
-                      "backgroundColor": "#E2E8E1",
+                      "backgroundColor": "#8FD9B4",
                       "borderRadius": 18,
                       "height": 36,
                       "width": 36,
                     },
+                    undefined,
                   ]
                 }
               >
@@ -6771,11 +6775,12 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                       "justifyContent": "center",
                     },
                     {
-                      "backgroundColor": "#E2E8E1",
+                      "backgroundColor": "#8FD9B4",
                       "borderRadius": 14,
                       "height": 28,
                       "width": 28,
                     },
+                    undefined,
                   ]
                 }
               >
@@ -6825,11 +6830,12 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                       "justifyContent": "center",
                     },
                     {
-                      "backgroundColor": "#E2E8E1",
+                      "backgroundColor": "#8FD9B4",
                       "borderRadius": 14,
                       "height": 28,
                       "width": 28,
                     },
+                    undefined,
                   ]
                 }
               >
@@ -7322,11 +7328,12 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                               "justifyContent": "center",
                             },
                             {
-                              "backgroundColor": "#E2E8E1",
+                              "backgroundColor": "#8FD9B4",
                               "borderRadius": 14,
                               "height": 28,
                               "width": 28,
                             },
+                            undefined,
                           ]
                         }
                       >
@@ -7583,11 +7590,12 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                               "justifyContent": "center",
                             },
                             {
-                              "backgroundColor": "#E2E8E1",
+                              "backgroundColor": "#8FD9B4",
                               "borderRadius": 14,
                               "height": 28,
                               "width": 28,
                             },
+                            undefined,
                           ]
                         }
                       >
@@ -7900,11 +7908,12 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                               "justifyContent": "center",
                             },
                             {
-                              "backgroundColor": "#E2E8E1",
+                              "backgroundColor": "#8FD9B4",
                               "borderRadius": 14,
                               "height": 28,
                               "width": 28,
                             },
+                            undefined,
                           ]
                         }
                       >
@@ -8139,11 +8148,12 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                               "justifyContent": "center",
                             },
                             {
-                              "backgroundColor": "#E2E8E1",
+                              "backgroundColor": "#8FD9B4",
                               "borderRadius": 14,
                               "height": 28,
                               "width": 28,
                             },
+                            undefined,
                           ]
                         }
                       >
@@ -8600,11 +8610,12 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                       "justifyContent": "center",
                     },
                     {
-                      "backgroundColor": "#E2E8E1",
+                      "backgroundColor": "#8FD9B4",
                       "borderRadius": 18,
                       "height": 36,
                       "width": 36,
                     },
+                    undefined,
                   ]
                 }
               >
@@ -8769,11 +8780,12 @@ exports[`driver/rides/[rideId].tsx snapshots > two overlapping passengers: the t
                       "justifyContent": "center",
                     },
                     {
-                      "backgroundColor": "#E2E8E1",
+                      "backgroundColor": "#8FD9B4",
                       "borderRadius": 18,
                       "height": 36,
                       "width": 36,
                     },
+                    undefined,
                   ]
                 }
               >

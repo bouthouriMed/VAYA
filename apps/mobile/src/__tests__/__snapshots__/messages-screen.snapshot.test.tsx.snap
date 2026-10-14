@@ -1289,11 +1289,12 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
                   "justifyContent": "center",
                 },
                 {
-                  "backgroundColor": "#E2E8E1",
+                  "backgroundColor": "#8FD9B4",
                   "borderRadius": 24,
                   "height": 48,
                   "width": 48,
                 },
+                undefined,
               ]
             }
           >
@@ -1595,11 +1596,12 @@ exports[`messages.tsx snapshots > populated — filter chips over Aujourd'hui/Hi
                   "justifyContent": "center",
                 },
                 {
-                  "backgroundColor": "#E2E8E1",
+                  "backgroundColor": "#8FD9B4",
                   "borderRadius": 24,
                   "height": 48,
                   "width": 48,
                 },
+                undefined,
               ]
             }
           >

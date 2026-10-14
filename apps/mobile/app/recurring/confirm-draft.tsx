@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { fullPlaceLabel } from '../../src/utils/placeLabel';
 import { View, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -158,8 +159,8 @@ export default function ConfirmAutoDraftScreen(): React.JSX.Element {
         </Text>
 
         <FieldCard>
-          <FieldRow label={t('booking:recurring.departure')} value={pattern.originLabel} />
-          <FieldRow label={t('booking:recurring.arrival')} value={pattern.destinationLabel} dotColor={theme.ink} dotFilled={false} />
+          <FieldRow label={t('booking:recurring.departure')} value={fullPlaceLabel(pattern.originLabel)} />
+          <FieldRow label={t('booking:recurring.arrival')} value={fullPlaceLabel(pattern.destinationLabel)} dotColor={theme.ink} dotFilled={false} />
           <FieldRow
             label={t('booking:recurring.usualSchedule')}
             value={`${formatDaysOfWeek(pattern.daysOfWeekMask, t)} · ${formatTimeWindow(pattern.timeWindowStart, pattern.timeWindowEnd)}`}

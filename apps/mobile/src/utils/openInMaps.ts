@@ -1,16 +1,23 @@
-import { Linking, Platform } from 'react-native';
+import { Linking } from 'react-native';
+import { buildGoogleMapsDirectionsUrl } from './googleMapsLink';
 
-/** Opens the device's native maps app centered on a real coordinate — Apple
- *  Maps on iOS (`maps:` scheme), whatever handles `geo:` on Android (Google
- *  Maps in practice), and a Google Maps web URL as the only fallback that
- *  makes sense outside those two platforms. Never a generic text search —
- *  the pin lands on the exact pickup/dropoff point the driver was shown. */
-export function openInMaps(lat: number, lng: number, label: string): void {
-  const query = encodeURIComponent(label);
-  const url =
-    Platform.select({
-      ios: `maps:0,0?q=${query}@${lat},${lng}`,
-      android: `geo:${lat},${lng}?q=${lat},${lng}(${query})`,
-    }) ?? `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
-  void Linking.openURL(url);
+type DirectionsOptions = Parameters<typeof buildGoogleMapsDirectionsUrl>[0];
+
+/**
+ * The one way any VAYA screen sends someone to a map: Google Maps
+ * directions, built from coordinates (googleMapsLink.ts) — the Google Maps
+ * app when installed, the browser otherwise. Every Maps button in the app
+ * goes through here, so they all behave the same. (This used to drop a pin
+ * labelled with the stored place text — Apple Maps on iOS, a Plus Code in
+ * the label — while newer buttons opened directions.)
+ *
+ * Resolves false when nothing could open the link, so the caller can say so.
+ */
+export async function openDirections(options: DirectionsOptions): Promise<boolean> {
+  try {
+    await Linking.openURL(buildGoogleMapsDirectionsUrl(options));
+    return true;
+  } catch {
+    return false;
+  }
 }

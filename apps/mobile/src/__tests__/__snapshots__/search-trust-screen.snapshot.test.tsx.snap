@@ -155,10 +155,14 @@ exports[`search/trust.tsx snapshots > enables a real Message button once a conve
                 "justifyContent": "center",
               },
               {
-                "backgroundColor": "#E2E8E1",
+                "backgroundColor": "#8FD9B4",
                 "borderRadius": 52,
                 "height": 104,
                 "width": 104,
+              },
+              {
+                "borderColor": "#F7F9F5",
+                "borderWidth": 3,
               },
             ]
           }
@@ -444,10 +448,14 @@ exports[`search/trust.tsx snapshots > renders a brand-new passenger profile (no 
                 "justifyContent": "center",
               },
               {
-                "backgroundColor": "#E2E8E1",
+                "backgroundColor": "#8FD9B4",
                 "borderRadius": 52,
                 "height": 104,
                 "width": 104,
+              },
+              {
+                "borderColor": "#F7F9F5",
+                "borderWidth": 3,
               },
             ]
           }
@@ -753,10 +761,14 @@ exports[`search/trust.tsx snapshots > renders a passenger profile with real ride
                 "justifyContent": "center",
               },
               {
-                "backgroundColor": "#E2E8E1",
+                "backgroundColor": "#8FD9B4",
                 "borderRadius": 52,
                 "height": 104,
                 "width": 104,
+              },
+              {
+                "borderColor": "#F7F9F5",
+                "borderWidth": 3,
               },
             ]
           }
@@ -1215,10 +1227,14 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
                 "justifyContent": "center",
               },
               {
-                "backgroundColor": "#E2E8E1",
+                "backgroundColor": "#8FD9B4",
                 "borderRadius": 52,
                 "height": 104,
                 "width": 104,
+              },
+              {
+                "borderColor": "#F7F9F5",
+                "borderWidth": 3,
               },
             ]
           }

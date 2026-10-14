@@ -757,11 +757,12 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                               "justifyContent": "center",
                             },
                             {
-                              "backgroundColor": "#E2E8E1",
+                              "backgroundColor": "#8FD9B4",
                               "borderRadius": 16,
                               "height": 32,
                               "width": 32,
                             },
+                            undefined,
                           ]
                         }
                       >
@@ -1337,11 +1338,12 @@ exports[`search/results.tsx snapshots > renders exact matches with the top card 
                               "justifyContent": "center",
                             },
                             {
-                              "backgroundColor": "#E2E8E1",
+                              "backgroundColor": "#8FD9B4",
                               "borderRadius": 16,
                               "height": 32,
                               "width": 32,
                             },
+                            undefined,
                           ]
                         }
                       >
@@ -2935,11 +2937,12 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                               "justifyContent": "center",
                             },
                             {
-                              "backgroundColor": "#E2E8E1",
+                              "backgroundColor": "#8FD9B4",
                               "borderRadius": 16,
                               "height": 32,
                               "width": 32,
                             },
+                            undefined,
                           ]
                         }
                       >
@@ -3515,11 +3518,12 @@ exports[`search/results.tsx snapshots > renders the wide_corridor fallback: serv
                               "justifyContent": "center",
                             },
                             {
-                              "backgroundColor": "#E2E8E1",
+                              "backgroundColor": "#8FD9B4",
                               "borderRadius": 16,
                               "height": 32,
                               "width": 32,
                             },
+                            undefined,
                           ]
                         }
                       >

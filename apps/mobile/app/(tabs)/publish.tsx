@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { fullPlaceLabel } from '../../src/utils/placeLabel';
 import {
   View,
   StyleSheet,
@@ -1377,7 +1378,7 @@ export default function PublishTabScreen(): React.JSX.Element {
                     />
                     <View style={styles.timelineRowContent}>
                       <Text variant="bodySmall" color={theme.inkMuted} numberOfLines={1}>
-                        {stop.label}
+                        {fullPlaceLabel(stop.label)}
                       </Text>
                     </View>
                   </TouchableOpacity>
@@ -1896,7 +1897,7 @@ export default function PublishTabScreen(): React.JSX.Element {
                         numberOfLines={1}
                         style={styles.stopChipLabel}
                       >
-                        {stop.label}
+                        {fullPlaceLabel(stop.label)}
                       </Text>
                       {isRecommended ? (
                         <Text variant="caption" color={theme.accent}>

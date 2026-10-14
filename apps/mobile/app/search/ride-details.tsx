@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, ScrollView, Modal, Linking } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, ScrollView, Modal } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Marker } from 'react-native-maps';
 import { skipToken } from '@reduxjs/toolkit/query/react';
@@ -49,7 +49,7 @@ import { ContactPhoneSheet } from '../../src/features/contact-phone/ContactPhone
 import { useContactPhonePrompt } from '../../src/features/contact-phone/useContactPhonePrompt';
 import { formatCurrency, formatDate, formatTime } from '../../src/utils/localeFormat';
 import { fullPlaceLabel, shortenPlaceLabel } from '../../src/utils/placeLabel';
-import { buildGoogleMapsDirectionsUrl } from '../../src/utils/googleMapsLink';
+import { openDirections } from '../../src/utils/openInMaps';
 import { accessAmount } from '../../src/features/search/passengerAccess';
 import { formatDurationLabel } from '../../src/utils/durationLabel';
 import { resolvePassengerSegmentPoints } from '../../src/features/search/passengerSegment';
@@ -513,8 +513,18 @@ export default function RideDetailsScreen(): React.JSX.Element {
       dropoffPoint,
     ]) ?? routeRegion;
 
-  function openInMaps(url: string): void {
-    Linking.openURL(url).catch(() => showToast({ message: t('search:details.mapsUnavailable'), tone: 'error' }));
+  // The passenger's own ride, pickup to drop-off through any pass-through
+  // stops — what both "see your ride" buttons open.
+  const yourRideDirections = {
+    origin: pickupPoint,
+    destination: dropoffPoint,
+    waypoints: intermediateStops.map((s) => ({ lat: s.lat, lng: s.lng })),
+  };
+
+  function openInMaps(options: Parameters<typeof openDirections>[0]): void {
+    void openDirections(options).then((opened) => {
+      if (!opened) showToast({ message: t('search:details.mapsUnavailable'), tone: 'error' });
+    });
   }
 
   const legMarkers = (
@@ -611,9 +621,7 @@ export default function RideDetailsScreen(): React.JSX.Element {
                 kind="pickup"
                 theme={theme}
                 mapsLabel={t('search:details.mapsToPickup')}
-                onOpenMaps={() =>
-                  openInMaps(buildGoogleMapsDirectionsUrl({ destination: pickupPoint, travelMode: 'walking' }))
-                }
+                onOpenMaps={() => openInMaps({ destination: pickupPoint, travelMode: 'walking' })}
               />
               {intermediateStops.map((stop) => (
                 <View key={stop.id} style={styles.journeyRow}>
@@ -640,15 +648,7 @@ export default function RideDetailsScreen(): React.JSX.Element {
                 kind="dropoff"
                 theme={theme}
                 mapsLabel={t('search:details.mapsYourRide')}
-                onOpenMaps={() =>
-                  openInMaps(
-                    buildGoogleMapsDirectionsUrl({
-                      origin: pickupPoint,
-                      destination: dropoffPoint,
-                      waypoints: intermediateStops.map((s) => ({ lat: s.lat, lng: s.lng })),
-                    }),
-                  )
-                }
+                onOpenMaps={() => openInMaps(yourRideDirections)}
               />
             </View>
           </View>
@@ -785,15 +785,7 @@ export default function RideDetailsScreen(): React.JSX.Element {
             <Button
               label={t('search:details.openInGoogleMaps')}
               theme={theme}
-              onPress={() =>
-                openInMaps(
-                  buildGoogleMapsDirectionsUrl({
-                    origin: pickupPoint,
-                    destination: dropoffPoint,
-                    waypoints: intermediateStops.map((s) => ({ lat: s.lat, lng: s.lng })),
-                  }),
-                )
-              }
+              onPress={() => openInMaps(yourRideDirections)}
             />
           </View>
         </View>

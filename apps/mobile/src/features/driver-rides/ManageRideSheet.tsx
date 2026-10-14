@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { shortenPlaceLabel } from '../../utils/placeLabel';
 import { View, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { BottomSheet, Badge, Text, Icon, useAppTheme, spacing, radii, haptics, addDays } from '@vaya/design-system';
 import { useTranslation } from 'react-i18next';
@@ -67,7 +68,7 @@ export function ManageRideSheet({ visible, ride, onClose }: ManageRideSheetProps
       <View style={styles.content}>
         <View style={styles.headerRow}>
           <Text variant="body" color={theme.ink} style={styles.title}>
-            {`${ride.originLabel} → ${ride.destinationLabel}`}
+            {`${shortenPlaceLabel(ride.originLabel)} → ${shortenPlaceLabel(ride.destinationLabel)}`}
           </Text>
           <Badge label={t(`booking:status_${ride.status === 'cancelled' ? 'cancelled_by_driver' : ride.status}`)} variant={ride.status === 'published' ? 'success' : ride.status === 'cancelled' ? 'error' : ride.status === 'full' || ride.status === 'completed' ? 'info' : ride.status === 'in_progress' ? 'warning' : 'default'} />
         </View>

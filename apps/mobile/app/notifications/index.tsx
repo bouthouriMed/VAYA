@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { shortenPlaceLabel } from '../../src/utils/placeLabel';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router, Redirect } from 'expo-router';
@@ -213,7 +214,8 @@ function DriverRequestCard({
           <View style={[styles.routePill, { backgroundColor: theme.surfaceMuted }]}>
             <Icon name="navigate-outline" size="xs" color={theme.inkMuted} />
             <Text variant="bodySmall" color={theme.ink} numberOfLines={1} style={styles.routePillText}>
-              {`${info.originLabel} → ${info.destinationLabel}`}
+              {/* hasRoute guarantees both labels exist. */}
+              {`${shortenPlaceLabel(info.originLabel ?? '')} → ${shortenPlaceLabel(info.destinationLabel ?? '')}`}
             </Text>
           </View>
         ) : (

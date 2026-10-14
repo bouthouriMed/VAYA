@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
-import { View, StyleSheet, ActivityIndicator, TouchableOpacity, ScrollView } from 'react-native';
+import { View, StyleSheet, ActivityIndicator, TouchableOpacity, ScrollView, Platform } from 'react-native';
 import Reanimated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps';
@@ -26,6 +26,8 @@ import {
   type AppPalette,
   type DriverListCardData,
   ScreenHeader,
+  lightMapStyle,
+  darkMapStyle,
 } from '@vaya/design-system';
 import { router } from 'expo-router';
 import type { SupportedLocale } from '@vaya/config';
@@ -43,7 +45,7 @@ import { useOpenDriver } from '../../src/features/search/useOpenDriver';
 import { usePrefetchTopRides } from '../../src/features/search/usePrefetchTopRides';
 import { accessLabel } from '../../src/features/search/passengerAccess';
 import { trackEvent } from '../../src/services/analytics/analytics';
-import { shortenPlaceLabel } from '../../src/utils/placeLabel';
+import { fullPlaceLabel, shortenPlaceLabel } from '../../src/utils/placeLabel';
 
 type TFn = (key: string, params?: Record<string, unknown>) => string;
 
@@ -177,15 +179,16 @@ function RideResultCard({
     driverName: candidate.driverFullName ?? t('search:results.driverFallback'),
     driverAvatarUrl: candidate.driverAvatarUrl,
     ratingAvg: candidate.ratingAvg,
+    newDriverLabel: candidate.tripCount === 0 ? t('search:details.newDriver') : undefined,
     timeLabel: time,
     priceLabel: formatCurrency(candidate.contributionPerSeat, locale),
     pickupCityLabel: origin?.label ? splitLocationLabel(origin.label).city : t('search:results.departure'),
-    pickupPlaceLabel: pickupStop?.label ?? t('search:results.meetingPoint'),
+    pickupPlaceLabel: pickupStop?.label ? fullPlaceLabel(pickupStop.label) : t('search:results.meetingPoint'),
     pickupWalkLabel: accessLabel(t, candidate.pickupWalkMeters, locale),
     dropoffCityLabel: dropoffSplit.city,
     // The drop-off stop near the passenger's OWN destination when there is
     // one; the city line above is always the passenger's destination.
-    dropoffPlaceLabel: candidate.dropoffPoint?.stopId ? (candidate.dropoffPoint.label ?? dropoffSplit.place) : dropoffSplit.place,
+    dropoffPlaceLabel: candidate.dropoffPoint?.stopId && candidate.dropoffPoint.label ? fullPlaceLabel(candidate.dropoffPoint.label) : dropoffSplit.place,
     dropoffWalkLabel: accessLabel(t, candidate.dropoffWalkMeters, locale),
     seatsAvailable: candidate.seatsAvailable,
     seatsLabel: t('common:terms.seat', { count: candidate.seatsAvailable }),
@@ -226,7 +229,7 @@ export default function ResultsScreen(): React.JSX.Element {
   const insets = useSafeAreaInsets();
   const { t, i18n } = useTranslation(['search', 'common', 'booking']);
   const locale = i18n.language as SupportedLocale;
-  const { colors: theme } = useAppTheme();
+  const { colors: theme, scheme } = useAppTheme();
   const origin = useAppSelector((s) => s.search.origin);
   const destination = useAppSelector((s) => s.search.destination);
   const searchAt = useAppSelector((s) => s.search.searchAt);
@@ -377,7 +380,17 @@ export default function ResultsScreen(): React.JSX.Element {
       {showMap ? (
         <View style={styles.mapWrap}>
           {mapRegion && !isLoading ? (
-            <MapView provider={PROVIDER_DEFAULT} style={styles.map} initialRegion={mapRegion} customMapStyle={[]}>
+            <MapView
+              provider={PROVIDER_DEFAULT}
+              style={styles.map}
+              initialRegion={mapRegion}
+              // Same theming as MapCanvas: the app's light/dark palette on
+              // Google, and Apple Maps pinned to the app theme rather than
+              // the device's (a dark map inside a light app otherwise).
+              customMapStyle={scheme === 'dark' ? darkMapStyle : lightMapStyle}
+              userInterfaceStyle={scheme === 'dark' ? 'dark' : 'light'}
+              mapType={Platform.OS === 'ios' ? 'mutedStandard' : 'standard'}
+            >
               {origin ? (
                 <Marker coordinate={{ latitude: origin.lat, longitude: origin.lng }} anchor={{ x: 0.5, y: 0.5 }}>
                   <PickupPin theme={theme} />

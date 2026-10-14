@@ -187,6 +187,7 @@
   },
   "pickupTitle": "Rendez-vous",
   "pickupPointLabel": "Point de prise en charge",
+  "walkToPickup": "Itinéraire à pied",
   "arrived": "Vous êtes arrivé·e",
   "arrivedAt": "Arrivé·e à {{place}}",
   "ratingThanks": "Merci ! Votre avis sur {{name}} a été envoyé.",

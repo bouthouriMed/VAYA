@@ -20,6 +20,9 @@ export interface DriverListCardData {
    *  the default presentation. */
   driverAvatarUrl?: string | null;
   ratingAvg: number;
+  /** Translated "New driver", set when the driver has no trips yet: shown
+   *  instead of a ★ 0.0 that reads as a bad rating rather than none. */
+  newDriverLabel?: string;
   timeLabel: string;
   priceLabel: string;
   pickupCityLabel: string;
@@ -234,9 +237,9 @@ export function DriverListCard({
                   {data.driverName}
                 </Text>
                 <View style={styles.ratingRow}>
-                  <Icon name="star" size="xs" color={theme.accent} />
+                  <Icon name={data.newDriverLabel ? 'sparkles-outline' : 'star'} size="xs" color={theme.accent} />
                   <Text variant="caption" color={theme.inkMuted}>
-                    {data.ratingAvg.toFixed(1)}
+                    {data.newDriverLabel ?? data.ratingAvg.toFixed(1)}
                   </Text>
                 </View>
               </View>

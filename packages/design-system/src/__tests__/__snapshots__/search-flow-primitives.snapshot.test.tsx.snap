@@ -352,11 +352,12 @@ exports[`DriverListCard snapshots > renders a regular (non-best-match) card in t
                   "justifyContent": "center",
                 },
                 {
-                  "backgroundColor": "#E2E8E1",
+                  "backgroundColor": "#8FD9B4",
                   "borderRadius": 16,
                   "height": 32,
                   "width": 32,
                 },
+                undefined,
               ]
             }
           >
@@ -861,11 +862,12 @@ exports[`DriverListCard snapshots > renders in the dark theme 1`] = `
                   "justifyContent": "center",
                 },
                 {
-                  "backgroundColor": "#E2E8E1",
+                  "backgroundColor": "#8FD9B4",
                   "borderRadius": 16,
                   "height": 32,
                   "width": 32,
                 },
+                undefined,
               ]
             }
           >
@@ -1370,11 +1372,12 @@ exports[`DriverListCard snapshots > renders the "MEILLEURE CORRESPONDANCE" best-
                   "justifyContent": "center",
                 },
                 {
-                  "backgroundColor": "#E2E8E1",
+                  "backgroundColor": "#8FD9B4",
                   "borderRadius": 16,
                   "height": 32,
                   "width": 32,
                 },
+                undefined,
               ]
             }
           >
@@ -1926,11 +1929,12 @@ exports[`DriverListCard snapshots > renders with a real dropoff place/walk label
                   "justifyContent": "center",
                 },
                 {
-                  "backgroundColor": "#E2E8E1",
+                  "backgroundColor": "#8FD9B4",
                   "borderRadius": 16,
                   "height": 32,
                   "width": 32,
                 },
+                undefined,
               ]
             }
           >
@@ -2392,11 +2396,12 @@ exports[`DriverListCard snapshots > renders with fellow-passenger avatars instea
                   "justifyContent": "center",
                 },
                 {
-                  "backgroundColor": "#E2E8E1",
+                  "backgroundColor": "#8FD9B4",
                   "borderRadius": 16,
                   "height": 32,
                   "width": 32,
                 },
+                undefined,
               ]
             }
           >
@@ -2497,11 +2502,20 @@ exports[`DriverListCard snapshots > renders with fellow-passenger avatars instea
                   "justifyContent": "center",
                 },
                 {
-                  "backgroundColor": "#E2E8E1",
+                  "backgroundColor": "#8FD9B4",
                   "borderRadius": 12,
                   "height": 24,
                   "width": 24,
                 },
+                [
+                  {
+                    "borderWidth": 2,
+                  },
+                  {
+                    "borderColor": "#F7F9F5",
+                    "marginLeft": 0,
+                  },
+                ],
               ]
             }
           >
@@ -2532,11 +2546,20 @@ exports[`DriverListCard snapshots > renders with fellow-passenger avatars instea
                   "justifyContent": "center",
                 },
                 {
-                  "backgroundColor": "#E2E8E1",
+                  "backgroundColor": "#8FD9B4",
                   "borderRadius": 12,
                   "height": 24,
                   "width": 24,
                 },
+                [
+                  {
+                    "borderWidth": 2,
+                  },
+                  {
+                    "borderColor": "#F7F9F5",
+                    "marginLeft": -8,
+                  },
+                ],
               ]
             }
           >
@@ -2758,11 +2781,12 @@ exports[`ReviewCard snapshots > renders a partial (non-5-star) rating themed 1`]
             "justifyContent": "center",
           },
           {
-            "backgroundColor": "#E2E8E1",
+            "backgroundColor": "#8FD9B4",
             "borderRadius": 16,
             "height": 32,
             "width": 32,
           },
+          undefined,
         ]
       }
     >
@@ -2957,11 +2981,12 @@ exports[`ReviewCard snapshots > renders from the context theme when no theme pro
             "justifyContent": "center",
           },
           {
-            "backgroundColor": "#E2E8E1",
+            "backgroundColor": "#8FD9B4",
             "borderRadius": 16,
             "height": 32,
             "width": 32,
           },
+          undefined,
         ]
       }
     >
@@ -3156,11 +3181,12 @@ exports[`ReviewCard snapshots > renders themed (light palette) once a screen pas
             "justifyContent": "center",
           },
           {
-            "backgroundColor": "#E2E8E1",
+            "backgroundColor": "#8FD9B4",
             "borderRadius": 16,
             "height": 32,
             "width": 32,
           },
+          undefined,
         ]
       }
     >
