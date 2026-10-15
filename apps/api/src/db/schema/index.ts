@@ -184,3 +184,4 @@ export const reportsRelations = relations(reports, ({ one }) => ({
     references: [adminUsers.id],
   }),
 }));
+export * from './meeting-points.schema';

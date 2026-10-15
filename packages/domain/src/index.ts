@@ -18,6 +18,7 @@ export * from './matching/matching-thresholds';
 export * from './matching/existing-passenger-impact-thresholds';
 export * from './matching/existing-passenger-impact';
 export * from './matching/joint-stop-score';
+export * from './matching/meeting-point-score';
 export * from './matching/passenger-access';
 export * from './matching/search-time';
 

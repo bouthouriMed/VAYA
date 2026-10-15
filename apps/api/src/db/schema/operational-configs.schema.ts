@@ -49,6 +49,14 @@ export const operationalConfigs = pgTable('operational_configs', {
   sameJourneyDropoffRadiusMeters: doublePrecision('same_journey_dropoff_radius_meters'),
   sameJourneyTimeWindowMinutes: doublePrecision('same_journey_time_window_minutes'),
   maxActiveRequestsPerJourney: integer('max_active_requests_per_journey'),
+  // Phase 14 — how the engine weighs a passenger's access against the
+  // driver's detour when picking a pickup/drop-off (packages/domain
+  // meeting-point-score.ts). Null = the domain default.
+  meetingCityWalkWeight: doublePrecision('meeting_city_walk_weight'),
+  meetingIntercityAccessWeight: doublePrecision('meeting_intercity_access_weight'),
+  meetingDetourWeight: doublePrecision('meeting_detour_weight'),
+  meetingUsageBoostSeconds: doublePrecision('meeting_usage_boost_seconds'),
+  meetingAreaBoostSeconds: doublePrecision('meeting_area_boost_seconds'),
 
   active: boolean('active').notNull().default(true),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),

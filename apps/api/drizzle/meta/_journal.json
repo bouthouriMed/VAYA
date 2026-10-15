@@ -232,6 +232,13 @@
       "when": 1791650250497,
       "tag": "0032_rides_publish_on_verification_contact_phone",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1792100338329,
+      "tag": "0033_meeting_points_and_areas",
+      "breakpoints": true
     }
   ]
 }

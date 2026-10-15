@@ -14,6 +14,7 @@ import {
 } from '../matching.service.js';
 import { polylineLengthMeters } from '../../../lib/polyline.js';
 import {
+  DEFAULT_MEETING_WEIGHTS,
   detourAllowanceSec,
   getMatchingThresholds,
   getPassengerAccessCaps,
@@ -763,6 +764,64 @@ describe('on-route boarding/alighting when no driver stop is near the passenger'
       reach,
     );
     expect(segment.pickup).toBeNull();
+  });
+});
+
+describe('meeting points and driver areas (Phase 14 Track D)', () => {
+  const reach = {
+    profile: 'commute' as const,
+    walk: getPassengerAccessCaps('commute'),
+    extended: getPassengerExtendedReachCaps('commute'),
+  };
+  // A petrol station right by the road near Sidi Hassine, and a louage
+  // station 900 m off the route (too far for the driver to swing by).
+  const fuelStation = { id: 'mp-fuel', kind: 'fuel_station' as const, label: 'Station Total Sidi Hassine', lat: 36.7652, lng: 10.1207, usageCount: 0 };
+  const farLouage = { id: 'mp-louage', kind: 'louage_station' as const, label: 'Station louage', lat: 36.766, lng: 10.11, usageCount: 0 };
+  const roadside = { meetingPoints: [fuelStation, farLouage], profile: 'commute' as const, weights: DEFAULT_MEETING_WEIGHTS, corridorM: 100 };
+  const params = {
+    passengerOrigin: SIDI_HASSINE_CENTRE,
+    passengerDestination: EL_MOUROUJ_SEARCH,
+    routePoints: KSAR_SAID_ROUTE,
+    maxDeviationM: 3000,
+    allowOnRoutePoints: true,
+  };
+
+  it('boards the passenger at the petrol station by the road rather than a bare point on it', () => {
+    const { segment } = resolvePassengerSegmentWithinReach({ ...params, rideStops: [], roadside }, reach);
+    expect(segment.pickup).toMatchObject({ stopId: null, meetingPointId: 'mp-fuel', label: 'Station Total Sidi Hassine', placeKind: 'fuel_station' });
+  });
+
+  it('never uses a meeting point off the driver corridor, however recognizable', () => {
+    const { segment } = resolvePassengerSegmentWithinReach(
+      { ...params, rideStops: [], roadside: { ...roadside, meetingPoints: [farLouage] } },
+      reach,
+    );
+    expect(segment.pickup?.meetingPointId).toBeNull();
+    expect(segment.pickup?.placeKind).toBe('on_route');
+  });
+
+  it("never books an area stop by id: 'via Sidi Hassine' is a preference, the exact point is computed", () => {
+    const area = { ...routeStop('area-sidi-hassine', 'Sidi Hassine', SIDI_HASSINE_CENTRE, 0), kind: 'area', radiusM: 2500 };
+    const { segment } = resolvePassengerSegmentWithinReach({ ...params, rideStops: [area], roadside }, reach);
+    expect(segment.pickup?.stopId).toBeNull();
+    expect(segment.rankedStops).toEqual([]);
+    expect(segment.pickup?.meetingPointId).toBe('mp-fuel');
+  });
+
+  it("prefers a point inside the driver's area when the two are otherwise close", () => {
+    const roundaboutOutside = { id: 'mp-rb', kind: 'roundabout' as const, label: 'Rond-point', lat: 36.7705, lng: 10.1186, usageCount: 0 };
+    const busStopInside = { id: 'mp-bus', kind: 'bus_stop' as const, label: 'Arrêt', lat: 36.7672, lng: 10.1199, usageCount: 0 };
+    const area = { ...routeStop('area', 'Sidi Hassine', { lat: 36.764, lng: 10.121 }, 0), kind: 'area', radiusM: 400 };
+    const withoutArea = resolvePassengerSegmentWithinReach(
+      { ...params, passengerOrigin: { lat: 36.768, lng: 10.11 }, rideStops: [], roadside: { ...roadside, meetingPoints: [roundaboutOutside, busStopInside] } },
+      reach,
+    ).segment;
+    const withArea = resolvePassengerSegmentWithinReach(
+      { ...params, passengerOrigin: { lat: 36.768, lng: 10.11 }, rideStops: [area], roadside: { ...roadside, meetingPoints: [roundaboutOutside, busStopInside] } },
+      reach,
+    ).segment;
+    expect(withoutArea.pickup?.meetingPointId).toBe('mp-rb');
+    expect(withArea.pickup?.meetingPointId).toBe('mp-bus');
   });
 });
 

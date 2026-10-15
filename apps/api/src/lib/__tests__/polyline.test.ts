@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { projectPointOntoRoute, type LatLng } from '../polyline.js';
+import { projectPointOntoRoute, createRouteProjector, type LatLng } from '../polyline.js';
 
 // A straight north-south route, longitude held constant so distances are
 // easy to reason about by hand (~0.01 deg latitude ≈ 1113m regardless of
@@ -67,5 +67,34 @@ describe('projectPointOntoRoute', () => {
     expect(result.distanceM).toBeGreaterThan(1000);
     expect(result.distanceM).toBeLessThan(1200);
     expect(result.fraction).toBe(0);
+  });
+});
+
+describe('createRouteProjector', () => {
+  const route = [
+    { lat: 36.8, lng: 10.1 },
+    { lat: 36.8, lng: 10.2 },
+    { lat: 36.9, lng: 10.2 },
+  ];
+  const project = createRouteProjector(route);
+
+  it('agrees with the resampling projection on distance and position', () => {
+    for (const point of [
+      { lat: 36.805, lng: 10.15 },
+      { lat: 36.85, lng: 10.21 },
+      { lat: 36.79, lng: 10.09 },
+    ]) {
+      const exact = project(point);
+      const sampled = projectPointOntoRoute(point, route);
+      expect(Math.abs(exact.distanceM - sampled.distanceM)).toBeLessThan(15);
+      expect(Math.abs(exact.fraction - sampled.fraction)).toBeLessThan(0.01);
+    }
+  });
+
+  it('puts the nearest point on the route itself', () => {
+    const { nearestPoint, distanceM } = project({ lat: 36.805, lng: 10.15 });
+    expect(nearestPoint.lat).toBeCloseTo(36.8, 6);
+    expect(nearestPoint.lng).toBeCloseTo(10.15, 6);
+    expect(distanceM).toBeCloseTo(556, -1);
   });
 });

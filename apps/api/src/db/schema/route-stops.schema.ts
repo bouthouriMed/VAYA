@@ -42,6 +42,12 @@ export const routeStops = pgTable(
     roadClass: varchar('road_class', { length: 30 }),
     // Driver opted into offering this candidate to passengers.
     isDriverSelected: boolean('is_driver_selected').notNull().default(false),
+    // Phase 14 Track D: 'point' is a bookable stop (every stop before this
+    // phase); 'area' is a place the driver is willing to pass by ("via
+    // Sidi Hassine") — never a boarding point itself, the engine picks the
+    // exact spot per search, preferring meeting points inside `radiusM`.
+    kind: varchar('kind', { length: 10 }).notNull().default('point'),
+    radiusM: integer('radius_m'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },

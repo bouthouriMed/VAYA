@@ -10,6 +10,7 @@
 } from 'drizzle-orm/pg-core';
 import { rides } from './rides.schema';
 import { routeStops } from './route-stops.schema';
+import { meetingPoints } from './meeting-points.schema';
 import { users } from './users.schema';
 
 export const bookingStatusEnum = pgEnum('booking_status', [
@@ -73,6 +74,11 @@ export const bookings = pgTable(
     // `set null` on delete for the same reason as pickupStopId: stop
     // regeneration must never destroy a booking.
     dropoffStopId: uuid('dropoff_stop_id').references(() => routeStops.id, { onDelete: 'set null' }),
+    // Phase 14: the meeting point the engine chose for this passenger, when
+    // the pickup/dropoff is one (free-form coordinates are still stored in
+    // pickupLat/Lng etc.) — what Track E's usage counts learn from.
+    pickupMeetingPointId: uuid('pickup_meeting_point_id').references(() => meetingPoints.id, { onDelete: 'set null' }),
+    dropoffMeetingPointId: uuid('dropoff_meeting_point_id').references(() => meetingPoints.id, { onDelete: 'set null' }),
     dropoffLabel: varchar('dropoff_label', { length: 140 }),
     dropoffLat: doublePrecision('dropoff_lat'),
     dropoffLng: doublePrecision('dropoff_lng'),
