@@ -633,11 +633,12 @@ describe('resolvePassengerSegmentWithinReach — walkable first, a bit further o
 });
 
 // ---------------------------------------------------------------------------
-// Reported bug: a published Ksar Said -> El Mourouj ride drives straight
-// through Cité Essalama 2 and past Sidi Hassine. "Sidi Hassine -> El
-// Mourouj" found it (a stop at Sidi Hassine, the ride's own destination);
-// "Cité Essalama 2 -> Sidi Hassine" did not — no driver-selected stop near
-// Essalama 2 and the ride's own origin is never offered once it has stops.
+// Reported bug: a published Ksar Said -> El Mourouj ride drives through
+// Cité Essalama 2 and along Sidi Hassine. "Cité Essalama 2 -> El Mourouj"
+// found it (the ride's own origin/a stop near Ksar Said is within reach,
+// and El Mourouj is its destination); "Sidi Hassine -> El Mourouj" did not
+// — no driver stop near Sidi Hassine, so route_passthrough had nowhere to
+// board the passenger, and the ride's origin is ~6 km away.
 // Approximate real coordinates; the route runs south then south-east.
 // ---------------------------------------------------------------------------
 const KSAR_SAID = { lat: 36.812, lng: 10.115 };
@@ -649,6 +650,49 @@ const STOP_SIDI_HASSINE = routeStop('stop-sidi-hassine', 'Sidi Hassine', { lat: 
 // Searched places sit a few hundred metres off the road itself.
 const ESSALAMA_2 = { lat: 36.7955, lng: 10.116 };
 const SIDI_HASSINE = { lat: 36.766, lng: 10.123 };
+
+// Sidi Hassine's own centre sits ~1.5 km west of the lakeside road the
+// ride takes (the searched place, not the road).
+const SIDI_HASSINE_CENTRE = { lat: 36.766, lng: 10.104 };
+const STOP_KSAR_SAID = routeStop('stop-ksar-said', 'Ksar Said', { lat: 36.8115, lng: 10.1152 }, 0);
+const EL_MOUROUJ_SEARCH = { lat: 36.7305, lng: 10.2095 };
+
+describe('reported case: Sidi Hassine -> El Mourouj on a Ksar Said -> El Mourouj ride', () => {
+  const reach = {
+    profile: 'commute' as const,
+    walk: getPassengerAccessCaps('commute'),
+    extended: getPassengerExtendedReachCaps('commute'),
+  };
+  // route_passthrough's own call shape: no ride endpoints offered.
+  const passThrough = {
+    passengerOrigin: SIDI_HASSINE_CENTRE,
+    passengerDestination: EL_MOUROUJ_SEARCH,
+    routePoints: KSAR_SAID_ROUTE,
+    maxDeviationM: 3000,
+  };
+
+  for (const [name, rideStops] of [
+    ['a ride with no stops', []],
+    ['a ride whose only stop is its pickup at Ksar Said', [STOP_KSAR_SAID]],
+  ] as const) {
+    it(`previously had no boarding point (${name})`, () => {
+      const { segment } = resolvePassengerSegmentWithinReach({ ...passThrough, rideStops: [...rideStops] }, reach);
+      expect(segment.pickup).toBeNull();
+    });
+
+    it(`now boards on the route by Sidi Hassine and alights at El Mourouj (${name})`, () => {
+      const { segment } = resolvePassengerSegmentWithinReach(
+        { ...passThrough, rideStops: [...rideStops], allowOnRoutePoints: true },
+        reach,
+      );
+      expect(segment.pickup?.stopId).toBeNull();
+      expect(haversineDistanceMeters(segment.pickup!, SIDI_HASSINE_ROUTE)).toBeLessThan(600);
+      expect(haversineDistanceMeters(segment.dropoff!, EL_MOUROUJ)).toBeLessThan(300);
+      expect(segment.pickupRouteFraction).toBeGreaterThan(0.3);
+      expect(segment.pickupRouteFraction).toBeLessThan(segment.dropoffRouteFraction);
+    });
+  }
+});
 
 describe('on-route boarding/alighting when no driver stop is near the passenger', () => {
   const reach = {
@@ -664,7 +708,7 @@ describe('on-route boarding/alighting when no driver stop is near the passenger'
     maxDeviationM: 3000,
   };
 
-  it('acceptance: Cité Essalama 2 -> Sidi Hassine boards on the route next to Essalama 2 and alights at the Sidi Hassine stop', () => {
+  it('boards on the route next to Cité Essalama 2 when the only stop is further along (Sidi Hassine)', () => {
     const { segment, withinWalkingDistance } = resolvePassengerSegmentWithinReach(
       { ...params, allowOnRoutePoints: true },
       reach,
