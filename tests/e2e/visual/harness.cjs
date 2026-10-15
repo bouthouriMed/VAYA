@@ -62,7 +62,7 @@ const MESSAGES = [
 const notif = (id, type, payload, mins, read) => ({ id, userId: 'u-me', type, payload, readAt: read ? iso(mins + 1) : null, createdAt: iso(mins), updatedAt: iso(mins) });
 const NOTIFS = [
   notif('n1', 'booking_accepted', { bookingId: 'b1', rideId: 'r9', driverName: 'Mehdi Jaziri' }, -20, false),
-  notif('n2', 'booking_requested', { bookingId: 'b-req1', rideId: 'r1', riderName: 'Sarra Trabelsi' }, -25, false),
+  notif('n2', 'booking_requested', { bookingId: 'b-req1', rideId: 'r1', riderId: 'u-2', riderName: 'Sarra Trabelsi', riderRatingAvg: 4.7, seatsRequested: 1, originLabel: 'Hammam-Lif', destinationLabel: 'Hammamet', rideOriginLabel: 'La Marsa', rideDestinationLabel: 'Nabeul', segmentStartFraction: 0.28, segmentEndFraction: 0.82, detourExtraSeconds: 190, contributionTotal: 8.5, departureAt: iso(60*26), expiresAt: iso(95) }, -25, false),
   notif('n3', 'message_received', { bookingId: 'b1', conversationId: 'c1', senderName: 'Mehdi Jaziri' }, -5, true),
   notif('n4', 'trip_completed', { bookingId: 'b3', tripId: 't3' }, -60*24*7, true),
 ];

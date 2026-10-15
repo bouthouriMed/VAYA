@@ -30,6 +30,13 @@ Triggering case (2026-10-15): a published Ksar Said → El Mourouj ride drives t
 - `bookings.service.ts`'s `assertRealDetourWithinAllowance` / `computeDetourImpact` — server-side validation of any non-stop point, unchanged.
 - Driver request UI (`RequestDetailSheet`, `GET /bookings/:id/detour-preview`) — already shows map, detour and price in-app.
 
+## Status (2026-10-15)
+
+- **Track A — done.** Maps link built with literal commas (`googleMapsLink.ts`); city walk cap 20 min.
+- **Track B — done.** `buildBookingPoints` books the server's pair; pickup/dropoff picker screens, the long-press override and their search state are deleted. Driver push: "Amira · 1 place" / "Sidi Hassine → El Mourouj / +3 min de détour · 4,5 DT" with the passenger photo (`richContent.image`; Android shows it, iOS needs a Notification Service Extension — not built). The `booking_requested` payload also carries `contributionTotal`, `detourExtraSeconds`, `expiresAt`, ride endpoint labels and `segmentStart/EndFraction`.
+- **Inbox redesign — done** (not in the original scope, asked for alongside Track B): open requests first as tickets (photo + rating, countdown to the real deadline, the passenger's leg on the driver's ride, detour/earnings/seats/departure, Accept/Decline after checking the booking's real status), the rest as a day-grouped activity timeline with filters. New primitives `ActivityRow`, `RouteSegmentBar`, `CountdownRing`, `FactRow`.
+- Tracks C–E: not started.
+
 ## Exact scope, in order
 
 ### Track A — Quick fixes

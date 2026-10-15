@@ -7,7 +7,10 @@
     "unread_other": "{{count}} non lues",
     "viewDetails": "Voir les détails",
     "markAllRead": "Tout marquer comme lu",
-    "loadError": "Impossible de charger vos notifications"
+    "loadError": "Impossible de charger vos notifications",
+    "toHandle": "À traiter",
+    "emptyFilter": "Rien ici pour l’instant",
+    "emptyFilterDescription": "Les notifications de ce type apparaîtront ici."
   },
   "events": {
     "booking_requested": "Nouvelle demande de réservation",
@@ -60,6 +63,24 @@
     "resolvedAccepted": "Acceptée",
     "resolvedDeclined": "Refusée",
     "viewProfile": "Voir le profil de {{name}}",
-    "openInTrips": "Ouvrir dans Mes trajets"
+    "openInTrips": "Ouvrir dans Mes trajets",
+    "resolvedClosed": "Demande close",
+    "wantsSeats_one": "Souhaite {{count}} place",
+    "wantsSeats_other": "Souhaite {{count}} places",
+    "timeLeft_one": "{{count}} minute pour répondre",
+    "timeLeft_other": "{{count}} minutes pour répondre",
+    "onRoute": "Sur le trajet",
+    "detour": "détour",
+    "forYou": "pour vous",
+    "seats_one": "place",
+    "seats_other": "places",
+    "departure": "départ",
+    "legOnRide": "{{from}} jusqu’à {{to}}, sur votre trajet {{rideFrom}} – {{rideTo}}"
+  },
+  "filters": {
+    "all": "Tout",
+    "requests": "Demandes",
+    "trips": "Trajets",
+    "messages": "Messages"
   }
 }

@@ -658,6 +658,23 @@ async function computeBookingContributionTotal(
   return segmentPrice.recommended * segment.seatsRequested;
 }
 
+/** 0..1 positions of a booking's pickup and drop-off along the ride's
+ *  route — omitted without a stored route rather than guessed. */
+function segmentFractionsOf(
+  routePolyline: string | null,
+  pickup: { lat: number; lng: number },
+  dropoff: { lat: number; lng: number } | null,
+): { segmentStartFraction?: number; segmentEndFraction?: number } {
+  if (!routePolyline) return {};
+  const routePoints = decodePolyline(routePolyline);
+  if (routePoints.length < 2) return {};
+  const round = (n: number) => Math.round(n * 1000) / 1000;
+  return {
+    segmentStartFraction: round(projectPointOntoRoute(pickup, routePoints).fraction),
+    segmentEndFraction: dropoff ? round(projectPointOntoRoute(dropoff, routePoints).fraction) : 1,
+  };
+}
+
 export async function createBooking(
   db: Database,
   rideId: string,
@@ -1023,6 +1040,13 @@ export async function createBooking(
     departureAt: ride.departureAt.toISOString(),
     contributionTotal: booking.contributionTotal,
     ...(detourExtraSeconds !== undefined ? { detourExtraSeconds } : {}),
+    expiresAt: booking.expiresAt?.toISOString(),
+    // Where this passenger's part sits along the driver's whole ride, for
+    // the inbox's route bar: the ride's own endpoints plus 0..1 positions
+    // of the pickup and drop-off on its real route.
+    rideOriginLabel: ride.originLabel,
+    rideDestinationLabel: ride.destinationLabel,
+    ...segmentFractionsOf(ride.routePolyline, { lat: pickupLat, lng: pickupLng }, dropoffLat !== null && dropoffLng !== null ? { lat: dropoffLat, lng: dropoffLng } : null),
   });
 
   // Email-only receipt for the passenger (never pushed, never in the inbox).
