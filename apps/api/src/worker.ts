@@ -14,6 +14,8 @@ import {
   scheduleTripStalenessSweepJob,
   BOOKING_EXPIRY_SWEEP_JOB_NAME,
   scheduleBookingExpirySweepJob,
+  MEETING_POINT_SCAN_JOB_NAME,
+  type MeetingPointScanJobData,
   type BookingExpirySweepJobData,
   type NotificationDispatchJobData,
   type QueueJobData,
@@ -24,6 +26,7 @@ import { processNotificationDispatchJob } from './modules/notifications/notifica
 import { processRecurringPatternScanJob } from './modules/recurring/recurring-pattern-scan.worker.js';
 import { processTripStalenessSweepJob } from './modules/trips/trip-staleness-sweep.worker.js';
 import { processBookingExpirySweepJob } from './modules/bookings/booking-expiry-sweep.worker.js';
+import { scanMeetingPointsForRide } from './modules/meeting-points/meeting-points.service.js';
 
 /**
  * Standalone process entry point for the notification-dispatch queue — the
@@ -68,6 +71,9 @@ if (!connection) {
       }
       if (job.name === TRIP_STALENESS_SWEEP_JOB_NAME) {
         return processTripStalenessSweepJob(db, job as Job<TripStalenessSweepJobData>);
+      }
+      if (job.name === MEETING_POINT_SCAN_JOB_NAME) {
+        return scanMeetingPointsForRide(db, (job as Job<MeetingPointScanJobData>).data.rideId);
       }
       if (job.name === BOOKING_EXPIRY_SWEEP_JOB_NAME) {
         return processBookingExpirySweepJob(db, job as Job<BookingExpirySweepJobData>);

@@ -71,7 +71,8 @@ describe('bookingRequestedBody', () => {
   });
 
   it('leaves out an unknown detour rather than showing 0', () => {
-    const { detourExtraSeconds: _omit, ...payload } = PAYLOAD;
+    const payload: Record<string, unknown> = { ...PAYLOAD };
+    delete payload.detourExtraSeconds;
     expect(bookingRequestedBody(payload)).toBe('Sidi Hassine → El Mourouj\n4,5 DT');
   });
 
