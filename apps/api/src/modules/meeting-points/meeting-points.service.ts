@@ -1,4 +1,4 @@
-import { eq, sql } from 'drizzle-orm';
+import { eq, inArray, sql } from 'drizzle-orm';
 import type { MeetingPointKind } from '@vaya/domain';
 import type { getDatabase } from '../../lib/database.js';
 import { meetingPoints, rides } from '../../db/schema/index.js';
@@ -151,4 +151,26 @@ export async function scanMeetingPointsForRide(db: Database, rideId: string): Pr
   const result = await scanMeetingPointsAlongRoute(db, ride.routePolyline);
   getLogger().info({ rideId, ...result }, 'Meeting points scanned along ride route');
   return result;
+}
+
+/**
+ * Track E: a completed trip that boarded or dropped the passenger at a
+ * meeting point counts as one real use of it — the evidence the pickup
+ * choice credits (usageBoostSeconds). Best-effort: never fails the trip.
+ */
+export async function recordMeetingPointUsage(
+  db: Database,
+  meetingPointIds: (string | null | undefined)[],
+  usedAt: Date,
+): Promise<void> {
+  const ids = [...new Set(meetingPointIds.filter((id): id is string => Boolean(id)))];
+  if (ids.length === 0) return;
+  try {
+    await db
+      .update(meetingPoints)
+      .set({ usageCount: sql`${meetingPoints.usageCount} + 1`, lastUsedAt: usedAt, updatedAt: usedAt })
+      .where(inArray(meetingPoints.id, ids));
+  } catch (err) {
+    getLogger().warn({ err, ids }, 'Could not record meeting-point usage');
+  }
 }

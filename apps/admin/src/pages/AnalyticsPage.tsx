@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useCorridorDemand, useOverviewMetrics, useSearchFunnel } from '../api/hooks/analytics';
+import { useCorridorDemand, useOverviewMetrics, usePickupOutcomes, useSearchFunnel } from '../api/hooks/analytics';
 import { LoadingBlock, ErrorState, EmptyState } from '../components/States';
 import { StatTile } from '../components/StatTile';
 import { PageHeader } from '../components/PageHeader';
@@ -10,11 +10,23 @@ import { Icon } from '../components/Icon';
 
 const WINDOW_OPTIONS = [7, 30, 90];
 
+const PLACE_KIND_LABELS: Record<string, string> = {
+  fuel_station: 'Petrol station',
+  louage_station: 'Louage station',
+  transit_station: 'Metro / train / bus station',
+  bus_stop: 'Bus stop',
+  roundabout: 'Roundabout',
+  highway_exit: 'Highway exit',
+  driver_stop: "Driver's own stop",
+  other: 'Other (on route, endpoint or detour)',
+};
+
 export function AnalyticsPage(): React.JSX.Element {
   const [days, setDays] = useState(30);
   const overview = useOverviewMetrics(days);
   const corridors = useCorridorDemand(days);
   const funnel = useSearchFunnel(days);
+  const pickups = usePickupOutcomes(days);
 
   const maxFunnelCount = Math.max(1, ...(funnel.data ?? []).map((f) => f.count));
 
@@ -126,6 +138,69 @@ export function AnalyticsPage(): React.JSX.Element {
                 })}
               </tbody>
             </table>
+          </div>
+        )}
+      </div>
+
+      <div className="card" style={{ marginBottom: 20 }}>
+        <div className="section-title">
+          Pickup places — request outcomes
+          <span className="section-title__desc">Which kinds of pickup drivers accept — tune the weights on the Operational config page</span>
+        </div>
+        {pickups.isLoading ? (
+          <LoadingBlock rows={4} />
+        ) : pickups.isError ? (
+          <ErrorState message={(pickups.error as Error).message} onRetry={() => pickups.refetch()} />
+        ) : !pickups.data || pickups.data.byKind.length === 0 ? (
+          <EmptyState icon="map" title="No seat requests in this window yet" />
+        ) : (
+          <div className="table-wrap">
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Pickup place</th>
+                  <th>Requests</th>
+                  <th>Accepted</th>
+                  <th>Declined</th>
+                  <th>Expired</th>
+                  <th>Completed</th>
+                  <th>Acceptance</th>
+                </tr>
+              </thead>
+              <tbody>
+                {pickups.data.byKind.map((row) => (
+                  <tr key={row.placeKind}>
+                    <td className="table__primary">{PLACE_KIND_LABELS[row.placeKind] ?? row.placeKind}</td>
+                    <td className="table__secondary">{row.requests}</td>
+                    <td className="table__secondary">{row.accepted}</td>
+                    <td className="table__secondary">{row.declined}</td>
+                    <td className="table__secondary">{row.expired}</td>
+                    <td className="table__secondary">{row.completed}</td>
+                    <td className="table__secondary">{formatRatio(row.acceptanceRate)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {pickups.data.topMeetingPoints.length > 0 ? (
+              <table className="table" style={{ marginTop: 16 }}>
+                <thead>
+                  <tr>
+                    <th>Most-used meeting points</th>
+                    <th>Kind</th>
+                    <th>Completed trips</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {pickups.data.topMeetingPoints.map((point) => (
+                    <tr key={point.id}>
+                      <td className="table__primary">{point.label}</td>
+                      <td className="table__secondary">{PLACE_KIND_LABELS[point.kind] ?? point.kind}</td>
+                      <td className="table__secondary">{point.usageCount}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : null}
           </div>
         )}
       </div>

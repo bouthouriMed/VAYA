@@ -74,6 +74,16 @@ const SECTIONS: { title: string; fields: FieldDef[] }[] = [
       { key: 'maxActiveRequestsPerJourney', label: 'Max active requests per journey', help: 'How many drivers a passenger may request simultaneously for one journey.' },
     ],
   },
+  {
+    title: 'Pickup & drop-off choice (Phase 14)',
+    fields: [
+      { key: 'meetingCityWalkWeight', label: 'City walk weight', help: "Cost of one second of a passenger's walk on a city trip (1 = a second of walking counts as a second).", step: '0.1' },
+      { key: 'meetingIntercityAccessWeight', label: 'Intercity access weight', help: "Cost of one second of a passenger's way to an intercity pickup (walk, taxi or louage). Lower = farther pickups accepted.", step: '0.1' },
+      { key: 'meetingDetourWeight', label: 'Driver detour weight', help: "Cost of one second of the driver's extra driving. Above 1 protects the driver and their other passengers.", step: '0.1' },
+      { key: 'meetingUsageBoostSeconds', label: 'Usage credit (seconds per trip)', help: 'Credit for each completed trip that used a meeting point (capped at 20 trips). Promotes the places people really use.' },
+      { key: 'meetingAreaBoostSeconds', label: 'Driver area credit (seconds)', help: 'Credit for a meeting point inside an area the driver said they pass by.' },
+    ],
+  },
 ];
 
 /**

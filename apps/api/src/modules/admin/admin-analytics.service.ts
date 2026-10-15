@@ -4,6 +4,7 @@ import {
   analyticsEvents,
   bookings,
   driverProfiles,
+  meetingPoints,
   rides,
   trips,
   users,
@@ -206,4 +207,61 @@ export async function getSearchFunnel(db: Database, windowDays: number) {
   ] as const;
 
   return funnel.map((name) => ({ eventName: name, count: byName[name] ?? 0 }));
+}
+
+/**
+ * Phase 14 Track E: how seat requests end, by the kind of pickup place
+ * VAYA chose (a meeting point's kind, a driver stop, or anything else) —
+ * the evidence for tuning the pickup-choice weights on the operational
+ * config page. Plus the meeting points most used by completed trips.
+ */
+export async function getPickupOutcomes(db: Database, windowDays: number) {
+  const cutoff = daysAgo(windowDays);
+  const result = await db.execute<{
+    place_kind: string;
+    requests: number;
+    accepted: number;
+    declined: number;
+    expired: number;
+    completed: number;
+  }>(sql`
+    select coalesce(${meetingPoints.kind}::text, case when ${bookings.pickupStopId} is not null then 'driver_stop' else 'other' end) as place_kind,
+           count(*)::int as requests,
+           count(*) filter (where ${bookings.status} in ('accepted', 'completed'))::int as accepted,
+           count(*) filter (where ${bookings.status} = 'declined')::int as declined,
+           count(*) filter (where ${bookings.status} = 'expired')::int as expired,
+           count(*) filter (where ${bookings.status} = 'completed')::int as completed
+    from ${bookings}
+    left join ${meetingPoints} on ${meetingPoints.id} = ${bookings.pickupMeetingPointId}
+    where ${bookings.createdAt} >= ${cutoff}
+    group by 1
+    order by 2 desc
+  `);
+  const byKind = result.rows.map((row) => {
+    const answered = row.accepted + row.declined;
+    return {
+      placeKind: row.place_kind,
+      requests: row.requests,
+      accepted: row.accepted,
+      declined: row.declined,
+      expired: row.expired,
+      completed: row.completed,
+      acceptanceRate: answered > 0 ? Math.round((row.accepted / answered) * 1000) / 1000 : null,
+    };
+  });
+
+  const topMeetingPoints = await db
+    .select({
+      id: meetingPoints.id,
+      label: meetingPoints.label,
+      kind: meetingPoints.kind,
+      usageCount: meetingPoints.usageCount,
+      lastUsedAt: meetingPoints.lastUsedAt,
+    })
+    .from(meetingPoints)
+    .where(gte(meetingPoints.usageCount, 1))
+    .orderBy(sql`${meetingPoints.usageCount} desc`)
+    .limit(10);
+
+  return { byKind, topMeetingPoints };
 }

@@ -141,5 +141,12 @@ export const updateOperationalConfigSchema = z.object({
   sameJourneyDropoffRadiusMeters: z.number().min(0).optional(),
   sameJourneyTimeWindowMinutes: z.number().min(0).optional(),
   maxActiveRequestsPerJourney: z.number().int().min(1).optional(),
+  // Phase 14 — how the engine weighs the passenger's access against the
+  // driver's detour when choosing a pickup/drop-off.
+  meetingCityWalkWeight: z.number().min(0).max(10).optional(),
+  meetingIntercityAccessWeight: z.number().min(0).max(10).optional(),
+  meetingDetourWeight: z.number().min(0).max(10).optional(),
+  meetingUsageBoostSeconds: z.number().min(0).max(600).optional(),
+  meetingAreaBoostSeconds: z.number().min(0).max(1800).optional(),
 });
 export type UpdateOperationalConfigInput = z.infer<typeof updateOperationalConfigSchema>;

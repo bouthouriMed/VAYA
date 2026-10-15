@@ -1,5 +1,6 @@
 import { and, eq, inArray, isNotNull, lt } from 'drizzle-orm';
 import type { getDatabase } from '../../lib/database.js';
+import { recordMeetingPointUsage } from '../meeting-points/meeting-points.service.js';
 import {
   bookings,
   driverProfiles,
@@ -251,6 +252,12 @@ async function applyTripCompletionSideEffects(
 
   await refreshTripCounts(db, trip.booking.ride.driverProfileId, riderId);
   await syncRideStatusOnTripComplete(db, trip.booking.ride.id);
+  // Phase 14 Track E: the meeting points this trip really used.
+  await recordMeetingPointUsage(
+    db,
+    [trip.booking.pickupMeetingPointId, trip.booking.dropoffMeetingPointId],
+    completedAt,
+  );
 
   // Phase 7/8 pattern: extend the existing dispatch mechanism with a new
   // trigger point rather than build a second one. `trip_completed` already

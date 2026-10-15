@@ -253,6 +253,22 @@ export interface SearchFunnelRow {
   count: number;
 }
 
+/** GET /admin/analytics/pickup-outcomes (Phase 14 Track E). */
+export interface PickupOutcomeRow {
+  placeKind: string;
+  requests: number;
+  accepted: number;
+  declined: number;
+  expired: number;
+  completed: number;
+  acceptanceRate: number | null;
+}
+
+export interface PickupOutcomes {
+  byKind: PickupOutcomeRow[];
+  topMeetingPoints: { id: string; label: string; kind: string; usageCount: number; lastUsedAt: string | null }[];
+}
+
 export interface VerificationQueueResult extends Paginated<DriverProfileRow> {
   countsByStatus: Partial<Record<VerificationStatus, number>>;
 }
@@ -287,4 +303,9 @@ export interface OperationalConfig {
   sameJourneyDropoffRadiusMeters: number;
   sameJourneyTimeWindowMinutes: number;
   maxActiveRequestsPerJourney: number;
+  meetingCityWalkWeight: number;
+  meetingIntercityAccessWeight: number;
+  meetingDetourWeight: number;
+  meetingUsageBoostSeconds: number;
+  meetingAreaBoostSeconds: number;
 }
