@@ -987,6 +987,22 @@ export async function createBooking(
   if (!booking) throw new Error('Failed to create booking');
 
   const riderProfileForNotif = await getRiderNotificationProfileSafe(db, riderId);
+  // What this request costs the driver in extra driving, shown in the
+  // request notification: a stop's own deviation, the live-routed detour
+  // of a free-form point, nothing for the ride's own endpoints. Unknown
+  // (a free-form pickup on a stop-less ride is never routed) stays
+  // unknown rather than shown as 0.
+  const stopDeviationSeconds = (stopId: string | null) =>
+    stopId ? (selectedStops.find((s) => s.id === stopId)?.deviationSeconds ?? 0) : undefined;
+  const pickupExtraSeconds =
+    stopDeviationSeconds(pickupStopId) ??
+    (selectedStops.length > 0 || isSameCoordinate(pickupLat, pickupLng, ride.originLat, ride.originLng)
+      ? pickupDetourExtraDurationSeconds
+      : undefined);
+  const dropoffExtraSeconds =
+    stopDeviationSeconds(dropoffStopId) ?? (dropoffLat !== null ? dropoffDetourExtraDurationSeconds : 0);
+  const detourExtraSeconds =
+    pickupExtraSeconds !== undefined ? Math.round(pickupExtraSeconds + dropoffExtraSeconds) : undefined;
   await notifyBestEffort(db, ride.driverProfile.userId, 'booking_requested', {
     bookingId: booking.id,
     rideId,
@@ -1005,6 +1021,8 @@ export async function createBooking(
     originLabel: booking.pickupLabel,
     destinationLabel: booking.dropoffLabel ?? ride.destinationLabel,
     departureAt: ride.departureAt.toISOString(),
+    contributionTotal: booking.contributionTotal,
+    ...(detourExtraSeconds !== undefined ? { detourExtraSeconds } : {}),
   });
 
   // Email-only receipt for the passenger (never pushed, never in the inbox).

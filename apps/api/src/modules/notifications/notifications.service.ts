@@ -172,8 +172,58 @@ const TITLES: Partial<Record<NotificationEventType, string>> = {
   trip_eta_changed: 'Heure d’arrivée mise à jour',
 };
 
-function titleFor(type: NotificationEventType): string {
+function titleFor(type: NotificationEventType, payload: Record<string, unknown> = {}): string {
+  if (type === 'booking_requested') {
+    const firstName = typeof payload.riderName === 'string' ? payload.riderName.trim().split(/\s+/)[0] : undefined;
+    const seats = typeof payload.seatsRequested === 'number' ? payload.seatsRequested : undefined;
+    if (firstName) {
+      return seats ? `${firstName} · ${seats} place${seats > 1 ? 's' : ''}` : `Demande de ${firstName}`;
+    }
+  }
   return TITLES[type] ?? 'VAYA';
+}
+
+/** "4,5 DT" — the in-app amount style (decimal comma, no trailing zeros). */
+function formatDinars(value: unknown): string | undefined {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return undefined;
+  const rounded = Math.round(value * 100) / 100;
+  return `${String(rounded).replace('.', ',')} DT`;
+}
+
+/**
+ * Everything a driver needs to decide on a seat request without opening
+ * the app (docs/roadmap/phase-14-intelligent-pickup-engine.md): where the
+ * passenger boards and alights, what it costs them in extra driving, and
+ * what it pays. Every value comes from the booking itself; a missing one
+ * is left out, never guessed.
+ *
+ *   Sidi Hassine → El Mourouj
+ *   +3 min de détour · 4,5 DT
+ */
+export function bookingRequestedBody(payload: Record<string, unknown>): string {
+  const from = typeof payload.originLabel === 'string' ? payload.originLabel : undefined;
+  const to = typeof payload.destinationLabel === 'string' ? payload.destinationLabel : undefined;
+  const route = from && to ? `${from} → ${to}` : from ? `Prise en charge : ${from}` : undefined;
+
+  const extraSeconds = typeof payload.detourExtraSeconds === 'number' ? payload.detourExtraSeconds : undefined;
+  const extraMinutes = extraSeconds !== undefined ? Math.round(extraSeconds / 60) : undefined;
+  const detour =
+    extraMinutes === undefined ? undefined : extraMinutes < 1 ? 'Sur votre trajet' : `+${extraMinutes} min de détour`;
+  const price = formatDinars(payload.contributionTotal);
+  const facts = [detour, price].filter(Boolean).join(' · ');
+
+  const lines = [route, facts].filter((line): line is string => Boolean(line));
+  if (lines.length > 0) return lines.join('\n');
+  return typeof payload.riderName === 'string'
+    ? `${payload.riderName} souhaite réserver une place.`
+    : 'Une nouvelle demande de réservation attend votre réponse.';
+}
+
+/** The person a notification is about, as a picture beside the push —
+ *  only for a real public https photo (the device fetches it itself). */
+function pushImageFor(type: NotificationEventType, payload: Record<string, unknown>): string | undefined {
+  const url = type === 'booking_requested' ? payload.riderAvatarUrl : undefined;
+  return typeof url === 'string' && url.startsWith('https://') ? url : undefined;
 }
 
 /** OS-level quick-action pre-architecture (2026-08-23 redesign) — see
@@ -192,9 +242,7 @@ function categoryFor(type: NotificationEventType): string | undefined {
 function bodyFor(type: NotificationEventType, payload: Record<string, unknown>): string {
   switch (type) {
     case 'booking_requested':
-      return typeof payload.riderName === 'string'
-        ? `${payload.riderName} souhaite réserver une place.`
-        : 'Une nouvelle demande de réservation attend votre réponse.';
+      return bookingRequestedBody(payload);
     case 'booking_accepted':
       return typeof payload.driverName === 'string'
         ? `${payload.driverName} a accepté votre demande.`
@@ -317,12 +365,14 @@ export async function dispatchPushForNotification(db: Database, notificationId: 
 
   const payload = (notification.payload ?? {}) as Record<string, unknown>;
   const categoryId = categoryFor(notification.type);
+  const image = pushImageFor(notification.type, payload);
   const messages = tokens.map((t) => ({
     to: t.token,
-    title: titleFor(notification.type),
+    title: titleFor(notification.type, payload),
     body: bodyFor(notification.type, payload),
     data: { notificationId: notification.id, type: notification.type, ...payload },
     ...(categoryId ? { categoryId } : {}),
+    ...(image ? { richContent: { image }, mutableContent: true } : {}),
   }));
 
   const tickets = await sendExpoPushMessages(messages);
