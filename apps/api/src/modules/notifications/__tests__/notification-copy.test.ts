@@ -95,6 +95,14 @@ describe('composeNotification', () => {
     expect(composeNotification('trip_driver_approaching', {}, FULL, 'ar', NOW).title).toBe('Mehdi في الطريق');
   });
 
+  it('gives a deadline its day unless it is today', () => {
+    const tomorrowNoon = { ...FULL, role: 'driver' as const, expiresAt: new Date('2026-10-16T11:00:00Z') };
+    expect(composeNotification('booking_requested', {}, tomorrowNoon, 'fr', NOW).body).toContain('Répondez avant demain à 12:00.');
+    expect(composeNotification('booking_deadline_approaching', {}, tomorrowNoon, 'en', NOW).body).toContain(
+      'Reply needed before tomorrow at 12:00.',
+    );
+  });
+
   it('turns an ETA into a clock time', () => {
     expect(composeNotification('trip_eta_changed', { etaMinutes: 12 }, FULL, 'fr', NOW).title).toBe('Arrivée vers 18:12');
   });

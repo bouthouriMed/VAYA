@@ -76,6 +76,13 @@ export function when(d: Date, locale: NotificationLocale, now: Date = new Date()
   return `${day} ${words.at} ${time}`;
 }
 
+/** A deadline: just the clock when it's today ("18:30"), otherwise with its
+ *  day ("demain à 08:00") — a bare "12:00" for a deadline days away reads
+ *  as today. */
+export function deadline(d: Date, locale: NotificationLocale, now: Date = new Date()): string {
+  return dayKey(d) === dayKey(now) ? clock(d, locale) : when(d, locale, now);
+}
+
 const WORDS: Record<NotificationLocale, { today: string; tomorrow: string; at: string }> = {
   fr: { today: "aujourd'hui", tomorrow: 'demain', at: 'à' },
   en: { today: 'today', tomorrow: 'tomorrow', at: 'at' },
@@ -138,7 +145,7 @@ const FR: Partial<Record<NotificationEventType, Builder>> = {
     body: join(
       [
         `${c.otherName ?? str(p.riderName) ?? 'Un passager'} demande ${seatsFr(c.seats ?? 1)}${c.departureAt ? ` pour ${when(c.departureAt, l, now)}` : ''}.`,
-        c.expiresAt && `Répondez avant ${clock(c.expiresAt, l)}.`,
+        c.expiresAt && `Répondez avant ${deadline(c.expiresAt, l, now)}.`,
       ],
       ' ',
     ),
@@ -148,7 +155,7 @@ const FR: Partial<Record<NotificationEventType, Builder>> = {
     body: join(
       [
         `Demande pour ${join([c.route, c.departureAt && when(c.departureAt, l, now)], ', ') || 'votre trajet'}.`,
-        c.expiresAt && `Elle expire à ${clock(c.expiresAt, l)}.`,
+        c.expiresAt && `Réponse attendue avant ${deadline(c.expiresAt, l, now)}.`,
       ],
       ' ',
     ),
@@ -287,7 +294,7 @@ const EN: Partial<Record<NotificationEventType, Builder>> = {
     body: join(
       [
         `${c.otherName ?? str(p.riderName) ?? 'A passenger'} wants ${seatsEn(c.seats ?? 1)}${c.departureAt ? ` for ${when(c.departureAt, l, now)}` : ''}.`,
-        c.expiresAt && `Reply before ${clock(c.expiresAt, l)}.`,
+        c.expiresAt && `Reply before ${deadline(c.expiresAt, l, now)}.`,
       ],
       ' ',
     ),
@@ -297,7 +304,7 @@ const EN: Partial<Record<NotificationEventType, Builder>> = {
     body: join(
       [
         `Request for ${join([c.route, c.departureAt && when(c.departureAt, l, now)], ', ') || 'your ride'}.`,
-        c.expiresAt && `It expires at ${clock(c.expiresAt, l)}.`,
+        c.expiresAt && `Reply needed before ${deadline(c.expiresAt, l, now)}.`,
       ],
       ' ',
     ),
@@ -430,7 +437,7 @@ const AR: Partial<Record<NotificationEventType, Builder>> = {
     body: join(
       [
         `${c.otherName ?? str(p.riderName) ?? 'راكب'} يطلب ${seatsAr(c.seats ?? 1)}${c.departureAt ? ` ${when(c.departureAt, l, now)}` : ''}.`,
-        c.expiresAt && `ردّ قبل ${clock(c.expiresAt, l)}.`,
+        c.expiresAt && `ردّ قبل ${deadline(c.expiresAt, l, now)}.`,
       ],
       ' ',
     ),
@@ -440,7 +447,7 @@ const AR: Partial<Record<NotificationEventType, Builder>> = {
     body: join(
       [
         `طلب لرحلة ${join([c.route, c.departureAt && when(c.departureAt, l, now)], '، ') || 'رحلتك'}.`,
-        c.expiresAt && `ينتهي على الساعة ${clock(c.expiresAt, l)}.`,
+        c.expiresAt && `الرد مطلوب قبل ${deadline(c.expiresAt, l, now)}.`,
       ],
       ' ',
     ),
