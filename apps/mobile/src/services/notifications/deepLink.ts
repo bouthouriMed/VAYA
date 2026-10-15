@@ -1,133 +1,117 @@
 /**
- * Maps a notification event type to the screen a tap should open. Scoped
- * to exactly the event types this and Phase 7 actually dispatch
- * (booking_requested/accepted/declined, message_received) — not a
- * general-purpose deep-linking system (docs/roadmap/phase-07-notifications.md's
- * explicit scope boundary "do not build a general deep-linking system
- * beyond what these notification types need").
+ * Maps a tapped notification to the screen where its next step happens.
  *
- * booking_accepted/booking_declined resolve to the "Mes trajets" tab — it
- * already renders a rider's bookings ((tabs)/trips.tsx), the closest
- * existing screen to those events' subject.
+ * The server attaches the ids and the recipient's side of the booking to
+ * every push it sends (notifications.service.ts → loadNotificationContext:
+ * `bookingId`, `rideId`, `role`), so a tap lands on the exact booking or
+ * ride the notification is about — not just the app's home. Every pushable
+ * type resolves somewhere; a missing id falls back to "Mes trajets", where
+ * the user's bookings and rides are listed.
  *
- * booking_requested resolves more specifically: its payload always carries
- * `rideId` (bookings.service.ts's createBooking), so a tap opens Mes trajets
- * *with that ride's request sheet already open*
- * (`?openRequestsForRide=<rideId>`, read by trips.tsx) — a driver taps the
- * notification and lands directly on the request they can accept/decline,
- * not just the dashboard they'd have to navigate from manually. (An earlier
- * version of this file described this as "a real product gap" — that
- * screen, RideRequestsSheet, has existed since a "booking (wip)" commit;
- * this comment was simply never updated.)
- *
- * message_received (Phase 8) is the one type that can resolve more
- * specifically: its payload always carries the bookingId
- * (conversations.service.ts's sendMessage), so a tap opens that exact
- * conversation directly rather than the generic trips tab.
- *
- * trip_completed (Phase 9, docs/roadmap/phase-09-ratings-trust.md) also
- * resolves to "Mes trajets": the actual rating *prompt* itself is surfaced
- * by RatingPromptBridge (app/_layout.tsx), mounted globally and polling
- * `GET /trips/pending-rating` on launch — a tap on this notification just
- * needs to bring the app to the foreground into a screen where that bridge
- * is already active, which every screen under the root stack is.
- *
- * recurring_pattern_detected/recurring_proactive_match (Phase 11,
- * docs/roadmap/phase-11-recurring-rides.md) resolve to the new
- * `/recurring` pattern-management screen — the detection-prompt bottom
- * sheet itself is surfaced proactively by RecurringPatternPromptBridge
- * (app/_layout.tsx, the same "global bridge polling on launch" pattern
- * RatingPromptBridge established), so a tap here just needs to land
- * somewhere that shows the pattern (its list of patterns), not open the
- * sheet directly — there's no dedicated single-pattern detail screen.
- *
- * trip_driver_approaching/trip_pickup_arrived/trip_arriving/
- * trip_tracking_unavailable (live tracking, docs/domain/live-tracking.md)
- * all carry `{tripId, bookingId}` (trips.service.ts's startTrip/
- * updateTripLocation/reportTrackingIssue notifyBestEffort calls). bookings/
- * live.tsx only strictly needs `bookingId` — it fetches the trip and its
- * live tracking state itself (useGetTripByBookingQuery/useTripTracking) and
- * falls back to generic copy for the display-only params (driverName,
- * destinationLabel) it would otherwise get from the normal
- * pending.tsx/pickup.tsx navigation chain — so a tap here can open the real
- * live screen directly instead of just the "Mes trajets" tab the rider
- * would then have to navigate from manually.
- *
- * verification_submitted/approved/declined all resolve to
- * `/driver/onboarding/confirmation`, which now reads the driver's REAL
- * current `verificationStatus` (not a one-time `status` param) — a tap on
- * any of these three always shows the true current state, not just what
- * the notification was about. verification_resubmission_required is the
- * one type that resolves more specifically, matching this file's
- * `booking_requested`/`message_received` precedent: it sends the driver
- * straight to `/driver/onboarding/resubmit`, the exact actionable screen,
- * since there is real, specific work to do there and nothing to gain by
- * making them navigate to it themselves.
+ * - Requests a driver must answer open that ride's hub, where Accept/Decline
+ *   sit inline (via trips' `openRequestsForRide`, so Back returns to the
+ *   dashboard).
+ * - A rider's booking outcomes open the booking itself; live-trip updates
+ *   open the live screen; messages open the conversation.
+ * - A driver's booking/trip updates open the ride hub.
  */
 export type NotificationDeepLinkType =
   | 'booking_requested'
+  | 'booking_deadline_approaching'
   | 'booking_accepted'
   | 'booking_declined'
+  | 'booking_cancelled'
+  | 'booking_sibling_cancelled'
+  | 'booking_no_show_reported'
   | 'message_received'
-  | 'trip_completed'
-  | 'recurring_pattern_detected'
-  | 'recurring_proactive_match'
   | 'trip_driver_approaching'
   | 'trip_pickup_arrived'
-  | 'trip_arriving'
+  | 'trip_passenger_onboard'
+  | 'trip_active'
+  | 'trip_route_deviation'
+  | 'trip_eta_changed'
   | 'trip_tracking_unavailable'
+  | 'trip_arriving'
+  | 'trip_completed'
   | 'trip_completion_reminder'
+  | 'rating_received'
+  | 'recurring_pattern_detected'
+  | 'recurring_proactive_match'
+  | 'demand_signal_matched'
   | 'verification_submitted'
   | 'verification_approved'
   | 'verification_declined'
   | 'verification_resubmission_required'
   | (string & {});
 
+const TRIPS = '/(tabs)/trips';
+
+const id = (v: unknown): string | undefined => (typeof v === 'string' && v ? v : undefined);
+
 export function resolveNotificationDeepLink(
   type: NotificationDeepLinkType,
   payload?: Record<string, unknown>,
 ): string | null {
+  const bookingId = id(payload?.bookingId);
+  const rideId = id(payload?.rideId);
+  const isDriver = payload?.role === 'driver';
+
+  const rideRequests = rideId ? `${TRIPS}?openRequestsForRide=${encodeURIComponent(rideId)}` : TRIPS;
+  const booking = bookingId ? `/bookings/${encodeURIComponent(bookingId)}` : TRIPS;
+  const live = bookingId ? `/bookings/live?bookingId=${encodeURIComponent(bookingId)}` : TRIPS;
+  const rideHub = rideId ? `/driver/rides/${encodeURIComponent(rideId)}` : TRIPS;
+
   switch (type) {
-    case 'booking_requested': {
-      const rideId = payload?.rideId;
-      return typeof rideId === 'string'
-        ? `/(tabs)/trips?openRequestsForRide=${encodeURIComponent(rideId)}`
-        : '/(tabs)/trips';
-    }
+    // Something for the driver to answer.
+    case 'booking_requested':
+    case 'booking_deadline_approaching':
+      return rideRequests;
+
+    // A rider's booking outcome; for a driver, the ride it affects.
     case 'booking_accepted':
     case 'booking_declined':
-    case 'trip_completed':
-    case 'trip_completion_reminder':
-      // Sent to both driver and rider (trips.service.ts's
-      // applyTripCompletionSideEffects/runTripStalenessSweep) — unlike the
-      // other live-tracking types below, there's no single rider-only
-      // screen that's right for both audiences, so this resolves the same
-      // way trip_completed already does: "Mes trajets", where the driver
-      // has "Terminer le trajet" and the rider has the live-tracking
-      // re-entry card, whichever actually applies to them.
-      return '/(tabs)/trips';
+    case 'booking_sibling_cancelled':
+    case 'booking_cancelled':
+    case 'booking_no_show_reported':
+      return isDriver ? rideHub : booking;
+
+    case 'message_received':
+      return bookingId ? `/conversations/${encodeURIComponent(bookingId)}` : TRIPS;
+
+    // Live trip: the rider follows it live; the driver runs it from the hub.
     case 'trip_driver_approaching':
     case 'trip_pickup_arrived':
+    case 'trip_passenger_onboard':
+    case 'trip_active':
+    case 'trip_route_deviation':
+    case 'trip_eta_changed':
+    case 'trip_tracking_unavailable':
     case 'trip_arriving':
-    case 'trip_tracking_unavailable': {
-      const bookingId = payload?.bookingId;
-      return typeof bookingId === 'string'
-        ? `/bookings/live?bookingId=${encodeURIComponent(bookingId)}`
-        : '/(tabs)/trips';
-    }
-    case 'message_received': {
-      const bookingId = payload?.bookingId;
-      return typeof bookingId === 'string' ? `/conversations/${bookingId}` : '/(tabs)/trips';
-    }
+      return isDriver ? rideHub : live;
+
+    // Rating prompts surface globally (RatingPromptBridge); "Mes trajets"
+    // is where both sides can finish the trip.
+    case 'trip_completed':
+    case 'trip_completion_reminder':
+      return TRIPS;
+
+    case 'rating_received':
+      return '/(tabs)/profile';
+
     case 'recurring_pattern_detected':
     case 'recurring_proactive_match':
       return '/recurring';
+
+    case 'demand_signal_matched':
+      return '/(tabs)/explore';
+
     case 'verification_submitted':
     case 'verification_approved':
     case 'verification_declined':
       return '/driver/onboarding/confirmation';
     case 'verification_resubmission_required':
       return '/driver/onboarding/resubmit';
+
     default:
       return null;
   }

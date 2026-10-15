@@ -39,7 +39,7 @@ import {
   readNotificationCounterpartPayload,
   type NotificationTone,
 } from '../../src/services/notifications/notificationCopy';
-import { resolveNotificationDeepLink } from '../../src/services/notifications/deepLink';
+import { useNotificationDestination } from '../../src/services/notifications/useNotificationDestination';
 import { trackEvent } from '../../src/services/analytics/analytics';
 
 function formatWhen(iso: string, t: (key: string) => string, locale: SupportedLocale): string {
@@ -104,6 +104,7 @@ function DriverRequestCard({
 }): React.JSX.Element {
   const info = readNotificationCounterpartPayload(notification.type, notification.payload);
   const [acceptBooking, acceptState] = useAcceptBookingMutation();
+  const destinationFor = useNotificationDestination();
   const [declineBooking, declineState] = useDeclineBookingMutation();
   const [resolvedAs, setResolvedAs] = useState<'accepted' | 'declined' | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -131,7 +132,7 @@ function DriverRequestCard({
 
   function openInTrips(): void {
     trackEvent('notification_tapped', { type: notification.type, source: 'inbox' });
-    const destination = resolveNotificationDeepLink(notification.type, notification.payload);
+    const destination = destinationFor(notification.type, notification.payload);
     if (destination) router.push(destination as Parameters<typeof router.push>[0]);
   }
 
@@ -303,9 +304,10 @@ function StatusCard({
   locale: SupportedLocale;
 }): React.JSX.Element {
   const meta = notificationTypeMeta(notification.type, t as TFunction);
+  const destinationFor = useNotificationDestination();
   const tone = toneColors(notificationTone(notification.type), theme);
   const isUnread = !notification.readAt;
-  const destination = resolveNotificationDeepLink(notification.type, notification.payload);
+  const destination = destinationFor(notification.type, notification.payload);
 
   return (
     <TouchableOpacity
@@ -375,6 +377,7 @@ export default function NotificationsScreen(): React.JSX.Element {
     skip: !accessToken,
   });
   const [markRead] = useMarkNotificationReadMutation();
+  const destinationFor = useNotificationDestination();
 
   // Day-grouped like the messages inbox (reuses its own date-label logic,
   // formatDaySectionLabel, rather than a second copy of "today/yesterday/
@@ -408,7 +411,7 @@ export default function NotificationsScreen(): React.JSX.Element {
       void markRead(notification.id);
     }
     trackEvent('notification_tapped', { type: notification.type, source: 'inbox' });
-    const destination = resolveNotificationDeepLink(notification.type, notification.payload);
+    const destination = destinationFor(notification.type, notification.payload);
     if (destination) {
       router.push(destination as Parameters<typeof router.push>[0]);
     }

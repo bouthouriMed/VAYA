@@ -24,6 +24,7 @@ import { loadAppearancePreference } from '../src/services/settings/appearanceSto
 import { readLanguagePreferenceSync } from '../src/services/settings/languageStorage';
 import { initI18n, detectDeviceLocale } from '../src/services/i18n';
 import { applyRtlDirection } from '../src/services/i18n/rtl';
+import { LocaleSync } from '../src/services/i18n/LocaleSync';
 import { ErrorBoundary } from '../src/components/ErrorBoundary';
 import { OfflineBanner } from '../src/components/OfflineBanner';
 import { initMonitoring } from '../src/services/monitoring/sentry';
@@ -220,6 +221,7 @@ export default function RootLayout(): React.JSX.Element {
           <ThemedApp>
             <ToastProvider topInset={insets.top}>
               <LanguageHydrator />
+              <LocaleSync />
               <NotificationBridge />
               <PushPermissionBridge />
               <RatingPromptBridge />
