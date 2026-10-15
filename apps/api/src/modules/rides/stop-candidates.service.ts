@@ -620,7 +620,7 @@ export interface CustomStopInput {
    *  "add stops along your route" step, which needs its sequence computed
    *  from its actual position along the road route instead of either
    *  extreme — see `computeViaStopInsertion` below. */
-  role: 'pickup' | 'dropoff' | 'via';
+  role: 'pickup' | 'dropoff' | 'via' | 'area';
 }
 
 /** Pure so the ordering rule is directly unit-testable without a DB —
@@ -725,11 +725,12 @@ export async function addCustomStop(
   // route-detour distance, only against real vehicle accessibility).
   // Best-effort: a reverse-geocode failure means "no signal", never a hard
   // rejection — mirrors buildLabel's existing degrade-gracefully pattern.
-  // Phase 14: a 'via' stop is an area the driver will pass by ("via Sidi
+  // Phase 14: an 'area' is a place the driver will pass by ("via Sidi
   // Hassine"), never a spot a car stops at — the engine picks the exact
   // meeting point per passenger. So the stoppable-spot checks below
-  // (pedestrian zone, road snapping) apply to pickup/dropoff pins only.
-  const isArea = input.role === 'via';
+  // (pedestrian zone, road snapping) don't apply to it. A 'via' point (older
+  // app versions) is still a bookable stop and keeps them.
+  const isArea = input.role === 'area';
   if (!isArea) {
     let osmClass: string | null = null;
     let osmType: string | null = null;
@@ -759,7 +760,7 @@ export async function addCustomStop(
   let deviationMeters = 0;
   let deviationSeconds = 0;
 
-  if (input.role === 'via') {
+  if (input.role === 'via' || input.role === 'area') {
     if (!ride.routePolyline) {
       throw new ValidationError('A route is required to add a stop along the route');
     }

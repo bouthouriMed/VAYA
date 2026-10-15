@@ -1172,7 +1172,7 @@ export const api = createApi({
     // rides.service.ts's addCustomStop doc comment for the full reasoning.
     addCustomStop: builder.mutation<
       RouteStop,
-      { rideId: string; label: string; lat: number; lng: number; role: 'pickup' | 'dropoff' | 'via' }
+      { rideId: string; label: string; lat: number; lng: number; role: 'pickup' | 'dropoff' | 'via' | 'area' }
     >({
       query: ({ rideId, ...body }) => ({
         url: `/rides/${rideId}/stops/custom`,

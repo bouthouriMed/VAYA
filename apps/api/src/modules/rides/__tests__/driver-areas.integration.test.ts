@@ -123,8 +123,8 @@ describe('driver areas and meeting points in bookings (Phase 14 Track D)', () =>
     await closeDatabase();
   });
 
-  it("saves a 'via' stop as an area with a radius, never road-snapped", async () => {
-    const area = await addCustomStop(db, rideId, driverUserId, { label: 'Sidi Hassine', lat: 36.766, lng: 10.112, role: 'via' });
+  it("saves an 'area' stop with a radius, never road-snapped", async () => {
+    const area = await addCustomStop(db, rideId, driverUserId, { label: 'Sidi Hassine', lat: 36.766, lng: 10.112, role: 'area' });
     expect(area).toMatchObject({ kind: 'area', isDriverSelected: true, lat: 36.766, lng: 10.112 });
     // The route is ~14 km: a commute-sized neighbourhood radius.
     expect(area.radiusM).toBe(1500);

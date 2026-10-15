@@ -85,6 +85,9 @@ export type UpdateRideStopsInput = z.infer<typeof updateRideStopsSchema>;
 // insertion position among the ride's other stops is computed.
 export const addCustomStopSchema = z.object({
   ...pointSchema,
-  role: z.enum(['pickup', 'dropoff', 'via']),
+  // 'area' (Phase 14): a place the driver passes by ("via Sidi Hassine"),
+  // never a boarding point — VAYA picks each passenger's exact meeting
+  // point. 'via' stays a bookable point for app versions that send it.
+  role: z.enum(['pickup', 'dropoff', 'via', 'area']),
 });
 export type AddCustomStopInput = z.infer<typeof addCustomStopSchema>;

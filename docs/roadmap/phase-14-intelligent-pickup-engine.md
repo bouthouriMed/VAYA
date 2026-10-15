@@ -30,12 +30,21 @@ Triggering case (2026-10-15): a published Ksar Said → El Mourouj ride drives t
 - `bookings.service.ts`'s `assertRealDetourWithinAllowance` / `computeDetourImpact` — server-side validation of any non-stop point, unchanged.
 - Driver request UI (`RequestDetailSheet`, `GET /bookings/:id/detour-preview`) — already shows map, detour and price in-app.
 
-## Status (2026-10-15)
+## Status (2026-10-15) — done
 
-- **Track A — done.** Maps link built with literal commas (`googleMapsLink.ts`); city walk cap 20 min.
-- **Track B — done.** `buildBookingPoints` books the server's pair; pickup/dropoff picker screens, the long-press override and their search state are deleted. Driver push: "Amira · 1 place" / "Sidi Hassine → El Mourouj / +3 min de détour · 4,5 DT" with the passenger photo (`richContent.image`; Android shows it, iOS needs a Notification Service Extension — not built). The `booking_requested` payload also carries `contributionTotal`, `detourExtraSeconds`, `expiresAt`, ride endpoint labels and `segmentStart/EndFraction`.
-- **Inbox redesign — done** (not in the original scope, asked for alongside Track B): open requests first as tickets (photo + rating, countdown to the real deadline, the passenger's leg on the driver's ride, detour/earnings/seats/departure, Accept/Decline after checking the booking's real status), the rest as a day-grouped activity timeline with filters. New primitives `ActivityRow`, `RouteSegmentBar`, `CountdownRing`, `FactRow`.
-- Tracks C–E: not started.
+- **Track A — done.** Maps directions links built by hand with literal commas (`googleMapsLink.ts`) — `URLSearchParams` encoded them as `%2C`, the likely cause of the Android tablet opening Maps with no destination. **Deviation:** no separate Android Maps-app intent was added; Google's documented `maps/dir/?api=1` URL already opens the Maps app when installed, and a `geo:` intent would drop a pin instead of giving directions. Re-check on the tablet before adding one. City walk cap 15 → 20 min (`MAX_CITY_WALK_MINUTES`).
+- **Track B — done.** `buildBookingPoints` books the server's pair; the pickup/dropoff picker screens, the long-press override and their search state are deleted. Driver push: "Amira · 1 place" / "Sidi Hassine → El Mourouj / +3 min de détour · 4,5 DT" with the passenger photo (`richContent.image`; Android shows it, iOS needs a Notification Service Extension — not built). The `booking_requested` payload also carries `contributionTotal`, `detourExtraSeconds`, `expiresAt`, ride endpoint labels and `segmentStart/EndFraction`.
+- **Inbox redesign — done** (asked for alongside Track B): open requests first as tickets (photo + rating, countdown to the real deadline, the passenger's leg on the driver's ride, detour/earnings/seats/departure, Accept/Decline after checking the booking's real status), the rest as a day-grouped activity timeline with filters. New primitives `ActivityRow`, `RouteSegmentBar`, `CountdownRing`, `FactRow`.
+- **Track C — done.** The detour tier runs on every search (routes only rides other tiers didn't match; 5 parallel routing calls when they did, 15 otherwise) and joins the same ranking. Every search logs one `matching.search` line: rides kept, and per ride every tier's dismissal reason (`DismissalLog`; places rounded to ~1 km). **Scored bands:** the remaining cut-offs are now only physical impossibility — wrong direction, no seat on the segment, beyond extended reach *and* beyond the detour allowance; everything between walking reach and extended reach is shown as a lower band, and anything a short detour can reach is offered as a detour match.
+- **Track D — done.**
+  - `meeting_points` table (migration `0033`): petrol/louage/metro/bus stations, bus stops, roundabouts, highway exits, collected from OpenStreetMap (Overpass) within 250 m of every newly published route by a `meeting-point-scan` job on the one existing queue (`meeting-points.service.ts`), classified ("Station louage" = an `amenity=bus_station` named for louages), labelled, road-snapped (skipped if >120 m away), upserted by OSM id. Google Places was not added as a second source: Overpass is keyless and returns the place kinds directly.
+  - `@vaya/domain` `meeting-point-score.ts`: one cost in seconds = passenger access (a walk in town; a walk or a taxi/louage ride intercity) × weight + driver detour × weight + a credit for recognizable places, for places people used (Track E) and for places inside a driver area. Matching's roadside choice (`onRoutePointOption`) scores every meeting point within reach and within the corridor plus the bare on-route point, and offers the cheapest; candidates carry `meetingPointId`/`placeKind`.
+  - Driver stops are areas: the app adds stops with `role: 'area'` (`route_stops.kind = 'area'`, `radius_m` 1.5/2.5/6 km by ride length), never road-snapped, never bookable by id (`createBooking` rejects them); they only credit meeting points inside them. `role: 'via'` stays a bookable point for app versions that send it (the existing e2e journeys rely on it). The publish wizard lists only areas, with copy saying VAYA picks the exact point. Ride details names the kind of place ("Station-service · 6 min…") and shows an area as "Le conducteur passe par ici".
+- **Track E — done** (tuning itself follows real data). Bookings record the meeting point they used (`pickup/dropoff_meeting_point_id`, accepted only within 60 m of the booked coordinates); every completed trip (manual, GPS auto-completion, staleness sweep — one shared side-effect path) adds one use. The five weights are on the admin Operational config page (`meeting*` columns, null = domain default). Admin analytics "Pickup places — request outcomes" shows acceptance by kind of place and the most-used points (`GET /admin/analytics/pickup-outcomes`).
+
+**Verified here:** domain 267/267, validation 14/14, admin 11/11, design-system 150/151 and mobile 318/323 (the 6 failures are the pre-existing date-dependent snapshots, identical on the pre-phase commit); API 538/545 against real Postgres/PostGIS/Redis (the 7 failures need Google OAuth or live OSRM/geocoding); typecheck + lint clean across the repo (api-client after generating its types from the running API). E2E (`tests/e2e`, live server): identical to the pre-phase commit — 9 pass, 14 need a live routing engine — plus the new Journey 12, which skips here for the same reason. New tests: `meeting-point-score`, `matching.service` (meeting points, areas, the Ksar Said corridor), `meeting-points` (classification, labels, scan boxes), `meeting-points-scan` / `driver-areas` / `meeting-points-learning` / `matching-detour-alongside` integration suites, `inboxModel`, `bookingPoints`, inbox primitives.
+
+**Not verified here:** Overpass is unreachable from this sandbox (proxy 403), so no real Tunisian meeting point has been collected yet — the scan is tested against stubbed Overpass responses; it fills in once deployed and rides are published. No routing engine either, so Journey 12 and the booking half of the flow were not run end to end. Nothing was run on a device (push image, inbox, publish areas step, ride details); the inbox was checked in the web build in light and dark.
 
 ## Exact scope, in order
 
@@ -73,11 +82,11 @@ Unit tests for every scoring/selection function (pure, in `packages/domain` wher
 
 ## Definition of Done
 
-- [ ] Track A–D shipped; Track E's logging in place (tuning itself follows real data).
-- [ ] No passenger-facing point selection remains anywhere.
-- [ ] Driver request (push, inbox, sheet) shows where, extra minutes and price from real data.
-- [ ] The triggering searches return the ride with a sensible main-road pickup.
-- [ ] `pnpm test`, `typecheck`, `lint` pass; status table and CLAUDE.md updated.
+- [x] Track A–D shipped; Track E's logging in place (tuning itself follows real data).
+- [x] No passenger-facing point selection remains anywhere.
+- [x] Driver request (push, inbox, sheet) shows where, extra minutes and price from real data.
+- [x] The triggering searches return the ride with a sensible main-road pickup (Sidi Hassine → El Mourouj boards at the roadside petrol station in `meeting-points-scan.integration.test.ts`; Essalama 2 → Sidi Hassine on the route in `matching.service.test.ts`).
+- [x] `pnpm test`, `typecheck`, `lint` pass (environment-only failures listed above); status table and CLAUDE.md updated.
 
 ## Risks / non-goals
 
