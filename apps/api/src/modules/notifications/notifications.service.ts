@@ -12,6 +12,8 @@ import { getLogger } from '../../config/logger.js';
 import { enqueueNotificationDispatch } from '../../lib/queue.js';
 import { isDeadTokenTicket, sendExpoPushMessages } from './expo-push.js';
 import { buildEmailTemplate } from './email-templates.js';
+import { composeNotification } from './notification-copy.js';
+import { loadNotificationContext } from './notification-context.js';
 import { getEmailProvider } from '../../lib/email/index.js';
 
 type Database = ReturnType<typeof getDatabase>;
@@ -142,83 +144,6 @@ export async function markNotificationRead(db: Database, notificationId: string,
   return updated;
 }
 
-const TITLES: Partial<Record<NotificationEventType, string>> = {
-  booking_requested: 'Nouvelle demande de réservation',
-  booking_accepted: 'Réservation acceptée',
-  booking_declined: 'Réservation refusée',
-  trip_driver_approaching: 'Votre conducteur approche',
-  trip_completed: 'Trajet terminé',
-  recurring_pattern_detected: 'Trajet récurrent détecté',
-  recurring_proactive_match: 'Nouveau trajet correspondant',
-  demand_signal_matched: 'Un trajet correspond à votre demande',
-  message_received: 'Nouveau message',
-  booking_cancelled: 'Réservation annulée',
-  booking_no_show_reported: 'Absence signalée',
-  trip_pickup_arrived: 'Votre conducteur est arrivé',
-  trip_arriving: 'Votre conducteur arrive',
-  trip_tracking_unavailable: 'Suivi temporairement indisponible',
-  trip_passenger_onboard: 'Trajet en cours',
-  trip_route_deviation: 'Changement d’itinéraire',
-  trip_completion_reminder: 'Votre trajet est-il terminé ?',
-  verification_submitted: 'Vérification soumise',
-  verification_approved: 'Vous êtes vérifié',
-  verification_declined: 'Vérification refusée',
-  verification_resubmission_required: 'Vérification à mettre à jour',
-  rating_received: 'Nouvel avis reçu',
-  // M-113 (docs/unified_driver_and_passenger_journey.md §39).
-  booking_deadline_approaching: 'Réponse attendue bientôt',
-  booking_sibling_cancelled: 'Demande annulée',
-  trip_active: 'Trajet en direct',
-  trip_eta_changed: 'Heure d’arrivée mise à jour',
-};
-
-function titleFor(type: NotificationEventType, payload: Record<string, unknown> = {}): string {
-  if (type === 'booking_requested') {
-    const firstName = typeof payload.riderName === 'string' ? payload.riderName.trim().split(/\s+/)[0] : undefined;
-    const seats = typeof payload.seatsRequested === 'number' ? payload.seatsRequested : undefined;
-    if (firstName) {
-      return seats ? `${firstName} · ${seats} place${seats > 1 ? 's' : ''}` : `Demande de ${firstName}`;
-    }
-  }
-  return TITLES[type] ?? 'VAYA';
-}
-
-/** "4,5 DT" — the in-app amount style (decimal comma, no trailing zeros). */
-function formatDinars(value: unknown): string | undefined {
-  if (typeof value !== 'number' || !Number.isFinite(value)) return undefined;
-  const rounded = Math.round(value * 100) / 100;
-  return `${String(rounded).replace('.', ',')} DT`;
-}
-
-/**
- * Everything a driver needs to decide on a seat request without opening
- * the app (docs/roadmap/phase-14-intelligent-pickup-engine.md): where the
- * passenger boards and alights, what it costs them in extra driving, and
- * what it pays. Every value comes from the booking itself; a missing one
- * is left out, never guessed.
- *
- *   Sidi Hassine → El Mourouj
- *   +3 min de détour · 4,5 DT
- */
-export function bookingRequestedBody(payload: Record<string, unknown>): string {
-  const from = typeof payload.originLabel === 'string' ? payload.originLabel : undefined;
-  const to = typeof payload.destinationLabel === 'string' ? payload.destinationLabel : undefined;
-  const route = from && to ? `${from} → ${to}` : from ? `Prise en charge : ${from}` : undefined;
-
-  const extraSeconds = typeof payload.detourExtraSeconds === 'number' ? payload.detourExtraSeconds : undefined;
-  const extraMinutes = extraSeconds !== undefined ? Math.round(extraSeconds / 60) : undefined;
-  const detour =
-    extraMinutes === undefined ? undefined : extraMinutes < 1 ? 'Sur votre trajet' : `+${extraMinutes} min de détour`;
-  const price = formatDinars(payload.contributionTotal);
-  const facts = [detour, price].filter(Boolean).join(' · ');
-
-  const lines = [route, facts].filter((line): line is string => Boolean(line));
-  if (lines.length > 0) return lines.join('\n');
-  return typeof payload.riderName === 'string'
-    ? `${payload.riderName} souhaite réserver une place.`
-    : 'Une nouvelle demande de réservation attend votre réponse.';
-}
-
 /** The person a notification is about, as a picture beside the push —
  *  only for a real public https photo (the device fetches it itself). */
 function pushImageFor(type: NotificationEventType, payload: Record<string, unknown>): string | undefined {
@@ -237,104 +162,6 @@ const NOTIFICATION_CATEGORIES: Partial<Record<NotificationEventType, string>> = 
 
 function categoryFor(type: NotificationEventType): string | undefined {
   return NOTIFICATION_CATEGORIES[type];
-}
-
-function bodyFor(type: NotificationEventType, payload: Record<string, unknown>): string {
-  switch (type) {
-    case 'booking_requested':
-      return bookingRequestedBody(payload);
-    case 'booking_accepted':
-      return typeof payload.driverName === 'string'
-        ? `${payload.driverName} a accepté votre demande.`
-        : 'Votre demande de réservation a été acceptée.';
-    case 'booking_declined':
-      return typeof payload.driverName === 'string'
-        ? `${payload.driverName} n'a pas pu accepter votre demande.`
-        : 'Votre demande de réservation a été refusée.';
-    case 'message_received':
-      return typeof payload.senderName === 'string'
-        ? `${payload.senderName} vous a envoyé un message.`
-        : 'Vous avez reçu un nouveau message.';
-    // Phase 9 (docs/roadmap/phase-09-ratings-trust.md): trip_completed is
-    // reused as the rating-prompt trigger (trips.service.ts's completeTrip)
-    // rather than adding a distinct event type — this is the only body this
-    // event type has ever needed, since nothing dispatched it before this
-    // phase.
-    case 'trip_completed':
-      return 'Votre trajet est terminé — notez votre expérience avant demain.';
-    // Phase 10 (docs/roadmap/phase-10-cancellation-no-show.md): dispatched
-    // to the *other* party only — the actor already sees the outcome of
-    // their own action on-screen (the cancellation sheet, the no-show
-    // confirmation), so this is genuinely new information for the
-    // recipient, not a redundant echo.
-    case 'booking_cancelled':
-      return 'Votre réservation a été annulée par l’autre partie.';
-    case 'booking_no_show_reported':
-      return 'Une absence a été signalée pour ce trajet.';
-    // Phase 11 (docs/roadmap/phase-11-recurring-rides.md): the first,
-    // previously-schema-only event types Phase 7 anticipated but never
-    // dispatched — see recurring.service.ts's upsertDetectedPattern
-    // (detected pattern crosses the suggested threshold) and
-    // checkProactiveMatchesForEnabledRiderPatterns (a real published ride
-    // now matches an enabled rider pattern).
-    case 'recurring_pattern_detected':
-      return 'Vous avez pris cet itinéraire plusieurs fois récemment — voulez-vous en faire un trajet régulier ?';
-    case 'recurring_proactive_match':
-      return 'Un trajet correspondant à votre itinéraire régulier vient d’être publié.';
-    // Live tracking (docs/domain/live-tracking.md).
-    case 'trip_pickup_arrived':
-      return 'Votre conducteur est arrivé au point de rendez-vous.';
-    case 'trip_arriving':
-      return 'Votre conducteur arrive à destination dans quelques instants.';
-    case 'trip_tracking_unavailable':
-      return 'Le suivi en direct est temporairement indisponible — le trajet continue normalement.';
-    // Journey-contract second pass (docs/unified_driver_and_passenger_journey.md
-    // §33, §51, M-096/097, EDGE-051).
-    case 'trip_passenger_onboard':
-      return 'Vous êtes à bord — suivez votre trajet en direct.';
-    case 'trip_route_deviation':
-      return 'Votre conducteur a pris un itinéraire différent — votre heure d’arrivée est recalculée.';
-    // Trip-staleness sweep (packages/domain/src/trip/trip-staleness.ts).
-    case 'trip_completion_reminder':
-      return 'Ce trajet semble terminé depuis un moment. Confirmez pour clore le trajet et permettre l’évaluation.';
-    // Admin verification workflow (docs/domain/verification-workflow.md).
-    case 'verification_submitted':
-      return 'Votre vérification a été soumise. Aucune action supplémentaire n’est requise pour le moment.';
-    case 'verification_approved':
-      return typeof payload.publishedRideCount === 'number' && payload.publishedRideCount > 0
-        ? 'Votre profil conducteur est vérifié — votre trajet en attente est maintenant publié.'
-        : 'Votre profil conducteur est vérifié — vous pouvez publier des trajets.';
-    case 'verification_declined':
-      return typeof payload.declineMessage === 'string'
-        ? payload.declineMessage
-        : 'Votre vérification n’a pas été approuvée.';
-    case 'verification_resubmission_required':
-      return typeof payload.declineMessage === 'string'
-        ? payload.declineMessage
-        : 'Votre vérification nécessite une mise à jour.';
-    // Ratings & trust (docs/domain/model.md): ratings.service.ts's
-    // createRating/recordAutomaticNoShowRating.
-    case 'rating_received':
-      return typeof payload.raterName === 'string' && typeof payload.stars === 'number'
-        ? `${payload.raterName} vous a laissé un avis (${payload.stars.toFixed(1)}/5).`
-        : 'Vous avez reçu un nouvel avis.';
-    // M-113 (docs/unified_driver_and_passenger_journey.md §39) — see
-    // bookings.service.ts's runBookingExpirySweep/acceptBooking and
-    // trips.service.ts's updateTripLocation/confirmPassengerAboard for each
-    // dispatch site.
-    case 'booking_deadline_approaching':
-      return 'Une demande de réservation attend votre réponse avant l’expiration du délai.';
-    case 'booking_sibling_cancelled':
-      return 'Une de vos autres demandes pour ce trajet a été annulée automatiquement.';
-    case 'trip_active':
-      return 'Votre trajet est maintenant en cours.';
-    case 'trip_eta_changed':
-      return typeof payload.etaMinutes === 'number'
-        ? `Nouvelle heure d’arrivée estimée : environ ${Math.round(payload.etaMinutes)} min.`
-        : 'L’heure d’arrivée estimée a changé.';
-    default:
-      return 'Vous avez une nouvelle notification.';
-  }
 }
 
 /**
@@ -365,12 +192,17 @@ export async function dispatchPushForNotification(db: Database, notificationId: 
 
   const payload = (notification.payload ?? {}) as Record<string, unknown>;
   const categoryId = categoryFor(notification.type);
+  // Who, which trip, when, where — in the recipient's language
+  // (notification-copy.ts) — plus the ids the app needs to open the right
+  // screen on tap (bookingId/rideId and the recipient's role).
+  const { locale, context, link } = await loadNotificationContext(db, notification.userId, payload);
+  const { title, body } = composeNotification(notification.type, payload, context, locale);
   const image = pushImageFor(notification.type, payload);
   const messages = tokens.map((t) => ({
     to: t.token,
-    title: titleFor(notification.type, payload),
-    body: bodyFor(notification.type, payload),
-    data: { notificationId: notification.id, type: notification.type, ...payload },
+    title,
+    body,
+    data: { notificationId: notification.id, type: notification.type, ...payload, ...link },
     ...(categoryId ? { categoryId } : {}),
     ...(image ? { richContent: { image }, mutableContent: true } : {}),
   }));

@@ -1,76 +1,58 @@
 import { describe, it, expect } from 'vitest';
 import { resolveNotificationDeepLink } from '../deepLink';
 
+const RIDER = { bookingId: 'b1', rideId: 'r1', role: 'rider' };
+const DRIVER = { bookingId: 'b1', rideId: 'r1', role: 'driver' };
+
 describe('resolveNotificationDeepLink', () => {
-  it.each(['booking_accepted', 'booking_declined', 'trip_completed'])(
-    'resolves %s to the trips tab',
-    (type) => {
-      expect(resolveNotificationDeepLink(type)).toBe('/(tabs)/trips');
-    },
-  );
+  it('opens the ride a driver must answer a request on', () => {
+    expect(resolveNotificationDeepLink('booking_requested', DRIVER)).toBe('/(tabs)/trips?openRequestsForRide=r1');
+    expect(resolveNotificationDeepLink('booking_deadline_approaching', DRIVER)).toBe('/(tabs)/trips?openRequestsForRide=r1');
+  });
 
-  it('falls back to the plain trips tab for booking_requested without a rideId', () => {
+  it("opens a rider's booking for booking outcomes, and the driver's ride hub for theirs", () => {
+    for (const type of ['booking_accepted', 'booking_declined', 'booking_sibling_cancelled', 'booking_cancelled', 'booking_no_show_reported']) {
+      expect(resolveNotificationDeepLink(type, RIDER), type).toBe('/bookings/b1');
+    }
+    expect(resolveNotificationDeepLink('booking_cancelled', DRIVER)).toBe('/driver/rides/r1');
+    expect(resolveNotificationDeepLink('booking_no_show_reported', DRIVER)).toBe('/driver/rides/r1');
+  });
+
+  it('opens the exact conversation for a message', () => {
+    expect(resolveNotificationDeepLink('message_received', RIDER)).toBe('/conversations/b1');
+  });
+
+  it('opens the live trip for a rider and the ride hub for a driver', () => {
+    for (const type of [
+      'trip_driver_approaching',
+      'trip_pickup_arrived',
+      'trip_passenger_onboard',
+      'trip_active',
+      'trip_route_deviation',
+      'trip_eta_changed',
+      'trip_tracking_unavailable',
+      'trip_arriving',
+    ]) {
+      expect(resolveNotificationDeepLink(type, RIDER), type).toBe('/bookings/live?bookingId=b1');
+      expect(resolveNotificationDeepLink(type, DRIVER), type).toBe('/driver/rides/r1');
+    }
+  });
+
+  it('routes the remaining types to their screen', () => {
+    expect(resolveNotificationDeepLink('trip_completed', RIDER)).toBe('/(tabs)/trips');
+    expect(resolveNotificationDeepLink('trip_completion_reminder', DRIVER)).toBe('/(tabs)/trips');
+    expect(resolveNotificationDeepLink('rating_received')).toBe('/(tabs)/profile');
+    expect(resolveNotificationDeepLink('recurring_proactive_match')).toBe('/recurring');
+    expect(resolveNotificationDeepLink('demand_signal_matched')).toBe('/(tabs)/explore');
+    expect(resolveNotificationDeepLink('verification_approved')).toBe('/driver/onboarding/confirmation');
+    expect(resolveNotificationDeepLink('verification_resubmission_required')).toBe('/driver/onboarding/resubmit');
+  });
+
+  it('falls back to "Mes trajets" when an id is missing, and null for an unknown type', () => {
     expect(resolveNotificationDeepLink('booking_requested')).toBe('/(tabs)/trips');
-    expect(resolveNotificationDeepLink('booking_requested', {})).toBe('/(tabs)/trips');
-  });
-
-  it('resolves booking_requested directly to that ride\'s request sheet when rideId is present', () => {
-    expect(resolveNotificationDeepLink('booking_requested', { rideId: 'ride-1' })).toBe(
-      '/(tabs)/trips?openRequestsForRide=ride-1',
-    );
-  });
-
-  it('returns null for an event type this phase does not dispatch a tap-through for', () => {
-    expect(resolveNotificationDeepLink('demand_signal_matched')).toBeNull();
-  });
-
-  it('returns null for an unknown type rather than throwing', () => {
-    expect(resolveNotificationDeepLink('something_unexpected')).toBeNull();
-  });
-
-  it('resolves message_received to the exact conversation when bookingId is present', () => {
-    expect(resolveNotificationDeepLink('message_received', { bookingId: 'b1' })).toBe(
-      '/conversations/b1',
-    );
-  });
-
-  it('falls back to the trips tab for message_received without a bookingId', () => {
+    expect(resolveNotificationDeepLink('booking_accepted', {})).toBe('/(tabs)/trips');
+    expect(resolveNotificationDeepLink('trip_active', { role: 'driver' })).toBe('/(tabs)/trips');
     expect(resolveNotificationDeepLink('message_received')).toBe('/(tabs)/trips');
-    expect(resolveNotificationDeepLink('message_received', {})).toBe('/(tabs)/trips');
-  });
-
-  it.each(['trip_driver_approaching', 'trip_pickup_arrived', 'trip_arriving', 'trip_tracking_unavailable'])(
-    'resolves live-tracking event %s directly to the live-tracking screen when bookingId is present',
-    (type) => {
-      expect(resolveNotificationDeepLink(type, { tripId: 't1', bookingId: 'b1' })).toBe(
-        '/bookings/live?bookingId=b1',
-      );
-    },
-  );
-
-  it.each(['trip_driver_approaching', 'trip_pickup_arrived', 'trip_arriving', 'trip_tracking_unavailable'])(
-    'falls back to the trips tab for live-tracking event %s without a bookingId',
-    (type) => {
-      expect(resolveNotificationDeepLink(type)).toBe('/(tabs)/trips');
-    },
-  );
-
-  it('resolves trip_completion_reminder to the trips tab (sent to both driver and rider — no single screen fits both)', () => {
-    expect(resolveNotificationDeepLink('trip_completion_reminder', { tripId: 't1', bookingId: 'b1' })).toBe(
-      '/(tabs)/trips',
-    );
-  });
-
-  it.each(['verification_submitted', 'verification_approved', 'verification_declined'])(
-    'resolves verification event %s to the confirmation screen',
-    (type) => {
-      expect(resolveNotificationDeepLink(type)).toBe('/driver/onboarding/confirmation');
-    },
-  );
-
-  it('resolves verification_resubmission_required directly to the resubmit screen', () => {
-    expect(resolveNotificationDeepLink('verification_resubmission_required')).toBe(
-      '/driver/onboarding/resubmit',
-    );
+    expect(resolveNotificationDeepLink('something_new')).toBeNull();
   });
 });

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
 import type { getDatabase } from '../../../lib/database.js';
-import { bookingRequestedBody, dispatchPushForNotification } from '../notifications.service.js';
+import { dispatchPushForNotification } from '../notifications.service.js';
+import { composeNotification, requestFacts } from '../notification-copy.js';
 
 type Database = ReturnType<typeof getDatabase>;
 
@@ -27,6 +28,9 @@ function fakeDb(payload: Record<string, unknown>): Database {
       deviceTokens: {
         findMany: async () => [{ id: 'dt1', userId: 'u1', token: 'ExponentPushToken[x]', platform: 'android' }],
       },
+      users: { findFirst: async () => ({ id: 'u1', locale: 'fr' }) },
+      bookings: { findFirst: async () => undefined },
+      rides: { findFirst: async () => undefined },
     },
   } as unknown as Database;
 }
@@ -45,10 +49,9 @@ describe('booking_requested push', () => {
     vi.restoreAllMocks();
   });
 
-  it('titles with the first name and seats, and says where, extra minutes and price', async () => {
+  it('says where, extra minutes and price', async () => {
     const message = await sentMessage(PAYLOAD);
-    expect(message.title).toBe('Amira · 1 place');
-    expect(message.body).toBe('Sidi Hassine → El Mourouj\n+3 min de détour · 4,5 DT');
+    expect(message.body).toContain('Sidi Hassine → El Mourouj · +3 min de détour · 4,5 DT.');
   });
 
   it("attaches the passenger's photo as the notification image", async () => {
@@ -63,20 +66,25 @@ describe('booking_requested push', () => {
   });
 });
 
-describe('bookingRequestedBody', () => {
+describe('requestFacts', () => {
   it('says "Sur votre trajet" when the request costs the driver no detour', () => {
-    expect(bookingRequestedBody({ ...PAYLOAD, detourExtraSeconds: 20 })).toBe(
-      'Sidi Hassine → El Mourouj\nSur votre trajet · 4,5 DT',
+    expect(requestFacts({ ...PAYLOAD, detourExtraSeconds: 20 }, 'fr')).toBe(
+      'Sidi Hassine → El Mourouj · Sur votre trajet · 4,5 DT',
     );
   });
 
   it('leaves out an unknown detour rather than showing 0', () => {
     const payload: Record<string, unknown> = { ...PAYLOAD };
     delete payload.detourExtraSeconds;
-    expect(bookingRequestedBody(payload)).toBe('Sidi Hassine → El Mourouj\n4,5 DT');
+    expect(requestFacts(payload, 'fr')).toBe('Sidi Hassine → El Mourouj · 4,5 DT');
   });
 
-  it('falls back to the plain sentence for an old payload with nothing else', () => {
-    expect(bookingRequestedBody({ riderName: 'Amira' })).toBe('Amira souhaite réserver une place.');
+  it('is localized', () => {
+    expect(requestFacts(PAYLOAD, 'en')).toBe('Sidi Hassine → El Mourouj · +3 min detour · 4.5 DT');
+  });
+
+  it('adds nothing for an old payload without the leg', () => {
+    const text = composeNotification('booking_requested', { riderName: 'Amira' }, { seats: 1 }, 'fr');
+    expect(text.body).toBe('Amira demande 1 place.');
   });
 });

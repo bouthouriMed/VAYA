@@ -44,7 +44,7 @@ import {
   notificationDescription,
   readNotificationCounterpartPayload,
 } from '../../src/services/notifications/notificationCopy';
-import { resolveNotificationDeepLink } from '../../src/services/notifications/deepLink';
+import { useNotificationDestination } from '../../src/services/notifications/useNotificationDestination';
 import { trackEvent } from '../../src/services/analytics/analytics';
 import { buildInbox, responseTimeLeft, type InboxFilter } from '../../src/features/notifications/inboxModel';
 
@@ -108,6 +108,7 @@ function RequestTicket({
   const p = notification.payload;
   const { data: rideRequests } = useListRequestsForRideQuery(info.rideId ?? '', { skip: !info.rideId });
   const [acceptBooking, acceptState] = useAcceptBookingMutation();
+  const destinationFor = useNotificationDestination();
   const [declineBooking, declineState] = useDeclineBookingMutation();
   const [resolvedAs, setResolvedAs] = useState<'accepted' | 'declined' | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -118,7 +119,7 @@ function RequestTicket({
 
   function open(): void {
     trackEvent('notification_tapped', { type: notification.type, source: 'inbox' });
-    const destination = resolveNotificationDeepLink(notification.type, notification.payload);
+    const destination = destinationFor(notification.type, notification.payload);
     if (destination) router.push(destination as Parameters<typeof router.push>[0]);
   }
 
@@ -332,6 +333,7 @@ export default function NotificationsScreen(): React.JSX.Element {
     skip: !accessToken,
   });
   const [markRead] = useMarkNotificationReadMutation();
+  const destinationFor = useNotificationDestination();
 
   const inbox = useMemo(() => buildInbox(notifications ?? [], filter, now), [notifications, filter, now]);
 
@@ -342,8 +344,10 @@ export default function NotificationsScreen(): React.JSX.Element {
   function handleOpen(notification: AppNotification): void {
     if (!notification.readAt) void markRead(notification.id);
     trackEvent('notification_tapped', { type: notification.type, source: 'inbox' });
-    const destination = resolveNotificationDeepLink(notification.type, notification.payload);
-    if (destination) router.push(destination as Parameters<typeof router.push>[0]);
+    const destination = destinationFor(notification.type, notification.payload);
+    if (destination) {
+      router.push(destination as Parameters<typeof router.push>[0]);
+    }
   }
 
   function markAllRead(): void {
