@@ -38,6 +38,7 @@ import {
   useRegisterPushTokenMutation,
   useGetMeQuery,
   useListMyBookingsQuery,
+  type PlaceKind,
 } from '../../src/state/api';
 import { useAppSelector } from '../../src/state/store';
 import { requestPushPermissionAndRegister } from '../../src/services/notifications/registerForPushNotifications';
@@ -108,6 +109,18 @@ function bookingErrorKey(error: unknown): string {
  * Replaces the dropped search/cluster.tsx entirely — that screen's
  * multi-candidate map concept has no equivalent in the current design.
  */
+/** What kind of place VAYA chose ("Station-service"), when it says
+ *  something a passenger can look for. */
+function placeKindLabel(t: TFunction, kind: PlaceKind | null | undefined): string | undefined {
+  if (!kind || kind === 'driver_stop') return undefined;
+  return t(`search:placeKind.${kind}`);
+}
+
+function joinNotes(...notes: (string | undefined)[]): string | undefined {
+  const present = notes.filter((n): n is string => Boolean(n));
+  return present.length > 0 ? present.join(' · ') : undefined;
+}
+
 export default function RideDetailsScreen(): React.JSX.Element {
   const { rideId, driverUserId } = useLocalSearchParams<{ rideId: string; driverUserId: string }>();
   const insets = useSafeAreaInsets();
@@ -531,11 +544,12 @@ export default function RideDetailsScreen(): React.JSX.Element {
                 time={formatTime(pickupTime, locale)}
                 title={shortenPlaceLabel(pickupPlace)}
                 address={fullPlaceLabel(pickupPlace)}
-                note={
+                note={joinNotes(
+                  placeKindLabel(t, candidate?.pickupPoint?.placeKind),
                   pickupWalkMeters !== undefined && pickupWalkMeters > 0
                     ? t('search:details.walkToMeetingPoint', { minutes: accessAmount(t, pickupWalkMeters, locale) })
-                    : undefined
-                }
+                    : undefined,
+                )}
                 kind="pickup"
                 theme={theme}
                 mapsLabel={t('search:details.mapsToPickup')}
@@ -554,7 +568,7 @@ export default function RideDetailsScreen(): React.JSX.Element {
                       {shortenPlaceLabel(stop.label)}
                     </Text>
                     <Text variant="caption" color={theme.inkFaint}>
-                      {t('search:details.briefStop')}
+                      {stop.kind === 'area' ? t('search:details.passesThrough') : t('search:details.briefStop')}
                     </Text>
                   </View>
                 </View>
@@ -563,6 +577,7 @@ export default function RideDetailsScreen(): React.JSX.Element {
                 time={dropoffTime ? formatTime(dropoffTime, locale) : undefined}
                 title={shortenPlaceLabel(dropoffPlace)}
                 address={fullPlaceLabel(dropoffPlace)}
+                note={placeKindLabel(t, candidate?.dropoffPoint?.placeKind)}
                 kind="dropoff"
                 theme={theme}
                 mapsLabel={t('search:details.mapsYourRide')}

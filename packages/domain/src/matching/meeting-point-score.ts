@@ -139,3 +139,16 @@ export function pickBestMeetingOption<T extends MeetingOptionInput>(
   }
   return best;
 }
+
+/**
+ * How wide an area a driver adds as a stop ("via Sidi Hassine") counts as,
+ * by the ride's own length: a neighbourhood on a city trip, a town on an
+ * intercity one. Meeting points inside it get the area credit.
+ */
+export const DRIVER_AREA_RADIUS_M = { commute: 1500, urban: 2500, intercity: 6000 } as const;
+
+export function driverAreaRadiusM(routeLengthM: number): number {
+  if (routeLengthM <= 15_000) return DRIVER_AREA_RADIUS_M.commute;
+  if (routeLengthM <= 45_000) return DRIVER_AREA_RADIUS_M.urban;
+  return DRIVER_AREA_RADIUS_M.intercity;
+}

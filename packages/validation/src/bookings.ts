@@ -41,6 +41,11 @@ export const createBookingSchema = z
     // at the ride's own destination", the behavior every booking had
     // before this field existed.
     dropoffStopId: z.string().uuid().optional(),
+    // Phase 14: the meeting point (petrol/louage station, roundabout...)
+    // the engine chose for a free-form pickup/dropoff — recorded so VAYA
+    // learns which places people actually use. Must match the coordinates.
+    pickupMeetingPointId: z.string().uuid().optional(),
+    dropoffMeetingPointId: z.string().uuid().optional(),
     // Dropoff-side mirror of requestedPickup above, same reasoning.
     requestedDropoff: pickupPointSchema.optional(),
     // Free-form dropoff-coordinates mirror of `pickup` above — same

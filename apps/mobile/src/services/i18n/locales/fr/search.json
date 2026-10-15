@@ -107,7 +107,8 @@
     "mapsToPickup": "Itinéraire à pied vers le point de rendez-vous",
     "mapsYourRide": "Voir votre trajet dans Google Maps",
     "mapsUnavailable": "Impossible d'ouvrir Google Maps.",
-    "openInGoogleMaps": "Ouvrir dans Google Maps"
+    "openInGoogleMaps": "Ouvrir dans Google Maps",
+    "passesThrough": "Le conducteur passe par ici"
   },
   "trust": {
     "title": "Profil",
@@ -182,5 +183,14 @@
   "walk": {
     "suffix": "{{minutes}} à pied",
     "distanceAway": "à {{distance}}"
+  },
+  "placeKind": {
+    "transit_station": "Station de métro / train",
+    "bus_stop": "Arrêt de bus",
+    "louage_station": "Station louage",
+    "fuel_station": "Station-service",
+    "roundabout": "Rond-point",
+    "highway_exit": "Sortie d’autoroute",
+    "on_route": "Sur la route du conducteur"
   }
 }

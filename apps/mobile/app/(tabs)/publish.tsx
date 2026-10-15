@@ -669,10 +669,14 @@ export default function PublishTabScreen(): React.JSX.Element {
   // be confusing and redundant. Sorted by route order (sequence) so the
   // numbered pins/chips read left-to-right the same way the real route
   // runs.
+  // Phase 14: stops are areas the driver passes by ("via Sidi Hassine"),
+  // never exact points — VAYA picks each passenger's meeting point. The
+  // sampled on-road candidates stay server-side (they feed the driver's own
+  // pickup/dropoff recommendations above), they are no longer offered here.
   const viaCandidateStops = useMemo(
     () =>
       candidates
-        .filter((c) => c.id !== pickup?.stopId && c.id !== dropoff?.stopId)
+        .filter((c) => c.kind === 'area' && c.id !== pickup?.stopId && c.id !== dropoff?.stopId)
         .sort((a, b) => a.sequence - b.sequence),
     [candidates, pickup?.stopId, dropoff?.stopId],
   );

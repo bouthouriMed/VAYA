@@ -27,6 +27,20 @@ describe('buildBookingPoints — the request carries the pair the server chose',
     });
   });
 
+  it('names the meeting point VAYA chose, so the server can learn which places get used', () => {
+    const points = buildBookingPoints({
+      candidate: candidate({
+        pickupPoint: { stopId: null, label: 'Station Total', lat: 36.7652, lng: 10.1207, walkMeters: 900, walkMinutes: 11, meetingPointId: 'mp-1', placeKind: 'fuel_station' },
+      }),
+      searchOrigin,
+      searchDestination,
+    });
+    expect(points).toMatchObject({
+      pickup: { label: 'Station Total', lat: 36.7652, lng: 10.1207 },
+      pickupMeetingPointId: 'mp-1',
+    });
+  });
+
   it('books driver stops by id, with the passenger places for server-side re-validation', () => {
     const points = buildBookingPoints({
       candidate: candidate({

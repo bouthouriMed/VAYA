@@ -107,7 +107,8 @@
     "mapsToPickup": "Walking directions to the meeting point",
     "mapsYourRide": "See your ride in Google Maps",
     "mapsUnavailable": "Couldn't open Google Maps.",
-    "openInGoogleMaps": "Open in Google Maps"
+    "openInGoogleMaps": "Open in Google Maps",
+    "passesThrough": "The driver passes through here"
   },
   "trust": {
     "title": "Profile",
@@ -182,5 +183,14 @@
   "walk": {
     "suffix": "{{minutes}} walk",
     "distanceAway": "{{distance}} away"
+  },
+  "placeKind": {
+    "transit_station": "Metro / train station",
+    "bus_stop": "Bus stop",
+    "louage_station": "Louage station",
+    "fuel_station": "Petrol station",
+    "roundabout": "Roundabout",
+    "highway_exit": "Highway exit",
+    "on_route": "On the driver’s route"
   }
 }

@@ -119,7 +119,8 @@
     "mapsToPickup": "الاتجاهات سيرًا إلى نقطة الالتقاء",
     "mapsYourRide": "عرض رحلتك في خرائط Google",
     "mapsUnavailable": "تعذّر فتح خرائط Google.",
-    "openInGoogleMaps": "فتح في خرائط Google"
+    "openInGoogleMaps": "فتح في خرائط Google",
+    "passesThrough": "السائق يمرّ من هنا"
   },
   "trust": {
     "title": "الملف الشخصي",
@@ -194,5 +195,14 @@
   "walk": {
     "suffix": "{{minutes}} سيرًا على الأقدام",
     "distanceAway": "على بعد {{distance}}"
+  },
+  "placeKind": {
+    "transit_station": "محطة مترو / قطار",
+    "bus_stop": "موقف حافلات",
+    "louage_station": "محطة اللواج",
+    "fuel_station": "محطة وقود",
+    "roundabout": "مفترق دائري",
+    "highway_exit": "مخرج الطريق السيارة",
+    "on_route": "على طريق السائق"
   }
 }

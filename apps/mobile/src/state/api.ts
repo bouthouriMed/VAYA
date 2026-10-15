@@ -125,6 +125,16 @@ export interface RankedStop {
  *  `stopId` null = the ride's own origin/destination (legacy stop-less
  *  ride) or, for a 'detour' match, the passenger's own searched point
  *  (`label` null then — use the search's own label). */
+export type PlaceKind =
+  | 'transit_station'
+  | 'bus_stop'
+  | 'louage_station'
+  | 'fuel_station'
+  | 'roundabout'
+  | 'highway_exit'
+  | 'driver_stop'
+  | 'on_route';
+
 export interface PassengerPoint {
   stopId: string | null;
   label: string | null;
@@ -132,6 +142,9 @@ export interface PassengerPoint {
   lng: number;
   walkMeters: number;
   walkMinutes: number;
+  /** Phase 14: the meeting point VAYA chose, when it is one. */
+  meetingPointId?: string | null;
+  placeKind?: PlaceKind | null;
 }
 
 /** GET /rides/:rideId/itinerary-route. `polyline` is null when no routing
@@ -439,6 +452,11 @@ export interface RouteStop {
   suitabilityScore: number;
   roadClass: string | null;
   isDriverSelected: boolean;
+  /** Phase 14: 'area' = a place the driver passes by ("via Sidi Hassine"),
+   *  never a boarding point; 'point' = a stop a car pulls over at. Absent
+   *  on responses from an API older than this field. */
+  kind?: 'point' | 'area';
+  radiusM?: number | null;
 }
 
 /** Mirrors @vaya/domain's `TripProfileType` — the ride-engine's route-length

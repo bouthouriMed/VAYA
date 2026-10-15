@@ -1,6 +1,7 @@
 import { and, eq, inArray, isNotNull, ne, sql } from 'drizzle-orm';
 import type { getDatabase } from '../../lib/database.js';
-import { bookings, rides, routeStops, riderProfiles, trips, users } from '../../db/schema/index.js';
+import { bookings, meetingPoints, rides, routeStops, riderProfiles, trips, users } from '../../db/schema/index.js';
+import { getLogger } from '../../config/logger.js';
 import { AppError, ConflictError, ForbiddenError, NotFoundError, ValidationError } from '../../lib/errors.js';
 import {
   canCancelTrip,
@@ -675,6 +676,30 @@ function segmentFractionsOf(
   };
 }
 
+/** How far a booking's free-form point may be from the meeting point it
+ *  claims to be (the stored point is road-snapped; the client echoes it). */
+const MEETING_POINT_MATCH_M = 60;
+
+/**
+ * The meeting point a free-form pickup/dropoff really is, or null. Only
+ * recorded when the claimed point exists, is active and sits where the
+ * booking's own coordinates are — the client's claim is never trusted on
+ * its own (it feeds Track E's usage counts, nothing else).
+ */
+async function resolveMeetingPointId(
+  db: Database,
+  claimedId: string | undefined,
+  point: { lat: number; lng: number } | null,
+): Promise<string | null> {
+  if (!claimedId || !point) return null;
+  const meetingPoint = await db.query.meetingPoints.findFirst({ where: eq(meetingPoints.id, claimedId) });
+  if (!meetingPoint?.active || haversineDistanceMeters(meetingPoint, point) > MEETING_POINT_MATCH_M) {
+    getLogger().warn({ claimedId }, 'Booking named a meeting point that does not match its coordinates — not recorded');
+    return null;
+  }
+  return meetingPoint.id;
+}
+
 export async function createBooking(
   db: Database,
   rideId: string,
@@ -755,6 +780,10 @@ export async function createBooking(
     if (!stop) {
       throw new ValidationError('Selected pickup stop is not offered on this ride');
     }
+    // Phase 14: an area ("via Sidi Hassine") is never a boarding point.
+    if (stop.kind === 'area') {
+      throw new ValidationError('This stop is an area the driver passes by, not a pickup point');
+    }
     pickupStopId = stop.id;
     pickupLabel = stop.label;
     pickupLat = stop.lat;
@@ -806,6 +835,9 @@ export async function createBooking(
     const dropStop = selectedStops.find((s) => s.id === input.dropoffStopId);
     if (!dropStop) {
       throw new ValidationError('Selected dropoff stop is not offered on this ride');
+    }
+    if (dropStop.kind === 'area') {
+      throw new ValidationError('This stop is an area the driver passes by, not a dropoff point');
     }
     // pickupStopId is only guaranteed set here when the pickup itself was
     // also stop-based — a free-form detour pickup paired with a real
@@ -990,6 +1022,16 @@ export async function createBooking(
       dropoffLat,
       dropoffLng,
       dropoffWalkMeters,
+      pickupMeetingPointId: await resolveMeetingPointId(
+        db,
+        input.pickupMeetingPointId,
+        pickupStopId ? null : { lat: pickupLat, lng: pickupLng },
+      ),
+      dropoffMeetingPointId: await resolveMeetingPointId(
+        db,
+        input.dropoffMeetingPointId,
+        dropoffStopId || dropoffLat === null || dropoffLng === null ? null : { lat: dropoffLat, lng: dropoffLng },
+      ),
       // M-054 (spec §20): "Every request has a server-authoritative
       // response deadline, visible to passenger immediately post-request
       // and to driver inside the incoming request." Confirmed live (this

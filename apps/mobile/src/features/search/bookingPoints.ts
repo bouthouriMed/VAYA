@@ -9,7 +9,14 @@ interface Place {
 
 type BookingPoints = Pick<
   CreateBookingInput,
-  'pickupStopId' | 'pickup' | 'requestedPickup' | 'dropoffStopId' | 'dropoff' | 'requestedDropoff'
+  | 'pickupStopId'
+  | 'pickup'
+  | 'requestedPickup'
+  | 'pickupMeetingPointId'
+  | 'dropoffStopId'
+  | 'dropoff'
+  | 'requestedDropoff'
+  | 'dropoffMeetingPointId'
 >;
 
 /**
@@ -65,6 +72,7 @@ export function buildBookingPoints(params: {
           lng: pickupPoint.lng,
         },
         ...requestedPickup,
+        ...(pickupPoint.meetingPointId ? { pickupMeetingPointId: pickupPoint.meetingPointId } : {}),
       };
 
   // No dropoff field at all means "the ride's own destination" server-side.
@@ -82,6 +90,7 @@ export function buildBookingPoints(params: {
             lat: dropoffPoint.lat,
             lng: dropoffPoint.lng,
           },
+          ...(dropoffPoint.meetingPointId ? { dropoffMeetingPointId: dropoffPoint.meetingPointId } : {}),
         }
         : null;
   if (dropoff === null) return null;

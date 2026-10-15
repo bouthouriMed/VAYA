@@ -106,6 +106,9 @@ const routeStopSchema = z.object({
   suitabilityScore: z.number(),
   roadClass: z.string().nullable(),
   isDriverSelected: z.boolean(),
+  // Phase 14: 'area' = a place the driver passes by, never a boarding point.
+  kind: z.string(),
+  radiusM: z.number().nullable(),
 });
 
 const generateStopsResponseSchema = z.object({
