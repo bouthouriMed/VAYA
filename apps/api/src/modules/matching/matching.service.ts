@@ -36,8 +36,44 @@ import {
 } from '@vaya/domain';
 import type { MatchingSearchInput, NotifyMeInput } from '@vaya/validation';
 import { TUNISIA_TIMEZONE } from '@vaya/config';
+import { getLogger } from '../../config/logger.js';
 
 type Database = ReturnType<typeof getDatabase>;
+
+/** Why one search tier left a ride out (docs/roadmap/phase-14-intelligent-
+ *  pickup-engine.md, Track C) — recorded per (search, ride) so the engine's
+ *  dismissals can be measured instead of guessed. */
+export type DismissalReason =
+  | 'endpoints_too_far'
+  | 'no_route_geometry'
+  | 'wrong_direction'
+  | 'no_point_in_reach'
+  | 'no_seat_on_segment'
+  | 'no_live_position'
+  | 'pickup_behind_driver'
+  | 'no_route_baseline'
+  | 'routing_unavailable'
+  | 'detour_too_long';
+
+export type MatchTierName = 'endpoint' | 'route_passthrough' | 'in_progress' | 'detour';
+
+/** Collects dismissal reasons across tiers for one search. */
+export class DismissalLog {
+  private readonly byRide = new Map<string, Partial<Record<MatchTierName, DismissalReason>>>();
+
+  add(rideId: string, tier: MatchTierName, reason: DismissalReason): void {
+    const entry = this.byRide.get(rideId) ?? {};
+    entry[tier] = reason;
+    this.byRide.set(rideId, entry);
+  }
+
+  /** Reasons for every ride that no tier kept. */
+  dismissedExcept(keptRideIds: Set<string>): { rideId: string; reasons: Partial<Record<MatchTierName, DismissalReason>> }[] {
+    return [...this.byRide.entries()]
+      .filter(([rideId]) => !keptRideIds.has(rideId))
+      .map(([rideId, reasons]) => ({ rideId, reasons }));
+  }
+}
 
 // TIGHT_PICKUP_RADIUS_M/TIGHT_DROPOFF_RADIUS_M/TIGHT_TIME_WINDOW_MIN are the
 // "urban" row of packages/domain's getMatchingThresholds, kept here as the
@@ -130,6 +166,9 @@ const POSTGIS_CANDIDATE_CAP = 50;
 // microseconds-cheap in-memory scoring pass. ASSUMPTION, reasoned from the
 // audit's 1,000-user-scale candidate-set modeling, not measured.
 const DETOUR_CANDIDATE_CAP = 15;
+/** The same cap when other tiers already found rides — the detour tier
+ *  then only adds what they missed, so it can afford fewer routing calls. */
+const DETOUR_EXTRA_CANDIDATE_CAP = 5;
 
 // detourAllowanceSec/MAX_DETOUR_RATIO now live in @vaya/domain
 // (packages/domain/src/matching/matching-thresholds.ts) — moved there so
@@ -1015,8 +1054,13 @@ function buildEndpointCandidate(
      *  or the ride's own endpoint — see passengerReach. */
     reach: PassengerReach;
     maxDeviationM: number;
+    dismissals?: DismissalLog;
   },
 ): MatchCandidate | null {
+  const dismiss = (reason: DismissalReason) => {
+    ctx.dismissals?.add(ride.id, 'endpoint', reason);
+    return null;
+  };
   // M-081 (spec §25): ride.seatsAvailable is the ride's *bottleneck*-segment
   // occupancy (bookings.service.ts's loadRideSegmentState — "seatsTotal
   // minus the ride's current bottleneck-segment occupancy"), not this
@@ -1033,7 +1077,7 @@ function buildEndpointCandidate(
     lat: ride.destinationLat,
     lng: ride.destinationLng,
   });
-  if (pickupDistanceM > ctx.pickupRadiusM || dropoffDistanceM > ctx.dropoffRadiusM) return null;
+  if (pickupDistanceM > ctx.pickupRadiusM || dropoffDistanceM > ctx.dropoffRadiusM) return dismiss('endpoints_too_far');
 
   const timeDeltaMin = Math.abs(ride.departureAt.getTime() - input.when.getTime()) / 60_000;
 
@@ -1071,7 +1115,7 @@ function buildEndpointCandidate(
   // offers no boarding or alighting point within their reach is not a
   // result (nor a greyed-out card the passenger can't book). The notify-me
   // alert and closest-departure suggestion cover "nothing close enough".
-  if (!segment.pickup || !segment.dropoff) return null;
+  if (!segment.pickup || !segment.dropoff) return dismiss('no_point_in_reach');
   const { rankedStops, rankedDropoffStops, recommendedStopId, recommendedDropoffStopId } = segment;
 
   const pickupWalkMinutes = segment.pickup.walkMinutes;
@@ -1111,7 +1155,7 @@ function buildEndpointCandidate(
       rideStops,
     )
   ) {
-    return null;
+    return dismiss('no_seat_on_segment');
   }
 
   return {
@@ -1174,6 +1218,7 @@ async function scoreCandidates(
   pickupRadiusM: number,
   dropoffRadiusM: number,
   window: { windowStart: Date; windowEnd: Date } = searchWindowFor(input),
+  dismissals?: DismissalLog,
 ): Promise<MatchCandidate[]> {
   const { windowStart, windowEnd } = window;
 
@@ -1225,6 +1270,7 @@ async function scoreCandidates(
       dropoffRadiusM,
       reach,
       maxDeviationM,
+      dismissals,
     });
     if (candidate) scored.push(candidate);
   }
@@ -1253,7 +1299,9 @@ async function scorePassThroughCandidates(
   db: Database,
   input: MatchingSearchInput,
   thresholds: MatchingThresholds,
+  dismissals?: DismissalLog,
 ): Promise<MatchCandidate[]> {
+  const dismiss = (rideId: string, reason: DismissalReason) => dismissals?.add(rideId, 'route_passthrough', reason);
   const { windowStart, windowEnd } = searchWindowFor(input);
   // The PostGIS pre-filter and the qualification test below both use the
   // WIDE walkability radius, not the tighter corridorWidthM — see the real
@@ -1309,17 +1357,26 @@ async function scorePassThroughCandidates(
     // bottleneck-segment occupancy, not this specific pickup->dropoff
     // segment) — the real, segment-precise gate runs further down, once
     // this rider's own resolved stop pair is known.
-    if (!ride.routePolyline) continue; // No real route geometry to project onto — skip, don't fabricate.
+    if (!ride.routePolyline) {
+      dismiss(ride.id, 'no_route_geometry'); // No real route geometry to project onto — skip, don't fabricate.
+      continue;
+    }
 
     const routePoints = decodePolyline(ride.routePolyline);
-    if (routePoints.length < 2) continue;
+    if (routePoints.length < 2) {
+      dismiss(ride.id, 'no_route_geometry');
+      continue;
+    }
 
     // Fraction-only: used for direction-order (below) and the segment-
     // fraction scoring bonus — NOT as a distance-based rejection gate
     // anymore (see candidateSearchRadiusM's comment above for why).
     const originProj = projectPointOntoRoute(origin, routePoints);
     const destProj = projectPointOntoRoute(destination, routePoints);
-    if (destProj.fraction - originProj.fraction < MIN_ROUTE_FRACTION_GAP) continue;
+    if (destProj.fraction - originProj.fraction < MIN_ROUTE_FRACTION_GAP) {
+      dismiss(ride.id, 'wrong_direction');
+      continue;
+    }
 
     // The passenger boards at a real driver-selected stop near THEIR origin
     // and alights at one near THEIR destination (or, failing that, at the
@@ -1338,7 +1395,10 @@ async function scorePassThroughCandidates(
       },
       reach,
     );
-    if (!segment.pickup || !segment.dropoff) continue;
+    if (!segment.pickup || !segment.dropoff) {
+      dismiss(ride.id, 'no_point_in_reach');
+      continue;
+    }
     const { rankedStops, rankedDropoffStops, recommendedStopId, recommendedDropoffStopId } = segment;
 
     // M-081: the segment-precise capacity gate — an on-route point (no
@@ -1352,6 +1412,7 @@ async function scorePassThroughCandidates(
         rideStops,
       )
     ) {
+      dismiss(ride.id, 'no_seat_on_segment');
       continue;
     }
 
@@ -1471,7 +1532,9 @@ async function scoreInProgressCandidates(
   db: Database,
   input: MatchingSearchInput,
   timeWindowMin: number,
+  dismissals?: DismissalLog,
 ): Promise<MatchCandidate[]> {
+  const dismiss = (rideId: string, reason: DismissalReason) => dismissals?.add(rideId, 'in_progress', reason);
   const windowStart = new Date(input.when.getTime() - timeWindowMin * 60_000);
   const windowEnd = new Date(input.when.getTime() + timeWindowMin * 60_000);
 
@@ -1500,13 +1563,22 @@ async function scoreInProgressCandidates(
     // M-081 (spec §25): NOT gated on ride.seatsAvailable here either — see
     // buildEndpointCandidate's own comment for why; the segment-precise
     // gate runs further down.
-    if (!ride.routePolyline) continue; // No real route geometry to project onto — skip, don't fabricate.
+    if (!ride.routePolyline) {
+      dismiss(ride.id, 'no_route_geometry'); // No real route geometry to project onto — skip, don't fabricate.
+      continue;
+    }
 
     const livePos = livePositionByRide.get(ride.id);
-    if (!livePos) continue; // No real reported position yet — never assume the stale origin is still current.
+    if (!livePos) {
+      dismiss(ride.id, 'no_live_position'); // No real reported position yet — never assume the stale origin is still current.
+      continue;
+    }
 
     const routePoints = decodePolyline(ride.routePolyline);
-    if (routePoints.length < 2) continue;
+    if (routePoints.length < 2) {
+      dismiss(ride.id, 'no_route_geometry');
+      continue;
+    }
 
     const driverProj = projectPointOntoRoute(livePos, routePoints);
     const originProj = projectPointOntoRoute(origin, routePoints);
@@ -1514,8 +1586,14 @@ async function scoreInProgressCandidates(
 
     // EDGE-050: a pickup already behind the driver's real live position is
     // never offered, however close it is to the rider.
-    if (originProj.fraction < driverProj.fraction - IN_PROGRESS_BEHIND_TOLERANCE_FRACTION) continue;
-    if (destProj.fraction - originProj.fraction < MIN_ROUTE_FRACTION_GAP) continue;
+    if (originProj.fraction < driverProj.fraction - IN_PROGRESS_BEHIND_TOLERANCE_FRACTION) {
+      dismiss(ride.id, 'pickup_behind_driver');
+      continue;
+    }
+    if (destProj.fraction - originProj.fraction < MIN_ROUTE_FRACTION_GAP) {
+      dismiss(ride.id, 'wrong_direction');
+      continue;
+    }
 
     const rideStops = stopsByRide.get(ride.id) ?? [];
     // Same EDGE-050 guarantee, applied to which of the driver's own
@@ -1546,7 +1624,10 @@ async function scoreInProgressCandidates(
       },
       reach,
     );
-    if (!segment.pickup || !segment.dropoff) continue;
+    if (!segment.pickup || !segment.dropoff) {
+      dismiss(ride.id, 'no_point_in_reach');
+      continue;
+    }
     const { rankedStops, rankedDropoffStops, recommendedStopId, recommendedDropoffStopId } = segment;
 
     // M-081: the segment-precise capacity gate — a null stop id (a direct
@@ -1561,6 +1642,7 @@ async function scoreInProgressCandidates(
         stopsAheadOfDriver,
       )
     ) {
+      dismiss(ride.id, 'no_seat_on_segment');
       continue;
     }
 
@@ -1659,7 +1741,20 @@ async function scoreDetourCandidates(
   input: MatchingSearchInput,
   thresholds: MatchingThresholds,
   maxDetourRatio: number,
+  options: {
+    /** Rides another tier already matched — never routed again. */
+    excludeRideIds?: Set<string>;
+    /** How many rides may cost a routing call (default DETOUR_CANDIDATE_CAP). */
+    cap?: number;
+    dismissals?: DismissalLog;
+  } = {},
 ): Promise<MatchCandidate[]> {
+  const excluded = options.excludeRideIds ?? new Set<string>();
+  const cap = options.cap ?? DETOUR_CANDIDATE_CAP;
+  const dismiss = (rideId: string, reason: DismissalReason): null => {
+    options.dismissals?.add(rideId, 'detour', reason);
+    return null;
+  };
   const { windowStart, windowEnd } = searchWindowFor(input);
 
   const origin = { lat: input.originLat, lng: input.originLng };
@@ -1688,7 +1783,8 @@ async function scoreDetourCandidates(
     detourSearchRadiusM,
     windowStart,
     windowEnd,
-    DETOUR_CANDIDATE_CAP,
+    // Over-fetch by the rides already matched so they don't eat the cap.
+    Math.min(POSTGIS_CANDIDATE_CAP, cap + excluded.size),
   );
   // Unlike the other tiers, a null (PostGIS disabled/unavailable) result
   // here means "skip this tier entirely" rather than "fall back to a full
@@ -1699,19 +1795,27 @@ async function scoreDetourCandidates(
   // run); it just doesn't get this specific tier.
   if (!candidateIds || candidateIds.length === 0) return [];
 
-  const candidateRides = await db.query.rides.findMany({
-    where: and(eq(rides.status, 'published'), inArray(rides.id, candidateIds)),
-    with: { driverProfile: { with: { user: true } } },
-  });
+  // Closest corridors first (the spatial query's own order), already-
+  // matched rides out, then the cap — the real cost bound of this tier.
+  const toRoute = candidateIds.filter((id) => !excluded.has(id)).slice(0, cap);
+  if (toRoute.length === 0) return [];
+  const rank = new Map(toRoute.map((id, index) => [id, index]));
+  const candidateRides = (
+    await db.query.rides.findMany({
+      where: and(eq(rides.status, 'published'), inArray(rides.id, toRoute)),
+      with: { driverProfile: { with: { user: true } } },
+    })
+  ).sort((x, y) => (rank.get(x.id) ?? 0) - (rank.get(y.id) ?? 0));
   const stopsByRide = await fetchStopsByRide(
     db,
     candidateRides.map((r) => r.id),
   );
 
-  const results: MatchCandidate[] = [];
-  for (const ride of candidateRides) {
-    if (ride.seatsAvailable < 1) continue;
-    if (!ride.routePolyline || !ride.estimatedDurationSec) continue; // No real baseline to compare against.
+  // One routing call per ride, all in parallel — this tier now runs on
+  // every search (searchRides), so its latency is one call, not N.
+  const settled = await Promise.all(candidateRides.map(async (ride): Promise<MatchCandidate | null> => {
+    if (ride.seatsAvailable < 1) return dismiss(ride.id, 'no_seat_on_segment');
+    if (!ride.routePolyline || !ride.estimatedDurationSec) return dismiss(ride.id, 'no_route_baseline'); // No real baseline to compare against.
 
     const routePoints = decodePolyline(ride.routePolyline);
     const originProj = projectPointOntoRoute(origin, routePoints);
@@ -1749,7 +1853,7 @@ async function scoreDetourCandidates(
       originProj.distanceM <= thresholds.corridorWidthM &&
       destProj.distanceM <= thresholds.corridorWidthM &&
       destProj.fraction - originProj.fraction >= MIN_ROUTE_FRACTION_GAP;
-    if (passThroughWouldQualify) continue;
+    if (passThroughWouldQualify) return null;
 
     // The one real routing-API call this candidate costs: origin -> pickup
     // -> dropoff -> destination, in that order (pickup must precede
@@ -1759,7 +1863,7 @@ async function scoreDetourCandidates(
       { lat: ride.destinationLat, lng: ride.destinationLng },
       [origin, destination],
     );
-    if (withInsertion.isEstimate) continue; // No real routing engine reachable — never fabricate a detour number from a haversine fallback.
+    if (withInsertion.isEstimate) return dismiss(ride.id, 'routing_unavailable'); // No real routing engine reachable — never fabricate a detour number from a haversine fallback.
 
     const extraDurationSeconds = Math.max(0, withInsertion.durationSec - ride.estimatedDurationSec);
     const allowanceSec = detourAllowanceSec(
@@ -1768,7 +1872,7 @@ async function scoreDetourCandidates(
       thresholds.detourCeilingSec,
       maxDetourRatio,
     );
-    if (extraDurationSeconds > allowanceSec) continue;
+    if (extraDurationSeconds > allowanceSec) return dismiss(ride.id, 'detour_too_long');
 
     const baselineDistanceM = polylineLengthMeters(routePoints);
     const extraDistanceMeters = Math.max(0, Math.round(withInsertion.distanceM - baselineDistanceM));
@@ -1797,7 +1901,7 @@ async function scoreDetourCandidates(
       clamp01(1 - timeDeltaMin / TIGHT_TIME_WINDOW_MIN) * 0.3 +
       clamp01(1 - extraDurationSeconds / thresholds.detourCeilingSec) * 0.2;
 
-    results.push({
+    return {
       rideId: ride.id,
       driverUserId: ride.driverProfile.userId,
       driverFullName: ride.driverProfile.user?.fullName ?? null,
@@ -1854,10 +1958,10 @@ async function scoreDetourCandidates(
       detourRoutePolyline: withInsertion.polyline,
       reasons: [`+${Math.round(extraDurationSeconds / 60)} min de détour pour le conducteur`],
       clusterLabel: buildClusterLabel(timeDeltaMin),
-    });
-  }
+    };
+  }));
 
-  return results.sort((a, b) => b.score - a.score);
+  return settled.filter((c): c is MatchCandidate => c !== null).sort((a, b) => b.score - a.score);
 }
 
 /**
@@ -2110,6 +2214,33 @@ const TIER_MESSAGES: Record<
 };
 
 /**
+ * One structured log line per search: what was kept, and for every ride a
+ * tier looked at but nobody kept, why each tier dropped it (Track C — the
+ * evidence later tuning needs). Places are rounded to ~1 km so a log line
+ * never pins down where someone lives.
+ */
+function logSearchOutcome(
+  input: MatchingSearchInput,
+  tier: SearchTier,
+  kept: MatchCandidate[],
+  dismissals: DismissalLog,
+): void {
+  const round = (n: number) => Math.round(n * 100) / 100;
+  getLogger().info(
+    {
+      event: 'matching.search',
+      origin: [round(input.originLat), round(input.originLng)],
+      destination: [round(input.destinationLat), round(input.destinationLng)],
+      when: input.when.toISOString(),
+      tier,
+      kept: kept.map((c) => ({ rideId: c.rideId, matchType: c.matchType })),
+      dismissed: dismissals.dismissedExcept(new Set(kept.map((c) => c.rideId))),
+    },
+    'Ride search',
+  );
+}
+
+/**
  * The unified search pipeline (matching-engine architecture plan §D,
  * revising docs/roadmap/phase-13-search-engine.md's original cascade):
  * discovery mechanisms no longer gate what a passenger sees. Stage A —
@@ -2118,11 +2249,12 @@ const TIER_MESSAGES: Record<
  * already-stored polyline, no extra routing call), merged into one
  * quality-banded ranked list, exactly the fix for "a mediocre exact match
  * always beat an excellent pass-through match" this phase exists for.
- * `detour_match`/`closest_departure` stay cost-gated *expansions* —
- * detour's real per-candidate routing calls and closest-departure's
- * 14-day lookahead only ever run when Stage A is genuinely empty, the same
- * "show some rides, better than nothing" guarantee the old cascade made,
- * just no longer split into a separate exact/wide pass first.
+ * The detour tier runs on every search too (Phase 14 Track C): it routes
+ * only rides Stage A didn't already match, capped (5 calls when Stage A
+ * found something, 15 when it didn't) and in parallel, and its results are
+ * ranked in the same list. Closest-departure's 14-day lookahead stays the
+ * last resort, run only when nothing else matched. Every search logs why
+ * each examined ride was left out (logSearchOutcome).
  */
 export async function searchRides(db: Database, input: MatchingSearchInput): Promise<SearchResult> {
   // Profile-scaled once per search (matching-engine architecture plan §G) —
@@ -2131,25 +2263,41 @@ export async function searchRides(db: Database, input: MatchingSearchInput): Pro
   // see deriveMatchingThresholds's own doc comment.
   const thresholds = deriveMatchingThresholds(input);
 
-  const [endpointCandidates, passThroughCandidates, inProgressCandidates] = await Promise.all([
+  const dismissals = new DismissalLog();
+  const [endpointCandidates, passThroughCandidates, inProgressCandidates, operationalConfig] = await Promise.all([
     // Every ride that day (searchWindowFor) — the ones around the
     // requested time are ranked first.
-    scoreCandidates(db, input, thresholds.widePickupRadiusM, thresholds.wideDropoffRadiusM),
-    scorePassThroughCandidates(db, input, thresholds),
+    scoreCandidates(db, input, thresholds.widePickupRadiusM, thresholds.wideDropoffRadiusM, undefined, dismissals),
+    scorePassThroughCandidates(db, input, thresholds, dismissals),
     // M-091/EDGE-050: a trip already in progress is matchable against the
     // driver's current position and remaining route — merged in alongside
     // the other two retrieval mechanisms rather than gated as a separate
     // fallback tier, since a genuinely feasible in-progress match is a real,
     // ordinary result, not a degraded last resort.
-    scoreInProgressCandidates(db, input, WIDE_TIME_WINDOW_MIN),
+    scoreInProgressCandidates(db, input, WIDE_TIME_WINDOW_MIN, dismissals),
+    // M-085/M-085a (spec §28): the admin-configurable detour ratio.
+    getActiveOperationalConfig(db),
   ]);
-  const merged = mergeCandidatesByRide(endpointCandidates, passThroughCandidates, inProgressCandidates);
+  const stageA = mergeCandidatesByRide(endpointCandidates, passThroughCandidates, inProgressCandidates);
+
+  // Phase 14 Track C: a ride that could pick the passenger up with a small,
+  // real detour is offered even when other rides matched — it used to be
+  // tried only when nothing else at all was found, so one unrelated match
+  // hid every detour-reachable ride. Rides already matched are never routed
+  // again, and the routing calls are capped lower when Stage A has results.
+  const detour = await scoreDetourCandidates(db, input, thresholds, operationalConfig.maxDetourRatio, {
+    excludeRideIds: new Set(stageA.map((c) => c.rideId)),
+    cap: stageA.length > 0 ? DETOUR_EXTRA_CANDIDATE_CAP : DETOUR_CANDIDATE_CAP,
+    dismissals,
+  });
+  const merged = mergeCandidatesByRide(stageA, detour);
 
   if (merged.length > 0) {
     const { ranked, standoutRideId } = rankMatchCandidates(merged, input);
-    const tier = classifyOverallTier(ranked, input, thresholds);
+    const tier: SearchTier = stageA.length > 0 ? classifyOverallTier(ranked.filter((c) => c.matchType !== 'detour'), input, thresholds) : 'detour_match';
     const noneAtRequestedTime = !ranked.some((c) => c.nearRequestedTime);
     const noneWalkable = !ranked.some((c) => c.withinWalkingDistance);
+    logSearchOutcome(input, tier, ranked, dismissals);
     return {
       tier,
       candidates: ranked,
@@ -2164,22 +2312,11 @@ export async function searchRides(db: Database, input: MatchingSearchInput): Pro
     };
   }
 
-  // M-085/M-085a (spec §28): the admin-configurable override, resolved only
-  // here (Stage A already returned nothing, the one real consumer of this
-  // value) rather than unconditionally on every search — same "don't pay
-  // for a config read the common case never needs" discipline the rest of
-  // this cascade already follows for detour's own routing calls.
-  const operationalConfig = await getActiveOperationalConfig(db);
-  const detour = await scoreDetourCandidates(db, input, thresholds, operationalConfig.maxDetourRatio);
-  if (detour.length > 0) {
-    const { ranked, standoutRideId } = rankMatchCandidates(detour, input);
-    return { tier: 'detour_match', candidates: ranked, standoutRideId, message: TIER_MESSAGES.detour_match };
-  }
-
   // closest_departure stays sorted strictly by time-proximity to the
   // request, not band-ranked — that ordering IS its entire point,
   // unchanged from the original cascade.
   const closest = await findClosestDepartures(db, input, thresholds);
+  logSearchOutcome(input, closest.length > 0 ? 'closest_departure' : 'none', closest, dismissals);
   if (closest.length > 0) {
     return {
       tier: 'closest_departure',
