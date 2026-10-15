@@ -447,7 +447,7 @@ const PASSENGER_ORIGIN = { lat: 36.8495, lng: 10.1735 }; // Menzah 6
 const PASSENGER_DESTINATION = { lat: 36.853, lng: 10.2735 }; // Lac 2
 
 // City-trip walk caps (the trip is ~9km straight-line, a 'commute') — a
-// 15-minute walk at most; see passengerWalkCaps in matching.service.ts.
+// 20-minute walk at most; see passengerReach in matching.service.ts.
 const cityCaps = getPassengerAccessCaps('commute');
 const baseParams = {
   passengerOrigin: PASSENGER_ORIGIN,
@@ -472,7 +472,7 @@ describe('resolvePassengerSegment — the passenger journey is a sub-segment of 
     expect(segment.recommendedStopId).toBe('stop-menzah');
     expect(segment.recommendedDropoffStopId).toBe('stop-lac');
     // Minimal walking: a few minutes each way (honest street estimate),
-    // well under the 15-minute city cap.
+    // well under the 20-minute city cap.
     expect(segment.pickup!.walkMinutes).toBeLessThan(8);
     expect(segment.dropoff!.walkMinutes).toBeLessThan(8);
     // Pickup strictly before dropoff along the driver's route, both

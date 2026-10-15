@@ -9,8 +9,6 @@ export default function SearchLayout(): React.JSX.Element {
     <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: theme.background } }}>
       <Stack.Screen name="trust" options={{ presentation: 'modal' }} />
       <Stack.Screen name="composer" options={{ presentation: 'modal' }} />
-      <Stack.Screen name="pickup-point" options={{ presentation: 'modal' }} />
-      <Stack.Screen name="dropoff-point" options={{ presentation: 'modal' }} />
     </Stack>
   );
 }

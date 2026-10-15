@@ -39,8 +39,7 @@ import {
   useGetMeQuery,
   useListMyBookingsQuery,
 } from '../../src/state/api';
-import { useAppDispatch, useAppSelector } from '../../src/state/store';
-import { clearSelectedStops } from '../../src/state/searchSlice';
+import { useAppSelector } from '../../src/state/store';
 import { requestPushPermissionAndRegister } from '../../src/services/notifications/registerForPushNotifications';
 import { decodePolyline, polylineDistanceKm, routeOrderFraction, sliceRouteBetween } from '../../src/utils/polyline';
 import { useContextualAuth } from '../../src/features/auth/useContextualAuth';
@@ -53,6 +52,7 @@ import { openDirections } from '../../src/utils/openInMaps';
 import { accessAmount } from '../../src/features/search/passengerAccess';
 import { formatDurationLabel } from '../../src/utils/durationLabel';
 import { resolvePassengerSegmentPoints } from '../../src/features/search/passengerSegment';
+import { buildBookingPoints } from '../../src/features/search/bookingPoints';
 import type { TFunction } from 'i18next';
 
 type TFn = (key: string, params?: Record<string, unknown>) => string;
@@ -114,13 +114,9 @@ export default function RideDetailsScreen(): React.JSX.Element {
   const { t, i18n } = useTranslation(['search', 'common', 'booking']);
   const locale = i18n.language as SupportedLocale;
   const { colors: theme } = useAppTheme();
-  const dispatch = useAppDispatch();
   const origin = useAppSelector((s) => s.search.origin);
   const destination = useAppSelector((s) => s.search.destination);
   const searchAt = useAppSelector((s) => s.search.searchAt);
-  const selectedStop = useAppSelector((s) => s.search.selectedStop);
-  const selectedDropoffStop = useAppSelector((s) => s.search.selectedDropoffStop);
-  const overriddenPickup = useAppSelector((s) => s.search.overriddenPickup);
   const accessToken = useAppSelector((s) => s.auth.accessToken);
   const [bookingError, setBookingError] = useState<string | undefined>();
   const [routeModalOpen, setRouteModalOpen] = useState(false);
@@ -152,7 +148,7 @@ export default function RideDetailsScreen(): React.JSX.Element {
   // Asked once, right before the seat request is sent — never blocks it.
   const { ensureContactPhone, sheetProps: contactPhoneSheetProps } = useContactPhonePrompt();
 
-  // Same cache entry results.tsx/pickup-point.tsx already populated — gives
+  // Same cache entry results.tsx already populated — gives
   // us the real per-passenger pickup-walk minutes without a second fetch.
   const searchArgs =
     origin && destination
@@ -191,8 +187,6 @@ export default function RideDetailsScreen(): React.JSX.Element {
   // share display text) and silently produced wrong results.
   const segmentPoints = resolvePassengerSegmentPoints({
     candidate,
-    selectedPickup: selectedStop,
-    selectedDropoff: selectedDropoffStop,
     searchOrigin: origin,
     searchDestination: destination,
     ride,
@@ -298,157 +292,32 @@ export default function RideDetailsScreen(): React.JSX.Element {
   }, [isDetourMatch, stops, pickupSequence, dropoffSequence, pickupStopId, pickupStop, dropoffStop, routeCoordinates, segmentOriginLat, segmentOriginLng, dropoffLat, dropoffLng]);
   const bookedSeats = ride ? ride.seatsTotal - ride.seatsAvailable : 0;
 
-  // Stop confirmation (docs/domain/ride-engine.md, Phase 13 dropoff stops)
-  // no longer gates *viewing* this screen — useOpenDriver.ts routes here
-  // directly so a rider can browse several candidates freely. It's the
-  // "Request a seat" CTA below that triggers it, only when the ride
-  // actually has ranked stops to choose from and none is picked yet.
-  //
-  // Bug fixed here (matching-engine architecture plan §C): `rankedStops`
-  // is empty both when the ride has no stops at all (free-form flow, fine
-  // to fall through) AND when the ride HAS stops but none are walkable for
-  // this passenger (candidate.pickupViable: false) — those two cases used
-  // to be indistinguishable from `rankedStops.length` alone, so the second
-  // one silently fell through to a free-form createBooking call on a ride
-  // that requires a real pickupStopId, which the backend correctly rejects
-  // with a 400. `!candidate.pickupViable` disambiguates them for an
-  // 'endpoint'/'route_passthrough' match: there, it's only ever false when
-  // the ride genuinely has zero stops, so routing to pickup-point.tsx
-  // (which renders an honest "no reachable stop" EmptyState for this exact
-  // case) is correct for both. A 'detour' match is a real THIRD case that
-  // assumption doesn't cover: pickupViable is unconditionally false there
-  // (matching.service.ts's scoreDetourCandidates — see MatchCandidate.
-  // detour's own doc comment) regardless of whether the ride actually has
-  // stops, and it never has any rankedStops to pick from at all — routing
-  // it to the stops-only picker was a real dead end (an EmptyState with no
-  // way forward) for a match that should instead go straight to a
-  // free-form request, frictionlessly — no manual pickup-point form for a
-  // detour match, ever (direct product feedback). createBooking now
-  // independently re-validates a free-form pickup/dropoff on a stops-
-  // having ride via a real, live routing-engine detour check (bookings.
-  // service.ts's assertRealDetourWithinAllowance) before accepting it —
-  // the same real bound this search result was found with in the first
-  // place, so this only fails when something's genuinely changed (the
-  // route, or the routing engine being briefly unreachable), never as a
-  // routine rejection. See bookingErrorKey's VALIDATION_ERROR case for the
-  // honest message shown on that rare failure.
-  // A pass-through match with no driver stop near the passenger boards
-  // and/or alights on the driver's route itself (matching.service.ts's
-  // onRoutePointOption): book exactly that point — what this screen shows —
-  // never the passenger's raw searched place, and never let a missing
-  // dropoff silently default to the driver's destination. createBooking
-  // re-validates both with a live routing call.
-  const onRoutePickup =
-    candidate?.matchType === 'route_passthrough' && candidate.pickupPoint && !candidate.pickupPoint.stopId
-      ? {
-          label: candidate.pickupPoint.label ?? origin?.label ?? ride?.originLabel ?? '',
-          lat: candidate.pickupPoint.lat,
-          lng: candidate.pickupPoint.lng,
-        }
-      : null;
-  const onRouteDropoff =
-    candidate?.matchType === 'route_passthrough' &&
-    candidate.dropoffPoint &&
-    !candidate.dropoffPoint.stopId &&
-    !(candidate.dropoffPoint.lat === candidate.destinationLat && candidate.dropoffPoint.lng === candidate.destinationLng)
-      ? {
-          label: candidate.dropoffPoint.label ?? destination?.label ?? ride?.destinationLabel ?? '',
-          lat: candidate.dropoffPoint.lat,
-          lng: candidate.dropoffPoint.lng,
-        }
-      : null;
-
-  const needsPickupSelection = candidate
-    ? candidate.matchType !== 'detour' &&
-      (!candidate.pickupViable || candidate.rankedStops.length > 0) &&
-      !selectedStop &&
-      !overriddenPickup &&
-      !onRoutePickup
-    : false;
-  const needsDropoffSelection =
-    (candidate?.rankedDropoffStops.length ?? 0) > 0 && !selectedDropoffStop && !onRouteDropoff;
+  // The passenger never picks a point (docs/roadmap/phase-14-intelligent-
+  // pickup-engine.md): the seat request carries exactly the pickup/drop-off
+  // the server chose and this screen shows — a driver stop, a point on the
+  // driver's route, or the passenger's own place for a detour match.
+  // createBooking re-validates every one of them.
+  const bookingPoints = buildBookingPoints({ candidate, searchOrigin: origin, searchDestination: destination });
 
   function handleRequestPress(): void {
     // Defense in depth — the CTA is already disabled in both cases below,
     // but a driver viewing their own listing or a rider who already has an
     // active request for this ride must never be able to trigger a second
     // createBooking call regardless of how the tap reaches here.
-    if (isOwnRide || existingBooking) return;
-    if (needsPickupSelection) {
-      router.push({ pathname: '/search/pickup-point', params: { rideId, driverUserId } });
-      return;
-    }
-    if (needsDropoffSelection) {
-      router.push({ pathname: '/search/dropoff-point', params: { rideId, driverUserId } });
-      return;
-    }
+    if (isOwnRide || existingBooking || !bookingPoints) return;
     ensureContactPhone(() => void requestSeat(), 'booking');
   }
 
   async function requestSeat(): Promise<void> {
-    if (!selectedStop && !overriddenPickup && !origin) return;
+    if (!bookingPoints) return;
     setBookingError(undefined);
     try {
-      // A 'detour' match's dropoff is the passenger's own searched
-      // destination (Zaragoza, e.g.) whenever it isn't already the ride's
-      // own destination — omitting it here would silently default the
-      // booking to the ride's own endpoint server-side, the exact "driver
-      // sees the wrong requested route" bug already fixed for the map/
-      // timeline display, but for the actual booking record this time.
-      const freeformDropoff =
-        !selectedDropoffStop && isDetourMatch && destination
-          ? { dropoff: { label: destination.label, lat: destination.lat, lng: destination.lng } }
-          : !selectedDropoffStop && onRouteDropoff
-            ? { dropoff: onRouteDropoff }
-            : {};
       const booking = await createBooking({
         rideId,
-        input: {
-          seatsRequested: 1,
-          ...(overriddenPickup
-            ? {
-                // M-040/EDGE-053: a real override away from the driver's
-                // recommended stops (search/pickup-point.tsx's "choose
-                // another point" affordance) — createBooking's own
-                // assertRealDetourWithinAllowance independently re-
-                // validates this against the ride's real route; the
-                // previewPickupOverride recalculation already shown the
-                // passenger the consequence before they got here.
-                pickup: { label: overriddenPickup.label, lat: overriddenPickup.lat, lng: overriddenPickup.lng },
-                ...(origin ? { requestedPickup: { label: origin.label, lat: origin.lat, lng: origin.lng } } : {}),
-              }
-            : selectedStop
-              ? {
-                  pickupStopId: selectedStop.stopId,
-                  // M-004/M-020 (docs/unified_driver_and_passenger_journey.md
-                  // §5/§13): the rider's own real searched point, alongside
-                  // the chosen stop — lets createBooking independently
-                  // re-derive and persist the real walk distance instead of
-                  // trusting the stop id alone (bookings.service.ts's
-                  // resolveStopWalkMeters). Previously never sent from any
-                  // mobile call site, so this real backend capability had no
-                  // real caller at all.
-                  ...(origin ? { requestedPickup: { label: origin.label, lat: origin.lat, lng: origin.lng } } : {}),
-                }
-              : onRoutePickup
-                ? {
-                    pickup: onRoutePickup,
-                    ...(origin ? { requestedPickup: { label: origin.label, lat: origin.lat, lng: origin.lng } } : {}),
-                  }
-                : { pickup: { label: origin!.label, lat: origin!.lat, lng: origin!.lng } }),
-          ...(selectedDropoffStop
-            ? {
-                dropoffStopId: selectedDropoffStop.stopId,
-                ...(destination
-                  ? { requestedDropoff: { label: destination.label, lat: destination.lat, lng: destination.lng } }
-                  : {}),
-              }
-            : freeformDropoff),
-        },
+        input: { seatsRequested: 1, ...bookingPoints },
       }).unwrap();
       haptics.success();
       void requestPushPermissionAndRegister((args) => registerPushToken(args).unwrap());
-      dispatch(clearSelectedStops());
       router.dismissTo({
         pathname: '/bookings/confirmed',
         params: {
@@ -800,7 +669,7 @@ export default function RideDetailsScreen(): React.JSX.Element {
             disabled={
               Boolean(existingBooking) ||
               ride.seatsAvailable < 1 ||
-              (!needsPickupSelection && !needsDropoffSelection && !selectedStop && !origin)
+              !bookingPoints
             }
             accessibilityLabel={
               existingBooking

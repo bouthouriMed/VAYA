@@ -199,7 +199,7 @@ type ReachCaps = { pickupM: number; dropoffM: number };
  *  see @vaya/domain passenger-access. */
 interface PassengerReach {
   profile: TripProfileType;
-  /** Within walking distance (a 15-minute walk on a city or medium trip,
+  /** Within walking distance (a 20-minute walk on a city or medium trip,
    *  10 km on an intercity one): these rides always come first. */
   walk: ReachCaps;
   /** A bit further: still shown, after every walkable ride, as a distance
@@ -386,7 +386,7 @@ export interface MatchCandidate {
    *  ride has route_stops but none rank near the passenger's destination. */
   dropoffViable: boolean;
   /** True when both the pickup and the dropoff are within walking distance
-   *  (a 15-minute walk on a city/medium trip, 10 km on an intercity one).
+   *  (a 20-minute walk on a city/medium trip, 10 km on an intercity one).
    *  Results are always ordered walkable-first; a ride a bit further away
    *  is still shown, after them, as a distance rather than a walk. */
   withinWalkingDistance: boolean;

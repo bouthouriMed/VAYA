@@ -196,7 +196,7 @@ describe('matching.service — passenger journey is a sub-segment of the driver 
     expect(match!.dropoffViable).toBe(true);
 
     // Minimal walking, a few minutes each way (honest street estimate),
-    // well under the 15-minute city cap.
+    // well under the 20-minute city cap.
     expect(match!.pickupWalkMinutes).toBeLessThan(8);
     expect(match!.dropoffWalkMinutes).toBeLessThan(8);
     expect(match!.pickupWalkMeters).toBeCloseTo(match!.pickupWalkMinutes * 80, 6);

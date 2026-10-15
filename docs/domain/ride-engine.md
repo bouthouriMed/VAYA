@@ -106,7 +106,7 @@ Before this, a passenger could see results with 30-60 minute walks: the endpoint
 
 | Passenger's trip | Within walking distance (listed first) | A bit further (listed after, never mixed in) | Never shown |
 |---|---|---|---|
-| commute / urban (≤ 45 km) | a 15-minute walk (~920 m straight line, ~1.2 km on foot) | up to 3 km straight line | beyond 3 km |
+| commute / urban (≤ 45 km) | a 20-minute walk (~1.2 km straight line, ~1.6 km on foot; was 15 min until 2026-10-15) | up to 3 km straight line | beyond 3 km |
 | intercity (> 45 km) | 10 km straight line | up to 20 km | beyond 20 km |
 
 Any access over a 20-minute walk is shown as "X km away", never as a walking time. Each ride's boarding/alighting pair is resolved within walking distance first and only falls back to the extended reach when no walkable pair exists (`resolvePassengerSegmentWithinReach`); the result carries `withinWalkingDistance`. `rankMatchCandidates` orders by the requested time first (see "Search time window" below), then `withinWalkingDistance`, then quality band, then pickup-time proximity (closest-departure: walkable first, then time) — so among rides around the requested time, a ride a few km away is offered to riders willing to go further, but never above one they can walk to. When no result is walkable, the banner says so ("Aucun trajet à distance de marche…") and the app shows a "Un peu plus loin de vous" divider before the first ride further away. The 3 km / 20 km reach is a first-cut value (`MAX_EXTENDED_*_ACCESS_M`), to tune against real booking data.

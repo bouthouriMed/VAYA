@@ -772,19 +772,6 @@ export interface DetourPreview {
   detourRoutePolyline: string | null;
 }
 
-/** M-040/EDGE-053 (docs/unified_driver_and_passenger_journey.md §14, edge
- *  53): a real, side-effect-free recalculation for a pickup/dropoff point
- *  the passenger is considering as an override away from one of the
- *  driver's recommended stops. `withinAllowance: null` means feasibility
- *  genuinely couldn't be computed yet (no route on this ride, or the
- *  routing engine unreachable) — never fabricated as true/false. */
-export interface PickupOverridePreview {
-  walkMeters: number | null;
-  driverDetourExtraSeconds: number | null;
-  driverDetourAllowanceSeconds: number | null;
-  withinAllowance: boolean | null;
-}
-
 export interface Booking {
   id: string;
   rideId: string;
@@ -1248,19 +1235,6 @@ export const api = createApi({
     getBookingDetourPreview: builder.query<DetourPreview, string>({
       query: (bookingId) => `/bookings/${bookingId}/detour-preview`,
     }),
-    // M-040/EDGE-053: called from search/pickup-point.tsx's "choose another
-    // point" override affordance, before the passenger actually commits to
-    // a free-form pickup/dropoff away from the driver's recommended stops.
-    // Pure, side-effect-free — never invalidated by anything.
-    getPickupOverridePreview: builder.query<
-      PickupOverridePreview,
-      { rideId: string; lat: number; lng: number; requestedLat?: number; requestedLng?: number }
-    >({
-      query: ({ rideId, ...params }) => ({
-        url: `/rides/${rideId}/pickup-override-preview`,
-        params,
-      }),
-    }),
     // The counterpart's phone number for an accepted booking, fetched
     // on-demand (not stored/cached alongside the booking itself) right
     // before placing a call — never a public lookup
@@ -1512,7 +1486,6 @@ export const {
   useDeclineBookingMutation,
   useGetCancellationPreviewQuery,
   useGetBookingDetourPreviewQuery,
-  useLazyGetPickupOverridePreviewQuery,
   useLazyGetBookingContactPhoneQuery,
   useCancelBookingMutation,
   useReportNoShowMutation,
