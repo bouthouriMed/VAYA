@@ -30,13 +30,13 @@ describe('estimateWalk', () => {
 });
 
 describe('getPassengerAccessCaps', () => {
-  it.each(['commute', 'urban'] as const)('caps a %s trip at a 15-minute honest walk', (profile) => {
+  it.each(['commute', 'urban'] as const)('caps a %s trip at a 20-minute honest walk', (profile) => {
     const caps = getPassengerAccessCaps(profile);
     expect(estimateWalk(caps.pickupM).walkMinutes).toBeCloseTo(MAX_CITY_WALK_MINUTES);
     expect(estimateWalk(caps.dropoffM).walkMinutes).toBeCloseTo(MAX_CITY_WALK_MINUTES);
-    // ~920 m straight line, ~1.2 km on foot.
-    expect(caps.pickupM).toBeGreaterThan(900);
-    expect(caps.pickupM).toBeLessThan(950);
+    // ~1.2 km straight line, ~1.6 km on foot.
+    expect(caps.pickupM).toBeGreaterThan(1200);
+    expect(caps.pickupM).toBeLessThan(1260);
   });
 
   it('allows an intercity meeting point a few km out, up to 10 km', () => {

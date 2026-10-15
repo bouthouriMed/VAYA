@@ -29,6 +29,7 @@ This is the status tracker and index for the phased roadmap produced by the 2026
 | 11 | [Recurring Rides](phase-11-recurring-rides.md) | NEXT | Medium | Done — see notes |
 | 12 | [Scale Hardening](phase-12-scale-hardening.md) | SCALE | High | Not started — trigger-based, see phase file |
 | 13 | [Search & Matching Engine](phase-13-search-engine.md) | NOW/NEXT | High | Done — see notes |
+| 14 | [Intelligent Pickup & Drop-off Engine](phase-14-intelligent-pickup-engine.md) | NOW/NEXT | High | Done — see phase file |
 
 **Current phase:** none in progress.
 **Recommended next phase:** None — Phase 12 (Scale Hardening) remains trigger-based, not calendar-based (`docs/architecture/overview.md`'s NOW/NEXT/SCALE horizons, CLAUDE.md's Architecture principles): do not start it until a real, measured trigger exists (real latency numbers, real concurrent load, real observed abuse), not simply because it's the next-numbered phase file.

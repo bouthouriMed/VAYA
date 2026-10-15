@@ -144,6 +144,13 @@ export async function markNotificationRead(db: Database, notificationId: string,
   return updated;
 }
 
+/** The person a notification is about, as a picture beside the push —
+ *  only for a real public https photo (the device fetches it itself). */
+function pushImageFor(type: NotificationEventType, payload: Record<string, unknown>): string | undefined {
+  const url = type === 'booking_requested' ? payload.riderAvatarUrl : undefined;
+  return typeof url === 'string' && url.startsWith('https://') ? url : undefined;
+}
+
 /** OS-level quick-action pre-architecture (2026-08-23 redesign) — see
  *  ExpoPushMessage.categoryId's doc comment in expo-push.ts for the full
  *  scope note. `booking_requested` is the only event type with a real
@@ -190,12 +197,14 @@ export async function dispatchPushForNotification(db: Database, notificationId: 
   // screen on tap (bookingId/rideId and the recipient's role).
   const { locale, context, link } = await loadNotificationContext(db, notification.userId, payload);
   const { title, body } = composeNotification(notification.type, payload, context, locale);
+  const image = pushImageFor(notification.type, payload);
   const messages = tokens.map((t) => ({
     to: t.token,
     title,
     body,
     data: { notificationId: notification.id, type: notification.type, ...payload, ...link },
     ...(categoryId ? { categoryId } : {}),
+    ...(image ? { richContent: { image }, mutableContent: true } : {}),
   }));
 
   const tickets = await sendExpoPushMessages(messages);

@@ -1,6 +1,7 @@
 import { and, eq, inArray, isNotNull, ne, sql } from 'drizzle-orm';
 import type { getDatabase } from '../../lib/database.js';
-import { bookings, rides, routeStops, riderProfiles, trips, users } from '../../db/schema/index.js';
+import { bookings, meetingPoints, rides, routeStops, riderProfiles, trips, users } from '../../db/schema/index.js';
+import { getLogger } from '../../config/logger.js';
 import { AppError, ConflictError, ForbiddenError, NotFoundError, ValidationError } from '../../lib/errors.js';
 import {
   canCancelTrip,
@@ -658,6 +659,47 @@ async function computeBookingContributionTotal(
   return segmentPrice.recommended * segment.seatsRequested;
 }
 
+/** 0..1 positions of a booking's pickup and drop-off along the ride's
+ *  route — omitted without a stored route rather than guessed. */
+function segmentFractionsOf(
+  routePolyline: string | null,
+  pickup: { lat: number; lng: number },
+  dropoff: { lat: number; lng: number } | null,
+): { segmentStartFraction?: number; segmentEndFraction?: number } {
+  if (!routePolyline) return {};
+  const routePoints = decodePolyline(routePolyline);
+  if (routePoints.length < 2) return {};
+  const round = (n: number) => Math.round(n * 1000) / 1000;
+  return {
+    segmentStartFraction: round(projectPointOntoRoute(pickup, routePoints).fraction),
+    segmentEndFraction: dropoff ? round(projectPointOntoRoute(dropoff, routePoints).fraction) : 1,
+  };
+}
+
+/** How far a booking's free-form point may be from the meeting point it
+ *  claims to be (the stored point is road-snapped; the client echoes it). */
+const MEETING_POINT_MATCH_M = 60;
+
+/**
+ * The meeting point a free-form pickup/dropoff really is, or null. Only
+ * recorded when the claimed point exists, is active and sits where the
+ * booking's own coordinates are — the client's claim is never trusted on
+ * its own (it feeds Track E's usage counts, nothing else).
+ */
+async function resolveMeetingPointId(
+  db: Database,
+  claimedId: string | undefined,
+  point: { lat: number; lng: number } | null,
+): Promise<string | null> {
+  if (!claimedId || !point) return null;
+  const meetingPoint = await db.query.meetingPoints.findFirst({ where: eq(meetingPoints.id, claimedId) });
+  if (!meetingPoint?.active || haversineDistanceMeters(meetingPoint, point) > MEETING_POINT_MATCH_M) {
+    getLogger().warn({ claimedId }, 'Booking named a meeting point that does not match its coordinates — not recorded');
+    return null;
+  }
+  return meetingPoint.id;
+}
+
 export async function createBooking(
   db: Database,
   rideId: string,
@@ -738,6 +780,10 @@ export async function createBooking(
     if (!stop) {
       throw new ValidationError('Selected pickup stop is not offered on this ride');
     }
+    // Phase 14: an area ("via Sidi Hassine") is never a boarding point.
+    if (stop.kind === 'area') {
+      throw new ValidationError('This stop is an area the driver passes by, not a pickup point');
+    }
     pickupStopId = stop.id;
     pickupLabel = stop.label;
     pickupLat = stop.lat;
@@ -789,6 +835,9 @@ export async function createBooking(
     const dropStop = selectedStops.find((s) => s.id === input.dropoffStopId);
     if (!dropStop) {
       throw new ValidationError('Selected dropoff stop is not offered on this ride');
+    }
+    if (dropStop.kind === 'area') {
+      throw new ValidationError('This stop is an area the driver passes by, not a dropoff point');
     }
     // pickupStopId is only guaranteed set here when the pickup itself was
     // also stop-based — a free-form detour pickup paired with a real
@@ -973,6 +1022,16 @@ export async function createBooking(
       dropoffLat,
       dropoffLng,
       dropoffWalkMeters,
+      pickupMeetingPointId: await resolveMeetingPointId(
+        db,
+        input.pickupMeetingPointId,
+        pickupStopId ? null : { lat: pickupLat, lng: pickupLng },
+      ),
+      dropoffMeetingPointId: await resolveMeetingPointId(
+        db,
+        input.dropoffMeetingPointId,
+        dropoffStopId || dropoffLat === null || dropoffLng === null ? null : { lat: dropoffLat, lng: dropoffLng },
+      ),
       // M-054 (spec §20): "Every request has a server-authoritative
       // response deadline, visible to passenger immediately post-request
       // and to driver inside the incoming request." Confirmed live (this
@@ -987,6 +1046,22 @@ export async function createBooking(
   if (!booking) throw new Error('Failed to create booking');
 
   const riderProfileForNotif = await getRiderNotificationProfileSafe(db, riderId);
+  // What this request costs the driver in extra driving, shown in the
+  // request notification: a stop's own deviation, the live-routed detour
+  // of a free-form point, nothing for the ride's own endpoints. Unknown
+  // (a free-form pickup on a stop-less ride is never routed) stays
+  // unknown rather than shown as 0.
+  const stopDeviationSeconds = (stopId: string | null) =>
+    stopId ? (selectedStops.find((s) => s.id === stopId)?.deviationSeconds ?? 0) : undefined;
+  const pickupExtraSeconds =
+    stopDeviationSeconds(pickupStopId) ??
+    (selectedStops.length > 0 || isSameCoordinate(pickupLat, pickupLng, ride.originLat, ride.originLng)
+      ? pickupDetourExtraDurationSeconds
+      : undefined);
+  const dropoffExtraSeconds =
+    stopDeviationSeconds(dropoffStopId) ?? (dropoffLat !== null ? dropoffDetourExtraDurationSeconds : 0);
+  const detourExtraSeconds =
+    pickupExtraSeconds !== undefined ? Math.round(pickupExtraSeconds + dropoffExtraSeconds) : undefined;
   await notifyBestEffort(db, ride.driverProfile.userId, 'booking_requested', {
     bookingId: booking.id,
     rideId,
@@ -1005,6 +1080,15 @@ export async function createBooking(
     originLabel: booking.pickupLabel,
     destinationLabel: booking.dropoffLabel ?? ride.destinationLabel,
     departureAt: ride.departureAt.toISOString(),
+    contributionTotal: booking.contributionTotal,
+    ...(detourExtraSeconds !== undefined ? { detourExtraSeconds } : {}),
+    expiresAt: booking.expiresAt?.toISOString(),
+    // Where this passenger's part sits along the driver's whole ride, for
+    // the inbox's route bar: the ride's own endpoints plus 0..1 positions
+    // of the pickup and drop-off on its real route.
+    rideOriginLabel: ride.originLabel,
+    rideDestinationLabel: ride.destinationLabel,
+    ...segmentFractionsOf(ride.routePolyline, { lat: pickupLat, lng: pickupLng }, dropoffLat !== null && dropoffLng !== null ? { lat: dropoffLat, lng: dropoffLng } : null),
   });
 
   // Email-only receipt for the passenger (never pushed, never in the inbox).

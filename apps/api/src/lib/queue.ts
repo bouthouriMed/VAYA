@@ -28,6 +28,9 @@ export const TRIP_STALENESS_SWEEP_JOB_NAME = 'trip-staleness-sweep';
 // §20, M-058): "Request expiry closes only that request automatically" —
 // a fourth job type on this same one queue/worker, same pattern.
 export const BOOKING_EXPIRY_SWEEP_JOB_NAME = 'booking-expiry-sweep';
+// Phase 14: collects the meeting points along a newly published ride's
+// route — one more job type on the same queue, not a second queue.
+export const MEETING_POINT_SCAN_JOB_NAME = 'meeting-point-scan';
 
 // Stable id for the repeatable recurring-pattern-scan job — BullMQ
 // deduplicates repeatable jobs registered with the same id/options, so
@@ -73,7 +76,12 @@ export type TripStalenessSweepJobData = Record<string, never>;
 // past-deadline booking, not a specific target passed at enqueue time.
 export type BookingExpirySweepJobData = Record<string, never>;
 
+export interface MeetingPointScanJobData {
+  rideId: string;
+}
+
 export type QueueJobData =
+  | MeetingPointScanJobData
   | NotificationDispatchJobData
   | RecurringPatternScanJobData
   | TripStalenessSweepJobData
@@ -196,6 +204,33 @@ export async function enqueueNotificationDispatch(notificationId: string): Promi
     );
   } catch (err) {
     getLogger().error({ err, notificationId }, 'Failed to enqueue notification dispatch job');
+  }
+}
+
+/**
+ * Enqueues the meeting-point scan for a newly published ride. One job per
+ * ride (deduplicated by job id). Never throws: a queue failure must not
+ * fail publishing.
+ */
+export async function enqueueMeetingPointScan(rideId: string): Promise<void> {
+  const queue = getNotificationDispatchQueue();
+  if (!queue) return;
+  try {
+    await withQueueTimeout(
+      queue.add(
+        MEETING_POINT_SCAN_JOB_NAME,
+        { rideId },
+        {
+          jobId: `meeting-points-${rideId}`,
+          attempts: 2,
+          backoff: { type: 'exponential', delay: 30_000 },
+          removeOnComplete: { count: 200 },
+          removeOnFail: { count: 200 },
+        },
+      ),
+    );
+  } catch (err) {
+    getLogger().error({ err, rideId }, 'Failed to enqueue meeting-point scan');
   }
 }
 

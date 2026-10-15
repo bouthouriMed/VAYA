@@ -65,6 +65,9 @@ Driver KYC documents (license, insurance, selfie match) backing `driverProfiles.
 ### `route_stops` (new — for `docs/domain/ride-engine.md`)
 Candidate pickup/drop-off points along a ride's actual road route. One ride has many stops; a booking references a specific stop instead of a free-standing lat/lng. See `docs/domain/ride-engine.md` for the full field list, generation algorithm, and ranking logic.
 
+### `meeting_points` (new — Phase 14, `docs/roadmap/phase-14-intelligent-pickup-engine.md`)
+`id, kind (transit_station|bus_stop|louage_station|fuel_station|roundabout|highway_exit), label, lat, lng, sourceRef (unique, e.g. osm:node/123), roadSnapped, active, usageCount, lastUsedAt`. Places a car can stop at on main roads, not tied to any ride: collected from OpenStreetMap along published routes, reused by every search whose ride passes by, credited by completed trips. `route_stops` gained `kind ('point'|'area')` and `radius_m` (an area is a place the driver passes by, never a boarding point); `bookings` gained `pickup_meeting_point_id`/`dropoff_meeting_point_id` (nullable, set null on delete); `operational_configs` gained the five `meeting_*` pickup-choice weights.
+
 ### `pricing_configs` (new — for `docs/domain/pricing.md`)
 Per-region or per-route-class configuration for the price-per-km formula and bound multipliers, replacing the current hardcoded values in `seed.ts`. See `docs/domain/pricing.md`.
 
@@ -103,6 +106,7 @@ Per-region or per-route-class configuration for the price-per-km formula and bou
 | Commute pattern | `recurring_patterns` |
 | Familiarity between two users | `relationship_signals` |
 | Candidate stops on a route (new) | `route_stops` |
+| Roadside meeting points (Phase 14) | `meeting_points` |
 | Price bounds (new) | `pricing_configs` |
 | A device's push token (new, Phase 7) | `device_tokens` |
 | A booking's driver↔rider conversation (new, Phase 8) | `conversations` / `messages` |

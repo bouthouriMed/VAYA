@@ -195,3 +195,47 @@ export function polylineLengthMeters(points: LatLng[]): number {
   }
   return total;
 }
+
+/**
+ * Exact point-to-route projection, prepared once per route: each call
+ * projects onto the route's actual segments (local flat-earth
+ * approximation, accurate to well under a metre at corridor scale) instead
+ * of resampling the whole route like `projectPointOntoRoute` does. Meant
+ * for projecting many points (a search's meeting points) onto one route.
+ */
+export function createRouteProjector(route: LatLng[]): (point: LatLng) => RouteProjection {
+  if (route.length < 2) {
+    return (point) => projectPointOntoRoute(point, route);
+  }
+  const cumulative = cumulativeDistances(route);
+  const total = cumulative[cumulative.length - 1]!;
+  const metersPerDegLat = 111_320;
+
+  return (point) => {
+    const metersPerDegLng = metersPerDegLat * Math.cos((point.lat * Math.PI) / 180);
+    let bestDistance = Infinity;
+    let bestAlong = 0;
+    let bestPoint: LatLng = route[0]!;
+    for (let i = 0; i < route.length - 1; i++) {
+      const a = route[i]!;
+      const b = route[i + 1]!;
+      const ax = (a.lng - point.lng) * metersPerDegLng;
+      const ay = (a.lat - point.lat) * metersPerDegLat;
+      const bx = (b.lng - point.lng) * metersPerDegLng;
+      const by = (b.lat - point.lat) * metersPerDegLat;
+      const dx = bx - ax;
+      const dy = by - ay;
+      const lengthSq = dx * dx + dy * dy;
+      const t = lengthSq === 0 ? 0 : Math.max(0, Math.min(1, -(ax * dx + ay * dy) / lengthSq));
+      const px = ax + t * dx;
+      const py = ay + t * dy;
+      const distance = Math.hypot(px, py);
+      if (distance < bestDistance) {
+        bestDistance = distance;
+        bestAlong = cumulative[i]! + t * (cumulative[i + 1]! - cumulative[i]!);
+        bestPoint = { lat: a.lat + t * (b.lat - a.lat), lng: a.lng + t * (b.lng - a.lng) };
+      }
+    }
+    return { distanceM: bestDistance, fraction: total === 0 ? 0 : bestAlong / total, nearestPoint: bestPoint };
+  };
+}

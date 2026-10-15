@@ -1,5 +1,6 @@
 import { and, desc, eq, inArray, isNotNull } from 'drizzle-orm';
 import type { getDatabase } from '../../lib/database.js';
+import { enqueueMeetingPointScan } from '../../lib/queue.js';
 import { bookings, driverProfiles, recurringPatterns, rides, trips, vehicles } from '../../db/schema/index.js';
 import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from '../../lib/errors.js';
 import {
@@ -357,6 +358,8 @@ export async function publishRide(db: Database, rideId: string, userId: string) 
     .where(eq(rides.id, rideId))
     .returning();
   if (!updated) throw new Error('Failed to publish ride');
+  // Phase 14: learn the meeting points along this route in the background.
+  await enqueueMeetingPointScan(updated.id);
 
   // Email-only receipt for the driver (never pushed, never in the inbox).
   await notifyBestEffort(db, userId, 'ride_published', {
@@ -408,8 +411,10 @@ export async function publishRidesAwaitingVerification(
       )
       .returning({ id: rides.id });
     if (!updated) continue;
-    if (outcome === 'publish') result.published += 1;
-    else result.expired += 1;
+    if (outcome === 'publish') {
+      result.published += 1;
+      await enqueueMeetingPointScan(updated.id);
+    } else result.expired += 1;
   }
   return result;
 }

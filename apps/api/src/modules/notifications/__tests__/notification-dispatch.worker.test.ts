@@ -23,6 +23,12 @@ function makeFakeDb(
       deviceTokens: {
         findMany: async () => tokens,
       },
+      // The copy's context (notification-context.ts): a French recipient,
+      // nothing else found — the copy falls back to the payload alone.
+      users: { findFirst: async () => ({ locale: 'fr' }) },
+      bookings: { findFirst: async () => undefined },
+      trips: { findFirst: async () => undefined },
+      rides: { findFirst: async () => undefined },
     },
   } as unknown as Database;
 }

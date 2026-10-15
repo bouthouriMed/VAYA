@@ -29,6 +29,13 @@ export interface ExpoPushMessage {
    *  notification immediately instead of batching it. */
   priority?: 'default' | 'normal' | 'high';
   sound?: 'default' | null;
+  /** A picture shown with the notification — on Android the large icon
+   *  (a small round thumbnail beside the text), on iOS only once the app
+   *  ships a Notification Service Extension (not built yet). Must be a
+   *  public https URL; the device downloads it when the push arrives. */
+  richContent?: { image: string };
+  /** Lets an iOS Notification Service Extension attach `richContent`. */
+  mutableContent?: boolean;
 }
 
 /** Applied to every message unless the caller overrides them — the

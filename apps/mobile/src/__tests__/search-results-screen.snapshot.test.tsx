@@ -54,9 +54,6 @@ const searchState: RootState['search'] = {
   destination: { label: 'Avenue Habib Bourguiba, Tunis', lat: 36.8, lng: 10.18 },
   searchAt: '2026-08-21T21:00:00.000Z',
   desiredDepartureAt: null,
-  selectedStop: null,
-  selectedDropoffStop: null,
-  overriddenPickup: null,
   passengers: 1,
   searchId: 'search-1',
 };

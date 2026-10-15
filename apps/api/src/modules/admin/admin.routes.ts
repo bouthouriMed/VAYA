@@ -33,7 +33,7 @@ import {
   listVerificationQueue,
 } from './admin-verification.service.js';
 import { listReportsForAdmin, updateReportForAdmin } from './admin-reports.service.js';
-import { getCorridorDemand, getOverviewMetrics, getSearchFunnel } from './admin-analytics.service.js';
+import { getCorridorDemand, getOverviewMetrics, getPickupOutcomes, getSearchFunnel } from './admin-analytics.service.js';
 import { listAuditLogs, logAdminAction } from './audit-log.service.js';
 import {
   getActiveOperationalConfig,
@@ -157,6 +157,9 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
   });
   app.get('/analytics/search-funnel', { ...adminAuth, schema: { querystring: adminAnalyticsQuerySchema, response: { 200: anyResponse } } }, async (request, reply) => {
     reply.send(await getSearchFunnel(db, request.query.days));
+  });
+  app.get('/analytics/pickup-outcomes', { ...adminAuth, schema: { querystring: adminAnalyticsQuerySchema, response: { 200: anyResponse } } }, async (request, reply) => {
+    reply.send(await getPickupOutcomes(db, request.query.days));
   });
 
   // --- Audit log ---

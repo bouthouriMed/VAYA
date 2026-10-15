@@ -1,9 +1,9 @@
 import { and, eq, gte, inArray, isNotNull, lte } from 'drizzle-orm';
 import type { getDatabase } from '../../lib/database.js';
-import { bookings, demandSignals, rides, routeStops, trips } from '../../db/schema/index.js';
+import { bookings, demandSignals, meetingPoints, rides, routeStops, trips } from '../../db/schema/index.js';
 import { haversineDistanceMeters } from '../../lib/geo.js';
 import { getRoute } from '../../lib/routing.js';
-import { getActiveOperationalConfig } from '../operational-config/operational-config.service.js';
+import { getActiveOperationalConfig, meetingWeightsOf } from '../operational-config/operational-config.service.js';
 import {
   findCandidateRideIdsByCorridor,
   findCandidateRideIdsByEndpoints,
@@ -13,6 +13,7 @@ import {
   decodePolyline,
   polylineLengthMeters,
   projectPointOntoRoute,
+  createRouteProjector,
   type LatLng,
 } from '../../lib/polyline.js';
 import {
@@ -29,6 +30,13 @@ import {
   rankStopsByJointOptimum,
   wouldExceedCapacity,
   VIA_STOP_DETOUR_BUDGET,
+  DEFAULT_MEETING_WEIGHTS,
+  estimateRoadsideDetourSeconds,
+  pickBestMeetingOption,
+  type MeetingOptionInput,
+  type MeetingOptionKind,
+  type MeetingPointKind,
+  type MeetingWeights,
   type BookingSegment,
   type JointStopCandidate,
   type MatchingThresholds,
@@ -36,8 +44,44 @@ import {
 } from '@vaya/domain';
 import type { MatchingSearchInput, NotifyMeInput } from '@vaya/validation';
 import { TUNISIA_TIMEZONE } from '@vaya/config';
+import { getLogger } from '../../config/logger.js';
 
 type Database = ReturnType<typeof getDatabase>;
+
+/** Why one search tier left a ride out (docs/roadmap/phase-14-intelligent-
+ *  pickup-engine.md, Track C) — recorded per (search, ride) so the engine's
+ *  dismissals can be measured instead of guessed. */
+export type DismissalReason =
+  | 'endpoints_too_far'
+  | 'no_route_geometry'
+  | 'wrong_direction'
+  | 'no_point_in_reach'
+  | 'no_seat_on_segment'
+  | 'no_live_position'
+  | 'pickup_behind_driver'
+  | 'no_route_baseline'
+  | 'routing_unavailable'
+  | 'detour_too_long';
+
+export type MatchTierName = 'endpoint' | 'route_passthrough' | 'in_progress' | 'detour';
+
+/** Collects dismissal reasons across tiers for one search. */
+export class DismissalLog {
+  private readonly byRide = new Map<string, Partial<Record<MatchTierName, DismissalReason>>>();
+
+  add(rideId: string, tier: MatchTierName, reason: DismissalReason): void {
+    const entry = this.byRide.get(rideId) ?? {};
+    entry[tier] = reason;
+    this.byRide.set(rideId, entry);
+  }
+
+  /** Reasons for every ride that no tier kept. */
+  dismissedExcept(keptRideIds: Set<string>): { rideId: string; reasons: Partial<Record<MatchTierName, DismissalReason>> }[] {
+    return [...this.byRide.entries()]
+      .filter(([rideId]) => !keptRideIds.has(rideId))
+      .map(([rideId, reasons]) => ({ rideId, reasons }));
+  }
+}
 
 // TIGHT_PICKUP_RADIUS_M/TIGHT_DROPOFF_RADIUS_M/TIGHT_TIME_WINDOW_MIN are the
 // "urban" row of packages/domain's getMatchingThresholds, kept here as the
@@ -130,6 +174,9 @@ const POSTGIS_CANDIDATE_CAP = 50;
 // microseconds-cheap in-memory scoring pass. ASSUMPTION, reasoned from the
 // audit's 1,000-user-scale candidate-set modeling, not measured.
 const DETOUR_CANDIDATE_CAP = 15;
+/** The same cap when other tiers already found rides — the detour tier
+ *  then only adds what they missed, so it can afford fewer routing calls. */
+const DETOUR_EXTRA_CANDIDATE_CAP = 5;
 
 // detourAllowanceSec/MAX_DETOUR_RATIO now live in @vaya/domain
 // (packages/domain/src/matching/matching-thresholds.ts) — moved there so
@@ -199,7 +246,7 @@ type ReachCaps = { pickupM: number; dropoffM: number };
  *  see @vaya/domain passenger-access. */
 interface PassengerReach {
   profile: TripProfileType;
-  /** Within walking distance (a 15-minute walk on a city or medium trip,
+  /** Within walking distance (a 20-minute walk on a city or medium trip,
    *  10 km on an intercity one): these rides always come first. */
   walk: ReachCaps;
   /** A bit further: still shown, after every walkable ride, as a distance
@@ -302,6 +349,12 @@ export interface PassengerPoint {
    *  client shows it as a distance, never as a walking time. */
   walkMeters: number;
   walkMinutes: number;
+  /** Phase 14: the meeting point this is (a petrol station, a louage
+   *  station...), when it is one — what the booking records. */
+  meetingPointId?: string | null;
+  /** What kind of place this is, when it isn't a driver stop or a ride
+   *  endpoint — lets the client say "Station Total" vs "on the route". */
+  placeKind?: MeetingOptionKind | null;
 }
 
 export type MatchType = 'endpoint' | 'route_passthrough' | 'detour';
@@ -386,7 +439,7 @@ export interface MatchCandidate {
    *  ride has route_stops but none rank near the passenger's destination. */
   dropoffViable: boolean;
   /** True when both the pickup and the dropoff are within walking distance
-   *  (a 15-minute walk on a city/medium trip, 10 km on an intercity one).
+   *  (a 20-minute walk on a city/medium trip, 10 km on an intercity one).
    *  Results are always ordered walkable-first; a ride a bit further away
    *  is still shown, after them, as a distance rather than a walk. */
   withinWalkingDistance: boolean;
@@ -560,7 +613,37 @@ type StopRow = {
   // resolved stop id onto a BookingSegment's pickupSequence/dropoffSequence
   // for segment-aware capacity checks.
   sequence: number;
+  // Phase 14: 'area' = a place the driver will pass by, never a boarding
+  // point itself (preference for meeting points inside `radiusM`).
+  kind?: string;
+  radiusM?: number | null;
 };
+
+/** A known place near the passenger where a car can stop (meeting_points). */
+export interface MeetingPointCandidate {
+  id: string;
+  kind: MeetingPointKind;
+  label: string;
+  lat: number;
+  lng: number;
+  usageCount: number;
+}
+
+/** What the roadside choice needs beyond the ride itself. */
+export interface RoadsideContext {
+  meetingPoints: MeetingPointCandidate[];
+  profile: TripProfileType;
+  weights: MeetingWeights;
+  /** How far off the route a meeting point may be (the driver detours). */
+  corridorM: number;
+}
+
+/** An area the driver added without a radius (older clients). */
+const DEFAULT_AREA_RADIUS_M = 2000;
+
+function isAreaStop(stop: StopRow): boolean {
+  return stop.kind === 'area';
+}
 
 /**
  * M-039 (spec §13): VAYA's own genuine joint-optimum recommendation among a
@@ -674,8 +757,18 @@ export function resolvePassengerSegment(params: {
   maxDeviationM: number;
   rideOrigin?: RideEndpointOption;
   rideDestination?: RideEndpointOption;
+  /** Also offer the point ON the driver's route nearest to the passenger's
+   *  origin/destination (within the same walk cap as a stop) — always
+   *  ranked after every stop/endpoint. See onRoutePointOption. */
+  allowOnRoutePoints?: boolean;
+  /** Meeting points and weights for that roadside choice. */
+  roadside?: RoadsideContext;
 }): PassengerSegment {
-  const { passengerOrigin, passengerDestination, rideStops, routePoints } = params;
+  const { passengerOrigin, passengerDestination, routePoints } = params;
+  // Area stops ("via Sidi Hassine") are a preference, never a boarding
+  // point: only point stops can be booked by id.
+  const rideStops = params.rideStops.filter((stop) => !isAreaStop(stop));
+  const areaStops = params.rideStops.filter(isAreaStop);
   const rankedStops = rankStopsByWalkDistance(passengerOrigin, rideStops, params.maxPickupWalkM);
   const walkableDropoffStops = rankStopsByWalkDistance(passengerDestination, rideStops, params.maxDropoffWalkM);
   const recommendedStopId = pickRecommendedStopId(
@@ -726,10 +819,19 @@ export function resolvePassengerSegment(params: {
     passengerDestination,
     Number.POSITIVE_INFINITY,
   );
-  const pickupOptions = byPreference(
-    [...rankedStops.map(toOption), ...(rideOriginOption ? [rideOriginOption] : [])],
-    recommendedStopId,
-  );
+  const onRoutePickup = params.allowOnRoutePoints
+    ? onRoutePointOption(passengerOrigin, routePoints, rideStops, params.maxPickupWalkM, params.roadside, areaStops)
+    : null;
+  const onRouteDropoff = params.allowOnRoutePoints
+    ? onRoutePointOption(passengerDestination, routePoints, rideStops, params.maxDropoffWalkM, params.roadside, areaStops)
+    : null;
+  const pickupOptions = [
+    ...byPreference(
+      [...rankedStops.map(toOption), ...(rideOriginOption ? [rideOriginOption] : [])],
+      recommendedStopId,
+    ),
+    ...(onRoutePickup ? [onRoutePickup] : []),
+  ];
 
   // A dropoff stop is only ever offered when it lies after SOME offerable
   // pickup — a stop behind every possible boarding point can't be reached
@@ -744,10 +846,13 @@ export function resolvePassengerSegment(params: {
   for (const pickup of pickupOptions) {
     const after = rankedDropoffStops.filter((stop) => (stop.sequence ?? 0) > pickup.sequence);
     const recommendedAfter = pickRecommendedStopId(after, rideStops, params.maxDropoffWalkM, params.maxDeviationM);
-    const dropoffOptions = byPreference(
-      [...after.map(toOption), ...(rideDestinationOption ? [rideDestinationOption] : [])],
-      recommendedAfter,
-    );
+    const dropoffOptions = [
+      ...byPreference(
+        [...after.map(toOption), ...(rideDestinationOption ? [rideDestinationOption] : [])],
+        recommendedAfter,
+      ),
+      ...(onRouteDropoff ? [onRouteDropoff] : []),
+    ];
     const found = pickDirectionalPair([pickup], dropoffOptions);
     if (found) {
       pair = found;
@@ -776,6 +881,102 @@ export function resolvePassengerSegment(params: {
   };
 }
 
+/**
+ * Where to meet a passenger next to the driver's route when no driver stop
+ * is near them (Phase 14 Track D). Drivers publish a corridor, not every
+ * passenger journey (docs/unified_driver_and_passenger_journey.md P2/§5):
+ * a passenger next to the route — the reported Ksar Said -> El Mourouj
+ * ride, which drives straight through Cité Essalama 2 — must still find it.
+ *
+ * Candidates: every known meeting point (petrol/louage/metro/bus station,
+ * roundabout, highway exit) within the passenger's reach and within
+ * `corridorM` of the route, plus the bare point on the route nearest to
+ * them. Each is scored on both sides at once — the passenger's way there
+ * against the driver's extra driving, with city/intercity weights, a
+ * credit for places people actually use and for places inside an area the
+ * driver said they'd pass by (@vaya/domain meeting-point-score) — and the
+ * cheapest wins. Not free-form entry: the server computes it, and
+ * createBooking re-validates it with a live routing call.
+ *
+ * `sequence` places the point between the driver's stops by route
+ * position so the direction checks in resolvePassengerSegment hold for it.
+ */
+export function onRoutePointOption(
+  passengerPoint: LatLng,
+  routePoints: LatLng[],
+  rideStops: StopRow[],
+  maxWalkM: number,
+  roadside?: RoadsideContext,
+  areaStops: StopRow[] = [],
+): SegmentPointOption | null {
+  if (routePoints.length < 2) return null;
+  const project = createRouteProjector(routePoints);
+  const inDriverArea = (point: LatLng) =>
+    areaStops.some((area) => haversineDistanceMeters(area, point) <= (area.radiusM ?? DEFAULT_AREA_RADIUS_M));
+
+  type Candidate = MeetingOptionInput & {
+    lat: number;
+    lng: number;
+    label: string | null;
+    meetingPointId: string | null;
+    fraction: number;
+  };
+  const candidates: Candidate[] = [];
+
+  const raw = project(passengerPoint);
+  if (raw.distanceM <= maxWalkM) {
+    candidates.push({
+      kind: 'on_route',
+      accessStraightLineM: raw.distanceM,
+      detourSeconds: 0,
+      inDriverArea: inDriverArea(raw.nearestPoint),
+      lat: raw.nearestPoint.lat,
+      lng: raw.nearestPoint.lng,
+      // The client shows the passenger's own searched place for it.
+      label: null,
+      meetingPointId: null,
+      fraction: raw.fraction,
+    });
+  }
+  for (const point of roadside?.meetingPoints ?? []) {
+    const access = haversineDistanceMeters(passengerPoint, point);
+    if (access > maxWalkM) continue;
+    const onRoute = project(point);
+    if (onRoute.distanceM > roadside!.corridorM) continue;
+    candidates.push({
+      kind: point.kind,
+      accessStraightLineM: access,
+      detourSeconds: estimateRoadsideDetourSeconds(onRoute.distanceM),
+      usageCount: point.usageCount,
+      inDriverArea: inDriverArea(point),
+      lat: point.lat,
+      lng: point.lng,
+      label: point.label,
+      meetingPointId: point.id,
+      fraction: onRoute.fraction,
+    });
+  }
+
+  const best = pickBestMeetingOption(candidates, roadside?.profile ?? 'urban', roadside?.weights ?? DEFAULT_MEETING_WEIGHTS);
+  if (!best) return null;
+
+  const stopsBefore = rideStops.filter((stop) => project(stop).fraction <= best.fraction);
+  const anchor =
+    stopsBefore.length > 0
+      ? Math.max(...stopsBefore.map((s) => s.sequence))
+      : (rideStops.length > 0 ? Math.min(...rideStops.map((s) => s.sequence)) : 0) - 1;
+  return {
+    stopId: null,
+    label: best.label,
+    lat: best.lat,
+    lng: best.lng,
+    ...estimateWalk(best.accessStraightLineM),
+    sequence: anchor + 0.25 + 0.5 * best.fraction,
+    meetingPointId: best.meetingPointId,
+    placeKind: best.kind,
+  };
+}
+
 type ReachEndpoint = Omit<RideEndpointOption, 'maxWalkM'>;
 
 /**
@@ -792,9 +993,10 @@ export function resolvePassengerSegmentWithinReach(
   > & { rideOrigin?: ReachEndpoint; rideDestination?: ReachEndpoint },
   reach: PassengerReach,
 ): { segment: PassengerSegment; withinWalkingDistance: boolean } {
-  const attempt = (caps: ReachCaps) =>
+  const attempt = (caps: ReachCaps, allowOnRoutePoints: boolean) =>
     resolvePassengerSegment({
       ...params,
+      allowOnRoutePoints,
       maxPickupWalkM: caps.pickupM,
       maxDropoffWalkM: caps.dropoffM,
       rideOrigin: params.rideOrigin ? { ...params.rideOrigin, maxWalkM: caps.pickupM } : undefined,
@@ -802,8 +1004,19 @@ export function resolvePassengerSegmentWithinReach(
         ? { ...params.rideDestination, maxWalkM: caps.dropoffM }
         : undefined,
     });
-  const walkable = attempt(reach.walk);
-  const segment = walkable.pickup && walkable.dropoff ? walkable : attempt(reach.extended);
+  // Driver-selected stops first, at either reach; an on-route point only
+  // when no stop pair works at all — every ride that matched through its
+  // stops before still matches exactly the same way.
+  const tries: Array<[ReachCaps, boolean]> = [
+    [reach.walk, false],
+    [reach.extended, false],
+    ...(params.allowOnRoutePoints ? ([[reach.walk, true], [reach.extended, true]] as Array<[ReachCaps, boolean]>) : []),
+  ];
+  let segment = attempt(...tries[0]!);
+  for (const next of tries.slice(1)) {
+    if (segment.pickup && segment.dropoff) break;
+    segment = attempt(...next);
+  }
   const withinWalkingDistance =
     segment.pickup !== null &&
     segment.dropoff !== null &&
@@ -944,8 +1157,13 @@ function buildEndpointCandidate(
      *  or the ride's own endpoint — see passengerReach. */
     reach: PassengerReach;
     maxDeviationM: number;
+    dismissals?: DismissalLog;
   },
 ): MatchCandidate | null {
+  const dismiss = (reason: DismissalReason) => {
+    ctx.dismissals?.add(ride.id, 'endpoint', reason);
+    return null;
+  };
   // M-081 (spec §25): ride.seatsAvailable is the ride's *bottleneck*-segment
   // occupancy (bookings.service.ts's loadRideSegmentState — "seatsTotal
   // minus the ride's current bottleneck-segment occupancy"), not this
@@ -962,7 +1180,7 @@ function buildEndpointCandidate(
     lat: ride.destinationLat,
     lng: ride.destinationLng,
   });
-  if (pickupDistanceM > ctx.pickupRadiusM || dropoffDistanceM > ctx.dropoffRadiusM) return null;
+  if (pickupDistanceM > ctx.pickupRadiusM || dropoffDistanceM > ctx.dropoffRadiusM) return dismiss('endpoints_too_far');
 
   const timeDeltaMin = Math.abs(ride.departureAt.getTime() - input.when.getTime()) / 60_000;
 
@@ -983,7 +1201,7 @@ function buildEndpointCandidate(
       // A ride with driver-selected stops is boarded at a stop (createBooking
       // requires one); only a legacy stop-less ride is boarded at its origin.
       rideOrigin:
-        rideStops.length === 0
+        rideStops.every(isAreaStop)
           ? { label: ride.originLabel, lat: ride.originLat, lng: ride.originLng }
           : undefined,
       // A booking without a dropoff stop alights at the ride's destination —
@@ -1000,7 +1218,7 @@ function buildEndpointCandidate(
   // offers no boarding or alighting point within their reach is not a
   // result (nor a greyed-out card the passenger can't book). The notify-me
   // alert and closest-departure suggestion cover "nothing close enough".
-  if (!segment.pickup || !segment.dropoff) return null;
+  if (!segment.pickup || !segment.dropoff) return dismiss('no_point_in_reach');
   const { rankedStops, rankedDropoffStops, recommendedStopId, recommendedDropoffStopId } = segment;
 
   const pickupWalkMinutes = segment.pickup.walkMinutes;
@@ -1040,7 +1258,7 @@ function buildEndpointCandidate(
       rideStops,
     )
   ) {
-    return null;
+    return dismiss('no_seat_on_segment');
   }
 
   return {
@@ -1103,6 +1321,7 @@ async function scoreCandidates(
   pickupRadiusM: number,
   dropoffRadiusM: number,
   window: { windowStart: Date; windowEnd: Date } = searchWindowFor(input),
+  dismissals?: DismissalLog,
 ): Promise<MatchCandidate[]> {
   const { windowStart, windowEnd } = window;
 
@@ -1154,6 +1373,7 @@ async function scoreCandidates(
       dropoffRadiusM,
       reach,
       maxDeviationM,
+      dismissals,
     });
     if (candidate) scored.push(candidate);
   }
@@ -1169,19 +1389,23 @@ async function scoreCandidates(
  * with a Hammamet stop visible to a Hammamet→Sousse search, which
  * `scoreCandidates`'s endpoint-only test can never find by construction.
  *
- * Only surfaces a ride when BOTH ends are actually bookable through real
- * driver-selected `route_stops` (`pickupViable && dropoffViable`) — a raw
- * polyline projection is a geometric fact about the road, not a validated
- * place to stop, and CLAUDE.md's product principle #1 forbids offering an
- * unvalidated pickup/dropoff. A ride with no stops near the rider's
- * projected points is simply excluded, as in every on-route tier — an
- * un-bookable "match" would just be noise.
+ * The passenger boards and alights at the driver's selected `route_stops`
+ * near their own points whenever such a pair exists. When none does but
+ * the route itself runs within reach of the passenger (a ride driving
+ * straight through their neighbourhood with no stop there), the nearest
+ * point on the route is offered instead (onRoutePointOption) — computed on
+ * the real route, re-validated by a live routing call when booked, and
+ * still subject to the driver accepting the request. A ride whose route
+ * never comes within reach of the passenger is excluded.
  */
 async function scorePassThroughCandidates(
   db: Database,
   input: MatchingSearchInput,
   thresholds: MatchingThresholds,
+  dismissals?: DismissalLog,
+  roadside?: RoadsideContext,
 ): Promise<MatchCandidate[]> {
+  const dismiss = (rideId: string, reason: DismissalReason) => dismissals?.add(rideId, 'route_passthrough', reason);
   const { windowStart, windowEnd } = searchWindowFor(input);
   // The PostGIS pre-filter and the qualification test below both use the
   // WIDE walkability radius, not the tighter corridorWidthM — see the real
@@ -1237,32 +1461,53 @@ async function scorePassThroughCandidates(
     // bottleneck-segment occupancy, not this specific pickup->dropoff
     // segment) — the real, segment-precise gate runs further down, once
     // this rider's own resolved stop pair is known.
-    if (!ride.routePolyline) continue; // No real route geometry to project onto — skip, don't fabricate.
+    if (!ride.routePolyline) {
+      dismiss(ride.id, 'no_route_geometry'); // No real route geometry to project onto — skip, don't fabricate.
+      continue;
+    }
 
     const routePoints = decodePolyline(ride.routePolyline);
-    if (routePoints.length < 2) continue;
+    if (routePoints.length < 2) {
+      dismiss(ride.id, 'no_route_geometry');
+      continue;
+    }
 
     // Fraction-only: used for direction-order (below) and the segment-
     // fraction scoring bonus — NOT as a distance-based rejection gate
     // anymore (see candidateSearchRadiusM's comment above for why).
     const originProj = projectPointOntoRoute(origin, routePoints);
     const destProj = projectPointOntoRoute(destination, routePoints);
-    if (destProj.fraction - originProj.fraction < MIN_ROUTE_FRACTION_GAP) continue;
+    if (destProj.fraction - originProj.fraction < MIN_ROUTE_FRACTION_GAP) {
+      dismiss(ride.id, 'wrong_direction');
+      continue;
+    }
 
     // The passenger boards at a real driver-selected stop near THEIR origin
-    // and alights at one near THEIR destination, strictly in the driver's
-    // direction of travel — never at the driver's own endpoints, which are
-    // elsewhere by definition in this tier.
+    // and alights at one near THEIR destination (or, failing that, at the
+    // route itself next to them), strictly in the driver's direction of
+    // travel — never at the driver's own endpoints, which are elsewhere by
+    // definition in this tier.
     const rideStops = stopsByRide.get(ride.id) ?? [];
     const { segment, withinWalkingDistance } = resolvePassengerSegmentWithinReach(
-      { passengerOrigin: origin, passengerDestination: destination, rideStops, routePoints, maxDeviationM },
+      {
+        passengerOrigin: origin,
+        passengerDestination: destination,
+        rideStops,
+        routePoints,
+        maxDeviationM,
+        allowOnRoutePoints: true,
+        roadside,
+      },
       reach,
     );
-    if (!segment.pickup || !segment.dropoff) continue;
+    if (!segment.pickup || !segment.dropoff) {
+      dismiss(ride.id, 'no_point_in_reach');
+      continue;
+    }
     const { rankedStops, rankedDropoffStops, recommendedStopId, recommendedDropoffStopId } = segment;
 
-    // M-081: the segment-precise capacity gate, both ends always real
-    // stops in this tier.
+    // M-081: the segment-precise capacity gate — an on-route point (no
+    // stop id) conservatively spans the ride's true start/end.
     if (
       !hasSegmentCapacity(
         segmentsByRide.get(ride.id) ?? [],
@@ -1272,6 +1517,7 @@ async function scorePassThroughCandidates(
         rideStops,
       )
     ) {
+      dismiss(ride.id, 'no_seat_on_segment');
       continue;
     }
 
@@ -1391,7 +1637,9 @@ async function scoreInProgressCandidates(
   db: Database,
   input: MatchingSearchInput,
   timeWindowMin: number,
+  dismissals?: DismissalLog,
 ): Promise<MatchCandidate[]> {
+  const dismiss = (rideId: string, reason: DismissalReason) => dismissals?.add(rideId, 'in_progress', reason);
   const windowStart = new Date(input.when.getTime() - timeWindowMin * 60_000);
   const windowEnd = new Date(input.when.getTime() + timeWindowMin * 60_000);
 
@@ -1420,13 +1668,22 @@ async function scoreInProgressCandidates(
     // M-081 (spec §25): NOT gated on ride.seatsAvailable here either — see
     // buildEndpointCandidate's own comment for why; the segment-precise
     // gate runs further down.
-    if (!ride.routePolyline) continue; // No real route geometry to project onto — skip, don't fabricate.
+    if (!ride.routePolyline) {
+      dismiss(ride.id, 'no_route_geometry'); // No real route geometry to project onto — skip, don't fabricate.
+      continue;
+    }
 
     const livePos = livePositionByRide.get(ride.id);
-    if (!livePos) continue; // No real reported position yet — never assume the stale origin is still current.
+    if (!livePos) {
+      dismiss(ride.id, 'no_live_position'); // No real reported position yet — never assume the stale origin is still current.
+      continue;
+    }
 
     const routePoints = decodePolyline(ride.routePolyline);
-    if (routePoints.length < 2) continue;
+    if (routePoints.length < 2) {
+      dismiss(ride.id, 'no_route_geometry');
+      continue;
+    }
 
     const driverProj = projectPointOntoRoute(livePos, routePoints);
     const originProj = projectPointOntoRoute(origin, routePoints);
@@ -1434,8 +1691,14 @@ async function scoreInProgressCandidates(
 
     // EDGE-050: a pickup already behind the driver's real live position is
     // never offered, however close it is to the rider.
-    if (originProj.fraction < driverProj.fraction - IN_PROGRESS_BEHIND_TOLERANCE_FRACTION) continue;
-    if (destProj.fraction - originProj.fraction < MIN_ROUTE_FRACTION_GAP) continue;
+    if (originProj.fraction < driverProj.fraction - IN_PROGRESS_BEHIND_TOLERANCE_FRACTION) {
+      dismiss(ride.id, 'pickup_behind_driver');
+      continue;
+    }
+    if (destProj.fraction - originProj.fraction < MIN_ROUTE_FRACTION_GAP) {
+      dismiss(ride.id, 'wrong_direction');
+      continue;
+    }
 
     const rideStops = stopsByRide.get(ride.id) ?? [];
     // Same EDGE-050 guarantee, applied to which of the driver's own
@@ -1466,7 +1729,10 @@ async function scoreInProgressCandidates(
       },
       reach,
     );
-    if (!segment.pickup || !segment.dropoff) continue;
+    if (!segment.pickup || !segment.dropoff) {
+      dismiss(ride.id, 'no_point_in_reach');
+      continue;
+    }
     const { rankedStops, rankedDropoffStops, recommendedStopId, recommendedDropoffStopId } = segment;
 
     // M-081: the segment-precise capacity gate — a null stop id (a direct
@@ -1481,6 +1747,7 @@ async function scoreInProgressCandidates(
         stopsAheadOfDriver,
       )
     ) {
+      dismiss(ride.id, 'no_seat_on_segment');
       continue;
     }
 
@@ -1579,7 +1846,21 @@ async function scoreDetourCandidates(
   input: MatchingSearchInput,
   thresholds: MatchingThresholds,
   maxDetourRatio: number,
+  options: {
+    /** Rides another tier already matched — never routed again. */
+    excludeRideIds?: Set<string>;
+    /** How many rides may cost a routing call (default DETOUR_CANDIDATE_CAP). */
+    cap?: number;
+    dismissals?: DismissalLog;
+    roadside?: RoadsideContext;
+  } = {},
 ): Promise<MatchCandidate[]> {
+  const excluded = options.excludeRideIds ?? new Set<string>();
+  const cap = options.cap ?? DETOUR_CANDIDATE_CAP;
+  const dismiss = (rideId: string, reason: DismissalReason): null => {
+    options.dismissals?.add(rideId, 'detour', reason);
+    return null;
+  };
   const { windowStart, windowEnd } = searchWindowFor(input);
 
   const origin = { lat: input.originLat, lng: input.originLng };
@@ -1608,7 +1889,8 @@ async function scoreDetourCandidates(
     detourSearchRadiusM,
     windowStart,
     windowEnd,
-    DETOUR_CANDIDATE_CAP,
+    // Over-fetch by the rides already matched so they don't eat the cap.
+    Math.min(POSTGIS_CANDIDATE_CAP, cap + excluded.size),
   );
   // Unlike the other tiers, a null (PostGIS disabled/unavailable) result
   // here means "skip this tier entirely" rather than "fall back to a full
@@ -1619,19 +1901,27 @@ async function scoreDetourCandidates(
   // run); it just doesn't get this specific tier.
   if (!candidateIds || candidateIds.length === 0) return [];
 
-  const candidateRides = await db.query.rides.findMany({
-    where: and(eq(rides.status, 'published'), inArray(rides.id, candidateIds)),
-    with: { driverProfile: { with: { user: true } } },
-  });
+  // Closest corridors first (the spatial query's own order), already-
+  // matched rides out, then the cap — the real cost bound of this tier.
+  const toRoute = candidateIds.filter((id) => !excluded.has(id)).slice(0, cap);
+  if (toRoute.length === 0) return [];
+  const rank = new Map(toRoute.map((id, index) => [id, index]));
+  const candidateRides = (
+    await db.query.rides.findMany({
+      where: and(eq(rides.status, 'published'), inArray(rides.id, toRoute)),
+      with: { driverProfile: { with: { user: true } } },
+    })
+  ).sort((x, y) => (rank.get(x.id) ?? 0) - (rank.get(y.id) ?? 0));
   const stopsByRide = await fetchStopsByRide(
     db,
     candidateRides.map((r) => r.id),
   );
 
-  const results: MatchCandidate[] = [];
-  for (const ride of candidateRides) {
-    if (ride.seatsAvailable < 1) continue;
-    if (!ride.routePolyline || !ride.estimatedDurationSec) continue; // No real baseline to compare against.
+  // One routing call per ride, all in parallel — this tier now runs on
+  // every search (searchRides), so its latency is one call, not N.
+  const settled = await Promise.all(candidateRides.map(async (ride): Promise<MatchCandidate | null> => {
+    if (ride.seatsAvailable < 1) return dismiss(ride.id, 'no_seat_on_segment');
+    if (!ride.routePolyline || !ride.estimatedDurationSec) return dismiss(ride.id, 'no_route_baseline'); // No real baseline to compare against.
 
     const routePoints = decodePolyline(ride.routePolyline);
     const originProj = projectPointOntoRoute(origin, routePoints);
@@ -1659,6 +1949,8 @@ async function scoreDetourCandidates(
         rideStops,
         routePoints,
         maxDeviationM: deriveMaxDeviationM(origin, destination),
+        allowOnRoutePoints: true,
+        roadside: options.roadside,
       },
       passengerReach(input),
     );
@@ -1668,7 +1960,7 @@ async function scoreDetourCandidates(
       originProj.distanceM <= thresholds.corridorWidthM &&
       destProj.distanceM <= thresholds.corridorWidthM &&
       destProj.fraction - originProj.fraction >= MIN_ROUTE_FRACTION_GAP;
-    if (passThroughWouldQualify) continue;
+    if (passThroughWouldQualify) return null;
 
     // The one real routing-API call this candidate costs: origin -> pickup
     // -> dropoff -> destination, in that order (pickup must precede
@@ -1678,7 +1970,7 @@ async function scoreDetourCandidates(
       { lat: ride.destinationLat, lng: ride.destinationLng },
       [origin, destination],
     );
-    if (withInsertion.isEstimate) continue; // No real routing engine reachable — never fabricate a detour number from a haversine fallback.
+    if (withInsertion.isEstimate) return dismiss(ride.id, 'routing_unavailable'); // No real routing engine reachable — never fabricate a detour number from a haversine fallback.
 
     const extraDurationSeconds = Math.max(0, withInsertion.durationSec - ride.estimatedDurationSec);
     const allowanceSec = detourAllowanceSec(
@@ -1687,7 +1979,7 @@ async function scoreDetourCandidates(
       thresholds.detourCeilingSec,
       maxDetourRatio,
     );
-    if (extraDurationSeconds > allowanceSec) continue;
+    if (extraDurationSeconds > allowanceSec) return dismiss(ride.id, 'detour_too_long');
 
     const baselineDistanceM = polylineLengthMeters(routePoints);
     const extraDistanceMeters = Math.max(0, Math.round(withInsertion.distanceM - baselineDistanceM));
@@ -1716,7 +2008,7 @@ async function scoreDetourCandidates(
       clamp01(1 - timeDeltaMin / TIGHT_TIME_WINDOW_MIN) * 0.3 +
       clamp01(1 - extraDurationSeconds / thresholds.detourCeilingSec) * 0.2;
 
-    results.push({
+    return {
       rideId: ride.id,
       driverUserId: ride.driverProfile.userId,
       driverFullName: ride.driverProfile.user?.fullName ?? null,
@@ -1773,10 +2065,10 @@ async function scoreDetourCandidates(
       detourRoutePolyline: withInsertion.polyline,
       reasons: [`+${Math.round(extraDurationSeconds / 60)} min de détour pour le conducteur`],
       clusterLabel: buildClusterLabel(timeDeltaMin),
-    });
-  }
+    };
+  }));
 
-  return results.sort((a, b) => b.score - a.score);
+  return settled.filter((c): c is MatchCandidate => c !== null).sort((a, b) => b.score - a.score);
 }
 
 /**
@@ -2028,6 +2320,94 @@ const TIER_MESSAGES: Record<
     "Aucun trajet sur cet itinéraire à l'heure demandée. Voici le départ le plus proche.",
 };
 
+/** Meeting points loaded per side of a search, nearest first. */
+const MEETING_POINTS_PER_SIDE = 80;
+
+/**
+ * Active meeting points within `radiusM` of the passenger's origin or
+ * destination — one bounding-box query per search (lat/lng index), then
+ * exact distances in memory, same KEEP approach as the rest of matching.
+ */
+async function fetchMeetingPointsNear(db: Database, points: LatLng[], radiusM: number): Promise<MeetingPointCandidate[]> {
+  const byId = new Map<string, MeetingPointCandidate>();
+  for (const center of points) {
+    const dLat = radiusM / 111_320;
+    const dLng = radiusM / (111_320 * Math.cos((center.lat * Math.PI) / 180));
+    const rows = await db.query.meetingPoints.findMany({
+      where: and(
+        eq(meetingPoints.active, true),
+        gte(meetingPoints.lat, center.lat - dLat),
+        lte(meetingPoints.lat, center.lat + dLat),
+        gte(meetingPoints.lng, center.lng - dLng),
+        lte(meetingPoints.lng, center.lng + dLng),
+      ),
+    });
+    rows
+      .map((row) => ({ row, distance: haversineDistanceMeters(center, row) }))
+      .filter(({ distance }) => distance <= radiusM)
+      .sort((a, b) => a.distance - b.distance)
+      .slice(0, MEETING_POINTS_PER_SIDE)
+      .forEach(({ row }) =>
+        byId.set(row.id, { id: row.id, kind: row.kind, label: row.label, lat: row.lat, lng: row.lng, usageCount: row.usageCount }),
+      );
+  }
+  return [...byId.values()];
+}
+
+/** The roadside-choice context for one search: nearby meeting points, the
+ *  passenger's trip profile and the admin-tunable weights. Never fails a
+ *  search — without meeting points the bare on-route point still works. */
+async function buildRoadsideContext(
+  db: Database,
+  input: MatchingSearchInput,
+  thresholds: MatchingThresholds,
+  weights: MeetingWeights,
+): Promise<RoadsideContext> {
+  const reach = passengerReach(input);
+  const radiusM = Math.max(reach.extended.pickupM, reach.extended.dropoffM);
+  let meetingPointRows: MeetingPointCandidate[] = [];
+  try {
+    meetingPointRows = await fetchMeetingPointsNear(
+      db,
+      [
+        { lat: input.originLat, lng: input.originLng },
+        { lat: input.destinationLat, lng: input.destinationLng },
+      ],
+      radiusM,
+    );
+  } catch (err) {
+    getLogger().warn({ err }, 'Meeting points unavailable for this search — using on-route points only');
+  }
+  return { meetingPoints: meetingPointRows, profile: reach.profile, weights, corridorM: thresholds.corridorWidthM };
+}
+
+/**
+ * One structured log line per search: what was kept, and for every ride a
+ * tier looked at but nobody kept, why each tier dropped it (Track C — the
+ * evidence later tuning needs). Places are rounded to ~1 km so a log line
+ * never pins down where someone lives.
+ */
+function logSearchOutcome(
+  input: MatchingSearchInput,
+  tier: SearchTier,
+  kept: MatchCandidate[],
+  dismissals: DismissalLog,
+): void {
+  const round = (n: number) => Math.round(n * 100) / 100;
+  getLogger().info(
+    {
+      event: 'matching.search',
+      origin: [round(input.originLat), round(input.originLng)],
+      destination: [round(input.destinationLat), round(input.destinationLng)],
+      when: input.when.toISOString(),
+      tier,
+      kept: kept.map((c) => ({ rideId: c.rideId, matchType: c.matchType })),
+      dismissed: dismissals.dismissedExcept(new Set(kept.map((c) => c.rideId))),
+    },
+    'Ride search',
+  );
+}
+
 /**
  * The unified search pipeline (matching-engine architecture plan §D,
  * revising docs/roadmap/phase-13-search-engine.md's original cascade):
@@ -2037,11 +2417,12 @@ const TIER_MESSAGES: Record<
  * already-stored polyline, no extra routing call), merged into one
  * quality-banded ranked list, exactly the fix for "a mediocre exact match
  * always beat an excellent pass-through match" this phase exists for.
- * `detour_match`/`closest_departure` stay cost-gated *expansions* —
- * detour's real per-candidate routing calls and closest-departure's
- * 14-day lookahead only ever run when Stage A is genuinely empty, the same
- * "show some rides, better than nothing" guarantee the old cascade made,
- * just no longer split into a separate exact/wide pass first.
+ * The detour tier runs on every search too (Phase 14 Track C): it routes
+ * only rides Stage A didn't already match, capped (5 calls when Stage A
+ * found something, 15 when it didn't) and in parallel, and its results are
+ * ranked in the same list. Closest-departure's 14-day lookahead stays the
+ * last resort, run only when nothing else matched. Every search logs why
+ * each examined ride was left out (logSearchOutcome).
  */
 export async function searchRides(db: Database, input: MatchingSearchInput): Promise<SearchResult> {
   // Profile-scaled once per search (matching-engine architecture plan §G) —
@@ -2050,25 +2431,42 @@ export async function searchRides(db: Database, input: MatchingSearchInput): Pro
   // see deriveMatchingThresholds's own doc comment.
   const thresholds = deriveMatchingThresholds(input);
 
+  const dismissals = new DismissalLog();
+  const operationalConfig = await getActiveOperationalConfig(db);
+  const roadside = await buildRoadsideContext(db, input, thresholds, meetingWeightsOf(operationalConfig));
   const [endpointCandidates, passThroughCandidates, inProgressCandidates] = await Promise.all([
     // Every ride that day (searchWindowFor) — the ones around the
     // requested time are ranked first.
-    scoreCandidates(db, input, thresholds.widePickupRadiusM, thresholds.wideDropoffRadiusM),
-    scorePassThroughCandidates(db, input, thresholds),
+    scoreCandidates(db, input, thresholds.widePickupRadiusM, thresholds.wideDropoffRadiusM, undefined, dismissals),
+    scorePassThroughCandidates(db, input, thresholds, dismissals, roadside),
     // M-091/EDGE-050: a trip already in progress is matchable against the
     // driver's current position and remaining route — merged in alongside
     // the other two retrieval mechanisms rather than gated as a separate
     // fallback tier, since a genuinely feasible in-progress match is a real,
     // ordinary result, not a degraded last resort.
-    scoreInProgressCandidates(db, input, WIDE_TIME_WINDOW_MIN),
+    scoreInProgressCandidates(db, input, WIDE_TIME_WINDOW_MIN, dismissals),
   ]);
-  const merged = mergeCandidatesByRide(endpointCandidates, passThroughCandidates, inProgressCandidates);
+  const stageA = mergeCandidatesByRide(endpointCandidates, passThroughCandidates, inProgressCandidates);
+
+  // Phase 14 Track C: a ride that could pick the passenger up with a small,
+  // real detour is offered even when other rides matched — it used to be
+  // tried only when nothing else at all was found, so one unrelated match
+  // hid every detour-reachable ride. Rides already matched are never routed
+  // again, and the routing calls are capped lower when Stage A has results.
+  const detour = await scoreDetourCandidates(db, input, thresholds, operationalConfig.maxDetourRatio, {
+    excludeRideIds: new Set(stageA.map((c) => c.rideId)),
+    cap: stageA.length > 0 ? DETOUR_EXTRA_CANDIDATE_CAP : DETOUR_CANDIDATE_CAP,
+    dismissals,
+    roadside,
+  });
+  const merged = mergeCandidatesByRide(stageA, detour);
 
   if (merged.length > 0) {
     const { ranked, standoutRideId } = rankMatchCandidates(merged, input);
-    const tier = classifyOverallTier(ranked, input, thresholds);
+    const tier: SearchTier = stageA.length > 0 ? classifyOverallTier(ranked.filter((c) => c.matchType !== 'detour'), input, thresholds) : 'detour_match';
     const noneAtRequestedTime = !ranked.some((c) => c.nearRequestedTime);
     const noneWalkable = !ranked.some((c) => c.withinWalkingDistance);
+    logSearchOutcome(input, tier, ranked, dismissals);
     return {
       tier,
       candidates: ranked,
@@ -2083,22 +2481,11 @@ export async function searchRides(db: Database, input: MatchingSearchInput): Pro
     };
   }
 
-  // M-085/M-085a (spec §28): the admin-configurable override, resolved only
-  // here (Stage A already returned nothing, the one real consumer of this
-  // value) rather than unconditionally on every search — same "don't pay
-  // for a config read the common case never needs" discipline the rest of
-  // this cascade already follows for detour's own routing calls.
-  const operationalConfig = await getActiveOperationalConfig(db);
-  const detour = await scoreDetourCandidates(db, input, thresholds, operationalConfig.maxDetourRatio);
-  if (detour.length > 0) {
-    const { ranked, standoutRideId } = rankMatchCandidates(detour, input);
-    return { tier: 'detour_match', candidates: ranked, standoutRideId, message: TIER_MESSAGES.detour_match };
-  }
-
   // closest_departure stays sorted strictly by time-proximity to the
   // request, not band-ranked — that ordering IS its entire point,
   // unchanged from the original cascade.
   const closest = await findClosestDepartures(db, input, thresholds);
+  logSearchOutcome(input, closest.length > 0 ? 'closest_departure' : 'none', closest, dismissals);
   if (closest.length > 0) {
     return {
       tier: 'closest_departure',

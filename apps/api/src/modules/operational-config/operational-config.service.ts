@@ -15,6 +15,8 @@ import {
   SAME_JOURNEY_DROPOFF_RADIUS_METERS,
   SAME_JOURNEY_TIME_WINDOW_MINUTES,
   MAX_ACTIVE_REQUESTS_PER_JOURNEY,
+  DEFAULT_MEETING_WEIGHTS,
+  type MeetingWeights,
 } from '@vaya/domain';
 import { getLogger } from '../../config/logger.js';
 import { MemoryCache } from '../../lib/memory-cache.js';
@@ -46,6 +48,22 @@ export interface ResolvedOperationalConfig {
   sameJourneyDropoffRadiusMeters: number;
   sameJourneyTimeWindowMinutes: number;
   maxActiveRequestsPerJourney: number;
+  meetingCityWalkWeight: number;
+  meetingIntercityAccessWeight: number;
+  meetingDetourWeight: number;
+  meetingUsageBoostSeconds: number;
+  meetingAreaBoostSeconds: number;
+}
+
+/** The pickup/drop-off weights (Phase 14) in @vaya/domain's shape. */
+export function meetingWeightsOf(config: ResolvedOperationalConfig): MeetingWeights {
+  return {
+    cityWalkWeight: config.meetingCityWalkWeight,
+    intercityAccessWeight: config.meetingIntercityAccessWeight,
+    detourWeight: config.meetingDetourWeight,
+    usageBoostSeconds: config.meetingUsageBoostSeconds,
+    areaBoostSeconds: config.meetingAreaBoostSeconds,
+  };
 }
 
 export const DEFAULT_RESOLVED_OPERATIONAL_CONFIG: ResolvedOperationalConfig = {
@@ -63,6 +81,11 @@ export const DEFAULT_RESOLVED_OPERATIONAL_CONFIG: ResolvedOperationalConfig = {
   sameJourneyDropoffRadiusMeters: SAME_JOURNEY_DROPOFF_RADIUS_METERS,
   sameJourneyTimeWindowMinutes: SAME_JOURNEY_TIME_WINDOW_MINUTES,
   maxActiveRequestsPerJourney: MAX_ACTIVE_REQUESTS_PER_JOURNEY,
+  meetingCityWalkWeight: DEFAULT_MEETING_WEIGHTS.cityWalkWeight,
+  meetingIntercityAccessWeight: DEFAULT_MEETING_WEIGHTS.intercityAccessWeight,
+  meetingDetourWeight: DEFAULT_MEETING_WEIGHTS.detourWeight,
+  meetingUsageBoostSeconds: DEFAULT_MEETING_WEIGHTS.usageBoostSeconds,
+  meetingAreaBoostSeconds: DEFAULT_MEETING_WEIGHTS.areaBoostSeconds,
 };
 
 /**
@@ -136,6 +159,14 @@ async function loadActiveOperationalConfig(db: Database): Promise<ResolvedOperat
       config.sameJourneyTimeWindowMinutes ?? DEFAULT_RESOLVED_OPERATIONAL_CONFIG.sameJourneyTimeWindowMinutes,
     maxActiveRequestsPerJourney:
       config.maxActiveRequestsPerJourney ?? DEFAULT_RESOLVED_OPERATIONAL_CONFIG.maxActiveRequestsPerJourney,
+    meetingCityWalkWeight: config.meetingCityWalkWeight ?? DEFAULT_RESOLVED_OPERATIONAL_CONFIG.meetingCityWalkWeight,
+    meetingIntercityAccessWeight:
+      config.meetingIntercityAccessWeight ?? DEFAULT_RESOLVED_OPERATIONAL_CONFIG.meetingIntercityAccessWeight,
+    meetingDetourWeight: config.meetingDetourWeight ?? DEFAULT_RESOLVED_OPERATIONAL_CONFIG.meetingDetourWeight,
+    meetingUsageBoostSeconds:
+      config.meetingUsageBoostSeconds ?? DEFAULT_RESOLVED_OPERATIONAL_CONFIG.meetingUsageBoostSeconds,
+    meetingAreaBoostSeconds:
+      config.meetingAreaBoostSeconds ?? DEFAULT_RESOLVED_OPERATIONAL_CONFIG.meetingAreaBoostSeconds,
   };
 }
 

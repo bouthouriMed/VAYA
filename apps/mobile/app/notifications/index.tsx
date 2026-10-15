@@ -1,32 +1,38 @@
-import { useMemo, useState } from 'react';
-import { shortenPlaceLabel } from '../../src/utils/placeLabel';
+import { useEffect, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router, Redirect } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import type { SupportedLocale } from '@vaya/config';
-import { formatDate, formatTime } from '../../src/utils/localeFormat';
 import {
   Text,
   Icon,
   Avatar,
-  Badge,
+  Chip,
   ScreenHeader,
   HeaderIconButton,
   StateView,
+  ActivityRow,
+  CountdownRing,
+  RouteSegmentBar,
+  FactRow,
+  Button,
   useAppTheme,
   spacing,
   radii,
   elevation,
   haptics,
-  addDays,
-  Button,
+  type Fact,
+  type ActivityTone,
 } from '@vaya/design-system';
 import { useAppSelector } from '../../src/state/store';
 import { formatDaySectionLabel } from '../../src/features/conversations/inboxHelpers';
+import { formatCurrency, formatDate, formatTime } from '../../src/utils/localeFormat';
+import { shortenPlaceLabel } from '../../src/utils/placeLabel';
 import {
   useListNotificationsQuery,
+  useListRequestsForRideQuery,
   useMarkNotificationReadMutation,
   useAcceptBookingMutation,
   useDeclineBookingMutation,
@@ -37,330 +43,283 @@ import {
   notificationTone,
   notificationDescription,
   readNotificationCounterpartPayload,
-  type NotificationTone,
 } from '../../src/services/notifications/notificationCopy';
 import { useNotificationDestination } from '../../src/services/notifications/useNotificationDestination';
 import { trackEvent } from '../../src/services/analytics/analytics';
+import { buildInbox, responseTimeLeft, type InboxFilter } from '../../src/features/notifications/inboxModel';
 
-function formatWhen(iso: string, t: (key: string) => string, locale: SupportedLocale): string {
+type Palette = ReturnType<typeof useAppTheme>['colors'];
+type Translate = (key: string, params?: Record<string, unknown>) => string;
+
+/** Re-renders every 30 s so countdowns and "open" requests stay true. */
+function useNow(): Date {
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 30_000);
+    return () => clearInterval(id);
+  }, []);
+  return now;
+}
+
+function shortWhen(iso: string, now: Date, locale: SupportedLocale): string {
   const date = new Date(iso);
-  const now = new Date();
-  const isToday = date.toDateString() === now.toDateString();
-  const time = formatTime(date, locale);
-  if (isToday) return `${t('common:time.today')}, ${time}`;
-  const yesterday = addDays(now, -1);
-  if (date.toDateString() === yesterday.toDateString()) return `${t('common:time.yesterday')}, ${time}`;
-  return `${formatDate(date, locale, { weekday: 'short', day: 'numeric', month: 'short' })} · ${time}`;
+  return date.toDateString() === now.toDateString()
+    ? formatTime(date, locale)
+    : formatDate(date, locale, { weekday: 'short', day: 'numeric', month: 'short' });
 }
 
-function formatPickupTime(iso: string | undefined, locale: SupportedLocale): string | undefined {
-  if (!iso) return undefined;
-  return formatTime(new Date(iso), locale);
+function num(v: unknown): number | undefined {
+  return typeof v === 'number' && Number.isFinite(v) ? v : undefined;
+}
+function str(v: unknown): string | undefined {
+  return typeof v === 'string' && v.length > 0 ? v : undefined;
 }
 
-/**
- * A tone maps to a real AppPalette role, not a hand-picked hex — this
- * screen has no colors of its own, only VAYA's existing brand tokens
- * (accent/error/info/warning + the ink family for the neutral default),
- * matching every other Stitch-rebuilt screen's discipline in this codebase.
- */
-function toneColors(
-  tone: NotificationTone,
-  theme: ReturnType<typeof useAppTheme>['colors'],
-): { bg: string; fg: string } {
-  switch (tone) {
-    case 'accent':
-      return { bg: theme.accentGlow, fg: theme.accentStrong };
-    case 'error':
-      return { bg: theme.errorMuted, fg: theme.error };
-    case 'info':
-      return { bg: theme.surfaceMuted, fg: theme.ink };
-    case 'neutral':
-    default:
-      return { bg: theme.surfaceMuted, fg: theme.inkFaint };
-  }
+/** The person an event is about, when the payload names one. */
+function counterpartOf(notification: AppNotification): { uri?: string | null; name: string } | undefined {
+  const p = notification.payload;
+  const name = str(p.driverName) ?? str(p.senderName) ?? str(p.riderName) ?? str(p.raterName);
+  if (!name) return undefined;
+  return { uri: str(p.driverAvatarUrl) ?? str(p.senderAvatarUrl) ?? str(p.riderAvatarUrl) ?? null, name };
 }
 
 /**
- * The driver's actionable request card (2026-08-23 notifications redesign):
- * a real passenger mini-profile (avatar/name/rating), a route pill, a seats
- * badge, the ride's departure time, and an inline Accepter/Refuser action
- * bar that resolves the request without leaving the inbox — the same
- * `useAcceptBookingMutation`/`useDeclineBookingMutation` RideRequestsSheet
- * already uses, not a parallel mutation path. Tapping the card body (not
- * the action buttons) opens the full request in Mes trajets, same
- * destination `resolveNotificationDeepLink` already resolves to.
+ * A seat request the driver can still answer: who (photo, rating), the
+ * passenger's own leg drawn on the driver's whole ride, what it costs and
+ * pays, how long is left to answer — and Accept/Decline right there.
+ * Checks the booking's real status first (the ride's request list, cached
+ * per ride): a request already answered elsewhere, or expired, collapses to
+ * a timeline row instead of offering buttons that would fail.
  */
-function DriverRequestCard({
+function RequestTicket({
   notification,
+  now,
   theme,
   t,
   locale,
 }: {
   notification: AppNotification;
-  theme: ReturnType<typeof useAppTheme>['colors'];
-  t: (key: string, params?: Record<string, unknown>) => string;
+  now: Date;
+  theme: Palette;
+  t: Translate;
   locale: SupportedLocale;
 }): React.JSX.Element {
   const info = readNotificationCounterpartPayload(notification.type, notification.payload);
+  const p = notification.payload;
+  const { data: rideRequests } = useListRequestsForRideQuery(info.rideId ?? '', { skip: !info.rideId });
   const [acceptBooking, acceptState] = useAcceptBookingMutation();
   const destinationFor = useNotificationDestination();
   const [declineBooking, declineState] = useDeclineBookingMutation();
   const [resolvedAs, setResolvedAs] = useState<'accepted' | 'declined' | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
-  async function respond(action: 'accept' | 'decline'): Promise<void> {
-    if (!info.bookingId) return;
-    setActionError(null);
-    try {
-      if (action === 'accept') {
-        await acceptBooking(info.bookingId).unwrap();
-        setResolvedAs('accepted');
-      } else {
-        await declineBooking(info.bookingId).unwrap();
-        setResolvedAs('declined');
-      }
-      haptics.success();
-      trackEvent('driver_request_response', { action, source: 'notifications' });
-    } catch {
-      haptics.error();
-      setActionError(
-        t('notifications:driverRequest.actionError'),
-      );
-    }
-  }
+  const serverStatus = rideRequests?.find((b) => b.id === info.bookingId)?.status;
+  const status = resolvedAs ?? (serverStatus && serverStatus !== 'pending' ? serverStatus : null);
+  const name = info.counterpartName ?? t('booking:passenger');
 
-  function openInTrips(): void {
+  function open(): void {
     trackEvent('notification_tapped', { type: notification.type, source: 'inbox' });
     const destination = destinationFor(notification.type, notification.payload);
     if (destination) router.push(destination as Parameters<typeof router.push>[0]);
   }
 
-  function viewProfile(): void {
-    if (!info.counterpartUserId) return;
-    router.push({ pathname: '/search/trust', params: { driverUserId: info.counterpartUserId } });
+  if (status) {
+    const accepted = status === 'accepted';
+    return (
+      <ActivityRow
+        icon={accepted ? 'checkmark-circle' : 'close-circle-outline'}
+        tone={accepted ? 'accent' : 'neutral'}
+        avatar={{ uri: info.counterpartAvatarUrl, name }}
+        title={name}
+        description={
+          accepted
+            ? t('notifications:driverRequest.resolvedAccepted')
+            : status === 'declined'
+              ? t('notifications:driverRequest.resolvedDeclined')
+              : t('notifications:driverRequest.resolvedClosed')
+        }
+        timestamp={shortWhen(notification.createdAt, now, locale)}
+        onPress={open}
+        accessibilityLabel={t('notifications:driverRequest.accessibilityLabel', { name })}
+        theme={theme}
+      />
+    );
   }
 
-  const isBusy = acceptState.isLoading || declineState.isLoading;
-  const hasRoute = Boolean(info.originLabel && info.destinationLabel);
-  const pickupTime = formatPickupTime(info.departureAt, locale);
+  async function respond(action: 'accept' | 'decline'): Promise<void> {
+    if (!info.bookingId) return;
+    setActionError(null);
+    try {
+      if (action === 'accept') await acceptBooking(info.bookingId).unwrap();
+      else await declineBooking(info.bookingId).unwrap();
+      setResolvedAs(action === 'accept' ? 'accepted' : 'declined');
+      haptics.success();
+      trackEvent('driver_request_response', { action, source: 'notifications' });
+    } catch {
+      haptics.error();
+      setActionError(t('notifications:driverRequest.actionError'));
+    }
+  }
+
+  const timeLeft = responseTimeLeft(notification, now);
+  const from = info.originLabel ? shortenPlaceLabel(info.originLabel) : undefined;
+  const to = info.destinationLabel ? shortenPlaceLabel(info.destinationLabel) : undefined;
+  const rideFrom = str(p.rideOriginLabel);
+  const rideTo = str(p.rideDestinationLabel);
+  const segStart = num(p.segmentStartFraction);
+  const segEnd = num(p.segmentEndFraction);
+  const detourSeconds = num(p.detourExtraSeconds);
+  const price = num(p.contributionTotal);
+  const seats = info.seatsRequested ?? 1;
+
+  const facts: Fact[] = [];
+  if (detourSeconds !== undefined) {
+    const minutes = Math.round(detourSeconds / 60);
+    facts.push(
+      minutes < 1
+        ? { icon: 'git-merge-outline', value: t('notifications:driverRequest.onRoute'), caption: t('notifications:driverRequest.detour') }
+        : { icon: 'time-outline', value: `+${minutes} min`, caption: t('notifications:driverRequest.detour') },
+    );
+  }
+  if (price !== undefined) {
+    facts.push({ icon: 'wallet-outline', value: formatCurrency(price, locale), caption: t('notifications:driverRequest.forYou'), emphasis: true });
+  }
+  facts.push({ icon: 'person-outline', value: String(seats), caption: t('notifications:driverRequest.seats', { count: seats }) });
+  if (info.departureAt) {
+    const departure = new Date(info.departureAt);
+    facts.push({
+      icon: 'navigate-outline',
+      value: formatTime(departure, locale),
+      // The day too whenever it isn't today — "20:44" alone would read as tonight.
+      caption:
+        departure.toDateString() === now.toDateString()
+          ? t('notifications:driverRequest.departure')
+          : formatDate(departure, locale, { weekday: 'short', day: 'numeric' }),
+    });
+  }
+
+  const busy = acceptState.isLoading || declineState.isLoading;
 
   return (
     <View
       style={[
-        styles.card,
-        elevation?.sm,
+        styles.ticket,
+        elevation?.md,
         { backgroundColor: theme.surface, borderColor: theme.outlineVariant, shadowColor: theme.ink },
       ]}
     >
       <TouchableOpacity
-        onPress={openInTrips}
-        activeOpacity={0.7}
+        onPress={open}
+        activeOpacity={0.75}
         accessibilityRole="button"
-        accessibilityLabel={t('notifications:driverRequest.accessibilityLabel', { name: info.counterpartName ?? t('booking:passenger') })}
+        accessibilityLabel={t('notifications:driverRequest.accessibilityLabel', { name })}
+        style={styles.ticketHead}
       >
-        <View style={styles.requestHeaderRow}>
-          <TouchableOpacity
-            onPress={viewProfile}
-            disabled={!info.counterpartUserId}
-            hitSlop={6}
-            accessibilityRole={info.counterpartUserId ? 'button' : undefined}
-            accessibilityLabel={
-              info.counterpartUserId
-                ? t('notifications:driverRequest.viewProfile', {
-                    name: info.counterpartName ?? t('booking:passenger'),
-                  })
-                : undefined
-            }
-          >
-            <Avatar
-              uri={info.counterpartAvatarUrl}
-              name={info.counterpartName ?? '?'}
-              sizePx={44}
-            />
-          </TouchableOpacity>
-          <View style={styles.requestIdentityText}>
-            <Text variant="label" color={theme.ink} numberOfLines={1}>
-              {info.counterpartName ?? t('booking:passenger')}
-            </Text>
-            {info.counterpartRatingAvg ? (
-              <View style={styles.ratingRow}>
-                <Icon name="star" size="xs" color={theme.accent} />
-                <Text variant="caption" color={theme.inkMuted}>
-                  {info.counterpartRatingAvg.toFixed(1)}
-                </Text>
-              </View>
-            ) : (
-              <Text variant="caption" color={theme.inkFaint}>
-                {t('notifications:driverRequest.newOnVaya')}
+        <View>
+          <Avatar uri={info.counterpartAvatarUrl} name={name} sizePx={52} />
+          {info.counterpartRatingAvg ? (
+            <View style={[styles.ratingBadge, { backgroundColor: theme.ink, borderColor: theme.surface }]}>
+              <Icon name="star" size="xs" color={theme.accentGlow} />
+              <Text variant="caption" color={theme.onInk} style={styles.ratingText}>
+                {info.counterpartRatingAvg.toFixed(1)}
               </Text>
-            )}
-          </View>
-          <TouchableOpacity
-            onPress={openInTrips}
-            hitSlop={6}
-            style={styles.openInTripsBtn}
-            accessibilityRole="button"
-            accessibilityLabel={t('notifications:driverRequest.openInTrips')}
-          >
-            <Icon
-              name={notification.readAt ? 'chevron-forward-circle-outline' : 'chevron-forward-circle'}
-              size="sm"
-              color={theme.accent}
-            />
-          </TouchableOpacity>
+            </View>
+          ) : null}
         </View>
-
-        {hasRoute ? (
-          <View style={[styles.routePill, { backgroundColor: theme.surfaceMuted }]}>
-            <Icon name="navigate-outline" size="xs" color={theme.inkMuted} />
-            <Text variant="bodySmall" color={theme.ink} numberOfLines={1} style={styles.routePillText}>
-              {/* hasRoute guarantees both labels exist. */}
-              {`${shortenPlaceLabel(info.originLabel ?? '')} → ${shortenPlaceLabel(info.destinationLabel ?? '')}`}
-            </Text>
-          </View>
-        ) : (
-          <Text variant="bodySmall" color={theme.inkMuted} style={styles.fallbackBody}>
-            {notificationDescription(notification.type, notification.payload, t as TFunction)}
+        <View style={styles.ticketIdentity}>
+          <Text variant="title" color={theme.ink} numberOfLines={1}>
+            {name}
           </Text>
-        )}
-
-        <View style={styles.metaRow}>
-          <Badge
-            label={t('common:terms.seat', { count: info.seatsRequested ?? 1 })}
-            variant="default"
+          <Text variant="caption" color={info.counterpartRatingAvg ? theme.inkMuted : theme.accentStrong} numberOfLines={1}>
+            {info.counterpartRatingAvg
+              ? t('notifications:driverRequest.wantsSeats', { count: seats })
+              : t('notifications:driverRequest.newOnVaya')}
+          </Text>
+        </View>
+        {timeLeft ? (
+          <CountdownRing
+            remaining={timeLeft.remaining}
+            value={String(timeLeft.minutes)}
+            unit="min"
+            accessibilityLabel={t('notifications:driverRequest.timeLeft', { count: timeLeft.minutes })}
             theme={theme}
           />
-          {pickupTime ? <Badge label={pickupTime} variant="default" theme={theme} /> : null}
-        </View>
+        ) : null}
       </TouchableOpacity>
 
-      {resolvedAs ? (
-        <View style={[styles.resolvedRow, { borderTopColor: theme.outlineVariant }]}>
-          <Icon
-            name={resolvedAs === 'accepted' ? 'checkmark-circle' : 'close-circle'}
-            size="sm"
-            color={resolvedAs === 'accepted' ? theme.accent : theme.error}
-          />
-          <Text variant="bodySmall" color={resolvedAs === 'accepted' ? theme.accent : theme.error}>
-            {resolvedAs === 'accepted' ? t('notifications:driverRequest.resolvedAccepted') : t('notifications:driverRequest.resolvedDeclined')}
-          </Text>
+      {from && to ? (
+        <View style={styles.legBlock}>
+          <View style={styles.legRow}>
+            <View style={[styles.legDot, { borderColor: theme.accent }]} />
+            <Text variant="label" color={theme.ink} numberOfLines={1} style={styles.legText}>
+              {from}
+            </Text>
+            <Icon name="arrow-forward" size="xs" color={theme.inkFaint} />
+            <View style={[styles.legDot, { borderColor: theme.accent, backgroundColor: theme.accent }]} />
+            <Text variant="label" color={theme.ink} numberOfLines={1} style={styles.legText}>
+              {to}
+            </Text>
+          </View>
+          {rideFrom && rideTo && segStart !== undefined && segEnd !== undefined ? (
+            <RouteSegmentBar
+              startLabel={shortenPlaceLabel(rideFrom)}
+              endLabel={shortenPlaceLabel(rideTo)}
+              segmentStart={segStart}
+              segmentEnd={segEnd}
+              accessibilityLabel={t('notifications:driverRequest.legOnRide', {
+                from,
+                to,
+                rideFrom: shortenPlaceLabel(rideFrom),
+                rideTo: shortenPlaceLabel(rideTo),
+              })}
+              theme={theme}
+            />
+          ) : null}
         </View>
       ) : (
-        <>
-          <View style={[styles.actionBar, { borderTopColor: theme.outlineVariant }]}>
-            <Button
-              variant="outline"
-              size="md"
-              label={t('common:actions.decline')}
-              onPress={() => void respond('decline')}
-              disabled={isBusy}
-              accessibilityLabel={t('common:actions.decline')}
-              style={styles.actionFlex}
-            />
-            <Button
-              variant="primary"
-              size="md"
-              label={t('common:actions.accept')}
-              onPress={() => void respond('accept')}
-              disabled={isBusy}
-              accessibilityLabel={t('common:actions.accept')}
-              style={styles.actionFlex}
-            />
-          </View>
-          {actionError ? (
-            <Text variant="caption" color={theme.error} style={styles.actionErrorText}>
-              {actionError}
-            </Text>
-          ) : null}
-        </>
+        <Text variant="bodySmall" color={theme.inkMuted}>
+          {notificationDescription(notification.type, notification.payload, t as TFunction)}
+        </Text>
       )}
 
-      <Text variant="caption" color={theme.inkFaint} style={styles.timestamp}>
-        {formatWhen(notification.createdAt, t, locale)}
-      </Text>
+      <FactRow facts={facts} theme={theme} />
+
+      <View style={styles.actions}>
+        <Button
+          variant="outline"
+          size="md"
+          label={t('common:actions.decline')}
+          onPress={() => void respond('decline')}
+          disabled={busy}
+          style={styles.actionFlex}
+        />
+        <Button
+          variant="primary"
+          size="md"
+          label={t('common:actions.accept')}
+          onPress={() => void respond('accept')}
+          disabled={busy}
+          loading={acceptState.isLoading}
+          style={styles.actionFlex}
+        />
+      </View>
+      {actionError ? (
+        <Text variant="caption" color={theme.error} align="center">
+          {actionError}
+        </Text>
+      ) : null}
     </View>
   );
 }
 
-/**
- * Passenger-facing (and generic informational) card: a status-tinted icon,
- * the real per-payload description, and — for any type
- * `resolveNotificationDeepLink` actually knows how to route — a direct
- * "Voir les détails du trajet" CTA instead of relying on the whole row
- * being an implicit tap target.
- */
-function StatusCard({
-  notification,
-  theme,
-  onOpen,
-  t,
-  locale,
-}: {
-  notification: AppNotification;
-  theme: ReturnType<typeof useAppTheme>['colors'];
-  onOpen: (notification: AppNotification) => void;
-  t: (key: string, params?: Record<string, unknown>) => string;
-  locale: SupportedLocale;
-}): React.JSX.Element {
-  const meta = notificationTypeMeta(notification.type, t as TFunction);
-  const destinationFor = useNotificationDestination();
-  const tone = toneColors(notificationTone(notification.type), theme);
-  const isUnread = !notification.readAt;
-  const destination = destinationFor(notification.type, notification.payload);
-
-  return (
-    <TouchableOpacity
-      style={[
-        styles.card,
-        elevation?.sm,
-        { backgroundColor: theme.surface, borderColor: theme.outlineVariant, shadowColor: theme.ink },
-        isUnread && { borderColor: theme.accent },
-      ]}
-      activeOpacity={0.7}
-      onPress={() => onOpen(notification)}
-      accessibilityRole="button"
-      accessibilityLabel={`${meta.title}${isUnread ? `, ${t('common:status.unread')}` : ''}`}
-    >
-      <View style={styles.rowTop}>
-        <View style={[styles.iconWrap, { backgroundColor: tone.bg }]}>
-          <Icon name={meta.icon} size="sm" color={tone.fg} />
-        </View>
-        <View style={styles.rowText}>
-          <View style={styles.titleRow}>
-            <Text variant="label" color={theme.ink} numberOfLines={1} style={styles.titleText}>
-              {meta.title}
-            </Text>
-            {isUnread ? <View style={[styles.unreadDot, { backgroundColor: theme.accent }]} /> : null}
-          </View>
-          <Text variant="bodySmall" color={theme.inkMuted} numberOfLines={2}>
-            {notificationDescription(notification.type, notification.payload, t as TFunction)}
-          </Text>
-          <Text variant="caption" color={theme.inkFaint} style={styles.timestamp}>
-            {formatWhen(notification.createdAt, t, locale)}
-          </Text>
-        </View>
-      </View>
-
-      {destination ? (
-        <View style={[styles.actionRow, { borderTopColor: theme.outlineVariant }]}>
-          <Text variant="bodySmall" color={theme.accent} style={styles.actionLabel}>
-            {t('notifications:inbox.viewDetails')}
-          </Text>
-          <Icon name="chevron-forward" size="xs" color={theme.accent} />
-        </View>
-      ) : null}
-    </TouchableOpacity>
-  );
-}
+const FILTERS: InboxFilter[] = ['all', 'requests', 'trips', 'messages'];
 
 /**
- * Notifications inbox (docs/roadmap/phase-07-notifications.md), redesigned
- * 2026-08-23 into an actionable component library rather than static text
- * blocks: `booking_requested` renders as `DriverRequestCard` (real
- * passenger profile + inline Accepter/Refuser, no forced navigation),
- * everything else as `StatusCard` (status-tinted icon + a direct
- * "Voir les détails" CTA when there's somewhere real to go).
+ * Notifications inbox (2026-10-15 redesign, docs/roadmap/phase-14-
+ * intelligent-pickup-engine.md): open seat requests first as rich tickets
+ * (who, their leg on the driver's ride, detour, earnings, time left), then
+ * everything else as a calm day-grouped activity timeline, filterable by
+ * kind. Newest first within each day.
  */
 export default function NotificationsScreen(): React.JSX.Element {
   const insets = useSafeAreaInsets();
@@ -368,48 +327,22 @@ export default function NotificationsScreen(): React.JSX.Element {
   const { t, i18n } = useTranslation();
   const locale = i18n.language as SupportedLocale;
   const accessToken = useAppSelector((s) => s.auth.accessToken);
-  const {
-    data: notifications,
-    isLoading,
-    isError,
-    refetch,
-  } = useListNotificationsQuery(undefined, {
+  const now = useNow();
+  const [filter, setFilter] = useState<InboxFilter>('all');
+  const { data: notifications, isLoading, isError, refetch } = useListNotificationsQuery(undefined, {
     skip: !accessToken,
   });
   const [markRead] = useMarkNotificationReadMutation();
   const destinationFor = useNotificationDestination();
 
-  // Day-grouped like the messages inbox (reuses its own date-label logic,
-  // formatDaySectionLabel, rather than a second copy of "today/yesterday/
-  // date" formatting) — previously a flat, ungrouped list regardless of how
-  // far back it went, which is exactly what read as "basic" next to every
-  // other Stitch-rebuilt inbox-shaped screen in this app. Computed above
-  // the accessToken early return below (Rules of Hooks — every hook here
-  // must run unconditionally on every render, guest included).
-  const sections = useMemo(() => {
-    if (!notifications) return [];
-    const now = new Date();
-    const groups: { label: string; items: AppNotification[] }[] = [];
-    for (const notification of notifications) {
-      const label = formatDaySectionLabel(notification.createdAt, t as TFunction, now, locale);
-      const last = groups[groups.length - 1];
-      if (last && last.label === label) last.items.push(notification);
-      else groups.push({ label, items: [notification] });
-    }
-    return groups;
-  }, [notifications, t, locale]);
+  const inbox = useMemo(() => buildInbox(notifications ?? [], filter, now), [notifications, filter, now]);
 
-  // Defensive: only reachable today via the explore/trips bell (both already
-  // gate this behind accessToken), but a deep link or a stale push tap could
-  // land here directly for a guest — identity-scoped end to end.
   if (!accessToken) {
     return <Redirect href="/sign-in" />;
   }
 
   function handleOpen(notification: AppNotification): void {
-    if (!notification.readAt) {
-      void markRead(notification.id);
-    }
+    if (!notification.readAt) void markRead(notification.id);
     trackEvent('notification_tapped', { type: notification.type, source: 'inbox' });
     const destination = destinationFor(notification.type, notification.payload);
     if (destination) {
@@ -417,13 +350,13 @@ export default function NotificationsScreen(): React.JSX.Element {
     }
   }
 
-  const unreadCount = notifications?.filter((n) => !n.readAt).length ?? 0;
-
   function markAllRead(): void {
     for (const notification of notifications ?? []) {
       if (!notification.readAt) void markRead(notification.id);
     }
   }
+
+  const isEmpty = inbox.openRequests.length === 0 && inbox.sections.length === 0;
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -432,9 +365,9 @@ export default function NotificationsScreen(): React.JSX.Element {
         onBack={() => (router.canGoBack() ? router.back() : router.replace('/(tabs)/explore'))}
         backLabel={t('common:actions.back')}
         title={t('notifications:inbox.title')}
-        subtitle={unreadCount > 0 ? t('notifications:inbox.unread', { count: unreadCount }) : undefined}
+        subtitle={inbox.unreadCount > 0 ? t('notifications:inbox.unread', { count: inbox.unreadCount }) : undefined}
         right={
-          unreadCount > 0 ? (
+          inbox.unreadCount > 0 ? (
             <HeaderIconButton
               icon="checkmark-done-outline"
               onPress={markAllRead}
@@ -463,27 +396,86 @@ export default function NotificationsScreen(): React.JSX.Element {
         />
       ) : (
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.list}>
-          {sections.map((section) => (
-            <View key={section.label} style={styles.section}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.filtersBleed}
+            contentContainerStyle={styles.filters}
+          >
+            {FILTERS.filter((f) => f === 'all' || inbox.counts[f] > 0).map((f) => (
+              <Chip
+                key={f}
+                label={f === 'all' ? t('notifications:filters.all') : `${t(`notifications:filters.${f}`)} · ${inbox.counts[f]}`}
+                selected={filter === f}
+                onPress={() => setFilter(f)}
+                theme={theme}
+              />
+            ))}
+          </ScrollView>
+
+          {inbox.openRequests.length > 0 ? (
+            <View style={styles.section}>
+              <View style={styles.sectionHeadRow}>
+                <Text variant="label" color={theme.ink} style={styles.sectionHeader}>
+                  {t('notifications:inbox.toHandle')}
+                </Text>
+                <View style={[styles.countPill, { backgroundColor: theme.accent }]}>
+                  <Text variant="caption" color={theme.onAccent} style={styles.countText}>
+                    {inbox.openRequests.length}
+                  </Text>
+                </View>
+              </View>
+              {inbox.openRequests.map((notification) => (
+                <RequestTicket
+                  key={notification.id}
+                  notification={notification}
+                  now={now}
+                  theme={theme}
+                  t={t}
+                  locale={locale}
+                />
+              ))}
+            </View>
+          ) : null}
+
+          {inbox.sections.map((section) => (
+            <View key={section.dayKey} style={styles.section}>
               <Text variant="label" color={theme.inkFaint} style={styles.sectionHeader}>
-                {section.label}
+                {formatDaySectionLabel(section.items[0]!.createdAt, t as TFunction, now, locale)}
               </Text>
-              {section.items.map((notification) =>
-                notification.type === 'booking_requested' ? (
-                  <DriverRequestCard key={notification.id} notification={notification} theme={theme} t={t} locale={locale} />
-                ) : (
-                  <StatusCard
-                    key={notification.id}
-                    notification={notification}
-                    theme={theme}
-                    onOpen={handleOpen}
-                    t={t}
-                    locale={locale}
-                  />
-                ),
-              )}
+              <View style={[styles.timeline, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
+                {section.items.map((notification, index) => {
+                  const meta = notificationTypeMeta(notification.type, t as TFunction);
+                  const unread = !notification.readAt;
+                  return (
+                    <ActivityRow
+                      key={notification.id}
+                      icon={meta.icon}
+                      tone={notificationTone(notification.type) as ActivityTone}
+                      avatar={counterpartOf(notification)}
+                      title={meta.title}
+                      description={notificationDescription(notification.type, notification.payload, t as TFunction)}
+                      timestamp={shortWhen(notification.createdAt, now, locale)}
+                      unread={unread}
+                      connectToNext={index < section.items.length - 1}
+                      onPress={() => handleOpen(notification)}
+                      accessibilityLabel={`${meta.title}${unread ? `, ${t('common:status.unread')}` : ''}`}
+                      theme={theme}
+                    />
+                  );
+                })}
+              </View>
             </View>
           ))}
+
+          {isEmpty ? (
+            <StateView
+              status="empty"
+              iconName="file-tray-outline"
+              title={t('notifications:inbox.emptyFilter')}
+              description={t('notifications:inbox.emptyFilterDescription')}
+            />
+          ) : null}
         </ScrollView>
       )}
     </View>
@@ -495,124 +487,101 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   list: {
-    padding: spacing.lg,
+    paddingHorizontal: spacing.lg,
     paddingBottom: spacing['3xl'],
+    gap: spacing.lg,
+  },
+  // Scrolls edge to edge, past the list's side margin.
+  filtersBleed: {
+    marginHorizontal: -spacing.lg,
+  },
+  filters: {
+    gap: spacing.sm,
+    paddingTop: spacing.md,
+    paddingHorizontal: spacing.lg,
   },
   section: {
     gap: spacing.sm,
-    marginBottom: spacing.md,
+  },
+  sectionHeadRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
   },
   sectionHeader: {
     textTransform: 'uppercase',
-    letterSpacing: 0.4,
-    marginBottom: spacing.xs,
+    letterSpacing: 0.6,
   },
-  card: {
+  countPill: {
+    minWidth: 20,
+    height: 20,
+    borderRadius: radii.full,
+    paddingHorizontal: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  countText: {
+    fontWeight: '700',
+  },
+  ticket: {
     borderRadius: radii.xl,
-    borderWidth: 1,
-    padding: spacing.md,
-    gap: spacing.sm,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: spacing.lg,
+    gap: spacing.md,
   },
-  rowTop: {
+  ticketHead: {
     flexDirection: 'row',
-    gap: spacing.sm,
-  },
-  iconWrap: {
-    width: 44,
-    height: 44,
-    borderRadius: radii.lg,
     alignItems: 'center',
-    justifyContent: 'center',
+    gap: spacing.md,
   },
-  rowText: {
+  ticketIdentity: {
     flex: 1,
     gap: 2,
   },
-  titleRow: {
+  ratingBadge: {
+    position: 'absolute',
+    bottom: -6,
+    alignSelf: 'center',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.xs,
-  },
-  titleText: {
-    flex: 1,
-  },
-  unreadDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  openInTripsBtn: {
-    width: 28,
-    height: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  timestamp: {
-    marginTop: 2,
-  },
-  actionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-end',
     gap: 2,
-    paddingTop: spacing.sm,
-    borderTopWidth: StyleSheet.hairlineWidth,
+    borderRadius: radii.full,
+    borderWidth: 2,
+    paddingHorizontal: 5,
+    paddingVertical: 1,
   },
-  actionLabel: {
-    fontWeight: '600',
+  ratingText: {
+    fontSize: 10,
+    fontWeight: '700',
   },
-  requestHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  legBlock: {
     gap: spacing.sm,
   },
-  requestIdentityText: {
-    flex: 1,
-    gap: 1,
-  },
-  ratingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 3,
-  },
-  routePill: {
+  legRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
-    borderRadius: radii.md,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.sm,
-    marginTop: spacing.xs,
   },
-  routePillText: {
-    flex: 1,
-    fontWeight: '600',
+  legDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    borderWidth: 2.5,
   },
-  fallbackBody: {
-    marginTop: spacing.xs,
+  legText: {
+    flexShrink: 1,
   },
-  metaRow: {
-    flexDirection: 'row',
-    gap: spacing.xs,
-    marginTop: spacing.xs,
-  },
-  actionBar: {
+  actions: {
     flexDirection: 'row',
     gap: spacing.sm,
-    paddingTop: spacing.sm,
-    borderTopWidth: StyleSheet.hairlineWidth,
   },
   actionFlex: {
     flex: 1,
   },
-  actionErrorText: {
-    textAlign: 'center',
-  },
-  resolvedRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-    paddingTop: spacing.sm,
-    borderTopWidth: StyleSheet.hairlineWidth,
+  timeline: {
+    borderRadius: radii.xl,
+    borderWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.md,
   },
 });

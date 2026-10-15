@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '../client';
-import type { CorridorDemandRow, OverviewMetrics, SearchFunnelRow } from '../types';
+import type { CorridorDemandRow, OverviewMetrics, PickupOutcomes, SearchFunnelRow } from '../types';
 
 export function useOverviewMetrics(days: number) {
   return useQuery({
@@ -20,5 +20,12 @@ export function useSearchFunnel(days: number) {
   return useQuery({
     queryKey: ['analytics-funnel', days],
     queryFn: () => apiRequest<SearchFunnelRow[]>('/admin/analytics/search-funnel', { params: { days } }),
+  });
+}
+
+export function usePickupOutcomes(days: number) {
+  return useQuery({
+    queryKey: ['analytics-pickup-outcomes', days],
+    queryFn: () => apiRequest<PickupOutcomes>('/admin/analytics/pickup-outcomes', { params: { days } }),
   });
 }

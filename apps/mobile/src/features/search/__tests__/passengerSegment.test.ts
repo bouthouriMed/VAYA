@@ -68,7 +68,7 @@ function candidate(overrides: Partial<MatchCandidate> = {}): MatchCandidate {
   };
 }
 
-const base = { selectedPickup: null, selectedDropoff: null, searchOrigin, searchDestination, ride };
+const base = { searchOrigin, searchDestination, ride };
 
 describe('resolvePassengerSegmentPoints', () => {
   it("shows the passenger's own Menzah 6 -> Lac 2 segment, never Menzah 6 -> La Marsa", () => {
@@ -85,12 +85,6 @@ describe('resolvePassengerSegmentPoints', () => {
     const { dropoff } = resolvePassengerSegmentPoints({ ...base, candidate: candidate({ dropoffPoint: null }) });
     expect(dropoff.label).toBe('Lac 2, Tunis');
     expect(dropoff.stopId).toBeUndefined();
-  });
-
-  it("an explicit passenger choice on the dropoff picker wins over the server's default", () => {
-    const chosen = { stopId: 'stop-lac-east', label: 'Lac 2 — Est', lat: 36.853, lng: 10.274 };
-    const { dropoff } = resolvePassengerSegmentPoints({ ...base, candidate: candidate(), selectedDropoff: chosen });
-    expect(dropoff).toEqual(chosen);
   });
 
   it("a detour match uses the passenger's own searched places", () => {

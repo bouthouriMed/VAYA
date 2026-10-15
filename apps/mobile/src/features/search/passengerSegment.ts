@@ -28,11 +28,12 @@ interface RideEndpoints {
  * (search/ride-details.tsx). Always the passenger's OWN journey — a
  * sub-segment of the driver's route — in this order of precedence:
  *
- *  1. what the passenger explicitly chose (pickup-point/dropoff-point.tsx);
- *  2. the server's resolved point near the passenger's own origin/
- *     destination (`candidate.pickupPoint`/`dropoffPoint`);
- *  3. the passenger's own searched place;
- *  4. only then the ride's own endpoint (nothing else known yet).
+ *  1. the server's resolved point near the passenger's own origin/
+ *     destination (`candidate.pickupPoint`/`dropoffPoint`) — the passenger
+ *     never picks one themselves (docs/roadmap/phase-14-intelligent-
+ *     pickup-engine.md);
+ *  2. the passenger's own searched place;
+ *  3. only then the ride's own endpoint (nothing else known yet).
  *
  * A 'detour' match uses the passenger's own searched places directly — the
  * driver comes to them. The driver's own destination is never the
@@ -41,13 +42,11 @@ interface RideEndpoints {
  */
 export function resolvePassengerSegmentPoints(params: {
   candidate: MatchCandidate | undefined;
-  selectedPickup: Place & { stopId: string } | null;
-  selectedDropoff: Place & { stopId: string } | null;
   searchOrigin: Place | null;
   searchDestination: Place | null;
   ride: RideEndpoints | undefined;
 }): { pickup: ResolvedSegmentPoint; dropoff: ResolvedSegmentPoint } {
-  const { candidate, selectedPickup, selectedDropoff, searchOrigin, searchDestination, ride } = params;
+  const { candidate, searchOrigin, searchDestination, ride } = params;
 
   if (candidate?.matchType === 'detour') {
     return {
@@ -57,10 +56,9 @@ export function resolvePassengerSegmentPoints(params: {
         lng: searchOrigin?.lng ?? ride?.originLng,
       },
       dropoff: {
-        stopId: selectedDropoff?.stopId,
-        label: selectedDropoff?.label ?? searchDestination?.label ?? ride?.destinationLabel,
-        lat: selectedDropoff?.lat ?? searchDestination?.lat ?? ride?.destinationLat,
-        lng: selectedDropoff?.lng ?? searchDestination?.lng ?? ride?.destinationLng,
+        label: searchDestination?.label ?? ride?.destinationLabel,
+        lat: searchDestination?.lat ?? ride?.destinationLat,
+        lng: searchDestination?.lng ?? ride?.destinationLng,
       },
     };
   }
@@ -69,23 +67,20 @@ export function resolvePassengerSegmentPoints(params: {
   const resolvedDropoff = candidate?.dropoffPoint ?? null;
   return {
     pickup: {
-      stopId:
-        selectedPickup?.stopId ??
-        (resolvedPickup ? (resolvedPickup.stopId ?? undefined) : candidate?.rankedStops[0]?.stopId),
+      stopId: resolvedPickup ? (resolvedPickup.stopId ?? undefined) : candidate?.rankedStops[0]?.stopId,
       label:
-        selectedPickup?.label ??
         resolvedPickup?.label ??
         candidate?.rankedStops[0]?.label ??
         searchOrigin?.label ??
         ride?.originLabel,
-      lat: selectedPickup?.lat ?? resolvedPickup?.lat ?? searchOrigin?.lat ?? ride?.originLat,
-      lng: selectedPickup?.lng ?? resolvedPickup?.lng ?? searchOrigin?.lng ?? ride?.originLng,
+      lat: resolvedPickup?.lat ?? searchOrigin?.lat ?? ride?.originLat,
+      lng: resolvedPickup?.lng ?? searchOrigin?.lng ?? ride?.originLng,
     },
     dropoff: {
-      stopId: selectedDropoff?.stopId ?? resolvedDropoff?.stopId ?? undefined,
-      label: selectedDropoff?.label ?? resolvedDropoff?.label ?? searchDestination?.label ?? ride?.destinationLabel,
-      lat: selectedDropoff?.lat ?? resolvedDropoff?.lat ?? searchDestination?.lat ?? ride?.destinationLat,
-      lng: selectedDropoff?.lng ?? resolvedDropoff?.lng ?? searchDestination?.lng ?? ride?.destinationLng,
+      stopId: resolvedDropoff?.stopId ?? undefined,
+      label: resolvedDropoff?.label ?? searchDestination?.label ?? ride?.destinationLabel,
+      lat: resolvedDropoff?.lat ?? searchDestination?.lat ?? ride?.destinationLat,
+      lng: resolvedDropoff?.lng ?? searchDestination?.lng ?? ride?.destinationLng,
     },
   };
 }

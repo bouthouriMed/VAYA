@@ -142,3 +142,64 @@ export async function queryNearbyPlaces(
     })
     .filter((p): p is OverpassPlace => p !== null);
 }
+
+/** A raw OpenStreetMap feature that might be a roadside meeting point. */
+export interface OverpassRoadsideFeature {
+  /** `node/123` or `way/456`. */
+  ref: string;
+  lat: number;
+  lng: number;
+  tags: Record<string, string>;
+}
+
+/**
+ * Places a car can stop at, inside a bounding box: petrol stations, bus
+ * and louage stations, bus stops, metro/train/tram stops, roundabouts and
+ * highway exits (Phase 14 meeting points). Ways come back at their centre.
+ * Same mirror rotation as queryNearbyPlaces; [] when every mirror fails.
+ */
+export async function queryRoadsidePlacesInBbox(bbox: {
+  south: number;
+  west: number;
+  north: number;
+  east: number;
+}): Promise<OverpassRoadsideFeature[]> {
+  const b = `${bbox.south},${bbox.west},${bbox.north},${bbox.east}`;
+  const query = `[out:json][timeout:20];
+(
+  node["amenity"="fuel"](${b});
+  way["amenity"="fuel"](${b});
+  node["amenity"="bus_station"](${b});
+  way["amenity"="bus_station"](${b});
+  node["highway"="bus_stop"](${b});
+  node["public_transport"="station"](${b});
+  node["railway"~"^(station|halt|tram_stop)$"](${b});
+  node["highway"="motorway_junction"](${b});
+  way["junction"="roundabout"](${b});
+);
+out center tags 500;`;
+
+  for (let attempt = 0; attempt < OVERPASS_MIRRORS.length; attempt++) {
+    const url = OVERPASS_MIRRORS[mirrorRotation++ % OVERPASS_MIRRORS.length]!;
+    const data = (await queryOneMirror(url, query)) as {
+      elements?: Array<{
+        type?: string;
+        id?: number;
+        lat?: number;
+        lon?: number;
+        center?: { lat: number; lon: number };
+        tags?: Record<string, string>;
+      }>;
+    } | null;
+    if (!data) continue;
+    return (data.elements ?? [])
+      .map((e) => {
+        const lat = e.lat ?? e.center?.lat;
+        const lng = e.lon ?? e.center?.lon;
+        if (lat === undefined || lng === undefined || !e.type || e.id === undefined) return null;
+        return { ref: `${e.type}/${e.id}`, lat, lng, tags: e.tags ?? {} };
+      })
+      .filter((f): f is OverpassRoadsideFeature => f !== null);
+  }
+  return [];
+}

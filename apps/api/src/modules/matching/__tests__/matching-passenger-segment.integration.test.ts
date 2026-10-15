@@ -6,6 +6,7 @@ import { upsertRouteGeometry } from '../../../lib/spatial.js';
 import { createBooking, previewBookingDetour } from '../../bookings/bookings.service.js';
 import { closeQueue } from '../../../lib/queue.js';
 import { searchRides } from '../matching.service.js';
+import { haversineDistanceMeters } from '../../../lib/geo.js';
 
 /**
  * The reported bug, end-to-end against real Postgres:
@@ -196,7 +197,7 @@ describe('matching.service — passenger journey is a sub-segment of the driver 
     expect(match!.dropoffViable).toBe(true);
 
     // Minimal walking, a few minutes each way (honest street estimate),
-    // well under the 15-minute city cap.
+    // well under the 20-minute city cap.
     expect(match!.pickupWalkMinutes).toBeLessThan(8);
     expect(match!.dropoffWalkMinutes).toBeLessThan(8);
     expect(match!.pickupWalkMeters).toBeCloseTo(match!.pickupWalkMinutes * 80, 6);
@@ -220,10 +221,17 @@ describe('matching.service — passenger journey is a sub-segment of the driver 
     expect(ride!.destinationLabel).toBe('La Marsa');
   });
 
-  it("a ride whose only stop near the passenger's destination side is the driver's own destination (La Marsa) is not offered as a Lac 2 match", async () => {
+  it("a ride with no stop near Lac 2 drops the passenger on its route at Lac 2, never at the driver's own destination (La Marsa)", async () => {
+    // Phase 14: with no driver stop near the passenger's destination, the
+    // point on the driver's route next to it is offered instead — the
+    // driver drives through Lac 2 anyway. The original guarantee holds:
+    // the passenger is never dropped 5.5 km away at La Marsa.
     const result = await search();
     const match = result.candidates.find((c) => c.rideId === noLacStopRideId);
-    expect(match).toBeUndefined();
+    expect(match).toBeDefined();
+    expect(match!.dropoffPoint!.stopId).toBeNull();
+    expect(haversineDistanceMeters(match!.dropoffPoint!, PASSENGER_DESTINATION)).toBeLessThan(500);
+    expect(haversineDistanceMeters(match!.dropoffPoint!, LA_MARSA)).toBeGreaterThan(5000);
   });
 
   it('a reversed search (Lac 2 -> Menzah 6) against a driver heading toward La Marsa is not a match', async () => {

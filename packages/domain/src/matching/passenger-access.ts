@@ -19,7 +19,7 @@ export const WALK_SPEED_M_PER_MIN = 80;
 export const STREET_DISTANCE_FACTOR = 1.3;
 
 /** Longest walk ever offered on a city or medium trip. */
-export const MAX_CITY_WALK_MINUTES = 15;
+export const MAX_CITY_WALK_MINUTES = 20;
 
 /**
  * Longest access shown as a walk at all. Beyond this (only possible on an
@@ -43,7 +43,8 @@ export function straightLineMetersForWalkMinutes(minutes: number): number {
 /**
  * Maximum straight-line distance for a point to count as "within walking
  * distance" — results within it always come first, per trip profile. City and medium trips
- * are capped at a 15-minute walk (~920 m straight line, ~1.2 km on foot);
+ * are capped at a 20-minute walk (~1.2 km straight line, ~1.6 km on foot) — a daily
+ * commuter happily walks that far to the main road for a quick pickup;
  * intercity trips allow a meeting point further out.
  */
 export function getPassengerAccessCaps(profile: TripProfileType): {

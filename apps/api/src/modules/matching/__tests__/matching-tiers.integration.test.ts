@@ -74,7 +74,7 @@ describe('matching.service — tier cascade, real Postgres (+ real OSRM for rout
   const areaBRideOrigin = { lat: 36.3045, lng: 9.5 };
   const areaBRideDestination = { lat: 36.5045, lng: 9.7 };
   // ~2km from the rider's own points, at the exact requested time: beyond
-  // a 15-minute walk but within the 3km extended reach — shown, after
+  // a 20-minute walk but within the 3km extended reach — shown, after
   // every walkable ride.
   const areaBMidRideOrigin = { lat: 36.318, lng: 9.5 };
   const areaBMidRideDestination = { lat: 36.518, lng: 9.7 };

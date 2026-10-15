@@ -7,7 +7,10 @@
     "unread_other": "{{count}} unread",
     "viewDetails": "View details",
     "markAllRead": "Mark all as read",
-    "loadError": "Couldn't load your notifications"
+    "loadError": "Couldn't load your notifications",
+    "toHandle": "Needs your answer",
+    "emptyFilter": "Nothing here yet",
+    "emptyFilterDescription": "Notifications of this kind will show up here."
   },
   "events": {
     "booking_requested": "New booking request",
@@ -60,6 +63,24 @@
     "resolvedAccepted": "Accepted",
     "resolvedDeclined": "Declined",
     "viewProfile": "View {{name}}'s profile",
-    "openInTrips": "Open in My trips"
+    "openInTrips": "Open in My trips",
+    "resolvedClosed": "Request closed",
+    "wantsSeats_one": "Wants {{count}} seat",
+    "wantsSeats_other": "Wants {{count}} seats",
+    "timeLeft_one": "{{count}} minute left to answer",
+    "timeLeft_other": "{{count}} minutes left to answer",
+    "onRoute": "On route",
+    "detour": "detour",
+    "forYou": "for you",
+    "seats_one": "seat",
+    "seats_other": "seats",
+    "departure": "departure",
+    "legOnRide": "{{from}} to {{to}}, on your ride {{rideFrom}} – {{rideTo}}"
+  },
+  "filters": {
+    "all": "All",
+    "requests": "Requests",
+    "trips": "Trips",
+    "messages": "Messages"
   }
 }

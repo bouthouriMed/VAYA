@@ -26,6 +26,12 @@ const passengerPointSchema = z.object({
   lng: z.number(),
   walkMeters: z.number(),
   walkMinutes: z.number(),
+  // Phase 14: the meeting point / kind of place the engine chose.
+  meetingPointId: z.string().uuid().nullable().optional(),
+  placeKind: z
+    .enum(['transit_station', 'bus_stop', 'louage_station', 'fuel_station', 'roundabout', 'highway_exit', 'driver_stop', 'on_route'])
+    .nullable()
+    .optional(),
 });
 
 // Google/PostGIS location spec §7 — populated only for matchType: 'detour'.

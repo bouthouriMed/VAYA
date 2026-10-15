@@ -10,7 +10,7 @@ describe('buildGoogleMapsDirectionsUrl', () => {
     const url = buildGoogleMapsDirectionsUrl({ destination: DEPARTURE });
     expect(url.startsWith('https://www.google.com/maps/dir/?')).toBe(true);
     expect(params(url).get('api')).toBe('1');
-    expect(params(url).get('destination')).toBe('36.8323,10.1293');
+    expect(params(url).get('destination')).toBe('36.832300,10.129300');
     expect(params(url).get('travelmode')).toBe('driving');
     expect(params(url).has('origin')).toBe(false);
   });
@@ -21,9 +21,15 @@ describe('buildGoogleMapsDirectionsUrl', () => {
       destination: ARRIVAL,
       waypoints: [{ lat: 36.85, lng: 10.2 }, { lat: 36.86, lng: 10.25 }],
     });
-    expect(params(url).get('origin')).toBe('36.8323,10.1293');
-    expect(params(url).get('destination')).toBe('36.8781,10.3247');
-    expect(params(url).get('waypoints')).toBe('36.85,10.2|36.86,10.25');
+    expect(params(url).get('origin')).toBe('36.832300,10.129300');
+    expect(params(url).get('destination')).toBe('36.878100,10.324700');
+    expect(params(url).get('waypoints')).toBe('36.850000,10.200000|36.860000,10.250000');
+  });
+
+  it('keeps the comma inside each coordinate pair unescaped (Android Maps app reads it literally)', () => {
+    const url = buildGoogleMapsDirectionsUrl({ destination: DEPARTURE, travelMode: 'walking' });
+    expect(url).toContain('destination=36.832300,10.129300');
+    expect(url).not.toContain('%2C');
   });
 
   it('uses walking directions for a passenger heading to the meeting point', () => {

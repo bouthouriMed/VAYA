@@ -51,8 +51,6 @@ describe('search screens are fully on useAppTheme(), not the legacy static color
     'search/results.tsx',
     'search/trust.tsx',
     'search/ride-details.tsx',
-    'search/pickup-point.tsx',
-    'search/dropoff-point.tsx',
   ];
 
   for (const screen of migratedScreens) {

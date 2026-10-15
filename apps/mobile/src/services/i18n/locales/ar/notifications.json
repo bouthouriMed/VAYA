@@ -11,7 +11,10 @@
     "unread_other": "{{count}} إشعار غير مقروء",
     "viewDetails": "عرض التفاصيل",
     "markAllRead": "تعليم الكل كمقروء",
-    "loadError": "تعذّر تحميل إشعاراتك"
+    "loadError": "تعذّر تحميل إشعاراتك",
+    "toHandle": "بانتظار ردّك",
+    "emptyFilter": "لا شيء هنا حاليًا",
+    "emptyFilterDescription": "ستظهر الإشعارات من هذا النوع هنا."
   },
   "events": {
     "booking_requested": "طلب حجز جديد",
@@ -68,6 +71,36 @@
     "resolvedAccepted": "تم القبول",
     "resolvedDeclined": "تم الرفض",
     "viewProfile": "عرض الملف الشخصي لـ{{name}}",
-    "openInTrips": "فتح في رحلاتي"
+    "openInTrips": "فتح في رحلاتي",
+    "resolvedClosed": "طلب مغلق",
+    "wantsSeats_zero": "يريد {{count}} مقعد",
+    "wantsSeats_one": "يريد مقعدًا واحدًا",
+    "wantsSeats_two": "يريد مقعدين",
+    "wantsSeats_few": "يريد {{count}} مقاعد",
+    "wantsSeats_many": "يريد {{count}} مقعدًا",
+    "wantsSeats_other": "يريد {{count}} مقعد",
+    "timeLeft_zero": "{{count}} دقيقة للرد",
+    "timeLeft_one": "دقيقة واحدة للرد",
+    "timeLeft_two": "دقيقتان للرد",
+    "timeLeft_few": "{{count}} دقائق للرد",
+    "timeLeft_many": "{{count}} دقيقة للرد",
+    "timeLeft_other": "{{count}} دقيقة للرد",
+    "onRoute": "على الطريق",
+    "detour": "انعطاف",
+    "forYou": "لك",
+    "seats_zero": "مقعد",
+    "seats_one": "مقعد",
+    "seats_two": "مقعدان",
+    "seats_few": "مقاعد",
+    "seats_many": "مقعدًا",
+    "seats_other": "مقعد",
+    "departure": "الانطلاق",
+    "legOnRide": "من {{from}} إلى {{to}}، على رحلتك {{rideFrom}} – {{rideTo}}"
+  },
+  "filters": {
+    "all": "الكل",
+    "requests": "الطلبات",
+    "trips": "الرحلات",
+    "messages": "الرسائل"
   }
 }

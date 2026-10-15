@@ -54,7 +54,8 @@ function generateSessionToken(): string {
  *
  * Selections are purely local (a checked/unchecked set) until "Confirmer"
  * — nothing is persisted per-tap. Confirming submits every selected city
- * as a real addCustomStop('via') call, sequentially (each insertion's
+ * as a real addCustomStop('area') call (Phase 14: an area the driver
+ * passes by, not a boarding point), sequentially (each insertion's
  * route-order sequencing depends on the ones already persisted), then
  * returns to the wizard, which already refetches its stop list from the
  * server rather than trusting stale local state.
@@ -166,7 +167,7 @@ export default function StopsSelectionScreen(): React.JSX.Element {
         // Sequential, not Promise.all — each insertion's route-order
         // sequencing (computeViaStopInsertion) depends on the stops
         // already persisted from earlier in this same loop.
-        await addCustomStop({ rideId, label: city.label, lat: city.lat, lng: city.lng, role: 'via' }).unwrap();
+        await addCustomStop({ rideId, label: city.label, lat: city.lat, lng: city.lng, role: 'area' }).unwrap();
       }
       haptics.success();
       router.back();

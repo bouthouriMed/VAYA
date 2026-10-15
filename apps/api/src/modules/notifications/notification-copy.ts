@@ -133,6 +133,36 @@ const num = (v: unknown): number | undefined => (typeof v === 'number' && Number
 type Payload = Record<string, unknown>;
 type Builder = (c: NotificationContext, p: Payload, l: NotificationLocale, now: Date) => NotificationText;
 
+const DETOUR_WORDS: Record<NotificationLocale, { onRoute: string; detour: (min: number) => string }> = {
+  fr: { onRoute: 'Sur votre trajet', detour: (m) => `+${m} min de détour` },
+  en: { onRoute: 'On your route', detour: (m) => `+${m} min detour` },
+  ar: { onRoute: 'على طريقك', detour: (m) => `+${m} د انعطاف` },
+};
+
+/** "4,5 DT" (fr/ar) / "4.5 DT" (en) — no trailing zeros. */
+function dinars(value: number, l: NotificationLocale): string {
+  const rounded = String(Math.round(value * 100) / 100);
+  return `${l === 'en' ? rounded : rounded.replace('.', ',')} DT`;
+}
+
+/**
+ * Phase 14 (docs/roadmap/phase-14-intelligent-pickup-engine.md): what a
+ * driver needs to decide on a seat request from the lock screen — where
+ * the passenger boards and alights, the extra driving, what it pays.
+ * "Sidi Hassine → El Mourouj · +3 min de détour · 4,5 DT". Every value
+ * comes from the booking; a missing one is left out, never guessed.
+ */
+export function requestFacts(p: Payload, l: NotificationLocale): string {
+  const from = str(p.originLabel);
+  const to = str(p.destinationLabel);
+  const leg = from && to ? `${shortPlaceLabel(from)} → ${shortPlaceLabel(to)}` : undefined;
+  const extra = num(p.detourExtraSeconds);
+  const minutes = extra === undefined ? undefined : Math.round(extra / 60);
+  const detour = minutes === undefined ? undefined : minutes < 1 ? DETOUR_WORDS[l].onRoute : DETOUR_WORDS[l].detour(minutes);
+  const total = num(p.contributionTotal);
+  return join([leg, detour, total !== undefined && dinars(total, l)]);
+}
+
 // ---------------------------------------------------------------------------
 // French
 // ---------------------------------------------------------------------------
@@ -145,6 +175,7 @@ const FR: Partial<Record<NotificationEventType, Builder>> = {
     body: join(
       [
         `${c.otherName ?? str(p.riderName) ?? 'Un passager'} demande ${seatsFr(c.seats ?? 1)}${c.departureAt ? ` pour ${when(c.departureAt, l, now)}` : ''}.`,
+        requestFacts(p, l) && `${requestFacts(p, l)}.`,
         c.expiresAt && `Répondez avant ${deadline(c.expiresAt, l, now)}.`,
       ],
       ' ',
@@ -294,6 +325,7 @@ const EN: Partial<Record<NotificationEventType, Builder>> = {
     body: join(
       [
         `${c.otherName ?? str(p.riderName) ?? 'A passenger'} wants ${seatsEn(c.seats ?? 1)}${c.departureAt ? ` for ${when(c.departureAt, l, now)}` : ''}.`,
+        requestFacts(p, l) && `${requestFacts(p, l)}.`,
         c.expiresAt && `Reply before ${deadline(c.expiresAt, l, now)}.`,
       ],
       ' ',
@@ -437,6 +469,7 @@ const AR: Partial<Record<NotificationEventType, Builder>> = {
     body: join(
       [
         `${c.otherName ?? str(p.riderName) ?? 'راكب'} يطلب ${seatsAr(c.seats ?? 1)}${c.departureAt ? ` ${when(c.departureAt, l, now)}` : ''}.`,
+        requestFacts(p, l) && `${requestFacts(p, l)}.`,
         c.expiresAt && `ردّ قبل ${deadline(c.expiresAt, l, now)}.`,
       ],
       ' ',

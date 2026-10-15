@@ -15,6 +15,7 @@ import {
   VIA_STOP_DETOUR_BUDGET,
   type TripProfile,
   type TripProfileType,
+  driverAreaRadiusM,
 } from '@vaya/domain';
 
 type Database = ReturnType<typeof getDatabase>;
@@ -619,7 +620,7 @@ export interface CustomStopInput {
    *  "add stops along your route" step, which needs its sequence computed
    *  from its actual position along the road route instead of either
    *  extreme — see `computeViaStopInsertion` below. */
-  role: 'pickup' | 'dropoff' | 'via';
+  role: 'pickup' | 'dropoff' | 'via' | 'area';
 }
 
 /** Pure so the ordering rule is directly unit-testable without a DB —
@@ -724,24 +725,32 @@ export async function addCustomStop(
   // route-detour distance, only against real vehicle accessibility).
   // Best-effort: a reverse-geocode failure means "no signal", never a hard
   // rejection — mirrors buildLabel's existing degrade-gracefully pattern.
-  let osmClass: string | null = null;
-  let osmType: string | null = null;
-  try {
-    const geocoded = await reverseGeocode(input.lat, input.lng);
-    osmClass = geocoded.osmClass;
-    osmType = geocoded.osmType;
-  } catch (err) {
-    getLogger().warn(
-      { err, lat: input.lat, lng: input.lng },
-      'Reverse geocode failed while validating a custom stop location — proceeding with no pedestrian-zone signal',
-    );
-  }
-  if (isPedestrianOnlyLocation(osmClass, osmType)) {
-    throw new AppError(
-      'This location is a pedestrian-only area — no vehicle can stop here',
-      400,
-      'STOP_PEDESTRIAN_ZONE',
-    );
+  // Phase 14: an 'area' is a place the driver will pass by ("via Sidi
+  // Hassine"), never a spot a car stops at — the engine picks the exact
+  // meeting point per passenger. So the stoppable-spot checks below
+  // (pedestrian zone, road snapping) don't apply to it. A 'via' point (older
+  // app versions) is still a bookable stop and keeps them.
+  const isArea = input.role === 'area';
+  if (!isArea) {
+    let osmClass: string | null = null;
+    let osmType: string | null = null;
+    try {
+      const geocoded = await reverseGeocode(input.lat, input.lng);
+      osmClass = geocoded.osmClass;
+      osmType = geocoded.osmType;
+    } catch (err) {
+      getLogger().warn(
+        { err, lat: input.lat, lng: input.lng },
+        'Reverse geocode failed while validating a custom stop location — proceeding with no pedestrian-zone signal',
+      );
+    }
+    if (isPedestrianOnlyLocation(osmClass, osmType)) {
+      throw new AppError(
+        'This location is a pedestrian-only area — no vehicle can stop here',
+        400,
+        'STOP_PEDESTRIAN_ZONE',
+      );
+    }
   }
 
   let sequence: number;
@@ -751,7 +760,7 @@ export async function addCustomStop(
   let deviationMeters = 0;
   let deviationSeconds = 0;
 
-  if (input.role === 'via') {
+  if (input.role === 'via' || input.role === 'area') {
     if (!ride.routePolyline) {
       throw new ValidationError('A route is required to add a stop along the route');
     }
@@ -813,7 +822,7 @@ export async function addCustomStop(
   // as before. OSRM unreachable (nearest === null) degrades honestly to
   // the unsnapped input point with no rejection — a transient
   // infrastructure gap is not evidence the location itself is bad.
-  const nearest = await nearestRoad({ lat: input.lat, lng: input.lng });
+  const nearest = isArea ? null : await nearestRoad({ lat: input.lat, lng: input.lng });
   if (nearest) {
     if (exceedsStopAccessDistance(nearest.snapDistanceM)) {
       throw new AppError(
@@ -841,6 +850,8 @@ export async function addCustomStop(
       suitabilityScore: 1,
       roadClass: null,
       isDriverSelected: true,
+      kind: isArea ? 'area' : 'point',
+      radiusM: isArea && ride.routePolyline ? driverAreaRadiusM(polylineDistanceMeters(decodePolyline(ride.routePolyline))) : null,
     })
     .returning();
   if (!inserted) throw new Error('Failed to insert custom stop');

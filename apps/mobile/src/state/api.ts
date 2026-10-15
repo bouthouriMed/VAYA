@@ -125,6 +125,16 @@ export interface RankedStop {
  *  `stopId` null = the ride's own origin/destination (legacy stop-less
  *  ride) or, for a 'detour' match, the passenger's own searched point
  *  (`label` null then — use the search's own label). */
+export type PlaceKind =
+  | 'transit_station'
+  | 'bus_stop'
+  | 'louage_station'
+  | 'fuel_station'
+  | 'roundabout'
+  | 'highway_exit'
+  | 'driver_stop'
+  | 'on_route';
+
 export interface PassengerPoint {
   stopId: string | null;
   label: string | null;
@@ -132,6 +142,9 @@ export interface PassengerPoint {
   lng: number;
   walkMeters: number;
   walkMinutes: number;
+  /** Phase 14: the meeting point VAYA chose, when it is one. */
+  meetingPointId?: string | null;
+  placeKind?: PlaceKind | null;
 }
 
 /** GET /rides/:rideId/itinerary-route. `polyline` is null when no routing
@@ -439,6 +452,11 @@ export interface RouteStop {
   suitabilityScore: number;
   roadClass: string | null;
   isDriverSelected: boolean;
+  /** Phase 14: 'area' = a place the driver passes by ("via Sidi Hassine"),
+   *  never a boarding point; 'point' = a stop a car pulls over at. Absent
+   *  on responses from an API older than this field. */
+  kind?: 'point' | 'area';
+  radiusM?: number | null;
 }
 
 /** Mirrors @vaya/domain's `TripProfileType` — the ride-engine's route-length
@@ -770,19 +788,6 @@ export interface DetourPreview {
    *  the map in that case (mirrors search/ride-details.tsx's
    *  MatchCandidate.detourRoutePolyline handling for the same reason). */
   detourRoutePolyline: string | null;
-}
-
-/** M-040/EDGE-053 (docs/unified_driver_and_passenger_journey.md §14, edge
- *  53): a real, side-effect-free recalculation for a pickup/dropoff point
- *  the passenger is considering as an override away from one of the
- *  driver's recommended stops. `withinAllowance: null` means feasibility
- *  genuinely couldn't be computed yet (no route on this ride, or the
- *  routing engine unreachable) — never fabricated as true/false. */
-export interface PickupOverridePreview {
-  walkMeters: number | null;
-  driverDetourExtraSeconds: number | null;
-  driverDetourAllowanceSeconds: number | null;
-  withinAllowance: boolean | null;
 }
 
 export interface Booking {
@@ -1167,7 +1172,7 @@ export const api = createApi({
     // rides.service.ts's addCustomStop doc comment for the full reasoning.
     addCustomStop: builder.mutation<
       RouteStop,
-      { rideId: string; label: string; lat: number; lng: number; role: 'pickup' | 'dropoff' | 'via' }
+      { rideId: string; label: string; lat: number; lng: number; role: 'pickup' | 'dropoff' | 'via' | 'area' }
     >({
       query: ({ rideId, ...body }) => ({
         url: `/rides/${rideId}/stops/custom`,
@@ -1247,19 +1252,6 @@ export const api = createApi({
     // side-effect-free on the server), so RTK Query's default cache is fine.
     getBookingDetourPreview: builder.query<DetourPreview, string>({
       query: (bookingId) => `/bookings/${bookingId}/detour-preview`,
-    }),
-    // M-040/EDGE-053: called from search/pickup-point.tsx's "choose another
-    // point" override affordance, before the passenger actually commits to
-    // a free-form pickup/dropoff away from the driver's recommended stops.
-    // Pure, side-effect-free — never invalidated by anything.
-    getPickupOverridePreview: builder.query<
-      PickupOverridePreview,
-      { rideId: string; lat: number; lng: number; requestedLat?: number; requestedLng?: number }
-    >({
-      query: ({ rideId, ...params }) => ({
-        url: `/rides/${rideId}/pickup-override-preview`,
-        params,
-      }),
     }),
     // The counterpart's phone number for an accepted booking, fetched
     // on-demand (not stored/cached alongside the booking itself) right
@@ -1512,7 +1504,6 @@ export const {
   useDeclineBookingMutation,
   useGetCancellationPreviewQuery,
   useGetBookingDetourPreviewQuery,
-  useLazyGetPickupOverridePreviewQuery,
   useLazyGetBookingContactPhoneQuery,
   useCancelBookingMutation,
   useReportNoShowMutation,
