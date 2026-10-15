@@ -674,6 +674,10 @@ export function resolvePassengerSegment(params: {
   maxDeviationM: number;
   rideOrigin?: RideEndpointOption;
   rideDestination?: RideEndpointOption;
+  /** Also offer the point ON the driver's route nearest to the passenger's
+   *  origin/destination (within the same walk cap as a stop) — always
+   *  ranked after every stop/endpoint. See onRoutePointOption. */
+  allowOnRoutePoints?: boolean;
 }): PassengerSegment {
   const { passengerOrigin, passengerDestination, rideStops, routePoints } = params;
   const rankedStops = rankStopsByWalkDistance(passengerOrigin, rideStops, params.maxPickupWalkM);
@@ -726,10 +730,19 @@ export function resolvePassengerSegment(params: {
     passengerDestination,
     Number.POSITIVE_INFINITY,
   );
-  const pickupOptions = byPreference(
-    [...rankedStops.map(toOption), ...(rideOriginOption ? [rideOriginOption] : [])],
-    recommendedStopId,
-  );
+  const onRoutePickup = params.allowOnRoutePoints
+    ? onRoutePointOption(passengerOrigin, routePoints, rideStops, params.maxPickupWalkM)
+    : null;
+  const onRouteDropoff = params.allowOnRoutePoints
+    ? onRoutePointOption(passengerDestination, routePoints, rideStops, params.maxDropoffWalkM)
+    : null;
+  const pickupOptions = [
+    ...byPreference(
+      [...rankedStops.map(toOption), ...(rideOriginOption ? [rideOriginOption] : [])],
+      recommendedStopId,
+    ),
+    ...(onRoutePickup ? [onRoutePickup] : []),
+  ];
 
   // A dropoff stop is only ever offered when it lies after SOME offerable
   // pickup — a stop behind every possible boarding point can't be reached
@@ -744,10 +757,13 @@ export function resolvePassengerSegment(params: {
   for (const pickup of pickupOptions) {
     const after = rankedDropoffStops.filter((stop) => (stop.sequence ?? 0) > pickup.sequence);
     const recommendedAfter = pickRecommendedStopId(after, rideStops, params.maxDropoffWalkM, params.maxDeviationM);
-    const dropoffOptions = byPreference(
-      [...after.map(toOption), ...(rideDestinationOption ? [rideDestinationOption] : [])],
-      recommendedAfter,
-    );
+    const dropoffOptions = [
+      ...byPreference(
+        [...after.map(toOption), ...(rideDestinationOption ? [rideDestinationOption] : [])],
+        recommendedAfter,
+      ),
+      ...(onRouteDropoff ? [onRouteDropoff] : []),
+    ];
     const found = pickDirectionalPair([pickup], dropoffOptions);
     if (found) {
       pair = found;
@@ -776,6 +792,49 @@ export function resolvePassengerSegment(params: {
   };
 }
 
+/**
+ * The point on the driver's own route nearest to a passenger's searched
+ * place, offered as a boarding/alighting point when the driver selected no
+ * stop near it. Drivers publish a corridor, not every passenger journey
+ * (docs/unified_driver_and_passenger_journey.md P2/§5): a passenger
+ * standing next to the route (the reported Ksar Said -> El Mourouj ride,
+ * which drives straight through Cité Essalama 2 with no stop there) must
+ * still find it. It is not free-form entry — the server computes it on the
+ * real route geometry, and createBooking re-validates it with a live
+ * routing call (assertRealDetourWithinAllowance) before accepting it.
+ *
+ * `sequence` places the point between the driver's stops by route
+ * position (stops keep integer sequences; this one sits strictly between
+ * two of them, ordered by its own route fraction) so the direction checks
+ * in resolvePassengerSegment hold for it too.
+ */
+export function onRoutePointOption(
+  passengerPoint: LatLng,
+  routePoints: LatLng[],
+  rideStops: StopRow[],
+  maxWalkM: number,
+): SegmentPointOption | null {
+  if (routePoints.length < 2) return null;
+  const projection = projectPointOntoRoute(passengerPoint, routePoints);
+  if (projection.distanceM > maxWalkM) return null;
+  const stopsBefore = rideStops.filter(
+    (stop) => projectPointOntoRoute(stop, routePoints).fraction <= projection.fraction,
+  );
+  const anchor =
+    stopsBefore.length > 0
+      ? Math.max(...stopsBefore.map((s) => s.sequence))
+      : (rideStops.length > 0 ? Math.min(...rideStops.map((s) => s.sequence)) : 0) - 1;
+  return {
+    stopId: null,
+    // The client shows the passenger's own searched place for it.
+    label: null,
+    lat: projection.nearestPoint.lat,
+    lng: projection.nearestPoint.lng,
+    ...estimateWalk(projection.distanceM),
+    sequence: anchor + 0.25 + 0.5 * projection.fraction,
+  };
+}
+
 type ReachEndpoint = Omit<RideEndpointOption, 'maxWalkM'>;
 
 /**
@@ -792,9 +851,10 @@ export function resolvePassengerSegmentWithinReach(
   > & { rideOrigin?: ReachEndpoint; rideDestination?: ReachEndpoint },
   reach: PassengerReach,
 ): { segment: PassengerSegment; withinWalkingDistance: boolean } {
-  const attempt = (caps: ReachCaps) =>
+  const attempt = (caps: ReachCaps, allowOnRoutePoints: boolean) =>
     resolvePassengerSegment({
       ...params,
+      allowOnRoutePoints,
       maxPickupWalkM: caps.pickupM,
       maxDropoffWalkM: caps.dropoffM,
       rideOrigin: params.rideOrigin ? { ...params.rideOrigin, maxWalkM: caps.pickupM } : undefined,
@@ -802,8 +862,19 @@ export function resolvePassengerSegmentWithinReach(
         ? { ...params.rideDestination, maxWalkM: caps.dropoffM }
         : undefined,
     });
-  const walkable = attempt(reach.walk);
-  const segment = walkable.pickup && walkable.dropoff ? walkable : attempt(reach.extended);
+  // Driver-selected stops first, at either reach; an on-route point only
+  // when no stop pair works at all — every ride that matched through its
+  // stops before still matches exactly the same way.
+  const tries: Array<[ReachCaps, boolean]> = [
+    [reach.walk, false],
+    [reach.extended, false],
+    ...(params.allowOnRoutePoints ? ([[reach.walk, true], [reach.extended, true]] as Array<[ReachCaps, boolean]>) : []),
+  ];
+  let segment = attempt(...tries[0]!);
+  for (const next of tries.slice(1)) {
+    if (segment.pickup && segment.dropoff) break;
+    segment = attempt(...next);
+  }
   const withinWalkingDistance =
     segment.pickup !== null &&
     segment.dropoff !== null &&
@@ -1169,13 +1240,14 @@ async function scoreCandidates(
  * with a Hammamet stop visible to a Hammamet→Sousse search, which
  * `scoreCandidates`'s endpoint-only test can never find by construction.
  *
- * Only surfaces a ride when BOTH ends are actually bookable through real
- * driver-selected `route_stops` (`pickupViable && dropoffViable`) — a raw
- * polyline projection is a geometric fact about the road, not a validated
- * place to stop, and CLAUDE.md's product principle #1 forbids offering an
- * unvalidated pickup/dropoff. A ride with no stops near the rider's
- * projected points is simply excluded, as in every on-route tier — an
- * un-bookable "match" would just be noise.
+ * The passenger boards and alights at the driver's selected `route_stops`
+ * near their own points whenever such a pair exists. When none does but
+ * the route itself runs within reach of the passenger (a ride driving
+ * straight through their neighbourhood with no stop there), the nearest
+ * point on the route is offered instead (onRoutePointOption) — computed on
+ * the real route, re-validated by a live routing call when booked, and
+ * still subject to the driver accepting the request. A ride whose route
+ * never comes within reach of the passenger is excluded.
  */
 async function scorePassThroughCandidates(
   db: Database,
@@ -1250,19 +1322,27 @@ async function scorePassThroughCandidates(
     if (destProj.fraction - originProj.fraction < MIN_ROUTE_FRACTION_GAP) continue;
 
     // The passenger boards at a real driver-selected stop near THEIR origin
-    // and alights at one near THEIR destination, strictly in the driver's
-    // direction of travel — never at the driver's own endpoints, which are
-    // elsewhere by definition in this tier.
+    // and alights at one near THEIR destination (or, failing that, at the
+    // route itself next to them), strictly in the driver's direction of
+    // travel — never at the driver's own endpoints, which are elsewhere by
+    // definition in this tier.
     const rideStops = stopsByRide.get(ride.id) ?? [];
     const { segment, withinWalkingDistance } = resolvePassengerSegmentWithinReach(
-      { passengerOrigin: origin, passengerDestination: destination, rideStops, routePoints, maxDeviationM },
+      {
+        passengerOrigin: origin,
+        passengerDestination: destination,
+        rideStops,
+        routePoints,
+        maxDeviationM,
+        allowOnRoutePoints: true,
+      },
       reach,
     );
     if (!segment.pickup || !segment.dropoff) continue;
     const { rankedStops, rankedDropoffStops, recommendedStopId, recommendedDropoffStopId } = segment;
 
-    // M-081: the segment-precise capacity gate, both ends always real
-    // stops in this tier.
+    // M-081: the segment-precise capacity gate — an on-route point (no
+    // stop id) conservatively spans the ride's true start/end.
     if (
       !hasSegmentCapacity(
         segmentsByRide.get(ride.id) ?? [],
@@ -1659,6 +1739,7 @@ async function scoreDetourCandidates(
         rideStops,
         routePoints,
         maxDeviationM: deriveMaxDeviationM(origin, destination),
+        allowOnRoutePoints: true,
       },
       passengerReach(input),
     );

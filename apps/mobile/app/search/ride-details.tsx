@@ -42,7 +42,7 @@ import {
 import { useAppDispatch, useAppSelector } from '../../src/state/store';
 import { clearSelectedStops } from '../../src/state/searchSlice';
 import { requestPushPermissionAndRegister } from '../../src/services/notifications/registerForPushNotifications';
-import { decodePolyline, polylineDistanceKm, sliceRouteBetween } from '../../src/utils/polyline';
+import { decodePolyline, polylineDistanceKm, routeOrderFraction, sliceRouteBetween } from '../../src/utils/polyline';
 import { useContextualAuth } from '../../src/features/auth/useContextualAuth';
 import { ContextualAuthSheet } from '../../src/features/auth/ContextualAuthSheet';
 import { ContactPhoneSheet } from '../../src/features/contact-phone/ContactPhoneSheet';
@@ -277,10 +277,25 @@ export default function RideDetailsScreen(): React.JSX.Element {
     // ride's own stops in here as if they were real waypoints on a trip
     // this passenger never rides.
     if (isDetourMatch) return [];
+    // A boarding/alighting point on the route itself (no stop) has no
+    // sequence — compare route positions instead, so stops the driver
+    // passes before the passenger boards aren't listed as theirs.
+    const positionOf = (p: { lat: number; lng: number }) =>
+      routeOrderFraction(routeCoordinates, { latitude: p.lat, longitude: p.lng });
+    const pickupPosition = !pickupStop && segmentOrigin && routeCoordinates.length > 1 ? positionOf(segmentOrigin) : null;
+    const dropoffPosition =
+      !dropoffStop && segmentDestination && routeCoordinates.length > 1 ? positionOf(segmentDestination) : null;
     return (stops ?? []).filter(
-      (s) => s.sequence > pickupSequence && s.sequence < dropoffSequence && s.id !== pickupStopId,
+      (s) =>
+        s.sequence > pickupSequence &&
+        s.sequence < dropoffSequence &&
+        s.id !== pickupStopId &&
+        (pickupPosition === null || positionOf(s) > pickupPosition) &&
+        (dropoffPosition === null || positionOf(s) < dropoffPosition),
     );
-  }, [isDetourMatch, stops, pickupSequence, dropoffSequence, pickupStopId]);
+    // Primitive lat/lng deps, same reasoning as segmentCoordinates above.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isDetourMatch, stops, pickupSequence, dropoffSequence, pickupStopId, pickupStop, dropoffStop, routeCoordinates, segmentOriginLat, segmentOriginLng, dropoffLat, dropoffLng]);
   const bookedSeats = ride ? ride.seatsTotal - ride.seatsAvailable : 0;
 
   // Stop confirmation (docs/domain/ride-engine.md, Phase 13 dropoff stops)
@@ -317,14 +332,41 @@ export default function RideDetailsScreen(): React.JSX.Element {
   // route, or the routing engine being briefly unreachable), never as a
   // routine rejection. See bookingErrorKey's VALIDATION_ERROR case for the
   // honest message shown on that rare failure.
+  // A pass-through match with no driver stop near the passenger boards
+  // and/or alights on the driver's route itself (matching.service.ts's
+  // onRoutePointOption): book exactly that point — what this screen shows —
+  // never the passenger's raw searched place, and never let a missing
+  // dropoff silently default to the driver's destination. createBooking
+  // re-validates both with a live routing call.
+  const onRoutePickup =
+    candidate?.matchType === 'route_passthrough' && candidate.pickupPoint && !candidate.pickupPoint.stopId
+      ? {
+          label: candidate.pickupPoint.label ?? origin?.label ?? ride?.originLabel ?? '',
+          lat: candidate.pickupPoint.lat,
+          lng: candidate.pickupPoint.lng,
+        }
+      : null;
+  const onRouteDropoff =
+    candidate?.matchType === 'route_passthrough' &&
+    candidate.dropoffPoint &&
+    !candidate.dropoffPoint.stopId &&
+    !(candidate.dropoffPoint.lat === candidate.destinationLat && candidate.dropoffPoint.lng === candidate.destinationLng)
+      ? {
+          label: candidate.dropoffPoint.label ?? destination?.label ?? ride?.destinationLabel ?? '',
+          lat: candidate.dropoffPoint.lat,
+          lng: candidate.dropoffPoint.lng,
+        }
+      : null;
+
   const needsPickupSelection = candidate
     ? candidate.matchType !== 'detour' &&
       (!candidate.pickupViable || candidate.rankedStops.length > 0) &&
       !selectedStop &&
-      !overriddenPickup
+      !overriddenPickup &&
+      !onRoutePickup
     : false;
   const needsDropoffSelection =
-    (candidate?.rankedDropoffStops.length ?? 0) > 0 && !selectedDropoffStop;
+    (candidate?.rankedDropoffStops.length ?? 0) > 0 && !selectedDropoffStop && !onRouteDropoff;
 
   function handleRequestPress(): void {
     // Defense in depth — the CTA is already disabled in both cases below,
@@ -356,7 +398,9 @@ export default function RideDetailsScreen(): React.JSX.Element {
       const freeformDropoff =
         !selectedDropoffStop && isDetourMatch && destination
           ? { dropoff: { label: destination.label, lat: destination.lat, lng: destination.lng } }
-          : {};
+          : !selectedDropoffStop && onRouteDropoff
+            ? { dropoff: onRouteDropoff }
+            : {};
       const booking = await createBooking({
         rideId,
         input: {
@@ -386,7 +430,12 @@ export default function RideDetailsScreen(): React.JSX.Element {
                   // real caller at all.
                   ...(origin ? { requestedPickup: { label: origin.label, lat: origin.lat, lng: origin.lng } } : {}),
                 }
-              : { pickup: { label: origin!.label, lat: origin!.lat, lng: origin!.lng } }),
+              : onRoutePickup
+                ? {
+                    pickup: onRoutePickup,
+                    ...(origin ? { requestedPickup: { label: origin.label, lat: origin.lat, lng: origin.lng } } : {}),
+                  }
+                : { pickup: { label: origin!.label, lat: origin!.lat, lng: origin!.lng } }),
           ...(selectedDropoffStop
             ? {
                 dropoffStopId: selectedDropoffStop.stopId,

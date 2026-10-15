@@ -632,6 +632,96 @@ describe('resolvePassengerSegmentWithinReach — walkable first, a bit further o
   });
 });
 
+// ---------------------------------------------------------------------------
+// Reported bug: a published Ksar Said -> El Mourouj ride drives straight
+// through Cité Essalama 2 and past Sidi Hassine. "Sidi Hassine -> El
+// Mourouj" found it (a stop at Sidi Hassine, the ride's own destination);
+// "Cité Essalama 2 -> Sidi Hassine" did not — no driver-selected stop near
+// Essalama 2 and the ride's own origin is never offered once it has stops.
+// Approximate real coordinates; the route runs south then south-east.
+// ---------------------------------------------------------------------------
+const KSAR_SAID = { lat: 36.812, lng: 10.115 };
+const ESSALAMA_ROUTE = { lat: 36.795, lng: 10.113 };
+const SIDI_HASSINE_ROUTE = { lat: 36.765, lng: 10.12 };
+const EL_MOUROUJ = { lat: 36.73, lng: 10.21 };
+const KSAR_SAID_ROUTE = [KSAR_SAID, ESSALAMA_ROUTE, SIDI_HASSINE_ROUTE, { lat: 36.745, lng: 10.17 }, EL_MOUROUJ];
+const STOP_SIDI_HASSINE = routeStop('stop-sidi-hassine', 'Sidi Hassine', { lat: 36.7655, lng: 10.1205 }, 0);
+// Searched places sit a few hundred metres off the road itself.
+const ESSALAMA_2 = { lat: 36.7955, lng: 10.116 };
+const SIDI_HASSINE = { lat: 36.766, lng: 10.123 };
+
+describe('on-route boarding/alighting when no driver stop is near the passenger', () => {
+  const reach = {
+    profile: 'commute' as const,
+    walk: getPassengerAccessCaps('commute'),
+    extended: getPassengerExtendedReachCaps('commute'),
+  };
+  const params = {
+    passengerOrigin: ESSALAMA_2,
+    passengerDestination: SIDI_HASSINE,
+    routePoints: KSAR_SAID_ROUTE,
+    rideStops: [STOP_SIDI_HASSINE],
+    maxDeviationM: 3000,
+  };
+
+  it('acceptance: Cité Essalama 2 -> Sidi Hassine boards on the route next to Essalama 2 and alights at the Sidi Hassine stop', () => {
+    const { segment, withinWalkingDistance } = resolvePassengerSegmentWithinReach(
+      { ...params, allowOnRoutePoints: true },
+      reach,
+    );
+    expect(segment.pickup).toMatchObject({ stopId: null, label: null });
+    expect(haversineDistanceMeters(segment.pickup!, ESSALAMA_2)).toBeLessThan(400);
+    expect(segment.dropoff?.stopId).toBe('stop-sidi-hassine');
+    expect(segment.pickupRouteFraction).toBeGreaterThan(0);
+    expect(segment.pickupRouteFraction).toBeLessThan(segment.dropoffRouteFraction);
+    expect(withinWalkingDistance).toBe(true);
+  });
+
+  it('without on-route points (the previous behaviour) the same search finds no boarding point', () => {
+    const { segment } = resolvePassengerSegmentWithinReach(params, reach);
+    expect(segment.pickup).toBeNull();
+  });
+
+  it('can alight on the route too, and never boards behind the alighting point', () => {
+    const forward = resolvePassengerSegmentWithinReach(
+      { ...params, rideStops: [], allowOnRoutePoints: true },
+      reach,
+    ).segment;
+    expect(forward.pickup?.stopId).toBeNull();
+    expect(forward.dropoff?.stopId).toBeNull();
+    expect(forward.pickupRouteFraction).toBeLessThan(forward.dropoffRouteFraction);
+
+    const reversed = resolvePassengerSegmentWithinReach(
+      {
+        ...params,
+        passengerOrigin: SIDI_HASSINE,
+        passengerDestination: ESSALAMA_2,
+        rideStops: [],
+        allowOnRoutePoints: true,
+      },
+      reach,
+    ).segment;
+    expect(reversed.pickup).toBeNull();
+  });
+
+  it('still prefers a driver-selected stop, even one further away, over an on-route point', () => {
+    const stopNearEssalama = routeStop('stop-essalama', 'Essalama', { lat: 36.8025, lng: 10.114 }, -1);
+    const { segment } = resolvePassengerSegmentWithinReach(
+      { ...params, rideStops: [stopNearEssalama, STOP_SIDI_HASSINE], allowOnRoutePoints: true },
+      reach,
+    );
+    expect(segment.pickup?.stopId).toBe('stop-essalama');
+  });
+
+  it('offers nothing when the route never comes within reach of the passenger', () => {
+    const { segment } = resolvePassengerSegmentWithinReach(
+      { ...params, passengerOrigin: { lat: 36.795, lng: 10.19 }, allowOnRoutePoints: true },
+      reach,
+    );
+    expect(segment.pickup).toBeNull();
+  });
+});
+
 describe('pickDirectionalPair', () => {
   const opt = (stopId: string, sequence: number) => ({
     stopId,
