@@ -12,6 +12,7 @@ import {
   createBooking,
   declineBooking,
   getBookingContactPhone,
+  getBookingVehicle,
   listFellowPassengers,
   listMyBookings,
   listRequestsForRide,
@@ -372,6 +373,28 @@ export async function bookingsRoutes(fastify: FastifyInstance): Promise<void> {
     async (request, reply) => {
       const contact = await getBookingContactPhone(db, request.params.bookingId, getUserId(request));
       reply.send(contact);
+    },
+  );
+
+  app.get(
+    '/bookings/:bookingId/vehicle',
+    {
+      onRequest: [fastify.authenticate],
+      schema: {
+        params: bookingIdParamSchema,
+        response: {
+          200: z.object({
+            make: z.string(),
+            model: z.string(),
+            color: z.string(),
+            photoUrl: z.string().nullable(),
+            plateNumber: z.string(),
+          }),
+        },
+      },
+    },
+    async (request, reply) => {
+      reply.send(await getBookingVehicle(db, request.params.bookingId, getUserId(request)));
     },
   );
 

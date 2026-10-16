@@ -97,7 +97,7 @@ function makeFakeDb(options: {
 }): { db: Database; updateCalls: unknown[] } {
   const updateCalls: unknown[] = [];
 
-  const db = {
+  const db: Record<string, unknown> = {
     query: {
       conversations: {
         findFirst: async () => options.conversation,
@@ -123,9 +123,13 @@ function makeFakeDb(options: {
         returning: async () => (options.insertedMessage ? [options.insertedMessage] : []),
       }),
     }),
-  } as unknown as Database;
+    // sendMessage locks the conversation row and checks the turn inside a
+    // transaction; the fake just runs the callback against itself.
+    execute: async () => undefined,
+    transaction: async (fn: (tx: unknown) => Promise<unknown>) => fn(db),
+  };
 
-  return { db, updateCalls };
+  return { db: db as unknown as Database, updateCalls };
 }
 
 beforeEach(() => {
@@ -384,5 +388,65 @@ describe('conversations.service — notification routing', () => {
       'message_received',
       expect.objectContaining({ bookingId: BOOKING_ID, senderUserId: DRIVER_USER_ID }),
     );
+  });
+});
+
+describe('conversations.service — one message at a time before acceptance', () => {
+  const pendingBooking = () => makeBooking({ status: 'pending', trip: null });
+  const conversation = { id: CONVERSATION_ID, bookingId: BOOKING_ID, status: 'open' as const };
+  const inserted = {
+    id: 'msg-new',
+    conversationId: CONVERSATION_ID,
+    senderUserId: RIDER_ID,
+    body: 'x',
+    createdAt: new Date('2026-01-01T09:00:00Z'),
+  };
+  const lastFrom = (senderUserId: string) => ({ ...inserted, id: 'msg-prev', senderUserId });
+
+  it('lets the passenger send the first message on a pending request', async () => {
+    const { db } = makeFakeDb({ conversation, booking: pendingBooking(), insertedMessage: inserted });
+    await expect(sendMessage(db, CONVERSATION_ID, RIDER_ID, { body: 'Bonjour' })).resolves.toEqual(inserted);
+  });
+
+  it("refuses the passenger's second message until the driver replies", async () => {
+    const { db } = makeFakeDb({
+      conversation,
+      booking: pendingBooking(),
+      lastMessage: lastFrom(RIDER_ID),
+      insertedMessage: inserted,
+    });
+    await expect(sendMessage(db, CONVERSATION_ID, RIDER_ID, { body: 'Encore moi' })).rejects.toMatchObject({
+      statusCode: 409,
+      code: 'AWAITING_DRIVER_REPLY',
+    });
+    expect(mocks.notifyBestEffort).not.toHaveBeenCalled();
+  });
+
+  it('gives the passenger the turn back after the driver replies', async () => {
+    const { db } = makeFakeDb({
+      conversation,
+      booking: pendingBooking(),
+      lastMessage: lastFrom(DRIVER_USER_ID),
+      insertedMessage: inserted,
+    });
+    await expect(sendMessage(db, CONVERSATION_ID, RIDER_ID, { body: 'Merci !' })).resolves.toEqual(inserted);
+  });
+
+  it('never limits the driver', async () => {
+    const { db } = makeFakeDb({
+      conversation,
+      booking: pendingBooking(),
+      lastMessage: lastFrom(DRIVER_USER_ID),
+      insertedMessage: { ...inserted, senderUserId: DRIVER_USER_ID },
+    });
+    await expect(sendMessage(db, CONVERSATION_ID, DRIVER_USER_ID, { body: 'Et aussi…' })).resolves.toBeTruthy();
+  });
+
+  it('tells the passenger it is the driver’s turn in the conversation summary', async () => {
+    const { db } = makeFakeDb({ conversation, booking: pendingBooking(), lastMessage: lastFrom(RIDER_ID) });
+    const summary = await getConversationByBookingId(db, BOOKING_ID, RIDER_ID);
+    expect(summary.composer).toBe('awaiting_reply');
+    const driverView = await getConversationByBookingId(db, BOOKING_ID, DRIVER_USER_ID);
+    expect(driverView.composer).toBe('open');
   });
 });

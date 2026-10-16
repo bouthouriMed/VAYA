@@ -29,6 +29,7 @@ import {
   useGetUserPublicProfileQuery,
   useGetUserTrustSummaryQuery,
   useGetConversationByBookingQuery,
+  useGetBookingVehicleQuery,
 } from '../../src/state/api';
 import { trackEvent } from '../../src/services/analytics/analytics';
 import { formatDate, formatNumber, toIntlTag } from '../../src/utils/localeFormat';
@@ -65,8 +66,10 @@ const TIER_LABEL_KEY = {
  * as "—"; "Vérifié" requires an admin-approved verification; comments stay
  * private (counts only).
  *
- * Messaging is booking-scoped (Phase 8): enabled once a conversation
- * really exists for `bookingId` (created when the booking is accepted).
+ * Messaging is booking-scoped: enabled once a conversation really exists
+ * for `bookingId` (opened when the request is sent). The car's plate is
+ * shown only from an accepted booking with this driver (GET
+ * /bookings/:id/vehicle); otherwise a locked plate says when it appears.
  */
 export default function TrustScreen(): React.JSX.Element {
   const { driverUserId, bookingId } = useLocalSearchParams<{
@@ -84,6 +87,13 @@ export default function TrustScreen(): React.JSX.Element {
   const { data: profile, isLoading: isProfileLoading } = useGetUserPublicProfileQuery(driverUserId);
   const { data: trustSummary, isLoading: isSummaryLoading } = useGetUserTrustSummaryQuery(driverUserId);
   const { data: conversation } = useGetConversationByBookingQuery(bookingId ?? '', { skip: !bookingId });
+  // The plate is private until the driver accepts (server-enforced, like the
+  // phone number). Only asked for when the person shown is this booking's
+  // driver — a passenger who also drives must never show their own car here.
+  const isBookingDriver = conversation?.otherPartyRole === 'driver';
+  const { data: bookingVehicle } = useGetBookingVehicleQuery(bookingId ?? '', {
+    skip: !bookingId || !isBookingDriver,
+  });
 
   useEffect(() => {
     if (trustSummary?.driver) {
@@ -346,8 +356,13 @@ export default function TrustScreen(): React.JSX.Element {
                     </Text>
                     <View style={styles.plateRow}>
                       <LicensePlate
-                        plate={driver.vehicle.plateNumber}
-                        accessibilityLabel={t('search:trust.plateA11y', { plate: driver.vehicle.plateNumber })}
+                        plate={bookingVehicle?.plateNumber}
+                        lockedLabel={t('search:trust.plateLocked')}
+                        accessibilityLabel={
+                          bookingVehicle
+                            ? t('search:trust.plateA11y', { plate: bookingVehicle.plateNumber })
+                            : t('search:trust.plateLockedA11y')
+                        }
                       />
                     </View>
                   </View>

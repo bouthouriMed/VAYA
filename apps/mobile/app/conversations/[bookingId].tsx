@@ -34,7 +34,7 @@ import {
 import { useAppSelector } from '../../src/state/store';
 import {
   isOwnMessage,
-  canSendMessage,
+  composerState,
   formatMessageTimestamp,
   getTripContext,
   groupMessagesByDay,
@@ -70,6 +70,7 @@ export default function ConversationScreen(): React.JSX.Element {
     data: conversation,
     isLoading: isConversationLoading,
     error: conversationError,
+    refetch: refetchConversation,
   } = useGetConversationByBookingQuery(bookingId, { skip: !bookingId });
 
   const messagesPolling = useFocusAwarePolling(POLL_INTERVAL_MS);
@@ -80,7 +81,11 @@ export default function ConversationScreen(): React.JSX.Element {
 
   const [sendConversationMessage, { isLoading: isSending }] = useSendConversationMessageMutation();
 
-  const sendAllowed = canSendMessage(conversation);
+  // 'awaiting_reply': a passenger with a pending request already wrote —
+  // they can write again once the driver answers (server-enforced).
+  const composer = composerState(conversation, messages, me?.id);
+  const sendAllowed = composer === 'open';
+  const otherFirstName = conversation?.otherParty.fullName.split(' ')[0] ?? '';
   const tripContext = conversation ? getTripContext(conversation, t) : null;
   const dayGroups = useMemo(
     () => (messages && messages.length > 0 ? groupMessagesByDay(messages, t) : []),
@@ -114,9 +119,11 @@ export default function ConversationScreen(): React.JSX.Element {
         requestAnimationFrame(() => scrollRef.current?.scrollToEnd({ animated: true }));
       }
     } catch {
-      // sendConversationMessage's own error (e.g. 409 once closed) is
-      // surfaced by RTK Query's isSending/error state; nothing fabricated
-      // here — the composer just stays populated so the user can retry.
+      // A 409 means the turn or the conversation changed under us (closed,
+      // or the passenger already wrote while the request is pending) —
+      // refetch so the composer shows the real state. The draft stays so
+      // nothing typed is lost.
+      void refetchConversation();
     }
   }
 
@@ -276,7 +283,7 @@ export default function ConversationScreen(): React.JSX.Element {
         </View>
       ) : null}
 
-      {!sendAllowed ? (
+      {composer === 'closed' ? (
         <View
           style={[styles.closedBanner, { backgroundColor: theme.surfaceMuted }]}
         >
@@ -358,42 +365,63 @@ export default function ConversationScreen(): React.JSX.Element {
           },
         ]}
       >
-        <View style={styles.inputWrap}>
-          <Input
-            value={draft}
-            onChangeText={setDraft}
-            placeholder={sendAllowed ? t('booking:conversation.placeholder') : t('booking:conversation.closed')}
-            editable={sendAllowed && !isSending}
-            multiline
-            maxLength={1000}
+        {composer === 'awaiting_reply' ? (
+          <View
+            style={[styles.awaitingReply, { backgroundColor: theme.surfaceMuted }]}
+            accessible
+            accessibilityRole="text"
+            accessibilityLiveRegion="polite"
+          >
+            <Icon name="hourglass-outline" size="sm" color={theme.inkMuted} />
+            <View style={styles.awaitingReplyText}>
+              <Text variant="label" color={theme.ink}>
+                {t('booking:conversation.awaitingReplyTitle')}
+              </Text>
+              <Text variant="caption" color={theme.inkMuted}>
+                {t('booking:conversation.awaitingReplyBody', { name: otherFirstName })}
+              </Text>
+            </View>
+          </View>
+        ) : (
+          <>
+          <View style={styles.inputWrap}>
+            <Input
+              value={draft}
+              onChangeText={setDraft}
+              placeholder={sendAllowed ? t('booking:conversation.placeholder') : t('booking:conversation.closed')}
+              editable={sendAllowed && !isSending}
+              multiline
+              maxLength={1000}
+              accessibilityLabel={t('booking:conversation.send')}
+              theme={theme}
+              style={styles.composerInput}
+            />
+          </View>
+          <TouchableOpacity
+            onPress={() => {
+              haptics.selection();
+              void handleSend();
+            }}
+            disabled={!sendAllowed || isSending || draft.trim().length === 0}
+            style={[
+              styles.sendButton,
+              {
+                backgroundColor:
+                  sendAllowed && draft.trim().length > 0 ? theme.accent : theme.surfaceMuted,
+              },
+            ]}
+            accessibilityRole="button"
             accessibilityLabel={t('booking:conversation.send')}
-            theme={theme}
-            style={styles.composerInput}
-          />
-        </View>
-        <TouchableOpacity
-          onPress={() => {
-            haptics.selection();
-            void handleSend();
-          }}
-          disabled={!sendAllowed || isSending || draft.trim().length === 0}
-          style={[
-            styles.sendButton,
-            {
-              backgroundColor:
-                sendAllowed && draft.trim().length > 0 ? theme.accent : theme.surfaceMuted,
-            },
-          ]}
-          accessibilityRole="button"
-          accessibilityLabel={t('booking:conversation.send')}
-          accessibilityState={{ disabled: !sendAllowed || isSending || draft.trim().length === 0 }}
-        >
-          <Icon
-            name="send"
-            size="sm"
-            color={sendAllowed && draft.trim().length > 0 ? theme.onAccent : theme.inkFaint}
-          />
-        </TouchableOpacity>
+            accessibilityState={{ disabled: !sendAllowed || isSending || draft.trim().length === 0 }}
+          >
+            <Icon
+              name="send"
+              size="sm"
+              color={sendAllowed && draft.trim().length > 0 ? theme.onAccent : theme.inkFaint}
+            />
+          </TouchableOpacity>
+          </>
+        )}
       </View>
     </KeyboardAvoidingView>
   );
@@ -512,6 +540,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
     marginVertical: spacing.sm,
+  },
+  awaitingReply: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    borderRadius: radii.lg,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  awaitingReplyText: {
+    flex: 1,
+    gap: 2,
   },
   composer: {
     flexDirection: 'row',

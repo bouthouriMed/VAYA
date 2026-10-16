@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, gt, inArray, or } from 'drizzle-orm';
+import { and, asc, desc, eq, gt, inArray, or, sql } from 'drizzle-orm';
 import type { getDatabase } from '../../lib/database.js';
 import {
   bookings,
@@ -7,9 +7,9 @@ import {
   messages,
   rides,
 } from '../../db/schema/index.js';
-import { ConflictError, ForbiddenError, NotFoundError } from '../../lib/errors.js';
+import { AppError, ConflictError, ForbiddenError, NotFoundError } from '../../lib/errors.js';
 import type { SendMessageInput } from '@vaya/validation';
-import type { RideStatus, TripStatus } from '@vaya/domain';
+import { resolveMessageTurn, type BookingStatus, type MessageTurn, type RideStatus, type TripStatus } from '@vaya/domain';
 import { getLogger } from '../../config/logger.js';
 import { notifyBestEffort } from '../notifications/notifications.service.js';
 
@@ -201,6 +201,10 @@ export interface ConversationSummary {
    *  this viewer's own last read timestamp (null = never opened this
    *  conversation). Never true for a message the viewer sent themselves. */
   hasUnread: boolean;
+  /** Whether the viewer can write now (packages/domain message-turn.ts):
+   *  a passenger with a pending request waits for the driver's reply after
+   *  each message. */
+  composer: MessageTurn;
 }
 
 type BookingWithContext = Awaited<ReturnType<typeof getBookingWithFullContextOrThrow>>;
@@ -271,6 +275,16 @@ function toSummary(
         lastMessage.senderUserId !== requestingUserId &&
         (!viewerLastReadAt || lastMessage.createdAt > viewerLastReadAt),
     ),
+    composer: resolveMessageTurn({
+      viewerRole: viewerIsDriver ? 'driver' : 'rider',
+      bookingStatus: booking.status as BookingStatus,
+      closed: isConversationClosed(booking.status, booking.trip?.status),
+      lastSenderRole: lastMessage
+        ? lastMessage.senderUserId === booking.ride.driverProfile.userId
+          ? 'driver'
+          : 'rider'
+        : null,
+    }),
   };
 }
 
@@ -445,11 +459,35 @@ export async function sendMessage(
     throw new ConflictError('This conversation is closed — the trip has ended');
   }
 
-  const [message] = await db
-    .insert(messages)
-    .values({ conversationId: conversation.id, senderUserId, body: input.body })
-    .returning();
-  if (!message) throw new Error('Failed to send message');
+  // The turn check and the insert run under a lock on the conversation row,
+  // so two quick sends from a passenger with a pending request can't both
+  // see "the driver spoke last" and both get through.
+  const message = await db.transaction(async (tx) => {
+    await tx.execute(sql`SELECT id FROM conversations WHERE id = ${conversation.id} FOR UPDATE`);
+    const last = await tx.query.messages.findFirst({
+      where: eq(messages.conversationId, conversation.id),
+      orderBy: [desc(messages.createdAt)],
+    });
+    const turn = resolveMessageTurn({
+      viewerRole: senderUserId === driverUserId ? 'driver' : 'rider',
+      bookingStatus: booking.status as BookingStatus,
+      closed,
+      lastSenderRole: last ? (last.senderUserId === driverUserId ? 'driver' : 'rider') : null,
+    });
+    if (turn === 'awaiting_reply') {
+      throw new AppError(
+        'Until the request is accepted, you can send another message once the driver has replied',
+        409,
+        'AWAITING_DRIVER_REPLY',
+      );
+    }
+    const [inserted] = await tx
+      .insert(messages)
+      .values({ conversationId: conversation.id, senderUserId, body: input.body })
+      .returning();
+    if (!inserted) throw new Error('Failed to send message');
+    return inserted;
+  });
 
   await db
     .update(conversations)

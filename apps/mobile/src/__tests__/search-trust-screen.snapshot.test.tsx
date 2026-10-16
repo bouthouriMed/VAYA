@@ -42,7 +42,6 @@ const fullProfile: PublicProfile = {
       model: 'Golf',
       color: 'Gris',
       photoUrl: null,
-      plateNumber: '123 TU 4567',
     },
   },
 };
@@ -73,6 +72,7 @@ const acceptedConversation: Conversation = {
   tripStatus: null,
   lastMessage: null,
   hasUnread: false,
+  composer: 'open',
 };
 
 function mockApi(
@@ -80,11 +80,15 @@ function mockApi(
   isProfileLoading: boolean,
   trustSummary?: TrustSummary,
   conversation?: Conversation,
+  bookingVehicle?: { make: string; model: string; color: string; photoUrl: string | null; plateNumber: string },
 ): void {
   vi.doMock('../state/api', () => ({
     useGetUserPublicProfileQuery: () => ({ data: profile, isLoading: isProfileLoading }),
     useGetUserTrustSummaryQuery: () => ({ data: trustSummary }),
     useGetConversationByBookingQuery: () => ({ data: conversation }),
+    useGetBookingVehicleQuery: (_id: string, opts?: { skip?: boolean }) => ({
+      data: opts?.skip ? undefined : bookingVehicle,
+    }),
   }));
 }
 
@@ -209,5 +213,28 @@ describe('search/trust.tsx snapshots', () => {
     expect(text).not.toContain('search:trust.verifiedA11y');
     expect(text).toContain('search:trust.verificationPending');
     expect(text).not.toContain('search:trust.welcomeBodyDriver');
+  });
+  it('shows the plate only when opened from an accepted booking with this driver', async () => {
+    vi.resetModules();
+    searchParams = { rideId: 'ride-1', driverUserId: 'user-1' };
+    mockApi(fullProfile, false, trustSummaryTopRated);
+    let { default: TrustScreen } = await import('../../app/search/trust');
+    let text = JSON.stringify(renderJSON(<TrustScreen />));
+    expect(text).toContain('search:trust.plateLocked');
+    expect(text).not.toContain('4567');
+
+    vi.resetModules();
+    searchParams = { rideId: 'ride-1', driverUserId: 'user-1', bookingId: 'booking-1' };
+    mockApi(
+      fullProfile,
+      false,
+      trustSummaryTopRated,
+      { ...acceptedConversation, viewerRole: 'rider', otherPartyRole: 'driver' },
+      { make: 'Volkswagen', model: 'Golf', color: 'Gris', photoUrl: null, plateNumber: '123 TU 4567' },
+    );
+    ({ default: TrustScreen } = await import('../../app/search/trust'));
+    text = JSON.stringify(renderJSON(<TrustScreen />));
+    expect(text).toContain('4567');
+    expect(text).not.toContain('search:trust.plateLocked');
   });
 });

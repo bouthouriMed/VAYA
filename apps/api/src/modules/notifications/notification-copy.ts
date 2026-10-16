@@ -176,6 +176,7 @@ const FR: Partial<Record<NotificationEventType, Builder>> = {
       [
         `${c.otherName ?? str(p.riderName) ?? 'Un passager'} demande ${seatsFr(c.seats ?? 1)}${c.departureAt ? ` pour ${when(c.departureAt, l, now)}` : ''}.`,
         requestFacts(p, l) && `${requestFacts(p, l)}.`,
+        str(p.requestMessage) && `« ${str(p.requestMessage)} »`,
         c.expiresAt && `Répondez avant ${deadline(c.expiresAt, l, now)}.`,
       ],
       ' ',
@@ -326,6 +327,7 @@ const EN: Partial<Record<NotificationEventType, Builder>> = {
       [
         `${c.otherName ?? str(p.riderName) ?? 'A passenger'} wants ${seatsEn(c.seats ?? 1)}${c.departureAt ? ` for ${when(c.departureAt, l, now)}` : ''}.`,
         requestFacts(p, l) && `${requestFacts(p, l)}.`,
+        str(p.requestMessage) && `“${str(p.requestMessage)}”`,
         c.expiresAt && `Reply before ${deadline(c.expiresAt, l, now)}.`,
       ],
       ' ',
@@ -470,6 +472,7 @@ const AR: Partial<Record<NotificationEventType, Builder>> = {
       [
         `${c.otherName ?? str(p.riderName) ?? 'راكب'} يطلب ${seatsAr(c.seats ?? 1)}${c.departureAt ? ` ${when(c.departureAt, l, now)}` : ''}.`,
         requestFacts(p, l) && `${requestFacts(p, l)}.`,
+        str(p.requestMessage) && `«${str(p.requestMessage)}»`,
         c.expiresAt && `ردّ قبل ${deadline(c.expiresAt, l, now)}.`,
       ],
       ' ',

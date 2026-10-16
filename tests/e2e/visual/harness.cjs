@@ -51,7 +51,7 @@ const MY_BOOKINGS = [
 ];
 const cand = (i, over) => ({ rideId: 'rc' + i, driverUserId: 'u-d' + i, driverFullName: ['Mehdi Jaziri','Ines Mansouri','Karim Ayari','Nour Ben Ali'][i-1], driverAvatarUrl: null, ratingAvg: [4.9,4.6,4.2,5][i-1], tripCount: [58,12,4,0][i-1], departureAt: iso(60*(18+i)), seatsAvailable: [3,1,2,4][i-1], contributionPerSeat: [14,13,15,12][i-1], pickupWalkMinutes: [4,7,11,3][i-1], dropoffWalkMinutes: [3,5,2,6][i-1], routeOverlapPercent: [96,88,80,92][i-1], score: 0.9 - i*0.1, reasons: ['Départ proche', 'Même direction'], clusterLabel: 'Tunis → Sousse', originLat: 36.8065, originLng: 10.1815, destinationLat: 35.8256, destinationLng: 10.6084, routePolyline: POLY, rankedStops: [{ stopId: 's1', label: 'Ben Arous, Station Total', lat: 36.74, lng: 10.23, walkMinutes: 4 }, { stopId: 's2', label: 'Hammamet Nord, Rond-point', lat: 36.40, lng: 10.55, walkMinutes: 12 }], rankedDropoffStops: [], pickupViable: true, dropoffViable: true, matchType: i === 3 ? 'route_passthrough' : 'endpoint', detour: null, pickupEtaSeconds: i === 3 ? 900 : 0, dropoffEtaSeconds: 8400, detourRoutePolyline: null, pickupWalkMeters: [320,560,880,240][i-1], dropoffWalkMeters: [250,400,160,480][i-1], withinWalkingDistance: true, nearRequestedTime: i !== 4, passengerJourney: { originLat: 36.8065, originLng: 10.1815, destinationLat: 35.8256, destinationLng: 10.6369 }, pickupPoint: { stopId: 's1', label: 'Ben Arous, Station Total', lat: 36.74, lng: 10.23, walkMeters: [320,560,880,240][i-1], walkMinutes: [4,7,11,3][i-1] }, dropoffPoint: { stopId: null, label: 'Gare de Sousse', lat: 35.8256, lng: 10.6369, walkMeters: [250,400,160,480][i-1], walkMinutes: [3,5,2,6][i-1] }, recommendedStopId: 's1', recommendedDropoffStopId: null, ...over });
 const SEARCH = { tier: 'exact', candidates: [cand(1), cand(2), cand(3), cand(4)], standoutRideId: 'rc1', message: null };
-const conv = (id, bookingId, name, role, last, unread) => ({ id, bookingId, status: 'open', createdAt: iso(-300), updatedAt: iso(-5), viewerRole: role === 'driver' ? 'rider' : 'driver', otherParty: { id: 'u-' + id, fullName: name, avatarUrl: null }, otherPartyRole: role, isOtherPartyVerified: role === 'driver', rideId: 'r9', originLabel: 'La Marsa', destinationLabel: 'Nabeul', pickupLabel: 'La Marsa, Plage', dropoffLabel: 'Nabeul, Centre', departureAt: iso(60*26), rideStatus: 'published', tripStatus: 'scheduled', lastMessage: last ? { body: last, createdAt: iso(-5), senderUserId: 'u-' + id } : null, hasUnread: unread });
+const conv = (id, bookingId, name, role, last, unread) => ({ id, bookingId, status: 'open', createdAt: iso(-300), updatedAt: iso(-5), viewerRole: role === 'driver' ? 'rider' : 'driver', otherParty: { id: 'u-' + id, fullName: name, avatarUrl: null }, otherPartyRole: role, isOtherPartyVerified: role === 'driver', rideId: 'r9', originLabel: 'La Marsa', destinationLabel: 'Nabeul', pickupLabel: 'La Marsa, Plage', dropoffLabel: 'Nabeul, Centre', departureAt: iso(60*26), rideStatus: 'published', tripStatus: 'scheduled', lastMessage: last ? { body: last, createdAt: iso(-5), senderUserId: 'u-' + id } : null, hasUnread: unread, composer: 'open' });
 const CONVS = [conv('c1', 'b1', 'Mehdi Jaziri', 'driver', 'Je serai devant la pharmacie à 8h15.', true), conv('c2', 'b-req2', 'Youssef Gharbi', 'rider', 'Merci, à demain !', false)];
 const MESSAGES = [
   { id: 'm1', conversationId: 'c1', senderUserId: 'u-me', body: 'Bonjour, je confirme pour demain matin.', createdAt: iso(-60) },
@@ -69,12 +69,12 @@ const NOTIFS = [
 // Profile variants for search/trust.tsx, picked by user id: u-d1 (top
 // driver), u-new (verified, no trips), u-one (1 trip, no review),
 // u-pending (documents under review), u-rider (a passenger).
-const PROFILE_VEHICLE = { make: 'Volkswagen', model: 'Golf 7', color: 'Blanc', photoUrl: null, plateNumber: '198 TU 3301' };
+const PROFILE_VEHICLE = { make: 'Volkswagen', model: 'Golf 7', color: 'Blanc', photoUrl: null };
 const DRIVER_PUBLIC = { verified: true, bio: 'Ingénieur, je fais Tunis–Sousse chaque semaine. Musique douce, pas de fumée.', languages: ['Français', 'Arabe'], ratingAvg: 4.9, tripCount: 58, punctualityScore: 0.97, reliabilityScore: 0.98, vehicle: PROFILE_VEHICLE };
 const PROFILE_VARIANTS = {
   'u-d1': { fullName: 'Mehdi Jaziri', memberSince: '2024-11-03T09:00:00Z', driver: DRIVER_PUBLIC },
-  'u-new': { fullName: 'Dinara Kacem', memberSince: iso(-60*24*6), driver: { ...DRIVER_PUBLIC, bio: null, languages: ['Français'], ratingAvg: 0, tripCount: 0, punctualityScore: 0, reliabilityScore: 0, vehicle: { ...PROFILE_VEHICLE, make: 'Peugeot', model: '208', color: 'Gris', plateNumber: '208 TU 3333' } } },
-  'u-one': { fullName: 'Dinara Kacem', memberSince: iso(-60*24*20), driver: { ...DRIVER_PUBLIC, bio: null, languages: null, ratingAvg: 0, tripCount: 1, punctualityScore: 0, reliabilityScore: 0, vehicle: { ...PROFILE_VEHICLE, make: 'Peugeot', model: '208', color: 'Gris', plateNumber: '208 TU 3333' } } },
+  'u-new': { fullName: 'Dinara Kacem', memberSince: iso(-60*24*6), driver: { ...DRIVER_PUBLIC, bio: null, languages: ['Français'], ratingAvg: 0, tripCount: 0, punctualityScore: 0, reliabilityScore: 0, vehicle: { ...PROFILE_VEHICLE, make: 'Peugeot', model: '208', color: 'Gris', } } },
+  'u-one': { fullName: 'Dinara Kacem', memberSince: iso(-60*24*20), driver: { ...DRIVER_PUBLIC, bio: null, languages: null, ratingAvg: 0, tripCount: 1, punctualityScore: 0, reliabilityScore: 0, vehicle: { ...PROFILE_VEHICLE, make: 'Peugeot', model: '208', color: 'Gris', } } },
   'u-pending': { fullName: 'Karim Ayari', memberSince: iso(-60*24*2), driver: { ...DRIVER_PUBLIC, verified: false, bio: null, ratingAvg: 0, tripCount: 0, punctualityScore: 0, reliabilityScore: 0 } },
   'u-rider': { fullName: 'Sarra Trabelsi', memberSince: '2025-06-12T09:00:00Z', driver: null },
 };
@@ -118,12 +118,18 @@ function defaultFixtures(opts = {}) {
     ['GET', /\/bookings\/[^/]+\/cancellation-preview$/, () => ({ tier: 'moderate', minutesBeforeDeparture: 600, penaltyPoints: 1, consequence: 'Annulation à moins de 24 h : +1 point de fiabilité.' })],
     ['GET', /\/bookings\/[^/]+\/detour-preview$/, () => ({ pickup: { label: 'Ben Arous, Station Total', lat: 36.74, lng: 10.23, isPlannedStop: true, deviationMeters: 120, deviationSeconds: 40, stopIndex: 1, totalStops: 2 }, dropoff: { label: 'Sousse, Médina', lat: 35.8256, lng: 10.6084, isPlannedStop: true, deviationMeters: 0, deviationSeconds: 0, stopIndex: 2, totalStops: 2 }, segment: { distanceM: 130000, durationSec: 7800, isEstimate: false }, pickupTime: iso(60*20+10), dropoffTime: iso(60*22+20), newEta: iso(60*22+25), detourRoutePolyline: null })],
     ['GET', /\/bookings\/[^/]+\/contact-phone$/, () => ({ phone: null })],
+    // The plate: only for an accepted booking (b1), like the server.
+    ['GET', /\/bookings\/[^/]+\/vehicle$/, (m) => (/\/bookings\/b1\//.test(m[0]) ? { ...PROFILE_VEHICLE, plateNumber: '198 TU 3301' } : [403, { message: 'The vehicle plate is only shared for an accepted booking' }])],
     ['GET', /\/matching\/search/, () => (o.emptySearch ? { tier: 'none', candidates: [], standoutRideId: null, message: 'Aucun trajet trouvé pour cet itinéraire.' } : SEARCH)],
     ['GET', /\/geocoding\/autocomplete/, () => PREDICTIONS],
     ['GET', /\/geocoding\/place-details/, () => ({ placeId: 'pl1', label: 'Sousse', primaryText: 'Sousse', secondaryText: 'Gouvernorat de Sousse', latitude: 35.8256, longitude: 10.6084, type: 'city', formattedAddress: 'Sousse, Tunisie', city: 'Sousse', governorate: 'Sousse', countryCode: 'TN', source: 'google' })],
     ['GET', /\/geocoding\/reverse/, () => ({ label: 'Tunis, Centre-ville', lat: 36.8065, lng: 10.1815 })],
     ['GET', /\/notifications$/, () => NOTIFS],
     ['GET', /\/conversations$/, () => CONVS],
+    // c-wait / b-wait: a passenger's pending request whose message the
+    // driver hasn't answered yet (composer awaiting_reply).
+    ['GET', /\/conversations\/c-wait\/messages/, () => [{ id: 'w1', conversationId: 'c-wait', senderUserId: 'u-me', body: "Bonjour ! J'ai une valise moyenne, est-ce que ça passe ?", createdAt: iso(-3) }]],
+    ['GET', /\/conversations\/b-wait$/, () => ({ ...CONVS[0], id: 'c-wait', bookingId: 'b-wait', tripStatus: null, lastMessage: { body: "Bonjour ! J'ai une valise moyenne, est-ce que ça passe ?", createdAt: iso(-3), senderUserId: 'u-me' }, hasUnread: false, composer: 'awaiting_reply' })],
     ['GET', /\/conversations\/[^/]+\/messages/, () => MESSAGES],
     ['GET', /\/conversations\/[^/]+$/, () => CONVS[0]],
     ['GET', /\/users\/[^/]+\/trust-summary$/, (m) => TRUST(userIdOf(m[0]))],

@@ -73,6 +73,12 @@ describe('LicensePlate', () => {
     expect(texts(root)).toEqual(['208', 'تونس', '3333']);
   });
 
+  it('keeps the plate shape but hides the number while it is private', () => {
+    const root = render(<LicensePlate lockedLabel="Visible après acceptation" accessibilityLabel="Plaque visible après acceptation" />);
+    expect(root.findAll((n) => typeof n.type === 'string' && n.props.testID === 'license-plate-locked')).toHaveLength(1);
+    expect(texts(root)).toEqual(['Visible après acceptation']);
+  });
+
   it('shows a non-standard plate verbatim', () => {
     const root = render(<LicensePlate plate="RS 12345" accessibilityLabel="Plaque RS 12345" />);
     expect(texts(root)).toEqual(['RS 12345']);

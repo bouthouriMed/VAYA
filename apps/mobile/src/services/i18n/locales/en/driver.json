@@ -382,7 +382,10 @@
       "newOnVaya": "New on VAYA",
       "openInMaps": "Open {{label}} in Maps",
       "yourRoute": "Your route",
-      "thisRequest": "This request"
+      "thisRequest": "This request",
+      "reply": "Reply",
+      "youReplied": "You replied.",
+      "openConversation": "View conversation"
     },
     "bookingDetail": {
       "title": "Booking details",

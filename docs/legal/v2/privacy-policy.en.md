@@ -142,10 +142,10 @@ service. Profile photo, biography and languages are optional.
 |---|---|
 | Your first name and full name, profile photo | Other Members and anyone with the link to your profile. [ACTION REQUIRED — CONFIRM: decision D-12 on limiting public profile access to signed-in Members.] |
 | Average rating, number of Trips, punctuality and reliability scores, trust level | Same. |
-| Driver: vehicle make, model, colour, photo and **number plate**, biography, languages | Same (the plate helps Passengers identify the right car). [ACTION REQUIRED — CONFIRM: decision D-12.] |
+| Driver: vehicle make, model, colour, photo, biography, languages | Same. |
 | Rides you publish (origin, destination, route, Stops, time, price, seats) | Anyone searching. **Choose an origin that is not your exact home address if you prefer.** |
 | Passengers already booked on a Ride: first name, photo, rating | Anyone viewing that Ride. |
-| Your phone number | Only the other party of an **accepted** Booking, and only while it is active. |
+| Your phone number; for a Driver, the vehicle's **number plate** | Only the other party of an **accepted** Booking, and only while it is active (decided 2026-10-16, D-12: the plate is not public). |
 | Your pickup/drop-off Stop and Booking Request | The Driver of the Ride. |
 | Messages | Only the two parties of the Booking. |
 | Driver's live position | The Driver; Passengers of that Trip **after they are on board**. Before boarding, Passengers see an estimated arrival time and the route, not the live position. |

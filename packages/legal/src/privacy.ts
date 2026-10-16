@@ -92,10 +92,10 @@ const fr: LegalDocument = {
     {
       heading: '7. Qui peut voir vos données',
       body: [
-        "Toute personne consultant votre profil : votre nom complet et votre photo ; votre note moyenne, votre nombre de Courses, vos scores de ponctualité et de fiabilité et votre niveau de confiance ; pour un Conducteur, la marque, le modèle, la couleur, la photo et l'immatriculation du véhicule (pour aider les Passagers à reconnaître la bonne voiture), la biographie et les langues.",
+        "Toute personne consultant votre profil : votre nom complet et votre photo ; votre note moyenne, votre nombre de Courses, vos scores de ponctualité et de fiabilité et votre niveau de confiance ; pour un Conducteur, la marque, le modèle, la couleur et la photo du véhicule, la biographie et les langues.",
         "Toute personne recherchant un trajet : les Trajets que vous publiez (départ, destination, itinéraire, Points d'arrêt, heure, prix, places). Si vous le préférez, choisissez un point de départ qui n'est pas votre adresse exacte.",
         "Toute personne consultant un Trajet : le prénom, la photo et la note des Passagers déjà acceptés sur ce Trajet.",
-        "Votre numéro de téléphone : uniquement l'autre partie d'une Réservation acceptée, et seulement tant qu'elle l'est.",
+        "Votre numéro de téléphone et, pour un Conducteur, l'immatriculation du véhicule (pour reconnaître la bonne voiture) : uniquement l'autre partie d'une Réservation acceptée, et seulement tant qu'elle l'est.",
         "Le Conducteur d'un Trajet : votre Point d'arrêt et votre Demande de réservation. Les messages : uniquement les deux parties de la Réservation.",
         "La position en direct du Conducteur : le Conducteur, et les Passagers de cette Course une fois à bord. Avant la prise en charge, les Passagers voient l'heure d'arrivée estimée et l'itinéraire, pas la position en direct.",
         "Les commentaires d'évaluation : le Membre évalué. Les points de fiabilité, documents de vérification et notes internes ne sont pas visibles par les autres Membres.",
@@ -271,10 +271,10 @@ const en: LegalDocument = {
     {
       heading: '7. Who can see your data',
       body: [
-        'Anyone viewing your profile: your full name and photo; your average rating, number of Trips, punctuality and reliability scores and trust level; for a Driver, the vehicle\'s make, model, colour, photo and number plate (to help Passengers identify the right car), biography and languages.',
+        'Anyone viewing your profile: your full name and photo; your average rating, number of Trips, punctuality and reliability scores and trust level; for a Driver, the vehicle\'s make, model, colour and photo, biography and languages.',
         'Anyone searching for a journey: the Rides you publish (origin, destination, route, Stops, time, price, seats). If you prefer, choose a departure point that is not your exact address.',
         'Anyone viewing a Ride: the first name, photo and rating of Passengers already accepted on that Ride.',
-        'Your phone number: only the other party of an accepted Booking, and only while it remains accepted.',
+        'Your phone number and, for a Driver, the vehicle\'s number plate (to identify the right car): only the other party of an accepted Booking, and only while it remains accepted.',
         'The Driver of a Ride: your Stop and Booking Request. Messages: only the two parties of the Booking.',
         'The Driver\'s live position: the Driver, and the Passengers of that Trip once on board. Before pickup, Passengers see the estimated arrival time and the route, not the live position.',
         'Rating comments: the rated Member. Reliability points, verification documents and internal notes are not visible to other Members.',
@@ -450,10 +450,10 @@ const ar: LegalDocument = {
     {
       heading: '7. من يمكنه رؤية بياناتك',
       body: [
-        'كل من يطّلع على ملفك: اسمك الكامل وصورتك؛ متوسط تقييمك وعدد مشاويرك ودرجتا الالتزام بالمواعيد والموثوقية ومستوى الثقة؛ وبالنسبة للسائق، علامة السيارة وطرازها ولونها وصورتها ورقم تسجيلها (لمساعدة الركاب على التعرف على السيارة الصحيحة)، والنبذة واللغات.',
+        'كل من يطّلع على ملفك: اسمك الكامل وصورتك؛ متوسط تقييمك وعدد مشاويرك ودرجتا الالتزام بالمواعيد والموثوقية ومستوى الثقة؛ وبالنسبة للسائق، علامة السيارة وطرازها ولونها وصورتها، والنبذة واللغات.',
         'كل من يبحث عن رحلة: الرحلات التي تنشرها (الانطلاق، الوجهة، المسار، نقاط التوقف، الساعة، السعر، المقاعد). إن شئت، اختر نقطة انطلاق ليست عنوانك الدقيق.',
         'كل من يطّلع على رحلة: الاسم الأول وصورة وتقييم الركاب المقبولين في تلك الرحلة.',
-        'رقم هاتفك: الطرف الآخر في حجز مقبول فقط، وطالما بقي مقبولاً.',
+        'رقم هاتفك، وبالنسبة للسائق رقم تسجيل السيارة (للتعرف على السيارة الصحيحة): الطرف الآخر في حجز مقبول فقط، وطالما بقي مقبولاً.',
         'سائق الرحلة: نقطة توقفك وطلب حجزك. الرسائل: طرفا الحجز فقط.',
         'الموقع المباشر للسائق: السائق، وركاب ذلك المشوار بعد صعودهم. قبل الصعود يرى الركاب الوقت المقدّر للوصول والمسار، لا الموقع المباشر.',
         'تعليقات التقييم: العضو الذي تم تقييمه. نقاط الموثوقية ووثائق التحقق والملاحظات الداخلية لا يراها الأعضاء الآخرون.',

@@ -1891,7 +1891,7 @@ exports[`search/trust.tsx snapshots > renders a brand-new verified driver: welco
                 }
               >
                 <View
-                  accessibilityLabel="search:trust.plateA11y"
+                  accessibilityLabel="search:trust.plateLockedA11y"
                   accessibilityRole="text"
                   accessible={true}
                   style={
@@ -1908,35 +1908,26 @@ exports[`search/trust.tsx snapshots > renders a brand-new verified driver: welco
                         "paddingVertical": 4,
                       },
                       {
-                        "backgroundColor": "#14201B",
+                        "borderStyle": "dashed",
+                        "borderWidth": 1,
+                        "gap": 4,
+                        "paddingHorizontal": 8,
+                      },
+                      {
+                        "backgroundColor": "#E2E8E1",
                         "borderColor": "#CCD5CD",
                       },
                     ]
                   }
+                  testID="license-plate-locked"
                 >
-                  <Text
-                    style={
-                      [
-                        {
-                          "fontSize": 14,
-                          "fontWeight": "500",
-                          "lineHeight": 21,
-                        },
-                        null,
-                        {
-                          "color": "#F4F6F2",
-                          "textAlign": undefined,
-                          "writingDirection": "ltr",
-                        },
-                        {
-                          "fontWeight": "700",
-                          "letterSpacing": 1,
-                        },
-                      ]
-                    }
-                  >
-                    123
-                  </Text>
+                  <Ionicons
+                    accessibilityElementsHidden={true}
+                    color="#4F5C55"
+                    importantForAccessibility="no-hide-descendants"
+                    name="lock-closed"
+                    size={16}
+                  />
                   <Text
                     style={
                       [
@@ -1947,40 +1938,15 @@ exports[`search/trust.tsx snapshots > renders a brand-new verified driver: welco
                         },
                         null,
                         {
-                          "color": "#F4F6F2",
+                          "color": "#4F5C55",
                           "textAlign": undefined,
                           "writingDirection": "ltr",
                         },
-                        {
-                          "fontWeight": "600",
-                        },
+                        undefined,
                       ]
                     }
                   >
-                    تونس
-                  </Text>
-                  <Text
-                    style={
-                      [
-                        {
-                          "fontSize": 14,
-                          "fontWeight": "500",
-                          "lineHeight": 21,
-                        },
-                        null,
-                        {
-                          "color": "#F4F6F2",
-                          "textAlign": undefined,
-                          "writingDirection": "ltr",
-                        },
-                        {
-                          "fontWeight": "700",
-                          "letterSpacing": 1,
-                        },
-                      ]
-                    }
-                  >
-                    4567
+                    search:trust.plateLocked
                   </Text>
                 </View>
               </View>
@@ -3150,7 +3116,7 @@ exports[`search/trust.tsx snapshots > renders a driver with trips but no review 
                 }
               >
                 <View
-                  accessibilityLabel="search:trust.plateA11y"
+                  accessibilityLabel="search:trust.plateLockedA11y"
                   accessibilityRole="text"
                   accessible={true}
                   style={
@@ -3167,35 +3133,26 @@ exports[`search/trust.tsx snapshots > renders a driver with trips but no review 
                         "paddingVertical": 4,
                       },
                       {
-                        "backgroundColor": "#14201B",
+                        "borderStyle": "dashed",
+                        "borderWidth": 1,
+                        "gap": 4,
+                        "paddingHorizontal": 8,
+                      },
+                      {
+                        "backgroundColor": "#E2E8E1",
                         "borderColor": "#CCD5CD",
                       },
                     ]
                   }
+                  testID="license-plate-locked"
                 >
-                  <Text
-                    style={
-                      [
-                        {
-                          "fontSize": 14,
-                          "fontWeight": "500",
-                          "lineHeight": 21,
-                        },
-                        null,
-                        {
-                          "color": "#F4F6F2",
-                          "textAlign": undefined,
-                          "writingDirection": "ltr",
-                        },
-                        {
-                          "fontWeight": "700",
-                          "letterSpacing": 1,
-                        },
-                      ]
-                    }
-                  >
-                    123
-                  </Text>
+                  <Ionicons
+                    accessibilityElementsHidden={true}
+                    color="#4F5C55"
+                    importantForAccessibility="no-hide-descendants"
+                    name="lock-closed"
+                    size={16}
+                  />
                   <Text
                     style={
                       [
@@ -3206,40 +3163,15 @@ exports[`search/trust.tsx snapshots > renders a driver with trips but no review 
                         },
                         null,
                         {
-                          "color": "#F4F6F2",
+                          "color": "#4F5C55",
                           "textAlign": undefined,
                           "writingDirection": "ltr",
                         },
-                        {
-                          "fontWeight": "600",
-                        },
+                        undefined,
                       ]
                     }
                   >
-                    تونس
-                  </Text>
-                  <Text
-                    style={
-                      [
-                        {
-                          "fontSize": 14,
-                          "fontWeight": "500",
-                          "lineHeight": 21,
-                        },
-                        null,
-                        {
-                          "color": "#F4F6F2",
-                          "textAlign": undefined,
-                          "writingDirection": "ltr",
-                        },
-                        {
-                          "fontWeight": "700",
-                          "letterSpacing": 1,
-                        },
-                      ]
-                    }
-                  >
-                    4567
+                    search:trust.plateLocked
                   </Text>
                 </View>
               </View>
@@ -5738,7 +5670,7 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
                 }
               >
                 <View
-                  accessibilityLabel="search:trust.plateA11y"
+                  accessibilityLabel="search:trust.plateLockedA11y"
                   accessibilityRole="text"
                   accessible={true}
                   style={
@@ -5755,35 +5687,26 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
                         "paddingVertical": 4,
                       },
                       {
-                        "backgroundColor": "#14201B",
+                        "borderStyle": "dashed",
+                        "borderWidth": 1,
+                        "gap": 4,
+                        "paddingHorizontal": 8,
+                      },
+                      {
+                        "backgroundColor": "#E2E8E1",
                         "borderColor": "#CCD5CD",
                       },
                     ]
                   }
+                  testID="license-plate-locked"
                 >
-                  <Text
-                    style={
-                      [
-                        {
-                          "fontSize": 14,
-                          "fontWeight": "500",
-                          "lineHeight": 21,
-                        },
-                        null,
-                        {
-                          "color": "#F4F6F2",
-                          "textAlign": undefined,
-                          "writingDirection": "ltr",
-                        },
-                        {
-                          "fontWeight": "700",
-                          "letterSpacing": 1,
-                        },
-                      ]
-                    }
-                  >
-                    123
-                  </Text>
+                  <Ionicons
+                    accessibilityElementsHidden={true}
+                    color="#4F5C55"
+                    importantForAccessibility="no-hide-descendants"
+                    name="lock-closed"
+                    size={16}
+                  />
                   <Text
                     style={
                       [
@@ -5794,40 +5717,15 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
                         },
                         null,
                         {
-                          "color": "#F4F6F2",
+                          "color": "#4F5C55",
                           "textAlign": undefined,
                           "writingDirection": "ltr",
                         },
-                        {
-                          "fontWeight": "600",
-                        },
+                        undefined,
                       ]
                     }
                   >
-                    تونس
-                  </Text>
-                  <Text
-                    style={
-                      [
-                        {
-                          "fontSize": 14,
-                          "fontWeight": "500",
-                          "lineHeight": 21,
-                        },
-                        null,
-                        {
-                          "color": "#F4F6F2",
-                          "textAlign": undefined,
-                          "writingDirection": "ltr",
-                        },
-                        {
-                          "fontWeight": "700",
-                          "letterSpacing": 1,
-                        },
-                      ]
-                    }
-                  >
-                    4567
+                    search:trust.plateLocked
                   </Text>
                 </View>
               </View>

@@ -28,6 +28,7 @@ import type { Booking, DetourPreviewPoint } from '../../state/api';
 import {
   useGetBookingDetourPreviewQuery,
   useGetUserTrustSummaryQuery,
+  useGetConversationByBookingQuery,
   useAcceptBookingMutation,
   useDeclineBookingMutation,
 } from '../../state/api';
@@ -199,6 +200,13 @@ export function RequestDetailSheet({
   // adding a "Verified" badge for a rider would misrepresent a status that
   // doesn't exist for them. Absent entirely (not a placeholder star) until
   // the query actually resolves.
+  // The passenger's question, if they wrote one with the request (or since)
+  // — shown where the driver decides, with a direct way to answer.
+  const { data: conversation } = useGetConversationByBookingQuery(booking?.id ?? '', {
+    skip: !visible || !booking?.id || booking?.status !== 'pending',
+  });
+  const lastMessage = conversation?.lastMessage ?? null;
+  const lastFromRider = Boolean(lastMessage && booking && lastMessage.senderUserId === booking.riderId);
   const { data: riderTrust } = useGetUserTrustSummaryQuery(booking?.rider?.id ?? '', {
     skip: !visible || !booking?.rider?.id,
   });
@@ -283,6 +291,13 @@ export function RequestDetailSheet({
     }
   }
 
+  function openConversation(): void {
+    if (!booking) return;
+    haptics.selection();
+    onClose();
+    router.push(`/conversations/${booking.id}`);
+  }
+
   function viewProfile(): void {
     if (!booking!.rider) return;
     haptics.selection();
@@ -348,6 +363,33 @@ export function RequestDetailSheet({
           </View>
           {booking.rider ? <Icon name="chevron-forward" size="sm" color={theme.inkFaint} /> : null}
         </TouchableOpacity>
+
+        {booking.status === 'pending' && lastMessage ? (
+          <View style={[styles.requestMessage, { backgroundColor: theme.surfaceMuted }]}>
+            {lastFromRider ? (
+              <Text variant="body" color={theme.ink} numberOfLines={4}>
+                {`« ${lastMessage.body} »`}
+              </Text>
+            ) : (
+              <Text variant="bodySmall" color={theme.inkMuted}>
+                {t('driver:rides.requestDetail.youReplied')}
+              </Text>
+            )}
+            <TouchableOpacity
+              onPress={openConversation}
+              style={styles.replyLink}
+              accessibilityRole="button"
+              accessibilityLabel={
+                lastFromRider ? t('driver:rides.requestDetail.reply') : t('driver:rides.requestDetail.openConversation')
+              }
+            >
+              <Icon name="chatbubble-outline" size="xs" color={theme.accentStrong} />
+              <Text variant="label" color={theme.accentStrong}>
+                {lastFromRider ? t('driver:rides.requestDetail.reply') : t('driver:rides.requestDetail.openConversation')}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        ) : null}
 
         {/* M-054/M-061 (docs/unified_driver_and_passenger_journey.md §20/§22):
          *  the real, server-authoritative response deadline
@@ -549,6 +591,18 @@ export function RequestDetailSheet({
 }
 
 const styles = StyleSheet.create({
+  requestMessage: {
+    borderRadius: radii.lg,
+    padding: spacing.md,
+    gap: spacing.sm,
+  },
+  replyLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    alignSelf: 'flex-start',
+    minHeight: 32,
+  },
   content: {
     gap: spacing.sm,
     paddingBottom: spacing.xl,

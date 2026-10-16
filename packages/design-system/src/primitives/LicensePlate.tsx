@@ -1,12 +1,18 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Text } from './Text';
+import { Icon } from './Icon';
 import { spacing, radii } from '../tokens/index';
 import { useAppTheme } from '../theme/AppThemeProvider';
 import { lightPalette, type AppPalette } from '../theme/palette';
 
 interface LicensePlateProps {
-  plate: string;
+  /** Omit (with `lockedLabel`) while the plate isn't shared yet. */
+  plate?: string;
+  /** Shown in place of the plate while it's private — "Visible après
+   *  acceptation". The plate's own shape stays, so the passenger sees what
+   *  they'll get and why it's not there yet. */
+  lockedLabel?: string;
   accessibilityLabel: string;
   theme?: AppPalette;
 }
@@ -25,9 +31,32 @@ export function parseTunisianPlate(plate: string): { serial: string; number: str
  * change with the phone's setting) — a hairline keeps it distinct from a
  * dark background.
  */
-export function LicensePlate({ plate, accessibilityLabel, theme: themeOverride }: LicensePlateProps): React.JSX.Element {
+export function LicensePlate({
+  plate,
+  lockedLabel,
+  accessibilityLabel,
+  theme: themeOverride,
+}: LicensePlateProps): React.JSX.Element {
   const { colors } = useAppTheme();
   const theme = themeOverride ?? colors;
+
+  if (!plate) {
+    return (
+      <View
+        accessible
+        accessibilityRole="text"
+        accessibilityLabel={accessibilityLabel}
+        testID="license-plate-locked"
+        style={[styles.plate, styles.locked, { backgroundColor: theme.surfaceMuted, borderColor: theme.outline }]}
+      >
+        <Icon name="lock-closed" size="xs" color={theme.inkMuted} />
+        <Text variant="caption" color={theme.inkMuted}>
+          {lockedLabel ?? ''}
+        </Text>
+      </View>
+    );
+  }
+
   const parts = parseTunisianPlate(plate);
 
   return (
@@ -70,6 +99,12 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     // Plates read left-to-right in Tunisia even in an Arabic UI.
     direction: 'ltr',
+  },
+  locked: {
+    borderStyle: 'dashed',
+    borderWidth: 1,
+    gap: spacing.xs,
+    paddingHorizontal: spacing.sm,
   },
   digits: {
     letterSpacing: 1,

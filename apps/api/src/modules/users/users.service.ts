@@ -126,7 +126,8 @@ export async function getPublicProfile(db: Database, userId: string) {
                 model: vehicle.model,
                 color: vehicle.color,
                 photoUrl: vehicle.photoUrl,
-                plateNumber: vehicle.plateNumber,
+                // No plate here: it's shared only with an accepted passenger
+                // (GET /bookings/:id/vehicle).
               }
             : null,
         }

@@ -52,6 +52,7 @@ const conversationSummarySchema = z.object({
     })
     .nullable(),
   hasUnread: z.boolean(),
+  composer: z.enum(['open', 'awaiting_reply', 'closed']),
 });
 
 const messageResponseSchema = z.object({

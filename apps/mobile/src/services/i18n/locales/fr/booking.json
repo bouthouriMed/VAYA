@@ -84,7 +84,9 @@
       "onMyWay": "J'arrive !",
       "runningLate": "Je suis en retard",
       "thanks": "Merci !"
-    }
+    },
+    "awaitingReplyTitle": "Message envoyé",
+    "awaitingReplyBody": "Vous pourrez écrire à nouveau dès que {{name}} aura répondu."
   },
   "recurring": {
     "detectedTitle": "Trajet régulier détecté",
@@ -140,7 +142,8 @@
       "arriving": "Vous arrivez bientôt à destination"
     },
     "loadError": "Impossible de charger cette réservation",
-    "distanceToPickupFar": "Point de rendez-vous à {{distance}} de votre position"
+    "distanceToPickupFar": "Point de rendez-vous à {{distance}} de votre position",
+    "plateLocked": "Visible après acceptation"
   },
   "days": {
     "mon": "Lun",

@@ -167,7 +167,9 @@
     "reviewsPrivate": "تبقى التعليقات خاصة بين السائق والراكب.",
     "reviewsEmpty": "لم يتلقَّ {{name}} أي تقييمات بعد.",
     "messageAvailability": "متاح بمجرد قبول طلب مقعدك.",
-    "messageAvailabilityDriver": "متاح بمجرد قبولك لهذا الطلب."
+    "messageAvailabilityDriver": "متاح بمجرد قبولك لهذا الطلب.",
+    "plateLocked": "تظهر بعد القبول",
+    "plateLockedA11y": "تُشارك لوحة الترقيم بعد قبول الطلب"
   },
   "timePicker": {
     "when": "متى؟",
@@ -221,5 +223,26 @@
     "roundabout": "مفترق دائري",
     "highway_exit": "مخرج الطريق السيارة",
     "on_route": "على طريق السائق"
+  },
+  "requestSheet": {
+    "title": "إرسال طلبك",
+    "messageLabel": "كلمة لـ{{name}}؟ (اختياري)",
+    "messagePlaceholder": "سؤال، أمتعة، توضيح حول نقطة الالتقاء…",
+    "turnHint": "قبل قبول الطلب، يمكنك الكتابة مجددًا بعد ردّ {{name}}.",
+    "send": "إرسال الطلب",
+    "suggestion": {
+      "luggage": {
+        "chip": "أمتعة",
+        "text": "معي حقيبة، هل هذا ممكن؟"
+      },
+      "flexible": {
+        "chip": "مرونة",
+        "text": "يمكنني التأقلم مع الوقت إذا لزم الأمر."
+      },
+      "meetingPoint": {
+        "chip": "نقطة الالتقاء",
+        "text": "أين نلتقي بالضبط؟"
+      }
+    }
   }
 }

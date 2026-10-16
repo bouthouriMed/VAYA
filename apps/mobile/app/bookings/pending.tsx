@@ -2,12 +2,13 @@ import { useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, ScrollView, Share } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Reanimated, { FadeInDown, ZoomIn } from 'react-native-reanimated';
-import { Text, Icon, Button, MapPreview, ScreenHeader, useAppTheme, haptics, spacing, radii, staggerDelay, durations, Avatar } from '@vaya/design-system';
+import { Text, Icon, Button, MapPreview, ScreenHeader, LicensePlate, useAppTheme, haptics, spacing, radii, staggerDelay, durations, Avatar } from '@vaya/design-system';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import type { SupportedLocale } from '@vaya/config';
 import { CancellationSheet } from '../../src/features/bookings/CancellationSheet';
 import { formatCurrency } from '../../src/utils/localeFormat';
+import { useGetBookingVehicleQuery } from '../../src/state/api';
 
 export default function PendingScreen(): React.JSX.Element {
   const { t, i18n } = useTranslation(['booking', 'activeTrip', 'common']);
@@ -16,7 +17,6 @@ export default function PendingScreen(): React.JSX.Element {
     driverName?: string;
     price?: string;
     vehicleLabel?: string;
-    vehiclePlate?: string;
     driverRatingAvg?: string;
     pickupLabel?: string;
     destinationLabel?: string;
@@ -28,6 +28,9 @@ export default function PendingScreen(): React.JSX.Element {
   const { colors: theme } = useAppTheme();
   const insets = useSafeAreaInsets();
   const driverName = params.driverName ?? t('common:terms.driver');
+  // This screen is shown once the driver accepted — the plate comes from
+  // the server, which only shares it for an accepted booking.
+  const { data: bookingVehicle } = useGetBookingVehicleQuery(params.bookingId ?? '', { skip: !params.bookingId });
   const firstName = driverName.split(' ')[0]!;
   const priceLabel = params.price ? formatCurrency(Number(params.price), i18n.language as SupportedLocale) : '';
   const [cancelling, setCancelling] = useState(false);
@@ -149,11 +152,12 @@ export default function PendingScreen(): React.JSX.Element {
                   <Text variant="body" color={theme.ink}>
                     {params.vehicleLabel}
                   </Text>
-                  {params.vehiclePlate ? (
-                    <View style={[styles.platePill, { backgroundColor: theme.background, borderColor: theme.outlineVariant }]}>
-                      <Text variant="caption" color={theme.inkMuted} style={styles.plateText}>
-                        {params.vehiclePlate}
-                      </Text>
+                  {bookingVehicle ? (
+                    <View style={styles.plateRow}>
+                      <LicensePlate
+                        plate={bookingVehicle.plateNumber}
+                        accessibilityLabel={t('search:trust.plateA11y', { plate: bookingVehicle.plateNumber })}
+                      />
                     </View>
                   ) : null}
                 </View>
@@ -341,16 +345,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  platePill: {
+  plateRow: {
     marginTop: spacing.xs,
-    alignSelf: 'flex-start',
-    borderRadius: radii.sm,
-    borderWidth: 1,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
-  },
-  plateText: {
-    letterSpacing: 1.5,
   },
   sectionLabel: {
     letterSpacing: 0.8,

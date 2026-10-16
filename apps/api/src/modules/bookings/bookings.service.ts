@@ -1,6 +1,6 @@
 import { and, eq, inArray, isNotNull, ne, sql } from 'drizzle-orm';
 import type { getDatabase } from '../../lib/database.js';
-import { bookings, meetingPoints, rides, routeStops, riderProfiles, trips, users } from '../../db/schema/index.js';
+import { bookings, conversations, meetingPoints, messages, rides, routeStops, riderProfiles, trips, users, vehicles } from '../../db/schema/index.js';
 import { getLogger } from '../../config/logger.js';
 import { AppError, ConflictError, ForbiddenError, NotFoundError, ValidationError } from '../../lib/errors.js';
 import {
@@ -38,6 +38,7 @@ import { decodePolyline, polylineLengthMeters, projectPointOntoRoute } from '../
 // cancelBooking is untouched, this only adds a best-effort side effect
 // after each transition already succeeded.
 import { notifyBestEffort } from '../notifications/notifications.service.js';
+import { messagePreview } from '../notifications/notification-copy.js';
 // Phase 8 (docs/roadmap/phase-08-messaging.md): a conversation is
 // auto-created the moment a booking reaches `accepted`, and closed the
 // moment its trip is cancelled — both hooked in the same best-effort style
@@ -992,6 +993,7 @@ export async function createBooking(
   // duplicates). The final check + insert therefore run in one transaction
   // serialised per (rider, ride) by a transaction-scoped advisory lock: the
   // second request blocks until the first commits, then sees its row.
+  const requestMessage = input.message?.trim() || undefined;
   const booking = await db.transaction(async (tx) => {
     await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${`booking-request:${riderId}:${rideId}`}))`);
     const concurrentDuplicate = await tx.query.bookings.findFirst({
@@ -1041,6 +1043,14 @@ export async function createBooking(
       expiresAt: computeBookingExpiresAt(requestedAt, opConfig.bookingResponseWindowMinutes),
     })
     .returning();
+    // The passenger's one request message opens the conversation in the
+    // same transaction as the booking — it's the passenger's own words,
+    // so it can't be lost to a best-effort side effect.
+    if (inserted && requestMessage) {
+      const [conversation] = await tx.insert(conversations).values({ bookingId: inserted.id, status: 'open' }).returning();
+      if (!conversation) throw new Error('Failed to open the request conversation');
+      await tx.insert(messages).values({ conversationId: conversation.id, senderUserId: riderId, body: requestMessage });
+    }
     return inserted;
   });
   if (!booking) throw new Error('Failed to create booking');
@@ -1089,6 +1099,9 @@ export async function createBooking(
     rideOriginLabel: ride.originLabel,
     rideDestinationLabel: ride.destinationLabel,
     ...segmentFractionsOf(ride.routePolyline, { lat: pickupLat, lng: pickupLng }, dropoffLat !== null && dropoffLng !== null ? { lat: dropoffLat, lng: dropoffLng } : null),
+    // The passenger's question travels with the request so the driver can
+    // decide with it in hand (no separate message_received push for it).
+    ...(requestMessage ? { requestMessage: messagePreview(requestMessage) } : {}),
   });
 
   // Email-only receipt for the passenger (never pushed, never in the inbox).
@@ -2138,6 +2151,34 @@ export async function applyAutoNoShowClassification(
  *  when the counterpart genuinely has none (neither a verified `phone` nor
  *  a self-declared `contactPhone` on file) — an honest
  *  "no number on file" case, not an error. */
+/**
+ * The car a passenger should look for, plate included — like the phone
+ * number (getBookingContactPhone), the plate identifies a real person's car
+ * and is only shared once the two have a trip together: the booking's
+ * rider or its driver, while the booking is accepted. The public profile
+ * shows make/model/colour only.
+ */
+export async function getBookingVehicle(db: Database, bookingId: string, requestingUserId: string) {
+  const booking = await getBookingOrThrow(db, bookingId);
+  const isRider = booking.riderId === requestingUserId;
+  const isDriver = booking.ride.driverProfile.userId === requestingUserId;
+  if (!isRider && !isDriver) {
+    throw new ForbiddenError('Not authorized to view this booking');
+  }
+  if (booking.status !== 'accepted') {
+    throw new ForbiddenError('The vehicle plate is only shared for an accepted booking');
+  }
+  const vehicle = await db.query.vehicles.findFirst({ where: eq(vehicles.id, booking.ride.vehicleId) });
+  if (!vehicle) throw new NotFoundError('Vehicle');
+  return {
+    make: vehicle.make,
+    model: vehicle.model,
+    color: vehicle.color,
+    photoUrl: vehicle.photoUrl,
+    plateNumber: vehicle.plateNumber,
+  };
+}
+
 export async function getBookingContactPhone(
   db: Database,
   bookingId: string,

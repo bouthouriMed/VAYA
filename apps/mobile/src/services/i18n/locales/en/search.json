@@ -147,7 +147,9 @@
     "reviewsPrivate": "Comments stay private between driver and passenger.",
     "reviewsEmpty": "{{name}} hasn't received any reviews yet.",
     "messageAvailability": "Available once your seat request is accepted.",
-    "messageAvailabilityDriver": "Available once you accept this request."
+    "messageAvailabilityDriver": "Available once you accept this request.",
+    "plateLocked": "Shown once accepted",
+    "plateLockedA11y": "The licence plate is shared once the request is accepted"
   },
   "timePicker": {
     "when": "When?",
@@ -201,5 +203,26 @@
     "roundabout": "Roundabout",
     "highway_exit": "Highway exit",
     "on_route": "On the driver’s route"
+  },
+  "requestSheet": {
+    "title": "Send your request",
+    "messageLabel": "A word for {{name}}? (optional)",
+    "messagePlaceholder": "A question, luggage, a detail about the meeting point…",
+    "turnHint": "Until your request is accepted, you can write again once {{name}} has replied.",
+    "send": "Send request",
+    "suggestion": {
+      "luggage": {
+        "chip": "Luggage",
+        "text": "I have a bag — is that OK?"
+      },
+      "flexible": {
+        "chip": "Flexible",
+        "text": "I'm flexible on the time if needed."
+      },
+      "meetingPoint": {
+        "chip": "Meeting point",
+        "text": "Where exactly do we meet?"
+      }
+    }
   }
 }

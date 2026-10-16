@@ -61,7 +61,6 @@ const publicProfileResponseSchema = z.object({
           model: z.string(),
           color: z.string(),
           photoUrl: z.string().nullable(),
-          plateNumber: z.string(),
         })
         .nullable(),
     })

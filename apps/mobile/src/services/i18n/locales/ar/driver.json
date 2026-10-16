@@ -414,7 +414,10 @@
       "newOnVaya": "جديد على VAYA",
       "openInMaps": "فتح {{label}} في الخرائط",
       "yourRoute": "مسارك",
-      "thisRequest": "هذا الطلب"
+      "thisRequest": "هذا الطلب",
+      "reply": "ردّ",
+      "youReplied": "لقد رددت.",
+      "openConversation": "عرض المحادثة"
     },
     "bookingDetail": {
       "title": "تفاصيل الحجز",

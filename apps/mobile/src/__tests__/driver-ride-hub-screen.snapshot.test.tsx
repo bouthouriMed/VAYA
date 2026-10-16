@@ -238,6 +238,7 @@ function mockApi(requests: Booking[], tripsByBookingId: Record<string, Trip> = {
     // so an inert stub suffices, same as the other closed sheets above.
     useGetBookingDetourPreviewQuery: (): QueryResult<unknown> => ({}),
     useGetUserTrustSummaryQuery: (): QueryResult<TrustSummary> => ({ data: RIDER_TRUST_SUMMARY }),
+    useGetConversationByBookingQuery: () => ({ data: undefined }),
     // DriverBookingDetailSheet's Call button (useCallCounterpart) — rendered
     // closed (visible=false) so an inert stub suffices, same as the other
     // closed-sheet hooks above.

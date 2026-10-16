@@ -72,7 +72,6 @@ const DRIVER_PROFILE: PublicProfile = {
       model: '301',
       color: 'Noire',
       photoUrl: null,
-      plateNumber: '210TU3344',
     },
   },
 };
@@ -102,6 +101,10 @@ function mockApi(): void {
     }),
     useGetUserPublicProfileQuery: (): QueryResult<PublicProfile> => ({ data: DRIVER_PROFILE }),
     useGetUserTrustSummaryQuery: (): QueryResult<TrustSummary> => ({ data: TRUST_SUMMARY }),
+    // The plate comes from the booking-scoped endpoint once accepted.
+    useGetBookingVehicleQuery: () => ({
+      data: { make: 'Peugeot', model: '208', color: 'Gris', photoUrl: null, plateNumber: '214 TU 5521' },
+    }),
     // CancellationSheet's transitive hooks — rendered closed (visible=false)
     // so inert stubs suffice; they just have to exist.
     useCancelBookingMutation: (): MutationTuple => [vi.fn(), { isLoading: false }],

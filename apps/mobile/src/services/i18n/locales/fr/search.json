@@ -147,7 +147,9 @@
     "reviewsPrivate": "Les commentaires restent privés entre conducteur et passager.",
     "reviewsEmpty": "{{name}} n'a pas encore reçu d'avis.",
     "messageAvailability": "Disponible une fois votre demande de place acceptée.",
-    "messageAvailabilityDriver": "Disponible une fois cette demande acceptée."
+    "messageAvailabilityDriver": "Disponible une fois cette demande acceptée.",
+    "plateLocked": "Visible après acceptation",
+    "plateLockedA11y": "La plaque d'immatriculation est communiquée une fois la demande acceptée"
   },
   "timePicker": {
     "when": "Quand ?",
@@ -201,5 +203,26 @@
     "roundabout": "Rond-point",
     "highway_exit": "Sortie d’autoroute",
     "on_route": "Sur la route du conducteur"
+  },
+  "requestSheet": {
+    "title": "Envoyer votre demande",
+    "messageLabel": "Un mot pour {{name}} ? (facultatif)",
+    "messagePlaceholder": "Une question, un bagage, une précision sur le rendez-vous…",
+    "turnHint": "Avant l'acceptation, vous pourrez écrire à nouveau dès que {{name}} aura répondu.",
+    "send": "Envoyer la demande",
+    "suggestion": {
+      "luggage": {
+        "chip": "Bagage",
+        "text": "J'ai un bagage, est-ce que ça passe ?"
+      },
+      "flexible": {
+        "chip": "Flexible",
+        "text": "Je suis flexible sur l'heure si besoin."
+      },
+      "meetingPoint": {
+        "chip": "Rendez-vous",
+        "text": "Où exactement se retrouve-t-on ?"
+      }
+    }
   }
 }

@@ -74,6 +74,12 @@ describe('composeNotification', () => {
     });
   });
 
+  it("quotes the passenger's request message before the deadline", () => {
+    expect(
+      composeNotification('booking_requested', { requestMessage: "J'ai une valise" }, { ...FULL, role: 'driver' }, 'fr', NOW).body,
+    ).toBe("Mehdi demande 2 places pour aujourd'hui à 19:14. « J'ai une valise » Répondez avant 18:45.");
+  });
+
   it('says who cancelled and what it means for the recipient', () => {
     const toDriver = composeNotification('booking_cancelled', {}, { ...FULL, role: 'driver', seats: 1 }, 'fr', NOW);
     expect(toDriver.title).toBe('Mehdi a annulé sa réservation');

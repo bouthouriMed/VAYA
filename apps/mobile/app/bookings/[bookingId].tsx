@@ -25,11 +25,13 @@ import {
   radii,
   haptics,
   regionForPoints,
+  LicensePlate,
 } from '@vaya/design-system';
 import {
   useListMyBookingsQuery,
   useGetRideQuery,
   useGetUserPublicProfileQuery,
+  useGetBookingVehicleQuery,
   useGetUserTrustSummaryQuery,
   useGetRideItineraryRouteQuery,
   type Booking,
@@ -105,7 +107,8 @@ function DriverCard({
   bookingId: string;
   /** The car to look for at the meeting point — part of the driver, not a
    *  separate topic, so it lives in this card. */
-  vehicle?: { label: string; plate: string };
+  /** `plate` only once accepted; `plateLocked` while the request is pending. */
+  vehicle?: { label: string; plate?: string; plateLocked: boolean };
 }): React.JSX.Element {
   // Real UX feedback: a "Nouveau" trust-tier badge here is redundant with
   // "New on VAYA" already shown right below the driver's name — both are
@@ -158,18 +161,22 @@ function DriverCard({
         <View
           style={[styles.vehicleRow, { borderTopColor: theme.outlineVariant }]}
           accessible
-          accessibilityLabel={`${t('common:terms.vehicle')}: ${vehicle.label}, ${vehicle.plate}`}
+          accessibilityLabel={`${t('common:terms.vehicle')}: ${vehicle.label}`}
         >
           <Icon name="car-sport-outline" size="sm" color={theme.inkMuted} />
           <Text variant="bodySmall" color={theme.ink} numberOfLines={1} style={styles.vehicleLabel}>
             {vehicle.label}
           </Text>
-          {vehicle.plate ? (
-            <View style={[styles.plateChip, { borderColor: theme.ink }]}>
-              <Text variant="caption" color={theme.ink} style={styles.plateText}>
-                {vehicle.plate}
-              </Text>
-            </View>
+          {vehicle.plate || vehicle.plateLocked ? (
+            <LicensePlate
+              plate={vehicle.plate}
+              lockedLabel={t('booking:detail.plateLocked')}
+              accessibilityLabel={
+                vehicle.plate
+                  ? t('search:trust.plateA11y', { plate: vehicle.plate })
+                  : t('booking:detail.plateLocked')
+              }
+            />
           ) : null}
         </View>
       ) : null}
@@ -278,6 +285,10 @@ export default function BookingDetailScreen(): React.JSX.Element {
   });
   const { data: trustSummary } = useGetUserTrustSummaryQuery(booking?.ride?.driverUserId ?? '', {
     skip: !booking?.ride?.driverUserId,
+  });
+  // The plate is shared only once the driver accepted (server-enforced).
+  const { data: bookingVehicle } = useGetBookingVehicleQuery(bookingId, {
+    skip: booking?.status !== 'accepted',
   });
   // Live tracking (docs/domain/live-tracking.md): a trip row only exists
   // once the driver has accepted (bookings.service.ts's acceptBooking), and
@@ -611,7 +622,8 @@ export default function BookingDetailScreen(): React.JSX.Element {
             driverProfile?.driver?.vehicle
               ? {
                   label: `${driverProfile.driver.vehicle.make} ${driverProfile.driver.vehicle.model}, ${driverProfile.driver.vehicle.color}`,
-                  plate: driverProfile.driver.vehicle.plateNumber,
+                  plate: bookingVehicle?.plateNumber,
+                  plateLocked: booking.status === 'pending',
                 }
               : undefined
           }
@@ -885,18 +897,6 @@ const styles = StyleSheet.create({
   },
   vehicleLabel: {
     flex: 1,
-  },
-  // Licence-plate chip: how you actually spot your ride at the kerb.
-  plateChip: {
-    borderWidth: 1.5,
-    borderRadius: radii.sm,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
-  },
-  plateText: {
-    fontWeight: '700',
-    letterSpacing: 0.5,
-    fontVariant: ['tabular-nums'],
   },
   scrollSpacer: {
     height: spacing['3xl'],
