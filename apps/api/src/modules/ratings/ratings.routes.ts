@@ -14,6 +14,9 @@ const tierAggregateSchema = z.object({
   ratingAvg: z.number(),
   tripCount: z.number(),
   punctualityScore: z.number(),
+  ratingCount: z.number().int(),
+  starCounts: z.tuple([z.number(), z.number(), z.number(), z.number(), z.number()]),
+  punctualityRatingCount: z.number().int(),
 });
 
 const trustSummaryResponseSchema = z.object({

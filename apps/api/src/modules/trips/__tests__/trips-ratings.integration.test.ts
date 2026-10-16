@@ -203,9 +203,12 @@ describe('trips + ratings — full lifecycle (Phase 9)', () => {
     expect(driverTrustSeenByRider.driver?.ratingAvg).toBeCloseTo(5, 5);
     expect(driverTrustSeenByRider.driver?.tier).toBe('new'); // only 1 trip so far
     expect(driverTrustSeenByRider).not.toHaveProperty('comment');
+    expect(driverTrustSeenByRider.driver?.ratingCount).toBe(1);
+    expect(driverTrustSeenByRider.driver?.starCounts).toEqual([0, 0, 0, 0, 1]);
 
     const riderTrustSeenByDriver = await getTrustSummary(db, riderId);
     expect(riderTrustSeenByDriver.rider?.ratingAvg).toBeCloseTo(4, 5);
+    expect(riderTrustSeenByDriver.rider?.starCounts).toEqual([0, 0, 0, 1, 0]);
 
     // Already rated by both — no pending prompt remains for either party.
     expect(await getPendingRatingForUser(db, riderId)).toBeNull();

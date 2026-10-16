@@ -295,6 +295,53 @@ interface TierAggregate {
   ratingAvg: number;
   tripCount: number;
   punctualityScore: number;
+  /** How many ratings `ratingAvg` is the average of — "4,8 · 12 avis"
+   *  instead of a bare average that reads the same after 1 rating or 100. */
+  ratingCount: number;
+  /** Ratings per star value, index 0 = 1★ … index 4 = 5★. Counts only,
+   *  never comment text. */
+  starCounts: [number, number, number, number, number];
+  /** How many ratings answered the punctuality question —
+   *  `punctualityScore` is 0 both when nobody answered and when everyone
+   *  said "late", so a screen needs this to tell the two apart. */
+  punctualityRatingCount: number;
+}
+
+type RatingBreakdown = Pick<TierAggregate, 'ratingCount' | 'starCounts' | 'punctualityRatingCount'>;
+
+const EMPTY_BREAKDOWN: RatingBreakdown = {
+  ratingCount: 0,
+  starCounts: [0, 0, 0, 0, 0],
+  punctualityRatingCount: 0,
+};
+
+/** Star histogram + counts of the ratings a user received in one role. */
+async function getRatingBreakdown(
+  db: Database,
+  userId: string,
+  role: 'rider_rates_driver' | 'driver_rates_rider',
+): Promise<RatingBreakdown> {
+  const rows = await db
+    .select({
+      stars: ratings.stars,
+      count: sql<number>`count(*)::int`,
+      punctualityCount: sql<number>`count(${ratings.punctualityFlag})::int`,
+    })
+    .from(ratings)
+    .where(and(eq(ratings.rateeUserId, userId), eq(ratings.role, role)))
+    .groupBy(ratings.stars);
+
+  if (rows.length === 0) return EMPTY_BREAKDOWN;
+  const starCounts: RatingBreakdown['starCounts'] = [0, 0, 0, 0, 0];
+  let ratingCount = 0;
+  let punctualityRatingCount = 0;
+  for (const row of rows) {
+    const index = Math.min(5, Math.max(1, row.stars)) - 1;
+    starCounts[index] = (starCounts[index] ?? 0) + row.count;
+    ratingCount += row.count;
+    punctualityRatingCount += row.punctualityCount;
+  }
+  return { ratingCount, starCounts, punctualityRatingCount };
 }
 
 /**
@@ -313,9 +360,11 @@ export async function getTrustSummary(db: Database, userId: string) {
     (Date.now() - user.createdAt.getTime()) / (1000 * 60 * 60 * 24),
   );
 
-  const [driverProfile, riderProfile] = await Promise.all([
+  const [driverProfile, riderProfile, driverBreakdown, riderBreakdown] = await Promise.all([
     db.query.driverProfiles.findFirst({ where: eq(driverProfiles.userId, userId) }),
     db.query.riderProfiles.findFirst({ where: eq(riderProfiles.userId, userId) }),
+    getRatingBreakdown(db, userId, 'rider_rates_driver'),
+    getRatingBreakdown(db, userId, 'driver_rates_rider'),
   ]);
 
   let driver: TierAggregate | null = null;
@@ -329,6 +378,7 @@ export async function getTrustSummary(db: Database, userId: string) {
       ratingAvg: driverProfile.ratingAvg,
       tripCount: driverProfile.tripCount,
       punctualityScore: driverProfile.punctualityScore,
+      ...driverBreakdown,
     };
   }
 
@@ -343,6 +393,7 @@ export async function getTrustSummary(db: Database, userId: string) {
       ratingAvg: riderProfile.ratingAvg,
       tripCount: riderProfile.tripCount,
       punctualityScore: riderProfile.punctualityScore,
+      ...riderBreakdown,
     };
   }
 

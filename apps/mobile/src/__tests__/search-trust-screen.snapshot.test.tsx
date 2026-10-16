@@ -28,7 +28,9 @@ const fullProfile: PublicProfile = {
   id: 'user-1',
   fullName: 'Mehdi Gharbi',
   avatarUrl: null,
+  memberSince: '2025-03-14T10:00:00Z',
   driver: {
+    verified: true,
     bio: 'Conducteur ponctuel, trajets Tunis-Nabeul tous les jours.',
     languages: ['Français', 'Arabe'],
     ratingAvg: 4.7,
@@ -47,7 +49,7 @@ const fullProfile: PublicProfile = {
 
 const trustSummaryTopRated: TrustSummary = {
   userId: 'user-1',
-  driver: { tier: 'top_rated', ratingAvg: 4.7, tripCount: 128, punctualityScore: 0.95 },
+  driver: { tier: 'top_rated', ratingAvg: 4.7, tripCount: 128, punctualityScore: 0.95, ratingCount: 96, starCounts: [1, 1, 4, 16, 74], punctualityRatingCount: 80 },
   rider: null,
 };
 
@@ -129,7 +131,7 @@ describe('search/trust.tsx snapshots', () => {
     mockApi({ ...fullProfile, driver: null }, false, {
       userId: 'user-1',
       driver: null,
-      rider: { tier: 'trusted', ratingAvg: 4.3, tripCount: 9, punctualityScore: 0.9 },
+      rider: { tier: 'trusted', ratingAvg: 4.3, tripCount: 9, punctualityScore: 0.9, ratingCount: 7, starCounts: [0, 0, 1, 3, 3], punctualityRatingCount: 5 },
     });
     const { default: TrustScreen } = await import('../../app/search/trust');
     const tree = renderJSON(<TrustScreen />);
@@ -148,5 +150,64 @@ describe('search/trust.tsx snapshots', () => {
     const { default: TrustScreen } = await import('../../app/search/trust');
     const tree = renderJSON(<TrustScreen />);
     expect(tree).toMatchSnapshot();
+  });
+  it('renders a brand-new verified driver: welcome and VAYA checks instead of empty numbers', async () => {
+    vi.resetModules();
+    searchParams = { rideId: 'ride-1', driverUserId: 'user-1' };
+    mockApi(
+      { ...fullProfile, driver: { ...fullProfile.driver!, ratingAvg: 0, tripCount: 0, punctualityScore: 0, reliabilityScore: 0, bio: null } },
+      false,
+      {
+        userId: 'user-1',
+        driver: { tier: 'new', ratingAvg: 0, tripCount: 0, punctualityScore: 0, ratingCount: 0, starCounts: [0, 0, 0, 0, 0], punctualityRatingCount: 0 },
+        rider: null,
+      },
+    );
+    const { default: TrustScreen } = await import('../../app/search/trust');
+    const tree = renderJSON(<TrustScreen />);
+    const text = JSON.stringify(tree);
+    expect(text).toContain('search:trust.welcomeTitle');
+    expect(text).toContain('search:trust.verifiedByVaya');
+    expect(text).not.toContain('search:trust.reviewsTitle');
+    expect(text).not.toContain('—');
+    expect(tree).toMatchSnapshot();
+  });
+
+  it('renders a driver with trips but no review yet without a placeholder rating', async () => {
+    vi.resetModules();
+    searchParams = { rideId: 'ride-1', driverUserId: 'user-1' };
+    mockApi(
+      { ...fullProfile, driver: { ...fullProfile.driver!, ratingAvg: 0, tripCount: 1, punctualityScore: 0, reliabilityScore: 0 } },
+      false,
+      {
+        userId: 'user-1',
+        driver: { tier: 'new', ratingAvg: 0, tripCount: 1, punctualityScore: 0, ratingCount: 0, starCounts: [0, 0, 0, 0, 0], punctualityRatingCount: 0 },
+        rider: null,
+      },
+    );
+    const { default: TrustScreen } = await import('../../app/search/trust');
+    const tree = renderJSON(<TrustScreen />);
+    const text = JSON.stringify(tree);
+    expect(text).not.toContain('—');
+    expect(text).toContain('search:trust.reviewsEmpty');
+    expect(text).not.toContain('search:trust.welcomeTitle');
+    expect(tree).toMatchSnapshot();
+  });
+
+  it('never shows "Vérifié" for a driver whose documents are still under review', async () => {
+    vi.resetModules();
+    searchParams = { rideId: 'ride-1', driverUserId: 'user-1' };
+    mockApi(
+      { ...fullProfile, driver: { ...fullProfile.driver!, verified: false, tripCount: 0, ratingAvg: 0 } },
+      false,
+      { userId: 'user-1', driver: null, rider: null },
+    );
+    const { default: TrustScreen } = await import('../../app/search/trust');
+    const tree = renderJSON(<TrustScreen />);
+    const text = JSON.stringify(tree);
+    expect(text).not.toContain('search:trust.verifiedByVaya');
+    expect(text).not.toContain('search:trust.verifiedA11y');
+    expect(text).toContain('search:trust.verificationPending');
+    expect(text).not.toContain('search:trust.welcomeBodyDriver');
   });
 });

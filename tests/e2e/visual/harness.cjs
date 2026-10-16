@@ -66,8 +66,29 @@ const NOTIFS = [
   notif('n3', 'message_received', { bookingId: 'b1', conversationId: 'c1', senderName: 'Mehdi Jaziri' }, -5, true),
   notif('n4', 'trip_completed', { bookingId: 'b3', tripId: 't3' }, -60*24*7, true),
 ];
-const publicProfile = (id) => ({ id, fullName: 'Mehdi Jaziri', avatarUrl: null, driver: { bio: 'Ingénieur, je fais Tunis–Sousse chaque semaine. Musique douce, pas de fumée.', languages: ['fr', 'ar'], ratingAvg: 4.9, tripCount: 58, punctualityScore: 0.97, reliabilityScore: 0.98, vehicle: { make: 'Volkswagen', model: 'Golf 7', color: 'Blanc', photoUrl: null, plateNumber: '198 TU 3301' } } });
-const TRUST = (id) => ({ userId: id, driver: { tier: 'top_rated', ratingAvg: 4.9, tripCount: 58, punctualityScore: 0.97 }, rider: { tier: 'trusted', ratingAvg: 4.7, tripCount: 9, punctualityScore: 0.9 } });
+// Profile variants for search/trust.tsx, picked by user id: u-d1 (top
+// driver), u-new (verified, no trips), u-one (1 trip, no review),
+// u-pending (documents under review), u-rider (a passenger).
+const PROFILE_VEHICLE = { make: 'Volkswagen', model: 'Golf 7', color: 'Blanc', photoUrl: null, plateNumber: '198 TU 3301' };
+const DRIVER_PUBLIC = { verified: true, bio: 'Ingénieur, je fais Tunis–Sousse chaque semaine. Musique douce, pas de fumée.', languages: ['Français', 'Arabe'], ratingAvg: 4.9, tripCount: 58, punctualityScore: 0.97, reliabilityScore: 0.98, vehicle: PROFILE_VEHICLE };
+const PROFILE_VARIANTS = {
+  'u-d1': { fullName: 'Mehdi Jaziri', memberSince: '2024-11-03T09:00:00Z', driver: DRIVER_PUBLIC },
+  'u-new': { fullName: 'Dinara Kacem', memberSince: iso(-60*24*6), driver: { ...DRIVER_PUBLIC, bio: null, languages: ['Français'], ratingAvg: 0, tripCount: 0, punctualityScore: 0, reliabilityScore: 0, vehicle: { ...PROFILE_VEHICLE, make: 'Peugeot', model: '208', color: 'Gris', plateNumber: '208 TU 3333' } } },
+  'u-one': { fullName: 'Dinara Kacem', memberSince: iso(-60*24*20), driver: { ...DRIVER_PUBLIC, bio: null, languages: null, ratingAvg: 0, tripCount: 1, punctualityScore: 0, reliabilityScore: 0, vehicle: { ...PROFILE_VEHICLE, make: 'Peugeot', model: '208', color: 'Gris', plateNumber: '208 TU 3333' } } },
+  'u-pending': { fullName: 'Karim Ayari', memberSince: iso(-60*24*2), driver: { ...DRIVER_PUBLIC, verified: false, bio: null, ratingAvg: 0, tripCount: 0, punctualityScore: 0, reliabilityScore: 0 } },
+  'u-rider': { fullName: 'Sarra Trabelsi', memberSince: '2025-06-12T09:00:00Z', driver: null },
+};
+const agg = (o) => ({ tier: 'new', ratingAvg: 0, tripCount: 0, punctualityScore: 0, ratingCount: 0, starCounts: [0, 0, 0, 0, 0], punctualityRatingCount: 0, ...o });
+const TRUST_VARIANTS = {
+  'u-d1': { driver: agg({ tier: 'top_rated', ratingAvg: 4.9, tripCount: 58, punctualityScore: 0.97, ratingCount: 47, starCounts: [0, 0, 1, 3, 43], punctualityRatingCount: 39 }), rider: agg({ tier: 'trusted', ratingAvg: 4.7, tripCount: 9, ratingCount: 6, starCounts: [0, 0, 0, 2, 4] }) },
+  'u-new': { driver: agg({}), rider: null },
+  'u-one': { driver: agg({ tripCount: 1 }), rider: null },
+  'u-pending': { driver: agg({}), rider: null },
+  'u-rider': { driver: null, rider: agg({ tier: 'trusted', ratingAvg: 4.7, tripCount: 9, punctualityScore: 0.89, ratingCount: 7, starCounts: [0, 0, 1, 2, 4], punctualityRatingCount: 6 }) },
+};
+const userIdOf = (url) => (/\/users\/([^/?]+)/.exec(url) || [])[1] || 'u-d1';
+const publicProfile = (id) => ({ id, avatarUrl: null, ...(PROFILE_VARIANTS[id] || PROFILE_VARIANTS['u-d1']) });
+const TRUST = (id) => ({ userId: id, ...(TRUST_VARIANTS[id] || TRUST_VARIANTS['u-d1']) });
 const PATTERNS = [{ id: 'p1', userId: 'u-me', role: 'rider', routeId: null, originLabel: 'Ariana', originLat: 36.86, originLng: 10.19, destinationLabel: 'Tunis, Lac 2', destinationLat: 36.84, destinationLng: 10.27, daysOfWeekMask: 31, timeWindowStart: '07:30', timeWindowEnd: '08:30', confidenceScore: 0.82, status: 'suggested', lastMatchedAt: null, createdAt: iso(-60*24*3), updatedAt: iso(-60*24*3), matchesToday: false, todayRideId: null }];
 const TRIP = { id: 't1', bookingId: 'b1', rideId: 'r9', status: 'scheduled', simulationStartedAt: null, pickupConfirmedAt: null, dropoffAt: null, completedAt: null, riderSettlementConfirmedAt: null, driverSettlementConfirmedAt: null, startedAt: null };
 const PREDICTIONS = [
@@ -105,8 +126,8 @@ function defaultFixtures(opts = {}) {
     ['GET', /\/conversations$/, () => CONVS],
     ['GET', /\/conversations\/[^/]+\/messages/, () => MESSAGES],
     ['GET', /\/conversations\/[^/]+$/, () => CONVS[0]],
-    ['GET', /\/users\/[^/]+\/trust-summary$/, (m) => TRUST(m[0])],
-    ['GET', /\/users\/[^/]+$/, () => publicProfile('u-d1')],
+    ['GET', /\/users\/[^/]+\/trust-summary$/, (m) => TRUST(userIdOf(m[0]))],
+    ['GET', /\/users\/[^/]+$/, (m) => publicProfile(userIdOf(m[0]))],
     ['GET', /\/trips\/pending-rating$/, () => null],
     ['GET', /\/trips\/[^/]+\/tracking$/, () => ({ tripStatus: 'scheduled', trackingStatus: 'not_started', currentLat: null, currentLng: null, currentHeadingDeg: null, currentSpeedMps: null, locationUpdatedAt: null, routePolyline: POLY, pickup: { lat: 36.74, lng: 10.23, label: 'Ben Arous' }, destination: { lat: 35.8256, lng: 10.6084, label: 'Sousse' } })],
     ['POST', /\/trips\/[^/]+\/complete$/, () => ({ ...TRIP, status: 'completed', completedAt: iso(0) })],

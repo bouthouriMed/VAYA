@@ -287,7 +287,13 @@ export interface PublicProfile {
   id: string;
   fullName: string;
   avatarUrl: string | null;
+  /** ISO timestamp of account creation — shown as "Membre depuis …". */
+  memberSince: string;
   driver: {
+    /** Admin-approved driver verification. A driver profile also exists
+     *  while documents are still being reviewed — never show "Vérifié"
+     *  without this. */
+    verified: boolean;
     bio: string | null;
     languages: string[] | null;
     ratingAvg: number;
@@ -691,6 +697,12 @@ export interface TierAggregate {
   ratingAvg: number;
   tripCount: number;
   punctualityScore: number;
+  /** Number of ratings behind `ratingAvg`. */
+  ratingCount: number;
+  /** Ratings per star, index 0 = 1★ … index 4 = 5★. */
+  starCounts: [number, number, number, number, number];
+  /** Ratings that answered the punctuality question (0 → no signal yet). */
+  punctualityRatingCount: number;
 }
 
 export interface TrustSummary {

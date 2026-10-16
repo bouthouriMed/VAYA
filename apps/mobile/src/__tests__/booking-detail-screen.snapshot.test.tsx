@@ -58,7 +58,9 @@ const DRIVER_PROFILE: PublicProfile = {
   id: 'driver-amine',
   fullName: 'Amine Ben Salah',
   avatarUrl: null,
+  memberSince: '2025-03-14T10:00:00Z',
   driver: {
+    verified: true,
     bio: 'Trajets réguliers Tunis-Hammamet.',
     languages: ['Français', 'Arabe'],
     ratingAvg: 4.85,
@@ -77,7 +79,7 @@ const DRIVER_PROFILE: PublicProfile = {
 
 const TRUST_SUMMARY: TrustSummary = {
   userId: 'driver-amine',
-  driver: { tier: 'trusted', ratingAvg: 4.85, tripCount: 130, punctualityScore: 0.93 },
+  driver: { tier: 'trusted', ratingAvg: 4.85, tripCount: 130, punctualityScore: 0.93, ratingCount: 0, starCounts: [0, 0, 0, 0, 0], punctualityRatingCount: 0 },
   rider: null,
 };
 

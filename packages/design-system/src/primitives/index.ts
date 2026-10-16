@@ -59,3 +59,7 @@ export { ActivityRow } from './ActivityRow';
 export type { ActivityTone } from './ActivityRow';
 export { FactRow } from './FactRow';
 export type { Fact } from './FactRow';
+export { RatingBreakdown, starShape } from './RatingBreakdown';
+export { VerificationSeal } from './VerificationSeal';
+export type { VerificationCheck } from './VerificationSeal';
+export { LicensePlate, parseTunisianPlate } from './LicensePlate';

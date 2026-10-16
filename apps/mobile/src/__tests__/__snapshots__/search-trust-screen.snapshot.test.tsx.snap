@@ -123,88 +123,106 @@ exports[`search/trust.tsx snapshots > enables a real Message button once a conve
   <ScrollView
     contentContainerStyle={
       {
-        "gap": 12,
-        "padding": 16,
+        "paddingBottom": 24,
+        "paddingHorizontal": 16,
+        "paddingTop": 12,
       }
     }
     showsVerticalScrollIndicator={false}
   >
-    <View
+    <Animated.View
       style={
-        {
-          "alignItems": "center",
-          "gap": 8,
-        }
+        [
+          {
+            "gap": 20,
+          },
+          {
+            "opacity": AnimatedValue {
+              "value": 0,
+            },
+            "transform": [
+              {
+                "translateY": "0%",
+              },
+            ],
+          },
+        ]
       }
     >
       <View
         style={
           {
-            "position": "relative",
+            "alignItems": "center",
+            "gap": 4,
           }
         }
       >
         <View
-          accessibilityLabel="Photo de Mehdi Gharbi"
-          accessibilityRole="image"
-          accessible={true}
           style={
             [
               {
-                "alignItems": "center",
-                "justifyContent": "center",
+                "borderRadius": 62,
+                "borderWidth": 2,
+                "marginBottom": 8,
+                "padding": 4,
               },
               {
-                "backgroundColor": "#8FD9B4",
-                "borderRadius": 52,
-                "height": 104,
-                "width": 104,
-              },
-              {
-                "borderColor": "#F7F9F5",
-                "borderWidth": 3,
+                "borderColor": "#DEE5DE",
               },
             ]
           }
         >
-          <Text
+          <View
+            accessibilityLabel="Photo de Mehdi Gharbi"
+            accessibilityRole="image"
+            accessible={true}
             style={
               [
                 {
-                  "fontWeight": "600",
+                  "alignItems": "center",
+                  "justifyContent": "center",
                 },
                 {
-                  "color": "#14201B",
-                  "fontSize": 42,
+                  "backgroundColor": "#8FD9B4",
+                  "borderRadius": 56,
+                  "height": 112,
+                  "width": 112,
                 },
+                undefined,
               ]
             }
           >
-            MG
-          </Text>
+            <Text
+              style={
+                [
+                  {
+                    "fontWeight": "600",
+                  },
+                  {
+                    "color": "#14201B",
+                    "fontSize": 45,
+                  },
+                ]
+              }
+            >
+              MG
+            </Text>
+          </View>
         </View>
-      </View>
-      <View
-        style={
-          {
-            "alignItems": "center",
-            "flexDirection": "row",
-            "gap": 8,
-          }
-        }
-      >
         <Text
+          accessibilityRole="header"
           style={
             [
               {
-                "fontSize": 30,
-                "fontWeight": "700",
-                "lineHeight": 36,
+                "fontFamily": "Fraunces_500Medium",
+                "fontSize": 36,
+                "letterSpacing": -0.3,
+                "lineHeight": 38.88,
               },
               null,
               {
                 "color": "#14201B",
-                "textAlign": undefined,
+                "textAlign": "center",
                 "writingDirection": "ltr",
               },
               undefined,
@@ -213,15 +231,175 @@ exports[`search/trust.tsx snapshots > enables a real Message button once a conve
         >
           Mehdi
         </Text>
+        <Text
+          style={
+            [
+              {
+                "fontSize": 14,
+                "fontWeight": "400",
+                "lineHeight": 21,
+              },
+              null,
+              {
+                "color": "#4F5C55",
+                "textAlign": "center",
+                "writingDirection": "ltr",
+              },
+              undefined,
+            ]
+          }
+        >
+          search:trust.roleRider · search:trust.memberSince
+        </Text>
+        <View
+          style={
+            {
+              "flexDirection": "row",
+              "flexWrap": "wrap",
+              "gap": 8,
+              "justifyContent": "center",
+              "marginTop": 8,
+            }
+          }
+        >
+          <View
+            accessibilityLabel="search:trust.tierNew"
+            accessibilityRole="text"
+            accessible={true}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "alignSelf": "flex-start",
+                  "borderRadius": 9999,
+                  "flexDirection": "row",
+                  "gap": 4,
+                  "paddingHorizontal": 12,
+                  "paddingVertical": 6,
+                },
+                {
+                  "backgroundColor": "#E2E8E1",
+                },
+                undefined,
+              ]
+            }
+          >
+            <Ionicons
+              accessibilityElementsHidden={true}
+              color="#22794F"
+              importantForAccessibility="no-hide-descendants"
+              name="sparkles"
+              size={16}
+            />
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 14,
+                    "fontWeight": "600",
+                  },
+                  {
+                    "color": "#4F5C55",
+                  },
+                ]
+              }
+            >
+              search:trust.tierNew
+            </Text>
+          </View>
+        </View>
       </View>
-    </View>
-    <View
-      style={
-        {
-          "height": 100,
+      <View
+        style={
+          [
+            {
+              "alignItems": "flex-start",
+              "borderRadius": 16,
+              "flexDirection": "row",
+              "gap": 12,
+              "padding": 16,
+            },
+            {
+              "backgroundColor": "#8FD9B440",
+            },
+          ]
         }
-      }
-    />
+      >
+        <View
+          style={
+            [
+              {
+                "alignItems": "center",
+                "borderRadius": 9999,
+                "height": 36,
+                "justifyContent": "center",
+                "width": 36,
+              },
+              {
+                "backgroundColor": "#2E9E6C",
+              },
+            ]
+          }
+        >
+          <Ionicons
+            accessibilityElementsHidden={true}
+            color="#0D1512"
+            importantForAccessibility="no-hide-descendants"
+            name="sparkles"
+            size={20}
+          />
+        </View>
+        <View
+          style={
+            {
+              "flex": 1,
+              "gap": 4,
+            }
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 14,
+                  "fontWeight": "500",
+                  "lineHeight": 21,
+                },
+                null,
+                {
+                  "color": "#14201B",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            search:trust.welcomeTitle
+          </Text>
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "lineHeight": 21,
+                },
+                null,
+                {
+                  "color": "#4F5C55",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            search:trust.welcomeBodyRider
+          </Text>
+        </View>
+      </View>
+    </Animated.View>
   </ScrollView>
   <View
     style={
@@ -233,7 +411,7 @@ exports[`search/trust.tsx snapshots > enables a real Message button once a conve
           "paddingTop": 12,
         },
         {
-          "backgroundColor": "#F7F9F5",
+          "backgroundColor": "#EEF1EC",
           "borderTopColor": "#DEE5DE",
           "paddingBottom": 8,
         },
@@ -416,88 +594,106 @@ exports[`search/trust.tsx snapshots > renders a brand-new passenger profile (no 
   <ScrollView
     contentContainerStyle={
       {
-        "gap": 12,
-        "padding": 16,
+        "paddingBottom": 24,
+        "paddingHorizontal": 16,
+        "paddingTop": 12,
       }
     }
     showsVerticalScrollIndicator={false}
   >
-    <View
+    <Animated.View
       style={
-        {
-          "alignItems": "center",
-          "gap": 8,
-        }
+        [
+          {
+            "gap": 20,
+          },
+          {
+            "opacity": AnimatedValue {
+              "value": 0,
+            },
+            "transform": [
+              {
+                "translateY": "0%",
+              },
+            ],
+          },
+        ]
       }
     >
       <View
         style={
           {
-            "position": "relative",
+            "alignItems": "center",
+            "gap": 4,
           }
         }
       >
         <View
-          accessibilityLabel="Photo de Mehdi Gharbi"
-          accessibilityRole="image"
-          accessible={true}
           style={
             [
               {
-                "alignItems": "center",
-                "justifyContent": "center",
+                "borderRadius": 62,
+                "borderWidth": 2,
+                "marginBottom": 8,
+                "padding": 4,
               },
               {
-                "backgroundColor": "#8FD9B4",
-                "borderRadius": 52,
-                "height": 104,
-                "width": 104,
-              },
-              {
-                "borderColor": "#F7F9F5",
-                "borderWidth": 3,
+                "borderColor": "#DEE5DE",
               },
             ]
           }
         >
-          <Text
+          <View
+            accessibilityLabel="Photo de Mehdi Gharbi"
+            accessibilityRole="image"
+            accessible={true}
             style={
               [
                 {
-                  "fontWeight": "600",
+                  "alignItems": "center",
+                  "justifyContent": "center",
                 },
                 {
-                  "color": "#14201B",
-                  "fontSize": 42,
+                  "backgroundColor": "#8FD9B4",
+                  "borderRadius": 56,
+                  "height": 112,
+                  "width": 112,
                 },
+                undefined,
               ]
             }
           >
-            MG
-          </Text>
+            <Text
+              style={
+                [
+                  {
+                    "fontWeight": "600",
+                  },
+                  {
+                    "color": "#14201B",
+                    "fontSize": 45,
+                  },
+                ]
+              }
+            >
+              MG
+            </Text>
+          </View>
         </View>
-      </View>
-      <View
-        style={
-          {
-            "alignItems": "center",
-            "flexDirection": "row",
-            "gap": 8,
-          }
-        }
-      >
         <Text
+          accessibilityRole="header"
           style={
             [
               {
-                "fontSize": 30,
-                "fontWeight": "700",
-                "lineHeight": 36,
+                "fontFamily": "Fraunces_500Medium",
+                "fontSize": 36,
+                "letterSpacing": -0.3,
+                "lineHeight": 38.88,
               },
               null,
               {
                 "color": "#14201B",
-                "textAlign": undefined,
+                "textAlign": "center",
                 "writingDirection": "ltr",
               },
               undefined,
@@ -506,15 +702,175 @@ exports[`search/trust.tsx snapshots > renders a brand-new passenger profile (no 
         >
           Mehdi
         </Text>
+        <Text
+          style={
+            [
+              {
+                "fontSize": 14,
+                "fontWeight": "400",
+                "lineHeight": 21,
+              },
+              null,
+              {
+                "color": "#4F5C55",
+                "textAlign": "center",
+                "writingDirection": "ltr",
+              },
+              undefined,
+            ]
+          }
+        >
+          search:trust.roleRider · search:trust.memberSince
+        </Text>
+        <View
+          style={
+            {
+              "flexDirection": "row",
+              "flexWrap": "wrap",
+              "gap": 8,
+              "justifyContent": "center",
+              "marginTop": 8,
+            }
+          }
+        >
+          <View
+            accessibilityLabel="search:trust.tierNew"
+            accessibilityRole="text"
+            accessible={true}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "alignSelf": "flex-start",
+                  "borderRadius": 9999,
+                  "flexDirection": "row",
+                  "gap": 4,
+                  "paddingHorizontal": 12,
+                  "paddingVertical": 6,
+                },
+                {
+                  "backgroundColor": "#E2E8E1",
+                },
+                undefined,
+              ]
+            }
+          >
+            <Ionicons
+              accessibilityElementsHidden={true}
+              color="#22794F"
+              importantForAccessibility="no-hide-descendants"
+              name="sparkles"
+              size={16}
+            />
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 14,
+                    "fontWeight": "600",
+                  },
+                  {
+                    "color": "#4F5C55",
+                  },
+                ]
+              }
+            >
+              search:trust.tierNew
+            </Text>
+          </View>
+        </View>
       </View>
-    </View>
-    <View
-      style={
-        {
-          "height": 100,
+      <View
+        style={
+          [
+            {
+              "alignItems": "flex-start",
+              "borderRadius": 16,
+              "flexDirection": "row",
+              "gap": 12,
+              "padding": 16,
+            },
+            {
+              "backgroundColor": "#8FD9B440",
+            },
+          ]
         }
-      }
-    />
+      >
+        <View
+          style={
+            [
+              {
+                "alignItems": "center",
+                "borderRadius": 9999,
+                "height": 36,
+                "justifyContent": "center",
+                "width": 36,
+              },
+              {
+                "backgroundColor": "#2E9E6C",
+              },
+            ]
+          }
+        >
+          <Ionicons
+            accessibilityElementsHidden={true}
+            color="#0D1512"
+            importantForAccessibility="no-hide-descendants"
+            name="sparkles"
+            size={20}
+          />
+        </View>
+        <View
+          style={
+            {
+              "flex": 1,
+              "gap": 4,
+            }
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 14,
+                  "fontWeight": "500",
+                  "lineHeight": 21,
+                },
+                null,
+                {
+                  "color": "#14201B",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            search:trust.welcomeTitle
+          </Text>
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "lineHeight": 21,
+                },
+                null,
+                {
+                  "color": "#4F5C55",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            search:trust.welcomeBodyRider
+          </Text>
+        </View>
+      </View>
+    </Animated.View>
   </ScrollView>
   <View
     style={
@@ -526,7 +882,7 @@ exports[`search/trust.tsx snapshots > renders a brand-new passenger profile (no 
           "paddingTop": 12,
         },
         {
-          "backgroundColor": "#F7F9F5",
+          "backgroundColor": "#EEF1EC",
           "borderTopColor": "#DEE5DE",
           "paddingBottom": 8,
         },
@@ -601,6 +957,2435 @@ exports[`search/trust.tsx snapshots > renders a brand-new passenger profile (no 
       }
     >
       search:trust.messageAvailabilityDriver
+    </Text>
+  </View>
+</View>
+`;
+
+exports[`search/trust.tsx snapshots > renders a brand-new verified driver: welcome and VAYA checks instead of empty numbers 1`] = `
+<View
+  style={
+    [
+      {
+        "flex": 1,
+      },
+      {
+        "backgroundColor": "#EEF1EC",
+      },
+    ]
+  }
+>
+  <View
+    style={
+      [
+        {
+          "paddingBottom": 8,
+          "paddingHorizontal": 16,
+        },
+        {
+          "paddingTop": 8,
+        },
+        {
+          "backgroundColor": "#EEF1EC",
+        },
+        {
+          "borderBottomColor": "#DEE5DE",
+          "borderBottomWidth": 1,
+        },
+        undefined,
+      ]
+    }
+  >
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "flexDirection": "row",
+          "gap": 8,
+          "minHeight": 44,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flex": 1,
+            "flexDirection": "row",
+            "gap": 8,
+            "minWidth": 40,
+          }
+        }
+      >
+        <Pressable
+          accessibilityLabel="common:actions.back"
+          accessibilityRole="button"
+          hitSlop={8}
+          onPress={[Function]}
+          style={[Function]}
+        >
+          <Ionicons
+            accessibilityElementsHidden={true}
+            color="#14201B"
+            importantForAccessibility="no-hide-descendants"
+            name="chevron-back"
+            size={20}
+          />
+        </Pressable>
+      </View>
+      <View
+        accessibilityRole="header"
+        style={
+          {
+            "alignItems": "center",
+            "flex": 3,
+          }
+        }
+      >
+        <Text
+          numberOfLines={2}
+          style={
+            [
+              {
+                "fontSize": 18,
+                "fontWeight": "600",
+                "lineHeight": 23.400000000000002,
+              },
+              null,
+              {
+                "color": "#14201B",
+                "textAlign": "center",
+                "writingDirection": "ltr",
+              },
+              undefined,
+            ]
+          }
+        >
+          search:trust.title
+        </Text>
+      </View>
+      <View
+        style={
+          [
+            {
+              "alignItems": "center",
+              "flex": 1,
+              "flexDirection": "row",
+              "gap": 8,
+              "minWidth": 40,
+            },
+            {
+              "justifyContent": "flex-end",
+            },
+          ]
+        }
+      />
+    </View>
+  </View>
+  <ScrollView
+    contentContainerStyle={
+      {
+        "paddingBottom": 24,
+        "paddingHorizontal": 16,
+        "paddingTop": 12,
+      }
+    }
+    showsVerticalScrollIndicator={false}
+  >
+    <Animated.View
+      style={
+        [
+          {
+            "gap": 20,
+          },
+          {
+            "opacity": AnimatedValue {
+              "value": 0,
+            },
+            "transform": [
+              {
+                "translateY": "0%",
+              },
+            ],
+          },
+        ]
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "gap": 4,
+          }
+        }
+      >
+        <View
+          style={
+            [
+              {
+                "borderRadius": 62,
+                "borderWidth": 2,
+                "marginBottom": 8,
+                "padding": 4,
+              },
+              {
+                "borderColor": "#2E9E6C",
+              },
+            ]
+          }
+        >
+          <View
+            accessibilityLabel="Photo de Mehdi Gharbi"
+            accessibilityRole="image"
+            accessible={true}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "justifyContent": "center",
+                },
+                {
+                  "backgroundColor": "#8FD9B4",
+                  "borderRadius": 56,
+                  "height": 112,
+                  "width": 112,
+                },
+                undefined,
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontWeight": "600",
+                  },
+                  {
+                    "color": "#14201B",
+                    "fontSize": 45,
+                  },
+                ]
+              }
+            >
+              MG
+            </Text>
+          </View>
+          <View
+            accessibilityLabel="search:trust.verifiedA11y"
+            accessibilityRole="image"
+            accessible={true}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "borderRadius": 15,
+                  "borderWidth": 3,
+                  "bottom": 2,
+                  "height": 30,
+                  "justifyContent": "center",
+                  "position": "absolute",
+                  "right": 2,
+                  "width": 30,
+                },
+                {
+                  "backgroundColor": "#2E9E6C",
+                  "borderColor": "#EEF1EC",
+                },
+              ]
+            }
+          >
+            <Ionicons
+              accessibilityElementsHidden={true}
+              color="#0D1512"
+              importantForAccessibility="no-hide-descendants"
+              name="checkmark"
+              size={20}
+            />
+          </View>
+        </View>
+        <Text
+          accessibilityRole="header"
+          style={
+            [
+              {
+                "fontFamily": "Fraunces_500Medium",
+                "fontSize": 36,
+                "letterSpacing": -0.3,
+                "lineHeight": 38.88,
+              },
+              null,
+              {
+                "color": "#14201B",
+                "textAlign": "center",
+                "writingDirection": "ltr",
+              },
+              undefined,
+            ]
+          }
+        >
+          Mehdi
+        </Text>
+        <Text
+          style={
+            [
+              {
+                "fontSize": 14,
+                "fontWeight": "400",
+                "lineHeight": 21,
+              },
+              null,
+              {
+                "color": "#4F5C55",
+                "textAlign": "center",
+                "writingDirection": "ltr",
+              },
+              undefined,
+            ]
+          }
+        >
+          search:trust.roleDriverVerified · search:trust.memberSince
+        </Text>
+        <View
+          style={
+            {
+              "flexDirection": "row",
+              "flexWrap": "wrap",
+              "gap": 8,
+              "justifyContent": "center",
+              "marginTop": 8,
+            }
+          }
+        >
+          <View
+            accessibilityLabel="search:trust.tierNew"
+            accessibilityRole="text"
+            accessible={true}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "alignSelf": "flex-start",
+                  "borderRadius": 9999,
+                  "flexDirection": "row",
+                  "gap": 4,
+                  "paddingHorizontal": 12,
+                  "paddingVertical": 6,
+                },
+                {
+                  "backgroundColor": "#E2E8E1",
+                },
+                undefined,
+              ]
+            }
+          >
+            <Ionicons
+              accessibilityElementsHidden={true}
+              color="#22794F"
+              importantForAccessibility="no-hide-descendants"
+              name="sparkles"
+              size={16}
+            />
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 14,
+                    "fontWeight": "600",
+                  },
+                  {
+                    "color": "#4F5C55",
+                  },
+                ]
+              }
+            >
+              search:trust.tierNew
+            </Text>
+          </View>
+        </View>
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "gap": 4,
+              "marginTop": 4,
+            }
+          }
+        >
+          <Ionicons
+            accessibilityElementsHidden={true}
+            color="#7D8981"
+            importantForAccessibility="no-hide-descendants"
+            name="language-outline"
+            size={16}
+          />
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "lineHeight": 18,
+                },
+                null,
+                {
+                  "color": "#7D8981",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            search:trust.speaks
+          </Text>
+        </View>
+      </View>
+      <View
+        style={
+          [
+            {
+              "alignItems": "flex-start",
+              "borderRadius": 16,
+              "flexDirection": "row",
+              "gap": 12,
+              "padding": 16,
+            },
+            {
+              "backgroundColor": "#8FD9B440",
+            },
+          ]
+        }
+      >
+        <View
+          style={
+            [
+              {
+                "alignItems": "center",
+                "borderRadius": 9999,
+                "height": 36,
+                "justifyContent": "center",
+                "width": 36,
+              },
+              {
+                "backgroundColor": "#2E9E6C",
+              },
+            ]
+          }
+        >
+          <Ionicons
+            accessibilityElementsHidden={true}
+            color="#0D1512"
+            importantForAccessibility="no-hide-descendants"
+            name="sparkles"
+            size={20}
+          />
+        </View>
+        <View
+          style={
+            {
+              "flex": 1,
+              "gap": 4,
+            }
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 14,
+                  "fontWeight": "500",
+                  "lineHeight": 21,
+                },
+                null,
+                {
+                  "color": "#14201B",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            search:trust.welcomeTitle
+          </Text>
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "lineHeight": 21,
+                },
+                null,
+                {
+                  "color": "#4F5C55",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            search:trust.welcomeBodyDriver
+          </Text>
+        </View>
+      </View>
+      <View
+        style={
+          {
+            "gap": 12,
+          }
+        }
+      >
+        <Text
+          style={
+            [
+              {
+                "fontSize": 12,
+                "fontWeight": "400",
+                "lineHeight": 18,
+              },
+              null,
+              {
+                "color": "#7D8981",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              {
+                "fontWeight": "600",
+                "letterSpacing": 1.2,
+                "textTransform": "uppercase",
+              },
+            ]
+          }
+        >
+          search:trust.verifiedByVaya
+        </Text>
+        <View
+          accessibilityLabel="search:trust.sealA11y"
+          accessibilityRole="summary"
+          accessible={true}
+          style={
+            {
+              "flexDirection": "row",
+              "position": "relative",
+            }
+          }
+        >
+          <View
+            style={
+              [
+                {
+                  "borderRadius": 9999,
+                  "height": 2,
+                  "position": "absolute",
+                },
+                {
+                  "backgroundColor": "#8FD9B4",
+                  "left": "16.666666666666668%",
+                  "right": "16.666666666666668%",
+                  "top": 24,
+                },
+              ]
+            }
+          />
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flex": 1,
+                "gap": 4,
+                "paddingHorizontal": 4,
+              }
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "borderWidth": 2,
+                    "justifyContent": "center",
+                  },
+                  {
+                    "backgroundColor": "#F7F9F5",
+                    "borderColor": "#8FD9B4",
+                    "borderRadius": 24,
+                    "height": 48,
+                    "width": 48,
+                  },
+                ]
+              }
+            >
+              <Ionicons
+                accessibilityElementsHidden={true}
+                color="#22794F"
+                importantForAccessibility="no-hide-descendants"
+                name="person-outline"
+                size={20}
+              />
+              <View
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 9,
+                      "borderWidth": 2,
+                      "bottom": -3,
+                      "height": 18,
+                      "justifyContent": "center",
+                      "position": "absolute",
+                      "right": -3,
+                      "width": 18,
+                    },
+                    {
+                      "backgroundColor": "#2E9E6C",
+                      "borderColor": "#F7F9F5",
+                    },
+                  ]
+                }
+              >
+                <Ionicons
+                  accessibilityElementsHidden={true}
+                  color="#0D1512"
+                  importantForAccessibility="no-hide-descendants"
+                  name="checkmark"
+                  size={16}
+                />
+              </View>
+            </View>
+            <Text
+              numberOfLines={2}
+              style={
+                [
+                  {
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "lineHeight": 18,
+                  },
+                  null,
+                  {
+                    "color": "#4F5C55",
+                    "textAlign": "center",
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              search:trust.sealIdentity
+            </Text>
+          </View>
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flex": 1,
+                "gap": 4,
+                "paddingHorizontal": 4,
+              }
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "borderWidth": 2,
+                    "justifyContent": "center",
+                  },
+                  {
+                    "backgroundColor": "#F7F9F5",
+                    "borderColor": "#8FD9B4",
+                    "borderRadius": 24,
+                    "height": 48,
+                    "width": 48,
+                  },
+                ]
+              }
+            >
+              <Ionicons
+                accessibilityElementsHidden={true}
+                color="#22794F"
+                importantForAccessibility="no-hide-descendants"
+                name="card-outline"
+                size={20}
+              />
+              <View
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 9,
+                      "borderWidth": 2,
+                      "bottom": -3,
+                      "height": 18,
+                      "justifyContent": "center",
+                      "position": "absolute",
+                      "right": -3,
+                      "width": 18,
+                    },
+                    {
+                      "backgroundColor": "#2E9E6C",
+                      "borderColor": "#F7F9F5",
+                    },
+                  ]
+                }
+              >
+                <Ionicons
+                  accessibilityElementsHidden={true}
+                  color="#0D1512"
+                  importantForAccessibility="no-hide-descendants"
+                  name="checkmark"
+                  size={16}
+                />
+              </View>
+            </View>
+            <Text
+              numberOfLines={2}
+              style={
+                [
+                  {
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "lineHeight": 18,
+                  },
+                  null,
+                  {
+                    "color": "#4F5C55",
+                    "textAlign": "center",
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              search:trust.sealLicense
+            </Text>
+          </View>
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flex": 1,
+                "gap": 4,
+                "paddingHorizontal": 4,
+              }
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "borderWidth": 2,
+                    "justifyContent": "center",
+                  },
+                  {
+                    "backgroundColor": "#F7F9F5",
+                    "borderColor": "#8FD9B4",
+                    "borderRadius": 24,
+                    "height": 48,
+                    "width": 48,
+                  },
+                ]
+              }
+            >
+              <Ionicons
+                accessibilityElementsHidden={true}
+                color="#22794F"
+                importantForAccessibility="no-hide-descendants"
+                name="car-sport-outline"
+                size={20}
+              />
+              <View
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 9,
+                      "borderWidth": 2,
+                      "bottom": -3,
+                      "height": 18,
+                      "justifyContent": "center",
+                      "position": "absolute",
+                      "right": -3,
+                      "width": 18,
+                    },
+                    {
+                      "backgroundColor": "#2E9E6C",
+                      "borderColor": "#F7F9F5",
+                    },
+                  ]
+                }
+              >
+                <Ionicons
+                  accessibilityElementsHidden={true}
+                  color="#0D1512"
+                  importantForAccessibility="no-hide-descendants"
+                  name="checkmark"
+                  size={16}
+                />
+              </View>
+            </View>
+            <Text
+              numberOfLines={2}
+              style={
+                [
+                  {
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "lineHeight": 18,
+                  },
+                  null,
+                  {
+                    "color": "#4F5C55",
+                    "textAlign": "center",
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              search:trust.sealVehicle
+            </Text>
+          </View>
+        </View>
+      </View>
+      <View
+        style={
+          {
+            "gap": 12,
+          }
+        }
+      >
+        <Text
+          style={
+            [
+              {
+                "fontSize": 12,
+                "fontWeight": "400",
+                "lineHeight": 18,
+              },
+              null,
+              {
+                "color": "#7D8981",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              {
+                "fontWeight": "600",
+                "letterSpacing": 1.2,
+                "textTransform": "uppercase",
+              },
+            ]
+          }
+        >
+          search:trust.vehicleTitle
+        </Text>
+        <View
+          style={
+            [
+              {
+                "borderRadius": 16,
+                "borderWidth": 1,
+                "overflow": "hidden",
+              },
+              {
+                "backgroundColor": "#F7F9F5",
+                "borderColor": "#DEE5DE",
+              },
+            ]
+          }
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+                "gap": 12,
+                "padding": 12,
+              }
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "alignSelf": "flex-start",
+                    "borderRadius": 12,
+                    "height": 48,
+                    "justifyContent": "center",
+                    "width": 48,
+                  },
+                  {
+                    "backgroundColor": "#E2E8E1",
+                  },
+                ]
+              }
+            >
+              <Ionicons
+                accessibilityElementsHidden={true}
+                color="#4F5C55"
+                importantForAccessibility="no-hide-descendants"
+                name="car-sport"
+                size={24}
+              />
+            </View>
+            <View
+              style={
+                {
+                  "flex": 1,
+                  "gap": 2,
+                }
+              }
+            >
+              <Text
+                numberOfLines={2}
+                style={
+                  [
+                    {
+                      "fontSize": 18,
+                      "fontWeight": "600",
+                      "lineHeight": 23.400000000000002,
+                    },
+                    null,
+                    {
+                      "color": "#14201B",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                Volkswagen Golf
+              </Text>
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "lineHeight": 21,
+                    },
+                    null,
+                    {
+                      "color": "#4F5C55",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                Gris
+              </Text>
+              <View
+                style={
+                  {
+                    "marginTop": 8,
+                  }
+                }
+              >
+                <View
+                  accessibilityLabel="search:trust.plateA11y"
+                  accessibilityRole="text"
+                  accessible={true}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "alignSelf": "flex-start",
+                        "borderRadius": 4,
+                        "borderWidth": 1,
+                        "direction": "ltr",
+                        "flexDirection": "row",
+                        "gap": 8,
+                        "paddingHorizontal": 12,
+                        "paddingVertical": 4,
+                      },
+                      {
+                        "backgroundColor": "#14201B",
+                        "borderColor": "#CCD5CD",
+                      },
+                    ]
+                  }
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "500",
+                          "lineHeight": 21,
+                        },
+                        null,
+                        {
+                          "color": "#F4F6F2",
+                          "textAlign": undefined,
+                          "writingDirection": "ltr",
+                        },
+                        {
+                          "fontWeight": "700",
+                          "letterSpacing": 1,
+                        },
+                      ]
+                    }
+                  >
+                    123
+                  </Text>
+                  <Text
+                    style={
+                      [
+                        {
+                          "fontSize": 12,
+                          "fontWeight": "400",
+                          "lineHeight": 18,
+                        },
+                        null,
+                        {
+                          "color": "#F4F6F2",
+                          "textAlign": undefined,
+                          "writingDirection": "ltr",
+                        },
+                        {
+                          "fontWeight": "600",
+                        },
+                      ]
+                    }
+                  >
+                    تونس
+                  </Text>
+                  <Text
+                    style={
+                      [
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "500",
+                          "lineHeight": 21,
+                        },
+                        null,
+                        {
+                          "color": "#F4F6F2",
+                          "textAlign": undefined,
+                          "writingDirection": "ltr",
+                        },
+                        {
+                          "fontWeight": "700",
+                          "letterSpacing": 1,
+                        },
+                      ]
+                    }
+                  >
+                    4567
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </View>
+        </View>
+      </View>
+    </Animated.View>
+  </ScrollView>
+  <View
+    style={
+      [
+        {
+          "borderTopWidth": 1,
+          "gap": 8,
+          "paddingHorizontal": 16,
+          "paddingTop": 12,
+        },
+        {
+          "backgroundColor": "#EEF1EC",
+          "borderTopColor": "#DEE5DE",
+          "paddingBottom": 8,
+        },
+      ]
+    }
+  >
+    <Pressable
+      accessibilityLabel="common:actions.message"
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": false,
+          "disabled": true,
+        }
+      }
+      disabled={true}
+      onPress={[Function]}
+      style={[Function]}
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "gap": 8,
+          }
+        }
+      >
+        <Ionicons
+          accessibilityElementsHidden={true}
+          color="#7D8981"
+          importantForAccessibility="no-hide-descendants"
+          name="chatbubble-outline"
+          size={16}
+        />
+        <Text
+          numberOfLines={1}
+          style={
+            [
+              {
+                "fontWeight": "600",
+              },
+              {
+                "fontSize": 16,
+              },
+              {
+                "color": "#7D8981",
+              },
+            ]
+          }
+        >
+          common:actions.message
+        </Text>
+      </View>
+    </Pressable>
+    <Text
+      style={
+        [
+          {
+            "fontSize": 12,
+            "fontWeight": "400",
+            "lineHeight": 18,
+          },
+          null,
+          {
+            "color": "#7D8981",
+            "textAlign": "center",
+            "writingDirection": "ltr",
+          },
+          undefined,
+        ]
+      }
+    >
+      search:trust.messageAvailability
+    </Text>
+  </View>
+</View>
+`;
+
+exports[`search/trust.tsx snapshots > renders a driver with trips but no review yet without a placeholder rating 1`] = `
+<View
+  style={
+    [
+      {
+        "flex": 1,
+      },
+      {
+        "backgroundColor": "#EEF1EC",
+      },
+    ]
+  }
+>
+  <View
+    style={
+      [
+        {
+          "paddingBottom": 8,
+          "paddingHorizontal": 16,
+        },
+        {
+          "paddingTop": 8,
+        },
+        {
+          "backgroundColor": "#EEF1EC",
+        },
+        {
+          "borderBottomColor": "#DEE5DE",
+          "borderBottomWidth": 1,
+        },
+        undefined,
+      ]
+    }
+  >
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "flexDirection": "row",
+          "gap": 8,
+          "minHeight": 44,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flex": 1,
+            "flexDirection": "row",
+            "gap": 8,
+            "minWidth": 40,
+          }
+        }
+      >
+        <Pressable
+          accessibilityLabel="common:actions.back"
+          accessibilityRole="button"
+          hitSlop={8}
+          onPress={[Function]}
+          style={[Function]}
+        >
+          <Ionicons
+            accessibilityElementsHidden={true}
+            color="#14201B"
+            importantForAccessibility="no-hide-descendants"
+            name="chevron-back"
+            size={20}
+          />
+        </Pressable>
+      </View>
+      <View
+        accessibilityRole="header"
+        style={
+          {
+            "alignItems": "center",
+            "flex": 3,
+          }
+        }
+      >
+        <Text
+          numberOfLines={2}
+          style={
+            [
+              {
+                "fontSize": 18,
+                "fontWeight": "600",
+                "lineHeight": 23.400000000000002,
+              },
+              null,
+              {
+                "color": "#14201B",
+                "textAlign": "center",
+                "writingDirection": "ltr",
+              },
+              undefined,
+            ]
+          }
+        >
+          search:trust.title
+        </Text>
+      </View>
+      <View
+        style={
+          [
+            {
+              "alignItems": "center",
+              "flex": 1,
+              "flexDirection": "row",
+              "gap": 8,
+              "minWidth": 40,
+            },
+            {
+              "justifyContent": "flex-end",
+            },
+          ]
+        }
+      />
+    </View>
+  </View>
+  <ScrollView
+    contentContainerStyle={
+      {
+        "paddingBottom": 24,
+        "paddingHorizontal": 16,
+        "paddingTop": 12,
+      }
+    }
+    showsVerticalScrollIndicator={false}
+  >
+    <Animated.View
+      style={
+        [
+          {
+            "gap": 20,
+          },
+          {
+            "opacity": AnimatedValue {
+              "value": 0,
+            },
+            "transform": [
+              {
+                "translateY": "0%",
+              },
+            ],
+          },
+        ]
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "gap": 4,
+          }
+        }
+      >
+        <View
+          style={
+            [
+              {
+                "borderRadius": 62,
+                "borderWidth": 2,
+                "marginBottom": 8,
+                "padding": 4,
+              },
+              {
+                "borderColor": "#2E9E6C",
+              },
+            ]
+          }
+        >
+          <View
+            accessibilityLabel="Photo de Mehdi Gharbi"
+            accessibilityRole="image"
+            accessible={true}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "justifyContent": "center",
+                },
+                {
+                  "backgroundColor": "#8FD9B4",
+                  "borderRadius": 56,
+                  "height": 112,
+                  "width": 112,
+                },
+                undefined,
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontWeight": "600",
+                  },
+                  {
+                    "color": "#14201B",
+                    "fontSize": 45,
+                  },
+                ]
+              }
+            >
+              MG
+            </Text>
+          </View>
+          <View
+            accessibilityLabel="search:trust.verifiedA11y"
+            accessibilityRole="image"
+            accessible={true}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "borderRadius": 15,
+                  "borderWidth": 3,
+                  "bottom": 2,
+                  "height": 30,
+                  "justifyContent": "center",
+                  "position": "absolute",
+                  "right": 2,
+                  "width": 30,
+                },
+                {
+                  "backgroundColor": "#2E9E6C",
+                  "borderColor": "#EEF1EC",
+                },
+              ]
+            }
+          >
+            <Ionicons
+              accessibilityElementsHidden={true}
+              color="#0D1512"
+              importantForAccessibility="no-hide-descendants"
+              name="checkmark"
+              size={20}
+            />
+          </View>
+        </View>
+        <Text
+          accessibilityRole="header"
+          style={
+            [
+              {
+                "fontFamily": "Fraunces_500Medium",
+                "fontSize": 36,
+                "letterSpacing": -0.3,
+                "lineHeight": 38.88,
+              },
+              null,
+              {
+                "color": "#14201B",
+                "textAlign": "center",
+                "writingDirection": "ltr",
+              },
+              undefined,
+            ]
+          }
+        >
+          Mehdi
+        </Text>
+        <Text
+          style={
+            [
+              {
+                "fontSize": 14,
+                "fontWeight": "400",
+                "lineHeight": 21,
+              },
+              null,
+              {
+                "color": "#4F5C55",
+                "textAlign": "center",
+                "writingDirection": "ltr",
+              },
+              undefined,
+            ]
+          }
+        >
+          search:trust.roleDriverVerified
+        </Text>
+        <View
+          style={
+            {
+              "flexDirection": "row",
+              "flexWrap": "wrap",
+              "gap": 8,
+              "justifyContent": "center",
+              "marginTop": 8,
+            }
+          }
+        >
+          <View
+            accessibilityLabel="search:trust.tierNew"
+            accessibilityRole="text"
+            accessible={true}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "alignSelf": "flex-start",
+                  "borderRadius": 9999,
+                  "flexDirection": "row",
+                  "gap": 4,
+                  "paddingHorizontal": 12,
+                  "paddingVertical": 6,
+                },
+                {
+                  "backgroundColor": "#E2E8E1",
+                },
+                undefined,
+              ]
+            }
+          >
+            <Ionicons
+              accessibilityElementsHidden={true}
+              color="#22794F"
+              importantForAccessibility="no-hide-descendants"
+              name="sparkles"
+              size={16}
+            />
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 14,
+                    "fontWeight": "600",
+                  },
+                  {
+                    "color": "#4F5C55",
+                  },
+                ]
+              }
+            >
+              search:trust.tierNew
+            </Text>
+          </View>
+        </View>
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "gap": 4,
+              "marginTop": 4,
+            }
+          }
+        >
+          <Ionicons
+            accessibilityElementsHidden={true}
+            color="#7D8981"
+            importantForAccessibility="no-hide-descendants"
+            name="language-outline"
+            size={16}
+          />
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "lineHeight": 18,
+                },
+                null,
+                {
+                  "color": "#7D8981",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            search:trust.speaks
+          </Text>
+        </View>
+      </View>
+      <View
+        style={
+          [
+            {
+              "borderBottomWidth": 1,
+              "borderTopWidth": 1,
+              "paddingVertical": 12,
+            },
+            {
+              "borderColor": "#DEE5DE",
+            },
+          ]
+        }
+      >
+        <View
+          style={
+            {
+              "flexDirection": "row",
+              "paddingVertical": 4,
+            }
+          }
+        >
+          <View
+            accessibilityLabel="1 search:trust.tripsCaption"
+            accessible={true}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "flex": 1,
+                  "gap": 2,
+                  "paddingHorizontal": 8,
+                },
+                false,
+              ]
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 4,
+                }
+              }
+            >
+              <Text
+                adjustsFontSizeToFit={true}
+                numberOfLines={1}
+                style={
+                  [
+                    {
+                      "fontSize": 24,
+                      "fontWeight": "600",
+                      "lineHeight": 28.799999999999997,
+                    },
+                    null,
+                    {
+                      "color": "#14201B",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                1
+              </Text>
+            </View>
+            <Text
+              numberOfLines={1}
+              style={
+                [
+                  {
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "lineHeight": 18,
+                  },
+                  null,
+                  {
+                    "color": "#7D8981",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              search:trust.tripsCaption
+            </Text>
+          </View>
+          <View
+            accessibilityLabel="Mar 2025 search:trust.memberSinceCaption"
+            accessible={true}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "flex": 1,
+                  "gap": 2,
+                  "paddingHorizontal": 8,
+                },
+                {
+                  "borderLeftColor": "#CCD5CD",
+                  "borderLeftWidth": 1,
+                },
+              ]
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 4,
+                }
+              }
+            >
+              <Text
+                adjustsFontSizeToFit={true}
+                numberOfLines={1}
+                style={
+                  [
+                    {
+                      "fontSize": 24,
+                      "fontWeight": "600",
+                      "lineHeight": 28.799999999999997,
+                    },
+                    null,
+                    {
+                      "color": "#14201B",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                Mar 2025
+              </Text>
+            </View>
+            <Text
+              numberOfLines={1}
+              style={
+                [
+                  {
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "lineHeight": 18,
+                  },
+                  null,
+                  {
+                    "color": "#7D8981",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              search:trust.memberSinceCaption
+            </Text>
+          </View>
+        </View>
+      </View>
+      <View
+        style={
+          {
+            "gap": 12,
+          }
+        }
+      >
+        <Text
+          style={
+            [
+              {
+                "fontSize": 12,
+                "fontWeight": "400",
+                "lineHeight": 18,
+              },
+              null,
+              {
+                "color": "#7D8981",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              {
+                "fontWeight": "600",
+                "letterSpacing": 1.2,
+                "textTransform": "uppercase",
+              },
+            ]
+          }
+        >
+          search:trust.verifiedByVaya
+        </Text>
+        <View
+          accessibilityLabel="search:trust.sealA11y"
+          accessibilityRole="summary"
+          accessible={true}
+          style={
+            {
+              "flexDirection": "row",
+              "position": "relative",
+            }
+          }
+        >
+          <View
+            style={
+              [
+                {
+                  "borderRadius": 9999,
+                  "height": 2,
+                  "position": "absolute",
+                },
+                {
+                  "backgroundColor": "#8FD9B4",
+                  "left": "16.666666666666668%",
+                  "right": "16.666666666666668%",
+                  "top": 24,
+                },
+              ]
+            }
+          />
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flex": 1,
+                "gap": 4,
+                "paddingHorizontal": 4,
+              }
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "borderWidth": 2,
+                    "justifyContent": "center",
+                  },
+                  {
+                    "backgroundColor": "#F7F9F5",
+                    "borderColor": "#8FD9B4",
+                    "borderRadius": 24,
+                    "height": 48,
+                    "width": 48,
+                  },
+                ]
+              }
+            >
+              <Ionicons
+                accessibilityElementsHidden={true}
+                color="#22794F"
+                importantForAccessibility="no-hide-descendants"
+                name="person-outline"
+                size={20}
+              />
+              <View
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 9,
+                      "borderWidth": 2,
+                      "bottom": -3,
+                      "height": 18,
+                      "justifyContent": "center",
+                      "position": "absolute",
+                      "right": -3,
+                      "width": 18,
+                    },
+                    {
+                      "backgroundColor": "#2E9E6C",
+                      "borderColor": "#F7F9F5",
+                    },
+                  ]
+                }
+              >
+                <Ionicons
+                  accessibilityElementsHidden={true}
+                  color="#0D1512"
+                  importantForAccessibility="no-hide-descendants"
+                  name="checkmark"
+                  size={16}
+                />
+              </View>
+            </View>
+            <Text
+              numberOfLines={2}
+              style={
+                [
+                  {
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "lineHeight": 18,
+                  },
+                  null,
+                  {
+                    "color": "#4F5C55",
+                    "textAlign": "center",
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              search:trust.sealIdentity
+            </Text>
+          </View>
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flex": 1,
+                "gap": 4,
+                "paddingHorizontal": 4,
+              }
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "borderWidth": 2,
+                    "justifyContent": "center",
+                  },
+                  {
+                    "backgroundColor": "#F7F9F5",
+                    "borderColor": "#8FD9B4",
+                    "borderRadius": 24,
+                    "height": 48,
+                    "width": 48,
+                  },
+                ]
+              }
+            >
+              <Ionicons
+                accessibilityElementsHidden={true}
+                color="#22794F"
+                importantForAccessibility="no-hide-descendants"
+                name="card-outline"
+                size={20}
+              />
+              <View
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 9,
+                      "borderWidth": 2,
+                      "bottom": -3,
+                      "height": 18,
+                      "justifyContent": "center",
+                      "position": "absolute",
+                      "right": -3,
+                      "width": 18,
+                    },
+                    {
+                      "backgroundColor": "#2E9E6C",
+                      "borderColor": "#F7F9F5",
+                    },
+                  ]
+                }
+              >
+                <Ionicons
+                  accessibilityElementsHidden={true}
+                  color="#0D1512"
+                  importantForAccessibility="no-hide-descendants"
+                  name="checkmark"
+                  size={16}
+                />
+              </View>
+            </View>
+            <Text
+              numberOfLines={2}
+              style={
+                [
+                  {
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "lineHeight": 18,
+                  },
+                  null,
+                  {
+                    "color": "#4F5C55",
+                    "textAlign": "center",
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              search:trust.sealLicense
+            </Text>
+          </View>
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flex": 1,
+                "gap": 4,
+                "paddingHorizontal": 4,
+              }
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "borderWidth": 2,
+                    "justifyContent": "center",
+                  },
+                  {
+                    "backgroundColor": "#F7F9F5",
+                    "borderColor": "#8FD9B4",
+                    "borderRadius": 24,
+                    "height": 48,
+                    "width": 48,
+                  },
+                ]
+              }
+            >
+              <Ionicons
+                accessibilityElementsHidden={true}
+                color="#22794F"
+                importantForAccessibility="no-hide-descendants"
+                name="car-sport-outline"
+                size={20}
+              />
+              <View
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 9,
+                      "borderWidth": 2,
+                      "bottom": -3,
+                      "height": 18,
+                      "justifyContent": "center",
+                      "position": "absolute",
+                      "right": -3,
+                      "width": 18,
+                    },
+                    {
+                      "backgroundColor": "#2E9E6C",
+                      "borderColor": "#F7F9F5",
+                    },
+                  ]
+                }
+              >
+                <Ionicons
+                  accessibilityElementsHidden={true}
+                  color="#0D1512"
+                  importantForAccessibility="no-hide-descendants"
+                  name="checkmark"
+                  size={16}
+                />
+              </View>
+            </View>
+            <Text
+              numberOfLines={2}
+              style={
+                [
+                  {
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "lineHeight": 18,
+                  },
+                  null,
+                  {
+                    "color": "#4F5C55",
+                    "textAlign": "center",
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              search:trust.sealVehicle
+            </Text>
+          </View>
+        </View>
+      </View>
+      <View
+        style={
+          {
+            "gap": 12,
+          }
+        }
+      >
+        <Text
+          style={
+            [
+              {
+                "fontSize": 12,
+                "fontWeight": "400",
+                "lineHeight": 18,
+              },
+              null,
+              {
+                "color": "#7D8981",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              {
+                "fontWeight": "600",
+                "letterSpacing": 1.2,
+                "textTransform": "uppercase",
+              },
+            ]
+          }
+        >
+          search:trust.aboutTitle
+        </Text>
+        <View
+          style={
+            [
+              {
+                "borderStartWidth": 3,
+                "paddingStart": 12,
+              },
+              {
+                "borderStartColor": "#8FD9B4",
+              },
+            ]
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "fontSize": 16,
+                  "fontWeight": "400",
+                  "lineHeight": 24,
+                },
+                null,
+                {
+                  "color": "#14201B",
+                  "textAlign": undefined,
+                  "writingDirection": "ltr",
+                },
+                undefined,
+              ]
+            }
+          >
+            Conducteur ponctuel, trajets Tunis-Nabeul tous les jours.
+          </Text>
+        </View>
+      </View>
+      <View
+        style={
+          {
+            "gap": 12,
+          }
+        }
+      >
+        <Text
+          style={
+            [
+              {
+                "fontSize": 12,
+                "fontWeight": "400",
+                "lineHeight": 18,
+              },
+              null,
+              {
+                "color": "#7D8981",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              {
+                "fontWeight": "600",
+                "letterSpacing": 1.2,
+                "textTransform": "uppercase",
+              },
+            ]
+          }
+        >
+          search:trust.vehicleTitle
+        </Text>
+        <View
+          style={
+            [
+              {
+                "borderRadius": 16,
+                "borderWidth": 1,
+                "overflow": "hidden",
+              },
+              {
+                "backgroundColor": "#F7F9F5",
+                "borderColor": "#DEE5DE",
+              },
+            ]
+          }
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+                "gap": 12,
+                "padding": 12,
+              }
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "alignSelf": "flex-start",
+                    "borderRadius": 12,
+                    "height": 48,
+                    "justifyContent": "center",
+                    "width": 48,
+                  },
+                  {
+                    "backgroundColor": "#E2E8E1",
+                  },
+                ]
+              }
+            >
+              <Ionicons
+                accessibilityElementsHidden={true}
+                color="#4F5C55"
+                importantForAccessibility="no-hide-descendants"
+                name="car-sport"
+                size={24}
+              />
+            </View>
+            <View
+              style={
+                {
+                  "flex": 1,
+                  "gap": 2,
+                }
+              }
+            >
+              <Text
+                numberOfLines={2}
+                style={
+                  [
+                    {
+                      "fontSize": 18,
+                      "fontWeight": "600",
+                      "lineHeight": 23.400000000000002,
+                    },
+                    null,
+                    {
+                      "color": "#14201B",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                Volkswagen Golf
+              </Text>
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "lineHeight": 21,
+                    },
+                    null,
+                    {
+                      "color": "#4F5C55",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                Gris
+              </Text>
+              <View
+                style={
+                  {
+                    "marginTop": 8,
+                  }
+                }
+              >
+                <View
+                  accessibilityLabel="search:trust.plateA11y"
+                  accessibilityRole="text"
+                  accessible={true}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "alignSelf": "flex-start",
+                        "borderRadius": 4,
+                        "borderWidth": 1,
+                        "direction": "ltr",
+                        "flexDirection": "row",
+                        "gap": 8,
+                        "paddingHorizontal": 12,
+                        "paddingVertical": 4,
+                      },
+                      {
+                        "backgroundColor": "#14201B",
+                        "borderColor": "#CCD5CD",
+                      },
+                    ]
+                  }
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "500",
+                          "lineHeight": 21,
+                        },
+                        null,
+                        {
+                          "color": "#F4F6F2",
+                          "textAlign": undefined,
+                          "writingDirection": "ltr",
+                        },
+                        {
+                          "fontWeight": "700",
+                          "letterSpacing": 1,
+                        },
+                      ]
+                    }
+                  >
+                    123
+                  </Text>
+                  <Text
+                    style={
+                      [
+                        {
+                          "fontSize": 12,
+                          "fontWeight": "400",
+                          "lineHeight": 18,
+                        },
+                        null,
+                        {
+                          "color": "#F4F6F2",
+                          "textAlign": undefined,
+                          "writingDirection": "ltr",
+                        },
+                        {
+                          "fontWeight": "600",
+                        },
+                      ]
+                    }
+                  >
+                    تونس
+                  </Text>
+                  <Text
+                    style={
+                      [
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "500",
+                          "lineHeight": 21,
+                        },
+                        null,
+                        {
+                          "color": "#F4F6F2",
+                          "textAlign": undefined,
+                          "writingDirection": "ltr",
+                        },
+                        {
+                          "fontWeight": "700",
+                          "letterSpacing": 1,
+                        },
+                      ]
+                    }
+                  >
+                    4567
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </View>
+        </View>
+      </View>
+      <View
+        style={
+          {
+            "gap": 12,
+          }
+        }
+      >
+        <Text
+          style={
+            [
+              {
+                "fontSize": 12,
+                "fontWeight": "400",
+                "lineHeight": 18,
+              },
+              null,
+              {
+                "color": "#7D8981",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              {
+                "fontWeight": "600",
+                "letterSpacing": 1.2,
+                "textTransform": "uppercase",
+              },
+            ]
+          }
+        >
+          search:trust.reviewsTitle
+        </Text>
+        <Text
+          style={
+            [
+              {
+                "fontSize": 14,
+                "fontWeight": "400",
+                "lineHeight": 21,
+              },
+              null,
+              {
+                "color": "#4F5C55",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              undefined,
+            ]
+          }
+        >
+          search:trust.reviewsEmpty
+        </Text>
+      </View>
+    </Animated.View>
+  </ScrollView>
+  <View
+    style={
+      [
+        {
+          "borderTopWidth": 1,
+          "gap": 8,
+          "paddingHorizontal": 16,
+          "paddingTop": 12,
+        },
+        {
+          "backgroundColor": "#EEF1EC",
+          "borderTopColor": "#DEE5DE",
+          "paddingBottom": 8,
+        },
+      ]
+    }
+  >
+    <Pressable
+      accessibilityLabel="common:actions.message"
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": false,
+          "disabled": true,
+        }
+      }
+      disabled={true}
+      onPress={[Function]}
+      style={[Function]}
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "gap": 8,
+          }
+        }
+      >
+        <Ionicons
+          accessibilityElementsHidden={true}
+          color="#7D8981"
+          importantForAccessibility="no-hide-descendants"
+          name="chatbubble-outline"
+          size={16}
+        />
+        <Text
+          numberOfLines={1}
+          style={
+            [
+              {
+                "fontWeight": "600",
+              },
+              {
+                "fontSize": 16,
+              },
+              {
+                "color": "#7D8981",
+              },
+            ]
+          }
+        >
+          common:actions.message
+        </Text>
+      </View>
+    </Pressable>
+    <Text
+      style={
+        [
+          {
+            "fontSize": 12,
+            "fontWeight": "400",
+            "lineHeight": 18,
+          },
+          null,
+          {
+            "color": "#7D8981",
+            "textAlign": "center",
+            "writingDirection": "ltr",
+          },
+          undefined,
+        ]
+      }
+    >
+      search:trust.messageAvailability
     </Text>
   </View>
 </View>
@@ -729,88 +3514,106 @@ exports[`search/trust.tsx snapshots > renders a passenger profile with real ride
   <ScrollView
     contentContainerStyle={
       {
-        "gap": 12,
-        "padding": 16,
+        "paddingBottom": 24,
+        "paddingHorizontal": 16,
+        "paddingTop": 12,
       }
     }
     showsVerticalScrollIndicator={false}
   >
-    <View
+    <Animated.View
       style={
-        {
-          "alignItems": "center",
-          "gap": 8,
-        }
+        [
+          {
+            "gap": 20,
+          },
+          {
+            "opacity": AnimatedValue {
+              "value": 0,
+            },
+            "transform": [
+              {
+                "translateY": "0%",
+              },
+            ],
+          },
+        ]
       }
     >
       <View
         style={
           {
-            "position": "relative",
+            "alignItems": "center",
+            "gap": 4,
           }
         }
       >
         <View
-          accessibilityLabel="Photo de Mehdi Gharbi"
-          accessibilityRole="image"
-          accessible={true}
           style={
             [
               {
-                "alignItems": "center",
-                "justifyContent": "center",
+                "borderRadius": 62,
+                "borderWidth": 2,
+                "marginBottom": 8,
+                "padding": 4,
               },
               {
-                "backgroundColor": "#8FD9B4",
-                "borderRadius": 52,
-                "height": 104,
-                "width": 104,
-              },
-              {
-                "borderColor": "#F7F9F5",
-                "borderWidth": 3,
+                "borderColor": "#DEE5DE",
               },
             ]
           }
         >
-          <Text
+          <View
+            accessibilityLabel="Photo de Mehdi Gharbi"
+            accessibilityRole="image"
+            accessible={true}
             style={
               [
                 {
-                  "fontWeight": "600",
+                  "alignItems": "center",
+                  "justifyContent": "center",
                 },
                 {
-                  "color": "#14201B",
-                  "fontSize": 42,
+                  "backgroundColor": "#8FD9B4",
+                  "borderRadius": 56,
+                  "height": 112,
+                  "width": 112,
                 },
+                undefined,
               ]
             }
           >
-            MG
-          </Text>
+            <Text
+              style={
+                [
+                  {
+                    "fontWeight": "600",
+                  },
+                  {
+                    "color": "#14201B",
+                    "fontSize": 45,
+                  },
+                ]
+              }
+            >
+              MG
+            </Text>
+          </View>
         </View>
-      </View>
-      <View
-        style={
-          {
-            "alignItems": "center",
-            "flexDirection": "row",
-            "gap": 8,
-          }
-        }
-      >
         <Text
+          accessibilityRole="header"
           style={
             [
               {
-                "fontSize": 30,
-                "fontWeight": "700",
-                "lineHeight": 36,
+                "fontFamily": "Fraunces_500Medium",
+                "fontSize": 36,
+                "letterSpacing": -0.3,
+                "lineHeight": 38.88,
               },
               null,
               {
                 "color": "#14201B",
-                "textAlign": undefined,
+                "textAlign": "center",
                 "writingDirection": "ltr",
               },
               undefined,
@@ -819,34 +3622,796 @@ exports[`search/trust.tsx snapshots > renders a passenger profile with real ride
         >
           Mehdi
         </Text>
+        <Text
+          style={
+            [
+              {
+                "fontSize": 14,
+                "fontWeight": "400",
+                "lineHeight": 21,
+              },
+              null,
+              {
+                "color": "#4F5C55",
+                "textAlign": "center",
+                "writingDirection": "ltr",
+              },
+              undefined,
+            ]
+          }
+        >
+          search:trust.roleRider · search:trust.memberSince
+        </Text>
+        <View
+          style={
+            {
+              "flexDirection": "row",
+              "flexWrap": "wrap",
+              "gap": 8,
+              "justifyContent": "center",
+              "marginTop": 8,
+            }
+          }
+        >
+          <View
+            accessibilityLabel="search:trust.tierTrusted"
+            accessibilityRole="text"
+            accessible={true}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "alignSelf": "flex-start",
+                  "borderRadius": 9999,
+                  "flexDirection": "row",
+                  "gap": 4,
+                  "paddingHorizontal": 12,
+                  "paddingVertical": 6,
+                },
+                {
+                  "backgroundColor": "#8FD9B455",
+                },
+                undefined,
+              ]
+            }
+          >
+            <Ionicons
+              accessibilityElementsHidden={true}
+              color="#22794F"
+              importantForAccessibility="no-hide-descendants"
+              name="shield-checkmark"
+              size={16}
+            />
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 14,
+                    "fontWeight": "600",
+                  },
+                  {
+                    "color": "#22794F",
+                  },
+                ]
+              }
+            >
+              search:trust.tierTrusted
+            </Text>
+          </View>
+        </View>
       </View>
-    </View>
-    <View
-      style={
-        {
-          "flexDirection": "row",
-          "gap": 8,
-        }
-      }
-    >
       <View
         style={
           [
             {
-              "alignItems": "center",
-              "borderRadius": 16,
-              "borderWidth": 1,
-              "flex": 1,
-              "gap": 4,
+              "borderBottomWidth": 1,
+              "borderTopWidth": 1,
               "paddingVertical": 12,
             },
             {
-              "backgroundColor": "#F7F9F5",
               "borderColor": "#DEE5DE",
             },
           ]
         }
       >
+        <View
+          style={
+            {
+              "flexDirection": "row",
+              "paddingVertical": 4,
+            }
+          }
+        >
+          <View
+            accessibilityLabel="4.3 7 search:trust.reviewsCaption"
+            accessible={true}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "flex": 1,
+                  "gap": 2,
+                  "paddingHorizontal": 8,
+                },
+                false,
+              ]
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 4,
+                }
+              }
+            >
+              <Text
+                adjustsFontSizeToFit={true}
+                numberOfLines={1}
+                style={
+                  [
+                    {
+                      "fontSize": 24,
+                      "fontWeight": "600",
+                      "lineHeight": 28.799999999999997,
+                    },
+                    null,
+                    {
+                      "color": "#14201B",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                4.3
+              </Text>
+              <Ionicons
+                accessibilityElementsHidden={true}
+                color="#2E9E6C"
+                importantForAccessibility="no-hide-descendants"
+                name="star"
+                size={20}
+              />
+            </View>
+            <Text
+              numberOfLines={1}
+              style={
+                [
+                  {
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "lineHeight": 18,
+                  },
+                  null,
+                  {
+                    "color": "#7D8981",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              7 search:trust.reviewsCaption
+            </Text>
+          </View>
+          <View
+            accessibilityLabel="9 search:trust.tripsCaption"
+            accessible={true}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "flex": 1,
+                  "gap": 2,
+                  "paddingHorizontal": 8,
+                },
+                {
+                  "borderLeftColor": "#CCD5CD",
+                  "borderLeftWidth": 1,
+                },
+              ]
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 4,
+                }
+              }
+            >
+              <Text
+                adjustsFontSizeToFit={true}
+                numberOfLines={1}
+                style={
+                  [
+                    {
+                      "fontSize": 24,
+                      "fontWeight": "600",
+                      "lineHeight": 28.799999999999997,
+                    },
+                    null,
+                    {
+                      "color": "#14201B",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                9
+              </Text>
+            </View>
+            <Text
+              numberOfLines={1}
+              style={
+                [
+                  {
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "lineHeight": 18,
+                  },
+                  null,
+                  {
+                    "color": "#7D8981",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              search:trust.tripsCaption
+            </Text>
+          </View>
+          <View
+            accessibilityLabel="90 % search:trust.punctualityCaption"
+            accessible={true}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "flex": 1,
+                  "gap": 2,
+                  "paddingHorizontal": 8,
+                },
+                {
+                  "borderLeftColor": "#CCD5CD",
+                  "borderLeftWidth": 1,
+                },
+              ]
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 4,
+                }
+              }
+            >
+              <Text
+                adjustsFontSizeToFit={true}
+                numberOfLines={1}
+                style={
+                  [
+                    {
+                      "fontSize": 24,
+                      "fontWeight": "600",
+                      "lineHeight": 28.799999999999997,
+                    },
+                    null,
+                    {
+                      "color": "#14201B",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                90 %
+              </Text>
+            </View>
+            <Text
+              numberOfLines={1}
+              style={
+                [
+                  {
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "lineHeight": 18,
+                  },
+                  null,
+                  {
+                    "color": "#7D8981",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              search:trust.punctualityCaption
+            </Text>
+          </View>
+        </View>
+      </View>
+      <View
+        style={
+          {
+            "gap": 12,
+          }
+        }
+      >
+        <Text
+          style={
+            [
+              {
+                "fontSize": 12,
+                "fontWeight": "400",
+                "lineHeight": 18,
+              },
+              null,
+              {
+                "color": "#7D8981",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              {
+                "fontWeight": "600",
+                "letterSpacing": 1.2,
+                "textTransform": "uppercase",
+              },
+            ]
+          }
+        >
+          search:trust.reviewsTitle
+        </Text>
+        <View
+          accessibilityLabel="search:trust.reviewsA11y"
+          accessibilityRole="summary"
+          accessible={true}
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "gap": 16,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "gap": 2,
+                "minWidth": 88,
+              }
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontFamily": "Fraunces_500Medium",
+                    "fontSize": 36,
+                    "letterSpacing": -0.3,
+                    "lineHeight": 38.88,
+                  },
+                  null,
+                  {
+                    "color": "#14201B",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              4.3
+            </Text>
+            <View
+              style={
+                {
+                  "flexDirection": "row",
+                  "gap": 1,
+                }
+              }
+            >
+              <Ionicons
+                accessibilityElementsHidden={true}
+                color="#2E9E6C"
+                importantForAccessibility="no-hide-descendants"
+                name="star"
+                size={16}
+              />
+              <Ionicons
+                accessibilityElementsHidden={true}
+                color="#2E9E6C"
+                importantForAccessibility="no-hide-descendants"
+                name="star"
+                size={16}
+              />
+              <Ionicons
+                accessibilityElementsHidden={true}
+                color="#2E9E6C"
+                importantForAccessibility="no-hide-descendants"
+                name="star"
+                size={16}
+              />
+              <Ionicons
+                accessibilityElementsHidden={true}
+                color="#2E9E6C"
+                importantForAccessibility="no-hide-descendants"
+                name="star"
+                size={16}
+              />
+              <Ionicons
+                accessibilityElementsHidden={true}
+                color="#2E9E6C"
+                importantForAccessibility="no-hide-descendants"
+                name="star-half"
+                size={16}
+              />
+            </View>
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "lineHeight": 18,
+                  },
+                  null,
+                  {
+                    "color": "#7D8981",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              7 search:trust.reviewsCaption
+            </Text>
+          </View>
+          <View
+            style={
+              {
+                "flex": 1,
+                "gap": 6,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 8,
+                }
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 12,
+                      "fontWeight": "400",
+                      "lineHeight": 18,
+                    },
+                    null,
+                    {
+                      "color": "#4F5C55",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    {
+                      "textAlign": "center",
+                      "width": 10,
+                    },
+                  ]
+                }
+              >
+                5
+              </Text>
+              <View
+                style={
+                  [
+                    {
+                      "borderRadius": 9999,
+                      "flex": 1,
+                      "height": 6,
+                      "overflow": "hidden",
+                    },
+                    {
+                      "backgroundColor": "#E2E8E1",
+                    },
+                  ]
+                }
+              >
+                <Animated.View
+                  style={
+                    [
+                      {
+                        "borderRadius": 9999,
+                        "height": "100%",
+                      },
+                      {
+                        "backgroundColor": "#2E9E6C",
+                        "width": "0%",
+                      },
+                    ]
+                  }
+                  testID="rating-bar-5"
+                />
+              </View>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 8,
+                }
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 12,
+                      "fontWeight": "400",
+                      "lineHeight": 18,
+                    },
+                    null,
+                    {
+                      "color": "#4F5C55",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    {
+                      "textAlign": "center",
+                      "width": 10,
+                    },
+                  ]
+                }
+              >
+                4
+              </Text>
+              <View
+                style={
+                  [
+                    {
+                      "borderRadius": 9999,
+                      "flex": 1,
+                      "height": 6,
+                      "overflow": "hidden",
+                    },
+                    {
+                      "backgroundColor": "#E2E8E1",
+                    },
+                  ]
+                }
+              >
+                <Animated.View
+                  style={
+                    [
+                      {
+                        "borderRadius": 9999,
+                        "height": "100%",
+                      },
+                      {
+                        "backgroundColor": "#2E9E6C",
+                        "width": "0%",
+                      },
+                    ]
+                  }
+                  testID="rating-bar-4"
+                />
+              </View>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 8,
+                }
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 12,
+                      "fontWeight": "400",
+                      "lineHeight": 18,
+                    },
+                    null,
+                    {
+                      "color": "#4F5C55",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    {
+                      "textAlign": "center",
+                      "width": 10,
+                    },
+                  ]
+                }
+              >
+                3
+              </Text>
+              <View
+                style={
+                  [
+                    {
+                      "borderRadius": 9999,
+                      "flex": 1,
+                      "height": 6,
+                      "overflow": "hidden",
+                    },
+                    {
+                      "backgroundColor": "#E2E8E1",
+                    },
+                  ]
+                }
+              >
+                <Animated.View
+                  style={
+                    [
+                      {
+                        "borderRadius": 9999,
+                        "height": "100%",
+                      },
+                      {
+                        "backgroundColor": "#7D8981",
+                        "width": "0%",
+                      },
+                    ]
+                  }
+                  testID="rating-bar-3"
+                />
+              </View>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 8,
+                }
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 12,
+                      "fontWeight": "400",
+                      "lineHeight": 18,
+                    },
+                    null,
+                    {
+                      "color": "#4F5C55",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    {
+                      "textAlign": "center",
+                      "width": 10,
+                    },
+                  ]
+                }
+              >
+                2
+              </Text>
+              <View
+                style={
+                  [
+                    {
+                      "borderRadius": 9999,
+                      "flex": 1,
+                      "height": 6,
+                      "overflow": "hidden",
+                    },
+                    {
+                      "backgroundColor": "#E2E8E1",
+                    },
+                  ]
+                }
+              >
+                <Animated.View
+                  style={
+                    [
+                      {
+                        "borderRadius": 9999,
+                        "height": "100%",
+                      },
+                      {
+                        "backgroundColor": "#7D8981",
+                        "width": "0%",
+                      },
+                    ]
+                  }
+                  testID="rating-bar-2"
+                />
+              </View>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 8,
+                }
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 12,
+                      "fontWeight": "400",
+                      "lineHeight": 18,
+                    },
+                    null,
+                    {
+                      "color": "#4F5C55",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    {
+                      "textAlign": "center",
+                      "width": 10,
+                    },
+                  ]
+                }
+              >
+                1
+              </Text>
+              <View
+                style={
+                  [
+                    {
+                      "borderRadius": 9999,
+                      "flex": 1,
+                      "height": 6,
+                      "overflow": "hidden",
+                    },
+                    {
+                      "backgroundColor": "#E2E8E1",
+                    },
+                  ]
+                }
+              >
+                <Animated.View
+                  style={
+                    [
+                      {
+                        "borderRadius": 9999,
+                        "height": "100%",
+                      },
+                      {
+                        "backgroundColor": "#7D8981",
+                        "width": "0%",
+                      },
+                    ]
+                  }
+                  testID="rating-bar-1"
+                />
+              </View>
+            </View>
+          </View>
+        </View>
         <View
           style={
             {
@@ -856,131 +4421,38 @@ exports[`search/trust.tsx snapshots > renders a passenger profile with real ride
             }
           }
         >
+          <Ionicons
+            accessibilityElementsHidden={true}
+            color="#7D8981"
+            importantForAccessibility="no-hide-descendants"
+            name="lock-closed-outline"
+            size={16}
+          />
           <Text
             style={
               [
                 {
-                  "fontSize": 24,
-                  "fontWeight": "600",
-                  "lineHeight": 28.799999999999997,
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "lineHeight": 18,
                 },
                 null,
                 {
-                  "color": "#14201B",
+                  "color": "#7D8981",
                   "textAlign": undefined,
                   "writingDirection": "ltr",
                 },
-                undefined,
+                {
+                  "flex": 1,
+                },
               ]
             }
           >
-            4.3
+            search:trust.reviewsPrivate
           </Text>
-          <Ionicons
-            accessibilityElementsHidden={true}
-            color="#2E9E6C"
-            importantForAccessibility="no-hide-descendants"
-            name="star"
-            size={16}
-          />
         </View>
-        <Text
-          style={
-            [
-              {
-                "fontSize": 12,
-                "fontWeight": "400",
-                "lineHeight": 18,
-              },
-              null,
-              {
-                "color": "#7D8981",
-                "textAlign": undefined,
-                "writingDirection": "ltr",
-              },
-              undefined,
-            ]
-          }
-        >
-          search:trust.ratingLabel
-        </Text>
       </View>
-      <View
-        style={
-          [
-            {
-              "alignItems": "center",
-              "borderRadius": 16,
-              "borderWidth": 1,
-              "flex": 1,
-              "gap": 4,
-              "paddingVertical": 12,
-            },
-            {
-              "backgroundColor": "#F7F9F5",
-              "borderColor": "#DEE5DE",
-            },
-          ]
-        }
-      >
-        <Text
-          style={
-            [
-              {
-                "fontSize": 24,
-                "fontWeight": "600",
-                "lineHeight": 28.799999999999997,
-              },
-              null,
-              {
-                "color": "#14201B",
-                "textAlign": undefined,
-                "writingDirection": "ltr",
-              },
-              undefined,
-            ]
-          }
-        >
-          9
-        </Text>
-        <Text
-          style={
-            [
-              {
-                "fontSize": 12,
-                "fontWeight": "400",
-                "lineHeight": 18,
-              },
-              null,
-              {
-                "color": "#7D8981",
-                "textAlign": undefined,
-                "writingDirection": "ltr",
-              },
-              undefined,
-            ]
-          }
-        >
-          search:trust.tripsLabel
-        </Text>
-      </View>
-    </View>
-    <View
-      style={
-        {
-          "flexDirection": "row",
-          "flexWrap": "wrap",
-          "gap": 8,
-        }
-      }
-    />
-    <View
-      style={
-        {
-          "height": 100,
-        }
-      }
-    />
+    </Animated.View>
   </ScrollView>
   <View
     style={
@@ -992,7 +4464,7 @@ exports[`search/trust.tsx snapshots > renders a passenger profile with real ride
           "paddingTop": 12,
         },
         {
-          "backgroundColor": "#F7F9F5",
+          "backgroundColor": "#EEF1EC",
           "borderTopColor": "#DEE5DE",
           "paddingBottom": 8,
         },
@@ -1195,117 +4667,138 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
   <ScrollView
     contentContainerStyle={
       {
-        "gap": 12,
-        "padding": 16,
+        "paddingBottom": 24,
+        "paddingHorizontal": 16,
+        "paddingTop": 12,
       }
     }
     showsVerticalScrollIndicator={false}
   >
-    <View
+    <Animated.View
       style={
-        {
-          "alignItems": "center",
-          "gap": 8,
-        }
+        [
+          {
+            "gap": 20,
+          },
+          {
+            "opacity": AnimatedValue {
+              "value": 0,
+            },
+            "transform": [
+              {
+                "translateY": "0%",
+              },
+            ],
+          },
+        ]
       }
     >
       <View
         style={
           {
-            "position": "relative",
+            "alignItems": "center",
+            "gap": 4,
           }
         }
       >
         <View
-          accessibilityLabel="Photo de Mehdi Gharbi"
-          accessibilityRole="image"
-          accessible={true}
           style={
             [
               {
-                "alignItems": "center",
-                "justifyContent": "center",
+                "borderRadius": 62,
+                "borderWidth": 2,
+                "marginBottom": 8,
+                "padding": 4,
               },
               {
-                "backgroundColor": "#8FD9B4",
-                "borderRadius": 52,
-                "height": 104,
-                "width": 104,
-              },
-              {
-                "borderColor": "#F7F9F5",
-                "borderWidth": 3,
+                "borderColor": "#2E9E6C",
               },
             ]
           }
         >
-          <Text
+          <View
+            accessibilityLabel="Photo de Mehdi Gharbi"
+            accessibilityRole="image"
+            accessible={true}
             style={
               [
                 {
-                  "fontWeight": "600",
+                  "alignItems": "center",
+                  "justifyContent": "center",
                 },
                 {
-                  "color": "#14201B",
-                  "fontSize": 42,
+                  "backgroundColor": "#8FD9B4",
+                  "borderRadius": 56,
+                  "height": 112,
+                  "width": 112,
+                },
+                undefined,
+              ]
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontWeight": "600",
+                  },
+                  {
+                    "color": "#14201B",
+                    "fontSize": 45,
+                  },
+                ]
+              }
+            >
+              MG
+            </Text>
+          </View>
+          <View
+            accessibilityLabel="search:trust.verifiedA11y"
+            accessibilityRole="image"
+            accessible={true}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "borderRadius": 15,
+                  "borderWidth": 3,
+                  "bottom": 2,
+                  "height": 30,
+                  "justifyContent": "center",
+                  "position": "absolute",
+                  "right": 2,
+                  "width": 30,
+                },
+                {
+                  "backgroundColor": "#2E9E6C",
+                  "borderColor": "#EEF1EC",
                 },
               ]
             }
           >
-            MG
-          </Text>
+            <Ionicons
+              accessibilityElementsHidden={true}
+              color="#0D1512"
+              importantForAccessibility="no-hide-descendants"
+              name="checkmark"
+              size={20}
+            />
+          </View>
         </View>
-        <View
-          style={
-            [
-              {
-                "alignItems": "center",
-                "borderRadius": 13,
-                "borderWidth": 2,
-                "bottom": 0,
-                "height": 26,
-                "justifyContent": "center",
-                "position": "absolute",
-                "right": 0,
-                "width": 26,
-              },
-              {
-                "backgroundColor": "#2E9E6C",
-                "borderColor": "#F7F9F5",
-              },
-            ]
-          }
-        >
-          <Ionicons
-            accessibilityElementsHidden={true}
-            color="#0D1512"
-            importantForAccessibility="no-hide-descendants"
-            name="checkmark"
-            size={16}
-          />
-        </View>
-      </View>
-      <View
-        style={
-          {
-            "alignItems": "center",
-            "flexDirection": "row",
-            "gap": 8,
-          }
-        }
-      >
         <Text
+          accessibilityRole="header"
           style={
             [
               {
-                "fontSize": 30,
-                "fontWeight": "700",
-                "lineHeight": 36,
+                "fontFamily": "Fraunces_500Medium",
+                "fontSize": 36,
+                "letterSpacing": -0.3,
+                "lineHeight": 38.88,
               },
               null,
               {
                 "color": "#14201B",
-                "textAlign": undefined,
+                "textAlign": "center",
                 "writingDirection": "ltr",
               },
               undefined,
@@ -1314,28 +4807,143 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
         >
           Mehdi
         </Text>
-        <View
+        <Text
           style={
             [
               {
-                "alignItems": "center",
-                "borderRadius": 9999,
-                "flexDirection": "row",
-                "gap": 4,
-                "paddingHorizontal": 8,
-                "paddingVertical": 2,
+                "fontSize": 14,
+                "fontWeight": "400",
+                "lineHeight": 21,
               },
+              null,
               {
-                "backgroundColor": "#E2E8E1",
+                "color": "#4F5C55",
+                "textAlign": "center",
+                "writingDirection": "ltr",
               },
+              undefined,
             ]
+          }
+        >
+          search:trust.roleDriverVerified · search:trust.memberSince
+        </Text>
+        <View
+          style={
+            {
+              "flexDirection": "row",
+              "flexWrap": "wrap",
+              "gap": 8,
+              "justifyContent": "center",
+              "marginTop": 8,
+            }
+          }
+        >
+          <View
+            accessibilityLabel="search:trust.tierTopRated"
+            accessibilityRole="text"
+            accessible={true}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "alignSelf": "flex-start",
+                  "borderRadius": 9999,
+                  "flexDirection": "row",
+                  "gap": 4,
+                  "paddingHorizontal": 12,
+                  "paddingVertical": 6,
+                },
+                {
+                  "backgroundColor": "#8FD9B455",
+                },
+                undefined,
+              ]
+            }
+          >
+            <Ionicons
+              accessibilityElementsHidden={true}
+              color="#22794F"
+              importantForAccessibility="no-hide-descendants"
+              name="ribbon"
+              size={16}
+            />
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 14,
+                    "fontWeight": "600",
+                  },
+                  {
+                    "color": "#22794F",
+                  },
+                ]
+              }
+            >
+              search:trust.tierTopRated
+            </Text>
+          </View>
+          <View
+            accessibilityLabel="search:trust.reliable"
+            accessibilityRole="text"
+            accessible={true}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "alignSelf": "flex-start",
+                  "borderRadius": 9999,
+                  "flexDirection": "row",
+                  "gap": 4,
+                  "paddingHorizontal": 12,
+                  "paddingVertical": 6,
+                },
+                {
+                  "backgroundColor": "#8FD9B455",
+                },
+                undefined,
+              ]
+            }
+          >
+            <Ionicons
+              accessibilityElementsHidden={true}
+              color="#22794F"
+              importantForAccessibility="no-hide-descendants"
+              name="thumbs-up"
+              size={16}
+            />
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 14,
+                    "fontWeight": "600",
+                  },
+                  {
+                    "color": "#22794F",
+                  },
+                ]
+              }
+            >
+              search:trust.reliable
+            </Text>
+          </View>
+        </View>
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "gap": 4,
+              "marginTop": 4,
+            }
           }
         >
           <Ionicons
             accessibilityElementsHidden={true}
-            color="#4F5C55"
+            color="#7D8981"
             importantForAccessibility="no-hide-descendants"
-            name="shield-checkmark"
+            name="language-outline"
             size={16}
           />
           <Text
@@ -1348,7 +4956,7 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
                 },
                 null,
                 {
-                  "color": "#4F5C55",
+                  "color": "#7D8981",
                   "textAlign": undefined,
                   "writingDirection": "ltr",
                 },
@@ -1356,52 +4964,19 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
               ]
             }
           >
-            search:trust.verified
+            search:trust.speaks
           </Text>
         </View>
       </View>
-      <Text
-        style={
-          [
-            {
-              "fontSize": 14,
-              "fontWeight": "400",
-              "lineHeight": 21,
-            },
-            null,
-            {
-              "color": "#7D8981",
-              "textAlign": undefined,
-              "writingDirection": "ltr",
-            },
-            undefined,
-          ]
-        }
-      >
-        search:trust.speaks
-      </Text>
-    </View>
-    <View
-      style={
-        {
-          "flexDirection": "row",
-          "gap": 8,
-        }
-      }
-    >
       <View
         style={
           [
             {
-              "alignItems": "center",
-              "borderRadius": 16,
-              "borderWidth": 1,
-              "flex": 1,
-              "gap": 4,
+              "borderBottomWidth": 1,
+              "borderTopWidth": 1,
               "paddingVertical": 12,
             },
             {
-              "backgroundColor": "#F7F9F5",
               "borderColor": "#DEE5DE",
             },
           ]
@@ -1410,40 +4985,240 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
         <View
           style={
             {
-              "alignItems": "center",
               "flexDirection": "row",
-              "gap": 4,
+              "paddingVertical": 4,
             }
           }
         >
-          <Text
+          <View
+            accessibilityLabel="4.7 96 search:trust.reviewsCaption"
+            accessible={true}
             style={
               [
                 {
-                  "fontSize": 24,
-                  "fontWeight": "600",
-                  "lineHeight": 28.799999999999997,
+                  "alignItems": "center",
+                  "flex": 1,
+                  "gap": 2,
+                  "paddingHorizontal": 8,
                 },
-                null,
-                {
-                  "color": "#14201B",
-                  "textAlign": undefined,
-                  "writingDirection": "ltr",
-                },
-                undefined,
+                false,
               ]
             }
           >
-            4.7
-          </Text>
-          <Ionicons
-            accessibilityElementsHidden={true}
-            color="#2E9E6C"
-            importantForAccessibility="no-hide-descendants"
-            name="star"
-            size={16}
-          />
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 4,
+                }
+              }
+            >
+              <Text
+                adjustsFontSizeToFit={true}
+                numberOfLines={1}
+                style={
+                  [
+                    {
+                      "fontSize": 24,
+                      "fontWeight": "600",
+                      "lineHeight": 28.799999999999997,
+                    },
+                    null,
+                    {
+                      "color": "#14201B",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                4.7
+              </Text>
+              <Ionicons
+                accessibilityElementsHidden={true}
+                color="#2E9E6C"
+                importantForAccessibility="no-hide-descendants"
+                name="star"
+                size={20}
+              />
+            </View>
+            <Text
+              numberOfLines={1}
+              style={
+                [
+                  {
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "lineHeight": 18,
+                  },
+                  null,
+                  {
+                    "color": "#7D8981",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              96 search:trust.reviewsCaption
+            </Text>
+          </View>
+          <View
+            accessibilityLabel="128 search:trust.tripsCaption"
+            accessible={true}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "flex": 1,
+                  "gap": 2,
+                  "paddingHorizontal": 8,
+                },
+                {
+                  "borderLeftColor": "#CCD5CD",
+                  "borderLeftWidth": 1,
+                },
+              ]
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 4,
+                }
+              }
+            >
+              <Text
+                adjustsFontSizeToFit={true}
+                numberOfLines={1}
+                style={
+                  [
+                    {
+                      "fontSize": 24,
+                      "fontWeight": "600",
+                      "lineHeight": 28.799999999999997,
+                    },
+                    null,
+                    {
+                      "color": "#14201B",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                128
+              </Text>
+            </View>
+            <Text
+              numberOfLines={1}
+              style={
+                [
+                  {
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "lineHeight": 18,
+                  },
+                  null,
+                  {
+                    "color": "#7D8981",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              search:trust.tripsCaption
+            </Text>
+          </View>
+          <View
+            accessibilityLabel="95 % search:trust.punctualityCaption"
+            accessible={true}
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "flex": 1,
+                  "gap": 2,
+                  "paddingHorizontal": 8,
+                },
+                {
+                  "borderLeftColor": "#CCD5CD",
+                  "borderLeftWidth": 1,
+                },
+              ]
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 4,
+                }
+              }
+            >
+              <Text
+                adjustsFontSizeToFit={true}
+                numberOfLines={1}
+                style={
+                  [
+                    {
+                      "fontSize": 24,
+                      "fontWeight": "600",
+                      "lineHeight": 28.799999999999997,
+                    },
+                    null,
+                    {
+                      "color": "#14201B",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                95 %
+              </Text>
+            </View>
+            <Text
+              numberOfLines={1}
+              style={
+                [
+                  {
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "lineHeight": 18,
+                  },
+                  null,
+                  {
+                    "color": "#7D8981",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              search:trust.punctualityCaption
+            </Text>
+          </View>
         </View>
+      </View>
+      <View
+        style={
+          {
+            "gap": 12,
+          }
+        }
+      >
         <Text
           style={
             [
@@ -1458,51 +5233,314 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
                 "textAlign": undefined,
                 "writingDirection": "ltr",
               },
-              undefined,
-            ]
-          }
-        >
-          search:trust.ratingLabel
-        </Text>
-      </View>
-      <View
-        style={
-          [
-            {
-              "alignItems": "center",
-              "borderRadius": 16,
-              "borderWidth": 1,
-              "flex": 1,
-              "gap": 4,
-              "paddingVertical": 12,
-            },
-            {
-              "backgroundColor": "#F7F9F5",
-              "borderColor": "#DEE5DE",
-            },
-          ]
-        }
-      >
-        <Text
-          style={
-            [
               {
-                "fontSize": 24,
                 "fontWeight": "600",
-                "lineHeight": 28.799999999999997,
+                "letterSpacing": 1.2,
+                "textTransform": "uppercase",
               },
-              null,
-              {
-                "color": "#14201B",
-                "textAlign": undefined,
-                "writingDirection": "ltr",
-              },
-              undefined,
             ]
           }
         >
-          128
+          search:trust.verifiedByVaya
         </Text>
+        <View
+          accessibilityLabel="search:trust.sealA11y"
+          accessibilityRole="summary"
+          accessible={true}
+          style={
+            {
+              "flexDirection": "row",
+              "position": "relative",
+            }
+          }
+        >
+          <View
+            style={
+              [
+                {
+                  "borderRadius": 9999,
+                  "height": 2,
+                  "position": "absolute",
+                },
+                {
+                  "backgroundColor": "#8FD9B4",
+                  "left": "16.666666666666668%",
+                  "right": "16.666666666666668%",
+                  "top": 24,
+                },
+              ]
+            }
+          />
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flex": 1,
+                "gap": 4,
+                "paddingHorizontal": 4,
+              }
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "borderWidth": 2,
+                    "justifyContent": "center",
+                  },
+                  {
+                    "backgroundColor": "#F7F9F5",
+                    "borderColor": "#8FD9B4",
+                    "borderRadius": 24,
+                    "height": 48,
+                    "width": 48,
+                  },
+                ]
+              }
+            >
+              <Ionicons
+                accessibilityElementsHidden={true}
+                color="#22794F"
+                importantForAccessibility="no-hide-descendants"
+                name="person-outline"
+                size={20}
+              />
+              <View
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 9,
+                      "borderWidth": 2,
+                      "bottom": -3,
+                      "height": 18,
+                      "justifyContent": "center",
+                      "position": "absolute",
+                      "right": -3,
+                      "width": 18,
+                    },
+                    {
+                      "backgroundColor": "#2E9E6C",
+                      "borderColor": "#F7F9F5",
+                    },
+                  ]
+                }
+              >
+                <Ionicons
+                  accessibilityElementsHidden={true}
+                  color="#0D1512"
+                  importantForAccessibility="no-hide-descendants"
+                  name="checkmark"
+                  size={16}
+                />
+              </View>
+            </View>
+            <Text
+              numberOfLines={2}
+              style={
+                [
+                  {
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "lineHeight": 18,
+                  },
+                  null,
+                  {
+                    "color": "#4F5C55",
+                    "textAlign": "center",
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              search:trust.sealIdentity
+            </Text>
+          </View>
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flex": 1,
+                "gap": 4,
+                "paddingHorizontal": 4,
+              }
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "borderWidth": 2,
+                    "justifyContent": "center",
+                  },
+                  {
+                    "backgroundColor": "#F7F9F5",
+                    "borderColor": "#8FD9B4",
+                    "borderRadius": 24,
+                    "height": 48,
+                    "width": 48,
+                  },
+                ]
+              }
+            >
+              <Ionicons
+                accessibilityElementsHidden={true}
+                color="#22794F"
+                importantForAccessibility="no-hide-descendants"
+                name="card-outline"
+                size={20}
+              />
+              <View
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 9,
+                      "borderWidth": 2,
+                      "bottom": -3,
+                      "height": 18,
+                      "justifyContent": "center",
+                      "position": "absolute",
+                      "right": -3,
+                      "width": 18,
+                    },
+                    {
+                      "backgroundColor": "#2E9E6C",
+                      "borderColor": "#F7F9F5",
+                    },
+                  ]
+                }
+              >
+                <Ionicons
+                  accessibilityElementsHidden={true}
+                  color="#0D1512"
+                  importantForAccessibility="no-hide-descendants"
+                  name="checkmark"
+                  size={16}
+                />
+              </View>
+            </View>
+            <Text
+              numberOfLines={2}
+              style={
+                [
+                  {
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "lineHeight": 18,
+                  },
+                  null,
+                  {
+                    "color": "#4F5C55",
+                    "textAlign": "center",
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              search:trust.sealLicense
+            </Text>
+          </View>
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flex": 1,
+                "gap": 4,
+                "paddingHorizontal": 4,
+              }
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "borderWidth": 2,
+                    "justifyContent": "center",
+                  },
+                  {
+                    "backgroundColor": "#F7F9F5",
+                    "borderColor": "#8FD9B4",
+                    "borderRadius": 24,
+                    "height": 48,
+                    "width": 48,
+                  },
+                ]
+              }
+            >
+              <Ionicons
+                accessibilityElementsHidden={true}
+                color="#22794F"
+                importantForAccessibility="no-hide-descendants"
+                name="car-sport-outline"
+                size={20}
+              />
+              <View
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 9,
+                      "borderWidth": 2,
+                      "bottom": -3,
+                      "height": 18,
+                      "justifyContent": "center",
+                      "position": "absolute",
+                      "right": -3,
+                      "width": 18,
+                    },
+                    {
+                      "backgroundColor": "#2E9E6C",
+                      "borderColor": "#F7F9F5",
+                    },
+                  ]
+                }
+              >
+                <Ionicons
+                  accessibilityElementsHidden={true}
+                  color="#0D1512"
+                  importantForAccessibility="no-hide-descendants"
+                  name="checkmark"
+                  size={16}
+                />
+              </View>
+            </View>
+            <Text
+              numberOfLines={2}
+              style={
+                [
+                  {
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "lineHeight": 18,
+                  },
+                  null,
+                  {
+                    "color": "#4F5C55",
+                    "textAlign": "center",
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              search:trust.sealVehicle
+            </Text>
+          </View>
+        </View>
+      </View>
+      <View
+        style={
+          {
+            "gap": 12,
+          }
+        }
+      >
         <Text
           style={
             [
@@ -1517,416 +5555,29 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
                 "textAlign": undefined,
                 "writingDirection": "ltr",
               },
-              undefined,
-            ]
-          }
-        >
-          search:trust.tripsLabel
-        </Text>
-      </View>
-    </View>
-    <View
-      style={
-        {
-          "flexDirection": "row",
-          "flexWrap": "wrap",
-          "gap": 8,
-        }
-      }
-    >
-      <View
-        style={
-          [
-            {
-              "alignItems": "center",
-              "borderRadius": 9999,
-              "flexDirection": "row",
-              "gap": 4,
-              "paddingHorizontal": 12,
-              "paddingVertical": 8,
-            },
-            {
-              "backgroundColor": "#E2E8E1",
-            },
-          ]
-        }
-      >
-        <Ionicons
-          accessibilityElementsHidden={true}
-          color="#2E9E6C"
-          importantForAccessibility="no-hide-descendants"
-          name="thumbs-up"
-          size={16}
-        />
-        <Text
-          style={
-            [
               {
-                "fontSize": 14,
-                "fontWeight": "400",
-                "lineHeight": 21,
+                "fontWeight": "600",
+                "letterSpacing": 1.2,
+                "textTransform": "uppercase",
               },
-              null,
-              {
-                "color": "#14201B",
-                "textAlign": undefined,
-                "writingDirection": "ltr",
-              },
-              undefined,
-            ]
-          }
-        >
-          search:trust.pillReliable
-        </Text>
-      </View>
-      <View
-        style={
-          [
-            {
-              "alignItems": "center",
-              "borderRadius": 9999,
-              "flexDirection": "row",
-              "gap": 4,
-              "paddingHorizontal": 12,
-              "paddingVertical": 8,
-            },
-            {
-              "backgroundColor": "#E2E8E1",
-            },
-          ]
-        }
-      >
-        <Ionicons
-          accessibilityElementsHidden={true}
-          color="#2E9E6C"
-          importantForAccessibility="no-hide-descendants"
-          name="ribbon-outline"
-          size={16}
-        />
-        <Text
-          style={
-            [
-              {
-                "fontSize": 14,
-                "fontWeight": "400",
-                "lineHeight": 21,
-              },
-              null,
-              {
-                "color": "#14201B",
-                "textAlign": undefined,
-                "writingDirection": "ltr",
-              },
-              undefined,
-            ]
-          }
-        >
-          search:trust.pillTopRated
-        </Text>
-      </View>
-    </View>
-    <View
-      style={
-        [
-          {
-            "borderRadius": 16,
-            "borderWidth": 1,
-            "gap": 8,
-            "padding": 12,
-          },
-          {
-            "backgroundColor": "#F7F9F5",
-            "borderColor": "#DEE5DE",
-          },
-        ]
-      }
-    >
-      <View
-        style={
-          {
-            "alignItems": "center",
-            "flexDirection": "row",
-            "gap": 4,
-          }
-        }
-      >
-        <Ionicons
-          accessibilityElementsHidden={true}
-          color="#2E9E6C"
-          importantForAccessibility="no-hide-descendants"
-          name="shield-checkmark-outline"
-          size={20}
-        />
-        <Text
-          style={
-            [
-              {
-                "fontSize": 14,
-                "fontWeight": "500",
-                "lineHeight": 21,
-              },
-              null,
-              {
-                "color": "#14201B",
-                "textAlign": undefined,
-                "writingDirection": "ltr",
-              },
-              undefined,
-            ]
-          }
-        >
-          search:trust.verificationsTitle
-        </Text>
-      </View>
-      <View
-        style={
-          {
-            "alignItems": "center",
-            "flexDirection": "row",
-            "gap": 8,
-          }
-        }
-      >
-        <Ionicons
-          accessibilityElementsHidden={true}
-          color="#2E9E6C"
-          importantForAccessibility="no-hide-descendants"
-          name="person-circle-outline"
-          size={20}
-        />
-        <Text
-          style={
-            [
-              {
-                "fontSize": 14,
-                "fontWeight": "400",
-                "lineHeight": 21,
-              },
-              null,
-              {
-                "color": "#4F5C55",
-                "textAlign": undefined,
-                "writingDirection": "ltr",
-              },
-              undefined,
-            ]
-          }
-        >
-          search:trust.verificationIdentity
-        </Text>
-      </View>
-      <View
-        style={
-          {
-            "alignItems": "center",
-            "flexDirection": "row",
-            "gap": 8,
-          }
-        }
-      >
-        <Ionicons
-          accessibilityElementsHidden={true}
-          color="#2E9E6C"
-          importantForAccessibility="no-hide-descendants"
-          name="document-text-outline"
-          size={20}
-        />
-        <Text
-          style={
-            [
-              {
-                "fontSize": 14,
-                "fontWeight": "400",
-                "lineHeight": 21,
-              },
-              null,
-              {
-                "color": "#4F5C55",
-                "textAlign": undefined,
-                "writingDirection": "ltr",
-              },
-              undefined,
-            ]
-          }
-        >
-          search:trust.verificationDocuments
-        </Text>
-      </View>
-      <View
-        style={
-          {
-            "alignItems": "center",
-            "flexDirection": "row",
-            "gap": 8,
-          }
-        }
-      >
-        <Ionicons
-          accessibilityElementsHidden={true}
-          color="#2E9E6C"
-          importantForAccessibility="no-hide-descendants"
-          name="car-sport-outline"
-          size={20}
-        />
-        <Text
-          style={
-            [
-              {
-                "fontSize": 14,
-                "fontWeight": "400",
-                "lineHeight": 21,
-              },
-              null,
-              {
-                "color": "#4F5C55",
-                "textAlign": undefined,
-                "writingDirection": "ltr",
-              },
-              undefined,
-            ]
-          }
-        >
-          search:trust.verificationVehicle
-        </Text>
-      </View>
-    </View>
-    <View
-      style={
-        [
-          {
-            "borderRadius": 16,
-            "borderWidth": 1,
-            "gap": 8,
-            "padding": 12,
-          },
-          {
-            "backgroundColor": "#F7F9F5",
-            "borderColor": "#DEE5DE",
-          },
-        ]
-      }
-    >
-      <View
-        style={
-          {
-            "alignItems": "center",
-            "flexDirection": "row",
-            "gap": 4,
-          }
-        }
-      >
-        <Ionicons
-          accessibilityElementsHidden={true}
-          color="#7D8981"
-          importantForAccessibility="no-hide-descendants"
-          name="information-circle-outline"
-          size={20}
-        />
-        <Text
-          style={
-            [
-              {
-                "fontSize": 14,
-                "fontWeight": "500",
-                "lineHeight": 21,
-              },
-              null,
-              {
-                "color": "#14201B",
-                "textAlign": undefined,
-                "writingDirection": "ltr",
-              },
-              undefined,
             ]
           }
         >
           search:trust.aboutTitle
         </Text>
-      </View>
-      <Text
-        style={
-          [
-            {
-              "fontSize": 14,
-              "fontWeight": "400",
-              "lineHeight": 21,
-            },
-            null,
-            {
-              "color": "#4F5C55",
-              "textAlign": undefined,
-              "writingDirection": "ltr",
-            },
-            undefined,
-          ]
-        }
-      >
-        Conducteur ponctuel, trajets Tunis-Nabeul tous les jours.
-      </Text>
-    </View>
-    <View
-      style={
-        [
-          {
-            "borderRadius": 16,
-            "borderWidth": 1,
-            "gap": 8,
-            "padding": 12,
-          },
-          {
-            "backgroundColor": "#F7F9F5",
-            "borderColor": "#DEE5DE",
-          },
-        ]
-      }
-    >
-      <View
-        style={
-          {
-            "alignItems": "center",
-            "flexDirection": "row",
-            "gap": 4,
-          }
-        }
-      >
-        <Ionicons
-          accessibilityElementsHidden={true}
-          color="#7D8981"
-          importantForAccessibility="no-hide-descendants"
-          name="car-sport-outline"
-          size={20}
-        />
-        <Text
+        <View
           style={
             [
               {
-                "fontSize": 14,
-                "fontWeight": "500",
-                "lineHeight": 21,
+                "borderStartWidth": 3,
+                "paddingStart": 12,
               },
-              null,
               {
-                "color": "#14201B",
-                "textAlign": undefined,
-                "writingDirection": "ltr",
+                "borderStartColor": "#8FD9B4",
               },
-              undefined,
             ]
           }
         >
-          common:terms.vehicle
-        </Text>
-      </View>
-      <View
-        style={
-          {
-            "alignItems": "center",
-            "flexDirection": "row",
-            "justifyContent": "space-between",
-          }
-        }
-      >
-        <View>
           <Text
             style={
               [
@@ -1941,36 +5592,366 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
                   "textAlign": undefined,
                   "writingDirection": "ltr",
                 },
-                {
-                  "fontWeight": "600",
-                },
+                undefined,
               ]
             }
           >
-            Gris
-             
-            Volkswagen
-             
-            Golf
+            Conducteur ponctuel, trajets Tunis-Nabeul tous les jours.
           </Text>
+        </View>
+      </View>
+      <View
+        style={
+          {
+            "gap": 12,
+          }
+        }
+      >
+        <Text
+          style={
+            [
+              {
+                "fontSize": 12,
+                "fontWeight": "400",
+                "lineHeight": 18,
+              },
+              null,
+              {
+                "color": "#7D8981",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              {
+                "fontWeight": "600",
+                "letterSpacing": 1.2,
+                "textTransform": "uppercase",
+              },
+            ]
+          }
+        >
+          search:trust.vehicleTitle
+        </Text>
+        <View
+          style={
+            [
+              {
+                "borderRadius": 16,
+                "borderWidth": 1,
+                "overflow": "hidden",
+              },
+              {
+                "backgroundColor": "#F7F9F5",
+                "borderColor": "#DEE5DE",
+              },
+            ]
+          }
+        >
           <View
             style={
-              [
-                {
-                  "alignSelf": "flex-start",
-                  "borderRadius": 4,
-                  "borderWidth": 1,
-                  "marginTop": 4,
-                  "paddingHorizontal": 8,
-                  "paddingVertical": 2,
-                },
-                {
-                  "backgroundColor": "#EEF1EC",
-                  "borderColor": "#DEE5DE",
-                },
-              ]
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+                "gap": 12,
+                "padding": 12,
+              }
             }
           >
+            <View
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "alignSelf": "flex-start",
+                    "borderRadius": 12,
+                    "height": 48,
+                    "justifyContent": "center",
+                    "width": 48,
+                  },
+                  {
+                    "backgroundColor": "#E2E8E1",
+                  },
+                ]
+              }
+            >
+              <Ionicons
+                accessibilityElementsHidden={true}
+                color="#4F5C55"
+                importantForAccessibility="no-hide-descendants"
+                name="car-sport"
+                size={24}
+              />
+            </View>
+            <View
+              style={
+                {
+                  "flex": 1,
+                  "gap": 2,
+                }
+              }
+            >
+              <Text
+                numberOfLines={2}
+                style={
+                  [
+                    {
+                      "fontSize": 18,
+                      "fontWeight": "600",
+                      "lineHeight": 23.400000000000002,
+                    },
+                    null,
+                    {
+                      "color": "#14201B",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                Volkswagen Golf
+              </Text>
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "lineHeight": 21,
+                    },
+                    null,
+                    {
+                      "color": "#4F5C55",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                Gris
+              </Text>
+              <View
+                style={
+                  {
+                    "marginTop": 8,
+                  }
+                }
+              >
+                <View
+                  accessibilityLabel="search:trust.plateA11y"
+                  accessibilityRole="text"
+                  accessible={true}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "alignSelf": "flex-start",
+                        "borderRadius": 4,
+                        "borderWidth": 1,
+                        "direction": "ltr",
+                        "flexDirection": "row",
+                        "gap": 8,
+                        "paddingHorizontal": 12,
+                        "paddingVertical": 4,
+                      },
+                      {
+                        "backgroundColor": "#14201B",
+                        "borderColor": "#CCD5CD",
+                      },
+                    ]
+                  }
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "500",
+                          "lineHeight": 21,
+                        },
+                        null,
+                        {
+                          "color": "#F4F6F2",
+                          "textAlign": undefined,
+                          "writingDirection": "ltr",
+                        },
+                        {
+                          "fontWeight": "700",
+                          "letterSpacing": 1,
+                        },
+                      ]
+                    }
+                  >
+                    123
+                  </Text>
+                  <Text
+                    style={
+                      [
+                        {
+                          "fontSize": 12,
+                          "fontWeight": "400",
+                          "lineHeight": 18,
+                        },
+                        null,
+                        {
+                          "color": "#F4F6F2",
+                          "textAlign": undefined,
+                          "writingDirection": "ltr",
+                        },
+                        {
+                          "fontWeight": "600",
+                        },
+                      ]
+                    }
+                  >
+                    تونس
+                  </Text>
+                  <Text
+                    style={
+                      [
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "500",
+                          "lineHeight": 21,
+                        },
+                        null,
+                        {
+                          "color": "#F4F6F2",
+                          "textAlign": undefined,
+                          "writingDirection": "ltr",
+                        },
+                        {
+                          "fontWeight": "700",
+                          "letterSpacing": 1,
+                        },
+                      ]
+                    }
+                  >
+                    4567
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </View>
+        </View>
+      </View>
+      <View
+        style={
+          {
+            "gap": 12,
+          }
+        }
+      >
+        <Text
+          style={
+            [
+              {
+                "fontSize": 12,
+                "fontWeight": "400",
+                "lineHeight": 18,
+              },
+              null,
+              {
+                "color": "#7D8981",
+                "textAlign": undefined,
+                "writingDirection": "ltr",
+              },
+              {
+                "fontWeight": "600",
+                "letterSpacing": 1.2,
+                "textTransform": "uppercase",
+              },
+            ]
+          }
+        >
+          search:trust.reviewsTitle
+        </Text>
+        <View
+          accessibilityLabel="search:trust.reviewsA11y"
+          accessibilityRole="summary"
+          accessible={true}
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "gap": 16,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "gap": 2,
+                "minWidth": 88,
+              }
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "fontFamily": "Fraunces_500Medium",
+                    "fontSize": 36,
+                    "letterSpacing": -0.3,
+                    "lineHeight": 38.88,
+                  },
+                  null,
+                  {
+                    "color": "#14201B",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              4.7
+            </Text>
+            <View
+              style={
+                {
+                  "flexDirection": "row",
+                  "gap": 1,
+                }
+              }
+            >
+              <Ionicons
+                accessibilityElementsHidden={true}
+                color="#2E9E6C"
+                importantForAccessibility="no-hide-descendants"
+                name="star"
+                size={16}
+              />
+              <Ionicons
+                accessibilityElementsHidden={true}
+                color="#2E9E6C"
+                importantForAccessibility="no-hide-descendants"
+                name="star"
+                size={16}
+              />
+              <Ionicons
+                accessibilityElementsHidden={true}
+                color="#2E9E6C"
+                importantForAccessibility="no-hide-descendants"
+                name="star"
+                size={16}
+              />
+              <Ionicons
+                accessibilityElementsHidden={true}
+                color="#2E9E6C"
+                importantForAccessibility="no-hide-descendants"
+                name="star"
+                size={16}
+              />
+              <Ionicons
+                accessibilityElementsHidden={true}
+                color="#2E9E6C"
+                importantForAccessibility="no-hide-descendants"
+                name="star-half"
+                size={16}
+              />
+            </View>
             <Text
               style={
                 [
@@ -1981,255 +5962,388 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
                   },
                   null,
                   {
-                    "color": "#4F5C55",
+                    "color": "#7D8981",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
-                  {
-                    "letterSpacing": 1.5,
-                  },
+                  undefined,
                 ]
               }
             >
-              123 TU 4567
+              96 search:trust.reviewsCaption
             </Text>
+          </View>
+          <View
+            style={
+              {
+                "flex": 1,
+                "gap": 6,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 8,
+                }
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 12,
+                      "fontWeight": "400",
+                      "lineHeight": 18,
+                    },
+                    null,
+                    {
+                      "color": "#4F5C55",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    {
+                      "textAlign": "center",
+                      "width": 10,
+                    },
+                  ]
+                }
+              >
+                5
+              </Text>
+              <View
+                style={
+                  [
+                    {
+                      "borderRadius": 9999,
+                      "flex": 1,
+                      "height": 6,
+                      "overflow": "hidden",
+                    },
+                    {
+                      "backgroundColor": "#E2E8E1",
+                    },
+                  ]
+                }
+              >
+                <Animated.View
+                  style={
+                    [
+                      {
+                        "borderRadius": 9999,
+                        "height": "100%",
+                      },
+                      {
+                        "backgroundColor": "#2E9E6C",
+                        "width": "0%",
+                      },
+                    ]
+                  }
+                  testID="rating-bar-5"
+                />
+              </View>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 8,
+                }
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 12,
+                      "fontWeight": "400",
+                      "lineHeight": 18,
+                    },
+                    null,
+                    {
+                      "color": "#4F5C55",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    {
+                      "textAlign": "center",
+                      "width": 10,
+                    },
+                  ]
+                }
+              >
+                4
+              </Text>
+              <View
+                style={
+                  [
+                    {
+                      "borderRadius": 9999,
+                      "flex": 1,
+                      "height": 6,
+                      "overflow": "hidden",
+                    },
+                    {
+                      "backgroundColor": "#E2E8E1",
+                    },
+                  ]
+                }
+              >
+                <Animated.View
+                  style={
+                    [
+                      {
+                        "borderRadius": 9999,
+                        "height": "100%",
+                      },
+                      {
+                        "backgroundColor": "#2E9E6C",
+                        "width": "0%",
+                      },
+                    ]
+                  }
+                  testID="rating-bar-4"
+                />
+              </View>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 8,
+                }
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 12,
+                      "fontWeight": "400",
+                      "lineHeight": 18,
+                    },
+                    null,
+                    {
+                      "color": "#4F5C55",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    {
+                      "textAlign": "center",
+                      "width": 10,
+                    },
+                  ]
+                }
+              >
+                3
+              </Text>
+              <View
+                style={
+                  [
+                    {
+                      "borderRadius": 9999,
+                      "flex": 1,
+                      "height": 6,
+                      "overflow": "hidden",
+                    },
+                    {
+                      "backgroundColor": "#E2E8E1",
+                    },
+                  ]
+                }
+              >
+                <Animated.View
+                  style={
+                    [
+                      {
+                        "borderRadius": 9999,
+                        "height": "100%",
+                      },
+                      {
+                        "backgroundColor": "#7D8981",
+                        "width": "0%",
+                      },
+                    ]
+                  }
+                  testID="rating-bar-3"
+                />
+              </View>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 8,
+                }
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 12,
+                      "fontWeight": "400",
+                      "lineHeight": 18,
+                    },
+                    null,
+                    {
+                      "color": "#4F5C55",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    {
+                      "textAlign": "center",
+                      "width": 10,
+                    },
+                  ]
+                }
+              >
+                2
+              </Text>
+              <View
+                style={
+                  [
+                    {
+                      "borderRadius": 9999,
+                      "flex": 1,
+                      "height": 6,
+                      "overflow": "hidden",
+                    },
+                    {
+                      "backgroundColor": "#E2E8E1",
+                    },
+                  ]
+                }
+              >
+                <Animated.View
+                  style={
+                    [
+                      {
+                        "borderRadius": 9999,
+                        "height": "100%",
+                      },
+                      {
+                        "backgroundColor": "#7D8981",
+                        "width": "0%",
+                      },
+                    ]
+                  }
+                  testID="rating-bar-2"
+                />
+              </View>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 8,
+                }
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "fontSize": 12,
+                      "fontWeight": "400",
+                      "lineHeight": 18,
+                    },
+                    null,
+                    {
+                      "color": "#4F5C55",
+                      "textAlign": undefined,
+                      "writingDirection": "ltr",
+                    },
+                    {
+                      "textAlign": "center",
+                      "width": 10,
+                    },
+                  ]
+                }
+              >
+                1
+              </Text>
+              <View
+                style={
+                  [
+                    {
+                      "borderRadius": 9999,
+                      "flex": 1,
+                      "height": 6,
+                      "overflow": "hidden",
+                    },
+                    {
+                      "backgroundColor": "#E2E8E1",
+                    },
+                  ]
+                }
+              >
+                <Animated.View
+                  style={
+                    [
+                      {
+                        "borderRadius": 9999,
+                        "height": "100%",
+                      },
+                      {
+                        "backgroundColor": "#7D8981",
+                        "width": "0%",
+                      },
+                    ]
+                  }
+                  testID="rating-bar-1"
+                />
+              </View>
+            </View>
           </View>
         </View>
         <View
           style={
-            [
-              {
-                "alignItems": "center",
-                "borderRadius": 12,
-                "borderWidth": 1,
-                "height": 56,
-                "justifyContent": "center",
-                "width": 56,
-              },
-              {
-                "backgroundColor": "#EEF1EC",
-                "borderColor": "#DEE5DE",
-              },
-            ]
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "gap": 4,
+            }
           }
         >
           <Ionicons
             accessibilityElementsHidden={true}
             color="#7D8981"
             importantForAccessibility="no-hide-descendants"
-            name="car-sport"
-            size={32}
-          />
-        </View>
-      </View>
-    </View>
-    <View
-      style={
-        [
-          {
-            "borderRadius": 16,
-            "borderWidth": 1,
-            "gap": 8,
-            "padding": 12,
-          },
-          {
-            "backgroundColor": "#F7F9F5",
-            "borderColor": "#DEE5DE",
-          },
-        ]
-      }
-    >
-      <View
-        style={
-          {
-            "alignItems": "center",
-            "flexDirection": "row",
-            "gap": 4,
-          }
-        }
-      >
-        <Ionicons
-          accessibilityElementsHidden={true}
-          color="#7D8981"
-          importantForAccessibility="no-hide-descendants"
-          name="chatbubble-ellipses-outline"
-          size={20}
-        />
-        <Text
-          style={
-            [
-              {
-                "fontSize": 14,
-                "fontWeight": "500",
-                "lineHeight": 21,
-              },
-              null,
-              {
-                "color": "#14201B",
-                "textAlign": undefined,
-                "writingDirection": "ltr",
-              },
-              {
-                "flex": 1,
-              },
-            ]
-          }
-        >
-          search:trust.reviewsTitle
-        </Text>
-      </View>
-      <View
-        style={
-          {
-            "flexDirection": "row",
-            "flexWrap": "wrap",
-            "gap": 16,
-          }
-        }
-      >
-        <View
-          style={
-            {
-              "alignItems": "center",
-              "flexDirection": "row",
-              "gap": 4,
-            }
-          }
-        >
-          <Ionicons
-            accessibilityElementsHidden={true}
-            color="#2E9E6C"
-            importantForAccessibility="no-hide-descendants"
-            name="star"
+            name="lock-closed-outline"
             size={16}
           />
           <Text
             style={
               [
                 {
-                  "fontSize": 14,
-                  "fontWeight": "500",
-                  "lineHeight": 21,
-                },
-                null,
-                {
-                  "color": "#14201B",
-                  "textAlign": undefined,
-                  "writingDirection": "ltr",
-                },
-                undefined,
-              ]
-            }
-          >
-            4.7
-          </Text>
-          <Text
-            style={
-              [
-                {
-                  "fontSize": 14,
+                  "fontSize": 12,
                   "fontWeight": "400",
-                  "lineHeight": 21,
+                  "lineHeight": 18,
                 },
                 null,
                 {
-                  "color": "#4F5C55",
+                  "color": "#7D8981",
                   "textAlign": undefined,
                   "writingDirection": "ltr",
                 },
-                undefined,
+                {
+                  "flex": 1,
+                },
               ]
             }
           >
-            search:trust.ratingLabel
-          </Text>
-        </View>
-        <View
-          style={
-            {
-              "alignItems": "center",
-              "flexDirection": "row",
-              "gap": 4,
-            }
-          }
-        >
-          <Ionicons
-            accessibilityElementsHidden={true}
-            color="#2E9E6C"
-            importantForAccessibility="no-hide-descendants"
-            name="time-outline"
-            size={16}
-          />
-          <Text
-            style={
-              [
-                {
-                  "fontSize": 14,
-                  "fontWeight": "500",
-                  "lineHeight": 21,
-                },
-                null,
-                {
-                  "color": "#14201B",
-                  "textAlign": undefined,
-                  "writingDirection": "ltr",
-                },
-                undefined,
-              ]
-            }
-          >
-            95 %
-          </Text>
-          <Text
-            style={
-              [
-                {
-                  "fontSize": 14,
-                  "fontWeight": "400",
-                  "lineHeight": 21,
-                },
-                null,
-                {
-                  "color": "#4F5C55",
-                  "textAlign": undefined,
-                  "writingDirection": "ltr",
-                },
-                undefined,
-              ]
-            }
-          >
-            search:trust.punctualityLabel
+            search:trust.reviewsPrivate
           </Text>
         </View>
       </View>
-      <Text
-        style={
-          [
-            {
-              "fontSize": 14,
-              "fontWeight": "400",
-              "lineHeight": 21,
-            },
-            null,
-            {
-              "color": "#7D8981",
-              "textAlign": undefined,
-              "writingDirection": "ltr",
-            },
-            undefined,
-          ]
-        }
-      >
-        search:trust.reviewsPrivate
-      </Text>
-    </View>
-    <View
-      style={
-        {
-          "height": 100,
-        }
-      }
-    />
+    </Animated.View>
   </ScrollView>
   <View
     style={
@@ -2241,7 +6355,7 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
           "paddingTop": 12,
         },
         {
-          "backgroundColor": "#F7F9F5",
+          "backgroundColor": "#EEF1EC",
           "borderTopColor": "#DEE5DE",
           "paddingBottom": 8,
         },
