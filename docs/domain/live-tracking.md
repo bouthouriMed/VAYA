@@ -84,3 +84,15 @@ Two transitions are inferred automatically from the driver's own GPS, via a pure
 - **No proactive "tracking has gone silent" push notification.** `trip_tracking_unavailable` exists and is dispatched, but only when the *driver's own app* explicitly detects and reports a real problem (`POST /trips/:id/tracking-issue`) — there is no server-side poller that notices a trip has been silent for N minutes and pushes about it on its own. Building that would need a scheduled/delayed job this phase's scope didn't extend to (the existing BullMQ queue could host it as a second job type later, following the Phase 11 precedent, if this turns out to matter in practice).
 - **No cross-instance load testing.** The Redis pub/sub fan-out is architecturally correct for a multi-instance deployment (verified by code review and the fact that a single instance already exercises the exact same subscribe-to-own-channel path) but was only actually verified against a single API process in this environment.
 - **Verified against real infrastructure, not simulated**: the full driver-start → WebSocket-snapshot → driver-location-ping → real-OSRM/Google-ETA → WebSocket-push → proximity-auto-transition → unauthorized-rejection path was exercised end-to-end against a real docker-composed Postgres, Redis, and OSRM instance during this implementation (not just unit-tested in isolation) — see `apps/api/src/modules/trips/__tests__/trips-tracking.integration.test.ts`.
+
+## Trying it alone: the simulated driver
+
+`apps/api/scripts/simulate-trip.ts` plays the driver so one person can watch passenger-side tracking on their own phone, with no second person in a car. It goes through the real services (booking, acceptance, `startTrip`, `updateTripLocation`, `confirmPassengerAboard`, `completeTrip`), so the notifications, the WebSocket pushes and the automatic status changes are the real ones.
+
+```
+pnpm --filter @vaya/api trip:simulate <passenger user-id | phone | email> [--from lat,lng] [--to lat,lng] [--speed 15] [--tick 4] [--countdown 45] [--wait-pickup 20]
+# on the Oracle VM:
+docker compose -f docker/docker-compose.oracle.yml --env-file docker/.env.prod exec api pnpm trip:simulate +216XXXXXXXX
+```
+
+The driver is a dedicated "Sami (simulation)" account (non-dialable `+21600000000`, so nobody can sign in as it). Each run first cancels whatever an earlier interrupted run left open. Before boarding, the passenger sees status and ETA but not the car (privacy rule above); the car shows up once "Passager à bord" fires. Checked 2026-10-16 against a local Postgres + Redis + API, with a WebSocket connected as the passenger: snapshot → `driver_approaching` → `pickup` (proximity) → `active` (car visible) → `arriving` → `completed`. No routing engine was reachable there, so the car drove a straight line with almost no ETA; on a server with Google keys it follows the real road and shows a live ETA.
