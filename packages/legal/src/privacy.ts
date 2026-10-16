@@ -2,7 +2,7 @@ import type { SupportedLocale } from '@vaya/config';
 import type { LegalDocument } from './types';
 
 /**
- * Structured content for VAYA's Privacy Policy (version 2.0), shared by the
+ * Structured content for VAYA's Privacy Policy (version 2.1), shared by the
  * mobile app and the marketing website — see the doc comment in `terms.ts`
  * for why this lives in a shared package. Built from
  * `docs/legal/v2/privacy-policy.en.md`, describing what the code actually
@@ -13,8 +13,8 @@ import type { LegalDocument } from './types';
  */
 const fr: LegalDocument = {
   title: 'Politique de confidentialité',
-  version: '2.0',
-  effectiveDateLabel: 'Version 2.0',
+  version: '2.1',
+  effectiveDateLabel: 'Version 2.1',
   languageNote:
     'Langue faisant foi : français. En cas de divergence avec une traduction, la version française prévaut.',
   sections: [
@@ -31,7 +31,7 @@ const fr: LegalDocument = {
       body: [
         "Nous collectons ce qui est nécessaire au fonctionnement d'une plateforme de covoiturage : vos informations de compte, les trajets que vous recherchez, publiez et réservez, vos messages et évaluations et, pendant une Course, la position du Conducteur.",
         "Les Conducteurs fournissent en plus des photos de leur permis, de leur assurance et de leur visage, que seule l'équipe VAYA habilitée peut consulter.",
-        "Les autres Membres voient votre nom, votre photo, vos évaluations et, pour les Conducteurs, les informations du véhicule. Votre numéro de téléphone n'est montré qu'à l'autre partie d'une Réservation acceptée.",
+        "Les autres Membres voient votre nom, votre photo, vos évaluations et, pour les Conducteurs, la marque, le modèle et la couleur du véhicule. Votre numéro de téléphone et la plaque d'immatriculation d'un Conducteur ne sont montrés qu'à l'autre partie d'une Réservation acceptée.",
         "Nous ne vendons pas vos données, n'affichons pas de publicité et n'utilisons aucun outil tiers d'analyse ou de publicité.",
         'Vous pouvez accéder à vos données, les corriger et supprimer votre compte depuis l\'application.',
       ],
@@ -40,22 +40,24 @@ const fr: LegalDocument = {
       heading: '3. Données que vous nous fournissez',
       body: [
         "Compte : numéro de téléphone (connexion par téléphone), nom complet, langue.",
+        "Numéro de contact (facultatif) : un numéro que vous pouvez saisir dans l'application pour que l'autre partie d'une Réservation acceptée puisse vous appeler. VAYA ne le vérifie pas et ne l'utilise pas pour vous connecter.",
         "Connexion Google : si vous choisissez « Se connecter avec Google », nous recevons de Google votre identifiant Google, votre nom, votre adresse électronique et le lien de votre photo de profil Google.",
         "Profil : photo de profil facultative, choisie dans votre galerie ou issue de Google.",
         "Profil conducteur : marque, modèle, couleur, immatriculation, nombre de places et photo du véhicule ; biographie et langues parlées (facultatives).",
         "Vérification Conducteur : photos de votre permis de conduire, de votre attestation d'assurance et de votre visage (selfie), prises avec l'appareil photo dans l'application.",
         "Trajets publiés : départ, destination, heure de départ, itinéraire choisi, Points d'arrêt, places, Participation.",
-        "Recherches et réservations : départ, destination, date, heure et nombre de places recherchés ; Points d'arrêt choisis ; Demandes de réservation ; alertes « Me notifier » (trajet et plage horaire).",
-        "Messages échangés avec l'autre partie d'une Réservation ; évaluations, indicateurs de ponctualité et commentaires que vous donnez ; motif choisi lors d'une annulation ; signalements d'absence ; signalements et messages adressés au Support VAYA.",
+        "Recherches et réservations : départ, destination, date, heure et nombre de places recherchés ; points de prise en charge et de dépose proposés ; Demandes de réservation ; alertes « Me notifier » (trajet et plage horaire).",
+        "Messages échangés avec l'autre partie d'une Demande de réservation ou d'une Réservation, y compris le message joint à une demande ; évaluations, indicateurs de ponctualité et commentaires que vous donnez ; motif choisi lors d'une annulation ; signalements d'absence ; signalements et messages adressés au Support VAYA.",
       ],
     },
     {
       heading: "4. Données générées par l'utilisation de la Plateforme",
       body: [
         "Position du Conducteur pendant une Course : dès que le Conducteur démarre une Course et tant que son application est ouverte, celle-ci envoie environ toutes les 7 secondes la position GPS de l'appareil (coordonnées, cap, vitesse, précision). Nous ne conservons que la dernière position reçue : chaque nouvelle position remplace la précédente. Nous enregistrons aussi une fois si le Conducteur s'est approché du point de départ, et si le véhicule suit l'itinéraire prévu ou s'en écarte.",
-        "Position ponctuelle de l'appareil : si vous autorisez l'accès à la localisation, votre position sert à centrer la carte, à vous aider à choisir un point de prise en charge et, si vous le choisissez, à accompagner un signalement d'absence. Elle n'est pas conservée sous forme d'historique.",
-        "Données de Réservation et de Course : changements de statut et horodatages (demande, acceptation, expiration, annulation, démarrage, prise en charge, dépose, fin), distance de marche jusqu'au Point d'arrêt.",
+        "Position ponctuelle de l'appareil : si vous autorisez l'accès à la localisation, votre position sert à centrer la carte, à vous proposer votre position actuelle comme point de départ et, si vous le choisissez, à accompagner un signalement d'absence. Elle n'est pas conservée sous forme d'historique.",
+        "Données de Réservation et de Course : changements de statut et horodatages (demande, acceptation, expiration, annulation, démarrage, prise en charge, dépose, fin), points de prise en charge et de dépose et lieux de rendez-vous utilisés, distance de marche jusqu'au Point d'arrêt.",
         "Réputation : note moyenne, nombre de Courses terminées, scores de ponctualité et de fiabilité, niveau de confiance, et points de fiabilité liés aux annulations tardives et absences.",
+        "Historique de covoiturage commun : le nombre de Courses terminées effectuées avec chaque autre Membre et la date de la dernière. Il n'est pas montré aux autres Membres.",
         "Trajets réguliers : trajets que vous semblez effectuer régulièrement, déduits de votre historique (itinéraire, jours, plage horaire, score de confiance), et votre réponse à une suggestion.",
         "Événements d'utilisation : par exemple le lancement d'une recherche, les résultats affichés, un résultat choisi, un Point d'arrêt sélectionné ou une notification ouverte, avec les informations de trajet associées (y compris les coordonnées de départ et de destination) et l'heure. Ils sont stockés dans nos propres systèmes et ne sont pas transmis à des sociétés d'analyse.",
         "Notifications envoyées et leur statut de lecture ; jeton de notification push et plateforme (iOS/Android) ; adresse IP et données de requête dans les journaux du serveur ; demandes de code de connexion et tentatives échouées (les codes ne sont stockés que sous une forme protégée et illisible) ; sessions ; et, lorsque le suivi des erreurs est activé, rapports techniques d'erreur (modèle d'appareil, version du système et de l'application, détail de l'erreur).",
@@ -68,7 +70,7 @@ const fr: LegalDocument = {
       body: [
         "Créer et sécuriser votre compte, vous connecter, afficher votre profil aux autres Membres : exécution du contrat (nos Conditions Générales d'Utilisation).",
         "Rechercher, mettre en relation et classer les Trajets, proposer itinéraires et Points d'arrêt, calculer la Fourchette de Participation, gérer les Demandes de réservation, leurs délais, acceptations, expirations et le retrait des demandes en double : exécution du contrat.",
-        "Permettre aux parties d'une Réservation de communiquer (messagerie, numéro de téléphone) : exécution du contrat.",
+        "Permettre aux parties d'une Demande de réservation ou d'une Réservation de communiquer (messagerie ; après acceptation, numéro de téléphone et plaque d'immatriculation) : exécution du contrat.",
         "Suivi de la Course en temps réel, estimation de l'heure d'arrivée et avancement automatique de la Course : exécution du contrat avec le Conducteur et les Passagers, et notre intérêt légitime à la sécurité et à la fiabilité des Courses.",
         "Vérification Conducteur : exécution du contrat avec le Conducteur et notre intérêt légitime à protéger les Passagers.",
         "Évaluations, niveaux de confiance, gestion des annulations et des absences (y compris la constatation automatique d'absence) : exécution du contrat et intérêt légitime à une plateforme fiable.",
@@ -92,11 +94,11 @@ const fr: LegalDocument = {
     {
       heading: '7. Qui peut voir vos données',
       body: [
-        "Toute personne consultant votre profil : votre nom complet et votre photo ; votre note moyenne, votre nombre de Courses, vos scores de ponctualité et de fiabilité et votre niveau de confiance ; pour un Conducteur, la marque, le modèle, la couleur et la photo du véhicule, la biographie et les langues.",
+        "Toute personne consultant votre profil : votre nom complet et votre photo ; le mois de votre inscription ; votre note moyenne, le nombre d'évaluations et leur répartition de 1 à 5 étoiles, votre nombre de Courses, vos scores de ponctualité et de fiabilité et votre niveau de confiance ; pour un Conducteur, le fait que VAYA l'a vérifié, la marque, le modèle, la couleur et la photo du véhicule, la biographie et les langues.",
         "Toute personne recherchant un trajet : les Trajets que vous publiez (départ, destination, itinéraire, Points d'arrêt, heure, prix, places). Si vous le préférez, choisissez un point de départ qui n'est pas votre adresse exacte.",
         "Toute personne consultant un Trajet : le prénom, la photo et la note des Passagers déjà acceptés sur ce Trajet.",
         "Votre numéro de téléphone et, pour un Conducteur, l'immatriculation du véhicule (pour reconnaître la bonne voiture) : uniquement l'autre partie d'une Réservation acceptée, et seulement tant qu'elle l'est.",
-        "Le Conducteur d'un Trajet : votre Point d'arrêt et votre Demande de réservation. Les messages : uniquement les deux parties de la Réservation.",
+        "Le Conducteur d'un Trajet : vos points de prise en charge et de dépose, votre Demande de réservation et le message qui l'accompagne. Les messages : uniquement les deux parties de la Réservation.",
         "La position en direct du Conducteur : le Conducteur, et les Passagers de cette Course une fois à bord. Avant la prise en charge, les Passagers voient l'heure d'arrivée estimée et l'itinéraire, pas la position en direct.",
         "Les commentaires d'évaluation : le Membre évalué. Les points de fiabilité, documents de vérification et notes internes ne sont pas visibles par les autres Membres.",
       ],
@@ -104,7 +106,7 @@ const fr: LegalDocument = {
     {
       heading: '8. Prestataires et tiers',
       body: [
-        "Nous faisons appel à des prestataires qui traitent des données pour notre compte et selon nos instructions : nos hébergeurs informatiques et de stockage de fichiers (serveurs, bases de données, photos et documents) ; Twilio (envoi des codes de connexion par SMS : numéro de téléphone et code) ; Google Maps Platform (recherche de lieux, itinéraires et temps de trajet : texte recherché et coordonnées, sans votre identité) ; Expo, avec Firebase Cloud Messaging de Google et le service de notifications d'Apple (envoi des notifications push : jeton et contenu de la notification) ; Resend (courriels transactionnels pour les comptes Google : adresse électronique, nom, contenu du courriel) ; Sentry, lorsqu'il est activé (diagnostic des erreurs : données techniques) ; et, le cas échéant, les services OpenStreetMap (recherche de lieux de secours et vérification cartographique des Points d'arrêt : texte recherché et coordonnées).",
+        "Nous faisons appel à des prestataires qui traitent des données pour notre compte et selon nos instructions : nos hébergeurs informatiques et de stockage de fichiers (serveurs, bases de données, photos et documents) ; Twilio (envoi des codes de connexion par SMS : numéro de téléphone et code) ; Google Maps Platform (recherche de lieux, itinéraires et temps de trajet : texte recherché et coordonnées, sans votre identité) ; Expo, avec Firebase Cloud Messaging de Google et le service de notifications d'Apple (envoi des notifications push : jeton et contenu de la notification, qui peut comprendre le prénom et la photo de l'autre Membre, des lieux, des horaires, un prix et le message joint à une Demande de réservation) ; Resend (courriels transactionnels pour les comptes Google : adresse électronique, nom, contenu du courriel) ; Sentry, lorsqu'il est activé (diagnostic des erreurs : données techniques) ; et, le cas échéant, les services OpenStreetMap (recherche de lieux de secours, vérification cartographique des Points d'arrêt et recherche de lieux de rendez-vous le long des Trajets publiés : texte recherché, coordonnées et zones de carte, sans votre identité).",
         "Google, lorsque vous utilisez la connexion Google et lorsque l'application affiche Google Maps sur votre appareil, ainsi qu'Apple et Google pour les magasins d'applications et systèmes d'exploitation, traitent des données selon leurs propres politiques de confidentialité.",
         "Nous communiquons des données aux juridictions, à la police ou à d'autres autorités compétentes lorsque la loi l'exige, en réponse à une demande légale valable, ou lorsque c'est nécessaire pour protéger la vie ou la sécurité physique d'une personne. Nous pouvons aussi utiliser ou communiquer des données pour constater, exercer ou défendre des droits en justice. Nous examinons chaque demande et ne communiquons que le nécessaire.",
         "En cas de réorganisation, fusion ou cession de VAYA, les données peuvent être transférées au nouvel exploitant, qui devra respecter la présente politique ; nous vous en informerons.",
@@ -143,9 +145,9 @@ const fr: LegalDocument = {
     {
       heading: '13. Décisions automatisées',
       body: [
-        "Classement des résultats et propositions de Points d'arrêt : les Trajets sont classés selon leur adéquation à votre trajet (distance aux Points d'arrêt, détour, heure de départ). Cela ne décide pas de votre accès au service.",
+        "Classement des résultats et propositions de points de prise en charge et de dépose : les Trajets sont classés selon leur adéquation à votre trajet (distance à pied, détour, heure de départ) et, pour chaque Trajet, la Plateforme choisit les points de prise en charge et de dépose à partir de l'itinéraire du Conducteur et des zones proposées, en tenant compte de la distance à pied, du détour du Conducteur et du type de lieu. Cela ne décide pas de votre accès au service.",
         "Fourchette de Participation : calculée à partir de la distance et de la durée estimée de l'itinéraire. Niveau de confiance : calculé à partir du nombre de Courses terminées, de la note moyenne et de l'ancienneté du compte. Suggestions de trajets réguliers : déduites de votre historique, et que vous pouvez rejeter.",
-        "Avancement automatique des Courses : l'arrivée au point de prise en charge, la montée à bord et la fin de Course peuvent être déduites des données de localisation ; les Courses restées ouvertes longtemps après leur fin prévue sont clôturées automatiquement.",
+        "Avancement automatique des Courses : l'arrivée au point de prise en charge, la montée à bord et la fin de Course peuvent être déduites des données de localisation ; les Courses restées ouvertes longtemps après leur fin prévue sont clôturées automatiquement, tout comme les Trajets jamais démarrés quelques heures après leur arrivée prévue.",
         "Constatation automatique d'absence : lorsque les données de localisation et l'état de la Course montrent clairement qu'une partie n'est jamais venue au point de rendez-vous, la Plateforme peut enregistrer une absence, avec des points de fiabilité et une note d'une étoile pour le Membre absent. Vous pouvez demander un réexamen par une personne, présenter votre point de vue et contester cette décision en contactant le Support VAYA (Conditions, article 10).",
         "VAYA ne suspend ni ne ferme aucun compte sur la seule base d'un traitement automatisé : ces décisions sont prises par un membre de l'équipe.",
       ],
@@ -163,14 +165,14 @@ const fr: LegalDocument = {
       body: [
         "Dans l'application : Profil → Conditions et vie privée → Supprimer mon compte.",
         "La suppression n'est pas possible tant que vous avez une Réservation en attente ou acceptée, ou un Trajet publié, complet ou en cours : l'application vous indique ce qu'il faut annuler d'abord, afin de ne pas laisser un autre Membre sans Conducteur ou sans Passager.",
-        "Immédiatement : votre nom est remplacé par une mention neutre ; votre numéro de téléphone, votre adresse électronique, votre identifiant Google et votre photo de profil sont supprimés ; vos documents de Vérification Conducteur et votre photo de profil sont effacés du stockage ; toutes vos sessions sont déconnectées. La suppression est définitive.",
+        "Immédiatement : votre nom est remplacé par une mention neutre ; votre numéro de téléphone, votre numéro de contact, votre adresse électronique, votre identifiant Google, votre photo de profil et vos jetons de notification push sont supprimés ; vos documents de Vérification Conducteur et votre photo de profil sont effacés du stockage ; toutes vos sessions sont déconnectées. La suppression est définitive.",
         "Sont conservés : l'historique de vos Trajets, Réservations, Courses et évaluations passés, afin que l'historique et la réputation des autres Membres restent exacts ; ainsi que, à ce jour, les informations de véhicule, les messages échangés, les commentaires d'évaluation et les événements d'utilisation déjà enregistrés, qui ne sont plus associés à votre nom, à votre téléphone ni à votre adresse électronique. Vous pouvez demander au Support VAYA l'effacement de ces éléments ; nous y donnons suite sauf lorsque leur conservation reste nécessaire pour un autre Membre, un litige ou une obligation légale.",
       ],
     },
     {
       heading: '16. Notifications, localisation et stockage sur l\'appareil',
       body: [
-        "Les notifications push ne sont envoyées que si vous les autorisez ; vous pouvez les désactiver à tout moment dans les réglages de votre appareil, et elles restent visibles dans la boîte de réception de l'application. Les SMS servent uniquement à envoyer les codes de connexion. Les courriels (comptes Google uniquement) concernent vos Réservations et évaluations ; nous n'envoyons pas de courriels publicitaires.",
+        "Les notifications push ne sont envoyées que si vous les autorisez ; vous pouvez les désactiver à tout moment dans les réglages de votre appareil, et elles restent visibles dans la boîte de réception de l'application. Les SMS servent uniquement à envoyer les codes de connexion. Les courriels (comptes Google uniquement) concernent vos Trajets, vos Réservations, votre Vérification Conducteur et vos évaluations ; nous n'envoyons pas de courriels publicitaires.",
         "L'application ne demande l'accès à votre localisation que « pendant l'utilisation de l'app ». Vous pouvez le refuser ou le retirer dans les réglages de votre appareil ; vous pouvez alors toujours rechercher en saisissant des lieux. Pendant une Course, le Conducteur a besoin de la localisation pour que les Passagers puissent suivre la Course ; à défaut, les Passagers voient que le suivi en direct n'est pas disponible.",
         "L'application conserve de façon sécurisée sur votre appareil votre session de connexion et vos préférences (langue, apparence), qui sont strictement nécessaires au service. Elle ne contient aucun traceur publicitaire ou d'analyse tiers ; les composants Google Maps peuvent collecter des données techniques selon la politique de Google. Notre site internet n'utilise ni cookies ni outils d'analyse.",
       ],
@@ -192,8 +194,8 @@ const fr: LegalDocument = {
 
 const en: LegalDocument = {
   title: 'Privacy Policy',
-  version: '2.0',
-  effectiveDateLabel: 'Version 2.0',
+  version: '2.1',
+  effectiveDateLabel: 'Version 2.1',
   languageNote:
     'Governing language: French. In case of any discrepancy with this translation, the French version prevails.',
   sections: [
@@ -210,7 +212,7 @@ const en: LegalDocument = {
       body: [
         'We collect what is needed to run a carpooling platform: your account details, the journeys you search for, publish and book, your messages and ratings and, during a Trip, the Driver\'s location.',
         'Drivers also provide photos of their licence, insurance and face, which only authorised VAYA staff can see.',
-        'Other Members see your name, photo, ratings and, for Drivers, vehicle details. Your phone number is shown only to the other party of an accepted Booking.',
+        "Other Members see your name, photo, ratings and, for Drivers, the vehicle's make, model and colour. Your phone number, and a Driver's number plate, are shown only to the other party of an accepted Booking.",
         'We do not sell your data, show advertising, or use third-party analytics or advertising tools.',
         'You can access and correct your data and delete your account from the app.',
       ],
@@ -219,22 +221,24 @@ const en: LegalDocument = {
       heading: '3. Data you give us',
       body: [
         'Account: phone number (phone sign-in), full name, language.',
+        "Contact number (optional): a phone number you can enter in the app so that the other party of an accepted Booking can call you. VAYA does not verify it and does not use it to sign you in.",
         'Google sign-in: if you choose "Sign in with Google", we receive from Google your Google identifier, name, email address and Google profile-photo link.',
         'Profile: optional profile photo, chosen from your photo library or taken from Google.',
         'Driver profile: vehicle make, model, colour, number plate, seats and photo; optional biography and languages spoken.',
         'Driver Verification: photos of your driving licence, insurance certificate and face (selfie), taken with the camera inside the app.',
         'Rides you publish: origin, destination, departure time, chosen route, Stops, seats, Contribution.',
-        'Searches and bookings: origin, destination, date, time and seats searched; Stops chosen; Booking Requests; "Notify me" alerts (journey and time window).',
-        'Messages exchanged with the other party of a Booking; ratings, punctuality indicators and comments you give; the reason you select when cancelling; no-show reports; reports and messages you send to VAYA Support.',
+        'Searches and bookings: origin, destination, date, time and seats searched; the pickup and drop-off points proposed to you; Booking Requests; "Notify me" alerts (journey and time window).',
+        'Messages exchanged with the other party of a Booking Request or Booking, including the message sent with a request; ratings, punctuality indicators and comments you give; the reason you select when cancelling; no-show reports; reports and messages you send to VAYA Support.',
       ],
     },
     {
       heading: '4. Data generated when you use the Platform',
       body: [
         'Driver location during a Trip: from the moment a Driver starts a Trip and while the Driver\'s app is open, the app sends the device\'s GPS position (coordinates, heading, speed, accuracy) about every 7 seconds. We store only the most recent position: each new position overwrites the previous one. We also record once whether the Driver came near the departure point, and whether the vehicle is following or has deviated from the planned route.',
-        'One-off device location: if you allow location access, your position is used to centre the map, help you choose a pickup point and, if you choose, accompany a no-show report. It is not stored as a location history.',
-        'Booking and Trip records: status changes and timestamps (request, acceptance, expiry, cancellation, start, pickup, drop-off, completion), walking distance to the Stop.',
+        'One-off device location: if you allow location access, your position is used to centre the map, offer your current position as your departure point and, if you choose, accompany a no-show report. It is not stored as a location history.',
+        'Booking and Trip records: status changes and timestamps (request, acceptance, expiry, cancellation, start, pickup, drop-off, completion), the pickup and drop-off points and meeting places used, walking distance to the Stop.',
         'Reputation: average rating, number of completed Trips, punctuality and reliability scores, trust level, and reliability points from late cancellations and no-shows.',
+        "Co-travel history: how many completed Trips you have made with each other Member, and the date of the last one. It is not shown to other Members.",
         'Recurring journeys: journeys you appear to make regularly, inferred from your history (route, days, time window, confidence score), and your response to a suggestion.',
         'Usage events: for example starting a search, results shown, a result selected, a Stop chosen or a notification opened, with the related journey details (including origin and destination coordinates) and the time. They are stored in our own systems and are not sent to analytics companies.',
         'Notifications sent and whether you have read them; push-notification token and platform (iOS/Android); IP address and request data in server logs; sign-in code requests and failed attempts (codes are stored only in protected, unreadable form); sessions; and, when error tracking is enabled, technical error reports (device model, OS and app version, error details).',
@@ -247,7 +251,7 @@ const en: LegalDocument = {
       body: [
         'Creating and securing your account, signing you in, showing your profile to other Members: performance of our contract (the Terms of Use).',
         'Searching, matching and ranking Rides, proposing routes and Stops, calculating the Contribution Range, handling Booking Requests, deadlines, acceptance, expiry and withdrawal of duplicate requests: performance of the contract.',
-        'Letting the parties to a Booking communicate (messages, phone number): performance of the contract.',
+        'Letting the parties to a Booking Request or Booking communicate (messages; once accepted, phone number and number plate): performance of the contract.',
         'Live Trip tracking, arrival estimates and automatic Trip progress: performance of the contract with the Driver and the Passengers, and our legitimate interest in the safety and reliability of Trips.',
         'Driver Verification: performance of the contract with the Driver and our legitimate interest in protecting Passengers.',
         'Ratings, trust levels, handling of cancellations and no-shows (including automatic no-show recording): performance of the contract and legitimate interest in a reliable platform.',
@@ -271,11 +275,11 @@ const en: LegalDocument = {
     {
       heading: '7. Who can see your data',
       body: [
-        'Anyone viewing your profile: your full name and photo; your average rating, number of Trips, punctuality and reliability scores and trust level; for a Driver, the vehicle\'s make, model, colour and photo, biography and languages.',
+        "Anyone viewing your profile: your full name and photo; the month you joined; your average rating, the number of ratings and their spread from 1 to 5 stars, number of Trips, punctuality and reliability scores and trust level; for a Driver, that VAYA verified them, the vehicle's make, model, colour and photo, biography and languages.",
         'Anyone searching for a journey: the Rides you publish (origin, destination, route, Stops, time, price, seats). If you prefer, choose a departure point that is not your exact address.',
         'Anyone viewing a Ride: the first name, photo and rating of Passengers already accepted on that Ride.',
         'Your phone number and, for a Driver, the vehicle\'s number plate (to identify the right car): only the other party of an accepted Booking, and only while it remains accepted.',
-        'The Driver of a Ride: your Stop and Booking Request. Messages: only the two parties of the Booking.',
+        'The Driver of a Ride: your pickup and drop-off points, your Booking Request and the message sent with it. Messages: only the two parties of the Booking.',
         'The Driver\'s live position: the Driver, and the Passengers of that Trip once on board. Before pickup, Passengers see the estimated arrival time and the route, not the live position.',
         'Rating comments: the rated Member. Reliability points, verification documents and internal notes are not visible to other Members.',
       ],
@@ -283,7 +287,7 @@ const en: LegalDocument = {
     {
       heading: '8. Service providers and third parties',
       body: [
-        'We use providers that process data on our behalf and on our instructions: our cloud hosting and file-storage providers (servers, databases, photos and documents); Twilio (sending sign-in codes by SMS: phone number and code); Google Maps Platform (place search, routes and travel times: searched text and coordinates, without your identity); Expo, with Google Firebase Cloud Messaging and Apple\'s push notification service (delivering push notifications: token and notification content); Resend (transactional emails for Google accounts: email address, name, email content); Sentry, when enabled (error diagnosis: technical data); and, where used, OpenStreetMap services (fallback place search and map checks of Stops: searched text and coordinates).',
+        'We use providers that process data on our behalf and on our instructions: our cloud hosting and file-storage providers (servers, databases, photos and documents); Twilio (sending sign-in codes by SMS: phone number and code); Google Maps Platform (place search, routes and travel times: searched text and coordinates, without your identity); Expo, with Google Firebase Cloud Messaging and Apple\'s push notification service (delivering push notifications: token and notification content, which can include the other Member\'s first name and photo, places, times, a price and the message sent with a Booking Request); Resend (transactional emails for Google accounts: email address, name, email content); Sentry, when enabled (error diagnosis: technical data); and, where used, OpenStreetMap services (fallback place search, map checks of Stops and finding suitable meeting places along published Rides: searched text, coordinates and map areas, without your identity).',
         'Google, when you use Google sign-in and when the app displays Google Maps on your device, and Apple and Google for the app stores and operating systems, process data under their own privacy policies.',
         'We disclose data to courts, police or other competent authorities when the law requires it, in response to a valid legal request, or where necessary to protect someone\'s life or physical safety. We may also use or disclose data to establish, exercise or defend legal claims. We assess each request and disclose only what is necessary.',
         'If VAYA is reorganised, merged or sold, data may be transferred to the new operator, who must respect this policy; we will inform you.',
@@ -322,9 +326,9 @@ const en: LegalDocument = {
     {
       heading: '13. Automated decisions',
       body: [
-        'Search ranking and Stop proposals: Rides are ordered by how well they fit your journey (distance to Stops, detour, departure time). This does not decide your access to the service.',
+        "Search ranking and pickup/drop-off proposals: Rides are ordered by how well they fit your journey (walking distance, detour, departure time), and for each Ride the Platform chooses the pickup and drop-off points from the Driver's route and offered areas, taking into account walking distance, the Driver's detour and the kind of place. This does not decide your access to the service.",
         'Contribution Range: calculated from the route\'s distance and estimated duration. Trust level: calculated from your number of completed Trips, average rating and account age. Recurring-journey suggestions: inferred from your history, and you can dismiss them.',
-        'Automatic Trip progress: arrival at the pickup point, boarding and the end of a Trip may be inferred from location data; Trips left open long after their expected end are closed automatically.',
+        'Automatic Trip progress: arrival at the pickup point, boarding and the end of a Trip may be inferred from location data; Trips left open long after their expected end are closed automatically, as are Rides never started, a few hours after their expected arrival.',
         'Automatic no-show recording: when location data and Trip status clearly show that a party never came to the meeting point, the Platform may record a no-show, with reliability points and a 1-star rating for the absent Member. You can ask for review by a person, give your point of view and contest the decision by contacting VAYA Support (Terms, Article 10).',
         'VAYA does not suspend or close accounts based solely on automated processing: those decisions are taken by a member of staff.',
       ],
@@ -342,14 +346,14 @@ const en: LegalDocument = {
       body: [
         'In the app: Profile → Terms & Privacy → Delete my account.',
         'Deletion is not possible while you have a pending or accepted Booking, or a Ride that is published, full or in progress: the app tells you what to cancel first, so that no other Member is left without a Driver or a Passenger.',
-        'Immediately: your name is replaced with a neutral placeholder; your phone number, email address, Google identifier and profile photo are removed; your Driver Verification documents and profile photo are erased from storage; all your sessions are signed out. Deletion is permanent.',
+        'Immediately: your name is replaced with a neutral placeholder; your phone number, contact number, email address, Google identifier, profile photo and push-notification tokens are removed; your Driver Verification documents and profile photo are erased from storage; all your sessions are signed out. Deletion is permanent.',
         'What is kept: the history of your past Rides, Bookings, Trips and ratings, so that other Members\' histories and reputations stay accurate; and, at present, vehicle details, messages exchanged, rating comments and usage events already recorded, which are no longer linked to your name, phone number or email address. You can ask VAYA Support to erase these items; we will do so unless keeping them remains necessary for another Member, a dispute or a legal obligation.',
       ],
     },
     {
       heading: '16. Notifications, location and on-device storage',
       body: [
-        'Push notifications are sent only if you allow them; you can turn them off at any time in your device settings, and they remain visible in the app\'s inbox. SMS are used only to send sign-in codes. Emails (Google accounts only) relate to your Bookings and ratings; we do not send marketing emails.',
+        'Push notifications are sent only if you allow them; you can turn them off at any time in your device settings, and they remain visible in the app\'s inbox. SMS are used only to send sign-in codes. Emails (Google accounts only) relate to your Rides, Bookings, Driver Verification and ratings; we do not send marketing emails.',
         'The app asks for location access only "while using the app". You can refuse or withdraw it in your device settings and still search by typing places. During a Trip, the Driver needs location access so that Passengers can follow the Trip; without it, Passengers see that live tracking is unavailable.',
         'The app securely stores your sign-in session and preferences (language, appearance) on your device; these are strictly necessary for the service. It contains no third-party advertising or analytics trackers; Google Maps components may collect technical data under Google\'s policy. Our website uses no cookies or analytics tools.',
       ],
@@ -371,8 +375,8 @@ const en: LegalDocument = {
 
 const ar: LegalDocument = {
   title: 'سياسة الخصوصية',
-  version: '2.0',
-  effectiveDateLabel: 'الإصدار 2.0',
+  version: '2.1',
+  effectiveDateLabel: 'الإصدار 2.1',
   languageNote:
     'اللغة المعتمدة: الفرنسية. في حال وجود اختلاف بين هذه الترجمة والنص الفرنسي، يُعتمد النص الفرنسي.',
   sections: [
@@ -389,7 +393,7 @@ const ar: LegalDocument = {
       body: [
         'نجمع ما يلزم لتشغيل منصة لتقاسم الرحلات: بيانات حسابك، والرحلات التي تبحث عنها وتنشرها وتحجزها، ورسائلك وتقييماتك، وموقع السائق أثناء المشوار.',
         'يقدّم السائقون إضافة إلى ذلك صوراً لرخصتهم وتأمينهم ووجههم، لا يطّلع عليها إلا فريق VAYA المخوّل.',
-        'يرى الأعضاء الآخرون اسمك وصورتك وتقييماتك، وبالنسبة للسائقين بيانات السيارة. لا يُعرض رقم هاتفك إلا على الطرف الآخر في حجز مقبول.',
+        "يرى الأعضاء الآخرون اسمك وصورتك وتقييماتك، وبالنسبة للسائقين علامة السيارة وطرازها ولونها. لا يُعرض رقم هاتفك ولا رقم تسجيل سيارة السائق إلا على الطرف الآخر في حجز مقبول.",
         'لا نبيع بياناتك ولا نعرض إعلانات ولا نستعمل أدوات تحليل أو إعلان تابعة لأطراف ثالثة.',
         'يمكنك الاطلاع على بياناتك وتصحيحها وحذف حسابك من التطبيق.',
       ],
@@ -398,22 +402,24 @@ const ar: LegalDocument = {
       heading: '3. البيانات التي تقدمها لنا',
       body: [
         'الحساب: رقم الهاتف (عند الدخول بالهاتف)، الاسم الكامل، اللغة.',
+        "رقم الاتصال (اختياري): رقم يمكنك إدخاله في التطبيق ليتمكن الطرف الآخر في حجز مقبول من الاتصال بك. لا تتحقق منه VAYA ولا تستعمله لتسجيل دخولك.",
         'الدخول عبر Google: إذا اخترت «الدخول عبر Google» نتلقى من Google معرّفك في Google واسمك وبريدك الإلكتروني ورابط صورة ملفك في Google.',
         'الملف الشخصي: صورة اختيارية من معرض صورك أو من Google.',
         'ملف السائق: علامة السيارة وطرازها ولونها ورقم تسجيلها وعدد مقاعدها وصورتها؛ نبذة واللغات المتحدَّث بها (اختيارية).',
         'التحقق من السائق: صور رخصة السياقة وشهادة التأمين ووجهك (صورة ذاتية) الملتقطة بكاميرا التطبيق.',
         'الرحلات المنشورة: نقطة الانطلاق، الوجهة، موعد الانطلاق، المسار المختار، نقاط التوقف، المقاعد، المساهمة.',
-        'عمليات البحث والحجز: نقطة الانطلاق والوجهة والتاريخ والساعة وعدد المقاعد المبحوث عنها؛ نقاط التوقف المختارة؛ طلبات الحجز؛ تنبيهات «أعلمني» (الرحلة والفترة الزمنية).',
-        'الرسائل المتبادلة مع الطرف الآخر في الحجز؛ التقييمات ومؤشرات الالتزام بالمواعيد والتعليقات التي تقدمها؛ السبب الذي تختاره عند الإلغاء؛ بلاغات عدم الحضور؛ البلاغات والرسائل الموجهة إلى دعم VAYA.',
+        'عمليات البحث والحجز: نقطة الانطلاق والوجهة والتاريخ والساعة وعدد المقاعد المبحوث عنها؛ نقطتا الصعود والنزول المقترحتان؛ طلبات الحجز؛ تنبيهات «أعلمني» (الرحلة والفترة الزمنية).',
+        'الرسائل المتبادلة مع الطرف الآخر في طلب الحجز أو الحجز، بما فيها الرسالة المرفقة بالطلب؛ التقييمات ومؤشرات الالتزام بالمواعيد والتعليقات التي تقدمها؛ السبب الذي تختاره عند الإلغاء؛ بلاغات عدم الحضور؛ البلاغات والرسائل الموجهة إلى دعم VAYA.',
       ],
     },
     {
       heading: '4. البيانات الناتجة عن استعمال المنصة',
       body: [
         'موقع السائق أثناء المشوار: منذ أن يبدأ السائق المشوار وطالما بقي تطبيقه مفتوحاً، يرسل التطبيق موقع الجهاز عبر GPS (الإحداثيات، الاتجاه، السرعة، الدقة) كل 7 ثوانٍ تقريباً. لا نحتفظ إلا بآخر موقع: كل موقع جديد يحل محل السابق. ونسجّل أيضاً مرة واحدة ما إذا اقترب السائق من نقطة الانطلاق، وما إذا كانت السيارة تتبع المسار المقرر أو تنحرف عنه.',
-        'الموقع الآني للجهاز: إذا سمحت بالوصول إلى الموقع، يُستعمل موقعك لتوسيط الخريطة ومساعدتك على اختيار نقطة الصعود، وإن شئت لإرفاقه ببلاغ عدم حضور. ولا يُحفظ في شكل سجل مواقع.',
-        'بيانات الحجز والمشوار: تغييرات الحالة وتوقيتاتها (الطلب، القبول، انتهاء الأجل، الإلغاء، البدء، الصعود، النزول، الانتهاء)، ومسافة المشي إلى نقطة التوقف.',
+        'الموقع الآني للجهاز: إذا سمحت بالوصول إلى الموقع، يُستعمل موقعك لتوسيط الخريطة واقتراح موقعك الحالي كنقطة انطلاق، وإن شئت لإرفاقه ببلاغ عدم حضور. ولا يُحفظ في شكل سجل مواقع.',
+        'بيانات الحجز والمشوار: تغييرات الحالة وتوقيتاتها (الطلب، القبول، انتهاء الأجل، الإلغاء، البدء، الصعود، النزول، الانتهاء)، ونقطتا الصعود والنزول وأماكن الالتقاء المستعملة، ومسافة المشي إلى نقطة التوقف.',
         'السمعة: متوسط التقييم، عدد المشاوير المنتهية، درجتا الالتزام بالمواعيد والموثوقية، مستوى الثقة، ونقاط الموثوقية الناتجة عن الإلغاء المتأخر وعدم الحضور.',
+        "سجل المشاوير المشتركة: عدد المشاوير المنتهية التي قمت بها مع كل عضو آخر وتاريخ آخرها. لا يُعرض على الأعضاء الآخرين.",
         'الرحلات المنتظمة: الرحلات التي يبدو أنك تقوم بها بانتظام، مستنتجة من سجلك (المسار، الأيام، الفترة الزمنية، درجة الثقة)، وردك على الاقتراح.',
         'أحداث الاستعمال: مثل بدء بحث، النتائج المعروضة، اختيار نتيجة أو نقطة توقف، فتح إشعار، مع معلومات الرحلة المرتبطة (بما في ذلك إحداثيات الانطلاق والوجهة) والتوقيت. تُخزَّن في أنظمتنا الخاصة ولا تُرسل إلى شركات تحليل.',
         'الإشعارات المرسلة وحالة قراءتها؛ رمز الإشعارات ونوع النظام (iOS/Android)؛ عنوان IP وبيانات الطلبات في سجلات الخادم؛ طلبات رمز الدخول والمحاولات الفاشلة (تُخزَّن الرموز في شكل محمي غير قابل للقراءة فقط)؛ الجلسات؛ وعند تفعيل تتبع الأخطاء، التقارير التقنية للأخطاء (طراز الجهاز، إصدار النظام والتطبيق، تفاصيل الخطأ).',
@@ -426,7 +432,7 @@ const ar: LegalDocument = {
       body: [
         'إنشاء حسابك وتأمينه وتسجيل دخولك وعرض ملفك على الأعضاء الآخرين: تنفيذ العقد (شروط الاستخدام).',
         'البحث عن الرحلات ومطابقتها وترتيبها، واقتراح المسارات ونقاط التوقف، وحساب نطاق المساهمة، ومعالجة طلبات الحجز وآجالها وقبولها وانتهائها وسحب الطلبات المكررة: تنفيذ العقد.',
-        'تمكين طرفي الحجز من التواصل (الرسائل، رقم الهاتف): تنفيذ العقد.',
+        'تمكين طرفي طلب الحجز أو الحجز من التواصل (الرسائل، وبعد القبول رقم الهاتف ورقم تسجيل السيارة): تنفيذ العقد.',
         'التتبع المباشر للمشوار وتقدير وقت الوصول والتقدم الآلي للمشوار: تنفيذ العقد مع السائق والركاب، ومصلحتنا المشروعة في سلامة المشاوير وموثوقيتها.',
         'التحقق من السائق: تنفيذ العقد مع السائق ومصلحتنا المشروعة في حماية الركاب.',
         'التقييمات ومستويات الثقة ومعالجة الإلغاء وعدم الحضور (بما في ذلك التسجيل الآلي لعدم الحضور): تنفيذ العقد والمصلحة المشروعة في منصة موثوقة.',
@@ -450,11 +456,11 @@ const ar: LegalDocument = {
     {
       heading: '7. من يمكنه رؤية بياناتك',
       body: [
-        'كل من يطّلع على ملفك: اسمك الكامل وصورتك؛ متوسط تقييمك وعدد مشاويرك ودرجتا الالتزام بالمواعيد والموثوقية ومستوى الثقة؛ وبالنسبة للسائق، علامة السيارة وطرازها ولونها وصورتها، والنبذة واللغات.',
+        "كل من يطّلع على ملفك: اسمك الكامل وصورتك؛ شهر انضمامك؛ متوسط تقييمك وعدد التقييمات وتوزيعها من نجمة إلى 5 نجوم، وعدد مشاويرك، ودرجتا الالتزام بالمواعيد والموثوقية ومستوى الثقة؛ وبالنسبة للسائق، كون VAYA تحققت منه، وعلامة السيارة وطرازها ولونها وصورتها، والنبذة واللغات.",
         'كل من يبحث عن رحلة: الرحلات التي تنشرها (الانطلاق، الوجهة، المسار، نقاط التوقف، الساعة، السعر، المقاعد). إن شئت، اختر نقطة انطلاق ليست عنوانك الدقيق.',
         'كل من يطّلع على رحلة: الاسم الأول وصورة وتقييم الركاب المقبولين في تلك الرحلة.',
         'رقم هاتفك، وبالنسبة للسائق رقم تسجيل السيارة (للتعرف على السيارة الصحيحة): الطرف الآخر في حجز مقبول فقط، وطالما بقي مقبولاً.',
-        'سائق الرحلة: نقطة توقفك وطلب حجزك. الرسائل: طرفا الحجز فقط.',
+        'سائق الرحلة: نقطتا صعودك ونزولك وطلب حجزك والرسالة المرفقة به. الرسائل: طرفا الحجز فقط.',
         'الموقع المباشر للسائق: السائق، وركاب ذلك المشوار بعد صعودهم. قبل الصعود يرى الركاب الوقت المقدّر للوصول والمسار، لا الموقع المباشر.',
         'تعليقات التقييم: العضو الذي تم تقييمه. نقاط الموثوقية ووثائق التحقق والملاحظات الداخلية لا يراها الأعضاء الآخرون.',
       ],
@@ -462,7 +468,7 @@ const ar: LegalDocument = {
     {
       heading: '8. مزودو الخدمات والأطراف الثالثة',
       body: [
-        'نستعين بمزودين يعالجون البيانات لحسابنا ووفق تعليماتنا: مزودو الاستضافة السحابية وتخزين الملفات (الخوادم، قواعد البيانات، الصور والوثائق)؛ Twilio (إرسال رموز الدخول عبر SMS: رقم الهاتف والرمز)؛ Google Maps Platform (البحث عن الأماكن والمسارات وأوقات التنقل: النص المبحوث عنه والإحداثيات، دون هويتك)؛ Expo مع Firebase Cloud Messaging من Google وخدمة الإشعارات من Apple (إيصال الإشعارات: الرمز ومحتوى الإشعار)؛ Resend (رسائل البريد الإلكتروني التشغيلية لحسابات Google: البريد الإلكتروني، الاسم، محتوى الرسالة)؛ Sentry عند تفعيله (تشخيص الأخطاء: بيانات تقنية)؛ وعند الاقتضاء خدمات OpenStreetMap (بحث احتياطي عن الأماكن وفحص خرائطي لنقاط التوقف: النص المبحوث عنه والإحداثيات).',
+        'نستعين بمزودين يعالجون البيانات لحسابنا ووفق تعليماتنا: مزودو الاستضافة السحابية وتخزين الملفات (الخوادم، قواعد البيانات، الصور والوثائق)؛ Twilio (إرسال رموز الدخول عبر SMS: رقم الهاتف والرمز)؛ Google Maps Platform (البحث عن الأماكن والمسارات وأوقات التنقل: النص المبحوث عنه والإحداثيات، دون هويتك)؛ Expo مع Firebase Cloud Messaging من Google وخدمة الإشعارات من Apple (إيصال الإشعارات: الرمز ومحتوى الإشعار، الذي قد يتضمن الاسم الأول للعضو الآخر وصورته وأماكن وأوقاتاً وسعراً والرسالة المرفقة بطلب الحجز)؛ Resend (رسائل البريد الإلكتروني التشغيلية لحسابات Google: البريد الإلكتروني، الاسم، محتوى الرسالة)؛ Sentry عند تفعيله (تشخيص الأخطاء: بيانات تقنية)؛ وعند الاقتضاء خدمات OpenStreetMap (بحث احتياطي عن الأماكن وفحص خرائطي لنقاط التوقف والبحث عن أماكن التقاء على طول الرحلات المنشورة: النص المبحوث عنه والإحداثيات ومناطق الخريطة، دون هويتك).',
         'تعالج Google، عند استعمالك الدخول عبر Google وعند عرض التطبيق لخرائط Google على جهازك، وكذلك Apple وGoogle بالنسبة لمتاجر التطبيقات وأنظمة التشغيل، البيانات وفق سياسات الخصوصية الخاصة بها.',
         'نُطلع المحاكم أو الشرطة أو السلطات المختصة الأخرى على البيانات عندما يفرض القانون ذلك، أو استجابة لطلب قانوني صحيح، أو عند الضرورة لحماية حياة شخص أو سلامته الجسدية. ويمكننا أيضاً استعمال البيانات أو الإفصاح عنها لإثبات حقوق أو ممارستها أو الدفاع عنها أمام القضاء. نفحص كل طلب ولا نفصح إلا عن الضروري.',
         'في حال إعادة هيكلة VAYA أو اندماجها أو التفويت فيها، يمكن نقل البيانات إلى المشغّل الجديد الذي يلتزم باحترام هذه السياسة، مع إعلامك بذلك.',
@@ -501,9 +507,9 @@ const ar: LegalDocument = {
     {
       heading: '13. القرارات الآلية',
       body: [
-        'ترتيب النتائج واقتراح نقاط التوقف: تُرتَّب الرحلات حسب ملاءمتها لرحلتك (المسافة إلى نقاط التوقف، الانعطاف، موعد الانطلاق). ولا يحدد ذلك حقك في استعمال الخدمة.',
+        "ترتيب النتائج واقتراح نقطتي الصعود والنزول: تُرتَّب الرحلات حسب ملاءمتها لرحلتك (مسافة المشي، الانعطاف، موعد الانطلاق)، وتختار المنصة لكل رحلة نقطتي الصعود والنزول من مسار السائق والمناطق المعروضة، مع مراعاة مسافة المشي وانعطاف السائق ونوع المكان. ولا يحدد ذلك حقك في استعمال الخدمة.",
         'نطاق المساهمة: يُحسب انطلاقاً من مسافة المسار ومدته التقديرية. مستوى الثقة: يُحسب انطلاقاً من عدد المشاوير المنتهية ومتوسط التقييم وأقدمية الحساب. اقتراحات الرحلات المنتظمة: مستنتجة من سجلك ويمكنك رفضها.',
-        'التقدم الآلي للمشاوير: يمكن استنتاج الوصول إلى نقطة الصعود والصعود ونهاية المشوار من بيانات الموقع، وتُغلق آلياً المشاوير التي تبقى مفتوحة مدة طويلة بعد موعد انتهائها المتوقع.',
+        'التقدم الآلي للمشاوير: يمكن استنتاج الوصول إلى نقطة الصعود والصعود ونهاية المشوار من بيانات الموقع، وتُغلق آلياً المشاوير التي تبقى مفتوحة مدة طويلة بعد موعد انتهائها المتوقع، وكذلك الرحلات التي لم تبدأ أبداً بعد بضع ساعات من موعد وصولها المتوقع.',
         'التسجيل الآلي لعدم الحضور: عندما تُظهر بيانات الموقع وحالة المشوار بوضوح أن أحد الطرفين لم يأتِ أبداً إلى نقطة اللقاء، يمكن للمنصة تسجيل عدم الحضور مع نقاط موثوقية وتقييم بنجمة واحدة للعضو الغائب. يمكنك طلب مراجعة من قبل شخص، وإبداء رأيك، والطعن في هذا القرار بالاتصال بدعم VAYA (الشروط، الفصل 10).',
         'لا تعلّق VAYA أي حساب ولا تغلقه بناءً على معالجة آلية فقط: يتخذ هذه القرارات أحد أعضاء الفريق.',
       ],
@@ -521,14 +527,14 @@ const ar: LegalDocument = {
       body: [
         'في التطبيق: الملف الشخصي ← الشروط والخصوصية ← حذف حسابي.',
         'لا يمكن الحذف ما دام لديك حجز قيد الانتظار أو مقبول، أو رحلة منشورة أو مكتملة أو جارية: يبيّن لك التطبيق ما يجب إلغاؤه أولاً، حتى لا يبقى عضو آخر دون سائق أو راكب.',
-        'فوراً: يُستبدل اسمك بعبارة محايدة؛ ويُحذف رقم هاتفك وبريدك الإلكتروني ومعرّف Google وصورتك الشخصية؛ وتُمحى وثائق التحقق من السائق وصورتك الشخصية من التخزين؛ وتُغلق كل جلساتك. الحذف نهائي.',
+        'فوراً: يُستبدل اسمك بعبارة محايدة؛ ويُحذف رقم هاتفك ورقم الاتصال وبريدك الإلكتروني ومعرّف Google وصورتك الشخصية ورموز الإشعارات؛ وتُمحى وثائق التحقق من السائق وصورتك الشخصية من التخزين؛ وتُغلق كل جلساتك. الحذف نهائي.',
         'ما يُحتفظ به: سجل رحلاتك وحجوزاتك ومشاويرك وتقييماتك السابقة حتى يبقى سجل الأعضاء الآخرين وسمعتهم دقيقين؛ وحالياً بيانات السيارة والرسائل المتبادلة وتعليقات التقييم وأحداث الاستعمال المسجلة سابقاً، والتي لم تعد مرتبطة باسمك أو رقم هاتفك أو بريدك الإلكتروني. يمكنك أن تطلب من دعم VAYA محو هذه العناصر، ونستجيب لذلك ما لم يبقَ الاحتفاظ بها ضرورياً لعضو آخر أو لنزاع أو لالتزام قانوني.',
       ],
     },
     {
       heading: '16. الإشعارات والموقع والتخزين على الجهاز',
       body: [
-        'لا تُرسل الإشعارات الفورية إلا إذا سمحت بها، ويمكنك إيقافها في أي وقت من إعدادات جهازك، وتبقى ظاهرة في صندوق إشعارات التطبيق. تُستعمل رسائل SMS فقط لإرسال رموز الدخول. رسائل البريد الإلكتروني (لحسابات Google فقط) تتعلق بحجوزاتك وتقييماتك، ولا نرسل رسائل إشهارية.',
+        'لا تُرسل الإشعارات الفورية إلا إذا سمحت بها، ويمكنك إيقافها في أي وقت من إعدادات جهازك، وتبقى ظاهرة في صندوق إشعارات التطبيق. تُستعمل رسائل SMS فقط لإرسال رموز الدخول. رسائل البريد الإلكتروني (لحسابات Google فقط) تتعلق برحلاتك وحجوزاتك والتحقق من السائق وتقييماتك، ولا نرسل رسائل إشهارية.',
         'لا يطلب التطبيق الوصول إلى موقعك إلا «أثناء استعمال التطبيق». يمكنك رفضه أو سحبه من إعدادات جهازك، ويبقى بإمكانك البحث بكتابة الأماكن. أثناء المشوار يحتاج السائق إلى الموقع حتى يتمكن الركاب من متابعة المشوار، وإلا يرى الركاب أن التتبع المباشر غير متاح.',
         'يحفظ التطبيق بشكل آمن على جهازك جلسة دخولك وتفضيلاتك (اللغة، المظهر)، وهي ضرورية للخدمة. لا يحتوي التطبيق على أي أدوات تتبع إشهارية أو تحليلية تابعة لأطراف ثالثة، وقد تجمع مكونات خرائط Google بيانات تقنية وفق سياسة Google. لا يستعمل موقعنا الإلكتروني ملفات تعريف الارتباط ولا أدوات تحليل.',
       ],

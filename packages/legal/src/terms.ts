@@ -2,7 +2,7 @@ import type { SupportedLocale } from '@vaya/config';
 import type { LegalDocument } from './types';
 
 /**
- * Structured content for VAYA's Terms of Use (version 2.0), shared by the
+ * Structured content for VAYA's Terms of Use (version 2.1), shared by the
  * mobile app (`apps/mobile/src/features/legal/`) and the marketing website
  * (`apps/website/src/app/[locale]/legal/terms`) so both render the exact
  * same text. Built from `docs/legal/v2/terms-and-conditions.en.md` with every
@@ -16,8 +16,8 @@ import type { LegalDocument } from './types';
  */
 const fr: LegalDocument = {
   title: "Conditions Générales d'Utilisation",
-  version: '2.0',
-  effectiveDateLabel: 'Version 2.0',
+  version: '2.1',
+  effectiveDateLabel: 'Version 2.1',
   languageNote:
     'Langue faisant foi : français. En cas de divergence avec une traduction, la version française prévaut.',
   sections: [
@@ -28,6 +28,7 @@ const fr: LegalDocument = {
         "L'utilisation de VAYA est gratuite. VAYA ne gère aucun paiement : le Passager verse sa participation directement au Conducteur.",
         "Le prix par place doit rester dans une fourchette calculée par VAYA à partir de l'itinéraire. Un Conducteur ne doit jamais réaliser de bénéfice sur un trajet.",
         "Les Conducteurs doivent être vérifiés par VAYA avant de pouvoir publier un trajet.",
+        "Les numéros de téléphone et la plaque d'immatriculation de la voiture ne sont communiqués qu'une fois la demande acceptée par le Conducteur.",
         "Une annulation tardive ou une absence affecte votre fiabilité. Il n'y a aucune pénalité financière.",
         "Vous pouvez supprimer votre compte à tout moment depuis l'application.",
         'Ce résumé vous aide à lire les conditions ; il ne les remplace pas.',
@@ -42,7 +43,7 @@ const fr: LegalDocument = {
         '« Conducteur » : un Membre dont le profil conducteur a été approuvé par VAYA et qui propose des places sur un Trajet.',
         '« Passager » : un Membre qui demande ou détient une place sur un Trajet.',
         '« Trajet » : un déplacement publié par un Conducteur, avec son départ, sa destination, son heure de départ, son itinéraire, ses Points d\'arrêt, ses places et sa Participation par place.',
-        "« Point d'arrêt » : un point de prise en charge ou de dépose sur un Trajet, choisi parmi des points proposés par la Plateforme le long de l'itinéraire, ou placé par un Passager sous réserve des contrôles de la Plateforme et de l'acceptation du Conducteur.",
+        "« Point d'arrêt » : un point de prise en charge ou de dépose sur un Trajet. La Plateforme le propose à chaque Passager à partir de l'itinéraire du Conducteur et des zones qu'il a proposées (par exemple une station, un rond-point ou un autre lieu issu des données cartographiques) ou, lorsque le Conducteur voit le détour avant d'accepter, du lieu demandé par le Passager. Le Passager ne choisit ni ne place lui-même les Points d'arrêt.",
         "« Demande de réservation » : la demande d'une ou plusieurs places par un Passager. « Réservation » : une Demande de réservation acceptée par le Conducteur.",
         "« Course » : l'exécution d'une Réservation, du démarrage par le Conducteur jusqu'à la dépose du Passager ou la fin de la Course.",
         '« Participation » : la somme par place que le Passager verse au Conducteur pour partager les frais du Trajet. « Fourchette de Participation » : le minimum et le maximum par place calculés par la Plateforme pour un Trajet.',
@@ -61,7 +62,7 @@ const fr: LegalDocument = {
     {
       heading: '3. Ce que fait VAYA — et ce que VAYA ne fait pas',
       body: [
-        "VAYA fournit une plateforme technologique. Elle permet aux Membres de publier et rechercher des Trajets, de voir des itinéraires, des Points d'arrêt et une Fourchette de Participation suggérés, d'envoyer, accepter ou refuser des Demandes de réservation, d'échanger une fois une Réservation conclue, de suivre une Course sur une carte, d'annuler et de s'évaluer.",
+        "VAYA fournit une plateforme technologique. Elle permet aux Membres de publier et rechercher des Trajets, de voir des itinéraires, des Points d'arrêt et une Fourchette de Participation suggérés, d'envoyer, accepter ou refuser des Demandes de réservation, d'échanger dès la Demande de réservation (article 11), de suivre une Course sur une carte, d'annuler et de s'évaluer.",
         "VAYA n'est pas un transporteur. Nous ne possédons, ne louons et n'exploitons aucun véhicule, nous n'employons aucun Conducteur et ne lui donnons aucune instruction, et nous ne transportons personne. Chaque Conducteur effectue un trajet qu'il ferait de toute façon, pour son propre compte. L'accord de partage du trajet se forme entre le Conducteur et le Passager ; VAYA n'en est pas partie.",
         "Nous sommes responsables de fournir la Plateforme avec soin et compétence raisonnables, de l'exactitude des informations que nous générons nous-mêmes (itinéraires et Fourchette de Participation, qui sont des estimations) et de la Vérification Conducteur telle que décrite à l'article 5. Nous ne sommes pas responsables de la façon dont un Membre conduit, se comporte ou exécute une Réservation, sauf lorsque la loi nous en rend responsables (article 15).",
         "La Plateforme classe les résultats de recherche, propose des Points d'arrêt, calcule la Fourchette de Participation et déduit l'avancement d'une Course à partir de données de localisation. L'article 10 et notre Politique de confidentialité en expliquent les principaux paramètres.",
@@ -73,7 +74,7 @@ const fr: LegalDocument = {
         "Vous devez avoir au moins 18 ans et la capacité juridique de contracter.",
         "Vous vous connectez avec un numéro de téléphone vérifié par un code à usage unique, ou avec un compte Google. Vous devez utiliser votre vrai nom. Vous ne pouvez détenir qu'un seul compte et ne devez ni créer un compte pour autrui ni utiliser le compte d'une autre personne.",
         "Vous êtes responsable de la sécurité de l'accès à votre téléphone et à votre compte Google. Prévenez le Support VAYA si vous pensez qu'un tiers a accédé à votre compte.",
-        "Gardez vos informations exactes et à jour. Vous pouvez modifier votre nom, votre photo et votre langue dans l'application.",
+        "Gardez vos informations exactes et à jour. Vous pouvez modifier votre nom, votre photo, votre langue et votre numéro de contact dans l'application.",
       ],
     },
     {
@@ -83,6 +84,7 @@ const fr: LegalDocument = {
         "Vous renseignez votre véhicule (marque, modèle, couleur, immatriculation, nombre de places) et photographiez, avec l'appareil photo dans l'application, votre permis, votre attestation d'assurance et votre visage (selfie). L'import depuis la galerie n'est pas possible. Un membre de l'équipe VAYA examine manuellement ces éléments pour vérifier que les documents paraissent authentiques et valides et que le selfie correspond à la photo du permis. VAYA n'utilise pas de reconnaissance faciale automatisée. Nous pouvons approuver, refuser ou demander un nouvel envoi, en vous indiquant le motif.",
         "L'approbation signifie qu'au moment de l'examen, les documents fournis paraissaient authentiques, valides et vous appartenir. Elle ne garantit pas vos compétences de conduite, l'état de votre véhicule, ni la validité ultérieure de votre permis ou de votre assurance. Vous devez nous prévenir et cesser de publier des Trajets si votre permis est suspendu ou retiré ou si votre assurance prend fin.",
         "VAYA peut vous demander de renouveler la Vérification Conducteur (par exemple à l'expiration d'un document) et peut restreindre votre faculté de publier des Trajets dans les conditions de l'article 17.",
+        "Vous pouvez préparer un Trajet pendant l'examen de votre Vérification Conducteur. Il n'est pas visible des Passagers : il est publié automatiquement si vous êtes approuvé avant son heure de départ, et clôturé sinon.",
       ],
     },
     {
@@ -100,16 +102,17 @@ const fr: LegalDocument = {
       heading: '7. Publier un Trajet (Conducteurs)',
       body: [
         "Vous devez publier des informations exactes : départ, destination, date et heure de départ, itinéraire, Points d'arrêt que vous acceptez de desservir, nombre de places réellement disponibles et véhicule utilisé.",
-        "La Plateforme propose des options d'itinéraire et des Points d'arrêt candidats le long de l'itinéraire choisi ; vous choisissez ceux que vous proposez. Les lieux de rendez-vous saisis librement ne sont pas acceptés. Les Points d'arrêt sont des suggestions fondées sur des données cartographiques : vous restez responsable de ne vous arrêter que là où c'est légal et sûr.",
+        "La Plateforme propose des options d'itinéraire et des lieux le long de l'itinéraire choisi où les Passagers peuvent monter ou descendre ; vous choisissez ceux que vous proposez et pouvez ajouter des zones par lesquelles vous acceptez de passer. Les lieux de rendez-vous saisis librement ne sont pas acceptés. Pour chaque Passager, la Plateforme propose ensuite un Point d'arrêt précis dans ce que vous avez proposé, et la Demande de réservation vous l'indique avec le temps de conduite supplémentaire avant que vous décidiez. Les Points d'arrêt sont des suggestions fondées sur des données cartographiques : vous restez responsable de ne vous arrêter que là où c'est légal et sûr.",
         "Vous devez conduire vous-même le Trajet, avec le véhicule déclaré, et ne pas proposer plus de places que le véhicule ne peut légalement transporter avec ceinture de sécurité.",
         "La Plateforme peut vous suggérer d'enregistrer un trajet que vous faites régulièrement. Un brouillon de Trajet suggéré n'est jamais publié sans votre confirmation.",
+        "Un Trajet jamais démarré est clôturé automatiquement quelques heures après son heure d'arrivée prévue.",
       ],
     },
     {
       heading: '8. Demander une place (Passagers)',
       body: [
         "Les résultats de recherche présentent les Trajets que la Plateforme estime compatibles avec votre départ, votre destination et votre horaire, y compris des Trajets passant près de votre itinéraire. Chaque résultat affiche le profil public, la note et le niveau de confiance du Conducteur avant toute demande.",
-        "Vous choisissez votre Point d'arrêt de prise en charge (et, lorsqu'il est proposé, de dépose), le nombre de places, puis envoyez votre Demande de réservation. Si vous placez vous-même un point de prise en charge, la Plateforme vous montre le détour et l'horaire qui en résultent avant l'envoi, et le Conducteur peut refuser.",
+        "Pour chaque Trajet, la Plateforme propose les points de prise en charge et de dépose les mieux adaptés à votre trajet et vous indique où, quand et à quel prix avant tout envoi. Vous choisissez le nombre de places et pouvez ajouter un message pour le Conducteur (article 11), puis envoyez votre Demande de réservation. Si le Trajet nécessite un détour pour vous prendre, le Conducteur voit le temps supplémentaire avant de décider et peut refuser.",
         "Le Conducteur doit accepter ou refuser dans le délai affiché dans l'application. À défaut, la demande expire et vous n'êtes pas engagé.",
         "Vous pouvez envoyer un nombre limité de Demandes de réservation pour le même trajet à différents Conducteurs. Dès que l'une est acceptée, les autres sont automatiquement retirées et vous en êtes informé.",
         "La Réservation est conclue lorsque le Conducteur accepte. Vous êtes alors tous deux engagés sur le Trajet tel que réservé, sous réserve de l'article 10.",
@@ -134,15 +137,16 @@ const fr: LegalDocument = {
         "Les points de fiabilité sont un indicateur interne qui permet à VAYA d'identifier un manque de fiabilité répété. Ils ne sont pas visibles par les autres Membres. Des annulations tardives ou absences répétées peuvent entraîner les mesures de l'article 17.",
         "VAYA ne gérant aucun paiement, les annulations et absences n'entraînent aucune conséquence financière via la Plateforme. Tout accord entre Membres sur une somme déjà versée relève d'eux seuls.",
         "Si vous estimez qu'une absence a été enregistrée à tort contre vous (y compris de façon automatique), contactez le Support VAYA dans les 14 jours. Un membre de notre équipe l'examinera et supprimera la note et les points si l'enregistrement était erroné.",
-        "Nous pouvons ajuster les délais ou les points ci-dessus. Les changements ne s'appliquent qu'aux Réservations conclues après leur publication, et les présentes conditions sont mises à jour en conséquence.",
-        "Un Conducteur qui annule un Trajet annule les Réservations correspondantes, avec les conséquences ci-dessus. VAYA peut aussi annuler un Trajet pour des raisons de sécurité ou de conformité ; les Passagers concernés sont informés et aucun point ne leur est appliqué.",
+        "Nous pouvons ajuster ces délais. Le cas échéant, nous mettons à jour les présentes conditions et vous en informons dans l'application avant que le changement ne s'applique (article 20).",
+        "Un Conducteur qui annule un Trajet annule toutes ses Demandes de réservation et Réservations ; les Passagers sont informés. S'il y en avait, le Conducteur reçoit une seule fois les points ci-dessus, selon le délai restant avant le départ. VAYA peut aussi annuler un Trajet pour des raisons de sécurité ou de conformité ; les Passagers concernés sont informés et aucun point ne leur est appliqué.",
       ],
     },
     {
       heading: '11. Communication entre Membres',
       body: [
-        "Une fois une Réservation acceptée, une messagerie privée s'ouvre entre le Conducteur et ce Passager. Elle n'accepte plus de nouveaux messages après la fin de la Course.",
-        "Une fois une Réservation acceptée, et tant qu'elle l'est, chaque partie peut voir le numéro de téléphone de l'autre dans l'application afin de l'appeler au sujet de cette Réservation. Avant l'acceptation, les numéros ne sont jamais affichés. Vous ne devez utiliser le numéro d'un autre Membre que pour organiser cette Réservation.",
+        "Lorsqu'un Passager envoie une Demande de réservation, une messagerie privée s'ouvre entre ce Passager et le Conducteur. Le Passager peut joindre un message à sa demande. Tant que le Conducteur n'a pas accepté, le Passager ne peut envoyer un nouveau message qu'après une réponse du Conducteur ; le Conducteur peut toujours répondre.",
+        "Une fois la Réservation acceptée, chacun peut écrire librement. La messagerie n'accepte plus de nouveaux messages lorsque la demande est refusée, expire ou est annulée, ou après la fin de la Course.",
+        "Une fois une Réservation acceptée, et tant qu'elle l'est, chaque partie peut voir le numéro de téléphone de l'autre dans l'application, et le Passager peut voir la plaque d'immatriculation de la voiture du Conducteur, afin d'organiser la Course et de reconnaître la bonne voiture. Avant l'acceptation, ni les numéros ni la plaque ne sont affichés. Le numéro affiché est celui utilisé pour se connecter ou, à défaut, le numéro de contact saisi par le Membre dans l'application, que VAYA ne vérifie pas. Vous ne devez utiliser ces informations que pour organiser cette Réservation.",
         "N'utilisez pas la messagerie pour partager un contenu interdit par l'article 12, pour organiser un paiement en dehors de la Participation convenue, ou pour organiser des trajets hors de la Plateforme afin d'échapper aux présentes conditions.",
       ],
     },
@@ -153,7 +157,7 @@ const fr: LegalDocument = {
         "de fournir de fausses informations sur vous-même, un Trajet, un véhicule ou un document, ou d'usurper l'identité d'autrui ; de créer plusieurs comptes ou de partager ou vendre votre compte ;",
         "de harceler, menacer, insulter, discriminer ou agresser quiconque, notamment en raison de son origine, de son sexe, de sa religion, d'un handicap ou de toute caractéristique protégée par la loi ; de commettre tout harcèlement ou comportement sexuel non désiré ;",
         "de conduire ou voyager sous l'emprise de l'alcool ou de stupéfiants, ou de transporter des armes, des marchandises illégales ou des substances dangereuses ;",
-        "d'utiliser les données personnelles d'un autre Membre (numéro de téléphone, localisation…) en dehors de la Réservation concernée ;",
+        "d'utiliser les données personnelles d'un autre Membre (numéro de téléphone, plaque d'immatriculation, localisation…) en dehors de la Réservation concernée ;",
         "de publier un Contenu illicite, diffamatoire, haineux, sexuellement explicite ou portant atteinte aux droits d'autrui ; de rédiger des évaluations fausses, sans rapport avec une Course réelle, ou obtenues contre un avantage ;",
         "de manipuler la Plateforme, notamment en falsifiant des données de localisation, en réalisant de fausses Courses pour obtenir des évaluations, ou en contournant la vérification, les limitations ou les mesures de sécurité ; d'extraire des données de la Plateforme par des moyens automatisés ou de la décompiler, sauf dans les limites permises par la loi.",
       ],
@@ -171,7 +175,7 @@ const fr: LegalDocument = {
       heading: '14. Évaluations et informations de confiance',
       body: [
         "Après une Course terminée, le Conducteur et chaque Passager peuvent s'évaluer dans les 24 heures : une note de 1 à 5 étoiles, un indicateur de ponctualité facultatif et un commentaire facultatif. Chaque partie ne peut évaluer l'autre qu'une fois par Course.",
-        "Votre note moyenne, votre nombre de Courses terminées, vos scores de ponctualité et de fiabilité et votre niveau de confiance (« Nouveau », « Confiance », « Top VAYA ») sont affichés sur votre profil public. Le niveau de confiance dépend du nombre de Courses terminées, de la note moyenne et de l'ancienneté du compte.",
+        "Votre profil public affiche votre note moyenne, le nombre d'évaluations et leur répartition de 1 à 5 étoiles, votre nombre de Courses terminées, vos scores de ponctualité et de fiabilité, votre niveau de confiance (« Nouveau », « Confiance », « Top VAYA ») et le mois de votre inscription. Pour un Conducteur, il indique aussi que VAYA l'a vérifié, ainsi que la marque, le modèle et la couleur du véhicule (sans la plaque d'immatriculation). Le niveau de confiance dépend du nombre de Courses terminées, de la note moyenne et de l'ancienneté du compte.",
         "Les commentaires ne sont visibles que par le Membre évalué (et par VAYA). Ils ne sont pas publiés sur les profils.",
         "Les évaluations doivent être sincères et fondées sur la Course réelle. Nous pouvons retirer une évaluation contraire à l'article 12 ou résultant d'une erreur, y compris une absence enregistrée à tort. Nous ne retirons pas une évaluation parce qu'elle est négative.",
       ],
@@ -253,8 +257,8 @@ const fr: LegalDocument = {
 
 const en: LegalDocument = {
   title: 'Terms of Use',
-  version: '2.0',
-  effectiveDateLabel: 'Version 2.0',
+  version: '2.1',
+  effectiveDateLabel: 'Version 2.1',
   languageNote:
     'Governing language: French. In case of any discrepancy with this translation, the French version prevails.',
   sections: [
@@ -265,6 +269,7 @@ const en: LegalDocument = {
         'Using VAYA is free. VAYA does not handle payments: Passengers pay their contribution directly to the Driver.',
         'The price per seat must stay within a range that VAYA calculates from the route. A Driver must never make a profit from a journey.',
         'Drivers must be verified by VAYA before they can publish a journey.',
+        "Phone numbers and the car's number plate are shared only once the Driver accepts a request.",
         'Cancelling late or not showing up affects your reliability record. There are no financial penalties.',
         'You can delete your account at any time from the app.',
         'This summary helps you read the Terms; it does not replace them.',
@@ -279,7 +284,7 @@ const en: LegalDocument = {
         '"Driver": a Member whose driver profile has been approved by VAYA and who offers seats on a Ride.',
         '"Passenger": a Member who requests or holds a seat on a Ride.',
         '"Ride": a journey published by a Driver, with its origin, destination, departure time, route, Stops, seats and Contribution per seat.',
-        '"Stop": a pickup or drop-off point on a Ride, chosen from points proposed by the Platform along the route, or placed by a Passenger subject to the Platform\'s checks and the Driver\'s acceptance.',
+        "\"Stop\": a pickup or drop-off point on a Ride. The Platform proposes it to each Passenger from the Driver's route and the areas the Driver offered (for example a station, a roundabout or another place found on map data) or, where the Driver sees the detour before accepting, the Passenger's own requested place. Passengers do not choose or place Stops themselves.",
         '"Booking Request": a Passenger\'s request for one or more seats. "Booking": a Booking Request accepted by the Driver.',
         '"Trip": the performance of a Booking, from the Driver starting the journey until the Passenger is dropped off or the Trip otherwise ends.',
         '"Contribution": the amount per seat a Passenger pays the Driver to share the costs of the Ride. "Contribution Range": the minimum and maximum per seat that the Platform calculates for a Ride.',
@@ -298,7 +303,7 @@ const en: LegalDocument = {
     {
       heading: '3. What VAYA does — and does not do',
       body: [
-        'VAYA provides a technology platform. It lets Members publish and search Rides; see suggested routes, Stops and a Contribution Range; send, accept and decline Booking Requests; message each other once a Booking exists; follow a Trip on a map; cancel; and rate each other.',
+        'VAYA provides a technology platform. It lets Members publish and search Rides; see suggested routes, Stops and a Contribution Range; send, accept and decline Booking Requests; message each other from the Booking Request onwards (Article 11); follow a Trip on a map; cancel; and rate each other.',
         'VAYA is not a transport operator. We do not own, rent or operate vehicles, we do not employ or instruct Drivers, and we do not carry anyone. Each Driver makes a journey they would make anyway, on their own account. The arrangement to share the journey is made between the Driver and the Passenger; VAYA is not a party to it.',
         'We are responsible for providing the Platform with reasonable care and skill, for the accuracy of information we generate ourselves (routes and the Contribution Range, which are estimates), and for Driver Verification as described in Article 5. We are not responsible for how a Member drives, behaves or performs a Booking, except where the law makes us responsible (Article 15).',
         'The Platform ranks search results, proposes Stops, calculates the Contribution Range and infers the progress of a Trip from location data. Article 10 and our Privacy Policy explain the main parameters.',
@@ -310,7 +315,7 @@ const en: LegalDocument = {
         'You must be at least 18 years old and legally able to enter into contracts.',
         'You sign in with a mobile number verified by a one-time code, or with a Google account. You must use your real name. You may hold only one account and must not create an account for someone else or use another person\'s account.',
         'You are responsible for keeping access to your phone and Google account secure. Tell VAYA Support if you think someone else has accessed your account.',
-        'Keep your information accurate and up to date. You can change your name, photo and language in the app.',
+        'Keep your information accurate and up to date. You can change your name, photo, language and contact phone number in the app.',
       ],
     },
     {
@@ -320,6 +325,7 @@ const en: LegalDocument = {
         'You enter your vehicle details (make, model, colour, number plate, seats) and take photos, with the camera inside the app, of your driving licence, your insurance certificate and your face (a selfie). Uploads from your photo library are not possible. A member of VAYA\'s team reviews them manually to check that the documents appear genuine and valid and that the selfie matches the licence photo. VAYA does not use automated facial recognition. We may approve, decline or ask you to resubmit, and we tell you the reason.',
         'Approval means that, at the time of review, the documents you provided appeared genuine, valid and yours. It does not guarantee your driving skills, the condition of your vehicle, or the later validity of your licence or insurance. You must tell us, and stop publishing Rides, if your licence is suspended or withdrawn or your insurance ends.',
         'VAYA may ask you to repeat Driver Verification (for example, when a document expires) and may restrict your ability to publish Rides as described in Article 17.',
+        "You can prepare a Ride while your Driver Verification is under review. Passengers cannot see it: it is published automatically if you are approved before its departure time, and closed otherwise.",
       ],
     },
     {
@@ -337,16 +343,17 @@ const en: LegalDocument = {
       heading: '7. Publishing a Ride (Drivers)',
       body: [
         'You must give accurate information: origin, destination, departure date and time, route, the Stops you agree to serve, the number of seats actually available, and the vehicle you will use.',
-        'The Platform proposes route options and candidate Stops along the chosen route; you choose which to offer. Free-text meeting places are not accepted. Stops are suggestions based on map data: you remain responsible for stopping only where it is legal and safe.',
+        "The Platform proposes route options and places along the chosen route where Passengers can be picked up or dropped off; you choose which to offer and may add areas you are willing to pass through. Free-text meeting places are not accepted. For each Passenger, the Platform then proposes a precise Stop within what you offered, and the Booking Request shows it to you with the extra driving time before you decide. Stops are suggestions based on map data: you remain responsible for stopping only where it is legal and safe.",
         'You must drive the Ride yourself, in the declared vehicle, and offer no more seats than the vehicle may legally carry with seatbelts.',
         'The Platform may suggest saving a journey you make regularly. A suggested draft Ride is never published without your confirmation.',
+        "A Ride that is never started is closed automatically a few hours after its expected arrival time.",
       ],
     },
     {
       heading: '8. Requesting a seat (Passengers)',
       body: [
         'Search results show Rides that the Platform considers compatible with your origin, destination and time, including Rides passing near your route. Each result shows the Driver\'s public profile, rating and trust level before you request a seat.',
-        'You choose your pickup Stop (and, where offered, drop-off Stop) and the number of seats, then send your Booking Request. If you place a pickup point yourself, the Platform shows you the resulting detour and timing before you send it, and the Driver may decline.',
+        "For each Ride, the Platform proposes the pickup and drop-off points that best fit your journey and shows you where, when and at what price before you send anything. You choose the number of seats and may add one message for the Driver (Article 11), then send your Booking Request. If the Ride needs a detour to reach you, the Driver sees the extra time before deciding and may decline.",
         'The Driver must accept or decline within the deadline shown in the app. Otherwise the request expires and you are not committed.',
         'You may send a limited number of Booking Requests for the same journey to different Drivers. When one is accepted, the others are automatically withdrawn and you are notified.',
         'A Booking is formed when the Driver accepts. You are then both committed to the Ride as booked, subject to Article 10.',
@@ -371,15 +378,16 @@ const en: LegalDocument = {
         'Reliability points are an internal record VAYA uses to identify repeated unreliability. Other Members cannot see them. Repeated late cancellations or no-shows may lead to measures under Article 17.',
         'Because VAYA handles no payments, cancellations and no-shows have no financial consequences through the Platform. Any arrangement between Members about money already paid is between them.',
         'If you believe a no-show was recorded against you in error (including automatically), contact VAYA Support within 14 days. A member of our team will review it and remove the rating and points if the record was wrong.',
-        'We may adjust the thresholds or points above. Changes apply only to Bookings made after we publish them, and these Terms are updated accordingly.',
-        'A Driver who cancels a Ride cancels the related Bookings, with the consequences above. VAYA may also cancel a Ride for safety or compliance reasons; affected Passengers are informed and no points are applied to them.',
+        "We may adjust these time limits. If we do, we update these Terms and tell you in the app before the change applies (Article 20).",
+        "A Driver who cancels a Ride cancels all its Booking Requests and Bookings; the Passengers are informed. If there were any, the Driver receives the points above once, according to the time left before departure. VAYA may also cancel a Ride for safety or compliance reasons; affected Passengers are informed and no points are applied to them.",
       ],
     },
     {
       heading: '11. Communication between Members',
       body: [
-        'Once a Booking is accepted, a private message thread opens between the Driver and that Passenger. It stops accepting new messages when the Trip ends.',
-        'Once a Booking is accepted, and while it remains accepted, each party can see the other\'s phone number in the app so they can call about that Booking. Before acceptance, phone numbers are never shown. You may use another Member\'s number only to organise that Booking.',
+        "When a Passenger sends a Booking Request, a private message thread opens between that Passenger and the Driver. The Passenger may include one message with the request. Until the Driver accepts, the Passenger can send a new message only after the Driver has replied; the Driver can always reply.",
+        "Once the Booking is accepted, both can write freely. The thread stops accepting new messages when the request is declined, expires or is cancelled, or when the Trip ends.",
+        "Once a Booking is accepted, and while it remains accepted, each party can see the other's phone number in the app, and the Passenger can see the number plate of the Driver's car, so they can organise the Trip and recognise the right car. Before acceptance, neither phone numbers nor the plate are shown. The number shown is the one used to sign in or, failing that, the contact number the Member entered in the app, which VAYA does not verify. You may use this information only to organise that Booking.",
         'Do not use messages to share content prohibited by Article 12, to arrange payment outside the agreed Contribution, or to arrange journeys off the Platform to avoid these Terms.',
       ],
     },
@@ -390,7 +398,7 @@ const en: LegalDocument = {
         'give false information about yourself, a Ride, a vehicle or a document, or impersonate anyone; create several accounts, or share or sell your account;',
         'harass, threaten, insult, discriminate against or attack anyone, including on the basis of origin, sex, religion, disability or any characteristic protected by law; engage in any sexual harassment or unwanted sexual conduct;',
         'drive or travel under the influence of alcohol or drugs, or carry weapons, illegal goods or dangerous substances;',
-        'use another Member\'s personal data (phone number, location, etc.) outside the Booking concerned;',
+        'use another Member\'s personal data (phone number, number plate, location, etc.) outside the Booking concerned;',
         'post Content that is unlawful, defamatory, hateful, sexually explicit or infringes another person\'s rights; write ratings that are false, unrelated to a real Trip, or obtained in exchange for a benefit;',
         'manipulate the Platform, including by falsifying location data, completing fake Trips to obtain ratings, or circumventing verification, limits or security measures; extract data from the Platform by automated means or reverse-engineer it, except as permitted by law.',
       ],
@@ -408,7 +416,7 @@ const en: LegalDocument = {
       heading: '14. Ratings and trust information',
       body: [
         'After a completed Trip, the Driver and each Passenger may rate each other within 24 hours: 1 to 5 stars, an optional punctuality indicator and an optional comment. Each party can rate the other only once per Trip.',
-        'Your average rating, number of completed Trips, punctuality and reliability scores and trust level ("Nouveau", "Confiance", "Top VAYA") are shown on your public profile. The trust level depends on the number of completed Trips, your average rating and the age of your account.',
+        "Your public profile shows your average rating, the number of ratings and how they are spread from 1 to 5 stars, your number of completed Trips, your punctuality and reliability scores, your trust level (\"Nouveau\", \"Confiance\", \"Top VAYA\") and the month you joined. For a Driver, it also shows that VAYA verified them, and the vehicle's make, model and colour (not the number plate). The trust level depends on the number of completed Trips, your average rating and the age of your account.",
         'Comments are visible only to the Member being rated (and to VAYA). They are not published on profiles.',
         'Ratings must be honest and based on the actual Trip. We may remove a rating that breaches Article 12 or results from an error, including a no-show recorded in error. We do not remove ratings because they are negative.',
       ],
@@ -490,8 +498,8 @@ const en: LegalDocument = {
 
 const ar: LegalDocument = {
   title: 'شروط الاستخدام',
-  version: '2.0',
-  effectiveDateLabel: 'الإصدار 2.0',
+  version: '2.1',
+  effectiveDateLabel: 'الإصدار 2.1',
   languageNote:
     'اللغة المعتمدة: الفرنسية. في حال وجود اختلاف بين هذه الترجمة والنص الفرنسي، يُعتمد النص الفرنسي.',
   sections: [
@@ -502,6 +510,7 @@ const ar: LegalDocument = {
         'استخدام VAYA مجاني. لا تتولى VAYA أي عملية دفع: يدفع الراكب مساهمته مباشرة إلى السائق.',
         'يجب أن يبقى سعر المقعد ضمن نطاق تحسبه VAYA انطلاقاً من المسار. لا يجوز للسائق أبداً تحقيق ربح من الرحلة.',
         'يجب أن تتحقق VAYA من السائقين قبل أن يتمكنوا من نشر رحلة.',
+        "لا تُشارك أرقام الهواتف ورقم تسجيل السيارة إلا بعد قبول السائق للطلب.",
         'الإلغاء المتأخر أو عدم الحضور يؤثر على سجل موثوقيتك. لا توجد أي غرامات مالية.',
         'يمكنك حذف حسابك في أي وقت من التطبيق.',
         'هذا الملخص يساعدك على قراءة الشروط ولا يحل محلها.',
@@ -516,7 +525,7 @@ const ar: LegalDocument = {
         '«السائق»: عضو وافقت VAYA على ملفه كسائق ويعرض مقاعد في رحلة.',
         '«الراكب»: عضو يطلب مقعداً في رحلة أو يحجزه.',
         '«الرحلة»: تنقّل ينشره السائق، بنقطة انطلاقه ووجهته وموعد انطلاقه ومساره ونقاط توقفه ومقاعده ومساهمته لكل مقعد.',
-        '«نقطة التوقف»: نقطة صعود أو نزول في الرحلة، تُختار من نقاط تقترحها المنصة على طول المسار، أو يحددها الراكب مع مراعاة تحققات المنصة وقبول السائق.',
+        "«نقطة التوقف»: نقطة صعود أو نزول في الرحلة. تقترحها المنصة على كل راكب انطلاقاً من مسار السائق والمناطق التي عرضها (مثل محطة أو مفترق دائري أو مكان آخر مستخرج من بيانات الخرائط)، أو المكان الذي طلبه الراكب عندما يرى السائق الانعطاف قبل القبول. لا يختار الراكب نقاط التوقف ولا يحددها بنفسه.",
         '«طلب الحجز»: طلب الراكب لمقعد أو أكثر. «الحجز»: طلب حجز قبله السائق.',
         '«المشوار»: تنفيذ الحجز، منذ بدء السائق للرحلة إلى إنزال الراكب أو انتهاء المشوار.',
         '«المساهمة»: المبلغ لكل مقعد الذي يدفعه الراكب للسائق لتقاسم تكاليف الرحلة. «نطاق المساهمة»: الحد الأدنى والأقصى لكل مقعد الذي تحسبه المنصة لكل رحلة.',
@@ -535,7 +544,7 @@ const ar: LegalDocument = {
     {
       heading: '3. ما تقوم به VAYA وما لا تقوم به',
       body: [
-        'توفر VAYA منصة تكنولوجية تتيح للأعضاء نشر الرحلات والبحث عنها، والاطلاع على مسارات ونقاط توقف ونطاق مساهمة مقترحة، وإرسال طلبات الحجز وقبولها أو رفضها، والتراسل بعد إتمام الحجز، ومتابعة المشوار على الخريطة، والإلغاء، والتقييم المتبادل.',
+        'توفر VAYA منصة تكنولوجية تتيح للأعضاء نشر الرحلات والبحث عنها، والاطلاع على مسارات ونقاط توقف ونطاق مساهمة مقترحة، وإرسال طلبات الحجز وقبولها أو رفضها، والتراسل منذ إرسال طلب الحجز (الفصل 11)، ومتابعة المشوار على الخريطة، والإلغاء، والتقييم المتبادل.',
         'VAYA ليست ناقلاً. لا نملك أي سيارة ولا نستأجرها ولا نشغّلها، ولا نشغّل السائقين ولا نعطيهم تعليمات، ولا ننقل أحداً. كل سائق يقوم برحلة كان سيقوم بها على أي حال ولحسابه الخاص. يُبرم اتفاق تقاسم الرحلة بين السائق والراكب، وVAYA ليست طرفاً فيه.',
         'نحن مسؤولون عن توفير المنصة بعناية وكفاءة معقولتين، وعن صحة المعلومات التي ننتجها بأنفسنا (المسارات ونطاق المساهمة، وهي تقديرات)، وعن التحقق من السائق كما هو مبين في الفصل 5. لسنا مسؤولين عن طريقة قيادة العضو أو سلوكه أو تنفيذه للحجز، إلا إذا حمّلنا القانون هذه المسؤولية (الفصل 15).',
         'ترتب المنصة نتائج البحث، وتقترح نقاط التوقف، وتحسب نطاق المساهمة، وتستنتج تقدم المشوار من بيانات الموقع. يشرح الفصل 10 وسياسة الخصوصية أهم المعايير المعتمدة.',
@@ -547,7 +556,7 @@ const ar: LegalDocument = {
         'يجب أن يكون عمرك 18 سنة على الأقل وأن تتمتع بالأهلية القانونية للتعاقد.',
         'تسجّل الدخول برقم هاتف يتم التحقق منه برمز يُستعمل مرة واحدة، أو بحساب Google. يجب استعمال اسمك الحقيقي. لا يحق لك امتلاك أكثر من حساب واحد، ولا إنشاء حساب لغيرك أو استعمال حساب شخص آخر.',
         'أنت مسؤول عن تأمين الوصول إلى هاتفك وحساب Google الخاص بك. أبلغ دعم VAYA إذا اعتقدت أن شخصاً آخر دخل إلى حسابك.',
-        'حافظ على دقة معلوماتك وتحديثها. يمكنك تعديل اسمك وصورتك ولغتك في التطبيق.',
+        'حافظ على دقة معلوماتك وتحديثها. يمكنك تعديل اسمك وصورتك ولغتك ورقم هاتف الاتصال في التطبيق.',
       ],
     },
     {
@@ -557,6 +566,7 @@ const ar: LegalDocument = {
         'تُدخل بيانات سيارتك (العلامة، الطراز، اللون، رقم التسجيل، عدد المقاعد) وتلتقط بكاميرا التطبيق صوراً لرخصة السياقة وشهادة التأمين ووجهك (صورة ذاتية). لا يمكن التحميل من معرض الصور. يفحص أحد أعضاء فريق VAYA هذه العناصر يدوياً للتأكد من أن الوثائق تبدو أصلية وسارية وأن الصورة الذاتية تطابق صورة الرخصة. لا تستعمل VAYA التعرف الآلي على الوجه. يمكننا القبول أو الرفض أو طلب إعادة الإرسال مع إعلامك بالسبب.',
         'تعني الموافقة أنه عند الفحص بدت الوثائق المقدمة أصلية وسارية وخاصة بك. ولا تضمن مهاراتك في القيادة ولا حالة سيارتك ولا صلاحية رخصتك أو تأمينك لاحقاً. يجب إعلامنا والتوقف عن نشر الرحلات إذا عُلّقت رخصتك أو سُحبت أو انتهى تأمينك.',
         'يمكن لـ VAYA أن تطلب منك إعادة التحقق (مثلاً عند انتهاء صلاحية وثيقة) وأن تقيّد قدرتك على نشر الرحلات وفق الفصل 17.',
+        "يمكنك إعداد رحلة أثناء فحص التحقق من السائق. لا يراها الركاب: تُنشر آلياً إذا تمت الموافقة عليك قبل موعد انطلاقها، وتُغلق في غير ذلك.",
       ],
     },
     {
@@ -574,16 +584,17 @@ const ar: LegalDocument = {
       heading: '7. نشر رحلة (السائقون)',
       body: [
         'يجب تقديم معلومات صحيحة: نقطة الانطلاق، الوجهة، تاريخ وساعة الانطلاق، المسار، نقاط التوقف التي تقبل خدمتها، عدد المقاعد المتاحة فعلاً، والسيارة المستعملة.',
-        'تقترح المنصة خيارات مسار ونقاط توقف مرشحة على طول المسار المختار، وتختار أنت ما تعرضه منها. لا تُقبل أماكن لقاء مكتوبة بحرية. نقاط التوقف اقتراحات مبنية على بيانات الخرائط، وتبقى مسؤولاً عن التوقف فقط حيث يكون ذلك قانونياً وآمناً.',
+        "تقترح المنصة خيارات مسار وأماكن على طول المسار المختار يمكن للركاب الصعود أو النزول فيها، وتختار أنت ما تعرضه منها، ويمكنك إضافة مناطق تقبل المرور بها. لا تُقبل أماكن لقاء مكتوبة بحرية. ثم تقترح المنصة لكل راكب نقطة توقف محددة ضمن ما عرضته، ويُظهرها لك طلب الحجز مع وقت القيادة الإضافي قبل أن تقرر. نقاط التوقف اقتراحات مبنية على بيانات الخرائط، وتبقى مسؤولاً عن عدم التوقف إلا حيث يكون ذلك قانونياً وآمناً.",
         'يجب أن تقود الرحلة بنفسك بالسيارة المصرّح بها، وألا تعرض مقاعد أكثر مما تسمح به السيارة قانونياً مع أحزمة الأمان.',
         'قد تقترح المنصة حفظ رحلة تقوم بها بانتظام. لا تُنشر أي مسودة رحلة مقترحة دون تأكيدك.',
+        "تُغلق آلياً الرحلة التي لم تبدأ أبداً بعد بضع ساعات من موعد وصولها المتوقع.",
       ],
     },
     {
       heading: '8. طلب مقعد (الركاب)',
       body: [
         'تعرض نتائج البحث الرحلات التي تعتبرها المنصة متوافقة مع نقطة انطلاقك ووجهتك وتوقيتك، بما في ذلك رحلات تمر قرب مسارك. تُظهر كل نتيجة الملف العام للسائق وتقييمه ومستوى الثقة فيه قبل طلب المقعد.',
-        'تختار نقطة الصعود (ونقطة النزول عند توفرها) وعدد المقاعد ثم ترسل طلب الحجز. إذا حددت نقطة الصعود بنفسك، تعرض لك المنصة الانعطاف والتوقيت الناتجين قبل الإرسال، ويمكن للسائق الرفض.',
+        "لكل رحلة، تقترح المنصة نقطتي الصعود والنزول الأنسب لتنقلك وتبيّن لك المكان والتوقيت والسعر قبل أي إرسال. تختار عدد المقاعد ويمكنك إضافة رسالة واحدة للسائق (الفصل 11)، ثم ترسل طلب الحجز. إذا تطلبت الرحلة انعطافاً للوصول إليك، يرى السائق الوقت الإضافي قبل أن يقرر ويمكنه الرفض.",
         'يجب على السائق القبول أو الرفض ضمن الأجل المعروض في التطبيق، وإلا ينتهي الطلب ولا تكون ملزماً.',
         'يمكنك إرسال عدد محدود من طلبات الحجز للرحلة نفسها إلى سائقين مختلفين. عند قبول أحدها تُسحب البقية آلياً ويتم إعلامك.',
         'يُبرم الحجز عند قبول السائق، ويصبح كلاكما ملتزماً بالرحلة كما حُجزت، مع مراعاة الفصل 10.',
@@ -608,15 +619,16 @@ const ar: LegalDocument = {
         'نقاط الموثوقية سجل داخلي تستعمله VAYA لرصد تكرار عدم الموثوقية، ولا يراها الأعضاء الآخرون. قد يؤدي تكرار الإلغاء المتأخر أو عدم الحضور إلى الإجراءات المنصوص عليها في الفصل 17.',
         'بما أن VAYA لا تتولى أي دفع، فلا تترتب على الإلغاء أو عدم الحضور أي عواقب مالية عبر المنصة. أي اتفاق بين الأعضاء بشأن مبلغ مدفوع يخصهم وحدهم.',
         'إذا اعتقدت أن عدم حضور سُجّل ضدك خطأً (بما في ذلك آلياً)، اتصل بدعم VAYA خلال 14 يوماً. سيفحص أحد أعضاء فريقنا الأمر ويحذف التقييم والنقاط إذا كان التسجيل خاطئاً.',
-        'يمكننا تعديل الآجال أو النقاط المذكورة أعلاه. لا تنطبق التعديلات إلا على الحجوزات المبرمة بعد نشرها، وتُحدّث هذه الشروط تبعاً لذلك.',
-        'السائق الذي يلغي رحلة يلغي الحجوزات المرتبطة بها، مع العواقب المذكورة أعلاه. ويمكن لـ VAYA أيضاً إلغاء رحلة لأسباب تتعلق بالسلامة أو المطابقة، ويتم إعلام الركاب المعنيين دون احتساب أي نقاط عليهم.',
+        "يمكننا تعديل هذه الآجال. وفي هذه الحالة نحدّث هذه الشروط ونُعلمك في التطبيق قبل بدء تطبيق التغيير (الفصل 20).",
+        "السائق الذي يلغي رحلة يلغي جميع طلبات الحجز والحجوزات المرتبطة بها، ويتم إعلام الركاب. وإذا وُجدت، يحصل السائق مرة واحدة على النقاط المذكورة أعلاه حسب المدة المتبقية قبل الانطلاق. ويمكن لـ VAYA أيضاً إلغاء رحلة لأسباب تتعلق بالسلامة أو المطابقة، ويتم إعلام الركاب المعنيين دون احتساب أي نقاط عليهم.",
       ],
     },
     {
       heading: '11. التواصل بين الأعضاء',
       body: [
-        'عند قبول الحجز تُفتح محادثة خاصة بين السائق وهذا الراكب، ولا تقبل رسائل جديدة بعد انتهاء المشوار.',
-        'عند قبول الحجز، وطالما بقي مقبولاً، يمكن لكل طرف رؤية رقم هاتف الطرف الآخر في التطبيق للاتصال به بشأن هذا الحجز. قبل القبول لا تُعرض أرقام الهواتف أبداً. لا يجوز استعمال رقم عضو آخر إلا لتنظيم هذا الحجز.',
+        "عندما يرسل الراكب طلب حجز، تُفتح محادثة خاصة بينه وبين السائق. يمكن للراكب إرفاق رسالة واحدة بطلبه. وإلى أن يقبل السائق، لا يمكن للراكب إرسال رسالة جديدة إلا بعد ردّ السائق، ويمكن للسائق الرد دائماً.",
+        "بعد قبول الحجز يمكن لكليهما الكتابة بحرية. ولا تقبل المحادثة رسائل جديدة عند رفض الطلب أو انتهاء أجله أو إلغائه، أو بعد انتهاء المشوار.",
+        "عند قبول الحجز، وطالما بقي مقبولاً، يمكن لكل طرف رؤية رقم هاتف الطرف الآخر في التطبيق، ويمكن للراكب رؤية رقم تسجيل سيارة السائق، لتنظيم المشوار والتعرف على السيارة الصحيحة. قبل القبول لا تُعرض أرقام الهواتف ولا رقم التسجيل. الرقم المعروض هو رقم تسجيل الدخول، أو عند غيابه رقم الاتصال الذي أدخله العضو في التطبيق دون أن تتحقق منه VAYA. لا يجوز استعمال هذه المعلومات إلا لتنظيم هذا الحجز.",
         'لا تستعمل الرسائل لمشاركة محتوى محظور بموجب الفصل 12، أو لترتيب دفع خارج المساهمة المتفق عليها، أو لترتيب رحلات خارج المنصة للتهرب من هذه الشروط.',
       ],
     },
@@ -627,7 +639,7 @@ const ar: LegalDocument = {
         'تقديم معلومات كاذبة عن نفسك أو عن رحلة أو سيارة أو وثيقة، أو انتحال هوية الغير؛ إنشاء عدة حسابات أو مشاركة حسابك أو بيعه؛',
         'مضايقة أي شخص أو تهديده أو إهانته أو التمييز ضده أو الاعتداء عليه، بما في ذلك بسبب الأصل أو الجنس أو الدين أو الإعاقة أو أي صفة يحميها القانون؛ أي تحرش أو سلوك جنسي غير مرغوب فيه؛',
         'القيادة أو السفر تحت تأثير الكحول أو المخدرات، أو حمل أسلحة أو بضائع غير قانونية أو مواد خطرة؛',
-        'استعمال البيانات الشخصية لعضو آخر (رقم الهاتف، الموقع…) خارج الحجز المعني؛',
+        'استعمال البيانات الشخصية لعضو آخر (رقم الهاتف، رقم تسجيل السيارة، الموقع…) خارج الحجز المعني؛',
         'نشر محتوى غير قانوني أو تشهيري أو يحرض على الكراهية أو جنسي صريح أو يمس بحقوق الغير؛ كتابة تقييمات كاذبة أو لا علاقة لها بمشوار حقيقي أو مقابل منفعة؛',
         'التلاعب بالمنصة، بما في ذلك تزوير بيانات الموقع أو إجراء مشاوير وهمية للحصول على تقييمات أو التحايل على التحقق أو القيود أو إجراءات الأمان؛ استخراج بيانات المنصة بوسائل آلية أو تفكيك برمجياتها، إلا في الحدود التي يسمح بها القانون.',
       ],
@@ -645,7 +657,7 @@ const ar: LegalDocument = {
       heading: '14. التقييمات ومعلومات الثقة',
       body: [
         'بعد انتهاء المشوار، يمكن للسائق ولكل راكب تقييم بعضهم بعضاً خلال 24 ساعة: من نجمة إلى 5 نجوم، مع مؤشر اختياري للالتزام بالمواعيد وتعليق اختياري. لا يمكن لكل طرف تقييم الآخر إلا مرة واحدة في كل مشوار.',
-        'يُعرض في ملفك العام متوسط تقييمك وعدد مشاويرك المنتهية ودرجتا الالتزام بالمواعيد والموثوقية ومستوى الثقة («Nouveau»، «Confiance»، «Top VAYA»). يرتبط مستوى الثقة بعدد المشاوير المنتهية ومتوسط التقييم وأقدمية الحساب.',
+        "يعرض ملفك العام متوسط تقييمك وعدد التقييمات وتوزيعها من نجمة إلى 5 نجوم، وعدد مشاويرك المنتهية، ودرجتي الالتزام بالمواعيد والموثوقية، ومستوى الثقة («Nouveau»، «Confiance»، «Top VAYA») وشهر انضمامك. وبالنسبة للسائق، يبيّن أيضاً أن VAYA تحققت منه، وعلامة السيارة وطرازها ولونها (دون رقم التسجيل). يرتبط مستوى الثقة بعدد المشاوير المنتهية ومتوسط التقييم وأقدمية الحساب.",
         'التعليقات لا يراها إلا العضو الذي تم تقييمه (وVAYA)، ولا تُنشر في الملفات الشخصية.',
         'يجب أن تكون التقييمات صادقة ومبنية على المشوار الفعلي. يمكننا حذف تقييم يخالف الفصل 12 أو ناتج عن خطأ، بما في ذلك عدم حضور سُجّل خطأً. لا نحذف التقييمات لكونها سلبية.',
       ],
