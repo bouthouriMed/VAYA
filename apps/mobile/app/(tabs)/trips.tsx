@@ -1,743 +1,381 @@
 import { useEffect, useMemo, useState } from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, ScrollView, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { formatDate, formatTime, formatCurrency } from '../../src/utils/localeFormat';
+import { router, useLocalSearchParams } from 'expo-router';
 import type { SupportedLocale } from '@vaya/config';
 import {
-  Text,
+  AgendaGroup,
+  AgendaRow,
   Button,
-  Icon,
-  Avatar,
-  Badge,
   EmptyState,
-  StateView,
-  MapPreview,
+  LargeTitleHeader,
   NotificationBell,
-  useAppTheme,
+  SegmentedTabs,
+  StateView,
+  Text,
   haptics,
   spacing,
-  radii,
-  LargeTitleHeader,
+  useAppTheme,
 } from '@vaya/design-system';
-import { router, useLocalSearchParams } from 'expo-router';
 import { useAppSelector } from '../../src/state/store';
 import {
+  useCreateTripRatingMutation,
+  useGetMyDriverProfileQuery,
+  useGetPendingRatingQuery,
   useListMyBookingsQuery,
   useListMyRidesQuery,
-  useGetRideQuery,
-  useGetMyDriverProfileQuery,
   useListNotificationsQuery,
 } from '../../src/state/api';
-import {
-  isUpcomingRide,
-  pickNextUpcomingRide,
-  orderRemainingRides,
-  estimateArrivalLabel,
-  computeTripPhase,
-} from '../../src/features/driver-rides/myRidesHelpers';
-import { decodePolyline, sliceRouteBetween } from '../../src/utils/polyline';
 import { isQueryErrorOtherThan404 } from '../../src/state/queryErrors';
-import { bookingStatusDisplay, rideStatusDisplay, type StatusDisplay } from '../../src/features/status/statusDisplay';
-import { fullPlaceLabel, shortenPlaceLabel } from '../../src/utils/placeLabel';
 import { useFocusAwarePolling } from '../../src/hooks/useFocusAwarePolling';
+import { formatShortDate, formatTime, toIntlTag } from '../../src/utils/localeFormat';
+import {
+  buildAgendaItems,
+  buildTodos,
+  groupHistoryByMonth,
+  groupUpcomingByDay,
+  hasBothRoles,
+  pollingIntervalFor,
+  selectSpotlight,
+  type AgendaItem,
+  type TodoItem,
+} from '../../src/features/trips/agenda';
+import {
+  dayAndTime,
+  dayLabel,
+  deadlineLabel,
+  monthLabel,
+  placesRoute,
+  roleLabel,
+  routeLabel,
+  rowPrice,
+  rowStatus,
+} from '../../src/features/trips/agendaCopy';
+import { TripSpotlight } from '../../src/features/trips/TripSpotlight';
+import { useNow } from '../../src/features/trips/useNow';
+import { openAgendaItem, openDrive } from '../../src/features/trips/navigation';
+import { RatingPromptSheet } from '../../src/features/ratings/RatingPromptSheet';
+import { submitRating } from '../../src/features/ratings/ratingHelpers';
+import { trackEvent } from '../../src/services/analytics/analytics';
 
-type ThemeColors = ReturnType<typeof useAppTheme>['colors'];
-
-function formatWhen(iso: string, t: (key: string) => string, locale: string): string {
-  const date = new Date(iso);
-  const now = new Date();
-  const isToday = date.toDateString() === now.toDateString();
-  const time = formatTime(date, locale as SupportedLocale);
-  if (isToday) return `${t('common:time.today')}, ${time}`;
-  return `${formatDate(date, locale as SupportedLocale, { weekday: 'short', day: 'numeric', month: 'short' })} · ${time}`;
-}
-
-type CardCounterpart =
-  | { kind: 'person'; name: string; avatarUrl?: string | null; userId?: string }
-  | { kind: 'text'; label: string };
+type Tab = 'upcoming' | 'history';
 
 /**
- * World-class trip card (2026-08-23 redesign): a status pill up top, a real
- * dot→line→pin timeline connecting origin and destination, and a bottom
- * row pairing the counter-party (driver for a rider's booking, seat
- * availability for a driver's own ride — no per-row passenger-profile
- * fetch, see the driver-rides section below for why) with the price. The
- * whole card is the tap target; there is no standalone "Annuler" link on
- * the card root any more — cancelling now lives inside the pushed detail
- * screen (bookings/[bookingId].tsx / driver/rides/[rideId].tsx).
+ * "Mes trajets" (direction C, docs/ux): one card on top for the trip that
+ * matters right now — as driver or passenger, live, about to leave, or just
+ * finished — then only what waits on you ("À traiter"), then every coming
+ * trip by day, with finished ones under "Historique". Every status comes
+ * from the server's ride/booking/trip state plus the clock
+ * (src/features/trips/agenda.ts); the lists refresh on their own, faster
+ * while a trip is live or about to start.
  */
-function TripCard({
-  theme,
-  dateTimeLabel,
-  badge,
-  originLabel,
-  destinationLabel,
-  counterpart,
-  priceLabel,
-  onPress,
-  dimmed,
-}: {
-  theme: ThemeColors;
-  dateTimeLabel: string;
-  badge: StatusDisplay;
-  originLabel: string;
-  destinationLabel: string;
-  counterpart: CardCounterpart;
-  priceLabel: string;
-  onPress: () => void;
-  dimmed?: boolean;
-}): React.JSX.Element {
-  const { t } = useTranslation('common');
-  return (
-    <TouchableOpacity
-      style={[
-        styles.tripCard,
-        { backgroundColor: theme.surface, borderColor: theme.outlineVariant },
-        dimmed && styles.tripCardDimmed,
-      ]}
-      onPress={() => {
-        haptics.selection();
-        onPress();
-      }}
-      activeOpacity={0.7}
-      accessibilityRole="button"
-      accessibilityLabel={`${fullPlaceLabel(originLabel)} → ${fullPlaceLabel(destinationLabel)}, ${dateTimeLabel}, ${badge.label}`}
-    >
-      <View style={styles.tripCardTopRow}>
-        <Text variant="label" color={theme.ink} style={styles.tripCardDate}>
-          {dateTimeLabel}
-        </Text>
-        <Badge label={badge.label} variant={badge.tone} theme={theme} />
-      </View>
-
-      <View style={styles.timeline}>
-        <View style={styles.timelineDots}>
-          <View style={[styles.dotOutline, { borderColor: theme.ink }]} />
-          <View style={[styles.dotConnector, { backgroundColor: theme.outlineVariant }]} />
-          <View style={[styles.dotFilled, { backgroundColor: theme.accent }]} />
-        </View>
-        <View style={styles.timelineEntries}>
-          <Text variant="body" color={theme.ink} numberOfLines={1}>
-            {fullPlaceLabel(originLabel)}
-          </Text>
-          <Text variant="body" color={theme.ink} numberOfLines={1}>
-            {fullPlaceLabel(destinationLabel)}
-          </Text>
-        </View>
-      </View>
-
-      <View style={[styles.tripCardBottomRow, { borderTopColor: theme.outlineVariant }]}>
-        {counterpart.kind === 'person' ? (
-          <View style={styles.counterpartRow}>
-            {counterpart.userId ? (
-              <TouchableOpacity
-                onPress={() =>
-                  router.push({ pathname: '/search/trust', params: { driverUserId: counterpart.userId! } })
-                }
-                hitSlop={8}
-                accessibilityRole="button"
-                accessibilityLabel={t('common:actions.viewProfile', { name: counterpart.name })}
-              >
-                <Avatar
-                  uri={counterpart.avatarUrl}
-                  name={counterpart.name}
-                  sizePx={28}
-                />
-              </TouchableOpacity>
-            ) : (
-              <Avatar
-                uri={counterpart.avatarUrl}
-                name={counterpart.name}
-                sizePx={28}
-              />
-            )}
-            <Text variant="bodySmall" color={theme.inkMuted} numberOfLines={1} style={styles.counterpartName}>
-              {counterpart.name}
-            </Text>
-          </View>
-        ) : (
-          <View style={styles.counterpartRow}>
-            <Icon name="people-outline" size="xs" color={theme.inkMuted} />
-            <Text variant="bodySmall" color={theme.inkMuted} numberOfLines={1}>
-              {counterpart.label}
-            </Text>
-          </View>
-        )}
-        <Text variant="label" color={theme.ink}>
-          {priceLabel}
-        </Text>
-      </View>
-    </TouchableOpacity>
-  );
-}
-
-/** Stitch's "My Rides" driver dashboard (stitch/publish_ride/
- * my-rides-driver-dashboard.html) — hero card for the next upcoming drive
- * (real map thumbnail, real seats/price), a Passager/Conducteur segmented
- * control over the two lists, and one consolidated "Gérer ce trajet" action
- * that opens the real trip hub (driver/rides/[rideId].tsx — replaces what
- * used to be two separate bottom sheets, RideRequestsSheet and
- * ManageRideSheet, with one real screen that shows requests, passengers,
- * and cancellation together). */
 export default function TripsScreen(): React.JSX.Element {
-  const { colors: theme, scheme } = useAppTheme();
-  const { t } = useTranslation(['trips', 'booking', 'common']);
-  const locale = useAppSelector((s) => s.language.locale) || 'en';
-  const { openRequestsForRide } = useLocalSearchParams<{ openRequestsForRide?: string }>();
+  const { colors: theme } = useAppTheme();
+  const { t } = useTranslation(['trips', 'common']);
+  const locale = (useAppSelector((s) => s.language.locale) || 'fr') as SupportedLocale;
   const accessToken = useAppSelector((s) => s.auth.accessToken);
-  const {
-    data: bookings,
-    isLoading: isBookingsLoading,
-    isError: isBookingsError,
-    refetch: refetchBookings,
-  } = useListMyBookingsQuery(undefined, {
-    skip: !accessToken,
-  });
-  const {
-    data: driverProfile,
-    error: driverProfileError,
-    isLoading: isDriverProfileLoading,
-    refetch: refetchDriverProfile,
-  } = useGetMyDriverProfileQuery(undefined, { skip: !accessToken });
-  const {
-    data: myRides,
-    isLoading: isRidesLoading,
-    isError: isRidesError,
-    refetch: refetchRides,
-  } = useListMyRidesQuery(undefined, { skip: !driverProfile });
-  // A 404 genuinely means "not a driver yet"; any other failure is an error
-  // and must never be shown as the "become a driver" empty state.
-  const isDriverProfileError = isQueryErrorOtherThan404(driverProfileError);
-  const isDriverSideError = isDriverProfileError || isRidesError;
-  // Defaults to rider; flips once we know which role actually HAS trips —
-  // never leaves a driver staring at an empty "Passager" tab when their
-  // real activity is on the "Conducteur" side, or vice versa.
-  const [segment, setSegment] = useState<Segment>('rider');
-  const [segmentTouched, setSegmentTouched] = useState(false);
+  const { openRequestsForRide } = useLocalSearchParams<{ openRequestsForRide?: string }>();
+  const now = useNow();
+  const [tab, setTab] = useState<Tab>('upcoming');
+  const [ratingOpen, setRatingOpen] = useState(false);
+  const [pollInterval, setPollInterval] = useState(60_000);
+  const polling = useFocusAwarePolling(pollInterval);
 
-  // Same query/poll the explore tab's header bell and the notifications
-  // inbox itself already use — no new endpoint, just a second reader of the
-  // same cache entry.
+  const bookingsQuery = useListMyBookingsQuery(undefined, { ...polling, skip: !accessToken });
+  const driverProfileQuery = useGetMyDriverProfileQuery(undefined, { skip: !accessToken });
+  const hasDriverProfile = Boolean(driverProfileQuery.data);
+  const ridesQuery = useListMyRidesQuery(undefined, { ...polling, skip: !hasDriverProfile });
+  const { data: pendingRating } = useGetPendingRatingQuery(undefined, { skip: !accessToken });
+  const [createRating] = useCreateTripRatingMutation();
+
   const notificationsPolling = useFocusAwarePolling(30_000);
-  const { data: notifications } = useListNotificationsQuery(undefined, {
-    ...notificationsPolling,
-    skip: !accessToken,
-  });
-  const unreadNotificationsCount = notifications?.filter((n) => !n.readAt).length ?? 0;
-  const hasUnreadNotifications = unreadNotificationsCount > 0;
+  const { data: notifications } = useListNotificationsQuery(undefined, { ...notificationsPolling, skip: !accessToken });
+  const unreadCount = notifications?.filter((n) => !n.readAt).length ?? 0;
 
-  // An actually in-progress ride (the driver already tapped "Démarrer") is
-  // more hero-worthy than a merely soonest-scheduled one — isUpcomingRide/
-  // pickNextUpcomingRide deliberately treat in_progress as *not* upcoming
-  // (myRidesHelpers.test.ts's "rejects terminal-status rides even in the
-  // future" case, in_progress included — a real trip underway isn't
-  // "upcoming", it's a distinct phase, computeTripPhase's own reason to
-  // exist), so this list screen needs its own priority rule on top rather
-  // than changing what "upcoming" means everywhere else.
-  const inProgressRide = useMemo(
-    () => (myRides ?? []).find((ride) => computeTripPhase(ride) === 'in_progress') ?? null,
-    [myRides],
+  const items = useMemo(
+    () => buildAgendaItems(ridesQuery.data ?? [], bookingsQuery.data ?? [], now),
+    [ridesQuery.data, bookingsQuery.data, now],
   );
-  const heroRide = useMemo(
-    () => inProgressRide ?? pickNextUpcomingRide(myRides ?? []),
-    [myRides, inProgressRide],
-  );
-  const remainingRides = useMemo(
-    () => orderRemainingRides(myRides ?? [], heroRide?.id ?? null),
-    [myRides, heroRide],
-  );
-  const upcomingBookings = (bookings ?? []).filter((booking) =>
-    ['pending', 'accepted'].includes(booking.status),
-  );
-  const pastBookings = (bookings ?? []).filter(
-    (booking) => !['pending', 'accepted'].includes(booking.status),
-  );
-  // Mirrors heroRide above: an in-progress booking (its ride already
-  // started) takes priority over a merely soonest-departing one — a
-  // booking's own status stays 'accepted' throughout both, only the
-  // embedded ride.status can tell them apart.
-  const riderHeroBooking = useMemo(() => {
-    if (upcomingBookings.length === 0) return null;
-    const inProgress = upcomingBookings.find((booking) => booking.ride?.status === 'in_progress');
-    if (inProgress) return inProgress;
-    return upcomingBookings.reduce((soonest, booking) => {
-      if (!booking.ride) return soonest;
-      if (!soonest.ride) return booking;
-      return new Date(booking.ride.departureAt).getTime() < new Date(soonest.ride.departureAt).getTime()
-        ? booking
-        : soonest;
-    });
-  }, [upcomingBookings]);
-  const remainingUpcomingBookings = upcomingBookings.filter(
-    (booking) => booking.id !== riderHeroBooking?.id,
-  );
-  const { data: riderHeroRide } = useGetRideQuery(riderHeroBooking?.rideId ?? '', {
-    skip: !riderHeroBooking,
-  });
-  // This passenger's own segment, not the driver's full route — a route_
-  // passthrough booking's real pickup/dropoff can sit well inside a much
-  // longer route (matching-engine-redesign: "passenger sees his requested
-  // route... in my trip"). Collapses to the whole route for a plain
-  // endpoint-match booking.
-  const riderHeroPickupPoint = riderHeroBooking
-    ? { latitude: riderHeroBooking.pickupLat, longitude: riderHeroBooking.pickupLng }
-    : undefined;
-  const riderHeroDropoffPoint =
-    riderHeroBooking?.dropoffLat != null && riderHeroBooking?.dropoffLng != null
-      ? { latitude: riderHeroBooking.dropoffLat, longitude: riderHeroBooking.dropoffLng }
-      : riderHeroRide
-        ? { latitude: riderHeroRide.destinationLat, longitude: riderHeroRide.destinationLng }
-        : undefined;
-  const riderHeroPolyline = useMemo(() => {
-    const fullCoordinates = riderHeroRide?.routePolyline ? decodePolyline(riderHeroRide.routePolyline) : [];
-    if (fullCoordinates.length < 2 || !riderHeroPickupPoint || !riderHeroDropoffPoint) return fullCoordinates;
-    return sliceRouteBetween(fullCoordinates, riderHeroPickupPoint, riderHeroDropoffPoint);
-    // Deps are the primitive lat/lng values, not riderHeroPickupPoint/
-    // riderHeroDropoffPoint's object identity (which changes every render).
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    riderHeroRide,
-    riderHeroBooking?.pickupLat,
-    riderHeroBooking?.pickupLng,
-    riderHeroBooking?.dropoffLat,
-    riderHeroBooking?.dropoffLng,
-  ]);
-  const riderHeroArrivalLabel =
-    riderHeroBooking?.ride && riderHeroRide
-      ? estimateArrivalLabel(riderHeroBooking.ride.departureAt, riderHeroRide.estimatedDurationSec)
-      : null;
+  const spotlight = useMemo(() => selectSpotlight(items, pendingRating, now), [items, pendingRating, now]);
+  const todos = useMemo(() => buildTodos(items, pendingRating, spotlight), [items, pendingRating, spotlight]);
+  const upcoming = useMemo(() => groupUpcomingByDay(items, spotlight, now), [items, spotlight, now]);
+  const history = useMemo(() => groupHistoryByMonth(items), [items]);
+  const showRoles = hasBothRoles(items);
+  const upcomingCount = upcoming.reduce((sum, section) => sum + section.items.length, 0);
+  const historyCount = history.reduce((sum, section) => sum + section.items.length, 0);
 
+  useEffect(() => setPollInterval(pollingIntervalFor(spotlight)), [spotlight]);
+
+  // A "new request" notification opens the ride's hub directly.
   useEffect(() => {
-    if (segmentTouched) return;
-    if (!driverProfile) {
-      setSegment('rider');
-      return;
-    }
-    const driverHasTrips = Boolean(heroRide) || remainingRides.length > 0;
-    const riderHasTrips = upcomingBookings.length > 0;
-    if (riderHasTrips && !driverHasTrips) setSegment('rider');
-    else setSegment('driver');
-  }, [driverProfile, heroRide, remainingRides.length, upcomingBookings.length, segmentTouched]);
-
-  // A "new request" notification tap (deepLink.ts) lands here with the
-  // specific ride already known — opens the real trip hub for it directly,
-  // same destination the dashboard's own "Gérer ce trajet" button uses.
-  useEffect(() => {
-    if (openRequestsForRide) {
-      router.push({ pathname: '/driver/rides/[rideId]', params: { rideId: openRequestsForRide } });
-    }
+    if (openRequestsForRide) openDrive(openRequestsForRide);
   }, [openRequestsForRide]);
 
-  const heroPolyline = useMemo(
-    () => (heroRide?.routePolyline ? decodePolyline(heroRide.routePolyline) : []),
-    [heroRide],
-  );
-  const heroArrivalLabel = heroRide
-    ? estimateArrivalLabel(heroRide.departureAt, heroRide.estimatedDurationSec)
-    : null;
+  const isLoading =
+    bookingsQuery.isLoading || driverProfileQuery.isLoading || (hasDriverProfile && ridesQuery.isLoading);
+  // A 404 on the driver profile means "not a driver" — not an error.
+  const isError =
+    bookingsQuery.isError || isQueryErrorOtherThan404(driverProfileQuery.error) || ridesQuery.isError;
+  const isRefreshing = bookingsQuery.isFetching || ridesQuery.isFetching;
 
-  function goToDriverFlow(): void {
-    router.push(driverProfile ? '/(tabs)/publish' : '/driver/onboarding/vehicle');
+  function refreshAll(): void {
+    void bookingsQuery.refetch();
+    void driverProfileQuery.refetch();
+    if (hasDriverProfile) void ridesQuery.refetch();
   }
 
-  function selectSegment(next: Segment): void {
-    setSegmentTouched(true);
-    setSegment(next);
+  function rowFor(item: AgendaItem, index: number, inHistory: boolean): React.JSX.Element {
+    const status = rowStatus(item, now, t, locale);
+    const time = formatTime(item.departureAt, locale);
+    const timeDetail = inHistory
+      ? formatShortDate(item.departureAt, toIntlTag(locale))
+      : item.arrivalAt
+        ? `→ ${formatTime(item.arrivalAt, locale)}`
+        : undefined;
+    const role = showRoles ? roleLabel(item, t) : undefined;
+    const price = rowPrice(item, t, locale);
+    return (
+      <AgendaRow
+        key={item.key}
+        time={time}
+        timeDetail={timeDetail}
+        title={routeLabel(item)}
+        status={status.text}
+        statusTone={status.tone}
+        roleLabel={role}
+        roleSolid={item.role === 'driver'}
+        trailing={price.value}
+        trailingDetail={price.detail}
+        dimmed={inHistory}
+        divider={index > 0}
+        onPress={() => {
+          haptics.selection();
+          openAgendaItem(item);
+        }}
+        accessibilityLabel={[dayAndTime(item.departureAt, now, t, locale), routeLabel(item), role, status.text]
+          .filter(Boolean)
+          .join(', ')}
+      />
+    );
+  }
+
+  function todoRow(todo: TodoItem, index: number): React.JSX.Element {
+    if (todo.kind === 'rate') {
+      const name = todo.rating.counterpartName?.split(/\s+/)[0];
+      const title = name ? t('trips:todo.rateNamed', { name }) : t('trips:todo.rate');
+      const route =
+        todo.rating.originLabel && todo.rating.destinationLabel
+          ? placesRoute(todo.rating.originLabel, todo.rating.destinationLabel)
+          : undefined;
+      return (
+        <AgendaRow
+          key={todo.key}
+          icon="star-outline"
+          title={title}
+          status={route}
+          actionLabel={t('trips:todo.actionRate')}
+          onAction={() => setRatingOpen(true)}
+          onPress={() => setRatingOpen(true)}
+          highlighted
+          divider={index > 0}
+          accessibilityLabel={title}
+        />
+      );
+    }
+    const { item } = todo;
+    const when = dayAndTime(item.departureAt, now, t, locale);
+    const title =
+      todo.kind === 'requests' ? t('trips:todo.requests', { count: todo.count }) : t('trips:todo.start');
+    const detail =
+      todo.kind === 'requests' && todo.expiresAt
+        ? t('trips:todo.requestsDetailDeadline', {
+            route: routeLabel(item),
+            time: deadlineLabel(todo.expiresAt, now, t, locale),
+          })
+        : t('trips:todo.detail', { route: routeLabel(item), when });
+    return (
+      <AgendaRow
+        key={todo.key}
+        icon={todo.kind === 'requests' ? 'people-outline' : 'play-outline'}
+        title={title}
+        status={detail}
+        actionLabel={todo.kind === 'requests' ? t('trips:todo.actionReply') : t('trips:todo.actionStart')}
+        onAction={() => openDrive(item.rideId)}
+        onPress={() => openDrive(item.rideId)}
+        highlighted
+        divider={index > 0}
+        accessibilityLabel={`${title}, ${detail}`}
+      />
+    );
+  }
+
+  const header = (
+    <LargeTitleHeader
+      title={t('trips:title')}
+      style={styles.pageHeader}
+      right={
+        <NotificationBell
+          theme={theme}
+          unreadCount={unreadCount}
+          onPress={() => {
+            haptics.selection();
+            router.push('/notifications');
+          }}
+          accessibilityLabel={unreadCount > 0 ? t('trips:notificationsUnreadAria') : t('trips:notificationsAria')}
+        />
+      }
+    />
+  );
+
+  function body(): React.JSX.Element {
+    if (!accessToken) {
+      return (
+        <View style={styles.emptyWrap}>
+          <EmptyState
+            iconName="car-sport-outline"
+            title={t('trips:guestEmpty.title')}
+            description={t('trips:guestEmpty.description')}
+            actionLabel={t('trips:guestEmpty.cta')}
+            onAction={() => router.navigate('/(tabs)/explore')}
+          />
+        </View>
+      );
+    }
+    if (isLoading) return <StateView status="loading" skeleton="list" />;
+    if (isError) {
+      return (
+        <StateView
+          status="error"
+          title={t('trips:loadError.title')}
+          description={t('trips:loadError.description')}
+          actionLabel={t('common:actions.retry')}
+          onAction={refreshAll}
+        />
+      );
+    }
+    if (items.length === 0 && !pendingRating) {
+      return (
+        <View style={styles.emptyWrap}>
+          <EmptyState
+            iconName="car-outline"
+            title={t('trips:agenda.emptyAll.title')}
+            description={t('trips:agenda.emptyAll.description')}
+          >
+            <View style={styles.emptyActions}>
+              <Button label={t('trips:agenda.emptyAll.findRide')} onPress={() => router.navigate('/(tabs)/explore')} />
+              <Button
+                variant="ghost"
+                label={t('trips:agenda.emptyAll.publishRide')}
+                onPress={() => router.navigate('/(tabs)/publish')}
+              />
+            </View>
+          </EmptyState>
+        </View>
+      );
+    }
+
+    return (
+      <>
+        {spotlight ? (
+          <TripSpotlight spotlight={spotlight} now={now} locale={locale} onRate={() => setRatingOpen(true)} />
+        ) : null}
+
+        {todos.length > 0 ? (
+          <View style={styles.section}>
+            <Text variant="label" color={theme.inkMuted} style={styles.sectionHeading}>
+              {t('trips:agenda.todoHeading')}
+            </Text>
+            <AgendaGroup>{todos.map(todoRow)}</AgendaGroup>
+          </View>
+        ) : null}
+
+        <SegmentedTabs<Tab>
+          tabs={[
+            { key: 'upcoming', label: t('trips:agenda.upcomingTab'), count: upcomingCount },
+            { key: 'history', label: t('trips:agenda.historyTab'), count: historyCount > 0 ? historyCount : undefined },
+          ]}
+          value={tab}
+          onChange={setTab}
+        />
+
+        {tab === 'upcoming' ? (
+          upcoming.length === 0 ? (
+            <EmptyState
+              iconName="calendar-outline"
+              title={spotlight?.kind === 'trip' ? t('trips:agenda.emptyUpcoming.onlyNext') : t('trips:agenda.emptyUpcoming.title')}
+              description={t('trips:agenda.emptyUpcoming.description')}
+              actionLabel={t('trips:agenda.emptyAll.findRide')}
+              onAction={() => router.navigate('/(tabs)/explore')}
+            />
+          ) : (
+            upcoming.map((section) => (
+              <View key={section.key} style={styles.section}>
+                <Text variant="label" color={theme.inkMuted} style={styles.sectionHeading}>
+                  {dayLabel(section.day, section.offset, t, locale)}
+                </Text>
+                <AgendaGroup>{section.items.map((item, index) => rowFor(item, index, false))}</AgendaGroup>
+              </View>
+            ))
+          )
+        ) : history.length === 0 ? (
+          <EmptyState
+            iconName="time-outline"
+            title={t('trips:agenda.emptyHistory.title')}
+            description={t('trips:agenda.emptyHistory.description')}
+          />
+        ) : (
+          history.map((section) => (
+            <View key={section.key} style={styles.section}>
+              <Text variant="label" color={theme.inkMuted} style={styles.sectionHeading}>
+                {monthLabel(section.month, locale)}
+              </Text>
+              <AgendaGroup>{section.items.map((item, index) => rowFor(item, index, true))}</AgendaGroup>
+            </View>
+          ))
+        )}
+      </>
+    );
   }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top']}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
-        <LargeTitleHeader
-          title={t('trips:title')}
-          subtitle={t('trips:subtitle')}
-          style={styles.pageHeader}
-          right={
-            <NotificationBell
-              theme={theme}
-              unreadCount={unreadNotificationsCount}
-              onPress={() => {
-                haptics.selection();
-                router.push('/notifications');
-              }}
-              accessibilityLabel={hasUnreadNotifications ? t('trips:notificationsUnreadAria') : t('trips:notificationsAria')}
-            />
-          }
-        />
-
-        {!accessToken ? (
-          <View style={styles.guestEmptyWrap}>
-            <EmptyState
-              iconName="car-sport-outline"
-              title={t('trips:guestEmpty.title')}
-              description={t('trips:guestEmpty.description')}
-              actionLabel={t('trips:guestEmpty.cta')}
-              onAction={() => router.navigate('/(tabs)/explore')}
-            />
-          </View>
-        ) : (
-          <>
-        {/* Upcoming ride hero — shown whenever the driver has one, regardless
-            of which segment (Conducteur/Passager) is selected below; the
-            Stitch reference's "Upcoming Ride" is likewise unconditional,
-            only "Recent Rides" respects the toggle. */}
-        {heroRide ? (
-          <View style={styles.heroSection}>
-            <Text variant="label" color={theme.inkMuted} style={styles.sectionHeading}>
-              {t('trips:nextRide')}
-            </Text>
-            <TouchableOpacity
-              style={[styles.heroCard, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}
-              onPress={() => router.push({ pathname: '/driver/rides/[rideId]', params: { rideId: heroRide.id } })}
-              activeOpacity={0.85}
-              accessibilityRole="button"
-              accessibilityLabel={`${t('trips:manageRide')} — ${fullPlaceLabel(heroRide.originLabel)} → ${fullPlaceLabel(heroRide.destinationLabel)}`}
-            >
-              <MapPreview
-                height={128}
-                badge={rideStatusDisplay(t, heroRide.status, heroRide).label}
-                origin={{ latitude: heroRide.originLat, longitude: heroRide.originLng }}
-                destination={{ latitude: heroRide.destinationLat, longitude: heroRide.destinationLng }}
-                routeCoordinates={heroPolyline}
-                isDark={scheme === 'dark'}
-                style={styles.heroMap}
-              />
-              <View style={styles.heroBody}>
-                <View style={styles.heroHeaderRow}>
-                  <View style={styles.heroTitleCol}>
-                    {/* Short "place, locality" title (utils/placeLabel.ts) —
-                        the full address, minus any Plus Code, is in the
-                        timeline rows below and on the ride-detail screen. */}
-                    <Text variant="h3" color={theme.ink}>
-                      {`${shortenPlaceLabel(heroRide.originLabel)} → ${shortenPlaceLabel(heroRide.destinationLabel)}`}
-                    </Text>
-                    <Text variant="bodySmall" color={theme.inkMuted}>
-                      {`${formatWhen(heroRide.departureAt, t, locale)} • ${t('trips:seatsAvailable', { count: heroRide.seatsAvailable })}`}
-                    </Text>
-                  </View>
-                  <View style={styles.priceCol}>
-                    <Text variant="h3" color={theme.ink}>
-                      {formatCurrency(heroRide.contributionPerSeat, locale as SupportedLocale)}
-                    </Text>
-                    <Text variant="caption" color={theme.inkMuted}>
-                      {t('trips:perSeat')}
-                    </Text>
-                  </View>
-                </View>
-
-                <View style={styles.timeline}>
-                  <View style={styles.timelineDots}>
-                    <View style={[styles.dotOutline, { borderColor: theme.ink }]} />
-                    <View style={[styles.dotConnector, { backgroundColor: theme.outlineVariant }]} />
-                    <View style={[styles.dotFilled, { backgroundColor: theme.accent }]} />
-                  </View>
-                  <View style={styles.timelineEntries}>
-                    <View style={styles.timelineEntry}>
-                      <Text variant="caption" color={theme.inkMuted}>
-                        {formatTime(new Date(heroRide.departureAt), locale as SupportedLocale)}
-                      </Text>
-                      <Text variant="body" color={theme.ink} numberOfLines={2}>
-                        {fullPlaceLabel(heroRide.originLabel)}
-                      </Text>
-                    </View>
-                    <View style={styles.timelineEntry}>
-                      {heroArrivalLabel ? (
-                        <Text variant="caption" color={theme.inkMuted}>
-                          {`${heroArrivalLabel} ${t('trips:estimated')}`}
-                        </Text>
-                      ) : null}
-                      <Text variant="body" color={theme.ink} numberOfLines={2}>
-                        {fullPlaceLabel(heroRide.destinationLabel)}
-                      </Text>
-                    </View>
-                  </View>
-                </View>
-
-                <Button
-                  label={t('trips:manageRide')}
-                  theme={theme}
-                  onPress={() =>
-                    router.push({ pathname: '/driver/rides/[rideId]', params: { rideId: heroRide.id } })
-                  }
-                  style={styles.heroButton}
-                />
-              </View>
-            </TouchableOpacity>
-          </View>
-        ) : null}
-
-        {/* Rider hero — same unconditional-regardless-of-segment treatment
-            as the driver hero above, for the same reason: a passenger's own
-            upcoming/ongoing booking used to only ever appear buried in the
-            plain "Recent Rides" list below, exactly as easy to miss as a
-            driver's next ride would have been without this same card. */}
-        {riderHeroBooking?.ride ? (
-          <View style={styles.heroSection}>
-            <Text variant="label" color={theme.inkMuted} style={styles.sectionHeading}>
-              {t('trips:nextBooking')}
-            </Text>
-            <View style={[styles.heroCard, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
-              <MapPreview
-                height={128}
-                badge={bookingStatusDisplay(t, riderHeroBooking.status, { rideStatus: riderHeroBooking.ride.status }).label}
-                pickup={riderHeroPickupPoint}
-                dropoff={riderHeroDropoffPoint}
-                theme={theme}
-                routeCoordinates={riderHeroPolyline}
-                isDark={scheme === 'dark'}
-                style={styles.heroMap}
-              />
-              <View style={styles.heroBody}>
-                <View style={styles.heroHeaderRow}>
-                  <View style={styles.heroTitleCol}>
-                    <Text variant="h3" color={theme.ink}>
-                      {/* This rider's own resolved journey, not the ride's
-                          raw endpoints — a mid-route booking (e.g. Zaragoza
-                          -> Lleida on a Madrid -> Barcelona ride) must show
-                          where THIS passenger actually boards/alights, not
-                          the driver's full route. */}
-                      {`${shortenPlaceLabel(riderHeroBooking.pickupLabel)} → ${shortenPlaceLabel(riderHeroBooking.dropoffLabel ?? riderHeroBooking.ride.destinationLabel)}`}
-                    </Text>
-                    <Text variant="bodySmall" color={theme.inkMuted}>
-                      {`${formatWhen(riderHeroBooking.ride.departureAt, t, locale)} • ${riderHeroBooking.ride.driverFullName ?? t('booking:driver')}`}
-                    </Text>
-                  </View>
-                  <View style={styles.priceCol}>
-                    <Text variant="h3" color={theme.ink}>
-                      {formatCurrency(riderHeroBooking.contributionTotal, locale as SupportedLocale)}
-                    </Text>
-                    <Text variant="caption" color={theme.inkMuted}>
-                      {t('trips:total')}
-                    </Text>
-                  </View>
-                </View>
-
-                <View style={styles.timeline}>
-                  <View style={styles.timelineDots}>
-                    <View style={[styles.dotOutline, { borderColor: theme.ink }]} />
-                    <View style={[styles.dotConnector, { backgroundColor: theme.outlineVariant }]} />
-                    <View style={[styles.dotFilled, { backgroundColor: theme.accent }]} />
-                  </View>
-                  <View style={styles.timelineEntries}>
-                    <View style={styles.timelineEntry}>
-                      <Text variant="caption" color={theme.inkMuted}>
-                        {formatTime(new Date(riderHeroBooking.ride.departureAt), locale as SupportedLocale)}
-                      </Text>
-                      <Text variant="body" color={theme.ink} numberOfLines={2}>
-                        {fullPlaceLabel(riderHeroBooking.pickupLabel)}
-                      </Text>
-                    </View>
-                    <View style={styles.timelineEntry}>
-                      {riderHeroArrivalLabel ? (
-                        <Text variant="caption" color={theme.inkMuted}>
-                          {`${riderHeroArrivalLabel} ${t('trips:estimated')}`}
-                        </Text>
-                      ) : null}
-                      <Text variant="body" color={theme.ink} numberOfLines={2}>
-                        {fullPlaceLabel(riderHeroBooking.dropoffLabel ?? riderHeroBooking.ride.destinationLabel)}
-                      </Text>
-                    </View>
-                  </View>
-                </View>
-
-                <Button
-                  label={t('trips:viewBooking')}
-                  theme={theme}
-                  onPress={() =>
-                    router.push({ pathname: '/bookings/[bookingId]', params: { bookingId: riderHeroBooking.id } })
-                  }
-                  style={styles.heroButton}
-                />
-              </View>
-            </View>
-          </View>
-        ) : null}
-
-        {/* List header — Stitch's "Recent Rides" heading with the
-            Riding/Driving toggle inline beside it, scoped only to the list
-            below (the hero above is unconditional, see above). */}
-        <View style={styles.listHeaderRow}>
-          <Text variant="label" color={theme.inkMuted} style={styles.sectionHeading}>
-            {t('trips:recentRides')}
-          </Text>
-          <View style={[styles.segmentTrack, { backgroundColor: theme.surfaceMuted }]}>
-            {(
-              [
-                { key: 'driver' as Segment, labelKey: 'trips:segmentDriver' },
-                { key: 'rider' as Segment, labelKey: 'trips:segmentRider' },
-              ]
-            ).map(({ key, labelKey }) => (
-              <TouchableOpacity
-                key={key}
-                style={[
-                  styles.segmentItem,
-                  segment === key ? { backgroundColor: theme.surface } : null,
-                ]}
-                onPress={() => {
-                  haptics.selection();
-                  selectSegment(key);
-                }}
-                accessibilityRole="tab"
-                accessibilityState={{ selected: segment === key }}
-                accessibilityLabel={t(labelKey)}
-              >
-                <Text
-                  variant="bodySmall"
-                  color={segment === key ? theme.ink : theme.inkMuted}
-                  style={segment === key ? styles.segmentActiveLabel : undefined}
-                >
-                  {t(labelKey)}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-
-        {segment === 'driver' ? (
-          <View style={styles.section}>
-            {isDriverProfileLoading || isRidesLoading ? (
-              <StateView status="loading" skeleton="list" />
-            ) : isDriverSideError ? (
-              <StateView
-                status="error"
-                title={t('trips:loadError.title')}
-                description={t('trips:loadError.description')}
-                actionLabel={t('common:actions.retry')}
-                onAction={() => {
-                  void refetchDriverProfile();
-                  if (driverProfile) void refetchRides();
-                }}
-              />
-            ) : !driverProfile ? (
-              <EmptyState
-                iconName="car-outline"
-                title={t('trips:driverEmpty.notDriverYet')}
-                description={t('trips:driverEmpty.notDriverDesc')}
-                actionLabel={t('trips:driverEmpty.becomeDriver')}
-                onAction={goToDriverFlow}
-              />
-            ) : remainingRides.length === 0 && !heroRide ? (
-              <EmptyState
-                iconName="car-outline"
-                title={t('trips:driverEmpty.noRides')}
-                description={t('trips:driverEmpty.noRidesDesc')}
-                actionLabel={t('trips:driverEmpty.publishRide')}
-                onAction={goToDriverFlow}
-              />
-            ) : (
-              remainingRides.map((ride) => {
-                // in_progress isn't "upcoming" (it's its own phase — see the
-                // hero-selection comment above), but it's just as clearly not
-                // "past" either; a second in-progress ride beyond the single
-                // one the hero above already claimed shouldn't render dimmed
-                // like a completed one would. A published ride whose
-                // departure has passed *is* past, though — it never started,
-                // so it reads "departure time passed", not "Publié", until
-                // the server's ride-expiry sweep marks it expired.
-                const past = ride.status !== 'in_progress' && !isUpcomingRide(ride);
-                const badge: StatusDisplay =
-                  computeTripPhase(ride) === 'departed'
-                    ? { label: t('driver:rides.rideDetail.departurePassed'), tone: 'default' }
-                    : rideStatusDisplay(t, ride.status, ride);
-                return (
-                  <TripCard
-                    key={ride.id}
-                    theme={theme}
-                    dateTimeLabel={formatWhen(ride.departureAt, t, locale)}
-                    badge={badge}
-                    originLabel={ride.originLabel}
-                    destinationLabel={ride.destinationLabel}
-                    counterpart={{
-                      kind: 'text',
-                      label: t('trips:placesReserved', { count: ride.seatsTotal - ride.seatsAvailable }),
-                    }}
-                    priceLabel={formatCurrency(ride.contributionPerSeat, locale as SupportedLocale)}
-                    onPress={() =>
-                      router.push({ pathname: '/driver/rides/[rideId]', params: { rideId: ride.id } })
-                    }
-                    dimmed={past}
-                  />
-                );
-              })
-            )}
-          </View>
-        ) : (
-          <View style={styles.section}>
-            {isBookingsLoading ? (
-              <StateView status="loading" skeleton="list" />
-            ) : isBookingsError ? (
-              <StateView
-                status="error"
-                title={t('trips:loadError.title')}
-                description={t('trips:loadError.description')}
-                actionLabel={t('common:actions.retry')}
-                onAction={() => void refetchBookings()}
-              />
-            ) : (bookings?.length ?? 0) === 0 ? (
-              <EmptyState
-                iconName="search-outline"
-                title={t('trips:riderEmpty.noBookings')}
-                description={t('trips:riderEmpty.noBookingsDesc')}
-                actionLabel={t('trips:riderEmpty.findRide')}
-                onAction={() => router.navigate('/(tabs)/explore')}
-              />
-            ) : (
-              <>
-                {remainingUpcomingBookings.map((booking) => (
-                  <TripCard
-                    key={booking.id}
-                    theme={theme}
-                    dateTimeLabel={booking.ride ? formatWhen(booking.ride.departureAt, t, locale) : ''}
-                    badge={bookingStatusDisplay(t, booking.status, { rideStatus: booking.ride?.status })}
-                    originLabel={booking.pickupLabel ?? booking.ride?.originLabel ?? t('booking:departure')}
-                    destinationLabel={
-                      booking.dropoffLabel ?? booking.ride?.destinationLabel ?? t('booking:arrival')
-                    }
-                    counterpart={{ kind: 'person', name: booking.ride?.driverFullName ?? t('booking:driver'), userId: booking.ride?.driverUserId }}
-                    priceLabel={formatCurrency(booking.contributionTotal, locale as SupportedLocale)}
-                    onPress={() =>
-                      router.push({ pathname: '/bookings/[bookingId]', params: { bookingId: booking.id } })
-                    }
-                  />
-                ))}
-                {pastBookings.length > 0 ? (
-                  <>
-                    <Text variant="label" color={theme.inkMuted} style={[styles.sectionHeading, styles.pastHeading]}>
-                      {t('booking:filters.past')}
-                    </Text>
-                    {pastBookings.map((booking) => (
-                      <TripCard
-                        key={booking.id}
-                        theme={theme}
-                        dateTimeLabel={booking.ride ? formatWhen(booking.ride.departureAt, t, locale) : ''}
-                        badge={bookingStatusDisplay(t, booking.status, { rideStatus: booking.ride?.status })}
-                        originLabel={booking.pickupLabel ?? booking.ride?.originLabel ?? t('booking:departure')}
-                        destinationLabel={
-                          booking.dropoffLabel ?? booking.ride?.destinationLabel ?? t('booking:arrival')
-                        }
-                        counterpart={{ kind: 'person', name: booking.ride?.driverFullName ?? t('booking:driver'), userId: booking.ride?.driverUserId }}
-                        priceLabel={formatCurrency(booking.contributionTotal, locale as SupportedLocale)}
-                        onPress={() =>
-                      router.push({ pathname: '/bookings/[bookingId]', params: { bookingId: booking.id } })
-                    }
-                        dimmed
-                      />
-                    ))}
-                  </>
-                ) : null}
-              </>
-            )}
-          </View>
-        )}
-          </>
-        )}
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.content}
+        refreshControl={
+          accessToken ? (
+            <RefreshControl refreshing={isRefreshing && !isLoading} onRefresh={refreshAll} tintColor={theme.inkMuted} />
+          ) : undefined
+        }
+      >
+        {header}
+        {body()}
       </ScrollView>
+
+      {pendingRating && ratingOpen ? (
+        <RatingPromptSheet
+          visible
+          onClose={() => setRatingOpen(false)}
+          role={pendingRating.role}
+          counterpartName={pendingRating.counterpartName}
+          onSubmit={async ({ stars, punctualityFlag, comment }) => {
+            const tripId = pendingRating.tripId;
+            await submitRating(
+              { stars, punctualityFlag, comment },
+              {
+                createRating: (input) => createRating({ tripId, input }).unwrap(),
+                trackEvent,
+                role: pendingRating.role,
+              },
+            );
+            setRatingOpen(false);
+          }}
+        />
+      ) : null}
     </SafeAreaView>
   );
 }
-
-type Segment = 'rider' | 'driver';
 
 const styles = StyleSheet.create({
   container: {
@@ -745,147 +383,26 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: spacing.lg,
-    gap: spacing.md,
+    gap: spacing.lg,
     paddingBottom: spacing['4xl'],
   },
   pageHeader: {
     paddingHorizontal: 0,
     paddingTop: 0,
   },
+  section: {
+    gap: spacing.sm,
+  },
   sectionHeading: {
     textTransform: 'uppercase',
     letterSpacing: 0.4,
   },
-  listHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: spacing.sm,
-    marginTop: spacing.xs,
-  },
-  heroSection: {
-    gap: spacing.sm,
-  },
-  heroCard: {
-    borderRadius: radii.xl,
-    borderWidth: 1,
-    overflow: 'hidden',
-  },
-  heroMap: {
-    borderTopLeftRadius: radii.xl,
-    borderTopRightRadius: radii.xl,
-  },
-  heroBody: {
-    padding: spacing.md,
-    gap: spacing.md,
-  },
-  heroHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: spacing.sm,
-  },
-  heroTitleCol: {
-    flex: 1,
-    gap: 2,
-  },
-  priceCol: {
-    alignItems: 'flex-end',
-  },
-  timeline: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-  },
-  timelineDots: {
-    width: 14,
-    alignItems: 'center',
-  },
-  dotOutline: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    borderWidth: 2,
-  },
-  dotConnector: {
-    flex: 1,
-    minHeight: 20,
-    width: 2,
-    marginVertical: 2,
-  },
-  dotFilled: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-  },
-  timelineEntries: {
-    flex: 1,
-    gap: spacing.sm,
-    justifyContent: 'center',
-  },
-  timelineEntry: {
-    gap: 1,
-  },
-  heroButton: {
-    width: '100%',
-  },
-  segmentTrack: {
-    flexDirection: 'row',
-    borderRadius: radii.lg,
-    padding: 4,
-  },
-  segmentItem: {
-    alignItems: 'center',
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.sm,
-    borderRadius: radii.md,
-  },
-  segmentActiveLabel: {
-    fontWeight: '600',
-  },
-  section: {
-    gap: spacing.sm,
-  },
-  pastHeading: {
-    marginTop: spacing.xs,
-  },
-  loading: {
-    marginTop: spacing.md,
-  },
-  guestEmptyWrap: {
+  emptyWrap: {
     paddingTop: spacing['3xl'],
   },
-  tripCard: {
-    borderRadius: radii.xl,
-    borderWidth: 1,
-    padding: spacing.md,
-    gap: spacing.sm,
-  },
-  tripCardDimmed: {
-    opacity: 0.75,
-  },
-  tripCardTopRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: spacing.sm,
-  },
-  tripCardDate: {
-    fontWeight: '700',
-  },
-  tripCardBottomRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: spacing.sm,
-    paddingTop: spacing.sm,
-    borderTopWidth: StyleSheet.hairlineWidth,
-  },
-  counterpartRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  emptyActions: {
+    alignSelf: 'stretch',
     gap: spacing.xs,
-    flexShrink: 1,
-  },
-  counterpartName: {
-    flexShrink: 1,
+    marginTop: spacing.sm,
   },
 });

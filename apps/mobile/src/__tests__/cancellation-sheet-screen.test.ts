@@ -94,7 +94,10 @@ describe('trip-day and pre-trip screens wire the Phase 10 affordances', () => {
   // cancelBooking directly on a card tap either way.
   it('(tabs)/trips.tsx navigates to the booking detail screen instead of firing cancelBooking directly on tap', () => {
     const source = readSource(path.join(appDir, '(tabs)'), 'trips.tsx');
-    expect(source).toContain("pathname: '/bookings/[bookingId]'");
+    // Rows open through the trips feature's one navigation helper.
+    expect(source).toContain('openAgendaItem(item)');
+    const navigation = readFileSync(path.resolve(dirname, '../features/trips/navigation.ts'), 'utf8');
+    expect(navigation).toContain("pathname: '/bookings/[bookingId]'");
     expect(source).not.toContain('useCancelBookingMutation');
     expect(source).not.toMatch(/onPress=\{\(\) => void cancelBooking\(booking\.id\)\}/);
   });

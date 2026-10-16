@@ -302,9 +302,57 @@ export async function listMyRides(db: Database, userId: string) {
   // A driver still under review must see the ride waiting for their
   // approval in their own trips list.
   const profile = await getDriverProfileOrThrow(db, userId, { allowAwaitingVerification: true });
-  return db.query.rides.findMany({
+  const myRides = await db.query.rides.findMany({
     where: eq(rides.driverProfileId, profile.id),
     orderBy: desc(rides.departureAt),
+  });
+  if (myRides.length === 0) return [];
+
+  // The trips tab's "À traiter" row needs to know which rides have seat
+  // requests waiting on the driver — without this, requests were only
+  // visible after opening each ride. A pending request past its deadline
+  // is about to be expired by the sweep (runBookingExpirySweep), so it
+  // isn't counted as something the driver can still answer.
+  const now = new Date();
+  const rideBookings = await db
+    .select({
+      rideId: bookings.rideId,
+      status: bookings.status,
+      expiresAt: bookings.expiresAt,
+    })
+    .from(bookings)
+    .where(
+      and(
+        inArray(
+          bookings.rideId,
+          myRides.map((ride) => ride.id),
+        ),
+        inArray(bookings.status, ['pending', 'accepted']),
+      ),
+    );
+
+  const summaries = new Map<string, { pending: number; nextExpiresAt: Date | null; accepted: number }>();
+  for (const row of rideBookings) {
+    const summary = summaries.get(row.rideId) ?? { pending: 0, nextExpiresAt: null, accepted: 0 };
+    if (row.status === 'accepted') {
+      summary.accepted += 1;
+    } else if (!row.expiresAt || row.expiresAt.getTime() > now.getTime()) {
+      summary.pending += 1;
+      if (row.expiresAt && (!summary.nextExpiresAt || row.expiresAt < summary.nextExpiresAt)) {
+        summary.nextExpiresAt = row.expiresAt;
+      }
+    }
+    summaries.set(row.rideId, summary);
+  }
+
+  return myRides.map((ride) => {
+    const summary = summaries.get(ride.id);
+    return {
+      ...ride,
+      pendingRequestCount: summary?.pending ?? 0,
+      nextRequestExpiresAt: summary?.nextExpiresAt ?? null,
+      acceptedBookingCount: summary?.accepted ?? 0,
+    };
   });
 }
 

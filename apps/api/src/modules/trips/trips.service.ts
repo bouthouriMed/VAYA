@@ -812,9 +812,14 @@ export async function getTrackingState(
 
 interface PendingRatingCandidate {
   tripId: string;
+  bookingId: string;
   role: 'rider_rates_driver' | 'driver_rates_rider';
   counterpartName: string | null;
   completedAt: Date;
+  /** Which trip this was — the trips tab's "Notez votre trajet" row names
+   *  it (the rider's own leg, or the driver's whole ride). */
+  originLabel: string;
+  destinationLabel: string;
 }
 
 /**
@@ -843,9 +848,12 @@ export async function getPendingRatingForUser(
     if (!isWithinRatingWindow(trip.completedAt, now)) continue;
     candidates.push({
       tripId: trip.id,
+      bookingId: booking.id,
       role: 'rider_rates_driver',
       counterpartName: booking.ride.driverProfile.user?.fullName ?? null,
       completedAt: trip.completedAt,
+      originLabel: booking.pickupLabel,
+      destinationLabel: booking.dropoffLabel ?? booking.ride.destinationLabel,
     });
   }
 
@@ -864,9 +872,12 @@ export async function getPendingRatingForUser(
         if (!isWithinRatingWindow(trip.completedAt, now)) continue;
         candidates.push({
           tripId: trip.id,
+          bookingId: booking.id,
           role: 'driver_rates_rider',
           counterpartName: booking.rider?.fullName ?? null,
           completedAt: trip.completedAt,
+          originLabel: ride.originLabel,
+          destinationLabel: ride.destinationLabel,
         });
       }
     }

@@ -86,7 +86,18 @@ const Image = 'Image';
 const TouchableOpacity = 'TouchableOpacity';
 const TouchableWithoutFeedback = 'TouchableWithoutFeedback';
 const Pressable = 'Pressable';
-const ScrollView = 'ScrollView';
+const RefreshControl = 'RefreshControl';
+// Real RN renders a `refreshControl` element itself rather than keeping it
+// as a prop; as a raw prop on a host node it would be serialized whole
+// (fiber and all) into every snapshot.
+const ScrollView = React.forwardRef<unknown, { refreshControl?: React.ReactNode; children?: React.ReactNode }>(
+  function ScrollView({ refreshControl, children, ...props }, ref) {
+    const hostProps = ref ? { ...props, ref } : props;
+    return refreshControl
+      ? React.createElement('ScrollView', hostProps, refreshControl, children)
+      : React.createElement('ScrollView', hostProps, children);
+  },
+);
 const ActivityIndicator = 'ActivityIndicator';
 const TextInput = 'TextInput';
 const Modal = 'Modal';
@@ -203,6 +214,7 @@ export {
   TouchableWithoutFeedback,
   Pressable,
   ScrollView,
+  RefreshControl,
   ActivityIndicator,
   TextInput,
   Modal,

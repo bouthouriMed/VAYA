@@ -2,7 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { createBookingSchema } from '@vaya/validation';
-import { BOOKING_STATUSES, CANCELLATION_REASONS, CANCELLATION_TIERS, RIDE_STATUSES } from '@vaya/domain';
+import { BOOKING_STATUSES, CANCELLATION_REASONS, CANCELLATION_TIERS, RIDE_STATUSES, TRIP_STATUSES } from '@vaya/domain';
 import { getDatabase } from '../../lib/database.js';
 import { getUserId } from '../../lib/auth-context.js';
 import { RATE_LIMITS } from '../../lib/rate-limit.js';
@@ -57,6 +57,9 @@ const bookingResponseSchema = z.object({
   // to the passenger on their own request and to the driver inside the
   // incoming request — same shape, no role-specific hiding needed.
   expiresAt: z.date().nullable(),
+  // Only populated by GET /bookings/mine: the booking's trip, once accepted.
+  tripId: z.string().uuid().nullable().optional(),
+  tripStatus: z.enum(TRIP_STATUSES).nullable().optional(),
   // Only populated by GET /rides/:rideId/requests (driver view) — who is
   // asking, so the driver's request sheet isn't a list of opaque UUIDs.
   rider: z
@@ -80,6 +83,8 @@ const bookingResponseSchema = z.object({
       // vehicle) for the booking detail screen — driverFullName alone
       // wasn't enough to look anything else up.
       driverUserId: z.string().uuid(),
+      driverAvatarUrl: z.string().nullable(),
+      estimatedDurationSec: z.number().nullable(),
       // (tabs)/trips.tsx's rider hero card: tells an actually in-progress
       // ride apart from a merely-scheduled one — booking.status alone stays
       // 'accepted' throughout both.

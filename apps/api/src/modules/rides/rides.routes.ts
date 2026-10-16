@@ -58,6 +58,14 @@ const rideSchema = z.object({
   publishOnVerificationAt: z.date().nullable(),
 });
 
+// GET /rides/mine only: what the driver still has to answer on each ride,
+// for the trips tab's "À traiter" row.
+const myRideSchema = rideSchema.extend({
+  pendingRequestCount: z.number().int(),
+  nextRequestExpiresAt: z.date().nullable(),
+  acceptedBookingCount: z.number().int(),
+});
+
 // Phase 6 (docs/domain/pricing.md): the computed bounded price suggestion,
 // returned alongside the ride on create/update so the client never needs a
 // second round-trip to render the price step's bounds.
@@ -200,7 +208,7 @@ export async function ridesRoutes(fastify: FastifyInstance): Promise<void> {
     '/rides/mine',
     {
       onRequest: [fastify.authenticate],
-      schema: { response: { 200: z.array(rideSchema) } },
+      schema: { response: { 200: z.array(myRideSchema) } },
     },
     async (request, reply) => {
       const results = await listMyRides(db, getUserId(request));

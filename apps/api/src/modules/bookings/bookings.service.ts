@@ -1119,14 +1119,18 @@ export async function createBooking(
 export async function listMyBookings(db: Database, riderId: string) {
   const results = await db.query.bookings.findMany({
     where: eq(bookings.riderId, riderId),
-    with: { ride: { with: { driverProfile: { with: { user: true } } } } },
+    with: { trip: true, ride: { with: { driverProfile: { with: { user: true } } } } },
   });
 
   // Flatten ride.driverProfile.user.fullName -> ride.driverFullName so it
   // matches bookingResponseSchema's shape — Zod strips unknown keys but
   // can't reach into nested paths for you.
-  return results.map(({ ride, ...booking }) => ({
+  return results.map(({ ride, trip, ...booking }) => ({
     ...booking,
+    // The trips tab's top card follows the live trip (driver on the way,
+    // on board, arriving) — the booking stays `accepted` through all of it.
+    tripId: trip?.id ?? null,
+    tripStatus: trip?.status ?? null,
     ride: {
       originLabel: ride.originLabel,
       destinationLabel: ride.destinationLabel,
@@ -1134,6 +1138,8 @@ export async function listMyBookings(db: Database, riderId: string) {
       contributionPerSeat: ride.contributionPerSeat,
       driverFullName: ride.driverProfile.user?.fullName ?? null,
       driverUserId: ride.driverProfile.userId,
+      driverAvatarUrl: ride.driverProfile.user?.avatarUrl ?? null,
+      estimatedDurationSec: ride.estimatedDurationSec,
       // (tabs)/trips.tsx's rider hero card needs this to tell an actually
       // in-progress ride apart from a merely-scheduled one — the booking's
       // own status stays 'accepted' throughout both, so it can't say this

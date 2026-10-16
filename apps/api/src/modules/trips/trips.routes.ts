@@ -67,9 +67,12 @@ const locationUpdateResponseSchema = z.object({
 const pendingRatingResponseSchema = z
   .object({
     tripId: z.string().uuid(),
+    bookingId: z.string().uuid(),
     role: z.enum(RATING_ROLES),
     counterpartName: z.string().nullable(),
     completedAt: z.date(),
+    originLabel: z.string(),
+    destinationLabel: z.string(),
   })
   .nullable();
 

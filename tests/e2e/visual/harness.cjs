@@ -43,12 +43,22 @@ const REQUESTS = [
   { ...BOOKING_BASE, id: 'b-req1', rideId: 'r1', riderId: 'u-2', status: 'pending', requestedAt: iso(-25), expiresAt: iso(95), rider: rider('u-2', 'Sarra Trabelsi') },
   { ...BOOKING_BASE, id: 'b-req2', rideId: 'r1', riderId: 'u-3', status: 'accepted', seatsRequested: 1, requestedAt: iso(-200), respondedAt: iso(-180), expiresAt: null, pickupStopId: 's2', pickupLabel: 'Hammamet Nord, Rond-point', pickupLat: 36.40, pickupLng: 10.55, rider: rider('u-3', 'Youssef Gharbi') },
 ];
-const rideSummary = (over) => ({ originLabel: 'La Marsa', destinationLabel: 'Nabeul', departureAt: iso(60*26), contributionPerSeat: 11, driverFullName: 'Mehdi Jaziri', driverUserId: 'u-d1', status: 'published', ...over });
+const rideSummary = (over) => ({ originLabel: 'La Marsa', destinationLabel: 'Nabeul', departureAt: iso(60*26), contributionPerSeat: 11, driverFullName: 'Mehdi Jaziri', driverUserId: 'u-d1', driverAvatarUrl: null, estimatedDurationSec: 5400, status: 'published', ...over });
 const MY_BOOKINGS = [
-  { ...BOOKING_BASE, id: 'b1', rideId: 'r9', riderId: 'u-me', status: 'accepted', contributionTotal: 11, pickupLabel: 'La Marsa, Plage', requestedAt: iso(-300), respondedAt: iso(-280), expiresAt: null, ride: rideSummary() },
+  { ...BOOKING_BASE, id: 'b1', rideId: 'r9', riderId: 'u-me', status: 'accepted', contributionTotal: 11, pickupLabel: 'La Marsa, Plage', requestedAt: iso(-300), respondedAt: iso(-280), expiresAt: null, tripId: 't1', tripStatus: 'scheduled', ride: rideSummary() },
   { ...BOOKING_BASE, id: 'b2', rideId: 'r8', riderId: 'u-me', status: 'pending', contributionTotal: 9, pickupLabel: 'Ariana, Ennasr', requestedAt: iso(-10), expiresAt: iso(110), ride: rideSummary({ originLabel: 'Ariana', destinationLabel: 'Bizerte', departureAt: iso(60*48), contributionPerSeat: 9, driverFullName: 'Ines Mansouri', driverUserId: 'u-d2' }) },
   { ...BOOKING_BASE, id: 'b3', rideId: 'r7', riderId: 'u-me', status: 'completed', contributionTotal: 16, pickupLabel: 'Tunis, Lac 2', requestedAt: iso(-60*24*8), respondedAt: iso(-60*24*8), expiresAt: null, ride: rideSummary({ originLabel: 'Tunis', destinationLabel: 'Monastir', departureAt: iso(-60*24*7), contributionPerSeat: 16, driverFullName: 'Karim Ayari', driverUserId: 'u-d3', status: 'completed' }) },
 ];
+// `trips` scenario for the trips tab: the confirmed booking leaving soon,
+// or already live (driver on the way).
+function myBookings(scenario) {
+  return MY_BOOKINGS.map((b) => {
+    if (b.id !== 'b1') return b;
+    if (scenario === 'soon') return { ...b, ride: { ...b.ride, departureAt: iso(75) } };
+    if (scenario === 'live') return { ...b, tripStatus: 'driver_approaching', ride: { ...b.ride, departureAt: iso(-8), status: 'in_progress' } };
+    return b;
+  });
+}
 const cand = (i, over) => ({ rideId: 'rc' + i, driverUserId: 'u-d' + i, driverFullName: ['Mehdi Jaziri','Ines Mansouri','Karim Ayari','Nour Ben Ali'][i-1], driverAvatarUrl: null, ratingAvg: [4.9,4.6,4.2,5][i-1], tripCount: [58,12,4,0][i-1], departureAt: iso(60*(18+i)), seatsAvailable: [3,1,2,4][i-1], contributionPerSeat: [14,13,15,12][i-1], pickupWalkMinutes: [4,7,11,3][i-1], dropoffWalkMinutes: [3,5,2,6][i-1], routeOverlapPercent: [96,88,80,92][i-1], score: 0.9 - i*0.1, reasons: ['Départ proche', 'Même direction'], clusterLabel: 'Tunis → Sousse', originLat: 36.8065, originLng: 10.1815, destinationLat: 35.8256, destinationLng: 10.6084, routePolyline: POLY, rankedStops: [{ stopId: 's1', label: 'Ben Arous, Station Total', lat: 36.74, lng: 10.23, walkMinutes: 4 }, { stopId: 's2', label: 'Hammamet Nord, Rond-point', lat: 36.40, lng: 10.55, walkMinutes: 12 }], rankedDropoffStops: [], pickupViable: true, dropoffViable: true, matchType: i === 3 ? 'route_passthrough' : 'endpoint', detour: null, pickupEtaSeconds: i === 3 ? 900 : 0, dropoffEtaSeconds: 8400, detourRoutePolyline: null, pickupWalkMeters: [320,560,880,240][i-1], dropoffWalkMeters: [250,400,160,480][i-1], withinWalkingDistance: true, nearRequestedTime: i !== 4, passengerJourney: { originLat: 36.8065, originLng: 10.1815, destinationLat: 35.8256, destinationLng: 10.6369 }, pickupPoint: { stopId: 's1', label: 'Ben Arous, Station Total', lat: 36.74, lng: 10.23, walkMeters: [320,560,880,240][i-1], walkMinutes: [4,7,11,3][i-1] }, dropoffPoint: { stopId: null, label: 'Gare de Sousse', lat: 35.8256, lng: 10.6369, walkMeters: [250,400,160,480][i-1], walkMinutes: [3,5,2,6][i-1] }, recommendedStopId: 's1', recommendedDropoffStopId: null, ...over });
 const SEARCH = { tier: 'exact', candidates: [cand(1), cand(2), cand(3), cand(4)], standoutRideId: 'rc1', message: null };
 const conv = (id, bookingId, name, role, last, unread) => ({ id, bookingId, status: 'open', createdAt: iso(-300), updatedAt: iso(-5), viewerRole: role === 'driver' ? 'rider' : 'driver', otherParty: { id: 'u-' + id, fullName: name, avatarUrl: null }, otherPartyRole: role, isOtherPartyVerified: role === 'driver', rideId: 'r9', originLabel: 'La Marsa', destinationLabel: 'Nabeul', pickupLabel: 'La Marsa, Plage', dropoffLabel: 'Nabeul, Centre', departureAt: iso(60*26), rideStatus: 'published', tripStatus: 'scheduled', lastMessage: last ? { body: last, createdAt: iso(-5), senderUserId: 'u-' + id } : null, hasUnread: unread });
@@ -82,7 +92,11 @@ function defaultFixtures(opts = {}) {
     ['GET', /\/users\/me$/, () => ME],
     ['PATCH', /\/users\/me$/, () => ME],
     ['GET', /\/drivers\/me$/, () => (o.driver ? DRIVER : [404, { message: 'Not found' }])],
-    ['GET', /\/rides\/mine$/, () => (o.driver ? [RIDE, { ...RIDE, id: 'r2', status: 'draft', originLabel: 'Tunis', destinationLabel: 'Bizerte', departureAt: iso(60*72), seatsAvailable: 3 }] : [])],
+    ['GET', /\/rides\/mine$/, () => (o.driver ? [
+      { ...RIDE, pendingRequestCount: 1, nextRequestExpiresAt: iso(95), acceptedBookingCount: 1 },
+      { ...RIDE, id: 'r2', status: 'draft', originLabel: 'Tunis', destinationLabel: 'Bizerte', departureAt: iso(60*72), seatsAvailable: 3, pendingRequestCount: 0, nextRequestExpiresAt: null, acceptedBookingCount: 0 },
+      { ...RIDE, id: 'r3', status: 'completed', departureAt: iso(-60*24*12), seatsAvailable: 1, pendingRequestCount: 0, nextRequestExpiresAt: null, acceptedBookingCount: 3 },
+    ] : [])],
     ['GET', /\/rides\/[^/]+\/requests$/, () => REQUESTS],
     ['GET', /\/rides\/[^/]+\/stops/, () => STOPS],
     ['GET', /\/rides\/[^/]+\/fellow-passengers$/, () => [{ userId: 'u-3', firstName: 'Youssef', avatarUrl: null, ratingAvg: 4.7 }]],
@@ -92,7 +106,7 @@ function defaultFixtures(opts = {}) {
     ['POST', /\/rides$/, () => ({ ...RIDE, status: 'draft', pricing: { min: 10, recommended: 14, max: 18 }, routeIsEstimate: false })],
     ['PATCH', /\/rides\/[^/]+$/, () => ({ ...RIDE, status: 'draft', pricing: { min: 10, recommended: 14, max: 18 }, routeIsEstimate: false })],
     ['POST', /\/rides\/[^/]+\/candidate-stops$/, () => ({ stops: STOPS, osrmUnavailable: false, regenerated: false, tripProfileType: 'intercity' })],
-    ['GET', /\/bookings\/mine$/, () => (o.noBookings ? [] : MY_BOOKINGS)],
+    ['GET', /\/bookings\/mine$/, () => (o.noBookings ? [] : myBookings(o.trips))],
     ['GET', /\/bookings\/[^/]+\/trip$/, () => TRIP],
     ['GET', /\/bookings\/[^/]+\/cancellation-preview$/, () => ({ tier: 'moderate', minutesBeforeDeparture: 600, penaltyPoints: 1, consequence: 'Annulation à moins de 24 h : +1 point de fiabilité.' })],
     ['GET', /\/bookings\/[^/]+\/detour-preview$/, () => ({ pickup: { label: 'Ben Arous, Station Total', lat: 36.74, lng: 10.23, isPlannedStop: true, deviationMeters: 120, deviationSeconds: 40, stopIndex: 1, totalStops: 2 }, dropoff: { label: 'Sousse, Médina', lat: 35.8256, lng: 10.6084, isPlannedStop: true, deviationMeters: 0, deviationSeconds: 0, stopIndex: 2, totalStops: 2 }, segment: { distanceM: 130000, durationSec: 7800, isEstimate: false }, pickupTime: iso(60*20+10), dropoffTime: iso(60*22+20), newEta: iso(60*22+25), detourRoutePolyline: null })],

@@ -1,19 +1,18 @@
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderJSON } from './test-utils/renderJSON';
-import type { Booking, DriverProfile, Ride } from '../state/api';
+import type { Booking, DriverProfile, MyRide, PendingRating, Ride } from '../state/api';
 
 /**
- * Real react-test-renderer snapshots of (tabs)/trips.tsx (Stitch reference:
- * "My Rides" driver dashboard, stitch/publish_ride/my-rides-driver-dashboard.html)
- * — pins the tab-root headline treatment (headlineDisplay) and the two
- * designed states: the driver dashboard (hero card for the next upcoming
- * drive + passenger list below) and the first-run rider empty state.
+ * Real react-test-renderer snapshots of (tabs)/trips.tsx ("Mes trajets",
+ * direction C): the top card for whatever matters now, the "À traiter"
+ * rows, and the day-grouped agenda — for a driver who also rides, a pure
+ * rider, a live trip, a missed start, a fresh rating and the first run.
+ * Every case-by-case rule lives in src/features/trips/agenda.ts and its
+ * unit tests; these pin what the screen renders from it.
  *
- * System time is pinned (Date only — timers/network stay real) because
- * `formatWhen` renders "Aujourd'hui, HH:MM" vs a weekday date relative to
- * now, and `pickNextUpcomingRide` classifies upcoming-ness against it;
- * without the pin both the hero selection and its labels would drift.
+ * System time is pinned (Date only) because statuses, countdowns and day
+ * headings are all relative to now.
  */
 
 const FIXED_NOW = new Date('2026-08-22T10:00:00');
@@ -52,7 +51,7 @@ const DRIVER_PROFILE: DriverProfile = {
   documents: [],
 };
 
-const HERO_RIDE: Ride = {
+const HERO_RIDE: MyRide = {
   id: 'ride-1',
   driverProfileId: 'dp-1',
   vehicleId: 'veh-1',
@@ -71,9 +70,12 @@ const HERO_RIDE: Ride = {
   routePolyline: null,
   estimatedDurationSec: 7200,
   routeKind: null,
+  pendingRequestCount: 2,
+  nextRequestExpiresAt: '2026-08-22T20:00:00',
+  acceptedBookingCount: 1,
 };
 
-const PAST_RIDE: Ride = {
+const PAST_RIDE: MyRide = {
   ...HERO_RIDE,
   id: 'ride-2',
   departureAt: '2026-08-15T08:30:00',
@@ -133,8 +135,67 @@ const ACCEPTED_BOOKING: Booking = {
     contributionPerSeat: 10.5,
     driverFullName: 'Amine Ben Salah',
     driverUserId: 'driver-amine',
+    driverAvatarUrl: null,
+    estimatedDurationSec: 3600,
     status: 'published',
   },
+  tripId: 'trip-1',
+  tripStatus: 'scheduled',
+};
+
+// Today, 10:45 — leaves in 45 minutes.
+const SOON_BOOKING: Booking = {
+  ...ACCEPTED_BOOKING,
+  id: 'booking-soon',
+  pickupWalkMeters: 420,
+  ride: { ...ACCEPTED_BOOKING.ride!, departureAt: '2026-08-22T10:45:00' },
+};
+
+// The driver tapped "Démarrer" and has the passenger on board.
+const LIVE_BOOKING: Booking = {
+  ...ACCEPTED_BOOKING,
+  id: 'booking-live',
+  tripStatus: 'active',
+  ride: { ...ACCEPTED_BOOKING.ride!, departureAt: '2026-08-22T09:40:00', status: 'in_progress' },
+};
+
+// Departure passed 20 minutes ago, one passenger confirmed, not started.
+const MISSED_START_RIDE: MyRide = {
+  ...HERO_RIDE,
+  id: 'ride-missed',
+  departureAt: '2026-08-22T09:40:00',
+  pendingRequestCount: 0,
+  nextRequestExpiresAt: null,
+};
+
+const PENDING_REQUEST: Booking = {
+  ...ACCEPTED_BOOKING,
+  id: 'booking-pending',
+  status: 'pending',
+  tripId: null,
+  tripStatus: null,
+  respondedAt: null,
+  expiresAt: '2026-08-22T21:00:00',
+  ride: { ...ACCEPTED_BOOKING.ride!, departureAt: '2026-08-24T09:00:00' },
+};
+
+const DECLINED_BOOKING: Booking = {
+  ...ACCEPTED_BOOKING,
+  id: 'booking-declined',
+  status: 'declined',
+  tripId: null,
+  tripStatus: null,
+  ride: { ...ACCEPTED_BOOKING.ride!, departureAt: '2026-08-10T09:00:00' },
+};
+
+const FRESH_RATING: PendingRating = {
+  tripId: 'trip-done',
+  role: 'rider_rates_driver',
+  counterpartName: 'Karim Trabelsi',
+  completedAt: '2026-08-22T09:30:00',
+  bookingId: 'booking-done',
+  originLabel: 'Sfax',
+  destinationLabel: 'Tunis',
 };
 
 type QueryResult<T> = { data?: T; isLoading?: boolean; isError?: boolean };
@@ -148,21 +209,25 @@ function mockApi({
   bookings = [],
   driverProfile = null,
   myRides = [],
+  pendingRating = null,
 }: {
   bookings?: Booking[];
   driverProfile?: DriverProfile | null;
-  myRides?: Ride[];
+  myRides?: MyRide[];
+  pendingRating?: PendingRating | null;
 }): void {
   vi.doMock('../state/api', () => ({
     useListMyBookingsQuery: (): QueryResult<Booking[]> => ({ data: bookings }),
     useGetMyDriverProfileQuery: (): QueryResult<DriverProfile> => ({
       data: driverProfile ?? undefined,
     }),
-    useListMyRidesQuery: (): QueryResult<Ride[]> => ({ data: myRides }),
-    // The rider hero card's own full-ride fetch (see RIDER_HERO_RIDE above).
+    useListMyRidesQuery: (): QueryResult<MyRide[]> => ({ data: myRides }),
+    // The top card's map for a reservation (the list entry has no route).
     useGetRideQuery: (rideId: string): QueryResult<Ride> => ({
       data: rideId === RIDER_HERO_RIDE.id ? RIDER_HERO_RIDE : undefined,
     }),
+    useGetPendingRatingQuery: (): QueryResult<PendingRating | null> => ({ data: pendingRating }),
+    useCreateTripRatingMutation: () => [vi.fn()],
     // Header notification bell — same query the explore tab's bell uses.
     useListNotificationsQuery: (): QueryResult<unknown[]> => ({ data: [] }),
   }));
@@ -183,27 +248,37 @@ describe('trips.tsx snapshots', () => {
     vi.useRealTimers();
   });
 
-  it('driver dashboard — hero ride card over segmented lists', async () => {
+  it('drives and rides — next drive on top with its requests, then the agenda with role chips', async () => {
     mockApi({
-      bookings: [ACCEPTED_BOOKING],
+      bookings: [ACCEPTED_BOOKING, PENDING_REQUEST, DECLINED_BOOKING],
       driverProfile: DRIVER_PROFILE,
       myRides: [HERO_RIDE, PAST_RIDE],
     });
     expect(await renderTrips()).toMatchSnapshot();
   });
 
-  it('first run — no bookings, no profile, rider empty state', async () => {
+  it('first run — nothing yet, find or publish', async () => {
     mockApi({});
     expect(await renderTrips()).toMatchSnapshot();
   });
 
-  // A pure rider (no driverProfile) with a real accepted booking — exercises
-  // the world-class TripCard's person-counterpart branch (driver avatar +
-  // name + price tag over the dot→line→pin timeline), which the
-  // driver-dashboard fixture above never renders since its driverProfile
-  // makes the segmented control default to "Conducteur" instead.
-  it('rider view — booking card shows the real driver as counterpart', async () => {
-    mockApi({ bookings: [ACCEPTED_BOOKING] });
+  it('rider only — confirmed seat on top with the meeting point and the driver, no role chips', async () => {
+    mockApi({ bookings: [SOON_BOOKING, PENDING_REQUEST] });
+    expect(await renderTrips()).toMatchSnapshot();
+  });
+
+  it('live — the passenger is on board, follow live on top', async () => {
+    mockApi({ bookings: [LIVE_BOOKING], driverProfile: DRIVER_PROFILE, myRides: [HERO_RIDE] });
+    expect(await renderTrips()).toMatchSnapshot();
+  });
+
+  it('missed start — the driver is asked to start the ride', async () => {
+    mockApi({ driverProfile: DRIVER_PROFILE, myRides: [MISSED_START_RIDE, HERO_RIDE] });
+    expect(await renderTrips()).toMatchSnapshot();
+  });
+
+  it('just finished — rating card on top, next trip in the agenda', async () => {
+    mockApi({ bookings: [PENDING_REQUEST], pendingRating: FRESH_RATING });
     expect(await renderTrips()).toMatchSnapshot();
   });
 });

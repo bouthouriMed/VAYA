@@ -439,6 +439,16 @@ export interface SuggestedPrice {
 
 export type RideWithPricing = Ride & { pricing: SuggestedPrice; routeIsEstimate: boolean };
 
+/** A ride from GET /rides/mine: what the driver still has to answer on it.
+ *  Optional so an older API build without these fields still renders. */
+export type MyRide = Ride & {
+  /** Seat requests still waiting for this driver's answer (deadline not passed). */
+  pendingRequestCount?: number;
+  /** The soonest of those requests' answer deadlines. */
+  nextRequestExpiresAt?: string | null;
+  acceptedBookingCount?: number;
+};
+
 export interface RouteStop {
   id: string;
   rideId: string;
@@ -735,6 +745,10 @@ export interface PendingRating {
   role: RatingRole;
   counterpartName: string | null;
   completedAt: string;
+  /** Which trip it was (absent from older API builds). */
+  bookingId?: string;
+  originLabel?: string;
+  destinationLabel?: string;
 }
 
 // Phase 10 (docs/roadmap/phase-10-cancellation-no-show.md). Mirrors
@@ -830,6 +844,11 @@ export interface Booking {
    *  their own request and to the driver inside the incoming request, same
    *  shape. Null only for a booking created before this field existed. */
   expiresAt: string | null;
+  /** Only present on results from listMyBookings: the booking's trip once
+   *  accepted — the booking stays `accepted` while the trip goes from
+   *  `scheduled` to `driver_approaching`, `pickup`, `active`, `arriving`. */
+  tripId?: string | null;
+  tripStatus?: TripStatus | null;
   /** Only present on results from listMyBookings. */
   ride?: {
     originLabel: string;
@@ -838,6 +857,8 @@ export interface Booking {
     contributionPerSeat: number;
     driverFullName: string | null;
     driverUserId: string;
+    driverAvatarUrl?: string | null;
+    estimatedDurationSec?: number | null;
     // (tabs)/trips.tsx's rider hero card: tells an actually in-progress
     // ride apart from a merely-scheduled one — booking.status alone stays
     // 'accepted' throughout both.
@@ -1119,7 +1140,7 @@ export const api = createApi({
       query: ({ rideId, input }) => ({ url: `/rides/${rideId}`, method: 'PATCH', body: input }),
       invalidatesTags: (result, error, { rideId }) => ['MyRides', { type: 'MyRides', id: rideId }],
     }),
-    listMyRides: builder.query<Ride[], void>({
+    listMyRides: builder.query<MyRide[], void>({
       query: () => '/rides/mine',
       providesTags: ['MyRides'],
     }),
