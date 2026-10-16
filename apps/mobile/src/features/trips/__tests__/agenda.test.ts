@@ -9,6 +9,13 @@ import {
   groupHistoryByMonth,
   hasBothRoles,
   pollingIntervalFor,
+  findOverlaps,
+  findRebookCandidates,
+  leaveByTime,
+  searchAgainTarget,
+  confirmedContribution,
+  type BookingItem,
+  type DriveItem,
   type AgendaItem,
 } from '../agenda';
 import type { Booking, MyRide, PendingRating } from '../../../state/api';
@@ -333,5 +340,155 @@ describe('pollingIntervalFor', () => {
     const items = buildAgendaItems([], [booking({ tripStatus: 'active' }, { status: 'in_progress' })], NOW);
     expect(pollingIntervalFor(selectSpotlight(items, null, NOW))).toBe(15_000);
     expect(pollingIntervalFor(null)).toBe(60_000);
+  });
+});
+
+describe('driver start window', () => {
+  it('offers "Démarrer" from 15 minutes before departure, only with passengers', () => {
+    const withPassenger = buildAgendaItems([ride({ departureAt: minutesFromNow(10), acceptedBookingCount: 1 })], [], NOW);
+    expect(selectSpotlight(withPassenger, null, NOW)).toMatchObject({ moment: 'start_window' });
+    const empty = buildAgendaItems([ride({ departureAt: minutesFromNow(10), acceptedBookingCount: 0 })], [], NOW);
+    expect(selectSpotlight(empty, null, NOW)).toMatchObject({ moment: 'soon' });
+    const later = buildAgendaItems([ride({ departureAt: minutesFromNow(40), acceptedBookingCount: 2 })], [], NOW);
+    expect(selectSpotlight(later, null, NOW)).toMatchObject({ moment: 'soon' });
+  });
+
+  it('adds up what confirmed passengers contribute', () => {
+    const [item] = buildAgendaItems([ride({ seatsTotal: 4, seatsAvailable: 1, contributionPerSeat: 12.5 })], [], NOW);
+    expect(confirmedContribution(item as DriveItem)).toBe(37.5);
+  });
+});
+
+describe('urgent requests', () => {
+  it('flags a request deadline under 30 minutes', () => {
+    const items = buildAgendaItems(
+      [
+        ride({ id: 'u', departureAt: at(18, 9), pendingRequestCount: 1, nextRequestExpiresAt: minutesFromNow(20) }),
+        ride({ id: 'c', departureAt: at(19, 9), pendingRequestCount: 1, nextRequestExpiresAt: minutesFromNow(120) }),
+      ],
+      [],
+      NOW,
+    );
+    const todos = buildTodos(items, null, null, NOW);
+    expect(todos.map((todo) => [todo.key, todo.kind === 'requests' && todo.urgent])).toEqual([
+      ['requests:u', true],
+      ['requests:c', false],
+    ]);
+  });
+});
+
+describe('findOverlaps', () => {
+  it('catches a seat booked during a drive, and nothing for trips apart', () => {
+    const items = buildAgendaItems(
+      [ride({ departureAt: at(16, 8), estimatedDurationSec: 7200 })],
+      [
+        booking({ id: 'clash' }, { departureAt: at(16, 9, 30) }),
+        booking({ id: 'after' }, { departureAt: at(16, 10, 30) }),
+      ],
+      NOW,
+    );
+    expect(findOverlaps(items).map(([a, b]) => [a.key, b.key])).toEqual([['drive:r1', 'booking:clash']]);
+  });
+
+  it('uses an hour when the duration is unknown, and ignores finished trips and drafts', () => {
+    const items = buildAgendaItems(
+      [ride({ id: 'd', status: 'draft', departureAt: at(16, 8) }), ride({ id: 'x', departureAt: at(17, 8), estimatedDurationSec: null })],
+      [
+        booking({ id: 'near' }, { departureAt: at(17, 8, 50), estimatedDurationSec: null }),
+        booking({ id: 'gone', status: 'declined', tripStatus: null }, { departureAt: at(16, 8, 10) }),
+      ],
+      NOW,
+    );
+    expect(findOverlaps(items).map(([a, b]) => [a.key, b.key])).toEqual([['drive:x', 'booking:near']]);
+  });
+
+  it("doesn't repeat an overlap the top card already shows", () => {
+    const items = buildAgendaItems(
+      [ride({ departureAt: minutesFromNow(60) })],
+      [booking({}, { departureAt: minutesFromNow(90) })],
+      NOW,
+    );
+    const spotlight = selectSpotlight(items, null, NOW);
+    expect(buildTodos(items, null, spotlight, NOW).some((todo) => todo.kind === 'overlap')).toBe(false);
+  });
+});
+
+describe('findRebookCandidates', () => {
+  it('suggests searching again when a seat falls through before departure', () => {
+    const items = buildAgendaItems(
+      [],
+      [
+        booking({ id: 'declined', status: 'declined', tripStatus: null }, { departureAt: at(17, 8) }),
+        booking({ id: 'cancelled', status: 'cancelled_by_driver', tripStatus: null }, { departureAt: at(20, 8) }),
+        booking({ id: 'expired', status: 'expired', tripStatus: null }, { departureAt: at(22, 8) }),
+        booking({ id: 'mine', status: 'cancelled_by_rider', tripStatus: null }, { departureAt: at(23, 8) }),
+        booking({ id: 'past', status: 'declined', tripStatus: null }, { departureAt: at(14, 8) }),
+      ],
+      NOW,
+    );
+    expect(findRebookCandidates(items, NOW).map((item) => item.booking.id)).toEqual(['declined', 'cancelled', 'expired']);
+  });
+
+  it('stays quiet once another seat covers the same time', () => {
+    const items = buildAgendaItems(
+      [],
+      [
+        booking({ id: 'declined', status: 'declined', tripStatus: null }, { departureAt: at(17, 8) }),
+        booking({ id: 'new', status: 'pending', tripStatus: null, expiresAt: at(16, 20) }, { departureAt: at(17, 9) }),
+      ],
+      NOW,
+    );
+    expect(findRebookCandidates(items, NOW)).toEqual([]);
+  });
+
+  it('still helps when the other seat that day goes somewhere else', () => {
+    const items = buildAgendaItems(
+      [],
+      [
+        booking({ id: 'declined', status: 'declined', tripStatus: null }, { departureAt: at(17, 8) }),
+        booking(
+          { id: 'elsewhere', dropoffLat: 35.68, dropoffLng: 10.1, dropoffLabel: 'Kairouan' },
+          { departureAt: at(17, 9) },
+        ),
+      ],
+      NOW,
+    );
+    expect(findRebookCandidates(items, NOW).map((item) => item.booking.id)).toEqual(['declined']);
+  });
+
+  it('becomes a to-do', () => {
+    const items = buildAgendaItems([], [booking({ status: 'declined', tripStatus: null }, { departureAt: at(17, 8) })], NOW);
+    expect(buildTodos(items, null, selectSpotlight(items, null, NOW), NOW).map((todo) => todo.kind)).toEqual(['rebook']);
+  });
+});
+
+describe('leaveByTime and searchAgainTarget', () => {
+  it('leaves time to walk to the pickup plus a few minutes', () => {
+    const [item] = buildAgendaItems([], [booking({ pickupWalkMeters: 400 })], NOW);
+    // 18:15 departure − 5 min walk − 5 min early.
+    expect(leaveByTime(item as BookingItem)).toEqual(new Date(2026, 9, 15, 18, 5));
+    const [close] = buildAgendaItems([], [booking({ pickupWalkMeters: 20 })], NOW);
+    expect(leaveByTime(close as BookingItem)).toBeNull();
+  });
+
+  it("searches the passenger's own leg again, at the same time if still ahead", () => {
+    const [item] = buildAgendaItems([], [booking({ seatsRequested: 2 })], NOW);
+    expect(searchAgainTarget(item as BookingItem, NOW)).toEqual({
+      origin: { label: 'Lac 2', lat: 36.84, lng: 10.27 },
+      destination: { label: 'La Marsa', lat: 36.88, lng: 10.33 },
+      departureAt: new Date(2026, 9, 15, 18, 15),
+      passengers: 2,
+    });
+  });
+
+  it("falls back to the ride's destination, and needs coordinates", () => {
+    const withRide = buildAgendaItems(
+      [],
+      [booking({ dropoffLat: null, dropoffLng: null, dropoffLabel: null }, { destinationLat: 37.27, destinationLng: 9.87 })],
+      NOW,
+    );
+    expect(searchAgainTarget(withRide[0] as BookingItem, NOW)?.destination).toEqual({ label: 'Bizerte', lat: 37.27, lng: 9.87 });
+    const none = buildAgendaItems([], [booking({ dropoffLat: null, dropoffLng: null, dropoffLabel: null })], NOW);
+    expect(searchAgainTarget(none[0] as BookingItem, NOW)).toBeNull();
   });
 });

@@ -18,11 +18,20 @@ import {
   type SpotlightTone,
 } from '@vaya/design-system';
 import { useGetRideQuery } from '../../state/api';
-import { formatTime } from '../../utils/localeFormat';
 import { decodePolyline, sliceRouteBetween } from '../../utils/polyline';
 import { fullPlaceLabel } from '../../utils/placeLabel';
-import type { BookingItem, DriveItem, Spotlight } from './agenda';
-import { dayAndTime, departsIn, driverFirstName, roleLabel, routeLabel, seatsLabel, walkLabel } from './agendaCopy';
+import { formatCurrency, formatTime } from '../../utils/localeFormat';
+import {
+  confirmedContribution,
+  leaveByTime,
+  searchAgainTarget,
+  type AgendaItem,
+  type BookingItem,
+  type DriveItem,
+  type SearchAgain,
+  type Spotlight,
+} from './agenda';
+import { dayAndTime, departsIn, driverFirstName, inlineDayAndTime, roleLabel, routeLabel, seatsLabel, walkLabel } from './agendaCopy';
 import { openBooking, openDrive, openConversation, openLiveTracking } from './navigation';
 
 interface CardContent {
@@ -83,6 +92,15 @@ function driveContent(
       primary: { label: t('trips:spotlight.actions.start'), onPress: () => openDrive(item.rideId), icon: 'play' },
     };
   }
+  if (spotlight.moment === 'start_window') {
+    return {
+      eyebrow: t('trips:spotlight.momentWithRole', { moment: departsIn(item.departureAt, now, t), role: roleLabel(item, t) }),
+      tone: 'accent',
+      live: false,
+      subtitle: `${timeRange(item, locale, t)} · ${t('trips:spotlight.seatsBooked', { seats: seatsLabel(item, t) })}`,
+      primary: { label: t('trips:spotlight.actions.start'), onPress: () => openDrive(item.rideId), icon: 'play' },
+    };
+  }
   if (item.status === 'awaiting_verification') {
     return {
       eyebrow: t('trips:spotlight.awaitingVerification'),
@@ -115,6 +133,7 @@ function bookingContent(
   now: Date,
   t: TFunction,
   locale: SupportedLocale,
+  onSearchAgain: (target: SearchAgain) => void,
 ): CardContent {
   const message = {
     label: t('trips:spotlight.actions.message'),
@@ -154,9 +173,17 @@ function bookingContent(
         tone: 'warning',
         live: false,
         subtitle: item.requestExpiresAt
-          ? t('trips:spotlight.replyBefore', { when: dayAndTime(item.requestExpiresAt, now, t, locale) })
+          ? t('trips:spotlight.replyBefore', { when: inlineDayAndTime(item.requestExpiresAt, now, t, locale) })
           : timeRange(item, locale, t),
         primary: { label: t('trips:spotlight.actions.viewRequest'), onPress: () => openBooking(item.booking.id) },
+        // A backup while the driver hasn't answered: the same journey,
+        // searched again.
+        secondary: (() => {
+          const target = searchAgainTarget(item, now);
+          return target
+            ? { label: t('trips:spotlight.actions.otherRides'), onPress: () => onSearchAgain(target), icon: 'search-outline' as IconName }
+            : undefined;
+        })(),
       };
     case 'confirmed':
     default:
@@ -219,6 +246,7 @@ function SpotlightMap({ item }: { item: DriveItem | BookingItem }): React.JSX.El
 function MeetingBlock({ item, t, locale }: { item: BookingItem; t: TFunction; locale: SupportedLocale }): React.JSX.Element {
   const { colors: theme } = useAppTheme();
   const walk = walkLabel(item.booking.pickupWalkMeters, t);
+  const leaveBy = item.status === 'confirmed' ? leaveByTime(item) : null;
   return (
     <View style={[styles.meeting, { backgroundColor: theme.background }]}>
       <Icon name={walk ? 'walk-outline' : 'location-outline'} size="sm" color={theme.inkMuted} />
@@ -234,7 +262,59 @@ function MeetingBlock({ item, t, locale }: { item: BookingItem; t: TFunction; lo
             {walk}
           </Text>
         ) : null}
+        {leaveBy ? (
+          <Text variant="caption" color={theme.accentStrong} style={styles.leaveBy}>
+            {t('trips:spotlight.leaveBy', { time: formatTime(leaveBy, locale) })}
+          </Text>
+        ) : null}
       </View>
+    </View>
+  );
+}
+
+/** Who's coming, and what they contribute — the driver's two questions. */
+function PassengersLine({ item, t, locale }: { item: DriveItem; t: TFunction; locale: SupportedLocale }): React.JSX.Element | null {
+  const { colors: theme } = useAppTheme();
+  const passengers = item.ride.passengers ?? [];
+  if (passengers.length === 0) return null;
+  const names = passengers.map((p) => p.firstName);
+  const who =
+    names.length <= 2
+      ? t('trips:spotlight.withPassengers', { names: names.join(t('trips:spotlight.and')) })
+      : t('trips:spotlight.withPassengersMore', { names: names.slice(0, 2).join(', '), count: names.length - 2 });
+  return (
+    <View style={styles.person}>
+      <View style={styles.stack} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+        {passengers.slice(0, 3).map((p, index) => (
+          <View
+            key={`${p.firstName}-${index}`}
+            style={[styles.stackItem, index > 0 && styles.stackOverlap, { borderColor: theme.surface }]}
+          >
+            <Avatar uri={p.avatarUrl} name={p.firstName} sizePx={32} />
+          </View>
+        ))}
+      </View>
+      <View style={styles.personText}>
+        <Text variant="label" color={theme.ink} numberOfLines={1}>
+          {who}
+        </Text>
+        <Text variant="caption" color={theme.inkMuted} numberOfLines={1}>
+          {t('trips:spotlight.contribution', { amount: formatCurrency(confirmedContribution(item), locale) })}
+        </Text>
+      </View>
+    </View>
+  );
+}
+
+/** Two trips at the same time: said plainly, with the other one named. */
+function OverlapNote({ other, now, t, locale }: { other: AgendaItem; now: Date; t: TFunction; locale: SupportedLocale }): React.JSX.Element {
+  const { colors: theme } = useAppTheme();
+  return (
+    <View style={[styles.note, { backgroundColor: theme.warningMuted }]} accessible accessibilityRole="alert">
+      <Icon name="alert-circle-outline" size="sm" color={theme.warning} />
+      <Text variant="caption" color={theme.ink} style={styles.noteText}>
+        {t('trips:spotlight.overlap', { route: routeLabel(other), when: inlineDayAndTime(other.departureAt, now, t, locale) })}
+      </Text>
     </View>
   );
 }
@@ -281,10 +361,13 @@ interface TripSpotlightProps {
   now: Date;
   locale: SupportedLocale;
   onRate: () => void;
+  onSearchAgain: (target: SearchAgain) => void;
+  /** Another trip at the same time, if any. */
+  overlapWith?: AgendaItem;
 }
 
 /** The trips tab's top card, for whichever moment `selectSpotlight` chose. */
-export function TripSpotlight({ spotlight, now, locale, onRate }: TripSpotlightProps): React.JSX.Element {
+export function TripSpotlight({ spotlight, now, locale, onRate, onSearchAgain, overlapWith }: TripSpotlightProps): React.JSX.Element {
   const { t } = useTranslation(['trips', 'common']);
 
   if (spotlight.kind === 'rating') {
@@ -315,7 +398,7 @@ export function TripSpotlight({ spotlight, now, locale, onRate }: TripSpotlightP
   const content =
     item.role === 'driver'
       ? driveContent(spotlight, item, now, t, locale)
-      : bookingContent(spotlight, item, now, t, locale);
+      : bookingContent(spotlight, item, now, t, locale, onSearchAgain);
   const title = routeLabel(item);
   const showPassengerDetail =
     item.role === 'passenger' && (item.status === 'confirmed' || item.status === 'awaiting_response' || item.status === 'departure_passed');
@@ -333,12 +416,15 @@ export function TripSpotlight({ spotlight, now, locale, onRate }: TripSpotlightP
       onPress={item.role === 'driver' ? () => openDrive(item.rideId) : () => openBooking(item.booking.id)}
       accessibilityLabel={`${content.eyebrow}. ${title}${content.subtitle ? `. ${content.subtitle}` : ''}`}
     >
+      {overlapWith ? <OverlapNote other={overlapWith} now={now} t={t} locale={locale} /> : null}
       {item.role === 'passenger' ? (
         <>
           {showPassengerDetail && item.status !== 'awaiting_response' ? <MeetingBlock item={item} t={t} locale={locale} /> : null}
           <DriverLine item={item} t={t} />
         </>
-      ) : null}
+      ) : (
+        <PassengersLine item={item} t={t} locale={locale} />
+      )}
     </SpotlightCard>
   );
 }
@@ -363,5 +449,28 @@ const styles = StyleSheet.create({
   personText: {
     flex: 1,
     minWidth: 0,
+  },
+  leaveBy: {
+    fontWeight: '600',
+  },
+  stack: {
+    flexDirection: 'row',
+  },
+  stackItem: {
+    borderWidth: 2,
+    borderRadius: radii.full,
+  },
+  stackOverlap: {
+    marginLeft: -spacing.sm,
+  },
+  note: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.sm,
+    borderRadius: radii.lg,
+    padding: spacing.md,
+  },
+  noteText: {
+    flex: 1,
   },
 });

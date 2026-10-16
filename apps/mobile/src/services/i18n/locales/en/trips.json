@@ -39,7 +39,8 @@
     "emptyHistory": {
       "title": "No history yet",
       "description": "Your finished and cancelled trips will show up here."
-    }
+    },
+    "overlapNote": "Overlaps another trip"
   },
   "status": {
     "driverDraft": "Draft · not published yet",
@@ -95,7 +96,7 @@
     "waitingDriver": "The driver hasn't started yet",
     "plannedDeparture": "Planned departure {{time}}",
     "awaitingDriver": "Waiting for the driver",
-    "replyBefore": "Answer expected by: {{when}}",
+    "replyBefore": "Answer expected by {{when}}",
     "pickupAt": "{{time}} · {{place}}",
     "walk": "{{duration}} walk from your starting point",
     "yourDriver": "Your driver",
@@ -117,8 +118,16 @@
       "viewRequest": "View the request",
       "meetingPoint": "Meeting point",
       "rateNamed": "Rate {{name}}",
-      "rate": "Rate the trip"
-    }
+      "rate": "Rate the trip",
+      "otherRides": "Other rides"
+    },
+    "leaveBy": "Leave at {{time}} to be there early",
+    "withPassengers": "With {{names}}",
+    "and": " and ",
+    "withPassengersMore_one": "With {{names}} and {{count}} other",
+    "withPassengersMore_other": "With {{names}} and {{count}} others",
+    "contribution": "{{amount}} cost-sharing confirmed",
+    "overlap": "Same time as {{route}} ({{when}}). You can’t do both."
   },
   "todo": {
     "requests_one": "{{count}} seat request",
@@ -130,6 +139,14 @@
     "rate": "Rate your last trip",
     "actionReply": "Answer",
     "actionStart": "Start",
-    "actionRate": "Rate"
+    "actionRate": "Rate",
+    "requestsDetailUrgent": "{{route}} · expires in {{minutes}} min",
+    "overlap": "Two trips at the same time",
+    "overlapDetail": "{{first}} and {{second}} at {{time}}",
+    "actionReview": "View",
+    "rebookDeclined": "Request declined",
+    "rebookCancelled": "Cancelled by the driver",
+    "rebookExpired": "Request unanswered",
+    "actionSearch": "Search"
   }
 }

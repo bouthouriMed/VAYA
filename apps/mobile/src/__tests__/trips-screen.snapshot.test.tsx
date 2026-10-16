@@ -32,6 +32,8 @@ vi.mock('expo-router', () => ({
 vi.mock('../state/store', () => ({
   useAppSelector: (selector: (s: { auth: { accessToken: string }; language: { locale: string } }) => unknown) =>
     selector({ auth: { accessToken: 'test-token' }, language: { locale: 'fr' } }),
+  // "Chercher" (find another ride) dispatches the search before navigating.
+  useAppDispatch: () => vi.fn(),
 }));
 
 const DRIVER_PROFILE: DriverProfile = {
@@ -188,6 +190,19 @@ const DECLINED_BOOKING: Booking = {
   ride: { ...ACCEPTED_BOOKING.ride!, departureAt: '2026-08-10T09:00:00' },
 };
 
+// Declined, but the trip (to Bizerte) is still ahead: worth searching again.
+const DECLINED_FUTURE: Booking = {
+  ...ACCEPTED_BOOKING,
+  id: 'booking-declined-future',
+  status: 'declined',
+  tripId: null,
+  tripStatus: null,
+  dropoffLabel: 'Bizerte',
+  dropoffLat: 37.27,
+  dropoffLng: 9.87,
+  ride: { ...ACCEPTED_BOOKING.ride!, destinationLabel: 'Bizerte', departureAt: '2026-08-25T07:30:00' },
+};
+
 const FRESH_RATING: PendingRating = {
   tripId: 'trip-done',
   role: 'rider_rates_driver',
@@ -274,6 +289,18 @@ describe('trips.tsx snapshots', () => {
 
   it('missed start — the driver is asked to start the ride', async () => {
     mockApi({ driverProfile: DRIVER_PROFILE, myRides: [MISSED_START_RIDE, HERO_RIDE] });
+    expect(await renderTrips()).toMatchSnapshot();
+  });
+
+  it('rescue and overlap — a declined seat still ahead, and two trips at the same time', async () => {
+    mockApi({
+      bookings: [
+        DECLINED_FUTURE,
+        { ...PENDING_REQUEST, ride: { ...PENDING_REQUEST.ride!, departureAt: '2026-08-23T09:00:00' } },
+      ],
+      driverProfile: DRIVER_PROFILE,
+      myRides: [{ ...HERO_RIDE, passengers: [{ firstName: 'Youssef', avatarUrl: null, seats: 1 }] }],
+    });
     expect(await renderTrips()).toMatchSnapshot();
   });
 

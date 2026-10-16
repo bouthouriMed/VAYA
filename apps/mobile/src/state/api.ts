@@ -447,6 +447,8 @@ export type MyRide = Ride & {
   /** The soonest of those requests' answer deadlines. */
   nextRequestExpiresAt?: string | null;
   acceptedBookingCount?: number;
+  /** Accepted passengers, first name only. */
+  passengers?: { firstName: string; avatarUrl: string | null; seats: number }[];
 };
 
 export interface RouteStop {
@@ -853,6 +855,8 @@ export interface Booking {
   ride?: {
     originLabel: string;
     destinationLabel: string;
+    destinationLat?: number;
+    destinationLng?: number;
     departureAt: string;
     contributionPerSeat: number;
     driverFullName: string | null;

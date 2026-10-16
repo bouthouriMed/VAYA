@@ -43,7 +43,8 @@
     "emptyHistory": {
       "title": "لا سجل بعد",
       "description": "ستظهر هنا رحلاتك المنتهية أو الملغاة."
-    }
+    },
+    "overlapNote": "تتزامن مع رحلة أخرى"
   },
   "status": {
     "driverDraft": "مسودة · لم تُنشر بعد",
@@ -107,7 +108,7 @@
     "waitingDriver": "لم يبدأ السائق الرحلة بعد",
     "plannedDeparture": "الانطلاق المقرر {{time}}",
     "awaitingDriver": "في انتظار السائق",
-    "replyBefore": "الرد متوقع قبل: {{when}}",
+    "replyBefore": "الرد متوقع قبل {{when}}",
     "pickupAt": "{{time}} · {{place}}",
     "walk": "على بعد {{duration}} سيرًا من نقطة انطلاقك",
     "yourDriver": "سائقك",
@@ -133,8 +134,20 @@
       "viewRequest": "عرض الطلب",
       "meetingPoint": "نقطة اللقاء",
       "rateNamed": "قيّم {{name}}",
-      "rate": "قيّم الرحلة"
-    }
+      "rate": "قيّم الرحلة",
+      "otherRides": "رحلات أخرى"
+    },
+    "leaveBy": "انطلق على الساعة {{time}} لتصل مبكرًا",
+    "withPassengers": "مع {{names}}",
+    "and": " و",
+    "withPassengersMore_zero": "مع {{names}}",
+    "withPassengersMore_one": "مع {{names}} وشخص آخر",
+    "withPassengersMore_two": "مع {{names}} وشخصين آخرين",
+    "withPassengersMore_few": "مع {{names}} و{{count}} آخرين",
+    "withPassengersMore_many": "مع {{names}} و{{count}} آخرين",
+    "withPassengersMore_other": "مع {{names}} و{{count}} آخرين",
+    "contribution": "مساهمة مؤكدة: {{amount}}",
+    "overlap": "في نفس توقيت {{route}} ({{when}}). لا يمكنك القيام بالاثنتين."
   },
   "todo": {
     "requests_zero": "لا طلبات مقاعد",
@@ -150,6 +163,14 @@
     "rate": "قيّم رحلتك الأخيرة",
     "actionReply": "رد",
     "actionStart": "ابدأ",
-    "actionRate": "قيّم"
+    "actionRate": "قيّم",
+    "requestsDetailUrgent": "{{route}} · تنتهي خلال {{minutes}} د",
+    "overlap": "رحلتان في نفس الوقت",
+    "overlapDetail": "{{first}} و{{second}} على الساعة {{time}}",
+    "actionReview": "عرض",
+    "rebookDeclined": "رُفض الطلب",
+    "rebookCancelled": "ألغاها السائق",
+    "rebookExpired": "طلب دون رد",
+    "actionSearch": "ابحث"
   }
 }

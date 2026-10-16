@@ -1,7 +1,7 @@
 import { and, desc, eq, inArray, isNotNull } from 'drizzle-orm';
 import type { getDatabase } from '../../lib/database.js';
 import { enqueueMeetingPointScan } from '../../lib/queue.js';
-import { bookings, driverProfiles, recurringPatterns, rides, trips, vehicles } from '../../db/schema/index.js';
+import { bookings, driverProfiles, recurringPatterns, rides, trips, users, vehicles } from '../../db/schema/index.js';
 import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from '../../lib/errors.js';
 import {
   canCancelTrip,
@@ -319,8 +319,12 @@ export async function listMyRides(db: Database, userId: string) {
       rideId: bookings.rideId,
       status: bookings.status,
       expiresAt: bookings.expiresAt,
+      seatsRequested: bookings.seatsRequested,
+      riderName: users.fullName,
+      riderAvatarUrl: users.avatarUrl,
     })
     .from(bookings)
+    .innerJoin(users, eq(users.id, bookings.riderId))
     .where(
       and(
         inArray(
@@ -331,11 +335,21 @@ export async function listMyRides(db: Database, userId: string) {
       ),
     );
 
-  const summaries = new Map<string, { pending: number; nextExpiresAt: Date | null; accepted: number }>();
+  type Passenger = { firstName: string; avatarUrl: string | null; seats: number };
+  const summaries = new Map<
+    string,
+    { pending: number; nextExpiresAt: Date | null; accepted: number; passengers: Passenger[] }
+  >();
   for (const row of rideBookings) {
-    const summary = summaries.get(row.rideId) ?? { pending: 0, nextExpiresAt: null, accepted: 0 };
+    const summary = summaries.get(row.rideId) ?? { pending: 0, nextExpiresAt: null, accepted: 0, passengers: [] };
     if (row.status === 'accepted') {
       summary.accepted += 1;
+      // First name only — enough for the driver to know who's coming.
+      summary.passengers.push({
+        firstName: row.riderName.trim().split(/\s+/)[0] ?? row.riderName,
+        avatarUrl: row.riderAvatarUrl,
+        seats: row.seatsRequested,
+      });
     } else if (!row.expiresAt || row.expiresAt.getTime() > now.getTime()) {
       summary.pending += 1;
       if (row.expiresAt && (!summary.nextExpiresAt || row.expiresAt < summary.nextExpiresAt)) {
@@ -352,6 +366,7 @@ export async function listMyRides(db: Database, userId: string) {
       pendingRequestCount: summary?.pending ?? 0,
       nextRequestExpiresAt: summary?.nextExpiresAt ?? null,
       acceptedBookingCount: summary?.accepted ?? 0,
+      passengers: summary?.passengers ?? [],
     };
   });
 }

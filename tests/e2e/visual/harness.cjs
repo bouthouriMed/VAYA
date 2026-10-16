@@ -43,7 +43,7 @@ const REQUESTS = [
   { ...BOOKING_BASE, id: 'b-req1', rideId: 'r1', riderId: 'u-2', status: 'pending', requestedAt: iso(-25), expiresAt: iso(95), rider: rider('u-2', 'Sarra Trabelsi') },
   { ...BOOKING_BASE, id: 'b-req2', rideId: 'r1', riderId: 'u-3', status: 'accepted', seatsRequested: 1, requestedAt: iso(-200), respondedAt: iso(-180), expiresAt: null, pickupStopId: 's2', pickupLabel: 'Hammamet Nord, Rond-point', pickupLat: 36.40, pickupLng: 10.55, rider: rider('u-3', 'Youssef Gharbi') },
 ];
-const rideSummary = (over) => ({ originLabel: 'La Marsa', destinationLabel: 'Nabeul', departureAt: iso(60*26), contributionPerSeat: 11, driverFullName: 'Mehdi Jaziri', driverUserId: 'u-d1', driverAvatarUrl: null, estimatedDurationSec: 5400, status: 'published', ...over });
+const rideSummary = (over) => ({ originLabel: 'La Marsa', destinationLabel: 'Nabeul', destinationLat: 36.45, destinationLng: 10.73, departureAt: iso(60*26), contributionPerSeat: 11, driverFullName: 'Mehdi Jaziri', driverUserId: 'u-d1', driverAvatarUrl: null, estimatedDurationSec: 5400, status: 'published', ...over });
 const MY_BOOKINGS = [
   { ...BOOKING_BASE, id: 'b1', rideId: 'r9', riderId: 'u-me', status: 'accepted', contributionTotal: 11, pickupLabel: 'La Marsa, Plage', requestedAt: iso(-300), respondedAt: iso(-280), expiresAt: null, tripId: 't1', tripStatus: 'scheduled', ride: rideSummary() },
   { ...BOOKING_BASE, id: 'b2', rideId: 'r8', riderId: 'u-me', status: 'pending', contributionTotal: 9, pickupLabel: 'Ariana, Ennasr', requestedAt: iso(-10), expiresAt: iso(110), ride: rideSummary({ originLabel: 'Ariana', destinationLabel: 'Bizerte', departureAt: iso(60*48), contributionPerSeat: 9, driverFullName: 'Ines Mansouri', driverUserId: 'u-d2' }) },
@@ -51,8 +51,11 @@ const MY_BOOKINGS = [
 ];
 // `trips` scenario for the trips tab: the confirmed booking leaving soon,
 // or already live (driver on the way).
+// A declined request for a trip still ahead: the "find another ride" rescue.
+const DECLINED = { ...BOOKING_BASE, id: 'b4', rideId: 'r6', riderId: 'u-me', status: 'declined', contributionTotal: 8, pickupLabel: 'Tunis, Bab Saadoun', requestedAt: iso(-90), respondedAt: iso(-60), expiresAt: null, ride: rideSummary({ originLabel: 'Tunis', destinationLabel: 'Kairouan', destinationLat: 35.68, destinationLng: 10.1, departureAt: iso(60*30), contributionPerSeat: 8, driverFullName: 'Walid Hamdi', driverUserId: 'u-d4' }) };
 function myBookings(scenario) {
-  return MY_BOOKINGS.map((b) => {
+  return [...MY_BOOKINGS, DECLINED].map((b) => {
+    if (scenario === 'overlap' && b.id === 'b2') return { ...b, ride: { ...b.ride, departureAt: iso(60*20+40) } };
     if (b.id !== 'b1') return b;
     if (scenario === 'soon') return { ...b, ride: { ...b.ride, departureAt: iso(75) } };
     if (scenario === 'live') return { ...b, tripStatus: 'driver_approaching', ride: { ...b.ride, departureAt: iso(-8), status: 'in_progress' } };
@@ -93,7 +96,7 @@ function defaultFixtures(opts = {}) {
     ['PATCH', /\/users\/me$/, () => ME],
     ['GET', /\/drivers\/me$/, () => (o.driver ? DRIVER : [404, { message: 'Not found' }])],
     ['GET', /\/rides\/mine$/, () => (o.driver ? [
-      { ...RIDE, pendingRequestCount: 1, nextRequestExpiresAt: iso(95), acceptedBookingCount: 1 },
+      { ...RIDE, pendingRequestCount: 1, nextRequestExpiresAt: iso(95), acceptedBookingCount: 1, passengers: [{ firstName: 'Youssef', avatarUrl: null, seats: 2 }] },
       { ...RIDE, id: 'r2', status: 'draft', originLabel: 'Tunis', destinationLabel: 'Bizerte', departureAt: iso(60*72), seatsAvailable: 3, pendingRequestCount: 0, nextRequestExpiresAt: null, acceptedBookingCount: 0 },
       { ...RIDE, id: 'r3', status: 'completed', departureAt: iso(-60*24*12), seatsAvailable: 1, pendingRequestCount: 0, nextRequestExpiresAt: null, acceptedBookingCount: 3 },
     ] : [])],

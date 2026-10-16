@@ -33,7 +33,10 @@ import { formatShortDate, formatTime, toIntlTag } from '../../src/utils/localeFo
 import {
   buildAgendaItems,
   buildTodos,
+  findOverlaps,
   groupHistoryByMonth,
+  overlappingKeys,
+  searchAgainTarget,
   groupUpcomingByDay,
   hasBothRoles,
   pollingIntervalFor,
@@ -54,7 +57,7 @@ import {
 } from '../../src/features/trips/agendaCopy';
 import { TripSpotlight } from '../../src/features/trips/TripSpotlight';
 import { useNow } from '../../src/features/trips/useNow';
-import { openAgendaItem, openDrive } from '../../src/features/trips/navigation';
+import { openAgendaItem, openBooking, openDrive, useSearchAgain } from '../../src/features/trips/navigation';
 import { RatingPromptSheet } from '../../src/features/ratings/RatingPromptSheet';
 import { submitRating } from '../../src/features/ratings/ratingHelpers';
 import { trackEvent } from '../../src/services/analytics/analytics';
@@ -98,7 +101,20 @@ export default function TripsScreen(): React.JSX.Element {
     [ridesQuery.data, bookingsQuery.data, now],
   );
   const spotlight = useMemo(() => selectSpotlight(items, pendingRating, now), [items, pendingRating, now]);
-  const todos = useMemo(() => buildTodos(items, pendingRating, spotlight), [items, pendingRating, spotlight]);
+  const todos = useMemo(() => buildTodos(items, pendingRating, spotlight, now), [items, pendingRating, spotlight, now]);
+  const overlaps = useMemo(() => findOverlaps(items), [items]);
+  const clashing = useMemo(() => overlappingKeys(items), [items]);
+  const spotlightOverlap =
+    spotlight?.kind === 'trip'
+      ? overlaps.find(([a, b]) => a.key === spotlight.item.key || b.key === spotlight.item.key)
+      : undefined;
+  const spotlightOverlapWith =
+    spotlightOverlap && spotlight?.kind === 'trip'
+      ? spotlightOverlap[0].key === spotlight.item.key
+        ? spotlightOverlap[1]
+        : spotlightOverlap[0]
+      : undefined;
+  const searchAgain = useSearchAgain();
   const upcoming = useMemo(() => groupUpcomingByDay(items, spotlight, now), [items, spotlight, now]);
   const history = useMemo(() => groupHistoryByMonth(items), [items]);
   const showRoles = hasBothRoles(items);
@@ -126,7 +142,11 @@ export default function TripsScreen(): React.JSX.Element {
   }
 
   function rowFor(item: AgendaItem, index: number, inHistory: boolean): React.JSX.Element {
-    const status = rowStatus(item, now, t, locale);
+    const baseStatus = rowStatus(item, now, t, locale);
+    const status =
+      !inHistory && clashing.has(item.key)
+        ? { text: `${t('trips:agenda.overlapNote')} · ${baseStatus.text}`, tone: 'warning' as const }
+        : baseStatus;
     const time = formatTime(item.departureAt, locale);
     const timeDetail = inHistory
       ? formatShortDate(item.departureAt, toIntlTag(locale))
@@ -183,16 +203,70 @@ export default function TripsScreen(): React.JSX.Element {
         />
       );
     }
+    if (todo.kind === 'overlap') {
+      const title = t('trips:todo.overlap');
+      const detail = `${routeLabel(todo.first)} · ${routeLabel(todo.second)}`;
+      return (
+        <AgendaRow
+          key={todo.key}
+          icon="alert-circle-outline"
+          title={title}
+          status={t('trips:todo.overlapDetail', {
+            first: routeLabel(todo.first),
+            second: routeLabel(todo.second),
+            time: formatTime(todo.second.departureAt, locale),
+          })}
+          actionLabel={t('trips:todo.actionReview')}
+          onAction={() => openAgendaItem(todo.second)}
+          onPress={() => openAgendaItem(todo.second)}
+          highlighted
+          divider={index > 0}
+          accessibilityLabel={`${title}, ${detail}`}
+        />
+      );
+    }
+    if (todo.kind === 'rebook') {
+      const target = searchAgainTarget(todo.item, now);
+      const title =
+        todo.item.status === 'declined'
+          ? t('trips:todo.rebookDeclined')
+          : todo.item.status === 'cancelled_by_driver'
+            ? t('trips:todo.rebookCancelled')
+            : t('trips:todo.rebookExpired');
+      const detail = t('trips:todo.detail', {
+        route: routeLabel(todo.item),
+        when: dayAndTime(todo.item.departureAt, now, t, locale),
+      });
+      return (
+        <AgendaRow
+          key={todo.key}
+          icon="search-outline"
+          title={title}
+          status={detail}
+          actionLabel={t('trips:todo.actionSearch')}
+          onAction={target ? () => searchAgain(target) : () => openBooking(todo.item.booking.id)}
+          onPress={() => openBooking(todo.item.booking.id)}
+          highlighted
+          divider={index > 0}
+          accessibilityLabel={`${title}, ${detail}`}
+        />
+      );
+    }
     const { item } = todo;
     const when = dayAndTime(item.departureAt, now, t, locale);
     const title =
       todo.kind === 'requests' ? t('trips:todo.requests', { count: todo.count }) : t('trips:todo.start');
     const detail =
       todo.kind === 'requests' && todo.expiresAt
-        ? t('trips:todo.requestsDetailDeadline', {
-            route: routeLabel(item),
-            time: deadlineLabel(todo.expiresAt, now, t, locale),
-          })
+        ? todo.urgent
+          ? t('trips:todo.requestsDetailUrgent', {
+              route: routeLabel(item),
+              minutes: Math.max(1, Math.round((todo.expiresAt.getTime() - now.getTime()) / 60_000)),
+            })
+          : t('trips:todo.requestsDetailDeadline', {
+              route: routeLabel(item),
+              time: deadlineLabel(todo.expiresAt, now, t, locale),
+            })
         : t('trips:todo.detail', { route: routeLabel(item), when });
     return (
       <AgendaRow
@@ -278,7 +352,14 @@ export default function TripsScreen(): React.JSX.Element {
     return (
       <>
         {spotlight ? (
-          <TripSpotlight spotlight={spotlight} now={now} locale={locale} onRate={() => setRatingOpen(true)} />
+          <TripSpotlight
+            spotlight={spotlight}
+            now={now}
+            locale={locale}
+            onRate={() => setRatingOpen(true)}
+            onSearchAgain={searchAgain}
+            overlapWith={spotlightOverlapWith}
+          />
         ) : null}
 
         {todos.length > 0 ? (

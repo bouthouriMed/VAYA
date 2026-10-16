@@ -78,6 +78,22 @@ export const SOON_WINDOW_MS = 3 * 60 * 60 * 1000;
 /** A trip finished this recently (and not yet rated) takes the top card. */
 export const RECENT_RATING_WINDOW_MS = 2 * 60 * 60 * 1000;
 
+/** From this long before departure, a driver with passengers is offered
+ *  "Démarrer" straight from the top card. */
+export const START_WINDOW_MS = 15 * 60 * 1000;
+
+/** A request deadline this close is urgent. */
+export const URGENT_DEADLINE_MS = 30 * 60 * 1000;
+
+/** When a trip has no routed duration, assume this long for overlap checks. */
+export const DEFAULT_TRIP_DURATION_MS = 60 * 60 * 1000;
+
+/** Unhurried walking pace, meters per minute. */
+const WALK_METERS_PER_MINUTE = 80;
+
+/** Extra minutes to be at the meeting point before the driver. */
+export const MEETING_BUFFER_MINUTES = 5;
+
 interface AgendaItemBase {
   /** Unique across both roles: `drive:<rideId>` / `booking:<bookingId>`. */
   key: string;
@@ -264,6 +280,8 @@ export type SpotlightMoment =
   | 'needs_start'
   /** Passenger: departure passed, the driver hasn't started yet. */
   | 'waiting_driver'
+  /** Driver with passengers, departure within START_WINDOW_MS. */
+  | 'start_window'
   /** Leaves within SOON_WINDOW_MS. */
   | 'soon'
   /** The next trip, further out. */
@@ -315,7 +333,11 @@ export function selectSpotlight(
   );
   const next = upcoming[0];
   if (next && next.departureAt.getTime() - now.getTime() <= SOON_WINDOW_MS) {
-    return { kind: 'trip', item: next, moment: 'soon' };
+    const canStart =
+      next.role === 'driver' &&
+      next.acceptedBookingCount > 0 &&
+      next.departureAt.getTime() - now.getTime() <= START_WINDOW_MS;
+    return { kind: 'trip', item: next, moment: canStart ? 'start_window' : 'soon' };
   }
 
   if (isRecentRating(pendingRating, now)) return { kind: 'rating', rating: pendingRating };
@@ -325,8 +347,10 @@ export function selectSpotlight(
 }
 
 export type TodoItem =
-  | { kind: 'requests'; key: string; item: DriveItem; count: number; expiresAt: Date | null }
+  | { kind: 'requests'; key: string; item: DriveItem; count: number; expiresAt: Date | null; urgent: boolean }
   | { kind: 'start'; key: string; item: DriveItem }
+  | { kind: 'overlap'; key: string; first: AgendaItem; second: AgendaItem }
+  | { kind: 'rebook'; key: string; item: BookingItem }
   | { kind: 'rate'; key: string; rating: PendingRating };
 
 /**
@@ -339,6 +363,7 @@ export function buildTodos(
   items: readonly AgendaItem[],
   pendingRating: PendingRating | null | undefined,
   spotlight: Spotlight | null,
+  now: Date = new Date(),
 ): TodoItem[] {
   const spotlightKey = spotlight?.kind === 'trip' ? spotlight.item.key : null;
   const todos: TodoItem[] = [];
@@ -361,11 +386,22 @@ export function buildTodos(
       item,
       count: item.pendingRequestCount,
       expiresAt: item.nextRequestExpiresAt,
+      urgent: isUrgentDeadline(item.nextRequestExpiresAt, now),
     });
   }
 
   for (const item of drives.filter(needsStart).sort(byDeparture)) {
     todos.push({ kind: 'start', key: `start:${item.rideId}`, item });
+  }
+
+  for (const [first, second] of findOverlaps(items)) {
+    // The top card already says it when it's one of the two.
+    if (first.key === spotlightKey || second.key === spotlightKey) continue;
+    todos.push({ kind: 'overlap', key: `overlap:${first.key}|${second.key}`, first, second });
+  }
+
+  for (const item of findRebookCandidates(items, now)) {
+    todos.push({ kind: 'rebook', key: `rebook:${item.booking.id}`, item });
   }
 
   if (pendingRating && spotlight?.kind !== 'rating') {
@@ -456,4 +492,147 @@ export function hasBothRoles(items: readonly AgendaItem[]): boolean {
 export function pollingIntervalFor(spotlight: Spotlight | null): number {
   if (spotlight?.kind !== 'trip') return 60_000;
   return spotlight.moment === 'next' ? 60_000 : 15_000;
+}
+
+export function isUrgentDeadline(deadline: Date | null | undefined, now: Date): boolean {
+  if (!deadline) return false;
+  const left = deadline.getTime() - now.getTime();
+  return left > 0 && left <= URGENT_DEADLINE_MS;
+}
+
+function tripEnd(item: AgendaItem): number {
+  return (item.arrivalAt ?? new Date(item.departureAt.getTime() + DEFAULT_TRIP_DURATION_MS)).getTime();
+}
+
+/** A trip that will happen, is happening, or could still be accepted. */
+function isCommitted(item: AgendaItem): boolean {
+  return !item.isFinished && item.status !== 'draft';
+}
+
+/**
+ * Pairs of trips that overlap in time — a seat booked during a drive you
+ * published, two seats for the same evening. Requests still waiting count
+ * too: better to know before the driver says yes.
+ */
+export function findOverlaps(items: readonly AgendaItem[]): [AgendaItem, AgendaItem][] {
+  const committed = items.filter(isCommitted).sort(byDeparture);
+  const pairs: [AgendaItem, AgendaItem][] = [];
+  for (let i = 0; i < committed.length; i++) {
+    for (let j = i + 1; j < committed.length; j++) {
+      const a = committed[i]!;
+      const b = committed[j]!;
+      if (b.departureAt.getTime() >= tripEnd(a)) break;
+      pairs.push([a, b]);
+    }
+  }
+  return pairs;
+}
+
+/** Keys of trips that clash with another one. */
+export function overlappingKeys(items: readonly AgendaItem[]): Set<string> {
+  const keys = new Set<string>();
+  for (const [a, b] of findOverlaps(items)) {
+    keys.add(a.key);
+    keys.add(b.key);
+  }
+  return keys;
+}
+
+/** A trip still this close counts as "the same trip" when deciding whether
+ *  the person already found another ride. */
+const SAME_TRIP_WINDOW_MS = 6 * 60 * 60 * 1000;
+
+/**
+ * Seats that fell through while the person still has to travel: the driver
+ * declined or cancelled, or the request expired unanswered, and the
+ * departure is still ahead. Not shown once another reservation covers the
+ * same time, and never for a trip they cancelled themselves.
+ */
+export function findRebookCandidates(items: readonly AgendaItem[], now: Date): BookingItem[] {
+  const passengers = items.filter((item): item is BookingItem => item.role === 'passenger');
+  const active = passengers.filter((item) => !item.isFinished);
+  return passengers
+    .filter((item) => {
+      const fellThrough =
+        item.status === 'declined' ||
+        item.status === 'cancelled_by_driver' ||
+        (item.status === 'expired' && (item.booking.status === 'pending' || item.booking.status === 'expired'));
+      if (!fellThrough || item.departureAt.getTime() <= now.getTime()) return false;
+      return !active.some(
+        (other) =>
+          Math.abs(other.departureAt.getTime() - item.departureAt.getTime()) <= SAME_TRIP_WINDOW_MS &&
+          sameDestination(other, item),
+      );
+    })
+    .sort(byDeparture)
+    // One per departure is enough; the newest request speaks for the trip.
+    .filter((item, index, list) => index === 0 || item.departureAt.getTime() !== list[index - 1]!.departureAt.getTime());
+}
+
+/** Drop-offs this close are the same place for "did they rebook?". */
+const SAME_DESTINATION_RADIUS_M = 15_000;
+
+function destinationPoint(item: BookingItem): { lat: number; lng: number } | null {
+  const { booking } = item;
+  if (booking.dropoffLat != null && booking.dropoffLng != null) return { lat: booking.dropoffLat, lng: booking.dropoffLng };
+  const ride = booking.ride;
+  if (ride?.destinationLat != null && ride.destinationLng != null) return { lat: ride.destinationLat, lng: ride.destinationLng };
+  return null;
+}
+
+function distanceMeters(a: { lat: number; lng: number }, b: { lat: number; lng: number }): number {
+  const rad = (deg: number) => (deg * Math.PI) / 180;
+  const dLat = rad(b.lat - a.lat);
+  const dLng = rad(b.lng - a.lng);
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.sin(dLng / 2) ** 2;
+  return 2 * 6_371_000 * Math.asin(Math.sqrt(h));
+}
+
+function sameDestination(a: BookingItem, b: BookingItem): boolean {
+  const pa = destinationPoint(a);
+  const pb = destinationPoint(b);
+  if (pa && pb) return distanceMeters(pa, pb) <= SAME_DESTINATION_RADIUS_M;
+  return a.destinationLabel.trim().toLowerCase() === b.destinationLabel.trim().toLowerCase();
+}
+
+/** When to leave to walk to the pickup with a few minutes to spare —
+ *  only when the walking distance is known. */
+export function leaveByTime(item: BookingItem): Date | null {
+  const meters = item.booking.pickupWalkMeters;
+  if (meters == null || !Number.isFinite(meters) || meters < 50) return null;
+  const walkMinutes = Math.ceil(meters / WALK_METERS_PER_MINUTE);
+  return new Date(item.departureAt.getTime() - (walkMinutes + MEETING_BUFFER_MINUTES) * 60_000);
+}
+
+export interface SearchAgain {
+  origin: { label: string; lat: number; lng: number };
+  destination: { label: string; lat: number; lng: number };
+  /** The original departure if still ahead, else "now". */
+  departureAt: Date | null;
+  passengers: number;
+}
+
+/** The same journey as a fresh search: this passenger's own pickup and
+ *  drop-off, same time, same number of seats. */
+export function searchAgainTarget(item: BookingItem, now: Date): SearchAgain | null {
+  const { booking } = item;
+  const ride = booking.ride;
+  const destination =
+    booking.dropoffLat != null && booking.dropoffLng != null
+      ? { label: booking.dropoffLabel ?? ride?.destinationLabel ?? '', lat: booking.dropoffLat, lng: booking.dropoffLng }
+      : ride?.destinationLat != null && ride.destinationLng != null
+        ? { label: ride.destinationLabel, lat: ride.destinationLat, lng: ride.destinationLng }
+        : null;
+  if (!destination) return null;
+  return {
+    origin: { label: booking.pickupLabel, lat: booking.pickupLat, lng: booking.pickupLng },
+    destination,
+    departureAt: item.departureAt.getTime() > now.getTime() ? item.departureAt : null,
+    passengers: booking.seatsRequested,
+  };
+}
+
+/** What the driver's confirmed passengers contribute in total. */
+export function confirmedContribution(item: DriveItem): number {
+  return Math.round(item.seatsBooked * item.ride.contributionPerSeat * 100) / 100;
 }

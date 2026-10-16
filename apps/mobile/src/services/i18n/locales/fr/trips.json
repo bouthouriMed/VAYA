@@ -39,7 +39,8 @@
     "emptyHistory": {
       "title": "Pas encore d'historique",
       "description": "Vos trajets terminés ou annulés apparaîtront ici."
-    }
+    },
+    "overlapNote": "Chevauche un autre trajet"
   },
   "status": {
     "driverDraft": "Brouillon · pas encore publié",
@@ -95,7 +96,7 @@
     "waitingDriver": "Le conducteur n'a pas encore démarré",
     "plannedDeparture": "Départ prévu à {{time}}",
     "awaitingDriver": "En attente du conducteur",
-    "replyBefore": "Réponse attendue avant : {{when}}",
+    "replyBefore": "Réponse attendue avant {{when}}",
     "pickupAt": "{{time}} · {{place}}",
     "walk": "À {{duration}} à pied de votre point de départ",
     "yourDriver": "Votre conducteur",
@@ -117,8 +118,16 @@
       "viewRequest": "Voir la demande",
       "meetingPoint": "Point de rendez-vous",
       "rateNamed": "Noter {{name}}",
-      "rate": "Noter le trajet"
-    }
+      "rate": "Noter le trajet",
+      "otherRides": "Autres trajets"
+    },
+    "leaveBy": "Partez à {{time}} pour arriver en avance",
+    "withPassengers": "Avec {{names}}",
+    "and": " et ",
+    "withPassengersMore_one": "Avec {{names}} et {{count}} autre",
+    "withPassengersMore_other": "Avec {{names}} et {{count}} autres",
+    "contribution": "{{amount}} de participation confirmée",
+    "overlap": "Même horaire que {{route}} ({{when}}). Vous ne pourrez pas faire les deux."
   },
   "todo": {
     "requests_one": "{{count}} demande de place",
@@ -130,6 +139,14 @@
     "rate": "Notez votre dernier trajet",
     "actionReply": "Répondre",
     "actionStart": "Démarrer",
-    "actionRate": "Noter"
+    "actionRate": "Noter",
+    "requestsDetailUrgent": "{{route}} · expire dans {{minutes}} min",
+    "overlap": "Deux trajets en même temps",
+    "overlapDetail": "{{first}} et {{second}} à {{time}}",
+    "actionReview": "Voir",
+    "rebookDeclined": "Demande refusée",
+    "rebookCancelled": "Annulé par le conducteur",
+    "rebookExpired": "Demande sans réponse",
+    "actionSearch": "Chercher"
   }
 }

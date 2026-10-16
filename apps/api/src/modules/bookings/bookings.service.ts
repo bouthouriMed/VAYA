@@ -1134,6 +1134,9 @@ export async function listMyBookings(db: Database, riderId: string) {
     ride: {
       originLabel: ride.originLabel,
       destinationLabel: ride.destinationLabel,
+      // The trips tab's "find another ride" search starts from these.
+      destinationLat: ride.destinationLat,
+      destinationLng: ride.destinationLng,
       departureAt: ride.departureAt,
       contributionPerSeat: ride.contributionPerSeat,
       driverFullName: ride.driverProfile.user?.fullName ?? null,

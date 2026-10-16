@@ -75,6 +75,8 @@ const bookingResponseSchema = z.object({
     .object({
       originLabel: z.string(),
       destinationLabel: z.string(),
+      destinationLat: z.number(),
+      destinationLng: z.number(),
       departureAt: z.date(),
       contributionPerSeat: z.number(),
       driverFullName: z.string().nullable(),

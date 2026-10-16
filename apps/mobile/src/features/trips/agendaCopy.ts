@@ -54,7 +54,11 @@ export function dayAndTime(date: Date, now: Date, t: TFunction, locale: Supporte
 /** A clock time, with the day only when it isn't today. */
 export function deadlineLabel(date: Date, now: Date, t: TFunction, locale: SupportedLocale): string {
   if (calendarOffset(date, now) === 0) return formatTime(date, locale);
-  // Used mid-sentence ("réponse avant demain · 08:00").
+  return inlineDayAndTime(date, now, t, locale);
+}
+
+/** `dayAndTime` for use mid-sentence ("réponse avant demain · 08:00"). */
+export function inlineDayAndTime(date: Date, now: Date, t: TFunction, locale: SupportedLocale): string {
   const label = dayAndTime(date, now, t, locale);
   return label.charAt(0).toLocaleLowerCase(locale) + label.slice(1);
 }

@@ -64,6 +64,7 @@ const myRideSchema = rideSchema.extend({
   pendingRequestCount: z.number().int(),
   nextRequestExpiresAt: z.date().nullable(),
   acceptedBookingCount: z.number().int(),
+  passengers: z.array(z.object({ firstName: z.string(), avatarUrl: z.string().nullable(), seats: z.number().int() })),
 });
 
 // Phase 6 (docs/domain/pricing.md): the computed bounded price suggestion,

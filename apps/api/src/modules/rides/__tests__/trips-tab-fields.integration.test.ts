@@ -90,7 +90,12 @@ describe('trips tab fields', () => {
 
   it("counts only the requests the driver can still answer, with the soonest deadline", async () => {
     const [ride] = await listMyRides(db, driverUserId);
-    expect(ride).toMatchObject({ id: rideId, pendingRequestCount: 2, acceptedBookingCount: 1 });
+    expect(ride).toMatchObject({
+      id: rideId,
+      pendingRequestCount: 2,
+      acceptedBookingCount: 1,
+      passengers: [{ firstName: 'Rider', avatarUrl: null, seats: 1 }],
+    });
     const soonest = ride!.nextRequestExpiresAt!.getTime() - Date.now();
     expect(soonest).toBeGreaterThan(25 * 60_000);
     expect(soonest).toBeLessThan(31 * 60_000);
@@ -98,7 +103,7 @@ describe('trips tab fields', () => {
 
   it("follows the reservation's live trip, then names the trip to rate", async () => {
     const find = async () => (await listMyBookings(db, riderId)).find((b) => b.id === acceptedId)!;
-    expect(await find()).toMatchObject({ tripStatus: 'scheduled', ride: { estimatedDurationSec: 7200, driverAvatarUrl: null } });
+    expect(await find()).toMatchObject({ tripStatus: 'scheduled', ride: { estimatedDurationSec: 7200, driverAvatarUrl: null, destinationLat: 35.83, destinationLng: 10.6 } });
 
     const trip = await db.query.trips.findFirst({ where: eq(trips.bookingId, acceptedId) });
     await startTrip(db, trip!.id, driverUserId);
