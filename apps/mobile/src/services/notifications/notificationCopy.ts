@@ -40,6 +40,7 @@ const NOTIFICATION_TYPE_META: Record<NotificationEventType, (t: TFunction) => No
   verification_approved: (t) => ({ title: t('notifications:events.verification_approved'), icon: 'shield-checkmark-outline' }),
   verification_declined: (t) => ({ title: t('notifications:events.verification_declined'), icon: 'close-circle-outline' }),
   verification_resubmission_required: (t) => ({ title: t('notifications:events.verification_resubmission_required'), icon: 'refresh-outline' }),
+  legal_update: (t) => ({ title: t('notifications:events.legal_update'), icon: 'document-text-outline' }),
 };
 
 const FALLBACK_META: (t: TFunction) => NotificationTypeMeta = (t) => ({ title: t('notifications:events.fallback'), icon: 'notifications-outline' });
@@ -72,6 +73,7 @@ const NOTIFICATION_TONE: Partial<Record<NotificationEventType, NotificationTone>
   verification_approved: 'accent',
   verification_declined: 'error',
   verification_resubmission_required: 'error',
+  legal_update: 'info',
 };
 
 export function notificationTone(type: NotificationEventType): NotificationTone {
@@ -134,6 +136,8 @@ export function notificationDescription(
       return t('notifications:descriptions.verification_declined');
     case 'verification_resubmission_required':
       return t('notifications:descriptions.verification_resubmission_required');
+    case 'legal_update':
+      return t('notifications:descriptions.legal_update', { version: str(payload.version) ?? '' });
     default:
       return notificationTypeMeta(type, t).title;
   }

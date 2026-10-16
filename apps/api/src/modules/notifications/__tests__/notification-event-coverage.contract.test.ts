@@ -115,6 +115,7 @@ describe('notification event coverage — spec §39\'s 12-item list vs. the real
         'trip_eta_changed',
         'booking_request_sent',
         'ride_published',
+        'legal_update',
       ]),
     );
   });

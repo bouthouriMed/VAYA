@@ -55,6 +55,10 @@ export const NOTIFICATION_EVENT_TYPES = [
   // receipt and the driver's "your ride is published" receipt.
   'booking_request_sent',
   'ride_published',
+  // A new version of the Terms / Privacy Policy (packages/legal
+  // LEGAL_UPDATE), sent once to every member by `pnpm --filter @vaya/api
+  // legal:notify` — the in-app notice the Terms (article 20) promise.
+  'legal_update',
 ] as const;
 export type NotificationEventType = (typeof NOTIFICATION_EVENT_TYPES)[number];
 

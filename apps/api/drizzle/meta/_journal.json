@@ -239,6 +239,13 @@
       "when": 1792100338329,
       "tag": "0033_meeting_points_and_areas",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1792156004833,
+      "tag": "0034_legal_update_notification",
+      "breakpoints": true
     }
   ]
 }

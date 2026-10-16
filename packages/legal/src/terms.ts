@@ -1,4 +1,5 @@
 import type { SupportedLocale } from '@vaya/config';
+import { LEGAL_UPDATE, formatLegalDate } from './updates';
 import type { LegalDocument } from './types';
 
 /**
@@ -16,8 +17,8 @@ import type { LegalDocument } from './types';
  */
 const fr: LegalDocument = {
   title: "Conditions Générales d'Utilisation",
-  version: '2.1',
-  effectiveDateLabel: 'Version 2.1',
+  version: LEGAL_UPDATE.version,
+  effectiveDateLabel: `Version ${LEGAL_UPDATE.version} · en vigueur le ${formatLegalDate(LEGAL_UPDATE.effectiveOn, 'fr')}`,
   languageNote:
     'Langue faisant foi : français. En cas de divergence avec une traduction, la version française prévaut.',
   sections: [
@@ -224,8 +225,9 @@ const fr: LegalDocument = {
     {
       heading: '20. Modification des conditions',
       body: [
-        "Nous pouvons modifier les présentes conditions pour tenir compte de l'évolution de la Plateforme, de la loi ou de nos pratiques. Nous vous informons des modifications importantes dans l'application au moins 30 jours avant leur entrée en vigueur, sauf si un changement est exigé plus tôt par la loi ou pour répondre à un risque de sécurité.",
-        "Si vous n'acceptez pas une modification, vous pouvez supprimer votre compte avant son entrée en vigueur. Les modifications ne s'appliquent pas aux Réservations conclues avant leur entrée en vigueur.",
+        "Nous pouvons modifier les présentes conditions pour tenir compte de l'évolution de la Plateforme, de la loi ou de nos pratiques. Chaque nouvelle version est publiée dans l'application et sur notre site avec un résumé de ce qui change, et nous envoyons une notification dans l'application à chaque Membre.",
+        "Une modification importante est une modification qui réduit vos droits ou vous impose de nouvelles obligations — par exemple demander un nouveau document ou une nouvelle information, introduire des frais, durcir les conséquences d'une annulation ou d'une absence, partager vos données plus largement, ou ajouter des motifs de restriction d'un compte. Une modification importante entre en vigueur au moins 30 jours après cette notification, sauf si la loi ou un risque pour la sécurité impose un délai plus court. Les autres modifications (clarifications, nouvelles fonctionnalités, protection renforcée) peuvent entrer en vigueur dès leur publication.",
+        "Si vous n'acceptez pas une modification importante, vous pouvez supprimer votre compte avant son entrée en vigueur. Les modifications ne s'appliquent pas aux Réservations conclues avant leur entrée en vigueur.",
       ],
     },
     {
@@ -257,8 +259,8 @@ const fr: LegalDocument = {
 
 const en: LegalDocument = {
   title: 'Terms of Use',
-  version: '2.1',
-  effectiveDateLabel: 'Version 2.1',
+  version: LEGAL_UPDATE.version,
+  effectiveDateLabel: `Version ${LEGAL_UPDATE.version} · in force from ${formatLegalDate(LEGAL_UPDATE.effectiveOn, 'en')}`,
   languageNote:
     'Governing language: French. In case of any discrepancy with this translation, the French version prevails.',
   sections: [
@@ -465,8 +467,9 @@ const en: LegalDocument = {
     {
       heading: '20. Changes to these Terms',
       body: [
-        'We may change these Terms to reflect changes to the Platform, the law or our practices. We will inform you of material changes in the app at least 30 days before they take effect, unless a change is required sooner by law or to address a safety risk.',
-        'If you do not agree to a change, you can delete your account before it takes effect. Changes do not apply to Bookings made before they take effect.',
+        "We may change these Terms to reflect changes to the Platform, the law or our practices. Each new version is published in the app and on our website with a summary of what changes, and we send every Member a notification in the app.",
+        "An important change is one that reduces your rights or adds obligations for you — for example asking for a new document or new information, introducing fees, making the consequences of a cancellation or no-show stricter, sharing your data more widely, or adding reasons to restrict an account. An important change takes effect at least 30 days after this notification, unless the law or a safety risk requires it sooner. Other changes (clarifications, new features, more protection for you) can take effect when they are published.",
+        "If you do not agree to an important change, you can delete your account before it takes effect. Changes do not apply to Bookings made before they take effect.",
       ],
     },
     {
@@ -498,8 +501,8 @@ const en: LegalDocument = {
 
 const ar: LegalDocument = {
   title: 'شروط الاستخدام',
-  version: '2.1',
-  effectiveDateLabel: 'الإصدار 2.1',
+  version: LEGAL_UPDATE.version,
+  effectiveDateLabel: `الإصدار ${LEGAL_UPDATE.version} · ساري المفعول منذ ${formatLegalDate(LEGAL_UPDATE.effectiveOn, 'ar')}`,
   languageNote:
     'اللغة المعتمدة: الفرنسية. في حال وجود اختلاف بين هذه الترجمة والنص الفرنسي، يُعتمد النص الفرنسي.',
   sections: [
@@ -706,8 +709,9 @@ const ar: LegalDocument = {
     {
       heading: '20. تعديل الشروط',
       body: [
-        'يمكننا تعديل هذه الشروط لمواكبة تطور المنصة أو القانون أو ممارساتنا. نعلمك بالتعديلات الجوهرية في التطبيق قبل 30 يوماً على الأقل من سريانها، ما لم يفرض القانون أو خطر يمس السلامة تغييراً أسرع.',
-        'إذا لم توافق على تعديل، يمكنك حذف حسابك قبل سريانه. لا تنطبق التعديلات على الحجوزات المبرمة قبل سريانها.',
+        "يمكننا تعديل هذه الشروط لمواكبة تطور المنصة أو القانون أو ممارساتنا. تُنشر كل نسخة جديدة في التطبيق وعلى موقعنا مع ملخص لما يتغير، ونرسل إشعاراً في التطبيق إلى كل عضو.",
+        "التعديل المهم هو كل تعديل ينتقص من حقوقك أو يفرض عليك التزامات جديدة، مثل طلب وثيقة أو معلومة جديدة، أو فرض معاليم، أو تشديد عواقب الإلغاء أو عدم الحضور، أو مشاركة بياناتك على نطاق أوسع، أو إضافة أسباب لتقييد حساب. يسري التعديل المهم بعد 30 يوماً على الأقل من هذا الإشعار، ما لم يفرض القانون أو خطر على السلامة أجلاً أقصر. ويمكن أن تسري التعديلات الأخرى (التوضيحات، الميزات الجديدة، حماية أكبر لك) فور نشرها.",
+        "إذا لم توافق على تعديل مهم، يمكنك حذف حسابك قبل سريانه. لا تنطبق التعديلات على الحجوزات المبرمة قبل سريانها.",
       ],
     },
     {

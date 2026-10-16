@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { PRIVACY_CONTENT } from '@vaya/legal';
+import { PRIVACY_CONTENT, LEGAL_UPDATE } from '@vaya/legal';
 import { getDictionary, locales, type Locale } from '@/i18n/dictionaries';
 import { LegalPage } from '@/components/LegalPage';
 
@@ -28,5 +28,5 @@ export default async function PrivacyPage({
   const { locale } = await params;
   const dict = getDictionary(locale);
   const document = PRIVACY_CONTENT[locale === 'en' ? 'en' : 'fr'];
-  return <LegalPage document={document} dict={dict} locale={locale} />;
+  return <LegalPage document={document} dict={dict} locale={locale} update={LEGAL_UPDATE} />;
 }

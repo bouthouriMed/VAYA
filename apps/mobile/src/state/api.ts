@@ -538,7 +538,9 @@ export type NotificationEventType =
   | 'verification_submitted'
   | 'verification_approved'
   | 'verification_declined'
-  | 'verification_resubmission_required';
+  | 'verification_resubmission_required'
+  // New Terms / Privacy Policy version (@vaya/legal LEGAL_UPDATE).
+  | 'legal_update';
 
 export interface AppNotification {
   id: string;

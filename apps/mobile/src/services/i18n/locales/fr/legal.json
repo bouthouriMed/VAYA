@@ -2,5 +2,13 @@
   "screen": {
     "termsTitle": "Conditions d'utilisation",
     "privacyTitle": "Politique de confidentialité"
+  },
+  "updates": {
+    "title": "Ce qui change",
+    "heading": "Version {{version}}",
+    "dates": "Publiée le {{published}} · en vigueur le {{effective}}",
+    "importantNote": "Ces changements s'appliquent le {{effective}}. Si vous ne les acceptez pas, vous pouvez supprimer votre compte avant cette date.",
+    "readTerms": "Lire les Conditions",
+    "readPrivacy": "Lire la Politique de confidentialité"
   }
 }

@@ -1,4 +1,5 @@
 import type { SupportedLocale } from '@vaya/config';
+import { LEGAL_UPDATE, formatLegalDate } from './updates';
 import type { LegalDocument } from './types';
 
 /**
@@ -13,8 +14,8 @@ import type { LegalDocument } from './types';
  */
 const fr: LegalDocument = {
   title: 'Politique de confidentialité',
-  version: '2.1',
-  effectiveDateLabel: 'Version 2.1',
+  version: LEGAL_UPDATE.version,
+  effectiveDateLabel: `Version ${LEGAL_UPDATE.version} · en vigueur le ${formatLegalDate(LEGAL_UPDATE.effectiveOn, 'fr')}`,
   languageNote:
     'Langue faisant foi : français. En cas de divergence avec une traduction, la version française prévaut.',
   sections: [
@@ -186,7 +187,7 @@ const fr: LegalDocument = {
     {
       heading: '18. Modifications',
       body: [
-        "Nous mettons à jour la présente politique lorsque nos traitements évoluent et vous informons dans l'application des changements importants avant leur entrée en vigueur. La version figure en tête de ce document.",
+        "Nous mettons à jour la présente politique lorsque nos traitements évoluent. Chaque nouvelle version est publiée dans l'application et sur notre site avec un résumé de ce qui change, et nous en informons chaque Membre par une notification dans l'application. Une modification qui réduit vos droits ou étend l'utilisation de vos données entre en vigueur au moins 30 jours après cette notification (Conditions, article 20). La version et sa date d'entrée en vigueur figurent en tête de ce document.",
       ],
     },
   ],
@@ -194,8 +195,8 @@ const fr: LegalDocument = {
 
 const en: LegalDocument = {
   title: 'Privacy Policy',
-  version: '2.1',
-  effectiveDateLabel: 'Version 2.1',
+  version: LEGAL_UPDATE.version,
+  effectiveDateLabel: `Version ${LEGAL_UPDATE.version} · in force from ${formatLegalDate(LEGAL_UPDATE.effectiveOn, 'en')}`,
   languageNote:
     'Governing language: French. In case of any discrepancy with this translation, the French version prevails.',
   sections: [
@@ -367,7 +368,7 @@ const en: LegalDocument = {
     {
       heading: '18. Changes',
       body: [
-        'We update this policy when our processing changes and inform you in the app of significant changes before they take effect. The version is shown at the top of this document.',
+        "We update this policy when our processing changes. Each new version is published in the app and on our website with a summary of what changes, and we notify every Member in the app. A change that reduces your rights or uses your data more widely takes effect at least 30 days after that notification (Terms, Article 20). The version and its effective date are shown at the top of this document.",
       ],
     },
   ],
@@ -375,8 +376,8 @@ const en: LegalDocument = {
 
 const ar: LegalDocument = {
   title: 'سياسة الخصوصية',
-  version: '2.1',
-  effectiveDateLabel: 'الإصدار 2.1',
+  version: LEGAL_UPDATE.version,
+  effectiveDateLabel: `الإصدار ${LEGAL_UPDATE.version} · ساري المفعول منذ ${formatLegalDate(LEGAL_UPDATE.effectiveOn, 'ar')}`,
   languageNote:
     'اللغة المعتمدة: الفرنسية. في حال وجود اختلاف بين هذه الترجمة والنص الفرنسي، يُعتمد النص الفرنسي.',
   sections: [
@@ -548,7 +549,7 @@ const ar: LegalDocument = {
     {
       heading: '18. التعديلات',
       body: [
-        'نحدّث هذه السياسة عند تغيّر معالجاتنا، ونعلمك في التطبيق بالتغييرات الهامة قبل سريانها. يظهر رقم الإصدار في أعلى هذه الوثيقة.',
+        "نحدّث هذه السياسة عند تغيّر معالجاتنا. تُنشر كل نسخة جديدة في التطبيق وعلى موقعنا مع ملخص لما يتغير، ونُعلم كل عضو بإشعار في التطبيق. يسري كل تعديل ينتقص من حقوقك أو يوسّع استعمال بياناتك بعد 30 يوماً على الأقل من هذا الإشعار (الشروط، الفصل 20). يظهر رقم الإصدار وتاريخ سريانه في أعلى هذه الوثيقة.",
       ],
     },
   ],
