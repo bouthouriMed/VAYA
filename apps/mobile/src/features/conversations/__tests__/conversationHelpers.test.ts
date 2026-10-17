@@ -3,6 +3,7 @@ import type { TFunction } from 'i18next';
 import {
   isOwnMessage,
   canSendMessage,
+  composerState,
   mergeAndSortMessages,
   submitMessage,
   getTripContext,
@@ -57,6 +58,7 @@ function makeConversation(overrides: Partial<Conversation> = {}): Conversation {
     tripStatus: null,
     lastMessage: null,
     hasUnread: false,
+    composer: 'open',
     ...overrides,
   };
 }
@@ -82,6 +84,24 @@ describe('canSendMessage', () => {
 
   it('disallows sending while the conversation is still loading (undefined)', () => {
     expect(canSendMessage(undefined)).toBe(false);
+  });
+});
+
+describe('composerState', () => {
+  const mine = makeMessage({ id: 'm1', senderUserId: 'me', createdAt: '2026-08-19T10:00:00.000Z' });
+  const theirs = makeMessage({ id: 'm2', senderUserId: 'driver', createdAt: '2026-08-19T10:05:00.000Z' });
+
+  it('waits for the driver after the passenger wrote on a pending request', () => {
+    expect(composerState(makeConversation({ composer: 'awaiting_reply' }), [mine], 'me')).toBe('awaiting_reply');
+    expect(canSendMessage(makeConversation({ composer: 'awaiting_reply' }))).toBe(false);
+  });
+
+  it("gives the turn back as soon as the driver's reply shows up in the polled messages", () => {
+    expect(composerState(makeConversation({ composer: 'awaiting_reply' }), [mine, theirs], 'me')).toBe('open');
+  });
+
+  it('is closed for a closed conversation whatever the messages say', () => {
+    expect(composerState(makeConversation({ status: 'closed', composer: 'closed' }), [mine, theirs], 'me')).toBe('closed');
   });
 });
 

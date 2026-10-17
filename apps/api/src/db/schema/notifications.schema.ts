@@ -72,6 +72,9 @@ export const notificationEventTypeEnum = pgEnum('notification_event_type', [
   // EMAIL_ONLY_NOTIFICATION_TYPES) — never pushed, never in the inbox.
   'booking_request_sent',
   'ride_published',
+  // New Terms / Privacy Policy version (packages/legal LEGAL_UPDATE) — the
+  // in-app notice the Terms promise, sent by scripts/legal-notify.ts.
+  'legal_update',
 ]);
 
 export const notifications = pgTable('notifications', {

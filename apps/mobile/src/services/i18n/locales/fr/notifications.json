@@ -32,7 +32,8 @@
     "verification_approved": "Vous êtes vérifié",
     "verification_declined": "Vérification refusée",
     "verification_resubmission_required": "Vérification à mettre à jour",
-    "fallback": "Notification"
+    "fallback": "Notification",
+    "legal_update": "Nos conditions évoluent"
   },
   "descriptions": {
     "booking_requested_one": "{{name}} souhaite réserver {{count}} place sur votre trajet.",
@@ -54,7 +55,8 @@
     "verification_submitted": "Nous examinons vos documents. Aucune action n'est requise pour le moment.",
     "verification_approved": "Votre profil conducteur est vérifié. Vous pouvez maintenant publier des trajets.",
     "verification_declined": "Votre vérification n'a pas été approuvée. Consultez les détails dans votre profil.",
-    "verification_resubmission_required": "Merci de mettre à jour vos documents pour continuer la vérification."
+    "verification_resubmission_required": "Merci de mettre à jour vos documents pour continuer la vérification.",
+    "legal_update": "Les Conditions et la Politique de confidentialité passent en version {{version}}. Touchez pour voir ce qui change."
   },
   "driverRequest": {
     "newOnVaya": "Nouveau sur VAYA",

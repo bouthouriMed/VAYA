@@ -112,33 +112,44 @@
   },
   "trust": {
     "title": "Profile",
-    "back": "Back",
     "profileNotFound": "Profile not found.",
-    "verified": "Verified",
+    "roleDriverVerified": "Verified driver",
+    "roleDriverPending": "Driver",
+    "roleRider": "Passenger",
+    "memberSince": "Member since {{date}}",
+    "memberSinceCaption": "member since",
     "speaks": "Speaks {{languages}}",
-    "ratingLabel": "Rating",
-    "tripsLabel": "Trips",
-    "welcomeTitle": "{{name}} is just getting started on VAYA",
-    "welcomeDescription": "A fully verified profile, not yet with trips or reviews — everyone starts somewhere. What VAYA already guarantees is listed below.",
-    "welcomeDescriptionRider": "No trips or reviews yet — everyone starts somewhere.",
-    "welcomeEncourage": "Be one of {{name}}'s first passengers — your review after the ride will help them build trust from the start.",
-    "welcomeEncourageRider": "Be one of the first to give {{name}} a ride — your rating afterwards will help them build trust from the start.",
-    "pillNew": "New",
-    "pillReliable": "Reliable",
-    "pillTopRated": "Top VAYA",
-    "verificationsTitle": "VAYA verifications",
-    "verificationIdentity": "Identity confirmed by selfie",
-    "verificationDocuments": "Driving documents checked",
-    "verificationVehicle": "Registered vehicle — plate shown below",
-    "aboutTitle": "About {{name}}",
+    "verifiedA11y": "Profile verified by VAYA",
+    "tierNew": "New",
+    "tierTrusted": "Trusted",
+    "tierTopRated": "Top VAYA",
+    "reliable": "Reliable",
+    "reviewsCaption_one": "review",
+    "reviewsCaption_other": "reviews",
+    "tripsCaption_one": "trip",
+    "tripsCaption_other": "trips",
+    "punctualityCaption": "on time",
+    "welcomeTitle": "{{name}} is new on VAYA",
+    "welcomeBodyDriver": "Verified profile, first trips ahead. Your review after the ride will help them start with trust.",
+    "welcomeBodyRider": "First trips ahead. Your rating after the ride will help them start with trust.",
+    "verifiedByVaya": "Verified by VAYA",
+    "verificationPending": "VAYA is still reviewing {{name}}'s documents.",
+    "sealIdentity": "Identity",
+    "sealLicense": "Licence",
+    "sealVehicle": "Vehicle",
+    "sealA11y": "Verified by VAYA: {{checks}}",
+    "aboutTitle": "About",
+    "vehicleTitle": "Their car",
+    "plateA11y": "Licence plate {{plate}}",
+    "vehiclePhotoA11y": "Photo of the car",
     "reviewsTitle": "Reviews",
+    "reviewsA11y": "Average rating {{average}} out of 5, {{count}} reviews",
+    "reviewsPrivate": "Comments stay private between driver and passenger.",
     "reviewsEmpty": "{{name}} hasn't received any reviews yet.",
-    "reviewsFirstLine": "Share yours after your ride — the first review counts the most.",
-    "messageDriver": "Message driver",
     "messageAvailability": "Available once your seat request is accepted.",
     "messageAvailabilityDriver": "Available once you accept this request.",
-    "punctualityLabel": "Punctuality",
-    "reviewsPrivate": "Comments left after a trip stay private between the driver and the passenger. The rating above reflects every review received."
+    "plateLocked": "Shown once accepted",
+    "plateLockedA11y": "The licence plate is shared once the request is accepted"
   },
   "timePicker": {
     "when": "When?",
@@ -192,5 +203,26 @@
     "roundabout": "Roundabout",
     "highway_exit": "Highway exit",
     "on_route": "On the driver’s route"
+  },
+  "requestSheet": {
+    "title": "Send your request",
+    "messageLabel": "A word for {{name}}? (optional)",
+    "messagePlaceholder": "A question, luggage, a detail about the meeting point…",
+    "turnHint": "Until your request is accepted, you can write again once {{name}} has replied.",
+    "send": "Send request",
+    "suggestion": {
+      "luggage": {
+        "chip": "Luggage",
+        "text": "I have a bag — is that OK?"
+      },
+      "flexible": {
+        "chip": "Flexible",
+        "text": "I'm flexible on the time if needed."
+      },
+      "meetingPoint": {
+        "chip": "Meeting point",
+        "text": "Where exactly do we meet?"
+      }
+    }
   }
 }

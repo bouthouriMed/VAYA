@@ -2,5 +2,13 @@
   "screen": {
     "termsTitle": "Terms & Conditions",
     "privacyTitle": "Privacy Policy"
+  },
+  "updates": {
+    "title": "What's changing",
+    "heading": "Version {{version}}",
+    "dates": "Published {{published}} · in force from {{effective}}",
+    "importantNote": "These changes apply on {{effective}}. If you don't accept them, you can delete your account before that date.",
+    "readTerms": "Read the Terms",
+    "readPrivacy": "Read the Privacy Policy"
   }
 }

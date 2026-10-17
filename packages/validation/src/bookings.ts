@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { REQUEST_MESSAGE_MAX_LENGTH } from '@vaya/domain';
 
 const pickupPointSchema = z.object({
   label: z.string().min(1).max(140),
@@ -56,6 +57,14 @@ export const createBookingSchema = z
     // requested destination, not just whatever happens to equal the
     // ride's own endpoint.
     dropoff: pickupPointSchema.optional(),
+    // The one message a passenger can send with a request ("J'ai une
+    // valise", "Je peux attendre 10 min") — becomes the first message of
+    // the booking's conversation. Blank is treated as no message.
+    message: z
+      .string()
+      .trim()
+      .max(REQUEST_MESSAGE_MAX_LENGTH, 'Message is too long')
+      .optional(),
   })
   .refine((data) => Boolean(data.pickupStopId) || Boolean(data.pickup), {
     message: 'Provide either pickupStopId or pickup coordinates',

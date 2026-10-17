@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { TERMS_CONTENT } from '@vaya/legal';
+import { TERMS_CONTENT, LEGAL_UPDATE } from '@vaya/legal';
 import { getDictionary, locales, type Locale } from '@/i18n/dictionaries';
 import { LegalPage } from '@/components/LegalPage';
 
@@ -28,5 +28,5 @@ export default async function TermsPage({
   const { locale } = await params;
   const dict = getDictionary(locale);
   const document = TERMS_CONTENT[locale === 'en' ? 'en' : 'fr'];
-  return <LegalPage document={document} dict={dict} locale={locale} />;
+  return <LegalPage document={document} dict={dict} locale={locale} update={LEGAL_UPDATE} />;
 }

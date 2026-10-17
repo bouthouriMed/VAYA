@@ -287,7 +287,13 @@ export interface PublicProfile {
   id: string;
   fullName: string;
   avatarUrl: string | null;
+  /** ISO timestamp of account creation — shown as "Membre depuis …". */
+  memberSince: string;
   driver: {
+    /** Admin-approved driver verification. A driver profile also exists
+     *  while documents are still being reviewed — never show "Vérifié"
+     *  without this. */
+    verified: boolean;
     bio: string | null;
     languages: string[] | null;
     ratingAvg: number;
@@ -299,9 +305,20 @@ export interface PublicProfile {
       model: string;
       color: string;
       photoUrl: string | null;
-      plateNumber: string;
+      // No plate: it's shared only with an accepted passenger, through
+      // getBookingVehicle.
     } | null;
   } | null;
+}
+
+/** The car of an accepted booking, plate included (GET
+ *  /bookings/:id/vehicle — the booking's two parties only, once accepted). */
+export interface BookingVehicle {
+  make: string;
+  model: string;
+  color: string;
+  photoUrl: string | null;
+  plateNumber: string;
 }
 
 export interface Me {
@@ -521,7 +538,9 @@ export type NotificationEventType =
   | 'verification_submitted'
   | 'verification_approved'
   | 'verification_declined'
-  | 'verification_resubmission_required';
+  | 'verification_resubmission_required'
+  // New Terms / Privacy Policy version (@vaya/legal LEGAL_UPDATE).
+  | 'legal_update';
 
 export interface AppNotification {
   id: string;
@@ -574,6 +593,10 @@ export interface Conversation {
    *  this viewer's own last read timestamp — drives the Messages tab's
    *  badge in (tabs)/_layout.tsx. Never true for the viewer's own message. */
   hasUnread: boolean;
+  /** Whether the viewer can write now (@vaya/domain resolveMessageTurn):
+   *  `awaiting_reply` = a passenger with a pending request already wrote
+   *  and waits for the driver's answer. */
+  composer: 'open' | 'awaiting_reply' | 'closed';
 }
 
 export interface ConversationMessage {
@@ -691,6 +714,12 @@ export interface TierAggregate {
   ratingAvg: number;
   tripCount: number;
   punctualityScore: number;
+  /** Number of ratings behind `ratingAvg`. */
+  ratingCount: number;
+  /** Ratings per star, index 0 = 1★ … index 4 = 5★. */
+  starCounts: [number, number, number, number, number];
+  /** Ratings that answered the punctuality question (0 → no signal yet). */
+  punctualityRatingCount: number;
 }
 
 export interface TrustSummary {
@@ -1260,6 +1289,11 @@ export const api = createApi({
     getBookingContactPhone: builder.query<{ phone: string | null }, string>({
       query: (bookingId) => `/bookings/${bookingId}/contact-phone`,
     }),
+    // Same privacy rule as the phone: the plate is shared only once the
+    // booking is accepted, and only with its two parties.
+    getBookingVehicle: builder.query<BookingVehicle, string>({
+      query: (bookingId) => `/bookings/${bookingId}/vehicle`,
+    }),
     cancelBooking: builder.mutation<
       Booking & { cancellationPolicy: CancellationPolicy },
       { bookingId: string; reason: CancellationReason }
@@ -1311,6 +1345,8 @@ export const api = createApi({
     }),
     getConversationByBooking: builder.query<Conversation, string>({
       query: (bookingId) => `/conversations/${bookingId}`,
+      // Refetched after a send, so `composer` flips to awaiting_reply.
+      providesTags: ['Conversations'],
     }),
     listConversationMessages: builder.query<
       ConversationMessage[],
@@ -1505,6 +1541,7 @@ export const {
   useGetCancellationPreviewQuery,
   useGetBookingDetourPreviewQuery,
   useLazyGetBookingContactPhoneQuery,
+  useGetBookingVehicleQuery,
   useCancelBookingMutation,
   useReportNoShowMutation,
   useRegisterPushTokenMutation,

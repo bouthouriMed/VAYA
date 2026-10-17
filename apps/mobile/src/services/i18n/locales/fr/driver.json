@@ -382,7 +382,10 @@
       "newOnVaya": "Nouveau sur VAYA",
       "openInMaps": "Ouvrir {{label}} dans Maps",
       "yourRoute": "Votre itinéraire",
-      "thisRequest": "Cette demande"
+      "thisRequest": "Cette demande",
+      "reply": "Répondre",
+      "youReplied": "Vous avez répondu.",
+      "openConversation": "Voir la conversation"
     },
     "bookingDetail": {
       "title": "Détails de la réservation",

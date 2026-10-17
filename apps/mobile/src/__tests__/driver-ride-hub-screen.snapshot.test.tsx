@@ -200,7 +200,7 @@ const ACCEPTED_TRIP: Trip = {
 const RIDER_TRUST_SUMMARY: TrustSummary = {
   userId: 'rider-any',
   driver: null,
-  rider: { tier: 'trusted', ratingAvg: 4.7, tripCount: 12, punctualityScore: 0.9 },
+  rider: { tier: 'trusted', ratingAvg: 4.7, tripCount: 12, punctualityScore: 0.9, ratingCount: 0, starCounts: [0, 0, 0, 0, 0], punctualityRatingCount: 0 },
 };
 
 type QueryResult<T> = { data?: T; isLoading?: boolean };
@@ -238,6 +238,7 @@ function mockApi(requests: Booking[], tripsByBookingId: Record<string, Trip> = {
     // so an inert stub suffices, same as the other closed sheets above.
     useGetBookingDetourPreviewQuery: (): QueryResult<unknown> => ({}),
     useGetUserTrustSummaryQuery: (): QueryResult<TrustSummary> => ({ data: RIDER_TRUST_SUMMARY }),
+    useGetConversationByBookingQuery: () => ({ data: undefined }),
     // DriverBookingDetailSheet's Call button (useCallCounterpart) — rendered
     // closed (visible=false) so an inert stub suffices, same as the other
     // closed-sheet hooks above.

@@ -8,6 +8,7 @@ export default function LegalLayout(): React.JSX.Element {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="terms" />
       <Stack.Screen name="privacy" />
+      <Stack.Screen name="updates" />
     </Stack>
   );
 }

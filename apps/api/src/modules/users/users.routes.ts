@@ -45,8 +45,10 @@ const publicProfileResponseSchema = z.object({
   id: z.string().uuid(),
   fullName: z.string(),
   avatarUrl: z.string().nullable(),
+  memberSince: z.date(),
   driver: z
     .object({
+      verified: z.boolean(),
       bio: z.string().nullable(),
       languages: z.array(z.string()).nullable(),
       ratingAvg: z.number(),
@@ -59,7 +61,6 @@ const publicProfileResponseSchema = z.object({
           model: z.string(),
           color: z.string(),
           photoUrl: z.string().nullable(),
-          plateNumber: z.string(),
         })
         .nullable(),
     })

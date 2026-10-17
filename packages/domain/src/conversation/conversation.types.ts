@@ -2,8 +2,9 @@ import type { TimestampedEntity, UUID } from '../shared/base.types';
 
 /**
  * A conversation is scoped to exactly one booking (docs/roadmap/phase-08-messaging.md)
- * — not a ride-level group chat. It opens automatically when the booking
- * reaches `accepted` and becomes permanently read-only once the trip
+ * — not a ride-level group chat. It opens when the request is sent (turn-
+ * limited for the passenger until acceptance, see message-turn.ts) and
+ * becomes permanently read-only once the booking is resolved or the trip
  * reaches a terminal state (`completed`/`no_show`/`cancelled`), per
  * `packages/domain/src/trip/trip-status.ts`'s TRIP_STATUSES. There is no
  * transition table here (unlike ride/booking/trip status) because the

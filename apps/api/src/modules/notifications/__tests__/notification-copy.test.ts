@@ -74,6 +74,20 @@ describe('composeNotification', () => {
     });
   });
 
+  it("quotes the passenger's request message before the deadline", () => {
+    expect(
+      composeNotification('booking_requested', { requestMessage: "J'ai une valise" }, { ...FULL, role: 'driver' }, 'fr', NOW).body,
+    ).toBe("Mehdi demande 2 places pour aujourd'hui à 19:14. « J'ai une valise » Répondez avant 18:45.");
+  });
+
+  it('announces a terms update, with the date when it applies later', () => {
+    const later = composeNotification('legal_update', { version: '3.0', effectiveOn: '2026-11-20' }, {}, 'fr', NOW);
+    expect(later.title).toBe('Nos conditions évoluent (version 3.0)');
+    expect(later.body).toContain('à partir du 20 novembre');
+    const now = composeNotification('legal_update', { version: '2.1', effectiveOn: '2000-01-01' }, {}, 'en', NOW);
+    expect(now.body).toBe("The Terms and Privacy Policy have been updated. Tap to see what's changing.");
+  });
+
   it('says who cancelled and what it means for the recipient', () => {
     const toDriver = composeNotification('booking_cancelled', {}, { ...FULL, role: 'driver', seats: 1 }, 'fr', NOW);
     expect(toDriver.title).toBe('Mehdi a annulé sa réservation');

@@ -15,6 +15,7 @@ import {
 import { getRoute, type RouteResult } from '../../lib/routing.js';
 import { upsertRouteGeometry } from '../../lib/spatial.js';
 import { getActivePricingConfig } from '../pricing/pricing.service.js';
+import { getActiveOperationalConfig } from '../operational-config/operational-config.service.js';
 import { redeemRouteToken } from './route-options.service.js';
 import { notifyBestEffort } from '../notifications/notifications.service.js';
 import { closeConversationBestEffort } from '../conversations/conversations.service.js';
@@ -456,7 +457,16 @@ export async function cancelRide(db: Database, rideId: string, userId: string) {
   // side. `pending` requests are closed too (EDGE-046's "stale requests
   // unacceptable after") — the ride they were requesting no longer exists.
   const cancelledAt = new Date();
-  const cancellationPolicy = computeCancellationPolicy(ride.departureAt, cancelledAt);
+  // Same thresholds as a single booking's cancellation (admin-tunable), not
+  // the code defaults — a Driver cancelling the whole Ride and a Passenger
+  // cancelling their seat must be judged by the same rule.
+  const opConfig = await getActiveOperationalConfig(db);
+  const cancellationPolicy = computeCancellationPolicy(
+    ride.departureAt,
+    cancelledAt,
+    opConfig.cancellationFreeWindowHours,
+    opConfig.cancellationModerateWindowMinutes,
+  );
 
   const [updated, affectedBookings] = await db.transaction(async (tx) => {
     const [updatedRide] = await tx

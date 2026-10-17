@@ -104,8 +104,14 @@ export async function getPublicProfile(db: Database, userId: string) {
     id: user.id,
     fullName: user.fullName,
     avatarUrl: user.avatarUrl,
+    // Tenure is a trust signal shown before booking (CLAUDE.md product
+    // principle 2) — month precision is all the profile displays.
+    memberSince: user.createdAt,
     driver: driverProfile
       ? {
+          // Only an admin-approved profile may be shown as "Vérifié" — a
+          // driver profile also exists while documents are still pending.
+          verified: driverProfile.verificationStatus === 'approved',
           bio: driverProfile.bio,
           languages: driverProfile.languages
             ? driverProfile.languages.split(',').map((l) => l.trim())
@@ -120,7 +126,8 @@ export async function getPublicProfile(db: Database, userId: string) {
                 model: vehicle.model,
                 color: vehicle.color,
                 photoUrl: vehicle.photoUrl,
-                plateNumber: vehicle.plateNumber,
+                // No plate here: it's shared only with an accepted passenger
+                // (GET /bookings/:id/vehicle).
               }
             : null,
         }

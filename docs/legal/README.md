@@ -1,5 +1,21 @@
 # Legal documentation
 
+> **Version 2.1 (16 October 2026)** brings the shipped text (`packages/legal`, fr/en/ar) back
+> in line with the product after a clause-by-clause check against the code: the number plate
+> is shown only to the other party of an accepted Booking; messaging opens with the Booking
+> Request (one message with the request, then one per Driver reply until acceptance); the
+> Platform — not the Passenger — proposes pickup and drop-off points, from the Driver's
+> route and offered areas; a Ride prepared during Driver Verification is held and published
+> on approval; never-started Rides close automatically; cancellation time limits can change
+> only after the Terms are updated and announced (they are admin-configurable); a Driver
+> cancelling a Ride gets the points once; the self-declared contact number, co-travel
+> history, meeting places used and push-notification content are now disclosed; the public
+> profile's rating breakdown and join month are listed. Article 20 now defines an
+> **important change** (fewer rights or new obligations → 30 days' notice) and the notice is
+> implemented: `LEGAL_UPDATE` in `packages/legal/src/updates.ts`, shown on the public pages and
+> in the app, sent with `pnpm --filter @vaya/api legal:notify`. The `v2/` English drafts are not
+> yet updated to 2.1 except the D-12 plate decision.
+>
 > **Version 2.0 is live (3 October 2026) — read first.** The text the app and website now
 > render is `packages/legal/src/{terms,privacy}.ts` (fr/en/ar), built from the v2 drafts in
 > [`v2/`](./v2/) with every clause that still needs an owner decision **left out** rather

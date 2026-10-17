@@ -167,6 +167,17 @@ export function requestFacts(p: Payload, l: NotificationLocale): string {
 // French
 // ---------------------------------------------------------------------------
 
+/** Whether a legal update's effective day (yyyy-mm-dd) is still ahead, and
+ *  that day as "16 octobre" / "16 October" / "16 أكتوبر". */
+function legalEffective(p: Payload, l: NotificationLocale, now: Date): { future: boolean; day: string } | undefined {
+  const iso = str(p.effectiveOn);
+  if (!iso) return undefined;
+  const date = new Date(`${iso}T00:00:00Z`);
+  if (Number.isNaN(date.getTime())) return undefined;
+  const day = new Intl.DateTimeFormat(INTL_TAG[l], { day: 'numeric', month: 'long', timeZone: 'UTC', numberingSystem: 'latn' }).format(date);
+  return { future: dayKey(date) > dayKey(now), day };
+}
+
 const seatsFr = (n: number) => `${n} place${n > 1 ? 's' : ''}`;
 
 const FR: Partial<Record<NotificationEventType, Builder>> = {
@@ -176,6 +187,7 @@ const FR: Partial<Record<NotificationEventType, Builder>> = {
       [
         `${c.otherName ?? str(p.riderName) ?? 'Un passager'} demande ${seatsFr(c.seats ?? 1)}${c.departureAt ? ` pour ${when(c.departureAt, l, now)}` : ''}.`,
         requestFacts(p, l) && `${requestFacts(p, l)}.`,
+        str(p.requestMessage) && `« ${str(p.requestMessage)} »`,
         c.expiresAt && `Répondez avant ${deadline(c.expiresAt, l, now)}.`,
       ],
       ' ',
@@ -311,6 +323,15 @@ const FR: Partial<Record<NotificationEventType, Builder>> = {
     title: 'Un document à mettre à jour',
     body: str(p.declineMessage) ?? 'Ouvrez VAYA pour voir quoi corriger.',
   }),
+  legal_update: (_c, p, l, now) => {
+    const eff = legalEffective(p, l, now);
+    return {
+      title: `Nos conditions évoluent${str(p.version) ? ` (version ${str(p.version)})` : ''}`,
+      body: eff?.future
+        ? `Les Conditions et la Politique de confidentialité changent à partir du ${eff.day}. Touchez pour voir ce qui change.`
+        : 'Les Conditions et la Politique de confidentialité ont été mises à jour. Touchez pour voir ce qui change.',
+    };
+  },
 };
 
 // ---------------------------------------------------------------------------
@@ -326,6 +347,7 @@ const EN: Partial<Record<NotificationEventType, Builder>> = {
       [
         `${c.otherName ?? str(p.riderName) ?? 'A passenger'} wants ${seatsEn(c.seats ?? 1)}${c.departureAt ? ` for ${when(c.departureAt, l, now)}` : ''}.`,
         requestFacts(p, l) && `${requestFacts(p, l)}.`,
+        str(p.requestMessage) && `“${str(p.requestMessage)}”`,
         c.expiresAt && `Reply before ${deadline(c.expiresAt, l, now)}.`,
       ],
       ' ',
@@ -455,6 +477,15 @@ const EN: Partial<Record<NotificationEventType, Builder>> = {
     title: 'A document needs updating',
     body: str(p.declineMessage) ?? 'Open VAYA to see what to fix.',
   }),
+  legal_update: (_c, p, l, now) => {
+    const eff = legalEffective(p, l, now);
+    return {
+      title: `Our terms are changing${str(p.version) ? ` (version ${str(p.version)})` : ''}`,
+      body: eff?.future
+        ? `The Terms and Privacy Policy change from ${eff.day}. Tap to see what's changing.`
+        : "The Terms and Privacy Policy have been updated. Tap to see what's changing.",
+    };
+  },
 };
 
 // ---------------------------------------------------------------------------
@@ -470,6 +501,7 @@ const AR: Partial<Record<NotificationEventType, Builder>> = {
       [
         `${c.otherName ?? str(p.riderName) ?? 'راكب'} يطلب ${seatsAr(c.seats ?? 1)}${c.departureAt ? ` ${when(c.departureAt, l, now)}` : ''}.`,
         requestFacts(p, l) && `${requestFacts(p, l)}.`,
+        str(p.requestMessage) && `«${str(p.requestMessage)}»`,
         c.expiresAt && `ردّ قبل ${deadline(c.expiresAt, l, now)}.`,
       ],
       ' ',
@@ -599,6 +631,15 @@ const AR: Partial<Record<NotificationEventType, Builder>> = {
     title: 'وثيقة تحتاج إلى تحديث',
     body: str(p.declineMessage) ?? 'افتح VAYA لمعرفة ما يجب تصحيحه.',
   }),
+  legal_update: (_c, p, l, now) => {
+    const eff = legalEffective(p, l, now);
+    return {
+      title: `شروطنا تتغير${str(p.version) ? ` (الإصدار ${str(p.version)})` : ''}`,
+      body: eff?.future
+        ? `تتغير الشروط وسياسة الخصوصية بداية من ${eff.day}. اضغط لمعرفة ما يتغير.`
+        : 'تم تحديث الشروط وسياسة الخصوصية. اضغط لمعرفة ما يتغير.',
+    };
+  },
 };
 
 const BOOKS: Record<NotificationLocale, Partial<Record<NotificationEventType, Builder>>> = { fr: FR, en: EN, ar: AR };

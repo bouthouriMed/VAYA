@@ -112,33 +112,44 @@
   },
   "trust": {
     "title": "Profil",
-    "back": "Retour",
     "profileNotFound": "Profil introuvable.",
-    "verified": "Vérifié",
+    "roleDriverVerified": "Conducteur vérifié",
+    "roleDriverPending": "Conducteur",
+    "roleRider": "Passager",
+    "memberSince": "Membre depuis {{date}}",
+    "memberSinceCaption": "membre depuis",
     "speaks": "Parle {{languages}}",
-    "ratingLabel": "Note",
-    "tripsLabel": "Trajets",
+    "verifiedA11y": "Profil vérifié par VAYA",
+    "tierNew": "Nouveau",
+    "tierTrusted": "Confiance",
+    "tierTopRated": "Top VAYA",
+    "reliable": "Fiable",
+    "reviewsCaption_one": "avis",
+    "reviewsCaption_other": "avis",
+    "tripsCaption_one": "trajet",
+    "tripsCaption_other": "trajets",
+    "punctualityCaption": "ponctualité",
     "welcomeTitle": "{{name}} débute sur VAYA",
-    "welcomeDescription": "Profil entièrement vérifié, encore sans trajets ni avis — tout le monde débute un jour. Ce que VAYA garantit déjà se trouve ci-dessous.",
-    "welcomeDescriptionRider": "Pas encore de trajets ni d'avis — tout le monde débute un jour.",
-    "welcomeEncourage": "Soyez parmi les premiers passagers de {{name}} : votre avis après le trajet l'aidera à démarrer en confiance.",
-    "welcomeEncourageRider": "Soyez parmi les premiers à emmener {{name}} : votre évaluation après le trajet l'aidera à démarrer en confiance.",
-    "pillNew": "Nouveau",
-    "pillReliable": "Fiable",
-    "pillTopRated": "Top VAYA",
-    "verificationsTitle": "Vérifications VAYA",
-    "verificationIdentity": "Identité confirmée par selfie",
-    "verificationDocuments": "Documents de conduite contrôlés",
-    "verificationVehicle": "Véhicule enregistré — plaque visible ci-dessous",
-    "aboutTitle": "À propos de {{name}}",
+    "welcomeBodyDriver": "Profil vérifié, premiers trajets à venir. Votre avis après le trajet l'aidera à démarrer en confiance.",
+    "welcomeBodyRider": "Premiers trajets à venir. Votre évaluation après le trajet l'aidera à démarrer en confiance.",
+    "verifiedByVaya": "Vérifié par VAYA",
+    "verificationPending": "Les documents de {{name}} sont en cours de vérification par VAYA.",
+    "sealIdentity": "Identité",
+    "sealLicense": "Permis",
+    "sealVehicle": "Véhicule",
+    "sealA11y": "Vérifié par VAYA : {{checks}}",
+    "aboutTitle": "À propos",
+    "vehicleTitle": "Son véhicule",
+    "plateA11y": "Plaque d'immatriculation {{plate}}",
+    "vehiclePhotoA11y": "Photo du véhicule",
     "reviewsTitle": "Avis",
+    "reviewsA11y": "Note moyenne {{average}} sur 5, {{count}} avis",
+    "reviewsPrivate": "Les commentaires restent privés entre conducteur et passager.",
     "reviewsEmpty": "{{name}} n'a pas encore reçu d'avis.",
-    "reviewsFirstLine": "Après votre trajet, partagez le vôtre — le premier avis est celui qui compte le plus.",
-    "messageDriver": "Message conducteur",
     "messageAvailability": "Disponible une fois votre demande de place acceptée.",
     "messageAvailabilityDriver": "Disponible une fois cette demande acceptée.",
-    "punctualityLabel": "Ponctualité",
-    "reviewsPrivate": "Les commentaires laissés après un trajet restent privés entre le conducteur et le passager. La note ci-dessus reflète tous les avis reçus."
+    "plateLocked": "Visible après acceptation",
+    "plateLockedA11y": "La plaque d'immatriculation est communiquée une fois la demande acceptée"
   },
   "timePicker": {
     "when": "Quand ?",
@@ -192,5 +203,26 @@
     "roundabout": "Rond-point",
     "highway_exit": "Sortie d’autoroute",
     "on_route": "Sur la route du conducteur"
+  },
+  "requestSheet": {
+    "title": "Envoyer votre demande",
+    "messageLabel": "Un mot pour {{name}} ? (facultatif)",
+    "messagePlaceholder": "Une question, un bagage, une précision sur le rendez-vous…",
+    "turnHint": "Avant l'acceptation, vous pourrez écrire à nouveau dès que {{name}} aura répondu.",
+    "send": "Envoyer la demande",
+    "suggestion": {
+      "luggage": {
+        "chip": "Bagage",
+        "text": "J'ai un bagage, est-ce que ça passe ?"
+      },
+      "flexible": {
+        "chip": "Flexible",
+        "text": "Je suis flexible sur l'heure si besoin."
+      },
+      "meetingPoint": {
+        "chip": "Rendez-vous",
+        "text": "Où exactement se retrouve-t-on ?"
+      }
+    }
   }
 }

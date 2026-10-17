@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import type { LegalDocument } from '@vaya/legal';
+import { formatLegalDate, type LegalDocument, type LegalUpdate } from '@vaya/legal';
 import type { Dictionary } from '@/i18n/dictionaries';
 
 /**
@@ -14,11 +14,15 @@ export function LegalPage({
   document,
   dict,
   locale,
+  update,
 }: {
   document: LegalDocument;
   dict: Dictionary;
   locale: string;
+  /** The current version's "what's changing" summary (Terms article 20). */
+  update?: LegalUpdate;
 }): React.JSX.Element {
+  const lang = locale === 'en' ? 'en' : 'fr';
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-outline-variant/50 px-6 py-6 md:px-10">
@@ -44,6 +48,26 @@ export function LegalPage({
         </h1>
         <p className="mt-2 text-sm text-ink-faint">{document.effectiveDateLabel}</p>
         <p className="mt-1 text-sm italic text-ink-faint">{document.languageNote}</p>
+
+        {update ? (
+          <aside className="mt-8 rounded-2xl border border-outline-variant/60 bg-surface p-6">
+            <h2 className="font-display text-base font-semibold text-ink">
+              {dict.legal.updateTitle.replace('{version}', update.version)}
+            </h2>
+            <p className="mt-1 text-xs text-ink-faint">
+              {dict.legal.updatePublished
+                .replace('{published}', formatLegalDate(update.publishedOn, lang))
+                .replace('{effective}', formatLegalDate(update.effectiveOn, lang))}
+            </p>
+            <ul className="mt-4 list-disc space-y-2 pl-5">
+              {update.summary[lang].map((point) => (
+                <li key={point} className="text-sm leading-relaxed text-ink-muted">
+                  {point}
+                </li>
+              ))}
+            </ul>
+          </aside>
+        ) : null}
 
         <div className="mt-10 space-y-10">
           {document.sections.map((section) => (

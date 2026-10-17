@@ -32,7 +32,8 @@
     "verification_approved": "You're verified",
     "verification_declined": "Verification declined",
     "verification_resubmission_required": "Verification needs an update",
-    "fallback": "Notification"
+    "fallback": "Notification",
+    "legal_update": "Our terms are changing"
   },
   "descriptions": {
     "booking_requested_one": "{{name}} wants to book {{count}} seat on your ride.",
@@ -54,7 +55,8 @@
     "verification_submitted": "We're reviewing your documents. No action is needed right now.",
     "verification_approved": "Your driver profile is verified. You can now publish rides.",
     "verification_declined": "Your verification wasn't approved. See the details in your profile.",
-    "verification_resubmission_required": "Please update your documents to continue verification."
+    "verification_resubmission_required": "Please update your documents to continue verification.",
+    "legal_update": "The Terms and Privacy Policy move to version {{version}}. Tap to see what's changing."
   },
   "driverRequest": {
     "newOnVaya": "New on VAYA",

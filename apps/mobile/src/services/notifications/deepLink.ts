@@ -42,6 +42,7 @@ export type NotificationDeepLinkType =
   | 'verification_approved'
   | 'verification_declined'
   | 'verification_resubmission_required'
+  | 'legal_update'
   | (string & {});
 
 const TRIPS = '/(tabs)/trips';
@@ -111,6 +112,9 @@ export function resolveNotificationDeepLink(
       return '/driver/onboarding/confirmation';
     case 'verification_resubmission_required':
       return '/driver/onboarding/resubmit';
+
+    case 'legal_update':
+      return '/legal/updates';
 
     default:
       return null;

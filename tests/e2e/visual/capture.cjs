@@ -15,7 +15,7 @@ const ROUTES = [
   ['19-driver-ride', '/driver/rides/r1'], ['20-booking-detail', '/bookings/b1'], ['21-conversation', '/conversations/b1'],
   ['22-composer', '/search/composer?field=destination'], ['23-trust', '/search/trust?rideId=rc1&driverUserId=u-d1'],
   ['25-confirmed', '/bookings/confirmed?bookingId=b2&driverName=Ines%20Mansouri&price=9&vehicleLabel=Clio&pickupLabel=Ariana&destinationLabel=Bizerte'],
-  ['26-pending', '/bookings/pending?bookingId=b1&driverName=Mehdi%20Jaziri&price=11&vehicleLabel=Golf%207&vehiclePlate=198%20TU%203301&driverRatingAvg=4.9'],
+  ['26-pending', '/bookings/pending?bookingId=b1&driverName=Mehdi%20Jaziri&price=11&vehicleLabel=Golf%207&driverRatingAvg=4.9'],
   ['27-pickup', '/bookings/pickup?bookingId=b1&driverName=Mehdi%20Jaziri&driverUserId=u-d1&price=11&vehicleLabel=Golf%207&pickupLabel=La%20Marsa'],
   ['28-live', '/bookings/live?bookingId=b1&driverName=Mehdi%20Jaziri&price=11&vehicleLabel=Golf%207&destinationLabel=Nabeul'],
   ['29-settlement', '/bookings/settlement?bookingId=b1&driverName=Mehdi%20Jaziri&price=11&destinationLabel=Nabeul'],

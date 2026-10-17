@@ -46,6 +46,7 @@ describe('resolveNotificationDeepLink', () => {
     expect(resolveNotificationDeepLink('demand_signal_matched')).toBe('/(tabs)/explore');
     expect(resolveNotificationDeepLink('verification_approved')).toBe('/driver/onboarding/confirmation');
     expect(resolveNotificationDeepLink('verification_resubmission_required')).toBe('/driver/onboarding/resubmit');
+    expect(resolveNotificationDeepLink('legal_update', { version: '2.1' })).toBe('/legal/updates');
   });
 
   it('falls back to "Mes trajets" when an id is missing, and null for an unknown type', () => {

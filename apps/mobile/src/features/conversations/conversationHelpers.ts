@@ -18,7 +18,30 @@ export function isOwnMessage(message: ConversationMessage, currentUserId: string
  *  discovering the 409 after a failed attempt. Undefined conversation
  *  (still loading) is treated as not-sendable, never optimistically open. */
 export function canSendMessage(conversation: Conversation | undefined): boolean {
-  return conversation?.status === 'open';
+  return conversation?.status === 'open' && conversation.composer !== 'awaiting_reply';
+}
+
+/**
+ * The composer's state right now. The server decides (`composer`, from
+ * @vaya/domain resolveMessageTurn); the only local correction is when the
+ * polled messages already show the driver's reply that the cached
+ * conversation doesn't know about yet — the passenger gets the turn back
+ * immediately instead of on the next conversation refetch. The server
+ * re-checks the turn on every send regardless.
+ */
+export function composerState(
+  conversation: Conversation | undefined,
+  messages: ConversationMessage[] | undefined,
+  currentUserId: string | undefined,
+): Conversation['composer'] {
+  if (!conversation) return 'closed';
+  if (conversation.status === 'closed') return 'closed';
+  const composer = conversation.composer ?? 'open';
+  const last = messages?.[messages.length - 1];
+  if (composer === 'awaiting_reply' && last && currentUserId && last.senderUserId !== currentUserId) {
+    return 'open';
+  }
+  return composer;
 }
 
 /** De-dupes and time-sorts messages across successive polling responses —

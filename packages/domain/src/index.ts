@@ -75,3 +75,4 @@ export * from './pricing/compute-suggested-price';
 export * from './pricing/default-pricing-config';
 
 export * from './conversation/conversation.types';
+export * from './conversation/message-turn';

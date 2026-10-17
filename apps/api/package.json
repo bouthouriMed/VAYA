@@ -21,7 +21,8 @@
     "email:test": "tsx scripts/email-test.ts",
     "worker": "tsx watch src/worker.ts",
     "worker:start": "tsx src/worker.ts",
-    "clean": "rm -rf dist node_modules"
+    "clean": "rm -rf dist node_modules",
+    "legal:notify": "tsx scripts/legal-notify.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1130.0",
@@ -38,6 +39,7 @@
     "@sentry/node": "^10.74.0",
     "@vaya/config": "workspace:*",
     "@vaya/domain": "workspace:*",
+    "@vaya/legal": "workspace:*",
     "@vaya/validation": "workspace:*",
     "bullmq": "^6.1.2",
     "dotenv": "^16.4.5",

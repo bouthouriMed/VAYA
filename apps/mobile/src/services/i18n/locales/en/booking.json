@@ -84,7 +84,9 @@
       "onMyWay": "On my way!",
       "runningLate": "Running a bit late",
       "thanks": "Thanks!"
-    }
+    },
+    "awaitingReplyTitle": "Message sent",
+    "awaitingReplyBody": "You can write again once {{name}} has replied."
   },
   "recurring": {
     "detectedTitle": "Recurring ride detected",
@@ -140,7 +142,8 @@
       "arriving": "Almost at your destination"
     },
     "loadError": "Couldn't load this booking",
-    "distanceToPickupFar": "Meeting point {{distance}} from your location"
+    "distanceToPickupFar": "Meeting point {{distance}} from your location",
+    "plateLocked": "Shown once accepted"
   },
   "days": {
     "mon": "Mon",

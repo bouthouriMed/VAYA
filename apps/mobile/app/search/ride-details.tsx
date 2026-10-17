@@ -46,6 +46,7 @@ import { decodePolyline, polylineDistanceKm, routeOrderFraction, sliceRouteBetwe
 import { useContextualAuth } from '../../src/features/auth/useContextualAuth';
 import { ContextualAuthSheet } from '../../src/features/auth/ContextualAuthSheet';
 import { ContactPhoneSheet } from '../../src/features/contact-phone/ContactPhoneSheet';
+import { RequestSeatSheet } from '../../src/features/bookings/RequestSeatSheet';
 import { useContactPhonePrompt } from '../../src/features/contact-phone/useContactPhonePrompt';
 import { formatCurrency, formatDate, formatTime } from '../../src/utils/localeFormat';
 import { fullPlaceLabel, shortenPlaceLabel } from '../../src/utils/placeLabel';
@@ -145,6 +146,7 @@ export default function RideDetailsScreen(): React.JSX.Element {
   const { data: stops } = useGetRideStopsQuery(rideId);
   const { data: passengers } = useListFellowPassengersQuery(rideId);
   const [createBooking, { isLoading: isBooking }] = useCreateBookingMutation();
+  const [requestSheetOpen, setRequestSheetOpen] = useState(false);
   // Guest-skipped (a signed-out browser has neither an identity nor
   // bookings to compare against) — both feed the two guards below: a rider
   // can't book their own published ride, and can't send a second request
@@ -318,16 +320,23 @@ export default function RideDetailsScreen(): React.JSX.Element {
     // active request for this ride must never be able to trigger a second
     // createBooking call regardless of how the tap reaches here.
     if (isOwnRide || existingBooking || !bookingPoints) return;
-    ensureContactPhone(() => void requestSeat(), 'booking');
+    setRequestSheetOpen(true);
   }
 
-  async function requestSeat(): Promise<void> {
+  // The request sheet's "Envoyer la demande": its optional message travels
+  // with the request and opens the conversation with the driver.
+  function submitRequest(message: string | undefined): void {
+    setRequestSheetOpen(false);
+    ensureContactPhone(() => void requestSeat(message), 'booking');
+  }
+
+  async function requestSeat(message?: string): Promise<void> {
     if (!bookingPoints) return;
     setBookingError(undefined);
     try {
       const booking = await createBooking({
         rideId,
-        input: { seatsRequested: 1, ...bookingPoints },
+        input: { seatsRequested: 1, ...bookingPoints, ...(message ? { message } : {}) },
       }).unwrap();
       haptics.success();
       void requestPushPermissionAndRegister((args) => registerPushToken(args).unwrap());
@@ -340,7 +349,6 @@ export default function RideDetailsScreen(): React.JSX.Element {
           vehicleLabel: profile!.driver?.vehicle
             ? `${profile!.driver.vehicle.make} ${profile!.driver.vehicle.model} ${profile!.driver.vehicle.color}`
             : '',
-          vehiclePlate: profile!.driver?.vehicle?.plateNumber ?? '',
           driverRatingAvg: profile!.driver ? String(profile!.driver.ratingAvg) : '',
           driverUserId,
           pickupLabel: booking.pickupLabel,
@@ -724,6 +732,17 @@ export default function RideDetailsScreen(): React.JSX.Element {
         </View>
       </Modal>
 
+      {profile ? (
+        <RequestSeatSheet
+          visible={requestSheetOpen}
+          driverName={profile.fullName}
+          driverAvatarUrl={profile.avatarUrl}
+          legLabel={`${shortenPlaceLabel(pickupPlace)} → ${shortenPlaceLabel(dropoffPlace)} · ${dayTitle} ${formatTime(pickupTime, locale)}`}
+          priceLabel={formatCurrency(ride.contributionPerSeat, locale)}
+          onClose={() => setRequestSheetOpen(false)}
+          onSubmit={submitRequest}
+        />
+      ) : null}
       <ContactPhoneSheet {...contactPhoneSheetProps} />
       <ContextualAuthSheet
         visible={isAuthSheetVisible}

@@ -84,7 +84,9 @@
       "onMyWay": "أنا في الطريق!",
       "runningLate": "أتأخر قليلاً",
       "thanks": "شكرًا!"
-    }
+    },
+    "awaitingReplyTitle": "تم إرسال الرسالة",
+    "awaitingReplyBody": "يمكنك الكتابة مجددًا بعد ردّ {{name}}."
   },
   "recurring": {
     "detectedTitle": "تم اكتشاف رحلة متكررة",
@@ -144,7 +146,8 @@
       "arriving": "أنت على وشك الوصول إلى وجهتك"
     },
     "loadError": "تعذّر تحميل هذا الحجز",
-    "distanceToPickupFar": "نقطة الالتقاء على بعد {{distance}} من موقعك"
+    "distanceToPickupFar": "نقطة الالتقاء على بعد {{distance}} من موقعك",
+    "plateLocked": "تظهر بعد القبول"
   },
   "days": {
     "mon": "اثنين",

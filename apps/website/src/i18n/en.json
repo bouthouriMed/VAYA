@@ -161,7 +161,9 @@
     "rights": "VAYA. All rights reserved."
   },
   "legal": {
-    "backToHome": "Back to VAYA"
+    "backToHome": "Back to VAYA",
+    "updateTitle": "What's changing in version {version}",
+    "updatePublished": "Published {published} · in force from {effective}"
   },
   "cinema": {
     "heroBeat1": "Real drivers, already on your road.",

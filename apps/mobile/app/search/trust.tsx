@@ -1,42 +1,76 @@
-import { useEffect } from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
+import { useEffect, useRef } from 'react';
+import { View, StyleSheet, ScrollView, Image, Animated, Easing } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { Text, Avatar, Icon, Button, ScreenHeader, StateView, useAppTheme, spacing, radii } from '@vaya/design-system';
+import {
+  Text,
+  Avatar,
+  Icon,
+  Button,
+  Chip,
+  FactRow,
+  RatingBreakdown,
+  VerificationSeal,
+  LicensePlate,
+  ScreenHeader,
+  SkeletonBlock,
+  StateView,
+  useAppTheme,
+  useReducedMotion,
+  spacing,
+  radii,
+  type Fact,
+  type VerificationCheck,
+  type IconName,
+} from '@vaya/design-system';
+import type { SupportedLocale } from '@vaya/config';
 import { router, useLocalSearchParams } from 'expo-router';
 import {
   useGetUserPublicProfileQuery,
   useGetUserTrustSummaryQuery,
   useGetConversationByBookingQuery,
+  useGetBookingVehicleQuery,
 } from '../../src/state/api';
 import { trackEvent } from '../../src/services/analytics/analytics';
+import { formatDate, formatNumber, toIntlTag } from '../../src/utils/localeFormat';
+import { buildTrustProfileModel, type TrustStat } from '../../src/features/search/trustProfileModel';
 
-// Real reliabilityScore threshold for the "Fiable" pill — chosen once here
-// rather than hardcoded inline so the rationale lives in one place: below
-// this, a driver isn't lying about being unreliable, but this screen
-// shouldn't actively vouch for them as a highlight either. Only ever
-// evaluated for a driver profile — GET /users/:id/public-profile has no
-// equivalent reliabilityScore field for a rider.
-const RELIABLE_THRESHOLD = 0.85;
+const AVATAR_SIZE = 112;
 
-/** Stitch's "Driver Profile," generalized into this app's one real "view
- *  someone's profile" screen — reached from search/results.tsx (rider
- *  viewing a driver, pre-booking) AND from RequestDetailSheet (a driver
- *  viewing a passenger who requested a seat). Real gap this closed: every
- *  stat/pill/verification section below was gated on `profile.driver`
- *  alone, so a passenger's own profile rendered as nothing more than an
- *  avatar and a first name — this reads whichever of `trustSummary.driver`/
- *  `trustSummary.rider` actually applies (GET /users/:id/trust-summary
- *  already computes both real TierAggregates for every user) rather than
- *  showing real data for one role and nothing at all for the other. What
- *  stays role-gated on purpose: KYC verification, bio, and vehicle are
- *  genuinely driver-only facts (riders never go through onboarding) — never
- *  fabricated for a rider just to fill the card.
+const TIER_ICON: Record<'new' | 'trusted' | 'top_rated', IconName> = {
+  new: 'sparkles',
+  trusted: 'shield-checkmark',
+  top_rated: 'ribbon',
+};
+const TIER_LABEL_KEY = {
+  new: 'search:trust.tierNew',
+  trusted: 'search:trust.tierTrusted',
+  top_rated: 'search:trust.tierTopRated',
+} as const;
+
+/**
+ * The one "view someone's profile" screen — a rider looking at a driver
+ * before booking (search/results.tsx, ride-details), and a driver looking
+ * at a passenger who asked for a seat (RequestDetailSheet, ride hub).
  *
- *  Messaging: enabled for real (not just re-labeled) once a conversation
- *  actually exists for the `bookingId` param — Phase 8 only ever creates
- *  one once a booking reaches `accepted`, so a still-pending request keeps
- *  the honest disabled state instead of linking into nothing. */
+ * Read top to bottom in the order a passenger decides: who is this and is
+ * VAYA vouching for them (hero), how much track record they have (the
+ * numbers, or a welcome when there is none yet), what VAYA checked, who
+ * they are in their own words, which car to look for, and finally how the
+ * ratings spread. No cards around everything — whitespace and small
+ * section labels carry the structure; only the content that needs a
+ * surface (the welcome, the car) gets one.
+ *
+ * What each section shows is decided by `buildTrustProfileModel` from real
+ * API data only: a number that doesn't exist yet is left out, never shown
+ * as "—"; "Vérifié" requires an admin-approved verification; comments stay
+ * private (counts only).
+ *
+ * Messaging is booking-scoped: enabled once a conversation really exists
+ * for `bookingId` (opened when the request is sent). The car's plate is
+ * shown only from an accepted booking with this driver (GET
+ * /bookings/:id/vehicle); otherwise a locked plate says when it appears.
+ */
 export default function TrustScreen(): React.JSX.Element {
   const { driverUserId, bookingId } = useLocalSearchParams<{
     rideId: string;
@@ -45,17 +79,42 @@ export default function TrustScreen(): React.JSX.Element {
   }>();
   const insets = useSafeAreaInsets();
   const { colors: theme } = useAppTheme();
-  const { t } = useTranslation(['search', 'common']);
+  const { t, i18n } = useTranslation(['search', 'common']);
+  const locale = i18n.language as SupportedLocale;
+  const reduceMotion = useReducedMotion();
+  const reveal = useRef(new Animated.Value(0)).current;
 
   const { data: profile, isLoading: isProfileLoading } = useGetUserPublicProfileQuery(driverUserId);
-  const { data: trustSummary } = useGetUserTrustSummaryQuery(driverUserId);
+  const { data: trustSummary, isLoading: isSummaryLoading } = useGetUserTrustSummaryQuery(driverUserId);
   const { data: conversation } = useGetConversationByBookingQuery(bookingId ?? '', { skip: !bookingId });
+  // The plate is private until the driver accepts (server-enforced, like the
+  // phone number). Only asked for when the person shown is this booking's
+  // driver — a passenger who also drives must never show their own car here.
+  const isBookingDriver = conversation?.otherPartyRole === 'driver';
+  const { data: bookingVehicle } = useGetBookingVehicleQuery(bookingId ?? '', {
+    skip: !bookingId || !isBookingDriver,
+  });
 
   useEffect(() => {
     if (trustSummary?.driver) {
       trackEvent('trust_tier_shown', { screen: 'trust', tier: trustSummary.driver.tier });
     }
   }, [trustSummary]);
+
+  const ready = Boolean(profile);
+  useEffect(() => {
+    if (!ready) return;
+    if (reduceMotion) {
+      reveal.setValue(1);
+      return;
+    }
+    Animated.timing(reveal, {
+      toValue: 1,
+      duration: 420,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+  }, [ready, reduceMotion, reveal]);
 
   const header = (
     <ScreenHeader
@@ -85,289 +144,263 @@ export default function TrustScreen(): React.JSX.Element {
     );
   }
 
+  const model = buildTrustProfileModel(profile, trustSummary);
   const firstName = profile.fullName.split(' ')[0]!;
-  const driverStats = profile.driver;
-  const isDriverProfile = driverStats != null;
-  // Whichever real TierAggregate actually applies to the profile being
-  // viewed — GET /users/:id/trust-summary computes both roles for every
-  // user, so a rider being viewed still has real tier/rating/trip data,
-  // not just whatever happens to sit on `trustSummary.driver`.
-  const relevantTier = isDriverProfile ? trustSummary?.driver : trustSummary?.rider;
-  const hasStats = isDriverProfile ? true : relevantTier != null;
-  const isTopRated = relevantTier?.tier === 'top_rated';
-  const isNewTier = relevantTier?.tier === 'new';
-  // reliabilityScore only exists on a driver's public profile — never
-  // fabricated for a rider, who simply never gets this pill.
-  const isReliable = isDriverProfile && (driverStats?.reliabilityScore ?? 0) >= RELIABLE_THRESHOLD;
-  // tripCount === 0 alone determines the brand-new experience. For a driver
-  // this comes straight from the public profile (available immediately, no
-  // flash while trust-summary loads); a rider has no equivalent field on
-  // the public profile, so it waits on the real trust-summary tripCount
-  // instead of guessing.
-  const tripCount = isDriverProfile ? (driverStats?.tripCount ?? 0) : (relevantTier?.tripCount ?? 0);
-  const isBrandNew = hasStats && tripCount === 0;
-  const ratingValue = isDriverProfile ? (driverStats?.ratingAvg ?? 0) : (relevantTier?.ratingAvg ?? 0);
-  const ratingLabel = ratingValue > 0 ? ratingValue.toFixed(1) : '—';
+  const driver = profile.driver;
+  const memberSince = formatDate(new Date(profile.memberSince), locale, { month: 'short', year: 'numeric' });
+  const ratingLabel = new Intl.NumberFormat(toIntlTag(locale), {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  }).format(model.ratingAvg);
   const canMessage = Boolean(conversation);
+
+  const roleLine =
+    model.kind === 'rider'
+      ? t('search:trust.roleRider')
+      : model.verified
+        ? t('search:trust.roleDriverVerified')
+        : t('search:trust.roleDriverPending');
+  const subtitle = [roleLine, model.tenureInHeader ? t('search:trust.memberSince', { date: memberSince }) : null]
+    .filter(Boolean)
+    .join(' · ');
+
+  function statFact(stat: TrustStat): Fact {
+    switch (stat) {
+      case 'rating':
+        return {
+          value: ratingLabel,
+          icon: 'star',
+          caption: `${formatNumber(model.ratingCount, locale)} ${t('search:trust.reviewsCaption', { count: model.ratingCount })}`,
+        };
+      case 'trips':
+        return { value: formatNumber(model.tripCount, locale), caption: t('search:trust.tripsCaption', { count: model.tripCount }) };
+      case 'punctuality':
+        return { value: `${Math.round((model.punctuality ?? 0) * 100)} %`, caption: t('search:trust.punctualityCaption') };
+      case 'tenure':
+        return { value: memberSince, caption: t('search:trust.memberSinceCaption') };
+    }
+  }
+
+  const sealChecks: VerificationCheck[] = [
+    { icon: 'person-outline', label: t('search:trust.sealIdentity') },
+    { icon: 'card-outline', label: t('search:trust.sealLicense') },
+    ...(driver?.vehicle ? [{ icon: 'car-sport-outline' as IconName, label: t('search:trust.sealVehicle') }] : []),
+  ];
+
+  // The driver's numbers come with the public profile, but the rating
+  // count/breakdown arrive with the trust summary — hold the strip's
+  // place instead of letting it jump in a beat later.
+  const statsLoading = isSummaryLoading && !trustSummary && !model.isNew;
 
   function openConversation(): void {
     if (!bookingId) return;
     router.push(`/conversations/${bookingId}`);
   }
 
+  const sectionTitle = (label: string) => (
+    <Text variant="caption" color={theme.inkFaint} style={styles.sectionTitle}>
+      {label}
+    </Text>
+  );
+
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       {header}
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <View style={styles.identity}>
-          <View style={styles.avatarWrap}>
-            <Avatar
-              uri={profile.avatarUrl}
-              name={profile.fullName}
-              sizePx={104}
-              style={{ borderWidth: 3, borderColor: theme.surface }}
-            />
-            {driverStats ? (
-              <View style={[styles.verifiedBadge, { backgroundColor: theme.accent, borderColor: theme.surface }]}>
-                <Icon name="checkmark" size="xs" color={theme.onAccent} />
-              </View>
-            ) : null}
-          </View>
-          <View style={styles.nameRow}>
-            <Text variant="h2" color={theme.ink}>
+        <Animated.View
+          style={[
+            styles.content,
+            {
+              opacity: reveal,
+              transform: [{ translateY: reveal.interpolate({ inputRange: [0, 1], outputRange: [12, 0] }) }],
+            },
+          ]}
+        >
+          {/* Hero — who, and whether VAYA vouches for them. */}
+          <View style={styles.hero}>
+            <View
+              style={[
+                styles.avatarRing,
+                { borderColor: model.verified ? theme.accent : theme.outlineVariant },
+              ]}
+            >
+              <Avatar uri={profile.avatarUrl} name={profile.fullName} sizePx={AVATAR_SIZE} />
+              {model.verified ? (
+                <View
+                  accessible
+                  accessibilityRole="image"
+                  accessibilityLabel={t('search:trust.verifiedA11y')}
+                  style={[styles.verifiedBadge, { backgroundColor: theme.accent, borderColor: theme.background }]}
+                >
+                  <Icon name="checkmark" size="sm" color={theme.onAccent} />
+                </View>
+              ) : null}
+            </View>
+
+            <Text variant="displaySmall" color={theme.ink} align="center" accessibilityRole="header">
               {firstName}
             </Text>
-            {driverStats ? (
-              <View style={[styles.verifiedPill, { backgroundColor: theme.surfaceMuted }]}>
-                <Icon name="shield-checkmark" size="xs" color={theme.inkMuted} />
-                <Text variant="caption" color={theme.inkMuted}>
-                  {t('search:trust.verified')}
+            <Text variant="bodySmall" color={theme.inkMuted} align="center">
+              {subtitle}
+            </Text>
+
+            {model.tier || model.reliable ? (
+              <View style={styles.chips}>
+                {model.tier ? (
+                  <Chip
+                    label={t(TIER_LABEL_KEY[model.tier])}
+                    tone={model.tier === 'new' ? 'dim' : 'default'}
+                    icon={<Icon name={TIER_ICON[model.tier]} size="xs" color={theme.accentStrong} />}
+                  />
+                ) : null}
+                {model.reliable ? (
+                  <Chip
+                    label={t('search:trust.reliable')}
+                    icon={<Icon name="thumbs-up" size="xs" color={theme.accentStrong} />}
+                  />
+                ) : null}
+              </View>
+            ) : null}
+
+            {driver?.languages && driver.languages.length > 0 ? (
+              <View style={styles.languages}>
+                <Icon name="language-outline" size="xs" color={theme.inkFaint} />
+                <Text variant="caption" color={theme.inkFaint}>
+                  {t('search:trust.speaks', { languages: driver.languages.join(', ') })}
                 </Text>
               </View>
             ) : null}
           </View>
-          {driverStats?.languages && driverStats.languages.length > 0 ? (
-            <Text variant="bodySmall" color={theme.inkFaint}>
-              {t('search:trust.speaks', { languages: driverStats.languages.join(', ') })}
-            </Text>
+
+          {/* Track record — or a welcome when there isn't one yet. */}
+          {statsLoading ? (
+            <SkeletonBlock height={64} radius="lg" />
+          ) : model.stats.length > 0 ? (
+            <View style={[styles.statsBand, { borderColor: theme.outlineVariant }]}>
+              <FactRow size="lg" facts={model.stats.map(statFact)} />
+            </View>
           ) : null}
-        </View>
 
-        {hasStats && !isBrandNew ? (
-          <View style={styles.statsRow}>
-            <View style={[styles.statTile, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
-              <View style={styles.statValueRow}>
-                <Text variant="h3" color={theme.ink}>
-                  {ratingLabel}
-                </Text>
-                <Icon name="star" size="xs" color={theme.accent} />
-              </View>
-              <Text variant="caption" color={theme.inkFaint}>
-                {t('search:trust.ratingLabel')}
-              </Text>
-            </View>
-            <View style={[styles.statTile, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
-              <Text variant="h3" color={theme.ink}>
-                {tripCount}
-              </Text>
-              <Text variant="caption" color={theme.inkFaint}>
-                {t('search:trust.tripsLabel')}
-              </Text>
-            </View>
-          </View>
-        ) : null}
-
-        {isBrandNew ? (
-          <View
-            style={[
-              styles.welcomeCard,
-              { backgroundColor: theme.accent + '12', borderColor: theme.accent + '38' },
-            ]}
-          >
-            <View style={styles.welcomeTitleRow}>
-              <View style={[styles.welcomeIconWrap, { backgroundColor: theme.accent }]}>
+          {model.isNew ? (
+            <View style={[styles.welcome, { backgroundColor: theme.accentGlow + '40' }]}>
+              <View style={[styles.welcomeIcon, { backgroundColor: theme.accent }]}>
                 <Icon name="sparkles" size="sm" color={theme.onAccent} />
               </View>
-              <Text variant="label" color={theme.ink}>
-                {t('search:trust.welcomeTitle', { name: firstName })}
-              </Text>
-            </View>
-            <Text variant="bodySmall" color={theme.inkMuted}>
-              {isDriverProfile
-                ? t('search:trust.welcomeDescription')
-                : t('search:trust.welcomeDescriptionRider')}
-            </Text>
-            <View style={styles.encourageRow}>
-              <Icon name="heart" size="xs" color={theme.accent} />
-              <Text variant="bodySmall" color={theme.ink}>
-                {isDriverProfile
-                  ? t('search:trust.welcomeEncourage', { name: firstName })
-                  : t('search:trust.welcomeEncourageRider', { name: firstName })}
-              </Text>
-            </View>
-          </View>
-        ) : null}
-
-        {hasStats ? (
-          <View style={styles.pillsRow}>
-            {isNewTier ? (
-              <View style={[styles.pill, { backgroundColor: theme.surfaceMuted }]}>
-                <Icon name="sparkles" size="xs" color={theme.accent} />
-                <Text variant="bodySmall" color={theme.ink}>
-                  {t('search:trust.pillNew')}
+              <View style={styles.welcomeText}>
+                <Text variant="label" color={theme.ink}>
+                  {t('search:trust.welcomeTitle', { name: firstName })}
                 </Text>
-              </View>
-            ) : null}
-            {isReliable ? (
-              <View style={[styles.pill, { backgroundColor: theme.surfaceMuted }]}>
-                <Icon name="thumbs-up" size="xs" color={theme.accent} />
-                <Text variant="bodySmall" color={theme.ink}>
-                  {t('search:trust.pillReliable')}
-                </Text>
-              </View>
-            ) : null}
-            {isTopRated ? (
-              <View style={[styles.pill, { backgroundColor: theme.surfaceMuted }]}>
-                <Icon name="ribbon-outline" size="xs" color={theme.accent} />
-                <Text variant="bodySmall" color={theme.ink}>
-                  {t('search:trust.pillTopRated')}
-                </Text>
-              </View>
-            ) : null}
-          </View>
-        ) : null}
-
-        {driverStats ? (
-          <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
-            <View style={styles.cardTitleRow}>
-              <Icon name="shield-checkmark-outline" size="sm" color={theme.accent} />
-              <Text variant="label" color={theme.ink}>
-                {t('search:trust.verificationsTitle')}
-              </Text>
-            </View>
-            <View style={styles.verifyRow}>
-              <Icon name="person-circle-outline" size="sm" color={theme.accent} />
-              <Text variant="bodySmall" color={theme.inkMuted}>
-                {t('search:trust.verificationIdentity')}
-              </Text>
-            </View>
-            <View style={styles.verifyRow}>
-              <Icon name="document-text-outline" size="sm" color={theme.accent} />
-              <Text variant="bodySmall" color={theme.inkMuted}>
-                {t('search:trust.verificationDocuments')}
-              </Text>
-            </View>
-            {driverStats.vehicle ? (
-              <View style={styles.verifyRow}>
-                <Icon name="car-sport-outline" size="sm" color={theme.accent} />
                 <Text variant="bodySmall" color={theme.inkMuted}>
-                  {t('search:trust.verificationVehicle')}
+                  {/* "Profil vérifié" only when it's true — a driver under review gets the neutral line. */}
+                  {model.verified ? t('search:trust.welcomeBodyDriver') : t('search:trust.welcomeBodyRider')}
                 </Text>
               </View>
-            ) : null}
-          </View>
-        ) : null}
+            </View>
+          ) : null}
 
-        {driverStats?.bio ? (
-          <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
-            <View style={styles.cardTitleRow}>
-              <Icon name="information-circle-outline" size="sm" color={theme.inkFaint} />
-              <Text variant="label" color={theme.ink}>
-                {t('search:trust.aboutTitle', { name: firstName })}
+          {/* What VAYA checked — the strongest signal a new driver has. */}
+          {model.verified ? (
+            <View style={styles.section}>
+              {sectionTitle(t('search:trust.verifiedByVaya'))}
+              <VerificationSeal
+                checks={sealChecks}
+                accessibilityLabel={t('search:trust.sealA11y', { checks: sealChecks.map((c) => c.label).join(', ') })}
+              />
+            </View>
+          ) : model.verificationPending ? (
+            <View style={[styles.pendingRow, { backgroundColor: theme.warningMuted }]}>
+              <Icon name="time-outline" size="sm" color={theme.warning} />
+              <Text variant="bodySmall" color={theme.ink} style={styles.flex}>
+                {t('search:trust.verificationPending', { name: firstName })}
               </Text>
             </View>
-            <Text variant="bodySmall" color={theme.inkMuted}>
-              {driverStats.bio}
-            </Text>
-          </View>
-        ) : null}
+          ) : null}
 
-        {driverStats?.vehicle ? (
-          <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
-            <View style={styles.cardTitleRow}>
-              <Icon name="car-sport-outline" size="sm" color={theme.inkFaint} />
-              <Text variant="label" color={theme.ink}>
-                {t('common:terms.vehicle')}
-              </Text>
-            </View>
-            <View style={styles.vehicleRow}>
-              <View>
-                <Text variant="body" color={theme.ink} style={styles.vehicleName}>
-                  {driverStats.vehicle.color} {driverStats.vehicle.make} {driverStats.vehicle.model}
+          {driver?.bio ? (
+            <View style={styles.section}>
+              {sectionTitle(t('search:trust.aboutTitle'))}
+              <View style={[styles.quote, { borderStartColor: theme.accentGlow }]}>
+                <Text variant="body" color={theme.ink}>
+                  {driver.bio}
                 </Text>
-                <View style={[styles.platePill, { backgroundColor: theme.background, borderColor: theme.outlineVariant }]}>
-                  <Text variant="caption" color={theme.inkMuted} style={styles.plateText}>
-                    {driverStats.vehicle.plateNumber}
-                  </Text>
-                </View>
-              </View>
-              <View style={[styles.vehicleIconWrap, { backgroundColor: theme.background, borderColor: theme.outlineVariant }]}>
-                <Icon name="car-sport" size="lg" color={theme.inkFaint} />
               </View>
             </View>
-          </View>
-        ) : null}
+          ) : null}
 
-        {driverStats ? (
-          <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
-            <View style={styles.cardTitleRow}>
-              <Icon name="chatbubble-ellipses-outline" size="sm" color={theme.inkFaint} />
-              <Text variant="label" color={theme.ink} style={styles.reviewsTitle}>
-                {t('search:trust.reviewsTitle')}
-              </Text>
-            </View>
-            {tripCount > 0 ? (
-              <>
-                <View style={styles.reviewStatsRow}>
-                  <View style={styles.reviewStat}>
-                    <Icon name="star" size="xs" color={theme.accent} />
-                    <Text variant="label" color={theme.ink}>
-                      {ratingLabel}
+          {driver?.vehicle ? (
+            <View style={styles.section}>
+              {sectionTitle(t('search:trust.vehicleTitle'))}
+              <View style={[styles.vehicle, { backgroundColor: theme.surface, borderColor: theme.outlineVariant }]}>
+                {driver.vehicle.photoUrl ? (
+                  <Image
+                    source={{ uri: driver.vehicle.photoUrl }}
+                    accessibilityRole="image"
+                    accessibilityLabel={t('search:trust.vehiclePhotoA11y')}
+                    style={[styles.vehiclePhoto, { backgroundColor: theme.surfaceMuted }]}
+                    resizeMode="cover"
+                  />
+                ) : null}
+                <View style={styles.vehicleBody}>
+                  {driver.vehicle.photoUrl ? null : (
+                    <View style={[styles.vehicleIcon, { backgroundColor: theme.surfaceMuted }]}>
+                      <Icon name="car-sport" size="md" color={theme.inkMuted} />
+                    </View>
+                  )}
+                  <View style={styles.vehicleText}>
+                    <Text variant="title" color={theme.ink} numberOfLines={2}>
+                      {`${driver.vehicle.make} ${driver.vehicle.model}`}
                     </Text>
                     <Text variant="bodySmall" color={theme.inkMuted}>
-                      {t('search:trust.ratingLabel')}
+                      {driver.vehicle.color}
+                    </Text>
+                    <View style={styles.plateRow}>
+                      <LicensePlate
+                        plate={bookingVehicle?.plateNumber}
+                        lockedLabel={t('search:trust.plateLocked')}
+                        accessibilityLabel={
+                          bookingVehicle
+                            ? t('search:trust.plateA11y', { plate: bookingVehicle.plateNumber })
+                            : t('search:trust.plateLockedA11y')
+                        }
+                      />
+                    </View>
+                  </View>
+                </View>
+              </View>
+            </View>
+          ) : null}
+
+          {model.reviews !== 'none' ? (
+            <View style={styles.section}>
+              {sectionTitle(t('search:trust.reviewsTitle'))}
+              {model.reviews === 'breakdown' ? (
+                <>
+                  <RatingBreakdown
+                    average={model.ratingAvg}
+                    averageLabel={ratingLabel}
+                    countLabel={`${formatNumber(model.ratingCount, locale)} ${t('search:trust.reviewsCaption', { count: model.ratingCount })}`}
+                    starCounts={model.starCounts}
+                    accessibilityLabel={t('search:trust.reviewsA11y', { average: ratingLabel, count: model.ratingCount })}
+                  />
+                  <View style={styles.privacyRow}>
+                    <Icon name="lock-closed-outline" size="xs" color={theme.inkFaint} />
+                    <Text variant="caption" color={theme.inkFaint} style={styles.flex}>
+                      {t('search:trust.reviewsPrivate')}
                     </Text>
                   </View>
-                  {relevantTier ? (
-                    <View style={styles.reviewStat}>
-                      <Icon name="time-outline" size="xs" color={theme.accent} />
-                      <Text variant="label" color={theme.ink}>
-                        {`${Math.round(relevantTier.punctualityScore * 100)} %`}
-                      </Text>
-                      <Text variant="bodySmall" color={theme.inkMuted}>
-                        {t('search:trust.punctualityLabel')}
-                      </Text>
-                    </View>
-                  ) : null}
-                </View>
-                <Text variant="bodySmall" color={theme.inkFaint}>
-                  {t('search:trust.reviewsPrivate')}
-                </Text>
-              </>
-            ) : (
-              <>
+                </>
+              ) : (
                 <Text variant="bodySmall" color={theme.inkMuted}>
                   {t('search:trust.reviewsEmpty', { name: firstName })}
                 </Text>
-                <Text variant="bodySmall" color={theme.accent} style={styles.firstReviewLine}>
-                  {t('search:trust.reviewsFirstLine')}
-                </Text>
-              </>
-            )}
-          </View>
-        ) : null}
-
-        <View style={styles.scrollSpacer} />
+              )}
+            </View>
+          ) : null}
+        </Animated.View>
       </ScrollView>
 
-      <View style={[styles.footer, { backgroundColor: theme.surface, borderTopColor: theme.outlineVariant, paddingBottom: insets.bottom + spacing.sm }]}>
-        {/* Messaging is booking-scoped (Phase 8) — a conversation is only
-         *  created once a booking this screen was opened from actually
-         *  reaches `accepted`. `canMessage` is a real, queried fact (GET
-         *  /conversations/:bookingId), not a guess from booking status —
-         *  once it's true this is a genuine working entry into that
-         *  conversation, never just a re-labeled dead button. */}
+      <View style={[styles.footer, { backgroundColor: theme.background, borderTopColor: theme.outlineVariant, paddingBottom: insets.bottom + spacing.sm }]}>
         <Button
           size="lg"
           icon="chatbubble-outline"
@@ -377,7 +410,7 @@ export default function TrustScreen(): React.JSX.Element {
         />
         {!canMessage ? (
           <Text variant="caption" color={theme.inkFaint} align="center">
-            {isDriverProfile ? t('search:trust.messageAvailability') : t('search:trust.messageAvailabilityDriver')}
+            {model.kind === 'driver' ? t('search:trust.messageAvailability') : t('search:trust.messageAvailabilityDriver')}
           </Text>
         ) : null}
       </View>
@@ -389,159 +422,130 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  flex: {
+    flex: 1,
+  },
   scrollContent: {
-    padding: spacing.lg,
-    gap: spacing.md,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
+    paddingBottom: spacing['2xl'],
   },
-  identity: {
+  content: {
+    gap: spacing.xl,
+  },
+  hero: {
     alignItems: 'center',
-    gap: spacing.sm,
+    gap: spacing.xs,
   },
-  avatarWrap: {
-    position: 'relative',
+  avatarRing: {
+    padding: 4,
+    borderWidth: 2,
+    borderRadius: AVATAR_SIZE / 2 + 6,
+    marginBottom: spacing.sm,
   },
   verifiedBadge: {
     position: 'absolute',
-    bottom: 0,
-    right: 0,
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    borderWidth: 2,
+    bottom: 2,
+    right: 2,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    borderWidth: 3,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  nameRow: {
+  chips: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  verifiedPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    borderRadius: radii.full,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-  },
-  welcomeCard: {
-    borderRadius: radii.xl,
-    borderWidth: 1,
-    padding: spacing.lg,
-    gap: spacing.sm,
-  },
-  welcomeTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  welcomeIconWrap: {
-    width: 32,
-    height: 32,
-    borderRadius: radii.full,
-    alignItems: 'center',
+    flexWrap: 'wrap',
     justifyContent: 'center',
+    gap: spacing.sm,
+    marginTop: spacing.sm,
   },
-  encourageRow: {
+  languages: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     gap: spacing.xs,
     marginTop: spacing.xs,
   },
-  statTile: {
-    flex: 1,
-    alignItems: 'center',
-    gap: spacing.xs,
-    borderRadius: radii.xl,
-    borderWidth: 1,
+  statsBand: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderBottomWidth: StyleSheet.hairlineWidth,
     paddingVertical: spacing.md,
   },
-  statValueRow: {
+  welcome: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  pillsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
-  },
-  pill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-    borderRadius: radii.full,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-  },
-  card: {
+    alignItems: 'flex-start',
+    gap: spacing.md,
     borderRadius: radii.xl,
-    borderWidth: 1,
-    padding: spacing.md,
-    gap: spacing.sm,
+    padding: spacing.lg,
   },
-  cardTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-  },
-  reviewsTitle: {
-    flex: 1,
-  },
-  reviewStatsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.lg,
-  },
-  reviewStat: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-  },
-  firstReviewLine: {
-    fontWeight: '600',
-  },
-  verifyRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  vehicleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  vehicleName: {
-    fontWeight: '600',
-  },
-  platePill: {
-    marginTop: spacing.xs,
-    alignSelf: 'flex-start',
-    borderRadius: radii.sm,
-    borderWidth: 1,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
-  },
-  plateText: {
-    letterSpacing: 1.5,
-  },
-  vehicleIconWrap: {
-    width: 56,
-    height: 56,
-    borderRadius: radii.lg,
-    borderWidth: 1,
+  welcomeIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: radii.full,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  scrollSpacer: {
-    height: 100,
+  welcomeText: {
+    flex: 1,
+    gap: spacing.xs,
+  },
+  section: {
+    gap: spacing.md,
+  },
+  sectionTitle: {
+    textTransform: 'uppercase',
+    letterSpacing: 1.2,
+    fontWeight: '600',
+  },
+  pendingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    borderRadius: radii.lg,
+    padding: spacing.md,
+  },
+  quote: {
+    borderStartWidth: 3,
+    paddingStart: spacing.md,
+  },
+  vehicle: {
+    borderRadius: radii.xl,
+    borderWidth: StyleSheet.hairlineWidth,
+    overflow: 'hidden',
+  },
+  vehiclePhoto: {
+    width: '100%',
+    aspectRatio: 16 / 9,
+  },
+  vehicleBody: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    padding: spacing.md,
+  },
+  vehicleIcon: {
+    alignSelf: 'flex-start',
+    width: 48,
+    height: 48,
+    borderRadius: radii.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  vehicleText: {
+    flex: 1,
+    gap: 2,
+  },
+  plateRow: {
+    marginTop: spacing.sm,
+  },
+  privacyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
   },
   footer: {
-    borderTopWidth: 1,
+    borderTopWidth: StyleSheet.hairlineWidth,
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,
     gap: spacing.sm,
