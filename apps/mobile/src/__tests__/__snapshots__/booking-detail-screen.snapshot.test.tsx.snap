@@ -1176,7 +1176,7 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
           />
         </TouchableOpacity>
         <View
-          accessibilityLabel="common:terms.vehicle: Peugeot 301, Noire, 210TU3344"
+          accessibilityLabel="common:terms.vehicle: Peugeot 301, Noire"
           accessible={true}
           style={
             [
@@ -1224,20 +1224,52 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
             Peugeot 301, Noire
           </Text>
           <View
+            accessibilityLabel="search:trust.plateA11y"
+            accessibilityRole="text"
+            accessible={true}
             style={
               [
                 {
+                  "alignItems": "center",
+                  "alignSelf": "flex-start",
                   "borderRadius": 4,
-                  "borderWidth": 1.5,
-                  "paddingHorizontal": 8,
-                  "paddingVertical": 2,
+                  "borderWidth": 1,
+                  "direction": "ltr",
+                  "flexDirection": "row",
+                  "gap": 8,
+                  "paddingHorizontal": 12,
+                  "paddingVertical": 4,
                 },
                 {
-                  "borderColor": "#14201B",
+                  "backgroundColor": "#14201B",
+                  "borderColor": "#CCD5CD",
                 },
               ]
             }
           >
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 14,
+                    "fontWeight": "500",
+                    "lineHeight": 21,
+                  },
+                  null,
+                  {
+                    "color": "#F4F6F2",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  {
+                    "fontWeight": "700",
+                    "letterSpacing": 1,
+                  },
+                ]
+              }
+            >
+              214
+            </Text>
             <Text
               style={
                 [
@@ -1248,21 +1280,40 @@ exports[`bookings/[bookingId].tsx snapshots > accepted booking — real driver c
                   },
                   null,
                   {
-                    "color": "#14201B",
+                    "color": "#F4F6F2",
                     "textAlign": undefined,
                     "writingDirection": "ltr",
                   },
                   {
-                    "fontVariant": [
-                      "tabular-nums",
-                    ],
-                    "fontWeight": "700",
-                    "letterSpacing": 0.5,
+                    "fontWeight": "600",
                   },
                 ]
               }
             >
-              210TU3344
+              تونس
+            </Text>
+            <Text
+              style={
+                [
+                  {
+                    "fontSize": 14,
+                    "fontWeight": "500",
+                    "lineHeight": 21,
+                  },
+                  null,
+                  {
+                    "color": "#F4F6F2",
+                    "textAlign": undefined,
+                    "writingDirection": "ltr",
+                  },
+                  {
+                    "fontWeight": "700",
+                    "letterSpacing": 1,
+                  },
+                ]
+              }
+            >
+              5521
             </Text>
           </View>
         </View>

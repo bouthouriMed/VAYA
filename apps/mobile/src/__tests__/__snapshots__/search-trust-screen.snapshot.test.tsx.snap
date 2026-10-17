@@ -2517,7 +2517,7 @@ exports[`search/trust.tsx snapshots > renders a driver with trips but no review 
             </Text>
           </View>
           <View
-            accessibilityLabel="Mar 2025 search:trust.memberSinceCaption"
+            accessibilityLabel="mars 2025 search:trust.memberSinceCaption"
             accessible={true}
             style={
               [
@@ -2563,7 +2563,7 @@ exports[`search/trust.tsx snapshots > renders a driver with trips but no review 
                   ]
                 }
               >
-                Mar 2025
+                mars 2025
               </Text>
             </View>
             <Text
@@ -3655,7 +3655,7 @@ exports[`search/trust.tsx snapshots > renders a passenger profile with real ride
           }
         >
           <View
-            accessibilityLabel="4.3 7 search:trust.reviewsCaption"
+            accessibilityLabel="4,3 7 search:trust.reviewsCaption"
             accessible={true}
             style={
               [
@@ -3698,7 +3698,7 @@ exports[`search/trust.tsx snapshots > renders a passenger profile with real ride
                   ]
                 }
               >
-                4.3
+                4,3
               </Text>
               <Ionicons
                 accessibilityElementsHidden={true}
@@ -3947,7 +3947,7 @@ exports[`search/trust.tsx snapshots > renders a passenger profile with real ride
                 ]
               }
             >
-              4.3
+              4,3
             </Text>
             <View
               style={
@@ -4923,7 +4923,7 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
           }
         >
           <View
-            accessibilityLabel="4.7 96 search:trust.reviewsCaption"
+            accessibilityLabel="4,7 96 search:trust.reviewsCaption"
             accessible={true}
             style={
               [
@@ -4966,7 +4966,7 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
                   ]
                 }
               >
-                4.7
+                4,7
               </Text>
               <Ionicons
                 accessibilityElementsHidden={true}
@@ -5804,7 +5804,7 @@ exports[`search/trust.tsx snapshots > renders a verified driver profile with rea
                 ]
               }
             >
-              4.7
+              4,7
             </Text>
             <View
               style={
